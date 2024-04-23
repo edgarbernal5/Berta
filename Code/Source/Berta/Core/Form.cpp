@@ -3,5 +3,8 @@
 
 namespace berta
 {
+	Form::Form(const Rectangle& rectangle)
+	{
 
+	}
 }

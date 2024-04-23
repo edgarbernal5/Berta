@@ -136,7 +136,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta\Core\Form.h" />
+    <ClInclude Include="Source\Berta\Core\BasicTypes.h" />
     <ClInclude Include="Source\btpch.h" />
+    <ClInclude Include="Source\Berta\Core\Widget.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\Core\Form.cpp" />
