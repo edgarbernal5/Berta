@@ -1,0 +1,22 @@
+#include "btpch.h"
+#include "Base.h"
+
+#define BERTA_BUILD_ID "v0.1"
+
+namespace Berta
+{
+	void InitializeCore()
+	{
+		Log::Initialize();
+
+		BT_CORE_TRACE << "Berta Framework " << BERTA_BUILD_ID << std::endl;
+		BT_CORE_TRACE << "Initializing..." << std::endl;
+	}
+
+	void ShutdownCore()
+	{
+		BT_CORE_TRACE << "Shutting down... " << std::endl;
+
+		Log::Shutdown();
+	}
+}

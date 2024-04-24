@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-namespace berta
+namespace Berta
 {
 	struct Rectangle
 	{
