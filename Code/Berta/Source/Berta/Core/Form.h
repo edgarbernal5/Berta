@@ -1,5 +1,10 @@
 #ifndef BERTA_FORM_HEADER
 #define BERTA_FORM_HEADER
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
 
 #include <Windows.h>
 #include <string>

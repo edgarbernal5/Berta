@@ -1,4 +1,11 @@
-#pragma once
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
+#ifndef BERTA_PCH_HEADER
+#define BERTA_PCH_HEADER
 
 #ifdef BT_PLATFORM_WINDOWS
 
@@ -8,5 +15,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#endif
 
 #endif

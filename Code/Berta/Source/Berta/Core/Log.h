@@ -1,3 +1,9 @@
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
 #ifndef BERTA_LOG_HEADER
 #define BERTA_LOG_HEADER
 
