@@ -1,6 +1,6 @@
 
-#ifndef BERTA_BASIC_TYPES_HPP
-#define BERTA_BASIC_TYPES_HPP
+#ifndef BERTA_BASIC_TYPES_HEADER
+#define BERTA_BASIC_TYPES_HEADER
 
 #include <cstdint>
 
