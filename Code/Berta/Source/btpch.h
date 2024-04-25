@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BERTA_PCH_HEADER
-#define BERTA_PCH_HEADER
+#ifndef BT_PCH_HEADER
+#define BT_PCH_HEADER
 
 #ifdef BT_PLATFORM_WINDOWS
 

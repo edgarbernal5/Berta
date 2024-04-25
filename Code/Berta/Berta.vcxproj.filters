@@ -4,7 +4,16 @@
     <Filter Include="Source">
       <UniqueIdentifier>{a8381419-eee9-4cf0-b585-52aeb27941a0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Core">
+    <Filter Include="Source\Berta">
+      <UniqueIdentifier>{926b3b87-5e8d-412e-bcf7-cc3c253a8cfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\Platform">
+      <UniqueIdentifier>{24ef314e-87fa-4642-8062-a1622b84021e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\Platform\Windows">
+      <UniqueIdentifier>{10b9ff03-9ea9-474b-92ea-739e4b115d9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\Core">
       <UniqueIdentifier>{1f9835d0-2642-44fa-b65a-be5f2004a3ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -13,25 +22,34 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Form.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Widget.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\BasicTypes.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Logger.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Assert.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Log.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Base.h">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\Foundation.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\EntryPoint.h">
+      <Filter>Source\Berta</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -39,16 +57,19 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Form.cpp">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Log.cpp">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Logger.cpp">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Base.cpp">
-      <Filter>Source\Core</Filter>
+      <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Windows.cpp">
+      <Filter>Source\Berta\Platform\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

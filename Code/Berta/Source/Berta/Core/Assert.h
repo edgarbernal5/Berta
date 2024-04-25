@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BERTA_ASSERT_HEADER
-#define BERTA_ASSERT_HEADER
+#ifndef BT_ASSERT_HEADER
+#define BT_ASSERT_HEADER
 
 #include "Berta/Core/Log.h"
 

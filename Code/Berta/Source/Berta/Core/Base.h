@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BERTA_BASE_HEADER
-#define BERTA_BASE_HEADER
+#ifndef BT_BASE_HEADER
+#define BT_BASE_HEADER
 
 namespace Berta
 {

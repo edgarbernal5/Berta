@@ -80,13 +80,8 @@ namespace Berta
 
 	LRESULT Form::WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
-		switch (message) {
-		
-		case WM_LBUTTONDOWN: {
-			// Handle mouse click event
-			// Here you can determine which widget was clicked and call its onClick() function
-			return 0;
-		}
+		switch (message)
+		{
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			return 0;

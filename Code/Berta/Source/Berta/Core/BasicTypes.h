@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BERTA_BASIC_TYPES_HEADER
-#define BERTA_BASIC_TYPES_HEADER
+#ifndef BT_BASIC_TYPES_HEADER
+#define BT_BASIC_TYPES_HEADER
 
 #include <cstdint>
 

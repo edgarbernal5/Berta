@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BERTA_LOGGER_HEADER
-#define BERTA_LOGGER_HEADER
+#ifndef BT_LOGGER_HEADER
+#define BT_LOGGER_HEADER
 
 #include <vector>
 #include <string>
