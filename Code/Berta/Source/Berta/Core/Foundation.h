@@ -9,6 +9,8 @@
 
 namespace Berta
 {
+	class Logger;
+
 	class Foundation
 	{
 	public:
@@ -21,6 +23,7 @@ namespace Berta
 		static Foundation& Instance();
 	private:
 		static Foundation g_foundation;
+		std::shared_ptr<Logger> m_logger;
 	};
 }
 

@@ -20,7 +20,7 @@ namespace Berta
 {
 	namespace
 	{
-		//auto& foundation = Foundation::Instance();
+		auto& foundation = Foundation::Instance();
 	}
 }
 

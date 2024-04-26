@@ -22,13 +22,9 @@ namespace Berta
 		Form(const Rectangle& rectangle = { 0,0,800,600 });
 
 	private:
-		const wchar_t* ApplicationClassName = L"BertaInternalClass";
-
 		void Create(const Rectangle& rectangle);
-		static LRESULT CALLBACK WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 		
 		HWND m_hwnd;
-		HINSTANCE m_hModuleInstance;
 	};
 }
 

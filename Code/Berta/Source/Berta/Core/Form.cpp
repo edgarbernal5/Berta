@@ -16,26 +16,6 @@ namespace Berta
 
 	void Form::Create(const Rectangle& rectangle)
 	{
-		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		HINSTANCE hInstance = GetModuleHandle(NULL);
-
-		// Register class
-		WNDCLASSEXW wcex = {};
-		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = WndProc;
-		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
-		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
-		wcex.lpszClassName = ApplicationClassName;
-		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
-		if (!RegisterClassExW(&wcex))
-		{
-			//BR_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
-			return;
-		}
-
 		UINT dpi = GetDpiForSystem();
 		float scalingFactor = static_cast<float>(dpi) / 96.0f;
 		// Actually set the appropriate window size
@@ -47,16 +27,16 @@ namespace Berta
 
 		if (!AdjustWindowRectExForDpi(&scaledWindowRect, WS_OVERLAPPEDWINDOW, false, 0, dpi))
 		{
-			//BR_CORE_ERROR << "AdjustWindowRectExForDpi Failed." << std::endl;
+			BT_CORE_ERROR << "AdjustWindowRectExForDpi Failed." << std::endl;
 			return;
 		}
 
 		std::wstring mainWndTitle = L"Form";
-
+		HINSTANCE hInstance = GetModuleHandle(NULL);
 		m_hwnd = CreateWindowEx
 		(
 			0,
-			ApplicationClassName,
+			L"BertaInternalClass",
 			mainWndTitle.c_str(),
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
@@ -71,22 +51,21 @@ namespace Berta
 
 		if (!m_hwnd)
 		{
-			//BR_CORE_ERROR << "CreateWindow Failed." << std::endl;
+			BT_CORE_ERROR << "CreateWindow Failed." << std::endl;
 			return;
 		}
+		//TODO: HACK
+		ShowWindow(m_hwnd, SW_SHOW);
+		//m_hModuleInstance = hInstance;
+		MSG msg = { 0 };
 
-		m_hModuleInstance = hInstance;
-	}
-
-	LRESULT Form::WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
-	{
-		switch (message)
+		while (msg.message != WM_QUIT)
 		{
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			return 0;
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		}
 	}
 }
