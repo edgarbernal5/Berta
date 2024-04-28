@@ -13,9 +13,10 @@
 namespace Berta
 {
 	Foundation Foundation::g_foundation;
-	HINSTANCE m_hModuleInstance;
+	HINSTANCE g_hModuleInstance;
 
-	static LRESULT CALLBACK WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
+	static HINSTANCE GetModuleInstance();
 
 	Foundation::Foundation()
 	{
@@ -30,7 +31,7 @@ namespace Berta
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = WndProc;
+		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
@@ -43,7 +44,7 @@ namespace Berta
 			return;
 		}
 
-		m_hModuleInstance = hInstance;
+		g_hModuleInstance = hInstance;
 	}
 
 	Foundation::~Foundation()
@@ -57,7 +58,7 @@ namespace Berta
 		return g_foundation;
 	}
 
-	LRESULT CALLBACK WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (message)
 		{
@@ -67,5 +68,13 @@ namespace Berta
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
+	}
+
+	HINSTANCE GetModuleInstance()
+	{
+		if (g_hModuleInstance == nullptr)
+			g_hModuleInstance = GetModuleHandle(NULL);
+
+		return g_hModuleInstance;
 	}
 }

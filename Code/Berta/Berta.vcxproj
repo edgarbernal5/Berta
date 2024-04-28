@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta.h" />
+    <ClInclude Include="Source\Berta\Native\API.h" />
     <ClInclude Include="Source\Berta\Core\Foundation.h" />
     <ClInclude Include="Source\Berta\Core\Assert.h" />
     <ClInclude Include="Source\Berta\Core\Base.h" />
@@ -146,8 +147,11 @@
     <ClInclude Include="Source\Berta\EntryPoint.h" />
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\Core\Widget.h" />
+    <ClInclude Include="Source\Berta\Core\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Native\API.cpp" />
+    <ClCompile Include="Source\Berta\Core\Widget.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Windows.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />
     <ClCompile Include="Source\Berta\Core\Form.cpp" />
@@ -156,6 +160,7 @@
     <ClCompile Include="Source\btpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\Berta\Core\WindowManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
