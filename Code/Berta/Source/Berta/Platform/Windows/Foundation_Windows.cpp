@@ -50,6 +50,10 @@ namespace Berta
 	Foundation::~Foundation()
 	{
 		BT_CORE_TRACE << "Releasing foundation..." << std::endl;
+
+		UnregisterClass(L"BertaInternalClass", g_hModuleInstance);
+		g_hModuleInstance = nullptr;
+
 		ShutdownCore();
 	}
 

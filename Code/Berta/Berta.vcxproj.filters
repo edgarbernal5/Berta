@@ -16,8 +16,11 @@
     <Filter Include="Source\Berta\Core">
       <UniqueIdentifier>{1f9835d0-2642-44fa-b65a-be5f2004a3ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Berta\Native">
+    <Filter Include="Source\Berta\API">
       <UniqueIdentifier>{b493bda4-8340-43c5-9e5a-ff436d5010c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\GUI">
+      <UniqueIdentifier>{0c2e6a58-caa9-43bd-bcad-95d0d37b1b16}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -57,9 +60,13 @@
     <ClInclude Include="Source\Berta\Core\WindowManager.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Native\API.h">
-      <Filter>Source\Berta\Native</Filter>
+    <ClInclude Include="Source\Berta\API\WindowAPI.h">
+      <Filter>Source\Berta\API</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Interface.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\BasicWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -84,8 +91,9 @@
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Widget.cpp" />
-    <ClCompile Include="Source\Berta\Native\API.cpp">
-      <Filter>Source\Berta\Native</Filter>
+    <ClCompile Include="Source\Berta\API\WindowAPI.cpp">
+      <Filter>Source\Berta\API</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
   </ItemGroup>
 </Project>

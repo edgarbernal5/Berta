@@ -1,10 +1,9 @@
 #include "btpch.h"
-#include "API.h"
-
+#include "WindowAPI.h"
 
 namespace Berta::API
 {
-	NativeWindowHandle Create_Window(const Rectangle& rectangle)
+	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		UINT dpi = ::GetDpiForSystem();
@@ -25,7 +24,7 @@ namespace Berta::API
 
 		std::wstring mainWndTitle = L"Berta Window";
 		HINSTANCE hInstance = GetModuleHandle(NULL);
-		HWND hwnd = CreateWindowEx
+		HWND hwnd = ::CreateWindowEx
 		(
 			0,
 			L"BertaInternalClass",
@@ -49,6 +48,24 @@ namespace Berta::API
 		}
 
 		return NativeWindowHandle{ hwnd };
+#else
+		return {};
+#endif
+	}
+
+	void DestroyNativeWindow(NativeWindowHandle nativeHandle)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		::DestroyWindow(nativeHandle.Handle);
+#else
+#endif
+	}
+
+	void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		::ShowWindow(nativeHandle.Handle, visible ? SW_SHOW : SW_HIDE);
+#else
 #endif
 	}
 }

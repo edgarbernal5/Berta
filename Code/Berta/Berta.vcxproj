@@ -135,8 +135,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\GUI\BasicWindow.h" />
+    <ClInclude Include="Source\Berta\GUI\Interface.h" />
     <ClInclude Include="Source\Berta.h" />
-    <ClInclude Include="Source\Berta\Native\API.h" />
+    <ClInclude Include="Source\Berta\API\WindowAPI.h" />
     <ClInclude Include="Source\Berta\Core\Foundation.h" />
     <ClInclude Include="Source\Berta\Core\Assert.h" />
     <ClInclude Include="Source\Berta\Core\Base.h" />
@@ -150,8 +152,9 @@
     <ClInclude Include="Source\Berta\Core\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Berta\Native\API.cpp" />
+    <ClCompile Include="Source\Berta\API\WindowAPI.cpp" />
     <ClCompile Include="Source\Berta\Core\Widget.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Windows.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />
     <ClCompile Include="Source\Berta\Core\Form.cpp" />

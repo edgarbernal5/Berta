@@ -7,7 +7,7 @@
 #include "btpch.h"
 #include "Form.h"
 
-#include "Berta/Native/API.h"
+#include "Berta/API/WindowAPI.h"
 
 namespace Berta
 {
@@ -18,7 +18,7 @@ namespace Berta
 
 	void Form::Create(const Rectangle& rectangle)
 	{
-		auto nativeHandle = API::Create_Window(rectangle);
+		auto nativeHandle = API::CreateNativeWindow(rectangle);
 
 		//TODO: HACK
 		ShowWindow(nativeHandle.Handle, SW_SHOW);
