@@ -9,7 +9,16 @@
 
 namespace Berta
 {
+	struct BasicWindow;
 
+	class WindowManager
+	{
+	public:
+		void AddWindow(BasicWindow* basicWindow);
+
+	private:
+
+	};
 }
 
 #endif

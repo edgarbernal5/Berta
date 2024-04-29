@@ -7,8 +7,6 @@
 #ifndef BT_WIDGET_HEADER
 #define BT_WIDGET_HEADER
 
-
-
 namespace Berta
 {
 	class Widget

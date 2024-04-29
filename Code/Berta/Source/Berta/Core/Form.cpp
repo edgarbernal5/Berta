@@ -7,7 +7,7 @@
 #include "btpch.h"
 #include "Form.h"
 
-#include "Berta/API/WindowAPI.h"
+#include "Berta/GUI/Interface.h"
 
 namespace Berta
 {
@@ -18,20 +18,20 @@ namespace Berta
 
 	void Form::Create(const Rectangle& rectangle)
 	{
-		auto nativeHandle = API::CreateNativeWindow(rectangle);
+		auto nativeHandle = GUI::CreateBasicWindow(rectangle);
 
-		//TODO: HACK
-		ShowWindow(nativeHandle.Handle, SW_SHOW);
-		//g_hModuleInstance = hInstance;
-		MSG msg = { 0 };
+		////TODO: HACK
+		//ShowWindow(nativeHandle.Handle, SW_SHOW);
+		////g_hModuleInstance = hInstance;
+		//MSG msg = { 0 };
 
-		while (msg.message != WM_QUIT)
-		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		}
+		//while (msg.message != WM_QUIT)
+		//{
+		//	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		//	{
+		//		TranslateMessage(&msg);
+		//		DispatchMessage(&msg);
+		//	}
+		//}
 	}
 }

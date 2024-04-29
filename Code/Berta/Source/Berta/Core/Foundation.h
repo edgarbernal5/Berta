@@ -7,6 +7,8 @@
 #ifndef BT_FOUNDATION_HEADER
 #define BT_FOUNDATION_HEADER
 
+#include "WindowManager.h"
+
 namespace Berta
 {
 	class Logger;
@@ -20,10 +22,12 @@ namespace Berta
 		Foundation(const Foundation&) = delete;
 		Foundation& operator=(const Foundation&) = delete;
 
-		static Foundation& Instance();
+		WindowManager& GetWindowManager() { return m_windowManager; }
+		static Foundation& GetInstance();
 	private:
 		static Foundation g_foundation;
 		std::shared_ptr<Logger> m_logger;
+		WindowManager m_windowManager;
 	};
 }
 

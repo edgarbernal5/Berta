@@ -84,7 +84,7 @@
     <ClCompile Include="Source\Berta\Core\Base.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Windows.cpp">
+    <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp">
       <Filter>Source\Berta\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\WindowManager.cpp">
@@ -95,5 +95,6 @@
       <Filter>Source\Berta\API</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
+    <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
   </ItemGroup>
 </Project>

@@ -6,13 +6,12 @@
 
 #include "btpch.h"
 #include "Berta/Core/Foundation.h"
-#include "Berta/Core/Base.h"
 
+#include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
 
 namespace Berta
 {
-	Foundation Foundation::g_foundation;
 	HINSTANCE g_hModuleInstance;
 
 	static LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
@@ -55,11 +54,6 @@ namespace Berta
 		g_hModuleInstance = nullptr;
 
 		ShutdownCore();
-	}
-
-	Foundation& Foundation::Instance()
-	{
-		return g_foundation;
 	}
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
