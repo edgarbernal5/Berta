@@ -56,6 +56,19 @@ namespace Berta
 		ShutdownCore();
 	}
 
+	void Foundation::ProcessMessages()
+	{
+		MSG msg = { 0 };
+		while (msg.message != WM_QUIT)
+		{
+			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+	}
+
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (message)

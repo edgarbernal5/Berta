@@ -9,6 +9,7 @@
 
 #include <string>
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/API/WindowAPI.h"
 
 namespace Berta
 {
@@ -17,6 +18,8 @@ namespace Berta
 		std::string Title;
 		bool Visible;
 		Size Size;
+
+		API::NativeWindowHandle Root;
 	};
 }
 

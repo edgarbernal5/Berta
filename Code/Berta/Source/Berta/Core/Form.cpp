@@ -16,22 +16,13 @@ namespace Berta
 		Create(rectangle);
 	}
 
+	void Form::Exec()
+	{
+		Foundation::GetInstance().ProcessMessages();
+	}
+
 	void Form::Create(const Rectangle& rectangle)
 	{
-		auto nativeHandle = GUI::CreateBasicWindow(rectangle);
-
-		////TODO: HACK
-		//ShowWindow(nativeHandle.Handle, SW_SHOW);
-		////g_hModuleInstance = hInstance;
-		//MSG msg = { 0 };
-
-		//while (msg.message != WM_QUIT)
-		//{
-		//	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		//	{
-		//		TranslateMessage(&msg);
-		//		DispatchMessage(&msg);
-		//	}
-		//}
+		m_handle = GUI::CreateBasicWindow(rectangle);
 	}
 }

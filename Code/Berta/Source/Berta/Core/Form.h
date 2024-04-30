@@ -21,6 +21,7 @@ namespace Berta
 	public:
 		Form(const Rectangle& rectangle = { 0,0,800,600 });
 
+		void Exec();
 	private:
 		void Create(const Rectangle& rectangle);
 		

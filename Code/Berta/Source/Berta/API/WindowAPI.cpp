@@ -1,3 +1,9 @@
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
 #include "btpch.h"
 #include "WindowAPI.h"
 
@@ -47,7 +53,7 @@ namespace Berta::API
 			return {};
 		}
 
-		return NativeWindowHandle{ hwnd };
+		return NativeWindowHandle { hwnd };
 #else
 		return {};
 #endif

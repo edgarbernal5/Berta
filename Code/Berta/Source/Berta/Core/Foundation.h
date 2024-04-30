@@ -23,7 +23,10 @@ namespace Berta
 		Foundation& operator=(const Foundation&) = delete;
 
 		WindowManager& GetWindowManager() { return m_windowManager; }
+		void ProcessMessages();
+
 		static Foundation& GetInstance();
+
 	private:
 		static Foundation g_foundation;
 		std::shared_ptr<Logger> m_logger;

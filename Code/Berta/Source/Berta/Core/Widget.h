@@ -9,10 +9,17 @@
 
 namespace Berta
 {
+	class BasicWindow;
+
 	class Widget
 	{
 	public:
 		void Show();
+
+		BasicWindow* Handle() const;
+
+	protected:
+		BasicWindow* m_handle{ nullptr };
 	};
 }
 

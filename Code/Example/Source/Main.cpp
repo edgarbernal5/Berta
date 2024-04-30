@@ -9,6 +9,8 @@
 int main()
 {
 	Berta::Form form;
+	form.Show();
+	form.Exec();
 
 	return 0;
 }

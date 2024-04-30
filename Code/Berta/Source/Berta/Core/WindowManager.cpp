@@ -1,3 +1,9 @@
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
 #include "btpch.h"
 #include "WindowManager.h"
 
@@ -5,7 +11,17 @@
 
 namespace Berta
 {
-	void WindowManager::AddWindow(BasicWindow* basicWindow)
+	void WindowManager::Add(BasicWindow* basicWindow)
 	{
+		m_windowRegistry[basicWindow] = basicWindow->Root;
+	}
+
+	void WindowManager::Show(BasicWindow* basicWindow, bool visible)
+	{
+
+		if (basicWindow->Visible != visible)
+		{
+			API::ShowNativeWindow(basicWindow->Root, visible);
+		}
 	}
 }
