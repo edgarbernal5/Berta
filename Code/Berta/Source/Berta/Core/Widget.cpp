@@ -21,4 +21,14 @@ namespace Berta
 	{
 		return m_handle;
 	}
+
+	void Widget::Create(const Rectangle& rectangle)
+	{
+		m_handle = GUI::CreateWidget(rectangle);
+	}
+
+	void Widget::Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
+	{
+		m_handle = GUI::CreateBasicWindow(rectangle, windowStyle);
+	}
 }

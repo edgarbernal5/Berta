@@ -7,6 +7,8 @@
 #ifndef BT_WIDGET_HEADER
 #define BT_WIDGET_HEADER
 
+#include "Berta/Core/BasicTypes.h"
+
 namespace Berta
 {
 	class BasicWindow;
@@ -19,6 +21,9 @@ namespace Berta
 		BasicWindow* Handle() const;
 
 	protected:
+		void Create(const Rectangle& rectangle);
+		void Create(const Rectangle& rectangle, const WindowStyle& appearance);
+
 		BasicWindow* m_handle{ nullptr };
 	};
 }

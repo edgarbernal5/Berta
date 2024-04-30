@@ -12,7 +12,9 @@
 
 namespace Berta::GUI
 {
-	BasicWindow* CreateBasicWindow(const Rectangle& rectangle);
+	BasicWindow* CreateBasicWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
+	BasicWindow* CreateWidget(const Rectangle& rectangle);
+
 	void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
 }
 

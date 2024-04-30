@@ -24,6 +24,13 @@ namespace Berta
 		uint32_t Width;
 		uint32_t Height;
 	};
+
+	struct WindowStyle
+	{
+		bool Minimize;
+		bool Maximize;
+		bool Sizable;
+	};
 }
 
 #endif

@@ -11,18 +11,13 @@
 
 namespace Berta
 {
-	Form::Form(const Rectangle& rectangle)
+	Form::Form(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
-		Create(rectangle);
+		Create(rectangle, windowStyle);
 	}
 
 	void Form::Exec()
 	{
 		Foundation::GetInstance().ProcessMessages();
-	}
-
-	void Form::Create(const Rectangle& rectangle)
-	{
-		m_handle = GUI::CreateBasicWindow(rectangle);
 	}
 }

@@ -12,9 +12,9 @@
 
 namespace Berta::GUI
 {
-	BasicWindow* CreateBasicWindow(const Rectangle& rectangle)
+	BasicWindow* CreateBasicWindow(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
-		auto nativeHandle = API::CreateNativeWindow(rectangle);
+		auto nativeHandle = API::CreateNativeWindow(rectangle, windowStyle);
 
 		if (nativeHandle.Handle)
 		{
@@ -25,6 +25,11 @@ namespace Berta::GUI
 			windowManager.Add(basicWindow);
 			return basicWindow;
 		}
+		return nullptr;
+	}
+
+	BasicWindow* CreateWidget(const Rectangle& rectangle)
+	{
 		return nullptr;
 	}
 

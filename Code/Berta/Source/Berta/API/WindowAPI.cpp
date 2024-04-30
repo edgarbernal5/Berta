@@ -9,9 +9,21 @@
 
 namespace Berta::API
 {
-	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle)
+	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
+		DWORD style_ex = WS_EX_NOPARENTNOTIFY;
+
+		if (windowStyle.Minimize) style |= WS_MINIMIZEBOX;
+		if (windowStyle.Maximize) style |= WS_MAXIMIZEBOX;
+
+		if (windowStyle.Sizable) style |= WS_THICKFRAME;
+
+		style |= WS_OVERLAPPED | WS_CAPTION;
+		style |= WS_POPUP;
+		style_ex |= WS_EX_APPWINDOW;
+
 		UINT dpi = ::GetDpiForSystem();
 		float scalingFactor = static_cast<float>(dpi) / 96.0f;
 
@@ -32,10 +44,10 @@ namespace Berta::API
 		HINSTANCE hInstance = GetModuleHandle(NULL);
 		HWND hwnd = ::CreateWindowEx
 		(
-			0,
+			style_ex,
 			L"BertaInternalClass",
 			mainWndTitle.c_str(),
-			WS_OVERLAPPEDWINDOW,
+			style,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
 			scaledWindowRect.right - scaledWindowRect.left,

@@ -8,7 +8,7 @@
 
 int main()
 {
-	Berta::Form form;
+	Berta::Form form({ 0,0,800,800 }, { true, false, true });
 	form.Show();
 	form.Exec();
 

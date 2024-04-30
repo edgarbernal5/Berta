@@ -17,7 +17,7 @@ namespace Berta::API
 		HWND Handle;
 	};
 
-	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle);
+	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
 	void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 	void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
 }

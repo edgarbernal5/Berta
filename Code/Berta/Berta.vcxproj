@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Widgets\Label.h" />
     <ClInclude Include="Source\Berta\GUI\BasicWindow.h" />
     <ClInclude Include="Source\Berta\GUI\Interface.h" />
     <ClInclude Include="Source\Berta.h" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Source\Berta\Core\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Widgets\Label.cpp" />
     <ClCompile Include="Source\Berta\API\WindowAPI.cpp" />
     <ClCompile Include="Source\Berta\Core\Widget.cpp" />
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />

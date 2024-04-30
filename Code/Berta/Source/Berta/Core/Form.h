@@ -19,11 +19,10 @@ namespace Berta
 	class Form : public Widget
 	{
 	public:
-		Form(const Rectangle& rectangle = { 0,0,800,600 });
+		Form(const Rectangle& rectangle = { 0,0,800,600 }, const WindowStyle& windowStyle = {true, true, true});
 
 		void Exec();
 	private:
-		void Create(const Rectangle& rectangle);
 		
 		HWND m_hwnd;
 	};
