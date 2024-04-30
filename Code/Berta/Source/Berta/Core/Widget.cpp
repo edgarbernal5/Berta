@@ -12,14 +12,9 @@
 
 namespace Berta
 {
-	void Widget::Show()
+	void Widget::Caption(const std::wstring& caption)
 	{
-		GUI::ShowBasicWindow(m_handle, true);
-	}
-
-	BasicWindow* Widget::Handle() const
-	{
-		return m_handle;
+		GUI::CaptionWindow(m_handle, caption);
 	}
 
 	void Widget::Create(const Rectangle& rectangle)
@@ -30,5 +25,10 @@ namespace Berta
 	void Widget::Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
 		m_handle = GUI::CreateBasicWindow(rectangle, windowStyle);
+	}
+
+	void Widget::Show()
+	{
+		GUI::ShowBasicWindow(m_handle, true);
 	}
 }

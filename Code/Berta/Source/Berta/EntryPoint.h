@@ -10,10 +10,6 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Foundation.h"
 
-#ifndef BT_PLATFORM_WINDOWS
-#define BT_PLATFORM_WINDOWS
-#endif
-
 #ifdef BT_PLATFORM_WINDOWS
 
 namespace Berta

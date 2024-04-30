@@ -13,13 +13,23 @@
 
 namespace Berta
 {
+	enum class WindowType
+	{
+		Native = 0,
+		Widget
+	};
+
 	struct BasicWindow
 	{
-		std::string Title;
-		bool Visible;
+		BasicWindow() = default;
+		BasicWindow(WindowType type) : Type(type) {}
+
+		std::wstring Title;
+		bool Visible{ false };
 		Size Size;
 
-		API::NativeWindowHandle Root;
+		WindowType Type;
+		API::NativeWindowHandle Root{};
 	};
 }
 

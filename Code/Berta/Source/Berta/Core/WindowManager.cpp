@@ -16,14 +16,25 @@ namespace Berta
 		m_windowRegistry.insert(basicWindow);
 	}
 
+	void WindowManager::Caption(BasicWindow* basicWindow, const std::wstring& caption)
+	{
+		if (basicWindow->Type == WindowType::Native)
+			API::CaptionNativeWindow(basicWindow->Root, caption);
+	}
+
+	bool WindowManager::Exists(BasicWindow* basicWindow)
+	{
+		return m_windowRegistry.find(basicWindow) != m_windowRegistry.end();
+	}
+
 	void WindowManager::Show(BasicWindow* basicWindow, bool visible)
 	{
-		if (m_windowRegistry.find(basicWindow) == m_windowRegistry.end())
-			return;
-
 		if (basicWindow->Visible != visible)
 		{
-			API::ShowNativeWindow(basicWindow->Root, visible);
+			if (basicWindow->Type == WindowType::Native)
+				API::ShowNativeWindow(basicWindow->Root, visible);
+
+			basicWindow->Visible = visible;
 		}
 	}
 }

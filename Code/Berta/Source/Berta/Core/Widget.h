@@ -18,8 +18,9 @@ namespace Berta
 	public:
 		void Show();
 
-		BasicWindow* Handle() const;
+		BasicWindow* Handle() const { return m_handle; }
 
+		void Caption(const std::wstring& caption);
 	protected:
 		void Create(const Rectangle& rectangle);
 		void Create(const Rectangle& rectangle, const WindowStyle& appearance);

@@ -8,8 +8,9 @@
 
 namespace Berta
 {
-	Label::Label(BasicWindow* parent, const Rectangle& rectangle, std::string text)
+	Label::Label(BasicWindow* parent, const Rectangle& rectangle, std::wstring text)
 	{
-
+		Create(rectangle);
+		Caption(text);
 	}
 }

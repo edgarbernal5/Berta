@@ -16,7 +16,7 @@ namespace Berta
 	class Label : public Widget
 	{
 	public:
-		Label(BasicWindow* parent, const Rectangle& rectangle, std::string text);
+		Label(BasicWindow* parent, const Rectangle& rectangle, std::wstring text);
 	};
 }
 

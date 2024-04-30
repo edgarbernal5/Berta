@@ -27,9 +27,9 @@ namespace Berta
 
 	struct WindowStyle
 	{
-		bool Minimize;
-		bool Maximize;
-		bool Sizable;
+		bool Minimize{ true };
+		bool Maximize{ true };
+		bool Sizable{ true };
 	};
 }
 

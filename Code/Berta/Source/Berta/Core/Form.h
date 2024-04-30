@@ -23,8 +23,6 @@ namespace Berta
 
 		void Exec();
 	private:
-		
-		HWND m_hwnd;
 	};
 }
 

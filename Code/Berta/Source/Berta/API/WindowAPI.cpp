@@ -71,6 +71,14 @@ namespace Berta::API
 #endif
 	}
 
+	void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		::SetWindowText(nativeHandle.Handle, caption.c_str());
+#else
+#endif
+	}
+
 	void DestroyNativeWindow(NativeWindowHandle nativeHandle)
 	{
 #ifdef BT_PLATFORM_WINDOWS

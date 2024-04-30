@@ -19,7 +19,7 @@ namespace Berta::GUI
 		if (nativeHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
-			BasicWindow* basicWindow = new BasicWindow();
+			BasicWindow* basicWindow = new BasicWindow(WindowType::Native);
 			basicWindow->Root = nativeHandle;
 
 			windowManager.Add(basicWindow);
@@ -30,12 +30,28 @@ namespace Berta::GUI
 
 	BasicWindow* CreateWidget(const Rectangle& rectangle)
 	{
-		return nullptr;
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		BasicWindow* basicWindow = new BasicWindow(WindowType::Widget);
+
+		windowManager.Add(basicWindow);
+		return basicWindow;
+	}
+
+	void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			windowManager.Caption(basicWindow, caption);
+		}
 	}
 
 	void ShowBasicWindow(BasicWindow* basicWindow, bool visible)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		windowManager.Show(basicWindow, visible);
+		if (windowManager.Exists(basicWindow))
+		{
+			windowManager.Show(basicWindow, visible);
+		}
 	}
 }
