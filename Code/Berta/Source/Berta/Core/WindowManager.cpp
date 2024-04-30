@@ -13,11 +13,13 @@ namespace Berta
 {
 	void WindowManager::Add(BasicWindow* basicWindow)
 	{
-		m_windowRegistry[basicWindow] = basicWindow->Root;
+		m_windowRegistry.insert(basicWindow);
 	}
 
 	void WindowManager::Show(BasicWindow* basicWindow, bool visible)
 	{
+		if (m_windowRegistry.find(basicWindow) == m_windowRegistry.end())
+			return;
 
 		if (basicWindow->Visible != visible)
 		{

@@ -7,7 +7,7 @@
 #ifndef BT_WINDOW_MANAGER_HEADER
 #define BT_WINDOW_MANAGER_HEADER
 
-#include <map>
+#include <set>
 #include "Berta/API/WindowAPI.h"
 
 namespace Berta
@@ -21,7 +21,7 @@ namespace Berta
 		void Show(BasicWindow* basicWindow, bool visible);
 	private:
 
-		std::map<BasicWindow*, API::NativeWindowHandle> m_windowRegistry;
+		std::set<BasicWindow*> m_windowRegistry;
 	};
 }
 
