@@ -9,7 +9,7 @@
 int main()
 {
 	Berta::Form form({ 0,0,800,600 }, { true, false, true });
-	form.Caption(L"Hola");
+	form.Caption(L"Window");
 	form.Show();
 	form.Exec();
 

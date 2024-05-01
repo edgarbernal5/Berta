@@ -71,14 +71,38 @@ namespace Berta
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
+		LRESULT result = 0;
+
+		auto& foundation = Foundation::GetInstance();
+
+		Berta::API::NativeWindowHandle nativeWindowHandle{ hWnd };
+
+		auto nativeWindow = foundation.GetWindowManager().Get(nativeWindowHandle);
+
+		if (nativeWindow == nullptr)
+		{
+			return ::DefWindowProc(hWnd, message, wParam, lParam);
+		}
+
 		switch (message)
 		{
+		case WM_PAINT:
+		{
+			BT_CORE_TRACE << "WM_PAINT" << std::endl;
+
+			PAINTSTRUCT paint;
+			::BeginPaint(hWnd, &paint);
+
+			::EndPaint(hWnd, &paint);
+		}break;
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			return 0;
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+			result = ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
+
+		return result;
 	}
 
 	HINSTANCE GetModuleInstance()

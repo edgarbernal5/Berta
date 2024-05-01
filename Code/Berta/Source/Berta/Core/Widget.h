@@ -16,6 +16,8 @@ namespace Berta
 	class Widget
 	{
 	public:
+		~Widget();
+
 		void Show();
 
 		BasicWindow* Handle() const { return m_handle; }

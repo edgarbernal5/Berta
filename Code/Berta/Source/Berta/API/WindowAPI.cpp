@@ -31,8 +31,8 @@ namespace Berta::API
 		RECT scaledWindowRect;
 		scaledWindowRect.left = 0;
 		scaledWindowRect.top = 0;
-		scaledWindowRect.right = static_cast<LONG>(rectangle.width * scalingFactor);
-		scaledWindowRect.bottom = static_cast<LONG>(rectangle.height * scalingFactor);
+		scaledWindowRect.right = static_cast<LONG>(rectangle.Width * scalingFactor);
+		scaledWindowRect.bottom = static_cast<LONG>(rectangle.Height * scalingFactor);
 
 		if (!AdjustWindowRectExForDpi(&scaledWindowRect, WS_OVERLAPPEDWINDOW, false, 0, dpi))
 		{
@@ -82,7 +82,9 @@ namespace Berta::API
 	void DestroyNativeWindow(NativeWindowHandle nativeHandle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		::DestroyWindow(nativeHandle.Handle);
+		if (!::DestroyWindow(nativeHandle.Handle))
+		{
+		}
 #else
 #endif
 	}

@@ -17,6 +17,11 @@ namespace Berta::API
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		HWND Handle;
+
+		bool operator<(const NativeWindowHandle& other) const
+		{
+			return Handle < other.Handle;
+		}
 #endif
 	};
 

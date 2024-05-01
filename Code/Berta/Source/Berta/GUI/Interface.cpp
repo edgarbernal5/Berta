@@ -22,6 +22,7 @@ namespace Berta::GUI
 			BasicWindow* basicWindow = new BasicWindow(WindowType::Native);
 			basicWindow->Root = nativeHandle;
 
+			windowManager.AddNative(nativeHandle, basicWindow);
 			windowManager.Add(basicWindow);
 			return basicWindow;
 		}
@@ -43,6 +44,15 @@ namespace Berta::GUI
 		if (windowManager.Exists(basicWindow))
 		{
 			windowManager.Caption(basicWindow, caption);
+		}
+	}
+
+	void DestroyWindow(BasicWindow* basicWindow)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			windowManager.Destroy(basicWindow);
 		}
 	}
 

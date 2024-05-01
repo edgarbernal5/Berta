@@ -12,6 +12,11 @@
 
 namespace Berta
 {
+	Widget::~Widget()
+	{
+		GUI::DestroyWindow(m_handle);
+	}
+
 	void Widget::Caption(const std::wstring& caption)
 	{
 		GUI::CaptionWindow(m_handle, caption);

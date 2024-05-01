@@ -16,6 +16,7 @@ namespace Berta::GUI
 	BasicWindow* CreateWidget(const Rectangle& rectangle);
 
 	void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption);
+	void DestroyWindow(BasicWindow* basicWindow);
 	void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
 }
 
