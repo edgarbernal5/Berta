@@ -16,7 +16,13 @@
 
 namespace Berta
 {
-	class Form : public Widget
+	class FormRenderer : public WidgetRenderer
+	{
+	public:
+		void Update() override {}
+	};
+
+	class Form : public Widget<FormRenderer>
 	{
 	public:
 		Form(const Rectangle& rectangle = { 0,0,800,600 }, const WindowStyle& windowStyle = {true, true, true});

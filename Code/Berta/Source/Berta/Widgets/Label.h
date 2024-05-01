@@ -13,7 +13,13 @@
 
 namespace Berta
 {
-	class Label : public Widget
+	class LabelRenderer : public WidgetRenderer
+	{
+	public:
+		void Update() override {}
+	};
+
+	class Label : public Widget<LabelRenderer>
 	{
 	public:
 		Label(BasicWindow* parent, const Rectangle& rectangle, std::wstring text);

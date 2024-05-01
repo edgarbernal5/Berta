@@ -8,31 +8,25 @@
 #include "Widget.h"
 
 #include "Berta/GUI/BasicWindow.h"
-#include "Berta/GUI/Interface.h"
 
 namespace Berta
 {
-	Widget::~Widget()
-	{
-		GUI::DestroyWindow(m_handle);
-	}
-
-	void Widget::Caption(const std::wstring& caption)
+	void WidgetBase::Caption(const std::wstring& caption)
 	{
 		GUI::CaptionWindow(m_handle, caption);
 	}
 
-	void Widget::Create(const Rectangle& rectangle)
+	void WidgetBase::Create(const Rectangle& rectangle)
 	{
 		m_handle = GUI::CreateWidget(rectangle);
 	}
 
-	void Widget::Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
+	void WidgetBase::Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
 		m_handle = GUI::CreateBasicWindow(rectangle, windowStyle);
 	}
 
-	void Widget::Show()
+	void WidgetBase::Show()
 	{
 		GUI::ShowBasicWindow(m_handle, true);
 	}

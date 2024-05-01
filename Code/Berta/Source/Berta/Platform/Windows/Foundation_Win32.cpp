@@ -24,7 +24,7 @@ namespace Berta
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
 		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		HINSTANCE hInstance = GetModuleHandle(NULL);
+		HINSTANCE hInstance = GetModuleInstance();
 
 		// Register class
 		WNDCLASSEXW wcex = {};
@@ -42,8 +42,6 @@ namespace Berta
 			BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
 			return;
 		}
-
-		g_hModuleInstance = hInstance;
 	}
 
 	Foundation::~Foundation()
@@ -76,9 +74,7 @@ namespace Berta
 		auto& foundation = Foundation::GetInstance();
 
 		Berta::API::NativeWindowHandle nativeWindowHandle{ hWnd };
-
 		auto nativeWindow = foundation.GetWindowManager().Get(nativeWindowHandle);
-
 		if (nativeWindow == nullptr)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
@@ -90,10 +86,10 @@ namespace Berta
 		{
 			BT_CORE_TRACE << "WM_PAINT" << std::endl;
 
-			PAINTSTRUCT paint;
-			::BeginPaint(hWnd, &paint);
-
-			::EndPaint(hWnd, &paint);
+			PAINTSTRUCT ps;
+			HDC hdc = ::BeginPaint(hWnd, &ps);
+			FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+			::EndPaint(hWnd, &ps);
 		}break;
 		case WM_DESTROY:
 			::PostQuitMessage(0);

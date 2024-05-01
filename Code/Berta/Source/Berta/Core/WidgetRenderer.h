@@ -12,6 +12,7 @@ namespace Berta
 	class WidgetRenderer
 	{
 	public:
+		WidgetRenderer() = default;
 		virtual ~WidgetRenderer() = default;
 
 		virtual void Update();
