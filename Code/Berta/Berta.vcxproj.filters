@@ -75,6 +75,9 @@
     <ClInclude Include="Source\Berta\Widgets\Label.h">
       <Filter>Source\Berta\Widgets</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Core\WidgetRenderer.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -113,5 +116,6 @@
     <ClCompile Include="Source\Berta\Widgets\Label.cpp">
       <Filter>Source\Berta\Widgets</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\Core\WidgetRenderer.cpp" />
   </ItemGroup>
 </Project>
