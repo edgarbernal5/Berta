@@ -33,7 +33,9 @@ namespace Berta
 		if (basicWindow->Type == WindowType::Native)
 		{
 			API::DestroyNativeWindow(basicWindow->Root);
+			m_windowNativeRegistry.erase(basicWindow->Root);
 		}
+		m_windowRegistry.erase(basicWindow);
 	}
 
 	BasicWindow* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)
