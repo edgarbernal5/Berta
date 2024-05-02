@@ -88,7 +88,12 @@ namespace Berta
 
 			PAINTSTRUCT ps;
 			HDC hdc = ::BeginPaint(hWnd, &ps);
-			FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+
+			auto brush = ::CreateSolidBrush(13160660);
+
+			FillRect(hdc, &ps.rcPaint, brush);
+
+			::DeleteObject(brush);
 			::EndPaint(hWnd, &ps);
 		}break;
 		case WM_DESTROY:
