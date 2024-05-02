@@ -18,7 +18,7 @@ namespace Berta
 	class WidgetBase
 	{
 	public:
-		WidgetBase() {}
+		WidgetBase() = default;
 		virtual ~WidgetBase() = default;
 
 		BasicWindow* Handle() const { return m_handle; }
