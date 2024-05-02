@@ -7,7 +7,7 @@
 #ifndef BT_LOG_HEADER
 #define BT_LOG_HEADER
 
-#include "Logger.h"
+#include "Berta/Core/Logger.h"
 
 #define BT_CORE_TRACE (*Berta::Log::GetCoreLogger())(LogLevel::Trace)
 #define BT_CORE_DEBUG (*Berta::Log::GetCoreLogger())(LogLevel::Debug)

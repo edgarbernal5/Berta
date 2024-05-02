@@ -11,8 +11,8 @@
 #include <string>
 
 #include "Berta/EntryPoint.h"
-#include "BasicTypes.h"
-#include "Widget.h"
+#include "Berta/Core/BasicTypes.h"
+#include "Berta/Core/Widget.h"
 
 namespace Berta
 {

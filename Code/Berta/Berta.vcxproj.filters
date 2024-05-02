@@ -25,6 +25,9 @@
     <Filter Include="Source\Berta\Widgets">
       <UniqueIdentifier>{84176aab-a0cd-4eda-80b2-9ddd73b069f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Paint">
+      <UniqueIdentifier>{27cdea69-aad3-4669-93a6-02d91d6ac7ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -78,6 +81,9 @@
     <ClInclude Include="Source\Berta\Core\WidgetRenderer.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Graphics.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -116,6 +122,11 @@
     <ClCompile Include="Source\Berta\Widgets\Label.cpp">
       <Filter>Source\Berta\Widgets</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Core\WidgetRenderer.cpp" />
+    <ClCompile Include="Source\Berta\Core\WidgetRenderer.cpp">
+      <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Graphics.cpp">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -48,6 +48,9 @@ namespace Berta
 
 		Widget(Widget&&) = delete;
 		Widget& operator=(Widget&&) = delete;
+
+	private:
+		Renderer m_renderer;
 	};
 }
 

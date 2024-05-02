@@ -7,6 +7,8 @@
 #ifndef BT_RENDERER_HEADER
 #define BT_RENDERER_HEADER
 
+#include "Berta/Paint/Graphics.h"
+
 namespace Berta
 {
 	class WidgetRenderer
@@ -16,6 +18,9 @@ namespace Berta
 		virtual ~WidgetRenderer() = default;
 
 		virtual void Update();
+
+	private:
+		
 	};
 }
 

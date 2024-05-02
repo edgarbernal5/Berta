@@ -9,6 +9,7 @@
 
 #include <string>
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Paint/Graphics.h"
 #include "Berta/API/WindowAPI.h"
 
 namespace Berta
@@ -30,6 +31,8 @@ namespace Berta
 
 		WindowType Type;
 		API::NativeWindowHandle Root{};
+
+		Graphics m_graphics;
 	};
 }
 
