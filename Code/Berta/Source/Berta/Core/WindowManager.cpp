@@ -52,6 +52,22 @@ namespace Berta
 		return m_windowRegistry.find(basicWindow) != m_windowRegistry.end();
 	}
 
+	void WindowManager::UpdateTree(BasicWindow* basicWindow)
+	{
+		if (basicWindow == nullptr)
+		{
+			return;
+		}
+
+		PAINTSTRUCT ps;//move this to wm_paint
+		HDC hdc = ::BeginPaint(basicWindow->Root.Handle, &ps);
+
+		basicWindow->Graphics.m_hdc = hdc; //hack
+		basicWindow->Graphics.DrawRectangle({ 0,0, (uint32_t)(ps.rcPaint.right - ps.rcPaint.left), (uint32_t)(ps.rcPaint.bottom - ps.rcPaint.top) }, true);
+
+		::EndPaint(basicWindow->Root.Handle, &ps);
+	}
+
 	void WindowManager::Show(BasicWindow* basicWindow, bool visible)
 	{
 		if (basicWindow->Visible != visible)

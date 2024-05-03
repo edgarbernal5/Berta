@@ -15,5 +15,10 @@ namespace Berta
 
 	void Graphics::DrawRectangle(const Rectangle& rectangle, bool solid)
 	{
+		auto brush = ::CreateSolidBrush(13160660);
+		RECT nativeRect{ rectangle.X, rectangle.Y, rectangle.X + rectangle.Width,rectangle.Y + rectangle.Height };
+		FillRect(m_hdc, &nativeRect, brush);
+
+		::DeleteObject(brush);
 	}
 }

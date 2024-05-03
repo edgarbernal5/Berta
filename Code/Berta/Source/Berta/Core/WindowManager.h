@@ -25,6 +25,7 @@ namespace Berta
 		void Destroy(BasicWindow* basicWindow);
 		BasicWindow* Get(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(BasicWindow* basicWindow);
+		void UpdateTree(BasicWindow* basicWindow);
 		void Show(BasicWindow* basicWindow, bool visible);
 
 	private:

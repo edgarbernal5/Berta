@@ -29,7 +29,7 @@ namespace Berta
 		// Register class
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
+		wcex.style = CS_HREDRAW | CS_VREDRAW /* | CS_OWNDC*/;
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -73,8 +73,9 @@ namespace Berta
 
 		auto& foundation = Foundation::GetInstance();
 
-		Berta::API::NativeWindowHandle nativeWindowHandle{ hWnd };
-		auto nativeWindow = foundation.GetWindowManager().Get(nativeWindowHandle);
+		API::NativeWindowHandle nativeWindowHandle{ hWnd };
+		auto& windowManager = foundation.GetWindowManager();
+		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
@@ -86,15 +87,8 @@ namespace Berta
 		{
 			BT_CORE_TRACE << "WM_PAINT" << std::endl;
 
-			PAINTSTRUCT ps;
-			HDC hdc = ::BeginPaint(hWnd, &ps);
-
-			auto brush = ::CreateSolidBrush(13160660);
-
-			FillRect(hdc, &ps.rcPaint, brush);
-
-			::DeleteObject(brush);
-			::EndPaint(hWnd, &ps);
+			windowManager.UpdateTree(nativeWindow);
+			
 		}break;
 		case WM_DESTROY:
 			::PostQuitMessage(0);

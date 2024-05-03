@@ -20,6 +20,8 @@ namespace Berta
 		Graphics();
 
 		void DrawRectangle(const Rectangle& rectangle, bool solid);
+
+		HDC m_hdc;
 	};
 }
 

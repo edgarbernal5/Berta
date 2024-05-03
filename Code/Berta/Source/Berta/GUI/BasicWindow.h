@@ -8,6 +8,7 @@
 #define BT_BASIC_WINDOW_HEADER
 
 #include <string>
+#include <vector>
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/API/WindowAPI.h"
@@ -32,7 +33,10 @@ namespace Berta
 		WindowType Type;
 		API::NativeWindowHandle Root{};
 
-		Graphics m_graphics;
+		Graphics Graphics;
+
+		BasicWindow* Parent;
+		std::vector<BasicWindow*> Children;
 	};
 }
 
