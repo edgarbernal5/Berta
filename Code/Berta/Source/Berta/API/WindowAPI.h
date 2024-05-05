@@ -28,6 +28,7 @@ namespace Berta
 			NativeWindowHandle(const NativeWindowHandle&) = default;
 			NativeWindowHandle& operator=(const NativeWindowHandle&) = default;
 		};
+
 		struct NativeWindowResult
 		{
 			NativeWindowHandle WindowHandle;

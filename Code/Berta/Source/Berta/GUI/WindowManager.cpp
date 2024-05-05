@@ -63,11 +63,11 @@ namespace Berta
 
 	void WindowManager::UpdateTree(BasicWindow* basicWindow)
 	{
-		basicWindow->Renderer.Update();
+		basicWindow->Renderer.Update(); //Update widget's basic window.
 		auto& rootGraphics = *(basicWindow->RootGraphics);
-		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 });
+		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
 
-		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle());
+		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(BasicWindow* basicWindow, bool visible)

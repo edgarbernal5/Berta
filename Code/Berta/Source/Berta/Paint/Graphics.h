@@ -30,6 +30,7 @@ namespace Berta
 		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
 		void Flush();
+
 	private:
 		Size m_size;
 		HDC m_hdc{ nullptr };

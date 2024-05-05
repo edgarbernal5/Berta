@@ -29,6 +29,7 @@ namespace Berta::GUI
 
 			auto& rootGraphics = windowManager.GetWindowData(windowResult.WindowHandle)->RootGraphics;
 			basicWindow->RootGraphics = &rootGraphics;
+
 			return basicWindow;
 		}
 		return nullptr;

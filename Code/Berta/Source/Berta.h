@@ -10,6 +10,7 @@
 //IMPORTANT: Include this file only in CLIENT side. Do not include it in anywhere in the framework.
 
 // --- Core
+#include "Berta/Core/Foundation.h"
 #include "Berta/Core/Form.h"
 #include "Berta/Core/Logger.h"
 

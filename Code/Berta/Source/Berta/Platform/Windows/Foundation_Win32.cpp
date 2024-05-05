@@ -79,7 +79,7 @@ namespace Berta
 #ifdef BT_DEBUG
 	std::map<uint32_t, std::string> g_debugWndMessages{
 		//{WM_CREATE,			"WM_CREATE"},
-		//{WM_SIZE,			"WM_SIZE"},
+		{WM_SIZE,			"WM_SIZE"},
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
@@ -120,7 +120,7 @@ namespace Berta
 
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
-			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
+			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from widget's graphics to native hwnd window.
 
 			::EndPaint(nativeWindow->Root.Handle, &ps); 
 			return 0;
