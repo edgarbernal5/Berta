@@ -10,11 +10,13 @@
 #include <string>
 #include <vector>
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/Paint/Graphics.h"
+#include "Berta/GUI/Renderer.h"
 #include "Berta/API/WindowAPI.h"
 
 namespace Berta
 {
+	class Graphics;
+
 	enum class WindowType
 	{
 		Native = 0,
@@ -33,7 +35,8 @@ namespace Berta
 		WindowType Type;
 		API::NativeWindowHandle Root{};
 
-		Graphics Graphics;
+		Renderer Renderer;
+		Graphics* RootGraphics;
 
 		BasicWindow* Parent;
 		std::vector<BasicWindow*> Children;

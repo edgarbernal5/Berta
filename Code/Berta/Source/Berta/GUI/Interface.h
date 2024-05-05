@@ -8,16 +8,24 @@
 #define BT_INTERFACE_HEADER
 
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Core/WidgetRenderer.h"
 #include "Berta/GUI/BasicWindow.h"
 
-namespace Berta::GUI
+namespace Berta
 {
-	BasicWindow* CreateBasicWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
-	BasicWindow* CreateWidget(const Rectangle& rectangle);
+	class WidgetBase;
 
-	void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption);
-	void DestroyWindow(BasicWindow* basicWindow);
-	void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
+	namespace GUI
+	{
+		BasicWindow* CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
+		BasicWindow* CreateWidget(const Rectangle& rectangle);
+
+		void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption);
+		void DestroyWindow(BasicWindow* basicWindow);
+		void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
+
+		void InitRenderer(WidgetBase* basicWindow, WidgetRenderer& wRenderer);
+	}
 }
 
 #endif

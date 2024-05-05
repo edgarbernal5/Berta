@@ -63,9 +63,6 @@
     <ClInclude Include="Source\Berta\EntryPoint.h">
       <Filter>Source\Berta</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Core\WindowManager.h">
-      <Filter>Source\Berta\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\API\WindowAPI.h">
       <Filter>Source\Berta\API</Filter>
     </ClInclude>
@@ -83,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\Paint\Graphics.h">
       <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Renderer.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\WindowManager.h">
+      <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +107,6 @@
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp">
       <Filter>Source\Berta\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Core\WindowManager.cpp">
-      <Filter>Source\Berta\Core</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\API\WindowAPI.cpp">
       <Filter>Source\Berta\API</Filter>
     </ClCompile>
@@ -127,6 +127,12 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp">
       <Filter>Source\Berta\Paint</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Renderer.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\WindowManager.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

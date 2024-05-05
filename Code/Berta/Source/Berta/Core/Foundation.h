@@ -7,7 +7,7 @@
 #ifndef BT_FOUNDATION_HEADER
 #define BT_FOUNDATION_HEADER
 
-#include "Berta/Core/WindowManager.h"
+#include "Berta/GUI/WindowManager.h"
 
 namespace Berta
 {

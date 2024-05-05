@@ -16,16 +16,6 @@ namespace Berta
 		GUI::CaptionWindow(m_handle, caption);
 	}
 
-	void WidgetBase::Create(const Rectangle& rectangle)
-	{
-		m_handle = GUI::CreateWidget(rectangle);
-	}
-
-	void WidgetBase::Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
-	{
-		m_handle = GUI::CreateBasicWindow(rectangle, windowStyle);
-	}
-
 	void WidgetBase::Show()
 	{
 		GUI::ShowBasicWindow(m_handle, true);

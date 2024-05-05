@@ -11,24 +11,34 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/BasicTypes.h"
 
-namespace Berta::API
+namespace Berta
 {
-	struct NativeWindowHandle
+	namespace API
 	{
-#ifdef BT_PLATFORM_WINDOWS
-		HWND Handle;
-
-		bool operator<(const NativeWindowHandle& other) const
+		struct NativeWindowHandle
 		{
-			return Handle < other.Handle;
-		}
-#endif
-	};
+#ifdef BT_PLATFORM_WINDOWS
+			HWND Handle;
 
-	NativeWindowHandle CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
-	void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
-	void DestroyNativeWindow(NativeWindowHandle nativeHandle);
-	void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
+			bool operator<(const NativeWindowHandle& other) const
+			{
+				return Handle < other.Handle;
+			}
+#endif
+			NativeWindowHandle(const NativeWindowHandle&) = default;
+			NativeWindowHandle& operator=(const NativeWindowHandle&) = default;
+		};
+		struct NativeWindowResult
+		{
+			NativeWindowHandle WindowHandle;
+			Size ClientSize;
+		};
+
+		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
+		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
+		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
+		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
+	}
 }
 
 #endif

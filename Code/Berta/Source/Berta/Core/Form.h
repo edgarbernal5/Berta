@@ -16,10 +16,16 @@
 
 namespace Berta
 {
+	class WidgetBase;
+
 	class FormRenderer : public WidgetRenderer
 	{
 	public:
-		void Update() override {}
+		void Init(WidgetBase& widget) override;
+		void Update(Graphics& graphics) override;
+
+	private:
+		WidgetBase* m_widget;
 	};
 
 	class Form : public Widget<FormRenderer>

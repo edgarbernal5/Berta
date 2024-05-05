@@ -16,9 +16,9 @@ namespace Berta
 		m_windowRegistry.insert(basicWindow);
 	}
 
-	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, BasicWindow* basicWindow)
+	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, const WindowData& append)
 	{
-		m_windowNativeRegistry.insert({ nativeWindowHandle, basicWindow });
+		m_windowNativeRegistry.insert({ nativeWindowHandle, append });
 	}
 
 	void WindowManager::Caption(BasicWindow* basicWindow, const std::wstring& caption)
@@ -42,7 +42,16 @@ namespace Berta
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
-			return it->second;
+			return it->second.Window;
+
+		return nullptr;
+	}
+
+	Berta::WindowManager::WindowData* WindowManager::GetWindowData(API::NativeWindowHandle nativeWindowHandle)
+	{
+		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
+		if (it != m_windowNativeRegistry.end())
+			return &it->second;
 
 		return nullptr;
 	}
@@ -54,18 +63,11 @@ namespace Berta
 
 	void WindowManager::UpdateTree(BasicWindow* basicWindow)
 	{
-		if (basicWindow == nullptr)
-		{
-			return;
-		}
+		basicWindow->Renderer.Update();
+		auto& graph = *(basicWindow->RootGraphics);
+		graph.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 });
 
-		PAINTSTRUCT ps;//move this to wm_paint
-		HDC hdc = ::BeginPaint(basicWindow->Root.Handle, &ps);
-
-		basicWindow->Graphics.m_hdc = hdc; //hack
-		basicWindow->Graphics.DrawRectangle({ 0,0, (uint32_t)(ps.rcPaint.right - ps.rcPaint.left), (uint32_t)(ps.rcPaint.bottom - ps.rcPaint.top) }, true);
-
-		::EndPaint(basicWindow->Root.Handle, &ps);
+		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle());
 	}
 
 	void WindowManager::Show(BasicWindow* basicWindow, bool visible)

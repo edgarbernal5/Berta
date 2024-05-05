@@ -13,7 +13,7 @@
 
 namespace Berta
 {
-	class BasicWindow;
+	struct BasicWindow;
 
 	class WidgetBase
 	{
@@ -27,9 +27,6 @@ namespace Berta
 		void Show();
 
 	protected:
-		void Create(const Rectangle& rectangle);
-		void Create(const Rectangle& rectangle, const WindowStyle& appearance);
-
 		BasicWindow* m_handle{ nullptr };
 	};
 
@@ -37,6 +34,8 @@ namespace Berta
 	class Widget : public WidgetBase
 	{
 	public:
+		using RendererType = Renderer;
+
 		Widget() = default;
 		virtual ~Widget()
 		{
@@ -49,8 +48,19 @@ namespace Berta
 		Widget(Widget&&) = delete;
 		Widget& operator=(Widget&&) = delete;
 
-	private:
-		Renderer m_renderer;
+	protected:
+		void Create(const Rectangle& rectangle)
+		{
+			m_handle = GUI::CreateWidget(rectangle);
+		}
+
+		void Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
+		{
+			m_handle = GUI::CreateNativeWindow(rectangle, windowStyle);
+			GUI::InitRenderer(this, m_renderer);
+		}
+
+		RendererType m_renderer;
 	};
 }
 

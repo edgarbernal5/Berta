@@ -7,9 +7,15 @@
 #include "btpch.h"
 #include "WidgetRenderer.h"
 
+#include "Berta/Paint/Graphics.h"
+
 namespace Berta
 {
-	void WidgetRenderer::Update()
+	void WidgetRenderer::Init(WidgetBase& widget)
+	{
+	}
+
+	void WidgetRenderer::Update(Graphics& graphics)
 	{
 	}
 }

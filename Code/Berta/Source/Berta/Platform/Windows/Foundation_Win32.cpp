@@ -5,17 +5,26 @@
 */
 
 #include "btpch.h"
+
+#ifdef BT_PLATFORM_WINDOWS
 #include "Berta/Core/Foundation.h"
 
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
+#include "Berta/GUI/BasicWindow.h"
 
 namespace Berta
 {
-	HINSTANCE g_hModuleInstance;
+	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 
-	static LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
-	static HINSTANCE GetModuleInstance();
+	HINSTANCE g_hModuleInstance;
+	HINSTANCE GetModuleInstance()
+	{
+		if (g_hModuleInstance == nullptr)
+			g_hModuleInstance = GetModuleHandle(NULL);
+
+		return g_hModuleInstance;
+	}
 
 	Foundation::Foundation()
 	{
@@ -29,7 +38,7 @@ namespace Berta
 		// Register class
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW /* | CS_OWNDC*/;
+		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -67,9 +76,26 @@ namespace Berta
 		}
 	}
 
+#ifdef BT_DEBUG
+	std::map<uint32_t, std::string> g_debugWndMessages{
+		//{WM_CREATE,			"WM_CREATE"},
+		//{WM_SIZE,			"WM_SIZE"},
+		{WM_DESTROY,		"WM_DESTROY"},
+		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
+		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
+		{WM_PAINT,			"WM_PAINT"}
+	};
+#endif
+
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
-		LRESULT result = 0;
+#ifdef BT_DEBUG
+		auto it = g_debugWndMessages.find(message);
+		if (it != g_debugWndMessages.end())
+		{
+			BT_CORE_DEBUG << "WndProc message: " << it->second << std::endl;
+		}
+#endif
 
 		auto& foundation = Foundation::GetInstance();
 
@@ -83,28 +109,28 @@ namespace Berta
 
 		switch (message)
 		{
+		case WM_SHOWWINDOW:
+		{
+			windowManager.UpdateTree(nativeWindow);
+		}break;
 		case WM_PAINT:
 		{
-			BT_CORE_TRACE << "WM_PAINT" << std::endl;
+			PAINTSTRUCT ps;
+			::BeginPaint(nativeWindow->Root.Handle, &ps);
 
-			windowManager.UpdateTree(nativeWindow);
-			
-		}break;
+			Rectangle areaToUpdate;
+			areaToUpdate.FromRECT(ps.rcPaint);
+			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
+
+			::EndPaint(nativeWindow->Root.Handle, &ps); 
+			return 0;
+		}
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			return 0;
-		default:
-			result = ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
-		return result;
-	}
-
-	HINSTANCE GetModuleInstance()
-	{
-		if (g_hModuleInstance == nullptr)
-			g_hModuleInstance = GetModuleHandle(NULL);
-
-		return g_hModuleInstance;
+		return ::DefWindowProc(hWnd, message, wParam, lParam);
 	}
 }
+#endif
