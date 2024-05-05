@@ -146,7 +146,7 @@
     <ClInclude Include="Source\Berta\Core\Foundation.h" />
     <ClInclude Include="Source\Berta\Core\Assert.h" />
     <ClInclude Include="Source\Berta\Core\Base.h" />
-    <ClInclude Include="Source\Berta\Core\Form.h" />
+    <ClInclude Include="Source\Berta\Widgets\Form.h" />
     <ClInclude Include="Source\Berta\Core\BasicTypes.h" />
     <ClInclude Include="Source\Berta\Core\Log.h" />
     <ClInclude Include="Source\Berta\Core\Logger.h" />
@@ -166,7 +166,7 @@
     <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />
-    <ClCompile Include="Source\Berta\Core\Form.cpp" />
+    <ClCompile Include="Source\Berta\Widgets\Form.cpp" />
     <ClCompile Include="Source\Berta\Core\Log.cpp" />
     <ClCompile Include="Source\Berta\Core\Logger.cpp" />
     <ClCompile Include="Source\btpch.cpp">
