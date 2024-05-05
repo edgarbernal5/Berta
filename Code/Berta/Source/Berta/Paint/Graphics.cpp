@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "Graphics.h"
 
+#define BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+
 namespace Berta
 {
 	Graphics::Graphics()
@@ -31,13 +33,18 @@ namespace Berta
 			if (cdc == nullptr)
 			{
 				::ReleaseDC(nullptr, hdc);
-				BT_ASSERT_ERROR("bad alloc in graphics.");
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+				BT_CORE_TRACE << "Error." << std::endl;
+#endif
+				return;
 			}
 
 			HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
 			SelectObject(cdc, hBitmap);
 
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 			//BT_CORE_ERROR << "Build ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;
@@ -54,7 +61,9 @@ namespace Berta
 		{
 			if (!::BitBlt(m_hdc, rectDestination.X, rectDestination.Y, rectDestination.Width, rectDestination.Height, graphicsSource.m_hdc, pointSource.X, pointSource.Y, SRCCOPY))
 			{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 				BT_CORE_ERROR << "BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 			}
 		}
 #endif
@@ -65,11 +74,12 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		auto brush = ::CreateSolidBrush(13160660);
 		RECT nativeRect{ static_cast<LONG>(rectangle.X), static_cast<LONG>(rectangle.Y), static_cast<LONG>(rectangle.X + rectangle.Width),static_cast<LONG>(rectangle.Y + rectangle.Height) };
-		if (!FillRect(m_hdc, &nativeRect, brush)) {
+		if (!FillRect(m_hdc, &nativeRect, brush))
+		{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 			BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 		}
-		else
-			BT_CORE_ERROR << "FillRect / DrawRectangle Ok = " << std::endl;
 
 		::DeleteObject(brush);
 #endif
@@ -85,11 +95,12 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		auto brush = ::CreateSolidBrush(color.RGB);
 		RECT nativeRect{ static_cast<LONG>(rectangle.X), static_cast<LONG>(rectangle.Y), static_cast<LONG>(rectangle.X + rectangle.Width),static_cast<LONG>(rectangle.Y + rectangle.Height) };
-		if (!FillRect(m_hdc, &nativeRect, brush)) {
+		if (!FillRect(m_hdc, &nativeRect, brush))
+		{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 			BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 		}
-		else
-			BT_CORE_ERROR << "FillRect / DrawRectangle Ok = " << std::endl;
 
 		::DeleteObject(brush);
 #endif
@@ -110,10 +121,10 @@ namespace Berta
 			{
 				if (!::BitBlt(dc, dx, dy, width, height, m_hdc, sx, sy, SRCCOPY))
 				{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 					BT_CORE_ERROR << "BitBlt / Paste ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 				}
-				else
-					BT_CORE_ERROR << "BitBlt / Paste Ok = " << std::endl;
 
 				::ReleaseDC(destination.Handle, dc);
 			}

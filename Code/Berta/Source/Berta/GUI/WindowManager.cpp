@@ -64,8 +64,8 @@ namespace Berta
 	void WindowManager::UpdateTree(BasicWindow* basicWindow)
 	{
 		basicWindow->Renderer.Update();
-		auto& graph = *(basicWindow->RootGraphics);
-		graph.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 });
+		auto& rootGraphics = *(basicWindow->RootGraphics);
+		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 });
 
 		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle());
 	}
