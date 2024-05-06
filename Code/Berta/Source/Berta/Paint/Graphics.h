@@ -32,6 +32,8 @@ namespace Berta
 		void Flush();
 
 	private:
+		void Release();
+
 		Size m_size;
 		HDC m_hdc{ nullptr };
 		HBITMAP	m_hBitmap{ nullptr };

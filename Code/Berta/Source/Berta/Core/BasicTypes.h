@@ -38,6 +38,11 @@ namespace Berta
 		uint32_t Width{ 0 };
 		uint32_t Height{ 0 };
 
+		bool IsEmpty()
+		{
+			return Width == 0 && Height == 0;
+		}
+
 		bool operator==(const Size& rhs) const
 		{
 			return (Width == rhs.Width) && (Height == rhs.Height);
@@ -52,6 +57,8 @@ namespace Berta
 		{
 			return { 0, 0, Width, Height };
 		}
+
+		static const Size Zero;
 	};
 
 	template<typename T>

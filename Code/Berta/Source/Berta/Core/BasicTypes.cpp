@@ -9,8 +9,10 @@
 
 namespace Berta
 {
+	const Size Size::Zero = { 0,0 };
+
 	Rectangle::operator Size() const
 	{
-		return Size{};
+		return Size{ Width, Height };
 	}
 }

@@ -25,6 +25,11 @@ namespace Berta
 		if (m_size != size)
 		{
 			m_size = size;
+			if (m_size.IsEmpty())
+			{
+				Release();
+				return;
+			}
 
 #ifdef BT_PLATFORM_WINDOWS
 			HDC hdc = ::GetDC(nullptr);
@@ -134,5 +139,10 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		::GdiFlush();
 #endif
+	}
+
+	void Graphics::Release()
+	{
+		m_size = Size::Zero;
 	}
 }
