@@ -135,7 +135,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Core\Colors.h" />
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
+    <ClInclude Include="Source\Berta\GUI\WidgetAppearance.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
     <ClInclude Include="Source\Berta\Core\WidgetRenderer.h" />
     <ClInclude Include="Source\Berta\Widgets\Label.h" />
@@ -157,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
+    <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />
     <ClCompile Include="Source\Berta\Core\WidgetRenderer.cpp" />
     <ClCompile Include="Source\Berta\Widgets\Label.cpp" />

@@ -87,6 +87,12 @@
     <ClInclude Include="Source\Berta\Widgets\Form.h">
       <Filter>Source\Berta\Widgets</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\WidgetAppearance.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\Colors.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -133,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Widgets\Form.cpp">
       <Filter>Source\Berta\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
