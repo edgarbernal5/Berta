@@ -7,11 +7,23 @@
 #include "btpch.h"
 #include "Label.h"
 
+#include "Berta/GUI/Interface.h"
+
 namespace Berta
 {
+	void LabelRenderer::Init(WidgetBase& widget)
+	{
+		m_widget = &widget;
+	}
+
+	void LabelRenderer::Update(Graphics& graphics)
+	{
+		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(m_widget->Handle()));
+	}
+
 	Label::Label(BasicWindow* parent, const Rectangle& rectangle, std::wstring text)
 	{
-		Create(rectangle);
+		Create(parent, rectangle);
 		Caption(text);
 	}
 }

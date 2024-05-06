@@ -143,5 +143,8 @@
     <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\Core\BasicTypes.cpp">
+      <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

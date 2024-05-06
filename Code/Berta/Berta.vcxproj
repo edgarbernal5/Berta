@@ -158,6 +158,7 @@
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
     <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />

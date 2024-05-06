@@ -11,6 +11,9 @@
 
 namespace Berta
 {
+	struct Size;
+	struct Rectangle;
+
 	struct Rectangle
 	{
 		int X{ 0 };
@@ -27,6 +30,7 @@ namespace Berta
 			Height = rect.bottom - rect.top;
 		}
 #endif
+		operator Size() const;
 	};
 
 	struct Size

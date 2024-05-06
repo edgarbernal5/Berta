@@ -36,10 +36,14 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
-	BasicWindow* CreateWidget(const Rectangle& rectangle)
+	BasicWindow* CreateWidget(BasicWindow* parent, const Rectangle& rectangle)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		BasicWindow* basicWindow = new BasicWindow(WindowType::Widget);
+		basicWindow->Size = rectangle;
+		basicWindow->Parent = parent;
+
+		parent->Children.emplace_back(basicWindow);
 
 		windowManager.Add(basicWindow);
 		return basicWindow;
@@ -52,6 +56,19 @@ namespace Berta::GUI
 		{
 			windowManager.Caption(basicWindow, caption);
 		}
+	}
+
+	std::wstring GetCaptionWindow(BasicWindow* basicWindow)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			if (basicWindow->Type == WindowType::Native)
+				return API::GetCaptionNativeWindow(basicWindow->Root);
+
+			return basicWindow->Title;
+		}
+		return {};
 	}
 
 	void DestroyWindow(BasicWindow* basicWindow)

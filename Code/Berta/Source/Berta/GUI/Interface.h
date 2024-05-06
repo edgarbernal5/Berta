@@ -18,9 +18,10 @@ namespace Berta
 	namespace GUI
 	{
 		BasicWindow* CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
-		BasicWindow* CreateWidget(const Rectangle& rectangle);
+		BasicWindow* CreateWidget(BasicWindow* parent, const Rectangle& rectangle);
 
 		void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption);
+		std::wstring GetCaptionWindow(BasicWindow* basicWindow);
 		void DestroyWindow(BasicWindow* basicWindow);
 		void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
 

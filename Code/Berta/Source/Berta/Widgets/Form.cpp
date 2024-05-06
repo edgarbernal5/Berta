@@ -18,12 +18,12 @@ namespace Berta
 
 	void FormRenderer::Update(Graphics& graphics)
 	{
-		graphics.DrawRectangle(GUI::GetBackgroundColor(m_widget->Handle()), true);
+		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_widget), true);
 	}
 
 	Form::Form(const Rectangle& rectangle, const WindowStyle& windowStyle)
 	{
-		Create(rectangle, windowStyle);
+		Create(nullptr, rectangle, windowStyle);
 	}
 
 	void Form::Exec()

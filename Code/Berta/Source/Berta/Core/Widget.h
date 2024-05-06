@@ -25,8 +25,12 @@ namespace Berta
 		BasicWindow* Handle() const { return m_handle; }
 
 		void Caption(const std::wstring& caption);
+		std::wstring Caption();
 		void Show();
 
+		operator BasicWindow* () const {
+			return m_handle;
+		}
 	protected:
 		BasicWindow* m_handle{ nullptr };
 	};
@@ -52,12 +56,15 @@ namespace Berta
 		WidgetAppearance& GetAppearance() { return *m_appearance; }
 
 	protected:
-		void Create(const Rectangle& rectangle)
+		void Create(BasicWindow* parent, const Rectangle& rectangle)
 		{
-			m_handle = GUI::CreateWidget(rectangle);
+			m_handle = GUI::CreateWidget(parent, rectangle);
+			m_appearance = new WidgetAppearance();
+			GUI::SetAppearance(m_handle, m_appearance);
+			GUI::InitRenderer(this, m_renderer);
 		}
 
-		void Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
+		void Create(BasicWindow* parent, const Rectangle& rectangle, const WindowStyle& windowStyle)
 		{
 			m_handle = GUI::CreateNativeWindow(rectangle, windowStyle);
 			m_appearance = new WidgetAppearance();

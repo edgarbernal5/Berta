@@ -88,6 +88,21 @@ namespace Berta
 #endif
 		}
 
+		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle)
+		{
+			std::wstring result;
+#ifdef BT_PLATFORM_WINDOWS
+			int length = ::GetWindowTextLength(nativeHandle.Handle);
+			if (length > 0)
+			{
+				result.resize(length + 1);
+				::GetWindowText(nativeHandle.Handle, result.data(), static_cast<int>(result.size()));
+			}
+#else
+#endif
+			return result;
+		}
+
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS

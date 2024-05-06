@@ -25,6 +25,7 @@ namespace Berta
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		void DrawRectangle(const Color& color, bool solid);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
+		void DrawString(const Point& position, const std::wstring& str, const Color& color);
 
 		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
@@ -34,6 +35,7 @@ namespace Berta
 		Size m_size;
 		HDC m_hdc{ nullptr };
 		HBITMAP	m_hBitmap{ nullptr };
+		uint32_t m_lastForegroundColor{ 0 };
 	};
 }
 

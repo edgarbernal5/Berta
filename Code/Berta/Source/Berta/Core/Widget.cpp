@@ -16,6 +16,11 @@ namespace Berta
 		GUI::CaptionWindow(m_handle, caption);
 	}
 
+	std::wstring WidgetBase::Caption()
+	{
+		return std::wstring();
+	}
+
 	void WidgetBase::Show()
 	{
 		GUI::ShowBasicWindow(m_handle, true);

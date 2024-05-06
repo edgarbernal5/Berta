@@ -90,6 +90,19 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawString(const Point& position, const std::wstring& str, const Color& color)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_lastForegroundColor != color.RGB)
+		{
+			::SetTextColor(m_hdc, color.RGB);
+			m_lastForegroundColor = color.RGB;
+		}
+
+		::TextOut(m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
+#endif
+	}
+
 	void Graphics::Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const
 	{
 		Paste(destination, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);

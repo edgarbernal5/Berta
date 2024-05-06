@@ -16,7 +16,11 @@ namespace Berta
 	class LabelRenderer : public WidgetRenderer
 	{
 	public:
-		void Update(Graphics& graphics) override {}
+		void Init(WidgetBase& widget) override;
+		void Update(Graphics& graphics) override;
+
+	private:
+		WidgetBase* m_widget;
 	};
 
 	class Label : public Widget<LabelRenderer>

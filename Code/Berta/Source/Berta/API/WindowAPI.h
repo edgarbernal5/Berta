@@ -37,6 +37,7 @@ namespace Berta
 
 		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
+		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
 	}
