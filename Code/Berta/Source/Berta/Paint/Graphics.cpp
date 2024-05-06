@@ -47,8 +47,9 @@ namespace Berta
 			}
 
 			HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
-			SelectObject(cdc, hBitmap);
+			::SelectObject(cdc, hBitmap);
 
+			::SetBkMode(cdc, TRANSPARENT);
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;
 
