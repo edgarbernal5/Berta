@@ -69,22 +69,6 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawRectangle(const Rectangle& rectangle, bool solid)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		auto brush = ::CreateSolidBrush(13160660);
-		RECT nativeRect{ static_cast<LONG>(rectangle.X), static_cast<LONG>(rectangle.Y), static_cast<LONG>(rectangle.X + rectangle.Width),static_cast<LONG>(rectangle.Y + rectangle.Height) };
-		if (!FillRect(m_hdc, &nativeRect, brush))
-		{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-			BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-		}
-
-		::DeleteObject(brush);
-#endif
-	}
-
 	void Graphics::DrawRectangle(const Color& color, bool solid)
 	{
 		DrawRectangle(m_size.ToRectangle(), color, solid);

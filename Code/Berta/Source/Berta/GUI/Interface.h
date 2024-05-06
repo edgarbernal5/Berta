@@ -8,12 +8,12 @@
 #define BT_INTERFACE_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/Core/WidgetRenderer.h"
 #include "Berta/GUI/BasicWindow.h"
 
 namespace Berta
 {
 	class WidgetBase;
+	class WidgetRenderer;
 
 	namespace GUI
 	{
@@ -24,7 +24,11 @@ namespace Berta
 		void DestroyWindow(BasicWindow* basicWindow);
 		void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
 
-		void InitRenderer(WidgetBase* basicWindow, WidgetRenderer& wRenderer);
+		void InitRenderer(WidgetBase* basicWindow, WidgetRenderer& widgetRenderer);
+
+		void SetAppearance(BasicWindow* basicWindow, WidgetAppearance* widgetAppearance);
+		Color GetBackgroundColor(BasicWindow* basicWindow);
+		Color GetForegroundColor(BasicWindow* basicWindow);
 	}
 }
 

@@ -16,6 +16,7 @@
 namespace Berta
 {
 	class Graphics;
+	class WidgetAppearance;
 
 	enum class WindowType
 	{
@@ -36,9 +37,10 @@ namespace Berta
 		API::NativeWindowHandle Root{};
 
 		Renderer Renderer;
-		Graphics* RootGraphics;
+		Graphics* RootGraphics{ nullptr };
+		WidgetAppearance* Appereance{ nullptr };
 
-		BasicWindow* Parent;
+		BasicWindow* Parent{ nullptr };
 		std::vector<BasicWindow*> Children;
 	};
 }

@@ -10,6 +10,7 @@
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Core/Foundation.h"
 #include "Berta/Core/Widget.h"
+#include "Berta/GUI/WidgetAppearance.h"
 
 namespace Berta::GUI
 {
@@ -71,7 +72,7 @@ namespace Berta::GUI
 		}
 	}
 
-	void InitRenderer(WidgetBase* widget, WidgetRenderer& wRenderer)
+	void InitRenderer(WidgetBase* widget, WidgetRenderer& widgetRenderer)
 	{
 		auto basicWindow = widget->Handle();
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -79,9 +80,38 @@ namespace Berta::GUI
 		{
 			auto& graphics = basicWindow->Renderer.GetGraphics();
 			graphics.Build(basicWindow->Size);
-			graphics.DrawRectangle(basicWindow->Size.ToRectangle(), { 13160660 }, true);
-			basicWindow->Renderer.Init(*widget, wRenderer);
+			graphics.DrawRectangle(basicWindow->Size.ToRectangle(), basicWindow->Appereance->Background, true);
+			basicWindow->Renderer.Init(*widget, widgetRenderer);
 			basicWindow->Renderer.Update();
 		}
+	}
+
+	void SetAppearance(BasicWindow* basicWindow, WidgetAppearance* widgetAppearance)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			basicWindow->Appereance = widgetAppearance;
+		}
+	}
+
+	Color GetBackgroundColor(BasicWindow* basicWindow)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			return basicWindow->Appereance->Background;
+		}
+		return {};
+	}
+
+	Color GetForegroundColor(BasicWindow* basicWindow)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(basicWindow))
+		{
+			return basicWindow->Appereance->Foreground;
+		}
+		return {};
 	}
 }

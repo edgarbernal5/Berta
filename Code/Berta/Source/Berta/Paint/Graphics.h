@@ -23,7 +23,6 @@ namespace Berta
 
 		void Build(const Size& size);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
-		void DrawRectangle(const Rectangle& rectangle, bool solid);
 		void DrawRectangle(const Color& color, bool solid);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
 

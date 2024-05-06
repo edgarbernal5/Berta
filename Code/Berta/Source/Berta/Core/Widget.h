@@ -10,6 +10,7 @@
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Core/WidgetRenderer.h"
 #include "Berta/GUI/Interface.h"
+#include "Berta/GUI/WidgetAppearance.h"
 
 namespace Berta
 {
@@ -48,6 +49,8 @@ namespace Berta
 		Widget(Widget&&) = delete;
 		Widget& operator=(Widget&&) = delete;
 
+		WidgetAppearance& GetAppearance() { return *m_appearance; }
+
 	protected:
 		void Create(const Rectangle& rectangle)
 		{
@@ -57,10 +60,13 @@ namespace Berta
 		void Create(const Rectangle& rectangle, const WindowStyle& windowStyle)
 		{
 			m_handle = GUI::CreateNativeWindow(rectangle, windowStyle);
+			m_appearance = new WidgetAppearance();
+			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 		}
 
 		RendererType m_renderer;
+		WidgetAppearance* m_appearance{ nullptr };
 	};
 }
 
