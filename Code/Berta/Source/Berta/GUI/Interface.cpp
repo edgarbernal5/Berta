@@ -9,7 +9,7 @@
 
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Core/Foundation.h"
-#include "Berta/Core/Widget.h"
+#include "Berta/GUI/Widget.h"
 #include "Berta/GUI/WidgetAppearance.h"
 
 namespace Berta::GUI
@@ -43,7 +43,10 @@ namespace Berta::GUI
 		basicWindow->Size = rectangle;
 		basicWindow->Parent = parent;
 
-		parent->Children.emplace_back(basicWindow);
+		if (parent)
+		{
+			parent->Children.emplace_back(basicWindow);
+		}
 
 		windowManager.Add(basicWindow);
 		return basicWindow;

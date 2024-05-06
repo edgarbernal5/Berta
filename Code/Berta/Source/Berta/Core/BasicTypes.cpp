@@ -15,4 +15,9 @@ namespace Berta
 	{
 		return Size{ Width, Height };
 	}
+
+	Rectangle Size::ToRectangle()
+	{
+		return { 0, 0, Width, Height };
+	}
 }

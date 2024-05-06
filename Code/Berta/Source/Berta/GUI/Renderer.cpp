@@ -8,8 +8,8 @@
 #include "Renderer.h"
 
 #include "Berta/GUI/BasicWindow.h"
-#include "Berta/Core/Widget.h"
-#include "Berta/Core/WidgetRenderer.h"
+#include "Berta/GUI/Widget.h"
+#include "Berta/GUI/WidgetRenderer.h"
 
 namespace Berta
 {

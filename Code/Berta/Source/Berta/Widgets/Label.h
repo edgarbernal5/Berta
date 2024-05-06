@@ -7,8 +7,8 @@
 #ifndef BT_LABEL_HEADER
 #define BT_LABEL_HEADER
 
-#include "Berta/Core/Widget.h"
 #include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Widget.h"
 #include <string>
 
 namespace Berta

@@ -7,7 +7,9 @@
 #include "btpch.h"
 #include "Graphics.h"
 
+#ifdef BT_DEBUG
 #define BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+#endif
 
 namespace Berta
 {
@@ -46,10 +48,6 @@ namespace Berta
 
 			HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
 			SelectObject(cdc, hBitmap);
-
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-			//BT_CORE_ERROR << "Build ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
 
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;

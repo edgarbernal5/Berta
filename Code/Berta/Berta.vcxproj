@@ -139,7 +139,7 @@
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
     <ClInclude Include="Source\Berta\GUI\WidgetAppearance.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
-    <ClInclude Include="Source\Berta\Core\WidgetRenderer.h" />
+    <ClInclude Include="Source\Berta\GUI\WidgetRenderer.h" />
     <ClInclude Include="Source\Berta\Widgets\Label.h" />
     <ClInclude Include="Source\Berta\GUI\BasicWindow.h" />
     <ClInclude Include="Source\Berta\GUI\Interface.h" />
@@ -154,7 +154,7 @@
     <ClInclude Include="Source\Berta\Core\Logger.h" />
     <ClInclude Include="Source\Berta\EntryPoint.h" />
     <ClInclude Include="Source\btpch.h" />
-    <ClInclude Include="Source\Berta\Core\Widget.h" />
+    <ClInclude Include="Source\Berta\GUI\Widget.h" />
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -162,10 +162,10 @@
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
     <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />
-    <ClCompile Include="Source\Berta\Core\WidgetRenderer.cpp" />
+    <ClCompile Include="Source\Berta\GUI\WidgetRenderer.cpp" />
     <ClCompile Include="Source\Berta\Widgets\Label.cpp" />
     <ClCompile Include="Source\Berta\API\WindowAPI.cpp" />
-    <ClCompile Include="Source\Berta\Core\Widget.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Widget.cpp" />
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
     <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp" />

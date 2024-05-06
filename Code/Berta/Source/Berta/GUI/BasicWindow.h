@@ -16,7 +16,7 @@
 namespace Berta
 {
 	class Graphics;
-	class WidgetAppearance;
+	struct WidgetAppearance;
 
 	enum class WindowType
 	{

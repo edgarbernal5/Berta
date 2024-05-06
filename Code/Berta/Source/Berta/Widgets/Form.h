@@ -12,7 +12,7 @@
 
 #include "Berta/EntryPoint.h"
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/Core/Widget.h"
+#include "Berta/GUI/Widget.h"
 
 namespace Berta
 {

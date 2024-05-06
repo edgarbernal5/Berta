@@ -8,13 +8,12 @@
 #define BT_WIDGET_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/Core/WidgetRenderer.h"
 #include "Berta/GUI/Interface.h"
+#include "Berta/GUI/WidgetRenderer.h"
 #include "Berta/GUI/WidgetAppearance.h"
 
 namespace Berta
 {
-	struct BasicWindow;
 
 	class WidgetBase
 	{
@@ -28,9 +27,7 @@ namespace Berta
 		std::wstring Caption();
 		void Show();
 
-		operator BasicWindow* () const {
-			return m_handle;
-		}
+		operator BasicWindow* () const { return m_handle; }
 	protected:
 		BasicWindow* m_handle{ nullptr };
 	};

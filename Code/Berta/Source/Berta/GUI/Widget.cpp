@@ -18,7 +18,7 @@ namespace Berta
 
 	std::wstring WidgetBase::Caption()
 	{
-		return std::wstring();
+		return GUI::GetCaptionWindow(m_handle);
 	}
 
 	void WidgetBase::Show()

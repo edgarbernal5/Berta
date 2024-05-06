@@ -53,11 +53,8 @@ namespace Berta
 			return (Width != rhs.Width) || (Height != rhs.Height);
 		}
 
-		Rectangle ToRectangle()
-		{
-			return { 0, 0, Width, Height };
-		}
-
+		Rectangle ToRectangle();
+		
 		static const Size Zero;
 	};
 
