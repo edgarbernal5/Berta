@@ -52,6 +52,7 @@ namespace Berta
 			::SetBkMode(cdc, TRANSPARENT);
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;
+			m_hFont = CreateTransparentFont(20, FW_NORMAL, false, false);
 
 			ReleaseDC(0, hdc);
 #endif
@@ -97,13 +98,14 @@ namespace Berta
 	void Graphics::DrawString(const Point& position, const std::wstring& str, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		HFONT oldFont = (HFONT)SelectObject(m_hdc, m_hFont);
 		if (m_lastForegroundColor != color.RGB)
 		{
 			::SetTextColor(m_hdc, color.RGB);
 			m_lastForegroundColor = color.RGB;
 		}
-
 		::TextOut(m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
+		::SelectObject(m_hdc, oldFont);
 #endif
 	}
 
@@ -143,5 +145,28 @@ namespace Berta
 	void Graphics::Release()
 	{
 		m_size = Size::Zero;
+		if (m_hFont)
+		{
+			::DeleteObject(m_hFont);
+			m_hFont = nullptr;
+		}
+	}
+
+	HFONT Graphics::CreateTransparentFont(int height, int weight, bool italic, bool underline)
+	{
+		LOGFONT lf;
+		ZeroMemory(&lf, sizeof(LOGFONT)); // Clear the structure
+		lf.lfHeight = height; // Font height
+		lf.lfWeight = weight; // Font weight (bold)
+		lf.lfItalic = italic; // Italic style
+		lf.lfCharSet = DEFAULT_CHARSET; // Character set
+		lf.lfOutPrecision = OUT_DEFAULT_PRECIS; // Output precision
+		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS; // Clipping precision
+		lf.lfQuality = DEFAULT_QUALITY; // Output quality
+		lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE; // Pitch and family
+		lstrcpy(lf.lfFaceName, L"Segoe UI"); // Font name
+
+		// Create the font using CreateFontIndirect
+		return ::CreateFontIndirect(&lf);
 	}
 }

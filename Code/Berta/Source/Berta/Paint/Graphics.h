@@ -34,10 +34,15 @@ namespace Berta
 	private:
 		void Release();
 
+#ifdef BT_PLATFORM_WINDOWS
+		HFONT CreateTransparentFont(int height, int weight, bool italic, bool underline);
+
 		Size m_size;
 		HDC m_hdc{ nullptr };
 		HBITMAP	m_hBitmap{ nullptr };
+		HFONT m_hFont{ nullptr };
 		uint32_t m_lastForegroundColor{ 0 };
+#endif
 	};
 }
 
