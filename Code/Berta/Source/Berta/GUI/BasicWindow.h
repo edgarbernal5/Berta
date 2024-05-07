@@ -32,6 +32,7 @@ namespace Berta
 		std::wstring Title;
 		bool Visible{ false };
 		Size Size;
+		Point Position;
 
 		WindowType Type;
 		API::NativeWindowHandle Root{};

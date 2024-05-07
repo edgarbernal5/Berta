@@ -66,6 +66,7 @@ namespace Berta
 		ValueType X{};
 		ValueType Y{};
 
+		BasicPoint(){}
 		BasicPoint(ValueType x, ValueType y)
 			: X{ x }, Y{ y }
 		{}

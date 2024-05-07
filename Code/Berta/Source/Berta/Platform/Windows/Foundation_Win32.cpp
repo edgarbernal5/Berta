@@ -32,9 +32,9 @@ namespace Berta
 		m_logger = Log::GetCoreLogger();
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
-		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
-
+		
 		// Register class
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);

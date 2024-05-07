@@ -98,7 +98,7 @@ namespace Berta
 	void Graphics::DrawString(const Point& position, const std::wstring& str, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		HFONT oldFont = (HFONT)SelectObject(m_hdc, m_hFont);
+		HFONT oldFont = (HFONT)::SelectObject(m_hdc, m_hFont);
 		if (m_lastForegroundColor != color.RGB)
 		{
 			::SetTextColor(m_hdc, color.RGB);

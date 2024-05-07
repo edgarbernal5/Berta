@@ -67,6 +67,7 @@ namespace Berta
 		auto& rootGraphics = *(basicWindow->RootGraphics);
 		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
 
+		//TODO: traverse the entire tree.
 		for (auto& child : basicWindow->Children)
 		{
 			if (!child->Visible)
