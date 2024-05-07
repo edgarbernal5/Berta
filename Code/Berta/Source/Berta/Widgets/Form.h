@@ -31,7 +31,7 @@ namespace Berta
 	class Form : public Widget<FormRenderer>
 	{
 	public:
-		Form(const Rectangle& rectangle = { 0,0,800,600 }, const WindowStyle& windowStyle = {true, true, true});
+		Form(const Rectangle& rectangle = { 0,0,800,600 }, const FormStyle& windowStyle = {true, true, true});
 
 		void Exec();
 	private:

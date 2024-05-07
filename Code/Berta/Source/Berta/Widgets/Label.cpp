@@ -18,6 +18,7 @@ namespace Berta
 
 	void LabelRenderer::Update(Graphics& graphics)
 	{
+		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_widget), true);
 		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(*m_widget));
 	}
 

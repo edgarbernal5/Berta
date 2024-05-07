@@ -137,7 +137,7 @@ namespace Berta
 
 	using Point = BasicPoint<int>;
 
-	struct WindowStyle
+	struct FormStyle
 	{
 		bool Minimize{ true };
 		bool Maximize{ true };

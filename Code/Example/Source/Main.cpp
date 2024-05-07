@@ -12,10 +12,10 @@ int main()
 	Berta::Form form({ 0,0,800,600 }, { true, false, true });
 	form.Caption(L"Window");
 	
-	Berta::Label label(form, { 0,0,800,600 }, L"Hello world!");
-	
+	Berta::Label label(form, { 0,0,200,80 }, L"Hello world!");
+	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
+
 	form.Show();
-	
 	form.Exec();
 
 	return 0;

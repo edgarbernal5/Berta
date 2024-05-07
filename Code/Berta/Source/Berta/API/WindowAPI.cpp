@@ -15,16 +15,16 @@ namespace Berta
 
 	namespace API
 	{
-		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle)
+		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
 			DWORD styleEx = WS_EX_NOPARENTNOTIFY;
 
-			if (windowStyle.Minimize) style |= WS_MINIMIZEBOX;
-			if (windowStyle.Maximize) style |= WS_MAXIMIZEBOX;
+			if (formStyle.Minimize) style |= WS_MINIMIZEBOX;
+			if (formStyle.Maximize) style |= WS_MAXIMIZEBOX;
 
-			if (windowStyle.Sizable) style |= WS_THICKFRAME;
+			if (formStyle.Sizable) style |= WS_THICKFRAME;
 
 			style |= WS_OVERLAPPED | WS_CAPTION;
 			style |= WS_POPUP;

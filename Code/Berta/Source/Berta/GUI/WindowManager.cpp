@@ -67,6 +67,16 @@ namespace Berta
 		auto& rootGraphics = *(basicWindow->RootGraphics);
 		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
 
+		for (auto& child : basicWindow->Children)
+		{
+			if (!child->Visible)
+				continue;
+
+			child->Renderer.Update();
+			auto childRectangle = child->Size.ToRectangle();
+			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), Point(childRectangle.X, childRectangle.Y));
+		}
+
 		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
 	}
 

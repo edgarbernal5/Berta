@@ -21,7 +21,7 @@ namespace Berta
 		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_widget), true);
 	}
 
-	Form::Form(const Rectangle& rectangle, const WindowStyle& windowStyle)
+	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle)
 	{
 		Create(nullptr, rectangle, windowStyle);
 	}

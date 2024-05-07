@@ -35,7 +35,7 @@ namespace Berta
 			Size ClientSize;
 		};
 
-		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle);
+		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& windowStyle);
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);

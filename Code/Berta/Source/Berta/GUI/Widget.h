@@ -53,20 +53,24 @@ namespace Berta
 		WidgetAppearance& GetAppearance() { return *m_appearance; }
 
 	protected:
-		void Create(BasicWindow* parent, const Rectangle& rectangle)
+		void Create(BasicWindow* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
-			m_handle = GUI::CreateWidget(parent, rectangle);
+			m_handle = GUI::CreateForm(rectangle, formStyle);
 			m_appearance = new WidgetAppearance();
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 		}
 
-		void Create(BasicWindow* parent, const Rectangle& rectangle, const WindowStyle& windowStyle)
+		void Create(BasicWindow* parent, const Rectangle& rectangle, bool visible = true)
 		{
-			m_handle = GUI::CreateNativeWindow(rectangle, windowStyle);
+			m_handle = GUI::CreateWidget(parent, rectangle);
 			m_appearance = new WidgetAppearance();
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
+			if (visible)
+			{
+				GUI::ShowBasicWindow(m_handle, true);
+			}
 		}
 
 		RendererType m_renderer;

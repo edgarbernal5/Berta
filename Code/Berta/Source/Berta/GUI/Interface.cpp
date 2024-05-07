@@ -14,9 +14,9 @@
 
 namespace Berta::GUI
 {
-	BasicWindow* CreateNativeWindow(const Rectangle& rectangle, const WindowStyle& windowStyle)
+	BasicWindow* CreateForm(const Rectangle& rectangle, const FormStyle& formStyle)
 	{
-		auto windowResult = API::CreateNativeWindow(rectangle, windowStyle);
+		auto windowResult = API::CreateNativeWindow(rectangle, formStyle);
 
 		if (windowResult.WindowHandle.Handle)
 		{
@@ -33,6 +33,7 @@ namespace Berta::GUI
 
 			return basicWindow;
 		}
+
 		return nullptr;
 	}
 
