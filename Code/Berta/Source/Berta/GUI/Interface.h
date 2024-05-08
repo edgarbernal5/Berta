@@ -8,7 +8,7 @@
 #define BT_INTERFACE_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 
 namespace Berta
 {
@@ -17,19 +17,19 @@ namespace Berta
 
 	namespace GUI
 	{
-		BasicWindow* CreateForm(const Rectangle& rectangle, const FormStyle& windowStyle);
-		BasicWindow* CreateWidget(BasicWindow* parent, const Rectangle& rectangle);
+		Window* CreateForm(const Rectangle& rectangle, const FormStyle& windowStyle);
+		Window* CreateWidget(Window* parent, const Rectangle& rectangle);
 
-		void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption);
-		std::wstring GetCaptionWindow(BasicWindow* basicWindow);
-		void DestroyWindow(BasicWindow* basicWindow);
-		void ShowBasicWindow(BasicWindow* basicWindow, bool visible);
+		void CaptionWindow(Window* window, const std::wstring& caption);
+		std::wstring GetCaptionWindow(Window* window);
+		void DisposeWindow(Window* window);
+		void ShowWindow(Window* window, bool visible);
 
-		void InitRenderer(WidgetBase* basicWindow, WidgetRenderer& widgetRenderer);
+		void InitRenderer(WidgetBase* window, WidgetRenderer& widgetRenderer);
 
-		void SetAppearance(BasicWindow* basicWindow, WidgetAppearance* widgetAppearance);
-		Color GetBackgroundColor(BasicWindow* basicWindow);
-		Color GetForegroundColor(BasicWindow* basicWindow);
+		void SetAppearance(Window* window, WidgetAppearance* widgetAppearance);
+		Color GetBackgroundColor(Window* window);
+		Color GetForegroundColor(Window* window);
 	}
 }
 

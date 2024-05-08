@@ -40,7 +40,7 @@ namespace Berta
 			scaledWindowRect.right = static_cast<LONG>(rectangle.Width * scalingFactor);
 			scaledWindowRect.bottom = static_cast<LONG>(rectangle.Height * scalingFactor);
 
-			if (!AdjustWindowRectExForDpi(&scaledWindowRect, WS_OVERLAPPEDWINDOW, false, 0, dpi))
+			if (!AdjustWindowRectExForDpi(&scaledWindowRect, style, false, 0, dpi))
 			{
 				BT_CORE_ERROR << "AdjustWindowRectExForDpi Failed." << std::endl;
 				return {};

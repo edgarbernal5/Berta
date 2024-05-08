@@ -24,10 +24,10 @@ namespace Berta
 		Widget
 	};
 
-	struct BasicWindow
+	struct Window
 	{
-		BasicWindow() = default;
-		BasicWindow(WindowType type) : Type(type) {}
+		Window() = default;
+		Window(WindowType type) : Type(type) {}
 
 		std::wstring Title;
 		bool Visible{ false };
@@ -41,8 +41,8 @@ namespace Berta
 		Graphics* RootGraphics{ nullptr };
 		WidgetAppearance* Appereance{ nullptr };
 
-		BasicWindow* Parent{ nullptr };
-		std::vector<BasicWindow*> Children;
+		Window* Parent{ nullptr };
+		std::vector<Window*> Children;
 	};
 }
 

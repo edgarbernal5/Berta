@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	struct BasicWindow;
+	struct Window;
 
 	class WindowManager
 	{
@@ -23,28 +23,28 @@ namespace Berta
 
 		struct WindowData
 		{
-			BasicWindow* Window;
+			Window* WindowPtr;
 			Graphics RootGraphics;
 
-			WindowData(BasicWindow* _window, Size size) :
-				Window(_window),
+			WindowData(Window* _window, Size size) :
+				WindowPtr(_window),
 				RootGraphics(size)
 			{}
 		};
 
-		void Add(BasicWindow* basicWindow);
+		void Add(Window* window);
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, const WindowData& append);
-		void Caption(BasicWindow* basicWindow, const std::wstring& caption);
-		void Destroy(BasicWindow* basicWindow);
-		BasicWindow* Get(API::NativeWindowHandle nativeWindowHandle);
+		void Caption(Window* window, const std::wstring& caption);
+		void Dispose(Window* window);
+		Window* Get(API::NativeWindowHandle nativeWindowHandle);
 		WindowData* GetWindowData(API::NativeWindowHandle nativeWindowHandle);
-		bool Exists(BasicWindow* basicWindow);
-		void UpdateTree(BasicWindow* basicWindow);
-		void Show(BasicWindow* basicWindow, bool visible);
+		bool Exists(Window* window);
+		void UpdateTree(Window* window);
+		void Show(Window* window, bool visible);
 
 	private:
 		std::map<API::NativeWindowHandle, WindowData> m_windowNativeRegistry;
-		std::set<BasicWindow*> m_windowRegistry;
+		std::set<Window*> m_windowRegistry;
 	};
 }
 

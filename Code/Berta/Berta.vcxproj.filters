@@ -63,7 +63,7 @@
     <ClInclude Include="Source\Berta\GUI\Interface.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\BasicWindow.h">
+    <ClInclude Include="Source\Berta\GUI\Window.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Widgets\Label.h">

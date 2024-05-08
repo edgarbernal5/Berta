@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	struct BasicWindow;
+	struct Window;
 	class WidgetBase;
 	class WidgetRenderer;
 
@@ -19,7 +19,7 @@ namespace Berta
 	{
 	public:
 		void Init(WidgetBase& widget, WidgetRenderer& widgetRenderer);
-		void Map(BasicWindow* window, const Rectangle& areaToUpdate);
+		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
 
 		Graphics& GetGraphics() { return m_graphics; }

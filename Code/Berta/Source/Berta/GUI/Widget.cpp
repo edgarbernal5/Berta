@@ -7,7 +7,7 @@
 #include "btpch.h"
 #include "Widget.h"
 
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 
 namespace Berta
 {
@@ -23,6 +23,6 @@ namespace Berta
 
 	void WidgetBase::Show()
 	{
-		GUI::ShowBasicWindow(m_handle, true);
+		GUI::ShowWindow(m_handle, true);
 	}
 }

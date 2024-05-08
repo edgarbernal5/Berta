@@ -7,7 +7,7 @@
 #ifndef BT_LABEL_HEADER
 #define BT_LABEL_HEADER
 
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 #include "Berta/GUI/Widget.h"
 #include <string>
 
@@ -26,7 +26,7 @@ namespace Berta
 	class Label : public Widget<LabelRenderer>
 	{
 	public:
-		Label(BasicWindow* parent, const Rectangle& rectangle, std::wstring text);
+		Label(Window* parent, const Rectangle& rectangle, std::wstring text);
 	};
 }
 

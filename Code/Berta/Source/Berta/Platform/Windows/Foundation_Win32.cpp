@@ -11,7 +11,7 @@
 
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 
 namespace Berta
 {

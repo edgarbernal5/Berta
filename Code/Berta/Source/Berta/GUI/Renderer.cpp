@@ -7,7 +7,7 @@
 #include "btpch.h"
 #include "Renderer.h"
 
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 #include "Berta/GUI/Widget.h"
 #include "Berta/GUI/WidgetRenderer.h"
 
@@ -19,7 +19,7 @@ namespace Berta
 		m_widgetRenderer->Init(widget);
 	}
 
-	void Renderer::Map(BasicWindow* window, const Rectangle& areaToUpdate)
+	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
 		window->RootGraphics->Paste(window->Root, areaToUpdate, 0, 0);
 	}

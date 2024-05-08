@@ -52,7 +52,12 @@ namespace Berta
 			::SetBkMode(cdc, TRANSPARENT);
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;
-			m_hFont = CreateTransparentFont(20, FW_NORMAL, false, false);
+
+			int dpi = GetDpiForSystem();
+			int baseFontSize = 20;
+			int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
+
+			m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
 
 			ReleaseDC(0, hdc);
 #endif

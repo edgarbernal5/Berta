@@ -7,13 +7,13 @@
 #include "btpch.h"
 #include "WindowManager.h"
 
-#include "Berta/GUI/BasicWindow.h"
+#include "Berta/GUI/Window.h"
 
 namespace Berta
 {
-	void WindowManager::Add(BasicWindow* basicWindow)
+	void WindowManager::Add(Window* window)
 	{
-		m_windowRegistry.insert(basicWindow);
+		m_windowRegistry.insert(window);
 	}
 
 	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, const WindowData& append)
@@ -21,28 +21,28 @@ namespace Berta
 		m_windowNativeRegistry.insert({ nativeWindowHandle, append });
 	}
 
-	void WindowManager::Caption(BasicWindow* basicWindow, const std::wstring& caption)
+	void WindowManager::Caption(Window* window, const std::wstring& caption)
 	{
-		basicWindow->Title = caption;
-		if (basicWindow->Type == WindowType::Native)
-			API::CaptionNativeWindow(basicWindow->Root, caption);
+		window->Title = caption;
+		if (window->Type == WindowType::Native)
+			API::CaptionNativeWindow(window->Root, caption);
 	}
 
-	void WindowManager::Destroy(BasicWindow* basicWindow)
+	void WindowManager::Dispose(Window* window)
 	{
-		if (basicWindow->Type == WindowType::Native)
+		if (window->Type == WindowType::Native)
 		{
-			API::DestroyNativeWindow(basicWindow->Root);
-			m_windowNativeRegistry.erase(basicWindow->Root);
+			API::DestroyNativeWindow(window->Root);
+			m_windowNativeRegistry.erase(window->Root);
 		}
-		m_windowRegistry.erase(basicWindow);
+		m_windowRegistry.erase(window);
 	}
 
-	BasicWindow* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)
+	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
-			return it->second.Window;
+			return it->second.WindowPtr;
 
 		return nullptr;
 	}
@@ -56,19 +56,19 @@ namespace Berta
 		return nullptr;
 	}
 
-	bool WindowManager::Exists(BasicWindow* basicWindow)
+	bool WindowManager::Exists(Window* window)
 	{
-		return m_windowRegistry.find(basicWindow) != m_windowRegistry.end();
+		return m_windowRegistry.find(window) != m_windowRegistry.end();
 	}
 
-	void WindowManager::UpdateTree(BasicWindow* basicWindow)
+	void WindowManager::UpdateTree(Window* window)
 	{
-		basicWindow->Renderer.Update(); //Update widget's basic window.
-		auto& rootGraphics = *(basicWindow->RootGraphics);
-		rootGraphics.BitBlt(basicWindow->Size.ToRectangle(), basicWindow->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
+		window->Renderer.Update(); //Update widget's basic window.
+		auto& rootGraphics = *(window->RootGraphics);
+		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
 
 		//TODO: traverse the entire tree.
-		for (auto& child : basicWindow->Children)
+		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
 				continue;
@@ -78,17 +78,17 @@ namespace Berta
 			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), Point(childRectangle.X, childRectangle.Y));
 		}
 
-		basicWindow->Renderer.Map(basicWindow, basicWindow->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
+		window->Renderer.Map(window, window->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
 	}
 
-	void WindowManager::Show(BasicWindow* basicWindow, bool visible)
+	void WindowManager::Show(Window* window, bool visible)
 	{
-		if (basicWindow->Visible != visible)
+		if (window->Visible != visible)
 		{
-			if (basicWindow->Type == WindowType::Native)
-				API::ShowNativeWindow(basicWindow->Root, visible);
+			if (window->Type == WindowType::Native)
+				API::ShowNativeWindow(window->Root, visible);
 
-			basicWindow->Visible = visible;
+			window->Visible = visible;
 		}
 	}
 }

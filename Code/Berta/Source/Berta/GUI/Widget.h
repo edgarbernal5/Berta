@@ -21,15 +21,15 @@ namespace Berta
 		WidgetBase() = default;
 		virtual ~WidgetBase() = default;
 
-		BasicWindow* Handle() const { return m_handle; }
+		Window* Handle() const { return m_handle; }
 
 		void Caption(const std::wstring& caption);
 		std::wstring Caption();
 		void Show();
 
-		operator BasicWindow* () const { return m_handle; }
+		operator Window* () const { return m_handle; }
 	protected:
-		BasicWindow* m_handle{ nullptr };
+		Window* m_handle{ nullptr };
 	};
 
 	template<typename Renderer>
@@ -41,7 +41,7 @@ namespace Berta
 		Widget() = default;
 		virtual ~Widget()
 		{
-			GUI::DestroyWindow(m_handle);
+			GUI::DisposeWindow(m_handle);
 		}
 
 		Widget(const Widget&) = delete;
@@ -53,7 +53,7 @@ namespace Berta
 		WidgetAppearance& GetAppearance() { return *m_appearance; }
 
 	protected:
-		void Create(BasicWindow* parent, const Rectangle& rectangle, const FormStyle& formStyle)
+		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 			m_handle = GUI::CreateForm(rectangle, formStyle);
 			m_appearance = new WidgetAppearance();
@@ -61,7 +61,7 @@ namespace Berta
 			GUI::InitRenderer(this, m_renderer);
 		}
 
-		void Create(BasicWindow* parent, const Rectangle& rectangle, bool visible = true)
+		void Create(Window* parent, const Rectangle& rectangle, bool visible = true)
 		{
 			m_handle = GUI::CreateWidget(parent, rectangle);
 			m_appearance = new WidgetAppearance();
@@ -69,7 +69,7 @@ namespace Berta
 			GUI::InitRenderer(this, m_renderer);
 			if (visible)
 			{
-				GUI::ShowBasicWindow(m_handle, true);
+				GUI::ShowWindow(m_handle, true);
 			}
 		}
 

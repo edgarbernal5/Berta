@@ -14,124 +14,124 @@
 
 namespace Berta::GUI
 {
-	BasicWindow* CreateForm(const Rectangle& rectangle, const FormStyle& formStyle)
+	Window* CreateForm(const Rectangle& rectangle, const FormStyle& formStyle)
 	{
 		auto windowResult = API::CreateNativeWindow(rectangle, formStyle);
 
 		if (windowResult.WindowHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
-			BasicWindow* basicWindow = new BasicWindow(WindowType::Native);
-			basicWindow->Root = windowResult.WindowHandle;
-			basicWindow->Size = windowResult.ClientSize;
+			Window* window = new Window(WindowType::Native);
+			window->Root = windowResult.WindowHandle;
+			window->Size = windowResult.ClientSize;
 
-			windowManager.AddNative(windowResult.WindowHandle, WindowManager::WindowData(basicWindow, basicWindow->Size));
-			windowManager.Add(basicWindow);
+			windowManager.AddNative(windowResult.WindowHandle, WindowManager::WindowData(window, window->Size));
+			windowManager.Add(window);
 
 			auto& rootGraphics = windowManager.GetWindowData(windowResult.WindowHandle)->RootGraphics;
-			basicWindow->RootGraphics = &rootGraphics;
+			window->RootGraphics = &rootGraphics;
 
-			return basicWindow;
+			return window;
 		}
 
 		return nullptr;
 	}
 
-	BasicWindow* CreateWidget(BasicWindow* parent, const Rectangle& rectangle)
+	Window* CreateWidget(Window* parent, const Rectangle& rectangle)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		BasicWindow* basicWindow = new BasicWindow(WindowType::Widget);
-		basicWindow->Size = rectangle;
-		basicWindow->Parent = parent;
+		Window* window = new Window(WindowType::Widget);
+		window->Size = rectangle;
+		window->Parent = parent;
 
 		if (parent)
 		{
-			parent->Children.emplace_back(basicWindow);
+			parent->Children.emplace_back(window);
 		}
 
-		windowManager.Add(basicWindow);
-		return basicWindow;
+		windowManager.Add(window);
+		return window;
 	}
 
-	void CaptionWindow(BasicWindow* basicWindow, const std::wstring& caption)
+	void CaptionWindow(Window* window, const std::wstring& caption)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			windowManager.Caption(basicWindow, caption);
+			windowManager.Caption(window, caption);
 		}
 	}
 
-	std::wstring GetCaptionWindow(BasicWindow* basicWindow)
+	std::wstring GetCaptionWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			if (basicWindow->Type == WindowType::Native)
-				return API::GetCaptionNativeWindow(basicWindow->Root);
+			if (window->Type == WindowType::Native)
+				return API::GetCaptionNativeWindow(window->Root);
 
-			return basicWindow->Title;
+			return window->Title;
 		}
 		return {};
 	}
 
-	void DestroyWindow(BasicWindow* basicWindow)
+	void DisposeWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			windowManager.Destroy(basicWindow);
+			windowManager.Dispose(window);
 		}
 	}
 
-	void ShowBasicWindow(BasicWindow* basicWindow, bool visible)
+	void ShowWindow(Window* window, bool visible)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			windowManager.Show(basicWindow, visible);
+			windowManager.Show(window, visible);
 		}
 	}
 
 	void InitRenderer(WidgetBase* widget, WidgetRenderer& widgetRenderer)
 	{
-		auto basicWindow = widget->Handle();
+		auto window = widget->Handle();
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			auto& graphics = basicWindow->Renderer.GetGraphics();
-			graphics.Build(basicWindow->Size);
-			graphics.DrawRectangle(basicWindow->Size.ToRectangle(), basicWindow->Appereance->Background, true);
-			basicWindow->Renderer.Init(*widget, widgetRenderer);
-			basicWindow->Renderer.Update();
+			auto& graphics = window->Renderer.GetGraphics();
+			graphics.Build(window->Size);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
+			window->Renderer.Init(*widget, widgetRenderer);
+			window->Renderer.Update();
 		}
 	}
 
-	void SetAppearance(BasicWindow* basicWindow, WidgetAppearance* widgetAppearance)
+	void SetAppearance(Window* window, WidgetAppearance* widgetAppearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			basicWindow->Appereance = widgetAppearance;
+			window->Appereance = widgetAppearance;
 		}
 	}
 
-	Color GetBackgroundColor(BasicWindow* basicWindow)
+	Color GetBackgroundColor(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			return basicWindow->Appereance->Background;
+			return window->Appereance->Background;
 		}
 		return {};
 	}
 
-	Color GetForegroundColor(BasicWindow* basicWindow)
+	Color GetForegroundColor(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(basicWindow))
+		if (windowManager.Exists(window))
 		{
-			return basicWindow->Appereance->Foreground;
+			return window->Appereance->Foreground;
 		}
 		return {};
 	}
