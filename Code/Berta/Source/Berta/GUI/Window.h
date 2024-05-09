@@ -34,6 +34,8 @@ namespace Berta
 		Size Size;
 		Point Position;
 
+		uint32_t DPI{ 0 };
+
 		WindowType Type;
 		API::NativeWindowHandle Root{};
 

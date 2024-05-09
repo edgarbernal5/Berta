@@ -52,12 +52,18 @@ namespace Berta
 			::SetBkMode(cdc, TRANSPARENT);
 			m_hdc = cdc;
 			m_hBitmap = hBitmap;
+			::LOGFONT lfText = {};
+			SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, 96);
+			m_hFont = ::CreateFontIndirect(&lfText);
+			if (m_hFont)
+			{
+			}
 
-			int dpi = GetDpiForSystem();
-			int baseFontSize = 20;
-			int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
+			//int dpi = GetDpiForSystem();
+			//int baseFontSize = 20;
+			//int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
 
-			m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
+			//m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
 
 			ReleaseDC(0, hdc);
 #endif
@@ -159,7 +165,7 @@ namespace Berta
 
 	HFONT Graphics::CreateTransparentFont(int height, int weight, bool italic, bool underline)
 	{
-		LOGFONT lf;
+		::LOGFONT lf;
 		ZeroMemory(&lf, sizeof(LOGFONT)); // Clear the structure
 		lf.lfHeight = height; // Font height
 		lf.lfWeight = weight; // Font weight (bold)
