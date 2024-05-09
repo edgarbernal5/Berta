@@ -138,6 +138,7 @@
     <ClInclude Include="Source\Berta\Core\Colors.h" />
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
     <ClInclude Include="Source\Berta\GUI\WidgetAppearance.h" />
+    <ClInclude Include="Source\Berta\Paint\Font.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
     <ClInclude Include="Source\Berta\GUI\WidgetRenderer.h" />
     <ClInclude Include="Source\Berta\Widgets\Label.h" />

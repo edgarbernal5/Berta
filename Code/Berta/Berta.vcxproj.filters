@@ -93,6 +93,9 @@
     <ClInclude Include="Source\Berta\GUI\Widget.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Font.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
