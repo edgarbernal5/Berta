@@ -78,12 +78,14 @@ namespace Berta
 
 #ifdef BT_DEBUG
 	std::map<uint32_t, std::string> g_debugWndMessages{
-		//{WM_CREATE,			"WM_CREATE"},
+		{WM_CREATE,			"WM_CREATE"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
-		{WM_PAINT,			"WM_PAINT"}
+		{WM_PAINT,			"WM_PAINT"},
+		{WM_DPICHANGED,		"WM_DPICHANGED"},
+		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
 	};
 #endif
 
@@ -124,6 +126,18 @@ namespace Berta
 
 			::EndPaint(nativeWindow->Root.Handle, &ps); 
 			return 0;
+		}
+		case WM_MOUSEMOVE:
+		{
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+			auto window = windowManager.Find(nativeWindow, {x, y});
+			if (window)
+			{
+				std::string debugWindow(window->Title.begin(), window->Title.end());
+				BT_CORE_DEBUG << "mouse move: window: " << debugWindow << std::endl;
+			}
+			break;
 		}
 		case WM_DESTROY:
 			::PostQuitMessage(0);

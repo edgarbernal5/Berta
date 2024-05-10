@@ -11,6 +11,7 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/WidgetRenderer.h"
 #include "Berta/GUI/WidgetAppearance.h"
+#include "Berta/GUI/CommonEvents.h"
 
 namespace Berta
 {
@@ -32,7 +33,7 @@ namespace Berta
 		Window* m_handle{ nullptr };
 	};
 
-	template<typename Renderer>
+	template <typename Renderer, typename Events = CommonEvents>
 	class Widget : public WidgetBase
 	{
 	public:
@@ -51,6 +52,7 @@ namespace Berta
 		Widget& operator=(Widget&&) = delete;
 
 		WidgetAppearance& GetAppearance() { return *m_appearance; }
+		Events& GetEvents() { return m_events; }
 
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
@@ -74,6 +76,7 @@ namespace Berta
 		}
 
 		RendererType m_renderer;
+		Events m_events;
 		WidgetAppearance* m_appearance{ nullptr };
 	};
 }

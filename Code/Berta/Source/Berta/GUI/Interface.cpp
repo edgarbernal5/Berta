@@ -43,6 +43,7 @@ namespace Berta::GUI
 		Window* window = new Window(WindowType::Widget);
 		window->Size = rectangle;
 		window->Parent = parent;
+		window->Position = rectangle;
 
 		if (parent)
 		{

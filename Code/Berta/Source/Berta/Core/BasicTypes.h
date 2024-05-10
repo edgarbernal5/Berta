@@ -14,50 +14,6 @@ namespace Berta
 	struct Size;
 	struct Rectangle;
 
-	struct Rectangle
-	{
-		int X{ 0 };
-		int Y{ 0 };
-		uint32_t Width{ 0 };
-		uint32_t Height{ 0 };
-
-#ifdef BT_PLATFORM_WINDOWS
-		void FromRECT(const RECT& rect)
-		{
-			X = rect.left;
-			Y = rect.top;
-			Width = rect.right - rect.left;
-			Height = rect.bottom - rect.top;
-		}
-#endif
-		operator Size() const;
-	};
-
-	struct Size
-	{
-		uint32_t Width{ 0 };
-		uint32_t Height{ 0 };
-
-		bool IsEmpty()
-		{
-			return Width == 0 && Height == 0;
-		}
-
-		bool operator==(const Size& rhs) const
-		{
-			return (Width == rhs.Width) && (Height == rhs.Height);
-		}
-
-		bool operator!=(const Size& rhs) const
-		{
-			return (Width != rhs.Width) || (Height != rhs.Height);
-		}
-
-		Rectangle ToRectangle();
-		
-		static const Size Zero;
-	};
-
 	template<typename T>
 	struct BasicPoint
 	{
@@ -66,7 +22,7 @@ namespace Berta
 		ValueType X{};
 		ValueType Y{};
 
-		BasicPoint(){}
+		BasicPoint() {}
 		BasicPoint(ValueType x, ValueType y)
 			: X{ x }, Y{ y }
 		{}
@@ -137,6 +93,55 @@ namespace Berta
 	};
 
 	using Point = BasicPoint<int>;
+
+	struct Rectangle
+	{
+		int X{ 0 };
+		int Y{ 0 };
+		uint32_t Width{ 0 };
+		uint32_t Height{ 0 };
+
+#ifdef BT_PLATFORM_WINDOWS
+		void FromRECT(const RECT& rect)
+		{
+			X = rect.left;
+			Y = rect.top;
+			Width = rect.right - rect.left;
+			Height = rect.bottom - rect.top;
+		}
+
+		RECT ToRECT() const;
+#endif
+		bool IsInside(const Point& point);
+
+		operator Size() const;
+		operator Point() const;
+	};
+
+	struct Size
+	{
+		uint32_t Width{ 0 };
+		uint32_t Height{ 0 };
+
+		bool IsEmpty()
+		{
+			return Width == 0 && Height == 0;
+		}
+
+		bool operator==(const Size& rhs) const
+		{
+			return (Width == rhs.Width) && (Height == rhs.Height);
+		}
+
+		bool operator!=(const Size& rhs) const
+		{
+			return (Width != rhs.Width) || (Height != rhs.Height);
+		}
+
+		Rectangle ToRectangle();
+		
+		static const Size Zero;
+	};
 
 	struct FormStyle
 	{

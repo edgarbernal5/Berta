@@ -61,6 +61,21 @@ namespace Berta
 		return m_windowRegistry.find(window) != m_windowRegistry.end();
 	}
 
+	Window* WindowManager::Find(Window* window, const Point& point)
+	{
+		if (window == nullptr)
+			return nullptr;
+
+		if (!window->Visible)
+			return nullptr;
+
+		if (IsPointOnWindow(window, point))
+		{
+			return FindInTree(window, point);
+		}
+		return nullptr;
+	}
+
 	void WindowManager::UpdateTree(Window* window)
 	{
 		window->Renderer.Update(); //Update widget's basic window.
@@ -90,5 +105,37 @@ namespace Berta
 
 			window->Visible = visible;
 		}
+	}
+
+	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
+	{
+		return Rectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height}.IsInside(point);
+	}
+
+	Window* WindowManager::FindInTree(Window* window, const Point& point)
+	{
+		if (!window->Visible)
+		{
+			return nullptr;
+		}
+
+		if (!window->Children.empty())
+		{
+			auto index = window->Children.size();
+
+			do
+			{
+				auto child = window->Children[--index];
+				if (child->Type != WindowType::Native && IsPointOnWindow(child, point))
+				{
+					child = FindInTree(child, point);
+					if (child)
+					{
+						return child;
+					}
+				}
+			} while (index != 0);
+		}
+		return window;
 	}
 }

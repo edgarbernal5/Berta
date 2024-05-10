@@ -39,10 +39,14 @@ namespace Berta
 		Window* Get(API::NativeWindowHandle nativeWindowHandle);
 		WindowData* GetWindowData(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(Window* window);
+
+		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);
 		void Show(Window* window, bool visible);
 
 	private:
+		bool IsPointOnWindow(Window* window, const Point& point);
+		Window* FindInTree(Window* window, const Point& point);
 		std::map<API::NativeWindowHandle, WindowData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
 	};

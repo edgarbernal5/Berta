@@ -94,7 +94,7 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		auto brush = ::CreateSolidBrush(color.RGB);
-		RECT nativeRect{ static_cast<LONG>(rectangle.X), static_cast<LONG>(rectangle.Y), static_cast<LONG>(rectangle.X + rectangle.Width),static_cast<LONG>(rectangle.Y + rectangle.Height) };
+		RECT nativeRect = rectangle.ToRECT();
 		if (!FillRect(m_hdc, &nativeRect, brush))
 		{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
