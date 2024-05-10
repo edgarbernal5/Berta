@@ -81,7 +81,7 @@ namespace Berta
 		window->Renderer.Update(); //Update widget's basic window.
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
-
+		
 		//TODO: traverse the entire tree.
 		for (auto& child : window->Children)
 		{
@@ -89,8 +89,8 @@ namespace Berta
 				continue;
 
 			child->Renderer.Update();
-			auto childRectangle = child->Size.ToRectangle();
-			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), Point(childRectangle.X, childRectangle.Y));
+			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 		}
 
 		window->Renderer.Map(window, window->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
