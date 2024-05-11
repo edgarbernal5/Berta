@@ -19,7 +19,19 @@ namespace Berta
 	{
 	}
 
-	void WidgetRenderer::MouseMove(Graphics& graphics, const ArgMouseMove& args)
+	void WidgetRenderer::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	void WidgetRenderer::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	void WidgetRenderer::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	void WidgetRenderer::Click(Graphics& graphics, const ArgClick& args)
 	{
 	}
 }

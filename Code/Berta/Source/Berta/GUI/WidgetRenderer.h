@@ -23,7 +23,10 @@ namespace Berta
 
 		virtual void Init(WidgetBase& widget);
 		virtual void Update(Graphics& graphics);
-		virtual void MouseMove(Graphics& graphics, const ArgMouseMove& args);
+		virtual void MouseDown(Graphics& graphics, const ArgMouse& args);
+		virtual void MouseMove(Graphics& graphics, const ArgMouse& args);
+		virtual void MouseUp(Graphics& graphics, const ArgMouse& args);
+		virtual void Click(Graphics& graphics, const ArgClick& args);
 
 	private:
 		

@@ -12,7 +12,7 @@
 
 namespace Berta
 {
-	struct ArgMouseMove
+	struct ArgMouse
 	{
 		Point Position;
 		struct MouseButtonState
@@ -23,10 +23,19 @@ namespace Berta
 		}ButtonState;
 	};
 
+	struct ArgClick
+	{
+		
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
-		Event<ArgMouseMove> MouseMove;
+
+		Event<ArgMouse> MouseDown;
+		Event<ArgMouse> MouseMove;
+		Event<ArgMouse> MouseUp;
+		Event<ArgClick> Click;
 	};
 }
 

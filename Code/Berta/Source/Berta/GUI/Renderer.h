@@ -23,7 +23,10 @@ namespace Berta
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
 
-		void MouseMove(const ArgMouseMove& args);
+		void MouseDown(const ArgMouse& args);
+		void MouseMove(const ArgMouse& args);
+		void MouseUp(const ArgMouse& args);
+		void Click(const ArgClick& args);
 
 		Graphics& GetGraphics() { return m_graphics; }
 	private:

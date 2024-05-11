@@ -87,6 +87,12 @@ namespace Berta
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
+		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
+		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
+		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
+		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
 	};
 #endif
@@ -131,12 +137,32 @@ namespace Berta
 			::EndPaint(nativeWindow->Root.Handle, &ps); 
 			return 0;
 		}
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		{
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			ArgMouse argMouseDown;
+			argMouseDown.Position = { x, y };
+			argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+			argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+			argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+			auto window = windowManager.Find(nativeWindow, { x, y });
+			rootWindowData.Pressed = window;
+
+			window->Renderer.MouseDown(argMouseDown);
+			window->Events->MouseDown.emit(argMouseDown);
+			break;
+		}
 		case WM_MOUSEMOVE:
 		{
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			ArgMouseMove argMouseMove;
+			ArgMouse argMouseMove;
 			argMouseMove.Position = { x, y };
 			argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 			argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
@@ -155,10 +181,36 @@ namespace Berta
 				window->Events->MouseMove.emit(argMouseMove);
 
 				trackEvent.hwndTrack = hWnd;
-				TrackMouseEvent(&trackEvent);
+				TrackMouseEvent(&trackEvent); //Keep track of mouse position to emit WM_MOUSELEAVE message.
 			}
 			
 			rootWindowData.Hovered = window;
+			break;
+		}
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+		{
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			ArgMouse argMouseUp;
+			argMouseUp.Position = { x, y };
+			argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+			argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+			argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+			auto window = windowManager.Find(nativeWindow, { x, y });
+			if (window && window == rootWindowData.Pressed)
+			{
+				window->Renderer.MouseUp(argMouseUp);
+				window->Events->MouseUp.emit(argMouseUp);
+
+				ArgClick argClick;
+				window->Renderer.Click(argClick);
+				window->Events->Click.emit(argClick);
+			}
+			rootWindowData.Pressed = nullptr;
 			break;
 		}
 		case WM_MOUSELEAVE:
