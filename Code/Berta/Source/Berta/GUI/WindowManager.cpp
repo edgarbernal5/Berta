@@ -63,11 +63,10 @@ namespace Berta
 
 	Window* WindowManager::Find(Window* window, const Point& point)
 	{
-		if (window == nullptr)
+		if (window == nullptr || !window->Visible)
+		{
 			return nullptr;
-
-		if (!window->Visible)
-			return nullptr;
+		}
 
 		if (IsPointOnWindow(window, point))
 		{

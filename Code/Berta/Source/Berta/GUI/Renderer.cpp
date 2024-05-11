@@ -21,7 +21,7 @@ namespace Berta
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		window->RootGraphics->Paste(window->Root, areaToUpdate, 0, 0);
+		window->RootGraphics->Paste(window->Root, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
 	void Renderer::Update()

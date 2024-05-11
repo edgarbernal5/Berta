@@ -114,7 +114,8 @@ namespace Berta
 		case WM_SHOWWINDOW:
 		{
 			windowManager.UpdateTree(nativeWindow);
-		}break;
+			break;
+		}
 		case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
