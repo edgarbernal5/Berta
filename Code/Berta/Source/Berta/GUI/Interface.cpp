@@ -108,7 +108,7 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetEvents(Window* window, CommonEvents* events)
+	void SetEvents(Window* window, std::shared_ptr<CommonEvents> events)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))

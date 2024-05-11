@@ -37,6 +37,11 @@ namespace Berta
 		Event<ArgMouse> MouseUp;
 		Event<ArgClick> Click;
 	};
+
+	struct RootEvents : public CommonEvents
+	{
+
+	};
 }
 
 #endif

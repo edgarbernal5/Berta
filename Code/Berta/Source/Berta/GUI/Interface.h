@@ -28,7 +28,7 @@ namespace Berta
 
 		void InitRenderer(WidgetBase* window, WidgetRenderer& widgetRenderer);
 
-		void SetEvents(Window* window, CommonEvents* events);
+		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, WidgetAppearance* widgetAppearance);
 		Color GetBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);

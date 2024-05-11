@@ -28,7 +28,7 @@ namespace Berta
 		WidgetBase* m_widget;
 	};
 
-	class Form : public Widget<FormRenderer>
+	class Form : public Widget<FormRenderer, RootEvents>
 	{
 	public:
 		Form(const Rectangle& rectangle = { 0,0,800,600 }, const FormStyle& windowStyle = {true, true, true});

@@ -18,12 +18,12 @@ int main()
 
 	label.GetEvents().MouseMove.connect([](const Berta::ArgMouse& args)
 	{
-		std::cout << "LABEL>mouse move" << std::endl;
+		//std::cout << "LABEL>mouse move" << std::endl;
 	});
 	
 	label.GetEvents().Click.connect([](const Berta::ArgClick& args)
 	{
-		std::cout << "LABEL>Click" << std::endl;
+		//std::cout << "LABEL>Click" << std::endl;
 	});
 	form.Show();
 	form.Exec();

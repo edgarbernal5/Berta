@@ -52,14 +52,15 @@ namespace Berta
 		Widget& operator=(Widget&&) = delete;
 
 		WidgetAppearance& GetAppearance() { return *m_appearance; }
-		Events& GetEvents() { return m_events; }
+		Events& GetEvents() { return *m_events; }
 
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 			m_handle = GUI::CreateForm(rectangle, formStyle);
 			m_appearance = new WidgetAppearance();
-			GUI::SetEvents(m_handle, &m_events);
+			m_events = std::make_shared<Events>();
+			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 		}
@@ -68,7 +69,8 @@ namespace Berta
 		{
 			m_handle = GUI::CreateWidget(parent, rectangle);
 			m_appearance = new WidgetAppearance();
-			GUI::SetEvents(m_handle, &m_events);
+			m_events = std::make_shared<Events>();
+			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 			if (visible)
@@ -78,7 +80,7 @@ namespace Berta
 		}
 
 		RendererType m_renderer;
-		Events m_events;
+		std::shared_ptr<Events> m_events;
 		WidgetAppearance* m_appearance{ nullptr };
 	};
 }

@@ -81,6 +81,7 @@ namespace Berta
 	std::map<uint32_t, std::string> g_debugWndMessages{
 		{WM_CREATE,			"WM_CREATE"},
 		{WM_SIZE,			"WM_SIZE"},
+		{WM_SIZING,			"WM_SIZING"},
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
@@ -136,6 +137,11 @@ namespace Berta
 
 			::EndPaint(nativeWindow->Root.Handle, &ps); 
 			return 0;
+		}
+		case WM_SIZE:
+		{
+
+			break;
 		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:

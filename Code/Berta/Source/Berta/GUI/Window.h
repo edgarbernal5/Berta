@@ -43,7 +43,7 @@ namespace Berta
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
 		WidgetAppearance* Appereance{ nullptr };
-		CommonEvents* Events{ nullptr };
+		std::shared_ptr<CommonEvents> Events{ nullptr };
 
 		Window* Parent{ nullptr };
 		std::vector<Window*> Children;
