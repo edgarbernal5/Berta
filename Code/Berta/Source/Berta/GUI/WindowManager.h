@@ -26,7 +26,10 @@ namespace Berta
 			Window* WindowPtr;
 			Graphics RootGraphics;
 
-			WindowData(Window* _window, Size size) :
+			Window* Pressed{ nullptr };
+			Window* Hovered{ nullptr };
+
+			WindowData(Window* _window, const Size& size) :
 				WindowPtr(_window),
 				RootGraphics(size)
 			{}

@@ -85,7 +85,8 @@ namespace Berta
 		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
-		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
+		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
 	};
 #endif
 
@@ -98,7 +99,7 @@ namespace Berta
 			BT_CORE_DEBUG << "WndProc message: " << it->second << std::endl;
 		}
 #endif
-
+		static TRACKMOUSEEVENT trackEvent = {sizeof(trackEvent), TME_LEAVE };
 		auto& foundation = Foundation::GetInstance();
 
 		API::NativeWindowHandle nativeWindowHandle{ hWnd };
@@ -108,6 +109,7 @@ namespace Berta
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
+		auto& rootWindowData = *windowManager.GetWindowData(nativeWindow->Root);
 
 		switch (message)
 		{
@@ -133,11 +135,19 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 			auto window = windowManager.Find(nativeWindow, {x, y});
-			if (window)
+			if (window != rootWindowData.Hovered)
 			{
 				std::string debugWindow(window->Title.begin(), window->Title.end());
 				BT_CORE_DEBUG << "mouse move: window: " << debugWindow << std::endl;
 			}
+
+			if (window)
+			{
+				trackEvent.hwndTrack = hWnd;
+				TrackMouseEvent(&trackEvent);
+			}
+			
+			rootWindowData.Hovered = window;
 			break;
 		}
 		case WM_DESTROY:

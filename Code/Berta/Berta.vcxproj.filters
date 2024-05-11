@@ -96,8 +96,15 @@
     <ClInclude Include="Source\Berta\Paint\Font.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Core\Event.h" />
-    <ClInclude Include="Source\Berta\GUI\CommonEvents.h" />
+    <ClInclude Include="Source\Berta\Widgets\Button.h">
+      <Filter>Source\Berta\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\CommonEvents.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\Event.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -151,6 +158,11 @@
     <ClCompile Include="Source\Berta\GUI\WidgetRenderer.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Core\Event.cpp" />
+    <ClCompile Include="Source\Berta\Widgets\Button.cpp">
+      <Filter>Source\Berta\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Core\Event.cpp">
+      <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

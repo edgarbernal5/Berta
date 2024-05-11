@@ -143,6 +143,7 @@
     <ClInclude Include="Source\Berta\Paint\Font.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
     <ClInclude Include="Source\Berta\GUI\WidgetRenderer.h" />
+    <ClInclude Include="Source\Berta\Widgets\Button.h" />
     <ClInclude Include="Source\Berta\Widgets\Label.h" />
     <ClInclude Include="Source\Berta\GUI\Window.h" />
     <ClInclude Include="Source\Berta\GUI\Interface.h" />
@@ -167,6 +168,7 @@
     <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />
     <ClCompile Include="Source\Berta\GUI\WidgetRenderer.cpp" />
+    <ClCompile Include="Source\Berta\Widgets\Button.cpp" />
     <ClCompile Include="Source\Berta\Widgets\Label.cpp" />
     <ClCompile Include="Source\Berta\API\WindowAPI.cpp" />
     <ClCompile Include="Source\Berta\GUI\Widget.cpp" />

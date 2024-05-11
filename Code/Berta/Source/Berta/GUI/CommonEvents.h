@@ -15,6 +15,12 @@ namespace Berta
 	struct ArgMouseMove
 	{
 		Point Position;
+		struct MouseButtonState
+		{
+			bool LeftButton : 1;
+			bool RightButton : 1;
+			bool MiddleButton : 1;
+		}ButtonState;
 	};
 
 	struct CommonEvents

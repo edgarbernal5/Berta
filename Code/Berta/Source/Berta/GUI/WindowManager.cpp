@@ -42,7 +42,9 @@ namespace Berta
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
+		{
 			return it->second.WindowPtr;
+		}
 
 		return nullptr;
 	}
@@ -51,7 +53,9 @@ namespace Berta
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
+		{
 			return &it->second;
+		}
 
 		return nullptr;
 	}
