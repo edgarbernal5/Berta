@@ -16,6 +16,7 @@
 namespace Berta
 {
 	class Graphics;
+	struct CommonEvents;
 	struct WidgetAppearance;
 
 	enum class WindowType
@@ -42,9 +43,11 @@ namespace Berta
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
 		WidgetAppearance* Appereance{ nullptr };
+		CommonEvents* Events{ nullptr };
 
 		Window* Parent{ nullptr };
 		std::vector<Window*> Children;
+
 	};
 }
 

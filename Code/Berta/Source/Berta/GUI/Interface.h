@@ -14,6 +14,7 @@ namespace Berta
 {
 	class WidgetBase;
 	class WidgetRenderer;
+	struct CommonEvents;
 
 	namespace GUI
 	{
@@ -27,6 +28,7 @@ namespace Berta
 
 		void InitRenderer(WidgetBase* window, WidgetRenderer& widgetRenderer);
 
+		void SetEvents(Window* window, CommonEvents* events);
 		void SetAppearance(Window* window, WidgetAppearance* widgetAppearance);
 		Color GetBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);

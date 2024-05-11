@@ -12,6 +12,7 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
+#include "Berta/GUI/CommonEvents.h"
 
 namespace Berta
 {
@@ -109,7 +110,7 @@ namespace Berta
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
-		auto& rootWindowData = *windowManager.GetWindowData(nativeWindow->Root);
+		auto& rootWindowData = *windowManager.GetWindowData(nativeWindowHandle);
 
 		switch (message)
 		{
@@ -135,6 +136,13 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 			auto window = windowManager.Find(nativeWindow, {x, y});
+
+			ArgMouseMove argMM;
+			argMM.Position = { x, y };
+			argMM.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+			argMM.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+			argMM.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 			if (window != rootWindowData.Hovered)
 			{
 				std::string debugWindow(window->Title.begin(), window->Title.end());
@@ -143,11 +151,18 @@ namespace Berta
 
 			if (window)
 			{
+				window->Events->MouseMove.emit(argMM);
+
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent);
 			}
 			
 			rootWindowData.Hovered = window;
+			break;
+		}
+		case WM_MOUSELEAVE:
+		{
+			rootWindowData.Hovered = nullptr;
 			break;
 		}
 		case WM_DESTROY:

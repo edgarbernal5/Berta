@@ -59,6 +59,7 @@ namespace Berta
 		{
 			m_handle = GUI::CreateForm(rectangle, formStyle);
 			m_appearance = new WidgetAppearance();
+			GUI::SetEvents(m_handle, &m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 		}
@@ -67,6 +68,7 @@ namespace Berta
 		{
 			m_handle = GUI::CreateWidget(parent, rectangle);
 			m_appearance = new WidgetAppearance();
+			GUI::SetEvents(m_handle, &m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRenderer(this, m_renderer);
 			if (visible)

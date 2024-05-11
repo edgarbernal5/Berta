@@ -6,6 +6,7 @@
 
 #include <Berta/Widgets/Form.h>
 #include <Berta/Widgets/Label.h>
+#include <iostream>
 
 int main()
 {
@@ -15,7 +16,10 @@ int main()
 	Berta::Label label(form, { 50,30,200,80 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 
-	//label.GetEvents().MouseMove
+	label.GetEvents().MouseMove.connect([](const Berta::ArgMouseMove& args)
+	{
+		std::cout << "LABEL>mouse move" << std::endl;
+	});
 	form.Show();
 	form.Exec();
 

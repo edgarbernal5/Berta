@@ -108,6 +108,15 @@ namespace Berta::GUI
 		}
 	}
 
+	void SetEvents(Window* window, CommonEvents* events)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			window->Events = events;
+		}
+	}
+
 	void SetAppearance(Window* window, WidgetAppearance* widgetAppearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
