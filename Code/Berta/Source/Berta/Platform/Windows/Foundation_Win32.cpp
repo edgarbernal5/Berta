@@ -135,14 +135,14 @@ namespace Berta
 		{
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
+
+			ArgMouseMove argMouseMove;
+			argMouseMove.Position = { x, y };
+			argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+			argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+			argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 			auto window = windowManager.Find(nativeWindow, {x, y});
-
-			ArgMouseMove argMM;
-			argMM.Position = { x, y };
-			argMM.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-			argMM.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-			argMM.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
 			if (window != rootWindowData.Hovered)
 			{
 				std::string debugWindow(window->Title.begin(), window->Title.end());
@@ -151,7 +151,8 @@ namespace Berta
 
 			if (window)
 			{
-				window->Events->MouseMove.emit(argMM);
+				window->Renderer.MouseMove(argMouseMove);
+				window->Events->MouseMove.emit(argMouseMove);
 
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent);

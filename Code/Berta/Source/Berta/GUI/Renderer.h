@@ -8,6 +8,7 @@
 #define BT_RENDERER_HEADER
 
 #include "Berta/Paint/Graphics.h"
+#include "Berta/GUI/CommonEvents.h"
 
 namespace Berta
 {
@@ -21,6 +22,8 @@ namespace Berta
 		void Init(WidgetBase& widget, WidgetRenderer& widgetRenderer);
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
+
+		void MouseMove(const ArgMouseMove& args);
 
 		Graphics& GetGraphics() { return m_graphics; }
 	private:

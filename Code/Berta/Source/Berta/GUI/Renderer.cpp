@@ -34,4 +34,9 @@ namespace Berta
 			m_updating = false;
 		}
 	}
+
+	void Renderer::MouseMove(const ArgMouseMove& args)
+	{
+		m_widgetRenderer->MouseMove(m_graphics, args);
+	}
 }

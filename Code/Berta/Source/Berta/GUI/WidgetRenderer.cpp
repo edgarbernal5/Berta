@@ -18,4 +18,8 @@ namespace Berta
 	void WidgetRenderer::Update(Graphics& graphics)
 	{
 	}
+
+	void WidgetRenderer::MouseMove(Graphics& graphics, const ArgMouseMove& args)
+	{
+	}
 }
