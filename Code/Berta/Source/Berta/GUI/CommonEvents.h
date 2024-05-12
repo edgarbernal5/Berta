@@ -25,7 +25,6 @@ namespace Berta
 
 	struct ArgClick
 	{
-		
 	};
 
 	struct CommonEvents
@@ -38,9 +37,14 @@ namespace Berta
 		Event<ArgClick> Click;
 	};
 
+	struct ArgSizeMove
+	{
+	};
+
 	struct RootEvents : public CommonEvents
 	{
-
+		Event<ArgSizeMove> EnterSizeMove;
+		Event<ArgSizeMove> ExitSizeMove;
 	};
 }
 

@@ -82,6 +82,8 @@ namespace Berta
 		{WM_CREATE,			"WM_CREATE"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
+		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
+		{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
@@ -222,6 +224,20 @@ namespace Berta
 		case WM_MOUSELEAVE:
 		{
 			rootWindowData.Hovered = nullptr;
+			break;
+		}
+		case WM_ENTERSIZEMOVE:
+		{
+			ArgSizeMove argSizeMove;
+			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			events->EnterSizeMove.emit(argSizeMove);
+			break;
+		}
+		case WM_EXITSIZEMOVE:
+		{
+			ArgSizeMove argSizeMove;
+			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			events->ExitSizeMove.emit(argSizeMove);
 			break;
 		}
 		case WM_DESTROY:
