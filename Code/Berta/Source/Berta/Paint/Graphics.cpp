@@ -85,6 +85,23 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_hdc)
+		{
+			HPEN hPen = ::CreatePen(PS_SOLID, 1, color.RGB);
+			HPEN hOldPen = (HPEN)::SelectObject(m_hdc, hPen);
+
+			::MoveToEx(m_hdc, point1.X, point1.Y, 0);
+			::LineTo(m_hdc, point2.X, point2.Y);
+
+			::SelectObject(m_hdc, hOldPen);
+			::DeleteObject(hPen);
+		}
+#endif
+	}
+
 	void Graphics::DrawRectangle(const Color& color, bool solid)
 	{
 		DrawRectangle(m_size.ToRectangle(), color, solid);

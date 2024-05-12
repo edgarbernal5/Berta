@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_LABEL_HEADER
-#define BT_LABEL_HEADER
+#ifndef BT_BUTTON_HEADER
+#define BT_BUTTON_HEADER
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Widget.h"
