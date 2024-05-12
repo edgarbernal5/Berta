@@ -112,11 +112,23 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		auto brush = ::CreateSolidBrush(color.RGB);
 		RECT nativeRect = rectangle.ToRECT();
-		if (!FillRect(m_hdc, &nativeRect, brush))
+		if (solid)
 		{
+			if (!::FillRect(m_hdc, &nativeRect, brush))
+			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-			BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
+			}
+		}
+		else
+		{
+			if (!::FrameRect(m_hdc, &nativeRect, brush))
+			{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+				BT_CORE_ERROR << "FrameRect ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
+			}
 		}
 
 		::DeleteObject(brush);
