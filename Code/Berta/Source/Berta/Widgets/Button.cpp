@@ -19,11 +19,11 @@ namespace Berta
 	void ButtonRenderer::Update(Graphics& graphics)
 	{
 		auto window = m_widget->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(*m_widget), true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(window), true);
 		
 		graphics.DrawRectangle(window->Size.ToRectangle(), { 0x0000FF }, false);
 
-		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(*m_widget));
+		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(window));
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, std::wstring text)

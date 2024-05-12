@@ -19,8 +19,8 @@ namespace Berta
 	void LabelRenderer::Update(Graphics& graphics)
 	{
 		auto window = m_widget->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(*m_widget), true);
-		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(*m_widget));
+		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(window), true);
+		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(window));
 	}
 
 	Label::Label(Window* parent, const Rectangle& rectangle, std::wstring text)

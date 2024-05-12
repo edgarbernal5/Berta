@@ -86,7 +86,7 @@ namespace Berta
 		{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		//{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
+		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
@@ -123,6 +123,14 @@ namespace Berta
 
 		switch (message)
 		{
+		case WM_ACTIVATEAPP:
+		{
+			ArgActivated argActivated;
+			argActivated.IsActivated = wParam ? true : false;
+			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			events->Activated.emit(argActivated);
+			break;
+		}
 		case WM_SHOWWINDOW:
 		{
 			windowManager.UpdateTree(nativeWindow);
