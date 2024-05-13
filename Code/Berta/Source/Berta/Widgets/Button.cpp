@@ -23,7 +23,10 @@ namespace Berta
 		
 		graphics.DrawRectangle(window->Size.ToRectangle(), { 0x0000FF }, false);
 
-		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(window));
+		auto caption = m_widget->Caption();
+		auto center = window->Size - graphics.GetStringSize(caption);
+		center = center * 0.5f;
+		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, GUI::GetForegroundColor(window));
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, std::wstring text)

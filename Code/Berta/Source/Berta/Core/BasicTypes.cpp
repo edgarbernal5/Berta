@@ -33,6 +33,30 @@ namespace Berta
 		return { X, Y };
 	}
 
+	Size Size::operator-(const Size& other) const
+	{
+		return { Width - other.Width, Height - other.Height };
+	}
+
+	Size Size::operator*(float other) const
+	{
+		return { static_cast<uint32_t>(Width * other), static_cast<uint32_t>(Height * other) };
+	}
+
+	Size& Size::operator*=(uint32_t s) noexcept
+	{
+		Width *= s;
+		Height *= s;
+		return *this;
+	}
+
+	Size& Size::operator/=(uint32_t s) noexcept
+	{
+		Width /= s;
+		Height /= s;
+		return *this;
+	}
+
 	Rectangle Size::ToRectangle()
 	{
 		return { 0, 0, Width, Height };

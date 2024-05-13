@@ -32,6 +32,7 @@ namespace Berta
 		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
 		void Flush();
 
+		Size GetStringSize(std::wstring& str);
 	private:
 		void Release();
 

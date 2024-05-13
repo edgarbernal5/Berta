@@ -123,6 +123,12 @@ namespace Berta
 		uint32_t Width{ 0 };
 		uint32_t Height{ 0 };
 
+		Size() = default;
+		Size(uint32_t width, uint32_t height) : 
+			Width(width), Height(height)
+		{
+		}
+
 		bool IsEmpty()
 		{
 			return Width == 0 && Height == 0;
@@ -137,6 +143,11 @@ namespace Berta
 		{
 			return (Width != rhs.Width) || (Height != rhs.Height);
 		}
+
+		Size operator-(const Size& size) const;
+		Size operator*(float s) const;
+		Size& operator*= (uint32_t s) noexcept;
+		Size& operator/= (uint32_t s) noexcept;
 
 		Rectangle ToRectangle();
 		

@@ -169,8 +169,11 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			rootWindowData.Pressed = window;
 
-			window->Renderer.MouseDown(argMouseDown);
-			window->Events->MouseDown.emit(argMouseDown);
+			if (window)
+			{
+				window->Renderer.MouseDown(argMouseDown);
+				window->Events->MouseDown.emit(argMouseDown);
+			}
 			break;
 		}
 		case WM_MOUSEMOVE:
@@ -187,8 +190,29 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, {x, y});
 			if (window != rootWindowData.Hovered)
 			{
-				std::string debugWindow(window->Title.begin(), window->Title.end());
-				BT_CORE_DEBUG << "mouse move: window: " << debugWindow << std::endl;
+				if (window)
+				{
+					std::string debugWindow(window->Title.begin(), window->Title.end());
+					BT_CORE_DEBUG << "mouse move: window: " << debugWindow << std::endl;
+				}
+				else
+				{
+					BT_CORE_DEBUG << "mouse move: window: NULL." << std::endl;
+				}
+
+				if (rootWindowData.Hovered)
+				{
+					ArgMouse argMouseLeave;
+					argMouseLeave.Position = { x, y };
+					argMouseLeave.ButtonState.LeftButton = false;
+					argMouseLeave.ButtonState.RightButton = false;
+					argMouseLeave.ButtonState.MiddleButton = false;
+
+					rootWindowData.Hovered->Renderer.MouseMove(argMouseMove);
+					rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
+
+					rootWindowData.Hovered = nullptr;
+				}
 			}
 
 			if (window)
@@ -231,7 +255,13 @@ namespace Berta
 		}
 		case WM_MOUSELEAVE:
 		{
-			rootWindowData.Hovered = nullptr;
+			if (rootWindowData.Hovered)
+			{
+				ArgMouse argMouseLeave;
+				rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
+
+				rootWindowData.Hovered = nullptr;
+			}
 			break;
 		}
 		case WM_ENTERSIZEMOVE:

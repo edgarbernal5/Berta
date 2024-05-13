@@ -137,6 +137,11 @@ namespace Berta
 
 	void Graphics::DrawString(const Point& position, const std::wstring& str, const Color& color)
 	{
+		if (str.size() == 0)
+		{
+			return;
+		}
+
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_hdc, m_hFont);
 		if (m_lastForegroundColor != color.RGB)
@@ -179,6 +184,24 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		::GdiFlush();
+#endif
+	}
+
+	Size Graphics::GetStringSize(std::wstring& wstr)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_hdc == nullptr || wstr.size() == 0)
+			return {};
+
+		::SIZE nativeSize;
+		if (::GetTextExtentPoint32(m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
+		{
+			return Size(nativeSize.cx, nativeSize.cy);
+		}
+
+		return {};
+#else
+		return {};
 #endif
 	}
 
