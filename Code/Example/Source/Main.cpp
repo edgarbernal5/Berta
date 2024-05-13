@@ -22,10 +22,19 @@ int main()
 		//std::cout << "LABEL>mouse move" << std::endl;
 	});
 	
-	Berta::Button button(form, { 50,140,100,40 }, L"Click me!");
+	Berta::Button button(form, { 0,140,100,40 }, L"Click me!");
 	button.GetEvents().Click.connect([](const Berta::ArgClick& args)
 	{
 		std::cout << "BUTTON>Click" << std::endl;
+	});
+	
+	button.GetEvents().MouseLeave.connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON < mouse leave" << std::endl;
+	});
+	button.GetEvents().MouseEnter.connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
 	form.Show();
 	form.Exec();

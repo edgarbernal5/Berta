@@ -153,6 +153,20 @@ namespace Berta
 
 			break;
 		}
+		case WM_DPICHANGED:
+		{
+			auto r = reinterpret_cast<const RECT*>(lParam);
+
+			::SetWindowPos(hWnd,
+				NULL,
+				r->left,
+				r->top,
+				r->right - r->left,
+				r->bottom - r->top,
+				SWP_NOZORDER | SWP_NOACTIVATE);
+
+			return 0;
+		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
@@ -208,10 +222,22 @@ namespace Berta
 					argMouseLeave.ButtonState.RightButton = false;
 					argMouseLeave.ButtonState.MiddleButton = false;
 
-					rootWindowData.Hovered->Renderer.MouseMove(argMouseMove);
+					rootWindowData.Hovered->Renderer.MouseLeave(argMouseMove);
 					rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
 
 					rootWindowData.Hovered = nullptr;
+				}
+
+				if (window)
+				{
+					ArgMouse argMouseEnter;
+					argMouseEnter.Position = { x, y };
+					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+					window->Renderer.MouseEnter(argMouseMove);
+					window->Events->MouseEnter.emit(argMouseEnter);
 				}
 			}
 

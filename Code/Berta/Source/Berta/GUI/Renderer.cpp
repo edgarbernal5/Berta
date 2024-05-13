@@ -35,6 +35,16 @@ namespace Berta
 		}
 	}
 
+	void Renderer::MouseEnter(const ArgMouse& args)
+	{
+		m_widgetRenderer->MouseEnter(m_graphics, args);
+	}
+
+	void Renderer::MouseLeave(const ArgMouse& args)
+	{
+		m_widgetRenderer->MouseLeave(m_graphics, args);
+	}
+
 	void Renderer::MouseDown(const ArgMouse& args)
 	{
 		m_widgetRenderer->MouseDown(m_graphics, args);

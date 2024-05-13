@@ -31,6 +31,7 @@ namespace Berta
 	{
 		virtual ~CommonEvents() = default;
 
+		Event<ArgMouse> MouseEnter;
 		Event<ArgMouse> MouseLeave;
 		Event<ArgMouse> MouseDown;
 		Event<ArgMouse> MouseMove;

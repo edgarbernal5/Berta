@@ -19,6 +19,14 @@ namespace Berta
 	{
 	}
 
+	void WidgetRenderer::MouseEnter(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	void WidgetRenderer::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
 	void WidgetRenderer::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 	}
