@@ -19,8 +19,19 @@ namespace Berta
 		void Init(WidgetBase& widget) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+
 	private:
+		enum class State
+		{
+			Normal,
+			Pressed,
+			Hovered
+		};
+
 		WidgetBase* m_widget;
+		State m_status{ State::Normal };
 	};
 
 	class Button : public Widget<ButtonRenderer>

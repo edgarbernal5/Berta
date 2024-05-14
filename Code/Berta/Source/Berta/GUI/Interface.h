@@ -32,6 +32,8 @@ namespace Berta
 		void SetAppearance(Window* window, WidgetAppearance* widgetAppearance);
 		Color GetBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);
+
+		void UpdateDeferred(Window* window);
 	}
 }
 
