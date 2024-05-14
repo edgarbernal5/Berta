@@ -29,10 +29,11 @@ namespace Berta
 			Window* Pressed{ nullptr };
 			Window* Hovered{ nullptr };
 
-			WindowData(Window* _window, const Size& size) :
-				WindowPtr(_window),
+			WindowData(Window* window, const Size& size) :
+				WindowPtr(window),
 				RootGraphics(size)
-			{}
+			{
+			}
 		};
 
 		void Add(Window* window);

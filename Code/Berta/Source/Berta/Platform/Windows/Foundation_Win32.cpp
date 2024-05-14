@@ -84,11 +84,15 @@ namespace Berta
 		{WM_SIZING,			"WM_SIZING"},
 		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
 		{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
+
 		{WM_DESTROY,		"WM_DESTROY"},
+		{WM_NCDESTROY,		"WM_NCDESTROY"},
+
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
+
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
@@ -117,8 +121,12 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
+			//TODO: Process deferred updates.
+
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
+
+		bool defaultToWindowProc = true;
 		auto& rootWindowData = *windowManager.GetWindowData(nativeWindowHandle);
 
 		switch (message)
@@ -145,8 +153,9 @@ namespace Berta
 			areaToUpdate.FromRECT(ps.rcPaint);
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from widget's graphics to native hwnd window.
 
-			::EndPaint(nativeWindow->Root.Handle, &ps); 
-			return 0;
+			::EndPaint(nativeWindow->Root.Handle, &ps);
+			defaultToWindowProc = false;
+			break;
 		}
 		case WM_SIZE:
 		{
@@ -165,7 +174,8 @@ namespace Berta
 				r->bottom - r->top,
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
-			return 0;
+			defaultToWindowProc = false;
+			break;
 		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
@@ -204,7 +214,7 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, {x, y});
 			if (window != rootWindowData.Hovered)
 			{
-				if (window)
+				/*if (window)
 				{
 					std::string debugWindow(window->Title.begin(), window->Title.end());
 					BT_CORE_DEBUG << "mouse move: window: " << debugWindow << std::endl;
@@ -212,7 +222,7 @@ namespace Berta
 				else
 				{
 					BT_CORE_DEBUG << "mouse move: window: NULL." << std::endl;
-				}
+				}*/
 
 				if (rootWindowData.Hovered)
 				{
@@ -284,6 +294,7 @@ namespace Berta
 			if (rootWindowData.Hovered)
 			{
 				ArgMouse argMouseLeave;
+				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 				rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
 
 				rootWindowData.Hovered = nullptr;
@@ -306,10 +317,20 @@ namespace Berta
 		}
 		case WM_DESTROY:
 			::PostQuitMessage(0);
-			return 0;
+			//if (windowManager.Exists(nativeWindow))
+			{
+			//	windowManager.Dispose(nativeWindow);
+			}
+			defaultToWindowProc = false;
+			break;
 		}
 
-		return ::DefWindowProc(hWnd, message, wParam, lParam);
+		//TODO: Process deferred updates.
+
+		if (defaultToWindowProc)
+			return ::DefWindowProc(hWnd, message, wParam, lParam);
+
+		return 0;
 	}
 }
 #endif
