@@ -11,14 +11,26 @@
 
 namespace Berta
 {
+	WindowManager::RootData::RootData(RootData&& other) noexcept :
+		WindowPtr(other.WindowPtr),
+		RootGraphics(std::move(other.RootGraphics))
+	{
+	}
+
+	WindowManager::RootData::RootData(Window* window, const Size& size) :
+		WindowPtr(window),
+		RootGraphics(size)
+	{
+	}
+
 	void WindowManager::Add(Window* window)
 	{
 		m_windowRegistry.insert(window);
 	}
 
-	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, const WindowData& append)
+	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append)
 	{
-		m_windowNativeRegistry.insert({ nativeWindowHandle, append });
+		m_windowNativeRegistry.emplace(nativeWindowHandle, std::move(append));
 	}
 
 	void WindowManager::Caption(Window* window, const std::wstring& caption)
@@ -49,7 +61,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	Berta::WindowManager::WindowData* WindowManager::GetWindowData(API::NativeWindowHandle nativeWindowHandle)
+	Berta::WindowManager::RootData* WindowManager::GetWindowData(API::NativeWindowHandle nativeWindowHandle)
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
@@ -110,10 +122,30 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::Resize(Window* window, const Size& newSize)
+	{
+		if (window->Size != newSize)
+		{
+			window->Size = newSize;
+
+			Graphics newGraphics;
+			Graphics newRootGraphics;
+			newGraphics.Build(newSize);
+			if (window->Type == WindowType::Native)
+			{
+				newRootGraphics.Build(newSize);
+			}
+
+
+		}
+	}
+
 	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
 	{
 		if (rootWindow->DeferredRequests.size() == 0)
+		{
 			return;
+		}
 
 		auto& rootGraphics = *(rootWindow->RootGraphics);
 		for (auto& request : rootWindow->DeferredRequests)

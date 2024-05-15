@@ -7,6 +7,7 @@
 #ifndef BT_GRAPHICS_HEADER
 #define BT_GRAPHICS_HEADER
 
+#include <memory>
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/API/WindowAPI.h"
 
@@ -20,6 +21,9 @@ namespace Berta
 	public:
 		Graphics();
 		Graphics(const Size& size);
+		Graphics(const Graphics& other);
+		Graphics(Graphics&& other) noexcept;
+		~Graphics();
 
 		void Build(const Size& size);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
@@ -39,12 +43,29 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT CreateTransparentFont(int height, int weight, bool italic, bool underline);
 
+		struct NativeAttributes
+		{
+			HDC m_hdc{ nullptr };
+			HBITMAP	m_hBitmap{ nullptr };
+			HFONT m_hFont{ nullptr };
+			uint32_t m_lastForegroundColor{ 0 };
+
+
+			NativeAttributes(const NativeAttributes&) = delete;
+			NativeAttributes& operator=(const NativeAttributes&) = delete;
+
+			NativeAttributes() = default;
+			~NativeAttributes();
+		};
 		Size m_size;
-		HDC m_hdc{ nullptr };
-		HBITMAP	m_hBitmap{ nullptr };
-		HFONT m_hFont{ nullptr };
-		uint32_t m_lastForegroundColor{ 0 };
+#else
+		struct NativeAttributes
+		{
+			NativeAttributes() = default;
+			~NativeAttributes();
+		};
 #endif
+		std::unique_ptr<NativeAttributes> m_attributes;
 	};
 }
 

@@ -78,7 +78,8 @@ namespace Berta
 	}
 
 #ifdef BT_DEBUG
-	std::map<uint32_t, std::string> g_debugWndMessages{
+	std::map<uint32_t, std::string> g_debugWndMessages
+	{
 		{WM_CREATE,			"WM_CREATE"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
@@ -93,13 +94,13 @@ namespace Berta
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
-		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
-		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		/*{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
 		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
-		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
+		{WM_RBUTTONUP,		"WM_RBUTTONUP"},*/
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
 	};
 #endif
@@ -121,8 +122,6 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
-			//TODO: Process deferred updates.
-
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -159,19 +158,28 @@ namespace Berta
 		}
 		case WM_SIZE:
 		{
+			if (wParam != SIZE_MINIMIZED)
+			{
+				ArgSize argSize;
+				argSize.NewSize.Width = LOWORD(lParam);
+				argSize.NewSize.Height = HIWORD(lParam);
+				BT_CORE_DEBUG << "Size: new size " << argSize.NewSize << std::endl;
 
+				windowManager.Resize(nativeWindow, argSize.NewSize);
+				nativeWindow->Events->Size.Emit(argSize);
+			}
 			break;
 		}
 		case WM_DPICHANGED:
 		{
-			auto r = reinterpret_cast<const RECT*>(lParam);
+			auto rect = reinterpret_cast<const RECT*>(lParam);
 
 			::SetWindowPos(hWnd,
 				NULL,
-				r->left,
-				r->top,
-				r->right - r->left,
-				r->bottom - r->top,
+				rect->left,
+				rect->top,
+				rect->right - rect->left,
+				rect->bottom - rect->top,
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
 			defaultToWindowProc = false;
@@ -318,9 +326,9 @@ namespace Berta
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			//if (windowManager.Exists(nativeWindow))
-			{
+			//{
 			//	windowManager.Dispose(nativeWindow);
-			}
+			//}
 			defaultToWindowProc = false;
 			break;
 		}
@@ -329,7 +337,9 @@ namespace Berta
 		windowManager.UpdateDeferredRequests(nativeWindow);
 
 		if (defaultToWindowProc)
+		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
+		}
 
 		return 0;
 	}

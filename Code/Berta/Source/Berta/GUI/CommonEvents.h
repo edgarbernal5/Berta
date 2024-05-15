@@ -27,16 +27,22 @@ namespace Berta
 	{
 	};
 
+	struct ArgSize
+	{
+		Size NewSize;
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
 
-		Event<ArgMouse> MouseEnter;
-		Event<ArgMouse> MouseLeave;
-		Event<ArgMouse> MouseDown;
-		Event<ArgMouse> MouseMove;
-		Event<ArgMouse> MouseUp;
-		Event<ArgClick> Click;
+		Event<ArgMouse>		MouseEnter;
+		Event<ArgMouse>		MouseLeave;
+		Event<ArgMouse>		MouseDown;
+		Event<ArgMouse>		MouseMove;
+		Event<ArgMouse>		MouseUp;
+		Event<ArgClick>		Click;
+		Event<ArgSize>		Size;
 	};
 
 	struct ArgSizeMove

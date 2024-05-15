@@ -26,7 +26,7 @@ namespace Berta::GUI
 			window->Size = windowResult.ClientSize;
 			window->RootWindow = window;
 
-			windowManager.AddNative(windowResult.WindowHandle, WindowManager::WindowData(window, window->Size));
+			windowManager.AddNative(windowResult.WindowHandle, WindowManager::RootData(window, window->Size));
 			windowManager.Add(window);
 
 			auto& rootGraphics = windowManager.GetWindowData(windowResult.WindowHandle)->RootGraphics;

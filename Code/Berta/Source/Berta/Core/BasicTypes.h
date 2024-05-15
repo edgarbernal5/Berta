@@ -150,7 +150,9 @@ namespace Berta
 		Size& operator/= (uint32_t s) noexcept;
 
 		Rectangle ToRectangle();
-		
+
+		friend std::ostream& operator<<(std::ostream& os, const Size& size);
+
 		static const Size Zero;
 	};
 

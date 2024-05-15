@@ -14,7 +14,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 	RECT Rectangle::ToRECT() const
 	{
-		return RECT{ static_cast<LONG>(X), static_cast<LONG>(Y), static_cast<LONG>(X + Width), static_cast<LONG>(Y + Height)};
+		return RECT{ static_cast<LONG>(X), static_cast<LONG>(Y), static_cast<LONG>(X + Width), static_cast<LONG>(Y + Height) };
 	}
 #endif
 
@@ -60,5 +60,11 @@ namespace Berta
 	Rectangle Size::ToRectangle()
 	{
 		return { 0, 0, Width, Height };
+	}
+
+	std::ostream& operator<<(std::ostream& os, const Size& size)
+	{
+		os << "{ Width=" << size.Width << "; Height=" << size.Height << "}";
+		return os;
 	}
 }
