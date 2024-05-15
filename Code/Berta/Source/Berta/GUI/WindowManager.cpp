@@ -115,11 +115,11 @@ namespace Berta
 		if (rootWindow->DeferredRequests.size() == 0)
 			return;
 
+		auto& rootGraphics = *(rootWindow->RootGraphics);
 		for (auto& request : rootWindow->DeferredRequests)
 		{
 			if (Exists(request))
 			{
-				auto& rootGraphics = *(rootWindow->RootGraphics);
 				Rectangle requestRectangle{ request->Position.X, request->Position.Y, request->Size.Width, request->Size.Height };
 
 				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.

@@ -45,10 +45,10 @@ namespace Berta::GUI
 		window->Size = rectangle;
 		window->Parent = parent;
 		window->Position = rectangle;
-		window->RootWindow = parent->RootWindow;
 
 		if (parent)
 		{
+			window->RootWindow = parent->RootWindow;
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
