@@ -37,7 +37,9 @@ namespace Berta
 	{
 		window->Title = caption;
 		if (window->Type == WindowType::Native)
+		{
 			API::CaptionNativeWindow(window->RootHandle, caption);
+		}
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -116,7 +118,9 @@ namespace Berta
 		if (window->Visible != visible)
 		{
 			if (window->Type == WindowType::Native)
+			{
 				API::ShowNativeWindow(window->RootHandle, visible);
+			}
 
 			window->Visible = visible;
 		}
@@ -136,6 +140,7 @@ namespace Berta
 				newRootGraphics.Build(newSize);
 			}
 
+			//TODO: WIP
 
 		}
 	}

@@ -129,7 +129,7 @@ namespace Berta
 		{
 		}
 
-		bool IsEmpty()
+		bool IsEmpty() const
 		{
 			return Width == 0 && Height == 0;
 		}
@@ -149,7 +149,7 @@ namespace Berta
 		Size& operator*= (uint32_t s) noexcept;
 		Size& operator/= (uint32_t s) noexcept;
 
-		Rectangle ToRectangle();
+		Rectangle ToRectangle() const;
 
 		friend std::ostream& operator<<(std::ostream& os, const Size& size);
 

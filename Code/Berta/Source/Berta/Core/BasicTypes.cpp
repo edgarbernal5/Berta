@@ -57,7 +57,7 @@ namespace Berta
 		return *this;
 	}
 
-	Rectangle Size::ToRectangle()
+	Rectangle Size::ToRectangle() const
 	{
 		return { 0, 0, Width, Height };
 	}
