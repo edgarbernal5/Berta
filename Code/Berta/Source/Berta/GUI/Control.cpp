@@ -5,23 +5,23 @@
 */
 
 #include "btpch.h"
-#include "Widget.h"
+#include "Control.h"
 
 #include "Berta/GUI/Window.h"
 
 namespace Berta
 {
-	void WidgetBase::Caption(const std::wstring& caption)
+	void ControlBase::Caption(const std::wstring& caption)
 	{
 		GUI::CaptionWindow(m_handle, caption);
 	}
 
-	std::wstring WidgetBase::Caption()
+	std::wstring ControlBase::Caption()
 	{
 		return GUI::GetCaptionWindow(m_handle);
 	}
 
-	void WidgetBase::Show()
+	void ControlBase::Show()
 	{
 		GUI::ShowWindow(m_handle, true);
 	}

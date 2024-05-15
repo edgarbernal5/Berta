@@ -11,16 +11,16 @@
 
 namespace Berta
 {
-	void LabelRenderer::Init(WidgetBase& widget)
+	void LabelRenderer::Init(ControlBase& control)
 	{
-		m_widget = &widget;
+		m_control = &control;
 	}
 
 	void LabelRenderer::Update(Graphics& graphics)
 	{
-		auto window = m_widget->Handle();
+		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(window), true);
-		graphics.DrawString({ 0,0 }, m_widget->Caption(), GUI::GetForegroundColor(window));
+		graphics.DrawString({ 0,0 }, m_control->Caption(), GUI::GetForegroundColor(window));
 	}
 
 	Label::Label(Window* parent, const Rectangle& rectangle, std::wstring text)

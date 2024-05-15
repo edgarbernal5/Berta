@@ -8,22 +8,22 @@
 #define BT_LABEL_HEADER
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/Widget.h"
+#include "Berta/GUI/Control.h"
 #include <string>
 
 namespace Berta
 {
-	class LabelRenderer : public WidgetRenderer
+	class LabelRenderer : public ControlRenderer
 	{
 	public:
-		void Init(WidgetBase& widget) override;
+		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
 	private:
-		WidgetBase* m_widget;
+		ControlBase* m_control;
 	};
 
-	class Label : public Widget<LabelRenderer>
+	class Label : public Control<LabelRenderer>
 	{
 	public:
 		Label(Window* parent, const Rectangle& rectangle, std::wstring text);

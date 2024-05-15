@@ -5,7 +5,7 @@
 */
 
 #include "btpch.h"
-#include "WidgetAppearance.h"
+#include "ControlAppearance.h"
 
 namespace Berta
 {

@@ -17,12 +17,12 @@ namespace Berta
 {
 	class Graphics;
 	struct CommonEvents;
-	struct WidgetAppearance;
+	struct ControlAppearance;
 
 	enum class WindowType
 	{
 		Native = 0,
-		Widget
+		Control
 	};
 
 	struct Window
@@ -38,16 +38,18 @@ namespace Berta
 		uint32_t DPI{ 0 }; //TODO:
 
 		WindowType Type;
-		API::NativeWindowHandle Root{};
+		API::NativeWindowHandle RootHandle{};
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
-		WidgetAppearance* Appereance{ nullptr };
+		ControlAppearance* Appereance{ nullptr };
 		std::shared_ptr<CommonEvents> Events{ nullptr };
 
 		Window* Parent{ nullptr };
 		std::vector<Window*> Children;
 
+		Window* RootWindow{ nullptr };
+		std::vector<Window*> DeferredRequests;
 	};
 }
 

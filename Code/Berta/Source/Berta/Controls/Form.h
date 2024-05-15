@@ -12,23 +12,23 @@
 
 #include "Berta/EntryPoint.h"
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/GUI/Widget.h"
+#include "Berta/GUI/Control.h"
 
 namespace Berta
 {
-	class WidgetBase;
+	class ControlBase;
 
-	class FormRenderer : public WidgetRenderer
+	class FormRenderer : public ControlRenderer
 	{
 	public:
-		void Init(WidgetBase& widget) override;
+		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
 	private:
-		WidgetBase* m_widget;
+		ControlBase* m_control;
 	};
 
-	class Form : public Widget<FormRenderer, RootEvents>
+	class Form : public Control<FormRenderer, RootEvents>
 	{
 	public:
 		Form(const Rectangle& rectangle = { 0,0,800,600 }, const FormStyle& windowStyle = {true, true, true});

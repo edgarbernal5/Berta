@@ -25,15 +25,15 @@ namespace Berta
 	{
 		window->Title = caption;
 		if (window->Type == WindowType::Native)
-			API::CaptionNativeWindow(window->Root, caption);
+			API::CaptionNativeWindow(window->RootHandle, caption);
 	}
 
 	void WindowManager::Dispose(Window* window)
 	{
 		if (window->Type == WindowType::Native)
 		{
-			API::DestroyNativeWindow(window->Root);
-			m_windowNativeRegistry.erase(window->Root);
+			API::DestroyNativeWindow(window->RootHandle);
+			m_windowNativeRegistry.erase(window->RootHandle);
 		}
 		m_windowRegistry.erase(window);
 	}
@@ -81,9 +81,9 @@ namespace Berta
 
 	void WindowManager::UpdateTree(Window* window)
 	{
-		window->Renderer.Update(); //Update widget's basic window.
+		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
-		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to widget's graphics.
+		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
 		
 		//TODO: traverse the entire tree.
 		for (auto& child : window->Children)
@@ -104,10 +104,31 @@ namespace Berta
 		if (window->Visible != visible)
 		{
 			if (window->Type == WindowType::Native)
-				API::ShowNativeWindow(window->Root, visible);
+				API::ShowNativeWindow(window->RootHandle, visible);
 
 			window->Visible = visible;
 		}
+	}
+
+	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
+	{
+		if (rootWindow->DeferredRequests.size() == 0)
+			return;
+
+		for (auto& request : rootWindow->DeferredRequests)
+		{
+			if (Exists(request))
+			{
+				auto& rootGraphics = *(rootWindow->RootGraphics);
+				Rectangle requestRectangle{ request->Position.X, request->Position.Y, request->Size.Width, request->Size.Height };
+
+				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
+
+				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+			}
+		}
+
+		rootWindow->DeferredRequests.clear();
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)

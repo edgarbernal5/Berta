@@ -11,14 +11,14 @@
 
 namespace Berta
 {
-	void FormRenderer::Init(WidgetBase& widget)
+	void FormRenderer::Init(ControlBase& control)
 	{
-		m_widget = &widget;
+		m_control = &control;
 	}
 
 	void FormRenderer::Update(Graphics& graphics)
 	{
-		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_widget), true);
+		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_control), true);
 	}
 
 	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle)

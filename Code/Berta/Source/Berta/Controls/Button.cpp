@@ -11,14 +11,14 @@
 
 namespace Berta
 {
-	void ButtonRenderer::Init(WidgetBase& widget)
+	void ButtonRenderer::Init(ControlBase& control)
 	{
-		m_widget = &widget;
+		m_control = &control;
 	}
 
 	void ButtonRenderer::Update(Graphics& graphics)
 	{
-		auto window = m_widget->Handle();
+		auto window = m_control->Handle();
 
 		if (m_status == State::Normal)
 		{
@@ -34,7 +34,7 @@ namespace Berta
 		}
 		graphics.DrawRectangle(window->Size.ToRectangle(), { 0x918F89 }, false);
 
-		auto caption = m_widget->Caption();
+		auto caption = m_control->Caption();
 		auto center = window->Size - graphics.GetStringSize(caption);
 		center = center * 0.5f;
 		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, GUI::GetForegroundColor(window));
@@ -44,14 +44,14 @@ namespace Berta
 	{
 		m_status = State::Hovered;
 		Update(graphics);
-		GUI::UpdateDeferred(*m_widget);
+		GUI::UpdateDeferred(*m_control);
 	}
 
 	void ButtonRenderer::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Normal;
 		Update(graphics);
-		GUI::UpdateDeferred(*m_widget);
+		GUI::UpdateDeferred(*m_control);
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, std::wstring text)

@@ -12,24 +12,24 @@
 
 namespace Berta
 {
-	class WidgetBase;
-	class WidgetRenderer;
+	class ControlBase;
+	class ControlRenderer;
 	struct CommonEvents;
 
 	namespace GUI
 	{
 		Window* CreateForm(const Rectangle& rectangle, const FormStyle& windowStyle);
-		Window* CreateWidget(Window* parent, const Rectangle& rectangle);
+		Window* CreateControl(Window* parent, const Rectangle& rectangle);
 
 		void CaptionWindow(Window* window, const std::wstring& caption);
 		std::wstring GetCaptionWindow(Window* window);
 		void DisposeWindow(Window* window);
 		void ShowWindow(Window* window, bool visible);
 
-		void InitRenderer(WidgetBase* window, WidgetRenderer& widgetRenderer);
+		void InitRenderer(ControlBase* window, ControlRenderer& controlRenderer);
 
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
-		void SetAppearance(Window* window, WidgetAppearance* widgetAppearance);
+		void SetAppearance(Window* window, ControlAppearance* controlAppearance);
 		Color GetBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);
 

@@ -136,7 +136,7 @@ namespace Berta
 			ArgActivated argActivated;
 			argActivated.IsActivated = wParam ? true : false;
 			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
-			events->Activated.emit(argActivated);
+			events->Activated.Emit(argActivated);
 			break;
 		}
 		case WM_SHOWWINDOW:
@@ -147,13 +147,13 @@ namespace Berta
 		case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
-			::BeginPaint(nativeWindow->Root.Handle, &ps);
+			::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
-			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from widget's graphics to native hwnd window.
+			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
-			::EndPaint(nativeWindow->Root.Handle, &ps);
+			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
 			defaultToWindowProc = false;
 			break;
 		}
@@ -196,7 +196,7 @@ namespace Berta
 			if (window)
 			{
 				window->Renderer.MouseDown(argMouseDown);
-				window->Events->MouseDown.emit(argMouseDown);
+				window->Events->MouseDown.Emit(argMouseDown);
 			}
 			break;
 		}
@@ -233,7 +233,7 @@ namespace Berta
 					argMouseLeave.ButtonState.MiddleButton = false;
 
 					rootWindowData.Hovered->Renderer.MouseLeave(argMouseMove);
-					rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
+					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 
 					rootWindowData.Hovered = nullptr;
 				}
@@ -247,17 +247,17 @@ namespace Berta
 					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 					window->Renderer.MouseEnter(argMouseMove);
-					window->Events->MouseEnter.emit(argMouseEnter);
+					window->Events->MouseEnter.Emit(argMouseEnter);
 				}
 			}
 
 			if (window)
 			{
 				window->Renderer.MouseMove(argMouseMove);
-				window->Events->MouseMove.emit(argMouseMove);
+				window->Events->MouseMove.Emit(argMouseMove);
 
 				trackEvent.hwndTrack = hWnd;
-				TrackMouseEvent(&trackEvent); //Keep track of mouse position to emit WM_MOUSELEAVE message.
+				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 			}
 			
 			rootWindowData.Hovered = window;
@@ -280,11 +280,11 @@ namespace Berta
 			if (window && window == rootWindowData.Pressed)
 			{
 				window->Renderer.MouseUp(argMouseUp);
-				window->Events->MouseUp.emit(argMouseUp);
+				window->Events->MouseUp.Emit(argMouseUp);
 
 				ArgClick argClick;
 				window->Renderer.Click(argClick);
-				window->Events->Click.emit(argClick);
+				window->Events->Click.Emit(argClick);
 			}
 			rootWindowData.Pressed = nullptr;
 			break;
@@ -295,7 +295,7 @@ namespace Berta
 			{
 				ArgMouse argMouseLeave;
 				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
-				rootWindowData.Hovered->Events->MouseLeave.emit(argMouseLeave);
+				rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 
 				rootWindowData.Hovered = nullptr;
 			}
@@ -305,14 +305,14 @@ namespace Berta
 		{
 			ArgSizeMove argSizeMove;
 			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
-			events->EnterSizeMove.emit(argSizeMove);
+			events->EnterSizeMove.Emit(argSizeMove);
 			break;
 		}
 		case WM_EXITSIZEMOVE:
 		{
 			ArgSizeMove argSizeMove;
 			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
-			events->ExitSizeMove.emit(argSizeMove);
+			events->ExitSizeMove.Emit(argSizeMove);
 			break;
 		}
 		case WM_DESTROY:
@@ -326,6 +326,7 @@ namespace Berta
 		}
 
 		//TODO: Process deferred updates.
+		windowManager.UpdateDeferredRequests(nativeWindow);
 
 		if (defaultToWindowProc)
 			return ::DefWindowProc(hWnd, message, wParam, lParam);

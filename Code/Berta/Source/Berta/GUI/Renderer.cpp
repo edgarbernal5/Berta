@@ -8,28 +8,28 @@
 #include "Renderer.h"
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/Widget.h"
-#include "Berta/GUI/WidgetRenderer.h"
+#include "Berta/GUI/Control.h"
+#include "Berta/GUI/ControlRenderer.h"
 
 namespace Berta
 {
-	void Renderer::Init(WidgetBase& widget, WidgetRenderer& widgetRenderer)
+	void Renderer::Init(ControlBase& control, ControlRenderer& controlRenderer)
 	{
-		m_widgetRenderer = &widgetRenderer;
-		m_widgetRenderer->Init(widget);
+		m_controlRenderer = &controlRenderer;
+		m_controlRenderer->Init(control);
 	}
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		window->RootGraphics->Paste(window->Root, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
+		window->RootGraphics->Paste(window->RootHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
 	void Renderer::Update()
 	{
-		if (m_widgetRenderer && !m_updating)
+		if (m_controlRenderer && !m_updating)
 		{
 			m_updating = true;
-			m_widgetRenderer->Update(m_graphics);
+			m_controlRenderer->Update(m_graphics);
 			m_graphics.Flush();
 			m_updating = false;
 		}
@@ -37,31 +37,31 @@ namespace Berta
 
 	void Renderer::MouseEnter(const ArgMouse& args)
 	{
-		m_widgetRenderer->MouseEnter(m_graphics, args);
+		m_controlRenderer->MouseEnter(m_graphics, args);
 	}
 
 	void Renderer::MouseLeave(const ArgMouse& args)
 	{
-		m_widgetRenderer->MouseLeave(m_graphics, args);
+		m_controlRenderer->MouseLeave(m_graphics, args);
 	}
 
 	void Renderer::MouseDown(const ArgMouse& args)
 	{
-		m_widgetRenderer->MouseDown(m_graphics, args);
+		m_controlRenderer->MouseDown(m_graphics, args);
 	}
 
 	void Renderer::MouseMove(const ArgMouse& args)
 	{
-		m_widgetRenderer->MouseMove(m_graphics, args);
+		m_controlRenderer->MouseMove(m_graphics, args);
 	}
 
 	void Renderer::MouseUp(const ArgMouse& args)
 	{
-		m_widgetRenderer->MouseUp(m_graphics, args);
+		m_controlRenderer->MouseUp(m_graphics, args);
 	}
 
 	void Renderer::Click(const ArgClick& args)
 	{
-		m_widgetRenderer->Click(m_graphics, args);
+		m_controlRenderer->Click(m_graphics, args);
 	}
 }

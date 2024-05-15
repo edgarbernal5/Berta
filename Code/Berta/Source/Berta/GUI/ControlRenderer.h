@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_WIDGET_RENDERER_HEADER
-#define BT_WIDGET_RENDERER_HEADER
+#ifndef BT_CONTROL_RENDERER_HEADER
+#define BT_CONTROL_RENDERER_HEADER
 
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/CommonEvents.h"
@@ -13,15 +13,15 @@
 namespace Berta
 {
 	class Graphics;
-	class WidgetBase;
+	class ControlBase;
 
-	class WidgetRenderer
+	class ControlRenderer
 	{
 	public:
-		WidgetRenderer() = default;
-		virtual ~WidgetRenderer() = default;
+		ControlRenderer() = default;
+		virtual ~ControlRenderer() = default;
 
-		virtual void Init(WidgetBase& widget);
+		virtual void Init(ControlBase& control);
 		virtual void Update(Graphics& graphics);
 		virtual void MouseEnter(Graphics& graphics, const ArgMouse& args);
 		virtual void MouseLeave(Graphics& graphics, const ArgMouse& args);

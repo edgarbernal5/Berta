@@ -25,15 +25,14 @@ namespace Berta
 
         Event() : data(std::make_shared<Data>()) {}
         Event(Event&& other) : Event() { *this = std::move(other); }
+        Event(const Event&) = default;
 
+        Event& operator=(const Event&) = default;
         Event& operator=(Event&& other)
         {
             std::swap(data, other.data);
             return *this;
         }
-
-        Event(const Event&) = default;
-        Event& operator=(const Event&) = default;
 
     private:
         struct StoredHandler
@@ -61,13 +60,12 @@ namespace Berta
         }
 
     public:
-
-        EventHandlerId connect(const Handler& h) const
+        EventHandlerId Connect(const Handler& h) const
         {
             return AddHandler(h);
         }
 
-        void disconnect(EventHandlerId id) const
+        void Disconnect(EventHandlerId id) const
         {
             std::lock_guard<std::mutex> lock(data->observerMutex);
             auto it = std::find_if(data->observers.begin(), data->observers.end(),
@@ -82,13 +80,13 @@ namespace Berta
             }
         }
 
-        void reset() const
+        void Reset() const
         {
             std::lock_guard<std::mutex> lock(data->observerMutex);
             data->observers.clear();
         }
 
-        void emit(Argument args) const
+        void Emit(Argument args) const
         {
             std::vector<std::weak_ptr<Handler>> handlers;
             {

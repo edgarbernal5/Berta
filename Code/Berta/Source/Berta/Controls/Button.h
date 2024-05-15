@@ -8,15 +8,15 @@
 #define BT_BUTTON_HEADER
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/Widget.h"
+#include "Berta/GUI/Control.h"
 #include <string>
 
 namespace Berta
 {
-	class ButtonRenderer : public WidgetRenderer
+	class ButtonRenderer : public ControlRenderer
 	{
 	public:
-		void Init(WidgetBase& widget) override;
+		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -30,11 +30,11 @@ namespace Berta
 			Hovered
 		};
 
-		WidgetBase* m_widget;
+		ControlBase* m_control;
 		State m_status{ State::Normal };
 	};
 
-	class Button : public Widget<ButtonRenderer>
+	class Button : public Control<ButtonRenderer>
 	{
 	public:
 		Button(Window* parent, const Rectangle& rectangle, std::wstring text);

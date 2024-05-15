@@ -22,11 +22,11 @@
     <Filter Include="Source\Berta\GUI">
       <UniqueIdentifier>{0c2e6a58-caa9-43bd-bcad-95d0d37b1b16}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Berta\Widgets">
-      <UniqueIdentifier>{84176aab-a0cd-4eda-80b2-9ddd73b069f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Berta\Paint">
       <UniqueIdentifier>{27cdea69-aad3-4669-93a6-02d91d6ac7ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\Controls">
+      <UniqueIdentifier>{84176aab-a0cd-4eda-80b2-9ddd73b069f0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -66,8 +66,8 @@
     <ClInclude Include="Source\Berta\GUI\Window.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Widgets\Label.h">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClInclude Include="Source\Berta\Controls\Label.h">
+      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Paint\Graphics.h">
       <Filter>Source\Berta\Paint</Filter>
@@ -78,26 +78,23 @@
     <ClInclude Include="Source\Berta\GUI\WindowManager.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Widgets\Form.h">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClInclude Include="Source\Berta\Controls\Form.h">
+      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\WidgetAppearance.h">
+    <ClInclude Include="Source\Berta\GUI\ControlAppearance.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Colors.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\WidgetRenderer.h">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\Widget.h">
+    <ClInclude Include="Source\Berta\GUI\ControlRenderer.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Paint\Font.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Widgets\Button.h">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClInclude Include="Source\Berta\Controls\Button.h">
+      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\CommonEvents.h">
       <Filter>Source\Berta\GUI</Filter>
@@ -105,6 +102,7 @@
     <ClInclude Include="Source\Berta\Core\Event.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Control.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -131,8 +129,8 @@
     <ClCompile Include="Source\Berta\Core\Foundation.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Widgets\Label.cpp">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClCompile Include="Source\Berta\Controls\Label.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp">
       <Filter>Source\Berta\Paint</Filter>
@@ -143,26 +141,24 @@
     <ClCompile Include="Source\Berta\GUI\WindowManager.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Widgets\Form.cpp">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClCompile Include="Source\Berta\Controls\Form.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\WidgetAppearance.cpp">
+    <ClCompile Include="Source\Berta\GUI\ControlAppearance.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\Widget.cpp">
+    <ClCompile Include="Source\Berta\GUI\ControlRenderer.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\WidgetRenderer.cpp">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Berta\Widgets\Button.cpp">
-      <Filter>Source\Berta\Widgets</Filter>
+    <ClCompile Include="Source\Berta\Controls\Button.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\Event.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Control.cpp" />
   </ItemGroup>
 </Project>

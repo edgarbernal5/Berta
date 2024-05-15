@@ -9,8 +9,8 @@
 
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Core/Foundation.h"
-#include "Berta/GUI/Widget.h"
-#include "Berta/GUI/WidgetAppearance.h"
+#include "Berta/GUI/Control.h"
+#include "Berta/GUI/ControlAppearance.h"
 
 namespace Berta::GUI
 {
@@ -22,8 +22,9 @@ namespace Berta::GUI
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
 			Window* window = new Window(WindowType::Native);
-			window->Root = windowResult.WindowHandle;
+			window->RootHandle = windowResult.WindowHandle;
 			window->Size = windowResult.ClientSize;
+			window->RootWindow = window;
 
 			windowManager.AddNative(windowResult.WindowHandle, WindowManager::WindowData(window, window->Size));
 			windowManager.Add(window);
@@ -37,16 +38,19 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
-	Window* CreateWidget(Window* parent, const Rectangle& rectangle)
+	Window* CreateControl(Window* parent, const Rectangle& rectangle)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		Window* window = new Window(WindowType::Widget);
+		Window* window = new Window(WindowType::Control);
 		window->Size = rectangle;
 		window->Parent = parent;
 		window->Position = rectangle;
+		window->RootWindow = parent->RootWindow;
 
 		if (parent)
 		{
+			window->RootGraphics = parent->RootGraphics;
+
 			parent->Children.emplace_back(window);
 		}
 
@@ -69,7 +73,7 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			if (window->Type == WindowType::Native)
-				return API::GetCaptionNativeWindow(window->Root);
+				return API::GetCaptionNativeWindow(window->RootHandle);
 
 			return window->Title;
 		}
@@ -94,16 +98,16 @@ namespace Berta::GUI
 		}
 	}
 
-	void InitRenderer(WidgetBase* widget, WidgetRenderer& widgetRenderer)
+	void InitRenderer(ControlBase* control, ControlRenderer& controlRenderer)
 	{
-		auto window = widget->Handle();
+		auto window = control->Handle();
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Build(window->Size);
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
-			window->Renderer.Init(*widget, widgetRenderer);
+			window->Renderer.Init(*control, controlRenderer);
 			window->Renderer.Update();
 		}
 	}
@@ -117,12 +121,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetAppearance(Window* window, WidgetAppearance* widgetAppearance)
+	void SetAppearance(Window* window, ControlAppearance* controlAppearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			window->Appereance = widgetAppearance;
+			window->Appereance = controlAppearance;
 		}
 	}
 
@@ -151,7 +155,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-
+			window->RootWindow->DeferredRequests.push_back(window);
 		}
 	}
 }

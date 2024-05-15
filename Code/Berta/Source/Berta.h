@@ -13,7 +13,7 @@
 #include "Berta/Core/Foundation.h"
 #include "Berta/Core/Logger.h"
 
-// --- Widgets
-#include "Berta/Widgets/Form.h"
+// --- Controls
+#include "Berta/Controls/Form.h"
 
 #endif

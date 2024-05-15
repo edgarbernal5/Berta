@@ -48,6 +48,7 @@ namespace Berta
 		void UpdateTree(Window* window);
 		void Show(Window* window, bool visible);
 
+		void UpdateDeferredRequests(Window* rootWindow);
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

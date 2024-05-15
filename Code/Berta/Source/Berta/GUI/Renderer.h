@@ -13,13 +13,13 @@
 namespace Berta
 {
 	struct Window;
-	class WidgetBase;
-	class WidgetRenderer;
+	class ControlBase;
+	class ControlRenderer;
 
 	class Renderer
 	{
 	public:
-		void Init(WidgetBase& widget, WidgetRenderer& widgetRenderer);
+		void Init(ControlBase& control, ControlRenderer& controlRenderer);
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
 
@@ -33,7 +33,7 @@ namespace Berta
 		Graphics& GetGraphics() { return m_graphics; }
 	private:
 		bool m_updating{ false };
-		WidgetRenderer* m_widgetRenderer;
+		ControlRenderer* m_controlRenderer;
 		Graphics m_graphics;
 	};
 }
