@@ -25,7 +25,7 @@ namespace Berta
 
 	void WindowManager::Add(Window* window)
 	{
-		m_windowRegistry.insert(window);
+		m_windowRegistry.emplace(window);
 	}
 
 	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append)

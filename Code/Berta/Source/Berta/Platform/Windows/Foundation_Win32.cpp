@@ -158,11 +158,14 @@ namespace Berta
 		}
 		case WM_SIZE:
 		{
-			if (wParam != SIZE_MINIMIZED)
+			uint32_t newWidth = (uint32_t)LOWORD(lParam);
+			uint32_t newHeight = (uint32_t)HIWORD(lParam);
+
+			if (newWidth > 0 && newHeight > 0)
 			{
 				ArgSize argSize;
-				argSize.NewSize.Width = LOWORD(lParam);
-				argSize.NewSize.Height = HIWORD(lParam);
+				argSize.NewSize.Width = newWidth;
+				argSize.NewSize.Height = newHeight;
 				BT_CORE_DEBUG << "Size: new size " << argSize.NewSize << std::endl;
 
 				windowManager.Resize(nativeWindow, argSize.NewSize);
