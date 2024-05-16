@@ -37,15 +37,15 @@ namespace Berta
 
 	Graphics::~Graphics()
 	{
-		//Release();
+		Release();
 	}
 
 	void Graphics::Build(const Size& size)
 	{
-		if (m_size != size)
+		if (m_attributes->m_size != size)
 		{
-			m_size = size;
-			if (m_size.IsEmpty())
+			m_attributes->m_size = size;
+			if (m_attributes->m_size.IsEmpty())
 			{
 				Release();
 				return;
@@ -122,7 +122,7 @@ namespace Berta
 
 	void Graphics::DrawRectangle(const Color& color, bool solid)
 	{
-		DrawRectangle(m_size.ToRectangle(), color, solid);
+		DrawRectangle(m_attributes->m_size.ToRectangle(), color, solid);
 	}
 
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
@@ -205,6 +205,11 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::Swap(Graphics& other)
+	{
+		m_attributes.swap(other.m_attributes);
+	}
+
 	Size Graphics::GetStringSize(std::wstring& wstr)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -225,12 +230,7 @@ namespace Berta
 
 	void Graphics::Release()
 	{
-		m_size = Size::Zero;
-		/*if (m_hFont)
-		{
-			::DeleteObject(m_hFont);
-			m_hFont = nullptr;
-		}*/
+		m_attributes.reset();
 	}
 
 	HFONT Graphics::CreateTransparentFont(int height, int weight, bool italic, bool underline)
@@ -254,7 +254,25 @@ namespace Berta
 	Graphics::NativeAttributes::~NativeAttributes()
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		m_size = Size::Zero;
 
+		if (m_hdc)
+		{
+			::DeleteDC(m_hdc);
+			m_hdc = nullptr;
+		}
+
+		if (m_hBitmap)
+		{
+			::DeleteObject(m_hBitmap);
+			m_hBitmap = nullptr;
+		}
+
+		if (m_hFont)
+		{
+			::DeleteObject(m_hFont);
+			m_hFont = nullptr;
+		}
 #endif
 	}
 }

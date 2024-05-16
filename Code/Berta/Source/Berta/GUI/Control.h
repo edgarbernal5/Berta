@@ -37,8 +37,14 @@ namespace Berta
 	{
 	public:
 		using RendererType = Renderer;
+		using EventsType = Events;
 
-		Control() = default;
+		Control()
+		{
+			static_assert(std::is_base_of<ControlRenderer, Renderer>::value, "Renderer must be derived from ControlRenderer");
+			static_assert(std::is_base_of<CommonEvents, Events>::value, "Events must be derived from CommonEvents");
+		}
+
 		virtual ~Control()
 		{
 			GUI::DisposeWindow(m_handle);
@@ -51,7 +57,7 @@ namespace Berta
 		Control& operator=(Control&&) = delete;
 
 		ControlAppearance& GetAppearance() { return *m_appearance; }
-		Events& GetEvents() { return *m_events; }
+		EventsType& GetEvents() { return *m_events; }
 
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)

@@ -140,8 +140,13 @@ namespace Berta
 				newRootGraphics.Build(newSize);
 			}
 
-			//TODO: WIP
+			window->Renderer.GetGraphics().Swap(newGraphics);
 
+			if (window->Type == WindowType::Native)
+			{
+				window->RootGraphics->Swap(newRootGraphics);
+				UpdateTree(window);
+			}
 		}
 	}
 
