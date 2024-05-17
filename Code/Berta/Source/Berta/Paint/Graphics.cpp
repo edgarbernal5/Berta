@@ -72,7 +72,7 @@ namespace Berta
 			m_attributes->m_hBitmap = hBitmap;
 
 			::LOGFONT lfText = {};
-			SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, 96);
+			SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, ::GetDpiForSystem());
 			m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
 			if (m_attributes->m_hFont)
 			{
