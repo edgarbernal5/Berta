@@ -178,6 +178,12 @@ namespace Berta
 		if (window->DPI != newDPI)
 		{
 			window->DPI = newDPI;
+			window->Renderer.GetGraphics().BuildFont(newDPI);
+
+			for (auto& child : window->Children)
+			{
+				ChangeDPI(child, newDPI);
+			}
 		}
 	}
 

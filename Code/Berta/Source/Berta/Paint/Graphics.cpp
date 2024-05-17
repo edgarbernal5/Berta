@@ -71,22 +71,30 @@ namespace Berta
 			m_attributes->m_hdc = cdc;
 			m_attributes->m_hBitmap = hBitmap;
 
-			::LOGFONT lfText = {};
-			SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, ::GetDpiForSystem());
-			m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
-			if (m_attributes->m_hFont)
-			{
-			}
-
-			//int dpi = GetDpiForSystem();
-			//int baseFontSize = 20;
-			//int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
-
-			//m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
-
 			::ReleaseDC(0, hdc);
 #endif
 		}
+	}
+
+	void Graphics::BuildFont(uint32_t dpi)
+	{
+		if (m_attributes->m_hFont)
+		{
+			::DeleteObject(m_attributes->m_hFont);
+			m_attributes->m_hFont = nullptr;
+		}
+
+		::LOGFONT lfText = {};
+		SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
+		m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
+		if (m_attributes->m_hFont)
+		{
+		}
+		//int dpi = GetDpiForSystem();
+		//int baseFontSize = 20;
+		//int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
+
+		//m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
@@ -237,7 +245,7 @@ namespace Berta
 	HFONT Graphics::CreateTransparentFont(int height, int weight, bool italic, bool underline)
 	{
 		::LOGFONT lf;
-		ZeroMemory(&lf, sizeof(LOGFONT)); // Clear the structure
+		ZeroMemory(&lf, sizeof(::LOGFONT)); // Clear the structure
 		lf.lfHeight = height; // Font height
 		lf.lfWeight = weight; // Font weight (bold)
 		lf.lfItalic = italic; // Italic style

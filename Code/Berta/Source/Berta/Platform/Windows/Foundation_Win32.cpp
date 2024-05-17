@@ -22,7 +22,9 @@ namespace Berta
 	HINSTANCE GetModuleInstance()
 	{
 		if (g_hModuleInstance == nullptr)
+		{
 			g_hModuleInstance = GetModuleHandle(NULL);
+		}
 
 		return g_hModuleInstance;
 	}

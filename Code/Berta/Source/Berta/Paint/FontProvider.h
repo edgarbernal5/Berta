@@ -9,7 +9,10 @@
 
 namespace Berta
 {
+	class FontProvider
+	{
 
+	};
 }
 
 #endif
