@@ -70,6 +70,7 @@ namespace Berta
 			::SetBkMode(cdc, TRANSPARENT);
 			m_attributes->m_hdc = cdc;
 			m_attributes->m_hBitmap = hBitmap;
+
 			::LOGFONT lfText = {};
 			SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, 96);
 			m_attributes->m_hFont = ::CreateFontIndirect(&lfText);

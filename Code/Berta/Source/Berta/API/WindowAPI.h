@@ -33,6 +33,7 @@ namespace Berta
 		{
 			NativeWindowHandle WindowHandle;
 			Size ClientSize;
+			uint32_t DPI;
 		};
 
 		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& windowStyle);
@@ -40,6 +41,8 @@ namespace Berta
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
+
+		uint32_t GetWindowDPI(NativeWindowHandle nativeHandle);
 	}
 }
 

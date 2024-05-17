@@ -103,6 +103,9 @@
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\Control.h" />
+    <ClInclude Include="Source\Berta\Paint\FontProvider.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

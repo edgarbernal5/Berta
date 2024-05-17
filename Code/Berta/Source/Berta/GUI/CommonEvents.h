@@ -56,9 +56,9 @@ namespace Berta
 
 	struct RootEvents : public CommonEvents
 	{
-		Event<ArgActivated> Activated;
-		Event<ArgSizeMove> EnterSizeMove;
-		Event<ArgSizeMove> ExitSizeMove;
+		Event<ArgActivated>	Activated;
+		Event<ArgSizeMove>	EnterSizeMove;
+		Event<ArgSizeMove>	ExitSizeMove;
 	};
 }
 

@@ -9,6 +9,9 @@
 
 #include <cstdint>
 #include <string>
+#ifdef BT_PLATFORM_WINDOWS
+#include <windef.h>
+#endif
 
 namespace Berta
 {

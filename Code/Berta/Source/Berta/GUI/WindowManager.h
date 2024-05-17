@@ -50,6 +50,8 @@ namespace Berta
 
 		void Resize(Window* window, const Size& newSize);
 		void UpdateDeferredRequests(Window* rootWindow);
+
+		void ChangeDPI(Window* window, uint32_t newDPI);
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

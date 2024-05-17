@@ -173,6 +173,14 @@ namespace Berta
 		rootWindow->DeferredRequests.clear();
 	}
 
+	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI)
+	{
+		if (window->DPI != newDPI)
+		{
+			window->DPI = newDPI;
+		}
+	}
+
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		return Rectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height}.IsInside(point);

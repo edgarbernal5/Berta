@@ -141,6 +141,7 @@
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
     <ClInclude Include="Source\Berta\GUI\ControlAppearance.h" />
     <ClInclude Include="Source\Berta\Paint\Font.h" />
+    <ClInclude Include="Source\Berta\Paint\FontProvider.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
     <ClInclude Include="Source\Berta\GUI\ControlRenderer.h" />
     <ClInclude Include="Source\Berta\Controls\Button.h" />

@@ -30,7 +30,7 @@ namespace Berta
 			style |= WS_POPUP;
 			styleEx |= WS_EX_APPWINDOW;
 
-			UINT dpi = ::GetDpiForSystem();
+			uint32_t dpi = GetWindowDPI({});
 			float scalingFactor = static_cast<float>(dpi) / 96.0f;
 
 			// Actually set the appropriate window size
@@ -74,7 +74,7 @@ namespace Berta
 			::RECT client;
 			::GetClientRect(hwnd, &client);
 
-			return NativeWindowResult{ NativeWindowHandle{ hwnd },{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) } };
+			return NativeWindowResult{ NativeWindowHandle{ hwnd },{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) }, dpi };
 #else
 			return {};
 #endif
@@ -118,6 +118,19 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			::ShowWindow(nativeHandle.Handle, visible ? SW_SHOW : SW_HIDE);
 #else
+#endif
+		}
+
+		uint32_t GetWindowDPI(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (nativeHandle.Handle == nullptr)
+			{
+				return ::GetDpiForSystem();
+			}
+			return ::GetDpiForWindow(nativeHandle.Handle);
+#else
+			return 96;
 #endif
 		}
 	}

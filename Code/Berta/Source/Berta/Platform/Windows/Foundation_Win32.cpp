@@ -81,6 +81,7 @@ namespace Berta
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
 		{WM_CREATE,			"WM_CREATE"},
+		{WM_NCCREATE,		"WM_NCCREATE"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
 		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
@@ -175,6 +176,9 @@ namespace Berta
 		}
 		case WM_DPICHANGED:
 		{
+			uint32_t newDPI = (uint32_t)HIWORD(wParam);
+			windowManager.ChangeDPI(nativeWindow, newDPI);
+
 			auto rect = reinterpret_cast<const RECT*>(lParam);
 
 			::SetWindowPos(hWnd,
