@@ -25,7 +25,8 @@ namespace Berta
 		BasicPoint() {}
 		BasicPoint(ValueType x, ValueType y)
 			: X{ x }, Y{ y }
-		{}
+		{
+		}
 
 		bool operator==(const BasicPoint& other) const noexcept
 		{
@@ -167,7 +168,7 @@ namespace Berta
 	{
 		union
 		{
-			uint32_t RGB; //Windows RGB format: 0xBBGGRR
+			uint32_t BGR; //Format: 0xBBGGRR
 		};
 	};
 }

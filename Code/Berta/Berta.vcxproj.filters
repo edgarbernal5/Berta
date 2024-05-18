@@ -102,9 +102,20 @@
     <ClInclude Include="Source\Berta\Core\Event.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\Control.h" />
     <ClInclude Include="Source\Berta\Paint\FontProvider.h">
       <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\InputText.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\Timer.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Control.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Caret.h">
+      <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +173,17 @@
     <ClCompile Include="Source\Berta\Core\Event.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\Control.cpp" />
+    <ClCompile Include="Source\Berta\Controls\InputText.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Control.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Core\Timer.cpp">
+      <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Caret.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

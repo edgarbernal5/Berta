@@ -7,6 +7,7 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/Label.h>
 #include <Berta/Controls/Button.h>
+#include <Berta/Controls/InputText.h>
 #include <iostream>
 
 int main()
@@ -14,7 +15,7 @@ int main()
 	Berta::Form form({ 0,0,800,600 }, { true, false, true });
 	form.Caption(L"Window");
 	
-	Berta::Label label(form, { 50,30,200,40 }, L"Hello world!");
+	Berta::Label label(form, { 50,10,130,40 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
@@ -36,6 +37,8 @@ int main()
 	{
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
+
+	Berta::InputText inputText(form, { 190,30,200,25 });
 	form.Show();
 	form.Exec();
 

@@ -55,6 +55,7 @@ namespace Berta
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
+
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
 	};

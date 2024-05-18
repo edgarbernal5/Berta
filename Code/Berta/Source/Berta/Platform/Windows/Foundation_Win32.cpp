@@ -342,7 +342,6 @@ namespace Berta
 			break;
 		}
 
-		//TODO: Process deferred updates.
 		windowManager.UpdateDeferredRequests(nativeWindow);
 
 		if (defaultToWindowProc)

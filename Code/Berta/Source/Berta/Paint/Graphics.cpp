@@ -117,7 +117,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc)
 		{
-			HPEN hPen = ::CreatePen(PS_SOLID, 1, color.RGB);
+			HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
 			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 			::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
@@ -137,7 +137,7 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		auto brush = ::CreateSolidBrush(color.RGB);
+		auto brush = ::CreateSolidBrush(color.BGR);
 		RECT nativeRect = rectangle.ToRECT();
 		if (solid)
 		{
@@ -157,7 +157,7 @@ namespace Berta
 #endif
 			}
 		}
-
+		
 		::DeleteObject(brush);
 #endif
 	}
@@ -171,10 +171,10 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_attributes->m_lastForegroundColor != color.RGB)
+		if (m_attributes->m_lastForegroundColor != color.BGR)
 		{
-			::SetTextColor(m_attributes->m_hdc, color.RGB);
-			m_attributes->m_lastForegroundColor = color.RGB;
+			::SetTextColor(m_attributes->m_hdc, color.BGR);
+			m_attributes->m_lastForegroundColor = color.BGR;
 		}
 		::TextOut(m_attributes->m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
 		::SelectObject(m_attributes->m_hdc, oldFont);

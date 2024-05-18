@@ -75,7 +75,9 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			if (window->Type == WindowType::Native)
+			{
 				return API::GetCaptionNativeWindow(window->RootHandle);
+			}
 
 			return window->Title;
 		}
@@ -139,6 +141,16 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			return window->Appereance->Background;
+		}
+		return {};
+	}
+
+	Color GetBoxBackgroundColor(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->Appereance->BoxBackground;
 		}
 		return {};
 	}

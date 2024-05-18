@@ -16,6 +16,9 @@ namespace Berta
 	{
 		Color Background{ Colors::Light_Background };
 		Color Foreground{ Colors::Light_Foreground };
+
+		Color BoxBackground{ Colors::Light_BoxBackground };
+		Color BoxBorderColor{ Colors::Light_BoxBorderColor };
 	};
 }
 

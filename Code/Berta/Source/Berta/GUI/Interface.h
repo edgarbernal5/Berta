@@ -31,6 +31,7 @@ namespace Berta
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, ControlAppearance* controlAppearance);
 		Color GetBackgroundColor(Window* window);
+		Color GetBoxBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);
 
 		void UpdateDeferred(Window* window);
