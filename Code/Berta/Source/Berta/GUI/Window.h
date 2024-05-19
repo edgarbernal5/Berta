@@ -18,6 +18,7 @@ namespace Berta
 	class Graphics;
 	struct CommonEvents;
 	struct ControlAppearance;
+	class Caret;
 
 	enum class WindowType
 	{
@@ -50,6 +51,8 @@ namespace Berta
 
 		Window* RootWindow{ nullptr };
 		std::vector<Window*> DeferredRequests;
+
+		Caret* Caret{ nullptr };
 	};
 }
 

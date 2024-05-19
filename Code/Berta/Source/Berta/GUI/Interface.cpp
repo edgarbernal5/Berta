@@ -11,6 +11,7 @@
 #include "Berta/Core/Foundation.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/ControlAppearance.h"
+#include "Berta/GUI/Caret.h"
 
 namespace Berta::GUI
 {
@@ -171,6 +172,15 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			window->RootWindow->DeferredRequests.push_back(window);
+		}
+	}
+
+	void CreateCaret(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			window->Caret = new Caret();
 		}
 	}
 }

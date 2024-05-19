@@ -27,5 +27,6 @@ namespace Berta
 	InputText::InputText(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle);
+		GUI::CreateCaret(m_handle);
 	}
 }
