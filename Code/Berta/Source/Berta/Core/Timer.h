@@ -8,12 +8,13 @@
 #define BT_TIMER_HEADER
 
 #include <chrono>
+#include <thread>
+#include <functional>
+#include <atomic>
 #include "Berta/Core/Event.h"
 
 namespace Berta
 {
-	using TimerIdentifier = UINT_PTR;
-
 	struct ArgTimer
 	{
 	};
@@ -27,9 +28,15 @@ namespace Berta
 		void Start();
 		void Stop();
 
+		Event<ArgTimer>& GetTickEvent() { return m_tick; }
+		bool IsRunning() const { return m_isRunning.load(); }
 	private:
-		TimerIdentifier m_id{};
+		void Run();
+
+		std::atomic_bool m_isRunning{ false };
 		std::chrono::milliseconds m_interval{ 1000 };
+		
+		std::thread timerThread;
 		Event<ArgTimer> m_tick;
 	};
 }

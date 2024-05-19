@@ -42,4 +42,8 @@ namespace Berta
 	void ControlRenderer::Click(Graphics& graphics, const ArgClick& args)
 	{
 	}
+
+	void ControlRenderer::Focus(Graphics& graphics, const ArgFocus& args)
+	{
+	}
 }

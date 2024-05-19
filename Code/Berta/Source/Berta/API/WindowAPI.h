@@ -41,6 +41,7 @@ namespace Berta
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
+		void RefreshWindow(NativeWindowHandle nativeHandle);
 
 		uint32_t GetWindowDPI(NativeWindowHandle nativeHandle);
 	}

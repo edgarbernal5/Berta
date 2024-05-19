@@ -103,6 +103,21 @@ namespace Berta::GUI
 		}
 	}
 
+	void RefreshWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			auto& rootGraphics = *(window->RootWindow->RootGraphics);
+			Rectangle requestRectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
+
+			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+		}
+		
+	}
+
 	void InitRenderer(ControlBase* control, ControlRenderer& controlRenderer)
 	{
 		auto window = control->Handle();
@@ -180,7 +195,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			window->Caret = new Caret();
+			window->Caret = new Caret(window, {0,0});
 		}
 	}
 }

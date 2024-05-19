@@ -18,6 +18,7 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void Focus(Graphics& graphics, const ArgFocus& args) override;
 
 	private:
 		ControlBase* m_control;

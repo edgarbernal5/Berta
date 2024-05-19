@@ -25,6 +25,7 @@ namespace Berta
 		std::wstring GetCaptionWindow(Window* window);
 		void DisposeWindow(Window* window);
 		void ShowWindow(Window* window, bool visible);
+		void RefreshWindow(Window* window);
 
 		void InitRenderer(ControlBase* window, ControlRenderer& controlRenderer);
 

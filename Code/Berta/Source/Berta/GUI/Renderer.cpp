@@ -64,4 +64,9 @@ namespace Berta
 	{
 		m_controlRenderer->Click(m_graphics, args);
 	}
+
+	void Renderer::Focus(const ArgFocus& args)
+	{
+		m_controlRenderer->Focus(m_graphics, args);
+	}
 }

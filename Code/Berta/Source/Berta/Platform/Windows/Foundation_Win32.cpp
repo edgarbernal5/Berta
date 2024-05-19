@@ -196,6 +196,28 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		case WM_SETFOCUS:
+		{
+			if (rootWindowData.Focused)
+			{
+				ArgFocus argFocus{ true };
+				rootWindowData.Focused->Renderer.Focus(argFocus);
+				rootWindowData.Focused->Events->Focus.Emit(argFocus);
+			}
+			defaultToWindowProc = false;
+			break;
+		}
+		case WM_KILLFOCUS:
+		{
+			if (rootWindowData.Focused)
+			{
+				ArgFocus argFocus{ false };
+				rootWindowData.Focused->Renderer.Focus(argFocus);
+				rootWindowData.Focused->Events->Focus.Emit(argFocus);
+			}
+			defaultToWindowProc = false;
+			break;
+		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
@@ -217,6 +239,19 @@ namespace Berta
 				window->Renderer.MouseDown(argMouseDown);
 				window->Events->MouseDown.Emit(argMouseDown);
 			}
+			if (rootWindowData.Focused)
+			{
+				ArgFocus argFocus{ false };
+				rootWindowData.Focused->Renderer.Focus(argFocus);
+				rootWindowData.Focused->Events->Focus.Emit(argFocus);
+			}
+			if (window)
+			{
+				ArgFocus argFocus{ true };
+				window->Renderer.Focus(argFocus);
+				window->Events->Focus.Emit(argFocus);
+			}
+			rootWindowData.Focused = window;
 			break;
 		}
 		case WM_MOUSEMOVE:

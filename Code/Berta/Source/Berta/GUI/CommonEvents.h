@@ -32,6 +32,11 @@ namespace Berta
 		Size NewSize;
 	};
 
+	struct ArgFocus
+	{
+		bool Focused;
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
@@ -43,6 +48,7 @@ namespace Berta
 		Event<ArgMouse>		MouseUp;
 		Event<ArgClick>		Click;
 		Event<ArgSize>		Size;
+		Event<ArgFocus>		Focus;
 	};
 
 	struct ArgSizeMove

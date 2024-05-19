@@ -28,6 +28,7 @@ namespace Berta
 
 			Window* Pressed{ nullptr };
 			Window* Hovered{ nullptr };
+			Window* Focused{ nullptr };
 
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
