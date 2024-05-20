@@ -10,10 +10,11 @@
 #include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Controls/TextEditors/TextEditor.h"
 
 namespace Berta
 {
+	class TextEditor;
+
 	class InputTextReactor : public ControlReactor
 	{
 	public:
@@ -21,10 +22,12 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 
 		void Focus(Graphics& graphics, const ArgFocus& args) override;
+		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 	private:
 		ControlBase* m_control;
-		TextEditor m_textEditor;
+		TextEditor* m_textEditor;
 	};
 
 	class InputText : public Control<InputTextReactor>

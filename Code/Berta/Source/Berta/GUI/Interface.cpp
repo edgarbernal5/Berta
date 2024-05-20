@@ -115,7 +115,6 @@ namespace Berta::GUI
 
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
-		
 	}
 
 	void InitRendererReactor(ControlBase* control, ControlReactor& controlReactor)
@@ -190,12 +189,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void CreateCaret(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
-		{
-			window->Caret = new Caret(window, {0,0});
-		}
-	}
+	//void CreateCaret(Window* window)
+	//{
+	//	auto& windowManager = Foundation::GetInstance().GetWindowManager();
+	//	if (windowManager.Exists(window))
+	//	{
+	//		window->Caret = new Caret(window, {0,0});
+	//	}
+	//}
 }

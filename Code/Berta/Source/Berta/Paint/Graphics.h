@@ -33,7 +33,10 @@ namespace Berta
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
 		void DrawString(const Point& position, const std::wstring& str, const Color& color);
 
-		Size GetStringSize(std::wstring& str);
+		const Size& GetSize() const { return m_attributes->m_size; }
+		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
+		Size GetTextExtent(const std::wstring& str);
+		Size GetTextExtent(const std::wstring& str, int length);
 
 		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
@@ -53,6 +56,7 @@ namespace Berta
 			HFONT m_hFont{ nullptr };
 			uint32_t m_lastForegroundColor{ 0 };
 			Size m_size;
+			Size m_textExtent;
 
 			NativeAttributes() = default;
 			~NativeAttributes();

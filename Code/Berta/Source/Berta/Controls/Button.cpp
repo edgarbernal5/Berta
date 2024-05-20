@@ -35,7 +35,7 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), { 0x918F89 }, false);
 
 		auto caption = m_control->Caption();
-		auto center = window->Size - graphics.GetStringSize(caption);
+		auto center = window->Size - graphics.GetTextExtent(caption);
 		center = center * 0.5f;
 		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, GUI::GetForegroundColor(window));
 	}

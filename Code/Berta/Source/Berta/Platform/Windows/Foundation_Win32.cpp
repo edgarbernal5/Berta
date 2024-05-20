@@ -94,6 +94,12 @@ namespace Berta
 		{WM_SETFOCUS,		"WM_SETFOCUS"},
 		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
 
+		{WM_CHAR,			"WM_CHAR"},
+		{WM_KEYDOWN,		"WM_KEYDOWN"},
+		{WM_KEYUP,			"WM_KEYUP"},
+		{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
+		{WM_SYSKEYUP,		"WM_SYSKEYUP"},
+
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
@@ -355,26 +361,42 @@ namespace Berta
 			}
 			break;
 		}
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
+		case WM_CHAR:
 		{
-			WORD vkCode = LOWORD(wParam);
-
 			ArgKeyboard argKeyboard;
 
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
-			WORD keyFlags = HIWORD(lParam);
 
-			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
+			argKeyboard.Key = static_cast<wchar_t>(wParam);
 
-			KeyCode keycode = static_cast<KeyCode>(vkCode);
 			auto window = rootWindowData.Focused;
 			if (window == nullptr) window = nativeWindow;
 
+			window->Renderer.KeyChar(argKeyboard);
+			window->Events->KeyChar.Emit(argKeyboard);
+
+			defaultToWindowProc = false;
+			break;
+		}
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		{
+			ArgKeyboard argKeyboard;
+
+			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
+			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
+			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
+			argKeyboard.Key = static_cast<wchar_t>(wParam);
+
+			auto window = rootWindowData.Focused;
+			if (window == nullptr) window = nativeWindow;
+			
+			WORD keyFlags = HIWORD(lParam);
+			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 			if (isKeyReleased)
 			{
 				window->Renderer.KeyReleased(argKeyboard);
@@ -385,6 +407,7 @@ namespace Berta
 				window->Renderer.KeyPressed(argKeyboard);
 				window->Events->KeyPressed.Emit(argKeyboard);
 			}
+			defaultToWindowProc = false;
 			break;
 		}
 		case WM_ENTERSIZEMOVE:

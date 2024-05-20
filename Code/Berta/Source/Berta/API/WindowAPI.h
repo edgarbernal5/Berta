@@ -18,7 +18,7 @@ namespace Berta
 		struct NativeWindowHandle
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			HWND Handle;
+			HWND Handle{ nullptr };
 
 			bool operator<(const NativeWindowHandle& other) const
 			{

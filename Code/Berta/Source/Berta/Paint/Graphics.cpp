@@ -6,6 +6,7 @@
 
 #include "btpch.h"
 #include "Graphics.h"
+
 #include <iostream>
 
 #ifdef BT_DEBUG
@@ -78,6 +79,11 @@ namespace Berta
 
 	void Graphics::BuildFont(uint32_t dpi)
 	{
+		if (m_attributes->m_hdc == nullptr)
+		{
+			return;
+		}
+
 		if (m_attributes->m_hFont)
 		{
 			::DeleteObject(m_attributes->m_hFont);
@@ -90,11 +96,10 @@ namespace Berta
 		if (m_attributes->m_hFont)
 		{
 		}
-		//int dpi = GetDpiForSystem();
-		//int baseFontSize = 20;
-		//int scaledFontSize = MulDiv(baseFontSize, dpi, 96);
 
-		//m_hFont = CreateTransparentFont(scaledFontSize, FW_NORMAL, false, false);
+		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
+		m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
+		SelectObject(m_attributes->m_hdc, oldFont);
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
@@ -219,7 +224,7 @@ namespace Berta
 		m_attributes.swap(other.m_attributes);
 	}
 
-	Size Graphics::GetStringSize(std::wstring& wstr)
+	Size Graphics::GetTextExtent(const std::wstring& wstr)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
@@ -227,6 +232,24 @@ namespace Berta
 
 		::SIZE nativeSize;
 		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
+		{
+			return Size(nativeSize.cx, nativeSize.cy);
+		}
+
+		return {};
+#else
+		return {};
+#endif
+	}
+
+	Size Graphics::GetTextExtent(const std::wstring& wstr, int length)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
+			return {};
+
+		::SIZE nativeSize;
+		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), length, &nativeSize))
 		{
 			return Size(nativeSize.cx, nativeSize.cy);
 		}

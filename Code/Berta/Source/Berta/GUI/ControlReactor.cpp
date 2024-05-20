@@ -47,6 +47,10 @@ namespace Berta
 	{
 	}
 
+	void ControlReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
+	{
+	}
+
 	void ControlReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
 	}

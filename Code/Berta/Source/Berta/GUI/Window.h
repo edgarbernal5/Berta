@@ -18,7 +18,6 @@ namespace Berta
 	class Graphics;
 	struct CommonEvents;
 	struct ControlAppearance;
-	class Caret;
 
 	enum class WindowType
 	{
@@ -31,15 +30,15 @@ namespace Berta
 		Window() = default;
 		Window(WindowType type) : Type(type) {}
 
+		WindowType Type;
+		API::NativeWindowHandle RootHandle{};
+
 		std::wstring Title;
 		bool Visible{ false };
 		Size Size;
 		Point Position;
 
 		uint32_t DPI{ 0 }; //TODO:
-
-		WindowType Type;
-		API::NativeWindowHandle RootHandle{};
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
@@ -51,8 +50,6 @@ namespace Berta
 
 		Window* RootWindow{ nullptr };
 		std::vector<Window*> DeferredRequests;
-
-		Caret* Caret{ nullptr };
 	};
 }
 
