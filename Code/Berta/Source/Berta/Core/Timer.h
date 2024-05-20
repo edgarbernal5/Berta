@@ -28,6 +28,8 @@ namespace Berta
 		void Start();
 		void Stop();
 
+		void SetInterval(std::chrono::milliseconds milliseconds) { m_interval = milliseconds; }
+		void SetInterval(uint32_t milliseconds) { m_interval = std::chrono::milliseconds(milliseconds); }
 		Event<ArgTimer>& GetTickEvent() { return m_tick; }
 		bool IsRunning() const { return m_isRunning.load(); }
 	private:
@@ -36,7 +38,7 @@ namespace Berta
 		std::atomic_bool m_isRunning{ false };
 		std::chrono::milliseconds m_interval{ 1000 };
 		
-		std::thread timerThread;
+		std::thread m_timerThread;
 		Event<ArgTimer> m_tick;
 	};
 }

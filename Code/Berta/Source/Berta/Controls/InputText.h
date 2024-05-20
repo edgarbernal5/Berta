@@ -7,9 +7,10 @@
 #ifndef BT_INPUT_TEXT_HEADER
 #define BT_INPUT_TEXT_HEADER
 
+#include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include <string>
+#include "Berta/Controls/TextEditors/TextEditor.h"
 
 namespace Berta
 {
@@ -22,6 +23,7 @@ namespace Berta
 
 	private:
 		ControlBase* m_control;
+		TextEditor m_textEditor;
 	};
 
 	class InputText : public Control<InputTextRenderer>

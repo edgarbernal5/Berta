@@ -20,11 +20,17 @@ namespace Berta
 		{
 			Show(!m_visible);
 		});
+
+		m_timer.SetInterval(800);
 	}
 
 	void Caret::Activate()
 	{
+		m_visible = true;
 		m_timer.Start();
+
+		m_owner->Renderer.Update();
+		GUI::RefreshWindow(m_owner);
 	}
 
 	void Caret::Show(bool visible)
@@ -33,10 +39,15 @@ namespace Berta
 
 		m_owner->Renderer.Update();
 		GUI::RefreshWindow(m_owner);
-
 	}
 
 	void Caret::Deactivate()
 	{
+		m_visible = false;
+
+		m_owner->Renderer.Update();
+		GUI::RefreshWindow(m_owner);
+
+		m_timer.Stop();
 	}
 }

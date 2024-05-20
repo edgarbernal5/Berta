@@ -69,4 +69,12 @@ namespace Berta
 	{
 		m_controlRenderer->Focus(m_graphics, args);
 	}
+	void Renderer::KeyPressed(const ArgKeyboard& args)
+	{
+		m_controlRenderer->KeyPressed(m_graphics, args);
+	}
+	void Renderer::KeyReleased(const ArgKeyboard& args)
+	{
+		m_controlRenderer->KeyReleased(m_graphics, args);
+	}
 }

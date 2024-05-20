@@ -355,6 +355,38 @@ namespace Berta
 			}
 			break;
 		}
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		{
+			WORD vkCode = LOWORD(wParam);
+
+			ArgKeyboard argKeyboard;
+
+			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
+			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
+			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
+			WORD keyFlags = HIWORD(lParam);
+
+			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
+
+			KeyCode keycode = static_cast<KeyCode>(vkCode);
+			auto window = rootWindowData.Focused;
+			if (window == nullptr) window = nativeWindow;
+
+			if (isKeyReleased)
+			{
+				window->Renderer.KeyReleased(argKeyboard);
+				window->Events->KeyReleased.Emit(argKeyboard);
+			}
+			else
+			{
+				window->Renderer.KeyPressed(argKeyboard);
+				window->Events->KeyPressed.Emit(argKeyboard);
+			}
+			break;
+		}
 		case WM_ENTERSIZEMOVE:
 		{
 			ArgSizeMove argSizeMove;

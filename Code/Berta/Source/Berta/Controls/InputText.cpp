@@ -28,13 +28,13 @@ namespace Berta
 		{
 			if (window->Caret->IsVisible())
 			{
-				BT_CORE_TRACE << "draw caret" << std::endl;
+				//BT_CORE_TRACE << "draw caret" << std::endl;
 				graphics.DrawLine({ 2,3 }, { 2, (int)window->Size.Height - 2 }, { 0 });
 				graphics.DrawLine({ 3,3 }, { 3, (int)window->Size.Height - 2 }, { 0 });
 			}
 			else
 			{
-				BT_CORE_TRACE << "hide caret" << std::endl;
+				//BT_CORE_TRACE << "hide caret" << std::endl;
 			}
 		}
 	}

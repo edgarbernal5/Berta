@@ -28,6 +28,9 @@
     <Filter Include="Source\Berta\Controls">
       <UniqueIdentifier>{84176aab-a0cd-4eda-80b2-9ddd73b069f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Controls\TextEditors">
+      <UniqueIdentifier>{7f239791-3cbe-4211-ab75-36c5fff9a52a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -117,6 +120,9 @@
     <ClInclude Include="Source\Berta\GUI\Caret.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -184,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Caret.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextEditors\TextEditor.cpp">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
