@@ -13,7 +13,7 @@
 
 namespace Berta
 {
-	class ButtonRenderer : public ControlRenderer
+	class ButtonReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -34,7 +34,7 @@ namespace Berta
 		State m_status{ State::Normal };
 	};
 
-	class Button : public Control<ButtonRenderer>
+	class Button : public Control<ButtonReactor>
 	{
 	public:
 		Button(Window* parent, const Rectangle& rectangle, std::wstring text);

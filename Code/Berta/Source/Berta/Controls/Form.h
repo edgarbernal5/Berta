@@ -18,7 +18,7 @@ namespace Berta
 {
 	class ControlBase;
 
-	class FormRenderer : public ControlRenderer
+	class FormReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -28,7 +28,7 @@ namespace Berta
 		ControlBase* m_control;
 	};
 
-	class Form : public Control<FormRenderer, RootEvents>
+	class Form : public Control<FormReactor, RootEvents>
 	{
 	public:
 		Form(const Rectangle& rectangle = { 0,0,800,600 }, const FormStyle& windowStyle = {true, true, true});

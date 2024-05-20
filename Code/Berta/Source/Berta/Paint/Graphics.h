@@ -63,6 +63,8 @@ namespace Berta
 #else
 		struct NativeAttributes
 		{
+			Size m_size;
+
 			NativeAttributes() = default;
 			~NativeAttributes();
 		};

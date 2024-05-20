@@ -13,7 +13,7 @@
 
 namespace Berta
 {
-	class LabelRenderer : public ControlRenderer
+	class LabelReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -23,7 +23,7 @@ namespace Berta
 		ControlBase* m_control;
 	};
 
-	class Label : public Control<LabelRenderer>
+	class Label : public Control<LabelReactor>
 	{
 	public:
 		Label(Window* parent, const Rectangle& rectangle, std::wstring text);

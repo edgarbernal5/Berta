@@ -90,9 +90,6 @@
     <ClInclude Include="Source\Berta\Core\Colors.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\ControlRenderer.h">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Paint\Font.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
@@ -122,6 +119,9 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h">
       <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ControlReactor.h">
+      <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -170,9 +170,6 @@
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\ControlRenderer.cpp">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Button.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
@@ -193,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\TextEditors\TextEditor.cpp">
       <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\ControlReactor.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

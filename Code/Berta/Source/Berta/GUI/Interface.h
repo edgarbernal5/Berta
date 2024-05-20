@@ -13,7 +13,7 @@
 namespace Berta
 {
 	class ControlBase;
-	class ControlRenderer;
+	class ControlReactor;
 	struct CommonEvents;
 
 	namespace GUI
@@ -27,7 +27,7 @@ namespace Berta
 		void ShowWindow(Window* window, bool visible);
 		void RefreshWindow(Window* window);
 
-		void InitRenderer(ControlBase* window, ControlRenderer& controlRenderer);
+		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
 
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, ControlAppearance* controlAppearance);

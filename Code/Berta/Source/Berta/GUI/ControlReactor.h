@@ -15,11 +15,11 @@ namespace Berta
 	class Graphics;
 	class ControlBase;
 
-	class ControlRenderer
+	class ControlReactor
 	{
 	public:
-		ControlRenderer() = default;
-		virtual ~ControlRenderer() = default;
+		ControlReactor() = default;
+		virtual ~ControlReactor() = default;
 
 		virtual void Init(ControlBase& control);
 		virtual void Update(Graphics& graphics);

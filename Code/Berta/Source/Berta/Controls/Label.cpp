@@ -11,12 +11,12 @@
 
 namespace Berta
 {
-	void LabelRenderer::Init(ControlBase& control)
+	void LabelReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
 	}
 
-	void LabelRenderer::Update(Graphics& graphics)
+	void LabelReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBackgroundColor(window), true);

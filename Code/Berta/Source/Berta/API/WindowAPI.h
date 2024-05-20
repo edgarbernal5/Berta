@@ -43,7 +43,7 @@ namespace Berta
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 
-		uint32_t GetWindowDPI(NativeWindowHandle nativeHandle);
+		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
 	}
 }
 

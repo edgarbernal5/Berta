@@ -30,7 +30,7 @@ namespace Berta
 			style |= WS_POPUP;
 			styleEx |= WS_EX_APPWINDOW;
 
-			uint32_t dpi = GetWindowDPI({});
+			uint32_t dpi = GetNativeWindowDPI({});
 			float scalingFactor = static_cast<float>(dpi) / 96.0f;
 
 			// Actually set the appropriate window size
@@ -130,7 +130,7 @@ namespace Berta
 #endif
 		}
 
-		uint32_t GetWindowDPI(NativeWindowHandle nativeHandle)
+		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			if (nativeHandle.Handle == nullptr)

@@ -146,7 +146,7 @@
     <ClInclude Include="Source\Berta\Paint\Font.h" />
     <ClInclude Include="Source\Berta\Paint\FontProvider.h" />
     <ClInclude Include="Source\Berta\Paint\Graphics.h" />
-    <ClInclude Include="Source\Berta\GUI\ControlRenderer.h" />
+    <ClInclude Include="Source\Berta\GUI\ControlReactor.h" />
     <ClInclude Include="Source\Berta\Controls\Button.h" />
     <ClInclude Include="Source\Berta\Controls\Label.h" />
     <ClInclude Include="Source\Berta\GUI\Window.h" />
@@ -175,7 +175,7 @@
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlAppearance.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />
-    <ClCompile Include="Source\Berta\GUI\ControlRenderer.cpp" />
+    <ClCompile Include="Source\Berta\GUI\ControlReactor.cpp" />
     <ClCompile Include="Source\Berta\Controls\Button.cpp" />
     <ClCompile Include="Source\Berta\Controls\Label.cpp" />
     <ClCompile Include="Source\Berta\API\WindowAPI.cpp" />

@@ -11,12 +11,12 @@
 
 namespace Berta
 {
-	void ButtonRenderer::Init(ControlBase& control)
+	void ButtonReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
 	}
 
-	void ButtonRenderer::Update(Graphics& graphics)
+	void ButtonReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
 
@@ -40,14 +40,14 @@ namespace Berta
 		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, GUI::GetForegroundColor(window));
 	}
 
-	void ButtonRenderer::MouseEnter(Graphics& graphics, const ArgMouse& args)
+	void ButtonReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Hovered;
 		Update(graphics);
 		GUI::UpdateDeferred(*m_control);
 	}
 
-	void ButtonRenderer::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	void ButtonReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Normal;
 		Update(graphics);

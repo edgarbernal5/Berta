@@ -14,11 +14,12 @@
 
 namespace Berta
 {
-	class InputTextRenderer : public ControlRenderer
+	class InputTextReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+
 		void Focus(Graphics& graphics, const ArgFocus& args) override;
 
 	private:
@@ -26,7 +27,7 @@ namespace Berta
 		TextEditor m_textEditor;
 	};
 
-	class InputText : public Control<InputTextRenderer>
+	class InputText : public Control<InputTextReactor>
 	{
 	public:
 		InputText(Window* parent, const Rectangle& rectangle);

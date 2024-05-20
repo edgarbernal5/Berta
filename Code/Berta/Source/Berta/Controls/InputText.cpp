@@ -12,12 +12,13 @@
 
 namespace Berta
 {
-	void InputTextRenderer::Init(ControlBase& control)
+	void InputTextReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
+
 	}
 
-	void InputTextRenderer::Update(Graphics& graphics)
+	void InputTextReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBoxBackgroundColor(window), true);
@@ -39,7 +40,7 @@ namespace Berta
 		}
 	}
 
-	void InputTextRenderer::Focus(Graphics& graphics, const ArgFocus& args)
+	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
 		auto window = m_control->Handle();
 		if (args.Focused)

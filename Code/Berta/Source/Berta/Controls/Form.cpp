@@ -11,12 +11,12 @@
 
 namespace Berta
 {
-	void FormRenderer::Init(ControlBase& control)
+	void FormReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
 	}
 
-	void FormRenderer::Update(Graphics& graphics)
+	void FormReactor::Update(Graphics& graphics)
 	{
 		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_control), true);
 	}

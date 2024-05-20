@@ -21,7 +21,7 @@ namespace Berta
 			Show(!m_visible);
 		});
 
-		m_timer.SetInterval(800);
+		m_timer.SetInterval(600);
 	}
 
 	void Caret::Activate()

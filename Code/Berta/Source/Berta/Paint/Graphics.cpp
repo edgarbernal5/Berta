@@ -262,9 +262,9 @@ namespace Berta
 
 	Graphics::NativeAttributes::~NativeAttributes()
 	{
-#ifdef BT_PLATFORM_WINDOWS
 		m_size = Size::Zero;
 
+#ifdef BT_PLATFORM_WINDOWS
 		if (m_hdc)
 		{
 			::DeleteDC(m_hdc);

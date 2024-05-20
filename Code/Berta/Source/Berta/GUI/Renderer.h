@@ -14,12 +14,12 @@ namespace Berta
 {
 	struct Window;
 	class ControlBase;
-	class ControlRenderer;
+	class ControlReactor;
 
 	class Renderer
 	{
 	public:
-		void Init(ControlBase& control, ControlRenderer& controlRenderer);
+		void Init(ControlBase& control, ControlReactor& controlReactor);
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
 
@@ -36,7 +36,7 @@ namespace Berta
 		Graphics& GetGraphics() { return m_graphics; }
 	private:
 		bool m_updating{ false };
-		ControlRenderer* m_controlRenderer;
+		ControlReactor* m_controlReactor;
 		Graphics m_graphics;
 	};
 }

@@ -9,7 +9,7 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Interface.h"
-#include "Berta/GUI/ControlRenderer.h"
+#include "Berta/GUI/ControlReactor.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/CommonEvents.h"
 
@@ -32,16 +32,16 @@ namespace Berta
 		Window* m_handle{ nullptr };
 	};
 
-	template <typename Renderer, typename Events = CommonEvents>
+	template <typename Reactor, typename Events = CommonEvents>
 	class Control : public ControlBase
 	{
 	public:
-		using RendererType = Renderer;
+		using ReactorType = Reactor;
 		using EventsType = Events;
 
 		Control()
 		{
-			static_assert(std::is_base_of<ControlRenderer, Renderer>::value, "Renderer must be derived from ControlRenderer");
+			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
 			static_assert(std::is_base_of<CommonEvents, Events>::value, "Events must be derived from CommonEvents");
 		}
 
@@ -67,7 +67,7 @@ namespace Berta
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			GUI::InitRenderer(this, m_renderer);
+			GUI::InitRendererReactor(this, m_reactor);
 		}
 
 		void Create(Window* parent, const Rectangle& rectangle, bool visible = true)
@@ -77,14 +77,14 @@ namespace Berta
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			GUI::InitRenderer(this, m_renderer);
+			GUI::InitRendererReactor(this, m_reactor);
 			if (visible)
 			{
 				GUI::ShowWindow(m_handle, true);
 			}
 		}
 
-		RendererType m_renderer;
+		ReactorType m_reactor;
 		std::shared_ptr<Events> m_events;
 		ControlAppearance* m_appearance{ nullptr };
 	};
