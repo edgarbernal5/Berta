@@ -36,6 +36,13 @@ namespace Berta
 			uint32_t DPI;
 		};
 
+		struct NativeCursor
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			HCURSOR hCursor{ nullptr };
+#endif
+		};
+
 		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& windowStyle);
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
@@ -44,6 +51,8 @@ namespace Berta
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
+
+		void ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor);
 	}
 }
 

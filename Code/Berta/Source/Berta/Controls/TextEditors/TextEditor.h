@@ -9,6 +9,7 @@
 
 #include <string>
 #include "Berta/Paint/Graphics.h"
+#include "Berta/GUI/CommonEvents.h"
 
 namespace Berta
 {
@@ -21,20 +22,28 @@ namespace Berta
 		TextEditor(Window* owner);
 		~TextEditor();
 
-		void ActivateCaret();
-		void DeactivateCaret();
+		void OnMouseEnter(const ArgMouse& args);
+		void OnMouseLeave(const ArgMouse& args);
+		void OnFocus(const ArgFocus& args);
+		bool OnKeyChar(const ArgKeyboard& args);
+		bool OnKeyPressed(const ArgKeyboard& args);
 
 		uint32_t GetCaretPosition() const { return m_caretPosition; }
 		const std::wstring& GetContent() const { return m_content; }
+
+		void Render();
+
+	private:
+		void ActivateCaret();
+		void DeactivateCaret();
+
 		void Insert(wchar_t chr);
 
 		void MoveCaretLeft();
 		void MoveCaretRight();
 		void Delete();
 		void DeleteBack();
-		void Render();
 
-	private:
 		void AdjustView(bool scrollToLeft = false);
 		Size GetContentSize();
 

@@ -10,6 +10,7 @@
 #include "Berta/GUI/Caret.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlAppearance.h"
+#include "Berta/GUI/Interface.h"
 
 namespace Berta
 {
@@ -22,8 +23,67 @@ namespace Berta
 
 	TextEditor::~TextEditor()
 	{
+		
 		delete m_caret;
 		m_caret = nullptr;
+	}
+
+	void TextEditor::OnMouseEnter(const ArgMouse& args)
+	{
+		GUI::ChangeCursor(m_owner, Cursor::IBeam);
+	}
+
+	void TextEditor::OnMouseLeave(const ArgMouse& args)
+	{
+	}
+
+	void TextEditor::OnFocus(const ArgFocus& args)
+	{
+		if (args.Focused)
+		{
+			ActivateCaret();
+		}
+		else
+		{
+			DeactivateCaret();
+		}
+	}
+
+	bool TextEditor::OnKeyChar(const ArgKeyboard& args)
+	{
+		if (std::isprint(static_cast<int>(args.Key)))
+		{
+			Insert(args.Key);
+			return true;
+		}
+		return false;
+	}
+
+	bool TextEditor::OnKeyPressed(const ArgKeyboard& args)
+	{
+		bool redraw = false;
+		auto contentSize = m_content.size();
+		if (args.Key == VK_LEFT && m_caretPosition > 0)
+		{
+			MoveCaretLeft();
+			redraw = true;
+		}
+		else if (args.Key == VK_RIGHT && m_caretPosition < contentSize)
+		{
+			MoveCaretRight();
+			redraw = true;
+		}
+		else if (args.Key == VK_BACK && m_caretPosition > 0)
+		{
+			DeleteBack();
+			redraw = true;
+		}
+		else if (args.Key == VK_DELETE && m_caretPosition < contentSize)
+		{
+			Delete();
+			redraw = true;
+		}
+		return redraw;
 	}
 
 	void TextEditor::ActivateCaret()
@@ -81,7 +141,7 @@ namespace Berta
 
 	void TextEditor::AdjustView(bool scrollToLeft)
 	{
-		Size contentSize = GetContentSize();
+		auto contentSize = GetContentSize();
 		auto ownerSize = m_graphics.GetSize();
 
 		int adjustment = 4;

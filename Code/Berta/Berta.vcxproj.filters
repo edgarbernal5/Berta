@@ -123,6 +123,7 @@
     <ClInclude Include="Source\Berta\GUI\ControlReactor.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Cursor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

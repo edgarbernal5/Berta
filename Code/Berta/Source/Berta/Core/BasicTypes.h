@@ -171,6 +171,13 @@ namespace Berta
 			uint32_t BGR; //Format: 0xBBGGRR
 		};
 	};
+
+	enum class Cursor
+	{
+		Default,
+		IBeam,
+		Wait
+	};
 }
 
 #endif

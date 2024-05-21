@@ -187,6 +187,10 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::ChangeCursor(Window* window, Cursor newCursor)
+	{
+	}
+
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		return Rectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height}.IsInside(point);

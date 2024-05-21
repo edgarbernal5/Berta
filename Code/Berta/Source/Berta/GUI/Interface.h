@@ -37,6 +37,8 @@ namespace Berta
 
 		void UpdateDeferred(Window* window);
 		//void CreateCaret(Window* window);
+
+		void ChangeCursor(Window* window, Cursor newCursor);
 	}
 }
 

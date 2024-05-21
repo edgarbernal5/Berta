@@ -29,64 +29,39 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
 	}
 
+	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	void InputTextReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
 	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
 		auto window = m_control->Handle();
-		if (args.Focused)
-		{
-			m_textEditor->ActivateCaret();
-		}
-		else
-		{
-			m_textEditor->DeactivateCaret();
-		}
+		m_textEditor->OnFocus(args);
 	}
 
 	void InputTextReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
 	{
 		BT_CORE_DEBUG << "key char: " << (int)args.Key << ". " << std::endl;
-		if (std::isprint(static_cast<int>(args.Key)))
+		if (m_textEditor->OnKeyChar(args))
 		{
-			m_textEditor->Insert(args.Key);
-
-			auto window = m_control->Handle();
-			GUI::CaptionWindow(window, m_textEditor->GetContent());
-			window->Renderer.Update();
-			GUI::RefreshWindow(window);
+			GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
+			m_control->Handle()->Renderer.Update();
+			GUI::UpdateDeferred(m_control->Handle());
 		}
 	}
 
 	void InputTextReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-		bool redraw = false;
-		auto caretPosition = m_textEditor->GetCaretPosition();
-		auto contentSize = m_textEditor->GetContent().size();
-		if (args.Key == VK_LEFT && caretPosition > 0)
-		{
-			m_textEditor->MoveCaretLeft();
-			redraw = true;
-		}
-		else if (args.Key == VK_RIGHT && caretPosition < contentSize)
-		{
-			m_textEditor->MoveCaretRight();
-			redraw = true;
-		}
-		else if (args.Key == VK_BACK && caretPosition > 0)
-		{
-			m_textEditor->DeleteBack();
-			redraw = true;
-		}
-		else if (args.Key == VK_DELETE && caretPosition < contentSize)
-		{
-			m_textEditor->Delete();
-			redraw = true;
-		}
-
+		bool redraw = m_textEditor->OnKeyPressed(args);
 		if (redraw)
 		{
 			auto window = m_control->Handle();
 			window->Renderer.Update();
-			GUI::RefreshWindow(window);
+			GUI::UpdateDeferred(window);
 		}
 	}
 

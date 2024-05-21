@@ -142,5 +142,12 @@ namespace Berta
 			return 96;
 #endif
 		}
+
+		void ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+
+#endif
+		}
 	}
 }

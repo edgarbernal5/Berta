@@ -197,4 +197,13 @@ namespace Berta::GUI
 	//		window->Caret = new Caret(window, {0,0});
 	//	}
 	//}
+
+	void ChangeCursor(Window* window, Cursor newCursor)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.ChangeCursor(window, newCursor);
+		}
+	}
 }
