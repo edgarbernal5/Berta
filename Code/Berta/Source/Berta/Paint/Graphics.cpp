@@ -230,11 +230,14 @@ namespace Berta
 		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
 			return {};
 
+		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		::SIZE nativeSize;
 		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
 		{
+			::SelectObject(m_attributes->m_hdc, oldFont);
 			return Size(nativeSize.cx, nativeSize.cy);
 		}
+		::SelectObject(m_attributes->m_hdc, oldFont);
 
 		return {};
 #else
@@ -248,12 +251,15 @@ namespace Berta
 		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
 			return {};
 
+		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		::SIZE nativeSize;
 		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), length, &nativeSize))
 		{
+			::SelectObject(m_attributes->m_hdc, oldFont);
 			return Size(nativeSize.cx, nativeSize.cy);
 		}
 
+		::SelectObject(m_attributes->m_hdc, oldFont);
 		return {};
 #else
 		return {};
