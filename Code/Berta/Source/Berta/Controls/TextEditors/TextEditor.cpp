@@ -20,6 +20,12 @@ namespace Berta
 		m_caret = new Caret(owner, {1,0});
 	}
 
+	TextEditor::~TextEditor()
+	{
+		delete m_caret;
+		m_caret = nullptr;
+	}
+
 	void TextEditor::ActivateCaret()
 	{
 		m_caret->Activate();
@@ -34,16 +40,19 @@ namespace Berta
 	{
 		m_content.insert(m_caretPosition, 1, chr);
 		++m_caretPosition;
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretLeft()
 	{
 		--m_caretPosition;
+		AdjustView(true);
 	}
 
 	void TextEditor::MoveCaretRight()
 	{
 		++m_caretPosition;
+		AdjustView();
 	}
 
 	void TextEditor::Delete()
@@ -55,9 +64,44 @@ namespace Berta
 	{
 		m_content.erase(m_caretPosition - 1, 1);
 		--m_caretPosition;
+		AdjustView();
 	}
 
 	void TextEditor::Render()
+	{
+		Size contentSize = GetContentSize();
+
+		m_graphics.DrawString({ 2 + m_offset, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
+
+		if (m_caret->IsVisible())
+		{
+			m_graphics.DrawLine({ 2 + m_offset + (int)contentSize.Width,3 }, { 2 + m_offset + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
+		}
+	}
+
+	void TextEditor::AdjustView(bool scrollToLeft)
+	{
+		Size contentSize = GetContentSize();
+		auto ownerSize = m_graphics.GetSize();
+
+		int adjustment = 4;
+		bool needAdjustment = m_offset + contentSize.Width < 0 || m_offset + contentSize.Width > ownerSize.Width - adjustment;
+
+		if (needAdjustment)
+		{
+			if (scrollToLeft)
+			{
+				m_offset = -static_cast<int>(contentSize.Width) + adjustment;
+			}
+			else
+			{
+				m_offset = static_cast<int>(ownerSize.Width - contentSize.Width) - adjustment;
+			}
+			m_offset = (std::min)(m_offset, 0);
+		}
+	}
+
+	Size TextEditor::GetContentSize()
 	{
 		Size contentSize;
 		if (m_caretPosition == 0)
@@ -68,18 +112,6 @@ namespace Berta
 		{
 			contentSize = m_graphics.GetTextExtent(m_content, m_caretPosition);
 		}
-
-		m_graphics.DrawString({ 2, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
-
-		if (m_caret->IsVisible())
-		{
-			BT_CORE_TRACE << "draw caret. contentSize = " << contentSize << "." << std::endl;
-			//graphics.DrawLine({ 2,3 }, { 2, (int)window->Size.Height - 2 }, { 0 });
-			m_graphics.DrawLine({ 2 + (int)contentSize.Width,3 }, { 2 + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
-		}
-		else
-		{
-			BT_CORE_TRACE << "hide caret" << std::endl;
-		}
+		return contentSize;
 	}
 }

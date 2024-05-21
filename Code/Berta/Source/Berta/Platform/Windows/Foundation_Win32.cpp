@@ -245,17 +245,20 @@ namespace Berta
 				window->Renderer.MouseDown(argMouseDown);
 				window->Events->MouseDown.Emit(argMouseDown);
 			}
-			if (rootWindowData.Focused)
+			if (rootWindowData.Focused != window)
 			{
-				ArgFocus argFocus{ false };
-				rootWindowData.Focused->Renderer.Focus(argFocus);
-				rootWindowData.Focused->Events->Focus.Emit(argFocus);
-			}
-			if (window)
-			{
-				ArgFocus argFocus{ true };
-				window->Renderer.Focus(argFocus);
-				window->Events->Focus.Emit(argFocus);
+				if (rootWindowData.Focused)
+				{
+					ArgFocus argFocus{ false };
+					rootWindowData.Focused->Renderer.Focus(argFocus);
+					rootWindowData.Focused->Events->Focus.Emit(argFocus);
+				}
+				if (window)
+				{
+					ArgFocus argFocus{ true };
+					window->Renderer.Focus(argFocus);
+					window->Events->Focus.Emit(argFocus);
+				}
 			}
 			rootWindowData.Focused = window;
 			break;

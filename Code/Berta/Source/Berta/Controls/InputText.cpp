@@ -59,23 +59,25 @@ namespace Berta
 	void InputTextReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
 		bool redraw = false;
-		if (args.Key == VK_LEFT && m_textEditor->GetCaretPosition() > 0)
+		auto caretPosition = m_textEditor->GetCaretPosition();
+		auto contentSize = m_textEditor->GetContent().size();
+		if (args.Key == VK_LEFT && caretPosition > 0)
 		{
 			m_textEditor->MoveCaretLeft();
 			redraw = true;
 		}
-		else if (args.Key == VK_RIGHT && m_textEditor->GetCaretPosition() < m_textEditor->GetContent().size())
+		else if (args.Key == VK_RIGHT && caretPosition < contentSize)
 		{
 			m_textEditor->MoveCaretRight();
 			redraw = true;
 		}
-		else if (args.Key == VK_BACK && m_textEditor->GetCaretPosition() > 0) {
-			
+		else if (args.Key == VK_BACK && caretPosition > 0)
+		{
 			m_textEditor->DeleteBack();
 			redraw = true;
 		}
-		else if (args.Key == VK_DELETE && m_textEditor->GetCaretPosition() < m_textEditor->GetContent().size()) {
-			
+		else if (args.Key == VK_DELETE && caretPosition < contentSize)
+		{
 			m_textEditor->Delete();
 			redraw = true;
 		}

@@ -19,6 +19,7 @@ namespace Berta
 	{
 	public:
 		TextEditor(Window* owner);
+		~TextEditor();
 
 		void ActivateCaret();
 		void DeactivateCaret();
@@ -32,9 +33,14 @@ namespace Berta
 		void Delete();
 		void DeleteBack();
 		void Render();
+
 	private:
+		void AdjustView(bool scrollToLeft = false);
+		Size GetContentSize();
+
 		Graphics& m_graphics;
 		uint32_t m_caretPosition{ 0 };
+		int m_offset{ 0 };
 		std::wstring m_content;
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
