@@ -12,7 +12,7 @@
 
 int main()
 {
-	Berta::Form form({ 0,0,800,600 }, { true, false, true });
+	Berta::Form form({ 0,0,800,600 }, { true, true, true });
 	form.Caption(L"Window");
 	
 	Berta::Label label(form, { 50,10,130,40 }, L"Hello world!");

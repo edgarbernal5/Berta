@@ -39,7 +39,8 @@ namespace Berta
 		struct NativeCursor
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			HCURSOR hCursor{ nullptr };
+			HCURSOR Handle{ nullptr };
+			Cursor CursorType{ Cursor::Default };
 #endif
 		};
 

@@ -31,10 +31,12 @@ namespace Berta
 
 	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 	{
+		GUI::ChangeCursor(*m_control, Cursor::IBeam);
 	}
 
 	void InputTextReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
+		GUI::ChangeCursor(*m_control, Cursor::Default);
 	}
 
 	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)

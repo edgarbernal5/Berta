@@ -30,6 +30,8 @@ namespace Berta
 			Window* Hovered{ nullptr };
 			Window* Focused{ nullptr };
 
+			API::NativeCursor CurrentCursor;
+
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
 		private:

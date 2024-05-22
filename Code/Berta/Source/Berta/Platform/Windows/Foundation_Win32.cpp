@@ -104,7 +104,7 @@ namespace Berta
 		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
-		{WM_SETCURSOR,		"WM_SETCURSOR"},
+		//{WM_SETCURSOR,		"WM_SETCURSOR"},
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		/*{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -142,6 +142,18 @@ namespace Berta
 
 		switch (message)
 		{
+		//case WM_SETCURSOR:
+		//	if (textBox) {
+		//		POINT pt;
+		//		GetCursorPos(&pt);
+		//		ScreenToClient(hwnd, &pt);
+		//		if (textBox->isPointInside(pt.x, pt.y)) {
+		//			SetCursor(LoadCursor(nullptr, IDC_IBEAM));
+		//			return TRUE;  // We handled the cursor change
+		//		}
+		//	}
+		//	defaultToWindowProc = false;
+		//	break;
 		case WM_ACTIVATEAPP:
 		{
 			ArgActivated argActivated;
