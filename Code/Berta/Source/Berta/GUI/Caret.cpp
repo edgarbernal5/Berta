@@ -24,6 +24,11 @@ namespace Berta
 		m_timer.SetInterval(600);
 	}
 
+	Caret::~Caret()
+	{
+		m_timer.Stop();
+	}
+
 	void Caret::Activate()
 	{
 		m_visible = true;

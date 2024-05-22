@@ -23,7 +23,6 @@ namespace Berta
 
 	TextEditor::~TextEditor()
 	{
-		
 		delete m_caret;
 		m_caret = nullptr;
 	}

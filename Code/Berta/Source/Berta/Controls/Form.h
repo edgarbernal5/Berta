@@ -25,7 +25,7 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 
 	private:
-		ControlBase* m_control;
+		ControlBase* m_control{ nullptr };
 	};
 
 	class Form : public Control<FormReactor, RootEvents>

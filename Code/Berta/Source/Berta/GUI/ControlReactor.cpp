@@ -43,6 +43,10 @@ namespace Berta
 	{
 	}
 
+	void ControlReactor::DblClick(Graphics& graphics, const ArgClick& args)
+	{
+	}
+
 	void ControlReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
 	}

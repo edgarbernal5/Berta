@@ -12,19 +12,22 @@
 
 namespace Berta
 {
+	struct MouseButtonState
+	{
+		bool LeftButton : 1;
+		bool RightButton : 1;
+		bool MiddleButton : 1;
+	};
+
 	struct ArgMouse
 	{
 		Point Position;
-		struct MouseButtonState
-		{
-			bool LeftButton : 1;
-			bool RightButton : 1;
-			bool MiddleButton : 1;
-		}ButtonState;
+		MouseButtonState ButtonState;
 	};
 
 	struct ArgClick
 	{
+		MouseButtonState ButtonState;
 	};
 
 	struct ArgSize
@@ -58,6 +61,7 @@ namespace Berta
 		Event<ArgMouse>		MouseMove;
 		Event<ArgMouse>		MouseUp;
 		Event<ArgClick>		Click;
+		Event<ArgClick>		DblClick;
 		Event<ArgSize>		Size;
 		Event<ArgFocus>		Focus;
 		Event<ArgKeyboard>	KeyChar;

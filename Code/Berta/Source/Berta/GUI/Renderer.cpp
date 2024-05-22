@@ -65,6 +65,11 @@ namespace Berta
 		m_controlReactor->Click(m_graphics, args);
 	}
 
+	void Renderer::DblClick(const ArgClick& args)
+	{
+		m_controlReactor->DblClick(m_graphics, args);
+	}
+
 	void Renderer::Focus(const ArgFocus& args)
 	{
 		m_controlReactor->Focus(m_graphics, args);

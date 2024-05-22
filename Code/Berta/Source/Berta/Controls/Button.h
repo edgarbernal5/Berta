@@ -30,7 +30,7 @@ namespace Berta
 			Hovered
 		};
 
-		ControlBase* m_control;
+		ControlBase* m_control{ nullptr };
 		State m_status{ State::Normal };
 	};
 

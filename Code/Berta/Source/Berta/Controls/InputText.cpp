@@ -13,6 +13,15 @@
 
 namespace Berta
 {
+	InputTextReactor::~InputTextReactor()
+	{
+		if (m_textEditor)
+		{
+			delete m_textEditor;
+			m_textEditor = nullptr;
+		}
+	}
+
 	void InputTextReactor::Init(ControlBase& control)
 	{
 		m_control = &control;

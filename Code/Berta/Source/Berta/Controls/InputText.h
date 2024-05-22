@@ -18,9 +18,11 @@ namespace Berta
 	class InputTextReactor : public ControlReactor
 	{
 	public:
+		~InputTextReactor();
+
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
-
+		
 		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void Focus(Graphics& graphics, const ArgFocus& args) override;
@@ -28,8 +30,8 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 	private:
-		ControlBase* m_control;
-		TextEditor* m_textEditor;
+		ControlBase* m_control{ nullptr };
+		TextEditor* m_textEditor{ nullptr };
 	};
 
 	class InputText : public Control<InputTextReactor>

@@ -18,7 +18,8 @@ namespace Berta
 	{
 	public:
 		Caret(Window* owner, const Size& size);
-		
+		~Caret();
+
 		void Activate();
 		void Show(bool visible);
 		void Deactivate();

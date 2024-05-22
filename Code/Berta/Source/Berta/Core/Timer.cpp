@@ -32,6 +32,11 @@ namespace Berta
 
 	void Timer::Stop()
 	{
+		if (!m_isRunning.load())
+		{
+			return;
+		}
+
 		m_isRunning.store(false);
 		m_timerThread.join();
 	}

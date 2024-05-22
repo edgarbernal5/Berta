@@ -29,6 +29,7 @@ namespace Berta
 			Window* Pressed{ nullptr };
 			Window* Hovered{ nullptr };
 			Window* Focused{ nullptr };
+			Window* Released{ nullptr }; // Handle double-click
 
 			API::NativeCursor CurrentCursor;
 

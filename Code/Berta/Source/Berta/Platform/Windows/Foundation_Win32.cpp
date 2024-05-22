@@ -41,7 +41,7 @@ namespace Berta
 		// Register class
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -105,14 +105,16 @@ namespace Berta
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 		//{WM_SETCURSOR,		"WM_SETCURSOR"},
+		
+		{WM_LBUTTONDBLCLK,	"WM_LBUTTONDBLCLK"},
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
-		/*{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
 		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
-		{WM_RBUTTONUP,		"WM_RBUTTONUP"},*/
+		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
 	};
 #endif
@@ -361,8 +363,30 @@ namespace Berta
 				ArgClick argClick;
 				window->Renderer.Click(argClick);
 				window->Events->Click.Emit(argClick);
+
+				rootWindowData.Released = rootWindowData.Pressed;
 			}
 			rootWindowData.Pressed = nullptr;
+			break;
+		}
+		case WM_LBUTTONDBLCLK:
+		{
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+
+			ArgClick argClick;
+			argClick.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+			argClick.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+			argClick.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+			auto window = windowManager.Find(nativeWindow, { x, y });
+			if (window && window == rootWindowData.Released)
+			{
+				window->Renderer.DblClick(argClick);
+				window->Events->DblClick.Emit(argClick);
+			}
+			rootWindowData.Released = nullptr;
+			defaultToWindowProc = false;
 			break;
 		}
 		case WM_MOUSELEAVE:
@@ -375,6 +399,7 @@ namespace Berta
 
 				rootWindowData.Hovered = nullptr;
 			}
+			defaultToWindowProc = false;
 			break;
 		}
 		case WM_CHAR:
