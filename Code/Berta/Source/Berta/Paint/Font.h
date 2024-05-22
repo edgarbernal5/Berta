@@ -21,7 +21,7 @@ namespace Berta
 	struct NativeFont
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		HFONT m_hFont{ nullptr };
+		HFONT Handle{ nullptr };
 #endif
 	};
 

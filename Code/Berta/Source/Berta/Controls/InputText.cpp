@@ -48,6 +48,16 @@ namespace Berta
 		GUI::ChangeCursor(*m_control, Cursor::Default);
 	}
 
+	void InputTextReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		m_textEditor->OnMouseDown(args);
+	}
+
+	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		m_textEditor->OnMouseUp(args);
+	}
+
 	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
 		auto window = m_control->Handle();

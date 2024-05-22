@@ -29,11 +29,28 @@ namespace Berta
 
 	void TextEditor::OnMouseEnter(const ArgMouse& args)
 	{
-		GUI::ChangeCursor(m_owner, Cursor::IBeam);
 	}
 
 	void TextEditor::OnMouseLeave(const ArgMouse& args)
 	{
+	}
+
+	void TextEditor::OnMouseDown(const ArgMouse& args)
+	{
+		if (m_content.size() == 0)
+		{
+			return;
+		}
+		m_caretOriginPosition = GetPositionUnderMouse(args.Position);
+	}
+
+	void TextEditor::OnMouseUp(const ArgMouse& args)
+	{
+		if (m_content.size() == 0)
+		{
+			return;
+		}
+		auto startend = GetPositionUnderMouse(args.Position);
 	}
 
 	void TextEditor::OnFocus(const ArgFocus& args)
@@ -172,5 +189,23 @@ namespace Berta
 			contentSize = m_graphics.GetTextExtent(m_content, m_caretPosition);
 		}
 		return contentSize;
+	}
+
+	uint32_t TextEditor::GetPositionUnderMouse(const Point& mousePosition)
+	{
+		uint32_t index = 0;
+		
+		uint32_t nearest = (std::numeric_limits<uint32_t>::max)();
+		for (size_t i = 0; i < m_content.size(); i++)
+		{
+			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i + 1));
+			auto abs = std::abs((int)letterSize.Width - mousePosition.X);
+			if (abs < nearest)
+			{
+				nearest = abs;
+				index = i;
+			}
+		}
+		return index;
 	}
 }

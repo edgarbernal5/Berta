@@ -36,7 +36,6 @@ namespace Berta
 		Color GetForegroundColor(Window* window);
 
 		void UpdateDeferred(Window* window);
-		//void CreateCaret(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 	}

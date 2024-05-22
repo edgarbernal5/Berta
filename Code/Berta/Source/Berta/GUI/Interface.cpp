@@ -111,7 +111,7 @@ namespace Berta::GUI
 			auto& rootGraphics = *(window->RootWindow->RootGraphics);
 			Rectangle requestRectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
 
-			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
@@ -188,15 +188,6 @@ namespace Berta::GUI
 			window->RootWindow->DeferredRequests.push_back(window);
 		}
 	}
-
-	//void CreateCaret(Window* window)
-	//{
-	//	auto& windowManager = Foundation::GetInstance().GetWindowManager();
-	//	if (windowManager.Exists(window))
-	//	{
-	//		window->Caret = new Caret(window, {0,0});
-	//	}
-	//}
 
 	void ChangeCursor(Window* window, Cursor newCursor)
 	{

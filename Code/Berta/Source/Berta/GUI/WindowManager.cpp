@@ -195,29 +195,9 @@ namespace Berta
 		{
 			if (rootData->CurrentCursor.CursorType != newCursor)
 			{
-				rootData->CurrentCursor.CursorType = newCursor;
-
-				const wchar_t* cursorName = IDC_ARROW;
-
-				switch (newCursor)
+				if (API::ChangeCursor(rootHandle, newCursor, rootData->CurrentCursor))
 				{
-				case Cursor::Default:
-					cursorName = IDC_ARROW;	break;
-				
-				case Cursor::Wait:
-					cursorName = IDC_WAIT;	break;
-				
-				case Cursor::IBeam:
-					cursorName = IDC_IBEAM;	break;
-				}
-
-				rootData->CurrentCursor.Handle = ::LoadCursor(nullptr, cursorName);
-				auto thisCursor = reinterpret_cast<HCURSOR>(::GetClassLongPtr(reinterpret_cast<HWND>(rootHandle.Handle), GCLP_HCURSOR));
-				if (thisCursor != rootData->CurrentCursor.Handle)
-				{
-					//::SetCursor(rootData->CurrentCursor.Handle);
-					::SetClassLongPtr(reinterpret_cast<HWND>(rootHandle.Handle), GCLP_HCURSOR,
-						reinterpret_cast<LONG_PTR>(rootData->CurrentCursor.Handle));
+					rootData->CurrentCursor.CursorType = newCursor;
 				}
 			}
 		}

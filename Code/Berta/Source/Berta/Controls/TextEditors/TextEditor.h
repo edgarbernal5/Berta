@@ -24,6 +24,8 @@ namespace Berta
 
 		void OnMouseEnter(const ArgMouse& args);
 		void OnMouseLeave(const ArgMouse& args);
+		void OnMouseDown(const ArgMouse& args);
+		void OnMouseUp(const ArgMouse& args);
 		void OnFocus(const ArgFocus& args);
 		bool OnKeyChar(const ArgKeyboard& args);
 		bool OnKeyPressed(const ArgKeyboard& args);
@@ -46,9 +48,11 @@ namespace Berta
 
 		void AdjustView(bool scrollToLeft = false);
 		Size GetContentSize();
+		uint32_t GetPositionUnderMouse(const Point& mousePosition);
 
 		Graphics& m_graphics;
 		uint32_t m_caretPosition{ 0 };
+		uint32_t m_caretOriginPosition{ 0 };
 		int m_offset{ 0 };
 		std::wstring m_content;
 		Caret* m_caret{ nullptr };

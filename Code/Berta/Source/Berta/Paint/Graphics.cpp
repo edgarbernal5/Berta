@@ -93,13 +93,10 @@ namespace Berta
 		::LOGFONT lfText = {};
 		SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
 		m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
-		if (m_attributes->m_hFont)
-		{
-		}
 
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
-		SelectObject(m_attributes->m_hdc, oldFont);
+		::SelectObject(m_attributes->m_hdc, oldFont);
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)

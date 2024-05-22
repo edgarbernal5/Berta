@@ -15,6 +15,23 @@ namespace Berta
 
 	namespace API
 	{
+		namespace
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			constexpr std::wstring_view DefaultWindowTitle = L"Berta Window";
+
+			constexpr RECT CreateScaledRect(const Rectangle& rectangle, float scalingFactor)
+			{
+				return RECT{
+					0,
+					0,
+					static_cast<LONG>(rectangle.Width * scalingFactor),
+					static_cast<LONG>(rectangle.Height * scalingFactor)
+				};
+			}
+		}
+#endif
+
 		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
@@ -34,11 +51,7 @@ namespace Berta
 			float scalingFactor = static_cast<float>(dpi) / 96.0f;
 
 			// Actually set the appropriate window size
-			RECT scaledWindowRect;
-			scaledWindowRect.left = 0;
-			scaledWindowRect.top = 0;
-			scaledWindowRect.right = static_cast<LONG>(rectangle.Width * scalingFactor);
-			scaledWindowRect.bottom = static_cast<LONG>(rectangle.Height * scalingFactor);
+			RECT scaledWindowRect = CreateScaledRect(rectangle, scalingFactor);
 
 			if (!::AdjustWindowRectExForDpi(&scaledWindowRect, style, false, 0, dpi))
 			{
@@ -46,13 +59,12 @@ namespace Berta
 				return {};
 			}
 
-			std::wstring windowTitle = L"Berta Window";
 			HINSTANCE hInstance = GetModuleInstance();
 			HWND hwnd = ::CreateWindowEx
 			(
 				styleEx,
 				L"BertaInternalClass",
-				windowTitle.c_str(),
+				DefaultWindowTitle.data(),
 				style,
 				CW_USEDEFAULT,
 				CW_USEDEFAULT,
@@ -74,7 +86,7 @@ namespace Berta
 			::RECT client;
 			::GetClientRect(hwnd, &client);
 
-			return NativeWindowResult{ NativeWindowHandle{ hwnd },{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) }, dpi };
+			return NativeWindowResult{ { hwnd },{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) }, dpi };
 #else
 			return {};
 #endif
@@ -90,17 +102,18 @@ namespace Berta
 
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle)
 		{
-			std::wstring result;
 #ifdef BT_PLATFORM_WINDOWS
 			int length = ::GetWindowTextLength(nativeHandle.Handle);
 			if (length > 0)
 			{
-				result.resize(length + 1);
-				::GetWindowText(nativeHandle.Handle, result.data(), static_cast<int>(result.size()));
+				std::wstring result(length + 1, L'\0');
+				::GetWindowText(nativeHandle.Handle, result.data(), length + 1);
+				result.resize(length); // remove extra null character
+				return result;
 			}
 #else
 #endif
-			return result;
+			return {};
 		}
 
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle)
@@ -108,6 +121,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			if (!::DestroyWindow(nativeHandle.Handle))
 			{
+				BT_CORE_ERROR << "DestroyWindow Failed." << std::endl;
 			}
 #else
 #endif
@@ -143,11 +157,32 @@ namespace Berta
 #endif
 		}
 
-		void ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor)
+		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, API::NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS
+			const wchar_t* cursorName = IDC_ARROW;
 
+			switch (newCursor)
+			{
+			case Cursor::Default:
+				cursorName = IDC_ARROW;	break;
+
+			case Cursor::Wait:
+				cursorName = IDC_WAIT;	break;
+
+			case Cursor::IBeam:
+				cursorName = IDC_IBEAM;	break;
+			}
+
+			nativeCursor.Handle = ::LoadCursor(nullptr, cursorName);
+			auto thisCursor = reinterpret_cast<HCURSOR>(::GetClassLongPtr(reinterpret_cast<HWND>(nativeHandle.Handle), GCLP_HCURSOR));
+			if (thisCursor != nativeCursor.Handle)
+			{
+				::SetClassLongPtr(reinterpret_cast<HWND>(nativeHandle.Handle), GCLP_HCURSOR,
+					reinterpret_cast<LONG_PTR>(nativeCursor.Handle));
+			}
 #endif
+			return true;
 		}
 	}
 }

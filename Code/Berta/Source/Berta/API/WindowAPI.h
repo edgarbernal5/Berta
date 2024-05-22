@@ -20,7 +20,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			HWND Handle{ nullptr };
 
-			bool operator<(const NativeWindowHandle& other) const
+			constexpr bool operator<(const NativeWindowHandle& other) const
 			{
 				return Handle < other.Handle;
 			}
@@ -53,7 +53,7 @@ namespace Berta
 
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
 
-		void ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor);
+		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, API::NativeCursor& nativeCursor);
 	}
 }
 
