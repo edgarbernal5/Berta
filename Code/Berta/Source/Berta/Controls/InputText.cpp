@@ -51,6 +51,15 @@ namespace Berta
 	void InputTextReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_textEditor->OnMouseDown(args);
+		m_control->Handle()->Renderer.Update();
+		GUI::UpdateDeferred(m_control->Handle());
+	}
+
+	void InputTextReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		m_textEditor->OnMouseMove(args);
+		m_control->Handle()->Renderer.Update();
+		GUI::UpdateDeferred(m_control->Handle());
 	}
 
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)

@@ -246,17 +246,17 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			ArgMouse argMouseDown;
-			argMouseDown.Position = { x, y };
-			argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-			argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-			argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			rootWindowData.Pressed = window;
 
 			if (window)
 			{
+				ArgMouse argMouseDown;
+				argMouseDown.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 				window->Renderer.MouseDown(argMouseDown);
 				window->Events->MouseDown.Emit(argMouseDown);
 			}
@@ -283,12 +283,6 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			ArgMouse argMouseMove;
-			argMouseMove.Position = { x, y };
-			argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-			argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-			argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
 			auto window = windowManager.Find(nativeWindow, {x, y});
 			if (window != rootWindowData.Hovered)
 			{
@@ -305,12 +299,12 @@ namespace Berta
 				if (rootWindowData.Hovered)
 				{
 					ArgMouse argMouseLeave;
-					argMouseLeave.Position = { x, y };
+					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
 					argMouseLeave.ButtonState.LeftButton = false;
 					argMouseLeave.ButtonState.RightButton = false;
 					argMouseLeave.ButtonState.MiddleButton = false;
 
-					rootWindowData.Hovered->Renderer.MouseLeave(argMouseMove);
+					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 
 					rootWindowData.Hovered = nullptr;
@@ -319,18 +313,24 @@ namespace Berta
 				if (window)
 				{
 					ArgMouse argMouseEnter;
-					argMouseEnter.Position = { x, y };
+					argMouseEnter.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
 					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					window->Renderer.MouseEnter(argMouseMove);
+					window->Renderer.MouseEnter(argMouseEnter);
 					window->Events->MouseEnter.Emit(argMouseEnter);
 				}
 			}
 
 			if (window)
 			{
+				ArgMouse argMouseMove;
+				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 				window->Renderer.MouseMove(argMouseMove);
 				window->Events->MouseMove.Emit(argMouseMove);
 
@@ -348,15 +348,15 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			ArgMouse argMouseUp;
-			argMouseUp.Position = { x, y };
-			argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-			argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-			argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window == rootWindowData.Pressed)
 			{
+				ArgMouse argMouseUp;
+				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 				window->Renderer.MouseUp(argMouseUp);
 				window->Events->MouseUp.Emit(argMouseUp);
 

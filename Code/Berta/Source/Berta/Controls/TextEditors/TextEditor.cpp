@@ -41,7 +41,18 @@ namespace Berta
 		{
 			return;
 		}
-		m_caretOriginPosition = GetPositionUnderMouse(args.Position);
+		isSelecting = true;
+		m_selectionStartPosition = GetPositionUnderMouse(args.Position);
+		m_selectionEndPosition = m_selectionStartPosition;
+		m_caretPosition = m_selectionStartPosition;
+	}
+
+	void TextEditor::OnMouseMove(const ArgMouse& args)
+	{
+		if (isSelecting)
+		{
+			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+		}
 	}
 
 	void TextEditor::OnMouseUp(const ArgMouse& args)
@@ -50,7 +61,13 @@ namespace Berta
 		{
 			return;
 		}
-		auto startend = GetPositionUnderMouse(args.Position);
+		m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+		if (m_selectionStartPosition != m_selectionEndPosition)
+		{
+			m_caretPosition = m_selectionEndPosition;
+		}
+
+		isSelecting = false;
 	}
 
 	void TextEditor::OnFocus(const ArgFocus& args)
@@ -114,8 +131,22 @@ namespace Berta
 
 	void TextEditor::Insert(wchar_t chr)
 	{
-		m_content.insert(m_caretPosition, 1, chr);
-		++m_caretPosition;
+		if (m_selectionEndPosition != m_selectionStartPosition)
+		{
+			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
+			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+
+			m_content.erase(start, (end - start));
+			m_content.insert(m_caretPosition, 1, chr);
+			++m_caretPosition;
+
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		else
+		{
+			m_content.insert(m_caretPosition, 1, chr);
+			++m_caretPosition;
+		}
 		AdjustView();
 	}
 
@@ -133,13 +164,59 @@ namespace Berta
 
 	void TextEditor::Delete()
 	{
-		m_content.erase(m_caretPosition, 1);
+		if (m_selectionEndPosition != m_selectionStartPosition)
+		{
+			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
+			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+
+			m_content.erase(start, (end - start));
+			int caretPosition = m_caretPosition;
+			caretPosition -= (end - start);
+
+			if (caretPosition < 0)
+			{
+				m_caretPosition = m_content.size();
+			}
+			else
+			{
+				m_caretPosition = caretPosition;
+			}
+
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		else
+		{
+			m_content.erase(m_caretPosition, 1);
+		}
 	}
 
 	void TextEditor::DeleteBack()
 	{
-		m_content.erase(m_caretPosition - 1, 1);
-		--m_caretPosition;
+		if (m_selectionEndPosition != m_selectionStartPosition)
+		{
+			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
+			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+
+			m_content.erase(start, (end - start));
+			int caretPosition = m_caretPosition;
+			caretPosition -= (end - start);
+
+			if (caretPosition < 0)
+			{
+				m_caretPosition = m_content.size();
+			}
+			else
+			{
+				m_caretPosition = caretPosition;
+			}
+
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		else
+		{
+			m_content.erase(m_caretPosition - 1, 1);
+			--m_caretPosition;
+		}
 		AdjustView();
 	}
 
@@ -152,6 +229,21 @@ namespace Berta
 		if (m_caret->IsVisible())
 		{
 			m_graphics.DrawLine({ 2 + m_offset + (int)contentSize.Width,3 }, { 2 + m_offset + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
+		}
+		if (m_selectionEndPosition != m_selectionStartPosition)
+		{
+			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
+			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+			auto startTextExtent = m_graphics.GetTextExtent(m_content.substr(0, start));
+			auto endTextExtent = m_graphics.GetTextExtent(m_content.substr(0, end));
+
+			std::wostringstream builder;
+			for (size_t i = start; i < (end); i++)
+			{
+				builder << m_content[i];
+			}
+			m_graphics.DrawRectangle({ 2 + m_offset + (int)startTextExtent.Width , 2, endTextExtent.Width - startTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
+			m_graphics.DrawString({ 2 + m_offset + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, builder.str(), m_owner->Appereance->HighlightTextColor);
 		}
 	}
 
@@ -195,10 +287,10 @@ namespace Berta
 	{
 		uint32_t index = 0;
 		
-		uint32_t nearest = (std::numeric_limits<uint32_t>::max)();
-		for (size_t i = 0; i < m_content.size(); i++)
+		int nearest = (std::numeric_limits<int>::max)();
+		for (size_t i = 0; i < m_content.size() + 1; i++)
 		{
-			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i + 1));
+			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i));
 			auto abs = std::abs((int)letterSize.Width - mousePosition.X);
 			if (abs < nearest)
 			{

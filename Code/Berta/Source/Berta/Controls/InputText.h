@@ -26,6 +26,7 @@ namespace Berta
 		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Focus(Graphics& graphics, const ArgFocus& args) override;
 		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;

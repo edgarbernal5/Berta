@@ -203,6 +203,18 @@ namespace Berta
 		}
 	}
 
+	Point WindowManager::GetAbsolutePosition(Window* window)
+	{
+		Point position{ window->Position };
+		window = window->Parent;
+		while (window)
+		{
+			position += window->Position;
+			window = window->Parent;
+		}
+		return position;
+	}
+
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		return Rectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height}.IsInside(point);

@@ -57,6 +57,8 @@ namespace Berta
 
 		void ChangeDPI(Window* window, uint32_t newDPI);
 		void ChangeCursor(Window* window, Cursor newCursor);
+
+		Point GetAbsolutePosition(Window* window);
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

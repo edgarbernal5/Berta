@@ -91,6 +91,13 @@ namespace Berta
 			--Y;
 			return ret;
 		}
+
+		friend std::ostream& operator<<(std::ostream& os, const BasicPoint& point)
+		{
+			os << "{ X=" << point.X << "; Y=" << point.Y << "}";
+			return os;
+		}
+
 	};
 
 	using Point = BasicPoint<int>;
