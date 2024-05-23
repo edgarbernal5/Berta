@@ -80,6 +80,7 @@ namespace Berta
 		else
 		{
 			DeactivateCaret();
+			isSelecting = false;
 		}
 	}
 
@@ -302,7 +303,7 @@ namespace Berta
 		for (size_t i = 0; i < m_content.size() + 1; i++)
 		{
 			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i));
-			auto abs = std::abs((int)letterSize.Width - mousePosition.X);
+			auto abs = std::abs((int)letterSize.Width - mousePosition.X + m_offsetView);
 			if (abs < nearest)
 			{
 				nearest = abs;
