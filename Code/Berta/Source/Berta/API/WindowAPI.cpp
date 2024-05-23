@@ -121,7 +121,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			if (!::DestroyWindow(nativeHandle.Handle))
 			{
-				BT_CORE_ERROR << "DestroyWindow Failed." << std::endl;
+				BT_CORE_ERROR << "DestroyWindow Failed. GetLastError() = " << ::GetLastError() <<  std::endl;
 			}
 #else
 #endif

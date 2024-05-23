@@ -43,8 +43,8 @@ namespace Berta
 		void Flush();
 
 		void Swap(Graphics& other);
-	private:
 		void Release();
+	private:
 
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT CreateTransparentFont(int height, int weight, bool italic, bool underline);

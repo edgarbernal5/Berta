@@ -44,9 +44,20 @@ namespace Berta::GUI
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		Window* window = new Window(WindowType::Control);
-		window->Size = rectangle;
+		
+		Rectangle rect{ rectangle };
+		if (parent && parent->DPI != 96)
+		{
+			float scalingFactor = parent->DPI / 96.0f;
+			rect.X = rect.X * scalingFactor;
+			rect.Y = rect.Y * scalingFactor;
+			rect.Width = rect.Width * scalingFactor;
+			rect.Height = rect.Height * scalingFactor;
+
+		}
+		window->Size = rect;
 		window->Parent = parent;
-		window->Position = rectangle;
+		window->Position = rect;
 
 		if (parent)
 		{

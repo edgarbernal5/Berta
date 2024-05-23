@@ -265,7 +265,8 @@ namespace Berta
 
 	void Graphics::Release()
 	{
-		m_attributes.reset();
+		m_attributes.reset(new NativeAttributes());
+
 	}
 
 	HFONT Graphics::CreateTransparentFont(int height, int weight, bool italic, bool underline)
