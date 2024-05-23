@@ -224,11 +224,11 @@ namespace Berta
 	{
 		Size contentSize = GetContentSize();
 
-		m_graphics.DrawString({ 2 + m_offset, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
+		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ 2 + m_offset + (int)contentSize.Width,3 }, { 2 + m_offset + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
+			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
 		}
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
@@ -242,8 +242,8 @@ namespace Berta
 			{
 				builder << m_content[i];
 			}
-			m_graphics.DrawRectangle({ 2 + m_offset + (int)startTextExtent.Width , 2, endTextExtent.Width - startTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
-			m_graphics.DrawString({ 2 + m_offset + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, builder.str(), m_owner->Appereance->HighlightTextColor);
+			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width - startTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
+			m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, builder.str(), m_owner->Appereance->HighlightTextColor);
 		}
 	}
 
@@ -253,19 +253,19 @@ namespace Berta
 		auto ownerSize = m_graphics.GetSize();
 
 		int adjustment = 4;
-		bool needAdjustment = m_offset + contentSize.Width < 0 || m_offset + contentSize.Width > ownerSize.Width - adjustment;
+		bool needAdjustment = m_offsetView + contentSize.Width < 0 || m_offsetView + contentSize.Width > ownerSize.Width - adjustment;
 
 		if (needAdjustment)
 		{
 			if (scrollToLeft)
 			{
-				m_offset = -static_cast<int>(contentSize.Width) + adjustment;
+				m_offsetView = -static_cast<int>(contentSize.Width) + adjustment;
 			}
 			else
 			{
-				m_offset = static_cast<int>(ownerSize.Width - contentSize.Width) - adjustment;
+				m_offsetView = static_cast<int>(ownerSize.Width - contentSize.Width) - adjustment;
 			}
-			m_offset = (std::min)(m_offset, 0);
+			m_offsetView = (std::min)(m_offsetView, 0);
 		}
 	}
 

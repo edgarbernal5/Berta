@@ -56,7 +56,7 @@ namespace Berta
 		uint32_t m_selectionStartPosition{ 0 };
 		uint32_t m_selectionEndPosition{ 0 };
 		bool isSelecting{ false };
-		int m_offset{ 0 };
+		int m_offsetView{ 0 };
 		std::wstring m_content;
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
