@@ -296,7 +296,7 @@ namespace Berta
 					BT_CORE_DEBUG << "mouse move: window: NULL." << std::endl;
 				}*/
 
-				if (rootWindowData.Hovered)
+				if (rootWindowData.Hovered /* && (wParam & MK_LBUTTON) == 0*/)
 				{
 					ArgMouse argMouseLeave;
 					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
@@ -322,8 +322,21 @@ namespace Berta
 					window->Events->MouseEnter.Emit(argMouseEnter);
 				}
 			}
+			
+			if (rootWindowData.Pressed)
+			{
+				ArgMouse argMouseMove;
+				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Pressed);
+				argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-			if (window)
+				rootWindowData.Pressed->Renderer.MouseMove(argMouseMove);
+				rootWindowData.Pressed->Events->MouseMove.Emit(argMouseMove);
+
+				trackEvent.hwndTrack = hWnd;
+				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
+			} else if (window)
 			{
 				ArgMouse argMouseMove;
 				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
@@ -349,20 +362,20 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window == rootWindowData.Pressed)
+			if (/*window && window ==*/ rootWindowData.Pressed)
 			{
 				ArgMouse argMouseUp;
-				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Pressed);
 				argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				window->Renderer.MouseUp(argMouseUp);
-				window->Events->MouseUp.Emit(argMouseUp);
+				rootWindowData.Pressed->Renderer.MouseUp(argMouseUp);
+				rootWindowData.Pressed->Events->MouseUp.Emit(argMouseUp);
 
 				ArgClick argClick;
-				window->Renderer.Click(argClick);
-				window->Events->Click.Emit(argClick);
+				rootWindowData.Pressed->Renderer.Click(argClick);
+				rootWindowData.Pressed->Events->Click.Emit(argClick);
 
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
