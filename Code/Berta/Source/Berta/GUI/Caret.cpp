@@ -18,6 +18,7 @@ namespace Berta
 	{
 		m_timer.GetTickEvent().Connect([this](const ArgTimer& args)
 		{
+			//TODO: sync with main thread
 			Show(!m_visible);
 		});
 

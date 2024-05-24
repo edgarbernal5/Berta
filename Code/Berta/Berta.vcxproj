@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Controls\ComboBox.h" />
     <ClInclude Include="Source\Berta\GUI\Caret.h" />
     <ClInclude Include="Source\Berta\Controls\InputText.h" />
     <ClInclude Include="Source\Berta\Core\Colors.h" />
@@ -168,6 +169,7 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Controls\ComboBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\Caret.cpp" />
     <ClCompile Include="Source\Berta\Controls\InputText.cpp" />
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />

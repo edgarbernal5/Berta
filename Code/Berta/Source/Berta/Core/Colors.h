@@ -13,7 +13,7 @@ namespace Berta
 {
 	namespace Colors
 	{
-		static Color Light_Background{ 0xC8D0D4 };
+		static Color Light_Background{ 0xC6CED2 };
 		static Color Light_Foreground{ 0x0 };
 
 		static Color Light_BoxBackground{ 0xFFFFFF };

@@ -123,7 +123,12 @@
     <ClInclude Include="Source\Berta\GUI\ControlReactor.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\Cursor.h" />
+    <ClInclude Include="Source\Berta\Controls\ComboBox.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Cursor.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -194,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\ControlReactor.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\ComboBox.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
