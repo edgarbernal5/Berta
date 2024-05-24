@@ -32,6 +32,7 @@ namespace Berta
 		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
+		TextEditor* GetEditor() const { return m_textEditor; }
 	private:
 		ControlBase* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
@@ -41,6 +42,10 @@ namespace Berta
 	{
 	public:
 		InputText(Window* parent, const Rectangle& rectangle);
+
+	protected:
+		void DoOnCaption(const std::wstring& caption) override;
+		std::wstring DoOnCaption() override;
 	};
 }
 

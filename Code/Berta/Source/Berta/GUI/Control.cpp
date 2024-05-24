@@ -13,16 +13,26 @@ namespace Berta
 {
 	void ControlBase::Caption(const std::wstring& caption)
 	{
-		GUI::CaptionWindow(m_handle, caption);
+		DoOnCaption(caption);
 	}
 
 	std::wstring ControlBase::Caption()
 	{
-		return GUI::GetCaptionWindow(m_handle);
+		return DoOnCaption();
 	}
 
 	void ControlBase::Show()
 	{
 		GUI::ShowWindow(m_handle, true);
+	}
+
+	void ControlBase::DoOnCaption(const std::wstring& caption)
+	{
+		GUI::CaptionWindow(m_handle, caption);
+	}
+
+	std::wstring ControlBase::DoOnCaption()
+	{
+		return GUI::GetCaptionWindow(m_handle);
 	}
 }

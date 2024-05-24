@@ -62,6 +62,11 @@ namespace Berta
 		return { 0, 0, Width, Height };
 	}
 
+	bool Size::IsInside(const Point& point) const
+	{
+		return point.X >= 0 && point.X < static_cast<int>(Width) && point.Y >= 0 && point.Y < static_cast<int>(Height);
+	}
+
 	std::ostream& operator<<(std::ostream& os, const Size& size)
 	{
 		os << "{ Width=" << size.Width << "; Height=" << size.Height << "}";

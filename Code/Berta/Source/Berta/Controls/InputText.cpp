@@ -99,4 +99,18 @@ namespace Berta
 	{
 		Create(parent, rectangle);
 	}
+
+	void InputText::DoOnCaption(const std::wstring& caption)
+	{
+		auto editor = m_reactor.GetEditor();
+		if (editor)
+		{
+			editor->SetContent(caption);
+		}
+	}
+
+	std::wstring InputText::DoOnCaption()
+	{
+		return std::wstring();
+	}
 }

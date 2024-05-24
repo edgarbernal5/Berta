@@ -33,6 +33,7 @@ namespace Berta
 
 		uint32_t GetCaretPosition() const { return m_caretPosition; }
 		const std::wstring& GetContent() const { return m_content; }
+		void SetContent(const std::wstring& newContent) { m_content = newContent; }
 
 		void Render();
 
@@ -48,8 +49,8 @@ namespace Berta
 		void DeleteBack();
 
 		void AdjustView(bool scrollToLeft = false);
-		Size GetContentSize();
-		uint32_t GetPositionUnderMouse(const Point& mousePosition);
+		Size GetContentTextExtent() const;
+		uint32_t GetPositionUnderMouse(const Point& mousePosition) const;
 
 		Graphics& m_graphics;
 		uint32_t m_caretPosition{ 0 };

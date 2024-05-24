@@ -183,7 +183,8 @@ namespace Berta
 
 			m_content.erase(start, (end - start));
 			int caretPosition = m_caretPosition;
-			caretPosition -= (end - start);
+			if (m_caretPosition == end)
+				caretPosition -= (end - start);
 
 			if (caretPosition < 0)
 			{
@@ -209,9 +210,11 @@ namespace Berta
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
 			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
 
+			std::wstring stringToDelete{ m_content.data() + start, m_content.data() + end };
 			m_content.erase(start, (end - start));
 			int caretPosition = m_caretPosition;
-			caretPosition -= (end - start);
+			if (m_caretPosition == end)
+				caretPosition -= (end - start);
 
 			if (caretPosition < 0)
 			{
@@ -220,6 +223,11 @@ namespace Berta
 			else
 			{
 				m_caretPosition = caretPosition;
+			}
+			if (m_offsetView < 0)
+			{
+				m_offsetView += m_graphics.GetTextExtent(stringToDelete).Width;
+				if (m_offsetView > 0)m_offsetView = 0;
 			}
 
 			m_selectionEndPosition = m_selectionStartPosition = 0;
@@ -234,7 +242,7 @@ namespace Berta
 
 	void TextEditor::Render()
 	{
-		Size contentSize = GetContentSize();
+		Size contentSize = GetContentTextExtent();
 
 		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
 
@@ -247,24 +255,20 @@ namespace Berta
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
 			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
 			auto startTextExtent = m_graphics.GetTextExtent(m_content.substr(0, start));
-			auto endTextExtent = m_graphics.GetTextExtent(m_content.substr(0, end));
+			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
+			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
 
-			std::wostringstream builder;
-			for (size_t i = start; i < (end); i++)
-			{
-				builder << m_content[i];
-			}
-			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width - startTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
-			m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, builder.str(), m_owner->Appereance->HighlightTextColor);
+			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
+			m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, selectionText, m_owner->Appereance->HighlightTextColor);
 		}
 	}
 
 	void TextEditor::AdjustView(bool scrollToLeft)
 	{
-		auto contentSize = GetContentSize();
+		auto contentSize = GetContentTextExtent();
 		auto ownerSize = m_graphics.GetSize();
 
-		int adjustment = 4;
+		constexpr int adjustment = 4;
 		bool needAdjustment = m_offsetView + contentSize.Width < 0 || m_offsetView + contentSize.Width > ownerSize.Width - adjustment;
 
 		if (needAdjustment)
@@ -281,7 +285,7 @@ namespace Berta
 		}
 	}
 
-	Size TextEditor::GetContentSize()
+	Size TextEditor::GetContentTextExtent() const
 	{
 		Size contentSize;
 		if (m_caretPosition == 0)
@@ -295,12 +299,12 @@ namespace Berta
 		return contentSize;
 	}
 
-	uint32_t TextEditor::GetPositionUnderMouse(const Point& mousePosition)
+	uint32_t TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
 		uint32_t index = 0;
 		
 		int nearest = (std::numeric_limits<int>::max)();
-		for (size_t i = 0; i < m_content.size() + 1; i++)
+		for (size_t i = 0; i <= m_content.size(); i++)
 		{
 			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i));
 			auto abs = std::abs((int)letterSize.Width - mousePosition.X + m_offsetView);

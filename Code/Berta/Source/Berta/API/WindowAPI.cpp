@@ -144,6 +144,20 @@ namespace Berta
 #endif
 		}
 
+		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (capture)
+			{
+				::SetCapture(nativeHandle.Handle);
+			}
+			else
+			{
+				::ReleaseCapture();
+			}
+#endif
+		}
+
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
@@ -157,7 +171,7 @@ namespace Berta
 #endif
 		}
 
-		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, API::NativeCursor& nativeCursor)
+		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			const wchar_t* cursorName = IDC_ARROW;

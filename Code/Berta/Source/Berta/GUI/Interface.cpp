@@ -53,7 +53,6 @@ namespace Berta::GUI
 			rect.Y = rect.Y * scalingFactor;
 			rect.Width = rect.Width * scalingFactor;
 			rect.Height = rect.Height * scalingFactor;
-
 		}
 		window->Size = rect;
 		window->Parent = parent;

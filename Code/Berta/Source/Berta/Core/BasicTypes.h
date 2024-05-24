@@ -158,6 +158,7 @@ namespace Berta
 		Size& operator/= (uint32_t s) noexcept;
 
 		Rectangle ToRectangle() const;
+		bool IsInside(const Point& point) const;
 
 		friend std::ostream& operator<<(std::ostream& os, const Size& size);
 

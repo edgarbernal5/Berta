@@ -29,6 +29,9 @@ namespace Berta
 
 		operator Window* () const { return m_handle; }
 	protected:
+		virtual void DoOnCaption(const std::wstring& caption);
+		virtual std::wstring DoOnCaption();
+
 		Window* m_handle{ nullptr };
 	};
 

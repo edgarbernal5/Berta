@@ -51,9 +51,10 @@ namespace Berta
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 
+		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture);
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
 
-		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, API::NativeCursor& nativeCursor);
+		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor);
 	}
 }
 

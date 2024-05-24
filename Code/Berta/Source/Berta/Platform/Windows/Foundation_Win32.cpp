@@ -112,6 +112,7 @@ namespace Berta
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
 		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
+
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
@@ -243,6 +244,7 @@ namespace Berta
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
+			::SetCapture(hWnd);
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -336,7 +338,8 @@ namespace Berta
 
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
-			} else if (window)
+			}
+			else if (window)
 			{
 				ArgMouse argMouseMove;
 				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
@@ -361,7 +364,7 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			auto window = windowManager.Find(nativeWindow, { x, y });
+			//auto window = windowManager.Find(nativeWindow, { x, y });
 			if (/*window && window ==*/ rootWindowData.Pressed)
 			{
 				ArgMouse argMouseUp;
@@ -373,13 +376,18 @@ namespace Berta
 				rootWindowData.Pressed->Renderer.MouseUp(argMouseUp);
 				rootWindowData.Pressed->Events->MouseUp.Emit(argMouseUp);
 
-				ArgClick argClick;
-				rootWindowData.Pressed->Renderer.Click(argClick);
-				rootWindowData.Pressed->Events->Click.Emit(argClick);
+				if (rootWindowData.Pressed->Size.IsInside(argMouseUp.Position))
+				{
+					ArgClick argClick;
+					rootWindowData.Pressed->Renderer.Click(argClick);
+					rootWindowData.Pressed->Events->Click.Emit(argClick);
+				}
 
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
 			rootWindowData.Pressed = nullptr;
+
+			::ReleaseCapture();
 			break;
 		}
 		case WM_LBUTTONDBLCLK:

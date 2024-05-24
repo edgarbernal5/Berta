@@ -39,6 +39,7 @@ int main()
 	});
 
 	Berta::InputText inputText(form, { 190,30,200,25 });
+	inputText.Caption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	form.Show();
 	form.Exec();
 
