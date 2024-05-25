@@ -56,6 +56,8 @@ namespace Berta
 
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor);
 		Size GetPrimaryMonitorSize();
+
+		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);
 	}
 }
 

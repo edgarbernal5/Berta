@@ -220,5 +220,18 @@ namespace Berta
 			return {};
 #endif
 		}
+
+		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::POINT pointNative = { point.X, point.Y };
+			if (::ClientToScreen(reinterpret_cast<HWND>(nativeHandle.Handle), &pointNative))
+			{
+				return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
+			}
+#else
+			return {};
+#endif
+		}
 	}
 }

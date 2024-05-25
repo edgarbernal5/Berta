@@ -40,6 +40,8 @@ namespace Berta
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height);
 		Rectangle GetCenteredOnScreen(const Size& size);
+
+		Point GetPointClientToScreen(Window *window, const Point& point);
 	}
 }
 

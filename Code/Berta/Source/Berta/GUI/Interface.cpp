@@ -232,4 +232,13 @@ namespace Berta::GUI
 			size.Height
 		};
 	}
+	Point GetPointClientToScreen(Window* window, const Point& point)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return API::GetPointClientToScreen(window->RootWindow->RootHandle, point);
+		}
+		return {};
+	}
 }
