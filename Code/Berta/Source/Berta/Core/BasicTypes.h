@@ -170,6 +170,9 @@ namespace Berta
 		bool Minimize{ true };
 		bool Maximize{ true };
 		bool Sizable{ true };
+		bool AppWindow{ true };
+		bool Floating{ false };
+		bool TitleBarAndCaption{ true };
 	};
 
 	struct Color

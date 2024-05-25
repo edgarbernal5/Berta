@@ -15,10 +15,14 @@
 
 namespace Berta::GUI
 {
-	Window* CreateForm(const Rectangle& rectangle, const FormStyle& formStyle)
+	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 	{
-		auto windowResult = API::CreateNativeWindow(rectangle, formStyle);
-
+		API::NativeWindowHandle parentHandle{};
+		if (parent)
+		{
+			parentHandle = parent->RootHandle;
+		}
+		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle);
 		if (windowResult.WindowHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -206,5 +210,26 @@ namespace Berta::GUI
 		{
 			windowManager.ChangeCursor(window, newCursor);
 		}
+	}
+	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
+	{
+		auto primaryScreen = API::GetPrimaryMonitorSize();
+		return Rectangle{
+			static_cast<int>((primaryScreen.Width - width) >> 1),
+			static_cast<int>((primaryScreen.Height - height) >> 1),
+			width,
+			height
+		};
+	}
+
+	Rectangle GetCenteredOnScreen(const Size& size)
+	{
+		auto primaryScreen = API::GetPrimaryMonitorSize();
+		return Rectangle{
+			static_cast<int>((primaryScreen.Width - size.Width) >> 1),
+			static_cast<int>((primaryScreen.Height - size.Height) >> 1),
+			size.Width,
+			size.Height
+		};
 	}
 }

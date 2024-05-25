@@ -65,7 +65,7 @@ namespace Berta
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
-			m_handle = GUI::CreateForm(rectangle, formStyle);
+			m_handle = GUI::CreateForm(parent, rectangle, formStyle);
 			m_appearance = new ControlAppearance();
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);

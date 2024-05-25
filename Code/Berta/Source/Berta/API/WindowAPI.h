@@ -44,7 +44,7 @@ namespace Berta
 #endif
 		};
 
-		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& windowStyle);
+		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& windowStyle);
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
@@ -55,6 +55,7 @@ namespace Berta
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
 
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor);
+		Size GetPrimaryMonitorSize();
 	}
 }
 

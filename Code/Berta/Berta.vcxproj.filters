@@ -31,6 +31,9 @@
     <Filter Include="Source\Berta\Controls\TextEditors">
       <UniqueIdentifier>{7f239791-3cbe-4211-ab75-36c5fff9a52a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Controls\Floating">
+      <UniqueIdentifier>{ad295461-a638-4063-952c-61fcc47ad01b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -129,6 +132,9 @@
     <ClInclude Include="Source\Berta\GUI\Cursor.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Floating\FloatBox.h">
+      <Filter>Source\Berta\Controls\Floating</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -202,6 +208,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\ComboBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Floating\FloatBox.cpp">
+      <Filter>Source\Berta\Controls\Floating</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -8,11 +8,12 @@
 #include <Berta/Controls/Label.h>
 #include <Berta/Controls/Button.h>
 #include <Berta/Controls/InputText.h>
+#include <Berta/Controls/ComboBox.h>
 #include <iostream>
 
 int main()
 {
-	Berta::Form form({ 0,0,800,600 }, { true, true, true });
+	Berta::Form form(Berta::Size(800u, 600u), { true, true, true });
 	form.Caption(L"Window");
 	
 	Berta::Label label(form, { 50,10,130,40 }, L"Hello world!");
@@ -40,6 +41,10 @@ int main()
 
 	Berta::InputText inputText(form, { 190,30,200,25 });
 	inputText.Caption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+
+	Berta::ComboBox comboBox(form, { 190,60,200,25 });
+
+
 	form.Show();
 	form.Exec();
 

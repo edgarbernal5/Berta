@@ -18,7 +18,7 @@ namespace Berta
 
 	namespace GUI
 	{
-		Window* CreateForm(const Rectangle& rectangle, const FormStyle& windowStyle);
+		Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& windowStyle);
 		Window* CreateControl(Window* parent, const Rectangle& rectangle);
 
 		void CaptionWindow(Window* window, const std::wstring& caption);
@@ -28,9 +28,9 @@ namespace Berta
 		void RefreshWindow(Window* window);
 
 		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
-
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, ControlAppearance* controlAppearance);
+
 		Color GetBackgroundColor(Window* window);
 		Color GetBoxBackgroundColor(Window* window);
 		Color GetForegroundColor(Window* window);
@@ -38,6 +38,8 @@ namespace Berta
 		void UpdateDeferred(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
+		Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height);
+		Rectangle GetCenteredOnScreen(const Size& size);
 	}
 }
 

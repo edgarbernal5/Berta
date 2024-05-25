@@ -10,6 +10,7 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
 #include "Berta/Controls/TextEditors/TextEditor.h"
+#include "Berta/Controls/Floating/FloatBox.h"
 
 namespace Berta
 {
@@ -35,6 +36,7 @@ namespace Berta
 
 		//m_textEditor->Render();
 
+		graphics.DrawLine({ (int)window->Size.Width - 25, 1 }, { (int)window->Size.Width - 25, (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
 	}
 
@@ -50,6 +52,11 @@ namespace Berta
 
 	void ComboBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
+		if (args.ButtonState.LeftButton)
+		{
+			FloatBox* floatBox = new FloatBox(m_control->Handle()->RootWindow, { 50,150,200,300 });
+			floatBox->Show();
+		}
 		/*m_textEditor->OnMouseDown(args);
 		m_control->Handle()->Renderer.Update();
 		GUI::UpdateDeferred(m_control->Handle());*/

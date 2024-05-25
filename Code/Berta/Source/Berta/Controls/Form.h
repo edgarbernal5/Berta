@@ -31,7 +31,8 @@ namespace Berta
 	class Form : public Control<FormReactor, RootEvents>
 	{
 	public:
-		Form(const Rectangle& rectangle = { 0,0,800,600 }, const FormStyle& windowStyle = {true, true, true});
+		explicit Form(const Size& size, const FormStyle& windowStyle = {true, true, true});
+		Form(const Rectangle& rectangle, const FormStyle& windowStyle = {true, true, true});
 
 		void Exec();
 	private:

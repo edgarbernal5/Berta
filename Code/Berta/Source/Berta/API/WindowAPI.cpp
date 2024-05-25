@@ -23,37 +23,47 @@ namespace Berta
 			constexpr RECT CreateScaledRect(const Rectangle& rectangle, float scalingFactor)
 			{
 				return RECT{
-					0,
-					0,
-					static_cast<LONG>(rectangle.Width * scalingFactor),
-					static_cast<LONG>(rectangle.Height * scalingFactor)
+					static_cast<LONG>(rectangle.X * scalingFactor),
+					static_cast<LONG>(rectangle.Y * scalingFactor),
+					static_cast<LONG>((rectangle.X + rectangle.Width) * scalingFactor),
+					static_cast<LONG>((rectangle.Y + rectangle.Height) * scalingFactor)
 				};
 			}
 		}
 #endif
 
-		NativeWindowResult CreateNativeWindow(const Rectangle& rectangle, const FormStyle& formStyle)
+		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
 			DWORD styleEx = WS_EX_NOPARENTNOTIFY;
 
-			if (formStyle.Minimize) style |= WS_MINIMIZEBOX;
-			if (formStyle.Maximize) style |= WS_MAXIMIZEBOX;
+			if (formStyle.Minimize)
+				style |= WS_MINIMIZEBOX;
+			if (formStyle.Maximize)
+				style |= WS_MAXIMIZEBOX;
+			if (formStyle.Sizable)
+				style |= WS_THICKFRAME;
 
-			if (formStyle.Sizable) style |= WS_THICKFRAME;
+			if (formStyle.TitleBarAndCaption)
+				style |= WS_OVERLAPPED | WS_CAPTION;
 
-			style |= WS_OVERLAPPED | WS_CAPTION;
 			style |= WS_POPUP;
-			styleEx |= WS_EX_APPWINDOW;
+			if (formStyle.AppWindow)
+				styleEx |= WS_EX_APPWINDOW;
+			else
+				styleEx |= WS_EX_TOOLWINDOW;
 
-			uint32_t dpi = GetNativeWindowDPI({});
+			if (formStyle.Floating) 
+				styleEx |= WS_EX_TOPMOST;
+
+			uint32_t dpi = GetNativeWindowDPI(parentHandle);
 			float scalingFactor = static_cast<float>(dpi) / 96.0f;
 
 			// Actually set the appropriate window size
 			RECT scaledWindowRect = CreateScaledRect(rectangle, scalingFactor);
 
-			if (!::AdjustWindowRectExForDpi(&scaledWindowRect, style, false, 0, dpi))
+			if (!::AdjustWindowRectExForDpi(&scaledWindowRect, style, false, styleEx, dpi))
 			{
 				BT_CORE_ERROR << "AdjustWindowRectExForDpi Failed." << std::endl;
 				return {};
@@ -66,12 +76,12 @@ namespace Berta
 				L"BertaInternalClass",
 				DefaultWindowTitle.data(),
 				style,
-				CW_USEDEFAULT,
-				CW_USEDEFAULT,
+				scaledWindowRect.left,
+				scaledWindowRect.top,
 				scaledWindowRect.right - scaledWindowRect.left,
 				scaledWindowRect.bottom - scaledWindowRect.top,
-				nullptr,			// We have no parent window.
-				nullptr,			// We aren't using menus.
+				parentHandle.Handle,	// Parent
+				nullptr,				// We aren't using menus.
 				hInstance,
 				0
 			);
@@ -197,6 +207,18 @@ namespace Berta
 			}
 #endif
 			return true;
+		}
+
+		Size GetPrimaryMonitorSize()
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			return {
+				static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN)), 
+				static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
+			};
+#else
+			return {};
+#endif
 		}
 	}
 }
