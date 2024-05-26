@@ -119,7 +119,7 @@ namespace Berta
 		{
 			if (window->Type == WindowType::Native)
 			{
-				API::ShowNativeWindow(window->RootHandle, visible);
+				API::ShowNativeWindow(window->RootHandle, visible, window->MakeActive);
 			}
 
 			window->Visible = visible;

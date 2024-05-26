@@ -48,7 +48,7 @@ namespace Berta
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
-		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible);
+		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible, bool active);
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 
 		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture);

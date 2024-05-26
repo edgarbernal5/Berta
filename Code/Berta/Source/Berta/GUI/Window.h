@@ -40,6 +40,8 @@ namespace Berta
 
 		uint32_t DPI{ 0 }; //TODO:
 
+		bool MakeActive{ true };
+
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
 		ControlAppearance* Appereance{ nullptr };

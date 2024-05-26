@@ -54,8 +54,8 @@ namespace Berta
 	{
 		if (args.ButtonState.LeftButton)
 		{
-			//GetPointClientToScreen
-			FloatBox* floatBox = new FloatBox(m_control->Handle()->RootWindow, { 50,0,200,300 });
+			auto point = GUI::GetPointClientToScreen(m_control->Handle(), m_control->Handle()->Position);
+			FloatBox* floatBox = new FloatBox(m_control->Handle(), { point.X,point.Y + (int)m_control->Handle()->Size.Height,m_control->Handle()->Size.Width,300 });
 			floatBox->Show();
 		}
 		/*m_textEditor->OnMouseDown(args);

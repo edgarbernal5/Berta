@@ -20,7 +20,7 @@ namespace Berta::GUI
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
 		{
-			parentHandle = parent->RootHandle;
+			parentHandle = parent->RootWindow->RootHandle;
 		}
 		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle);
 		if (windowResult.WindowHandle.Handle)
@@ -128,6 +128,15 @@ namespace Berta::GUI
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+		}
+	}
+
+	void MakeWindowActive(Window* window, bool active)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			window->MakeActive = active;
 		}
 	}
 
