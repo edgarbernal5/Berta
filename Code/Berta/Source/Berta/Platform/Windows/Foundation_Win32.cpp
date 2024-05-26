@@ -108,6 +108,8 @@ namespace Berta
 		
 		{WM_LBUTTONDBLCLK,	"WM_LBUTTONDBLCLK"},
 
+		{WM_MOUSEACTIVATE,	"WM_MOUSEACTIVATE"},
+
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
@@ -161,6 +163,7 @@ namespace Berta
 		{
 			ArgActivated argActivated;
 			argActivated.IsActivated = wParam ? true : false;
+			BT_CORE_TRACE << "    IsActivated = " << argActivated.IsActivated << ". " << hWnd << std::endl;
 			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
 			events->Activated.Emit(argActivated);
 			break;
@@ -240,11 +243,20 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		case WM_MOUSEACTIVATE:
+		{
+			if (!nativeWindow->MakeActive)
+			{
+				return MA_NOACTIVATE;
+			}
+
+			break;
+		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
-			::SetCapture(hWnd);
+			::SetCapture(hWnd); //TODO: FIX
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -387,7 +399,7 @@ namespace Berta
 			}
 			rootWindowData.Pressed = nullptr;
 
-			::ReleaseCapture();
+			::ReleaseCapture(); //TODO: FIX
 			break;
 		}
 		case WM_LBUTTONDBLCLK:

@@ -54,7 +54,7 @@ namespace Berta
 			else
 				styleEx |= WS_EX_TOOLWINDOW;
 
-			if (formStyle.Floating) 
+			if (formStyle.Floating)
 				styleEx |= WS_EX_TOPMOST;
 
 			uint32_t dpi = GetNativeWindowDPI(parentHandle);
