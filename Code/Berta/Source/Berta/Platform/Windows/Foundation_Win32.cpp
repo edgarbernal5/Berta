@@ -93,6 +93,7 @@ namespace Berta
 		{WM_NCDESTROY,		"WM_NCDESTROY"},
 		{WM_SETFOCUS,		"WM_SETFOCUS"},
 		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
+		{WM_CLOSE,			"WM_CLOSE"},
 
 		{WM_CHAR,			"WM_CHAR"},
 		{WM_KEYDOWN,		"WM_KEYDOWN"},
@@ -105,7 +106,10 @@ namespace Berta
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 		//{WM_SETCURSOR,		"WM_SETCURSOR"},
-		
+
+		{WM_ACTIVATE,		"WM_ACTIVATE"},
+		{WM_CAPTURECHANGED,		"WM_CAPTURECHANGED"},
+
 		{WM_LBUTTONDBLCLK,	"WM_LBUTTONDBLCLK"},
 
 		{WM_MOUSEACTIVATE,	"WM_MOUSEACTIVATE"},
@@ -119,6 +123,7 @@ namespace Berta
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
+
 	};
 #endif
 
@@ -128,7 +133,7 @@ namespace Berta
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
-			BT_CORE_DEBUG << "WndProc message: " << it->second << std::endl;
+			BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 		}
 #endif
 		static TRACKMOUSEEVENT trackEvent = {sizeof(trackEvent), TME_LEAVE };
@@ -139,6 +144,16 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
+			switch (message)
+			{
+			case WM_DESTROY:
+				if (windowManager.NativeWindowCount() == 0)
+				{
+					::PostQuitMessage(0);
+				}
+				return 0;
+			}
+			
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -250,6 +265,20 @@ namespace Berta
 				return MA_NOACTIVATE;
 			}
 
+			break;
+		}
+		case WM_ACTIVATE:
+		{
+			if (LOWORD(wParam) == WA_INACTIVE) {
+				BT_CORE_DEBUG << "   Hide()" << ". hWnd = " << hWnd << std::endl;
+			}
+			break;
+		}
+		case WM_CAPTURECHANGED:
+		{
+			if ((HWND)lParam != hWnd) {
+				BT_CORE_DEBUG << "   Hide(): (HWND)lParam = " << (HWND)lParam << ". hWnd = " << hWnd << std::endl;
+			}
 			break;
 		}
 		case WM_LBUTTONDOWN:
@@ -498,12 +527,27 @@ namespace Berta
 			events->ExitSizeMove.Emit(argSizeMove);
 			break;
 		}
+		case WM_CLOSE:
+		{
+			ArgClosing argClosing{ false };
+			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			events->Closing.Emit(argClosing);
+			if (argClosing.Cancel)
+			{
+				defaultToWindowProc = false;
+			}
+			else
+			{
+				windowManager.Remove(nativeWindow);
+			}
+			
+			break;
+		}
 		case WM_DESTROY:
-			::PostQuitMessage(0);
-			//if (windowManager.Exists(nativeWindow))
-			//{
-			//	windowManager.Dispose(nativeWindow);
-			//}
+			if (windowManager.NativeWindowCount() == 0)
+			{
+				::PostQuitMessage(0);
+			}
 			defaultToWindowProc = false;
 			break;
 		}

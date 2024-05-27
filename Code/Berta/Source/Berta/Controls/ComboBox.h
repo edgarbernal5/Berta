@@ -14,6 +14,7 @@
 namespace Berta
 {
 	class TextEditor;
+	class FloatBox;
 
 	class ComboBoxReactor : public ControlReactor
 	{
@@ -33,15 +34,22 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 		TextEditor* GetEditor() const { return m_textEditor; }
+
+		friend class ComboBox;
 	private:
 		ControlBase* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
+
+		std::vector<std::wstring> m_items;
+		FloatBox* m_floatBox{ nullptr };
 	};
 
 	class ComboBox : public Control<ComboBoxReactor>
 	{
 	public:
 		ComboBox(Window* parent, const Rectangle& rectangle);
+
+		void PushItem(const std::wstring& text);
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

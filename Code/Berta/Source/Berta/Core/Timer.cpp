@@ -44,12 +44,13 @@ namespace Berta
 	void Timer::Run()
 	{
 		//https://chatgpt.com/c/781edcee-9945-4f63-baba-d0ce43746f42
+		ArgTimer argTimer;
 		while (m_isRunning.load())
 		{
 			std::this_thread::sleep_for(m_interval);
 			if (m_isRunning.load())
 			{
-				m_tick.Emit({});
+				m_tick.Emit(argTimer);
 			}
 			else
 				break;

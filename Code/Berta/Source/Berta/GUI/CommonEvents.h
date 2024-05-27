@@ -78,11 +78,17 @@ namespace Berta
 		bool IsActivated;
 	};
 
+	struct ArgClosing
+	{
+		bool Cancel;
+	};
+
 	struct RootEvents : public CommonEvents
 	{
 		Event<ArgActivated>	Activated;
 		Event<ArgSizeMove>	EnterSizeMove;
 		Event<ArgSizeMove>	ExitSizeMove;
+		Event<ArgClosing>	Closing;
 	};
 }
 

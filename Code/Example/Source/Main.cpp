@@ -43,7 +43,7 @@ int main()
 	inputText.Caption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 
 	Berta::ComboBox comboBox(form, { 190,60,200,25 });
-
+	comboBox.PushItem(L"Ejemplo");
 
 	form.Show();
 	form.Exec();

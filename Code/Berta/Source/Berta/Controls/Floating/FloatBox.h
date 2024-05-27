@@ -13,6 +13,8 @@
 
 namespace Berta
 {
+	class FloatBox;
+
 	class FloatBoxReactor : public ControlReactor
 	{
 	public:
@@ -20,12 +22,22 @@ namespace Berta
 
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+	private:
+		FloatBox* m_control{ nullptr };
 	};
 
 	class FloatBox : public Control<FloatBoxReactor, RootEvents>
 	{
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);
+		void SetItems(std::vector<std::wstring>& items)
+		{
+			m_items = &items;
+		}
+
+		friend class FloatBoxReactor;
+	private:
+		std::vector<std::wstring>* m_items{ nullptr };
 	};
 }
 

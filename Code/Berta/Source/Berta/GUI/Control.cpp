@@ -26,6 +26,15 @@ namespace Berta
 		GUI::ShowWindow(m_handle, true);
 	}
 
+	void ControlBase::Hide()
+	{
+	}
+
+	void ControlBase::Dispose()
+	{
+		GUI::DisposeWindow(m_handle);
+	}
+
 	void ControlBase::DoOnCaption(const std::wstring& caption)
 	{
 		GUI::CaptionWindow(m_handle, caption);

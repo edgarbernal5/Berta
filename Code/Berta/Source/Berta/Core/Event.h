@@ -86,7 +86,7 @@ namespace Berta
             data->observers.clear();
         }
 
-        void Emit(Argument args) const
+        void Emit(Argument& args) const
         {
             std::vector<std::weak_ptr<Handler>> handlers;
             {

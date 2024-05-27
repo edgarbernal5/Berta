@@ -44,9 +44,11 @@ namespace Berta
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append);
 		void Caption(Window* window, const std::wstring& caption);
 		void Dispose(Window* window);
+		void Remove(Window* window);
 		Window* Get(API::NativeWindowHandle nativeWindowHandle);
 		RootData* GetWindowData(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(Window* window);
+		uint32_t NativeWindowCount();
 
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);

@@ -27,6 +27,15 @@ namespace Berta
 	{
 		m_control = &control;
 		m_textEditor = new TextEditor(*m_control);
+
+		auto window = m_control->Handle();
+		window->Events->Focus.Connect([&](const ArgFocus& args) {
+			if (!args.Focused && m_floatBox)
+			{
+				delete m_floatBox;
+				m_floatBox = nullptr;
+			}
+		});
 	}
 
 	void ComboBoxReactor::Update(Graphics& graphics)
@@ -54,9 +63,19 @@ namespace Berta
 	{
 		if (args.ButtonState.LeftButton)
 		{
-			auto point = GUI::GetPointClientToScreen(m_control->Handle(), m_control->Handle()->Position);
-			FloatBox* floatBox = new FloatBox(m_control->Handle(), { point.X,point.Y + (int)m_control->Handle()->Size.Height,m_control->Handle()->Size.Width,300 });
-			floatBox->Show();
+			if (m_floatBox)
+			{
+				delete m_floatBox;
+				m_floatBox = nullptr;
+			}
+			else
+			{
+				auto window = m_control->Handle();
+				auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
+				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,300 });
+				m_floatBox->SetItems(m_items);
+				m_floatBox->Show();
+			}
 		}
 		/*m_textEditor->OnMouseDown(args);
 		m_control->Handle()->Renderer.Update();
@@ -106,6 +125,11 @@ namespace Berta
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle);
+	}
+
+	void ComboBox::PushItem(const std::wstring& text)
+	{
+		m_reactor.m_items.push_back(text);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)

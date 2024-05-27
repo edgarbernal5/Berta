@@ -52,6 +52,15 @@ namespace Berta
 		m_windowRegistry.erase(window);
 	}
 
+	void WindowManager::Remove(Window* window)
+	{
+		if (window->Type == WindowType::Native)
+		{
+			m_windowNativeRegistry.erase(window->RootHandle);
+		}
+		m_windowRegistry.erase(window);
+	}
+
 	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
@@ -77,6 +86,11 @@ namespace Berta
 	bool WindowManager::Exists(Window* window)
 	{
 		return m_windowRegistry.find(window) != m_windowRegistry.end();
+	}
+
+	uint32_t WindowManager::NativeWindowCount()
+	{
+		return m_windowNativeRegistry.size();
 	}
 
 	Window* WindowManager::Find(Window* window, const Point& point)

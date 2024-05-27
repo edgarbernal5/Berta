@@ -26,6 +26,8 @@ namespace Berta
 		void Caption(const std::wstring& caption);
 		std::wstring Caption();
 		void Show();
+		void Hide();
+		void Dispose();
 
 		operator Window* () const { return m_handle; }
 	protected:
