@@ -66,7 +66,9 @@ namespace Berta
 
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
-			DestroyInternal(window->Children[i]);
+			auto child = window->Children[i];
+			DestroyInternal(child);
+			delete child;
 		}
 		window->Children.clear();
 

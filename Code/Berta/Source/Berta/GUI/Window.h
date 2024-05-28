@@ -29,6 +29,7 @@ namespace Berta
 	{
 		Window() = default;
 		Window(WindowType type) : Type(type) {}
+		~Window() = default;
 
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};

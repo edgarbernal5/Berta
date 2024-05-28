@@ -222,7 +222,10 @@ namespace Berta::GUI
 	}
 	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
 	{
-		auto primaryScreen = API::GetPrimaryMonitorSize();
+		uint32_t dpi = API::GetNativeWindowDPI({});
+		float scalingFactor = 96.0f / static_cast<float>(dpi);
+		auto primaryScreen = API::GetPrimaryMonitorSize() * scalingFactor;
+
 		return Rectangle{
 			static_cast<int>((primaryScreen.Width - width) >> 1),
 			static_cast<int>((primaryScreen.Height - height) >> 1),
@@ -233,7 +236,10 @@ namespace Berta::GUI
 
 	Rectangle GetCenteredOnScreen(const Size& size)
 	{
-		auto primaryScreen = API::GetPrimaryMonitorSize();
+		uint32_t dpi = API::GetNativeWindowDPI({});
+		float scalingFactor = 96.0f / static_cast<float>(dpi);
+		auto primaryScreen = API::GetPrimaryMonitorSize() * scalingFactor;
+
 		return Rectangle{
 			static_cast<int>((primaryScreen.Width - size.Width) >> 1),
 			static_cast<int>((primaryScreen.Height - size.Height) >> 1),

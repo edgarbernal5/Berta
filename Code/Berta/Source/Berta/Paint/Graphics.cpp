@@ -43,6 +43,11 @@ namespace Berta
 
 	void Graphics::Build(const Size& size)
 	{
+		if (!m_attributes)
+		{
+			m_attributes = std::make_unique<NativeAttributes>();
+		}
+
 		if (m_attributes->m_size != size)
 		{
 			m_attributes->m_size = size;
@@ -79,7 +84,7 @@ namespace Berta
 
 	void Graphics::BuildFont(uint32_t dpi)
 	{
-		if (m_attributes->m_hdc == nullptr)
+		if (!m_attributes || m_attributes->m_hdc == nullptr)
 		{
 			return;
 		}
@@ -265,7 +270,7 @@ namespace Berta
 
 	void Graphics::Release()
 	{
-		m_attributes.reset(new NativeAttributes());
+		m_attributes.reset();
 
 	}
 
