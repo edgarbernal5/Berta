@@ -144,16 +144,6 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
-			switch (message)
-			{
-			case WM_DESTROY:
-				if (windowManager.NativeWindowCount() == 0)
-				{
-					::PostQuitMessage(0);
-				}
-				return 0;
-			}
-			
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -285,7 +275,7 @@ namespace Berta
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
-			::SetCapture(hWnd); //TODO: FIX
+			//::SetCapture(hWnd); //TODO: FIX
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -428,7 +418,7 @@ namespace Berta
 			}
 			rootWindowData.Pressed = nullptr;
 
-			::ReleaseCapture(); //TODO: FIX
+			//::ReleaseCapture(); //TODO: FIX
 			break;
 		}
 		case WM_LBUTTONDBLCLK:
@@ -536,20 +526,25 @@ namespace Berta
 			{
 				defaultToWindowProc = false;
 			}
-			else
-			{
-				windowManager.Remove(nativeWindow);
-			}
 			
 			break;
 		}
-		case WM_DESTROY:
+		case WM_DESTROY: // WM_DESTROY, next WM_NCDESTROY
+		{
+			windowManager.Destroy(nativeWindow);
+			defaultToWindowProc = false;
+			
+			break;
+		}
+		case WM_NCDESTROY:
+		{
+			windowManager.Remove(nativeWindow);
 			if (windowManager.NativeWindowCount() == 0)
 			{
 				::PostQuitMessage(0);
 			}
-			defaultToWindowProc = false;
 			break;
+		}
 		}
 
 		windowManager.UpdateDeferredRequests(nativeWindow);

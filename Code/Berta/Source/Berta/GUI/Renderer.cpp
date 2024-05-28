@@ -19,6 +19,11 @@ namespace Berta
 		m_controlReactor->Init(control);
 	}
 
+	void Renderer::Shutdown()
+	{
+		m_controlReactor->Shutdown();
+	}
+
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
 		window->RootGraphics->Paste(window->RootHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);

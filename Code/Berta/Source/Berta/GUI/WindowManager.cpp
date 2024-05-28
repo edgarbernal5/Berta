@@ -42,6 +42,40 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::Destroy(Window* window)
+	{
+		if (window->Parent)
+		{
+			for (size_t i = 0; i < window->Parent->Children.size(); i++)
+			{
+				if (window->Parent->Children[i] == window)
+				{
+					window->Parent->Children.erase(window->Parent->Children.begin() + i);
+					break;
+				}
+			}
+		}
+
+		DestroyInternal(window);
+	}
+
+	void WindowManager::DestroyInternal(Window* window)
+	{
+		ArgDestroy argDestroy;
+		window->Events->Destroy.Emit(argDestroy);
+
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			DestroyInternal(window->Children[i]);
+		}
+		window->Children.clear();
+
+		window->Renderer.Shutdown();
+		m_windowRegistry.erase(window);
+
+		window->Renderer.GetGraphics().Release();
+	}
+
 	void WindowManager::Dispose(Window* window)
 	{
 		if (window->Type == WindowType::Native)
@@ -57,8 +91,8 @@ namespace Berta
 		if (window->Type == WindowType::Native)
 		{
 			m_windowNativeRegistry.erase(window->RootHandle);
+			m_windowRegistry.erase(window);
 		}
-		m_windowRegistry.erase(window);
 	}
 
 	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)

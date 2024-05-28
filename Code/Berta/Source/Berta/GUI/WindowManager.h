@@ -43,6 +43,7 @@ namespace Berta
 		void Add(Window* window);
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append);
 		void Caption(Window* window, const std::wstring& caption);
+		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);
 		Window* Get(API::NativeWindowHandle nativeWindowHandle);
@@ -64,6 +65,7 @@ namespace Berta
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
+		void DestroyInternal(Window* window);
 
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;

@@ -51,6 +51,10 @@ namespace Berta
         }ButtonState;
     };
 
+	struct ArgDestroy
+	{
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
@@ -67,6 +71,7 @@ namespace Berta
 		Event<ArgKeyboard>	KeyChar;
 		Event<ArgKeyboard>	KeyPressed;
 		Event<ArgKeyboard>	KeyReleased;
+		Event<ArgDestroy>	Destroy;
 	};
 
 	struct ArgSizeMove

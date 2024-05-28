@@ -15,6 +15,10 @@ namespace Berta
 	{
 	}
 
+	void ControlReactor::Shutdown()
+	{
+	}
+
 	void ControlReactor::Update(Graphics& graphics)
 	{
 	}

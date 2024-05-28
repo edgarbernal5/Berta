@@ -20,6 +20,7 @@ namespace Berta
 	{
 	public:
 		void Init(ControlBase& control, ControlReactor& controlReactor);
+		void Shutdown();
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
 
