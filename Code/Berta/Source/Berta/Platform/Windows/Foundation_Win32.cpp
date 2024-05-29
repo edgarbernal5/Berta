@@ -329,7 +329,7 @@ namespace Berta
 					BT_CORE_DEBUG << "mouse move: window: NULL." << std::endl;
 				}*/
 
-				if (rootWindowData.Hovered && rootWindowData.Pressed == nullptr)
+				if (rootWindowData.Hovered /* && rootWindowData.Pressed == nullptr */ )
 				{
 					ArgMouse argMouseLeave;
 					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
@@ -342,8 +342,11 @@ namespace Berta
 
 					rootWindowData.Hovered = nullptr;
 				}
+			}
 
-				if (window)
+			if (window)
+			{
+				if (window != rootWindowData.Hovered)
 				{
 					ArgMouse argMouseEnter;
 					argMouseEnter.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
@@ -353,23 +356,30 @@ namespace Berta
 
 					window->Renderer.MouseEnter(argMouseEnter);
 					window->Events->MouseEnter.Emit(argMouseEnter);
+
+					rootWindowData.Hovered = window;
 				}
-				
-			}
-			
-			if (rootWindowData.Pressed == window)
-			{
-				ArgMouse argMouseMove;
-				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Pressed);
-				argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				rootWindowData.Pressed->Renderer.MouseMove(argMouseMove);
-				rootWindowData.Pressed->Events->MouseMove.Emit(argMouseMove);
+				if (rootWindowData.Hovered)
+				{
+					ArgMouse argMouseMove;
+					argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
+					window->Renderer.MouseMove(argMouseMove);
+					window->Events->MouseMove.Emit(argMouseMove);
+				}
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
+			}
+			
+			/*if (window && rootWindowData.Pressed == window)
+			{
+				
+
+				
 			}
 			else if (window)
 			{
@@ -384,9 +394,9 @@ namespace Berta
 
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
-			}
+			}*/
 			
-			rootWindowData.Hovered = window;
+			//rootWindowData.Hovered = window;
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -444,7 +454,7 @@ namespace Berta
 		}
 		case WM_MOUSELEAVE:
 		{
-			if (rootWindowData.Hovered)
+			if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
 			{
 				ArgMouse argMouseLeave;
 				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);

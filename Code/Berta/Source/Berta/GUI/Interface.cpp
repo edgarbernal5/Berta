@@ -242,28 +242,34 @@ namespace Berta::GUI
 	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
 	{
 		uint32_t dpi = API::GetNativeWindowDPI({});
-		float scalingFactor = 96.0f / static_cast<float>(dpi);
-		auto primaryScreen = API::GetPrimaryMonitorSize() * scalingFactor;
+		float downwardScale = 96.0f / static_cast<float>(dpi);
+		float upwardScale = static_cast<float>(dpi) / 96.0f;
+		auto primaryScreen = API::GetPrimaryMonitorSize() * downwardScale;
 
+		int x = static_cast<int>((primaryScreen.Width - width) >> 1);
+		int y = static_cast<int>((primaryScreen.Height - height) >> 1);
 		return Rectangle{
-			static_cast<int>((primaryScreen.Width - width) >> 1),
-			static_cast<int>((primaryScreen.Height - height) >> 1),
-			width,
-			height
+			static_cast<int>(x * upwardScale),
+			static_cast<int>(y * upwardScale),
+			static_cast<uint32_t>(width * upwardScale),
+			static_cast<uint32_t>(height * upwardScale)
 		};
 	}
 
 	Rectangle GetCenteredOnScreen(const Size& size)
 	{
 		uint32_t dpi = API::GetNativeWindowDPI({});
-		float scalingFactor = 96.0f / static_cast<float>(dpi);
-		auto primaryScreen = API::GetPrimaryMonitorSize() * scalingFactor;
+		float downwardScale = 96.0f / static_cast<float>(dpi);
+		float upwardScale = static_cast<float>(dpi) / 96.0f;
+		auto primaryScreen = API::GetPrimaryMonitorSize() * downwardScale;
 
+		int x = static_cast<int>((primaryScreen.Width - size.Width) >> 1);
+		int y = static_cast<int>((primaryScreen.Height - size.Height) >> 1);
 		return Rectangle{
-			static_cast<int>((primaryScreen.Width - size.Width) >> 1),
-			static_cast<int>((primaryScreen.Height - size.Height) >> 1),
-			size.Width,
-			size.Height
+			static_cast<int>(x * upwardScale),
+			static_cast<int>(y * upwardScale),
+			static_cast<uint32_t>(size.Width * upwardScale),
+			static_cast<uint32_t>(size.Height * upwardScale)
 		};
 	}
 	Point GetPointClientToScreen(Window* window, const Point& point)

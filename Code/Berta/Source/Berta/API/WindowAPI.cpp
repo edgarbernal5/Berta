@@ -58,16 +58,8 @@ namespace Berta
 				styleEx |= WS_EX_TOPMOST;
 
 			uint32_t dpi = GetNativeWindowDPI(parentHandle);
-			float scalingFactor = static_cast<float>(dpi) / 96.0f;
-
-			// Actually set the appropriate window size
-			RECT scaledWindowRect = CreateScaledRect(rectangle, scalingFactor);
-
-			if (!::AdjustWindowRectExForDpi(&scaledWindowRect, style, false, styleEx, dpi))
-			{
-				BT_CORE_ERROR << "AdjustWindowRectExForDpi Failed." << std::endl;
-				return {};
-			}
+			
+			RECT rect = rectangle.ToRECT();
 
 			HINSTANCE hInstance = GetModuleInstance();
 			HWND hwnd = ::CreateWindowEx
@@ -76,10 +68,10 @@ namespace Berta
 				L"BertaInternalClass",
 				DefaultWindowTitle.data(),
 				style,
-				scaledWindowRect.left,
-				scaledWindowRect.top,
-				scaledWindowRect.right - scaledWindowRect.left,
-				scaledWindowRect.bottom - scaledWindowRect.top,
+				rect.left,
+				rect.top,
+				rect.right - rect.left,
+				rect.bottom - rect.top,
 				parentHandle.Handle,	// Parent
 				nullptr,				// We aren't using menus.
 				hInstance,
