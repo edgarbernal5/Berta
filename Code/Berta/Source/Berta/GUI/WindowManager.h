@@ -51,6 +51,9 @@ namespace Berta
 		bool Exists(Window* window);
 		uint32_t NativeWindowCount();
 
+		void Capture(Window* window);
+		void ReleaseCapture(Window* window);
+
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);
 		void Show(Window* window, bool visible);
@@ -66,6 +69,8 @@ namespace Berta
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
+
+		Window* m_captured_window{ nullptr };
 
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;

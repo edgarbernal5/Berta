@@ -66,6 +66,7 @@ namespace Berta::GUI
 		{
 			window->DPI = parent->DPI;
 			window->RootWindow = parent->RootWindow;
+			window->RootHandle = parent->RootHandle;
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
@@ -137,6 +138,24 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			window->MakeActive = active;
+		}
+	}
+
+	void Capture(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.Capture(window);
+		}
+	}
+
+	void ReleaseCapture(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.ReleaseCapture(window);
 		}
 	}
 

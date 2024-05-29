@@ -54,6 +54,16 @@ namespace Berta
 		GUI::UpdateDeferred(*m_control);
 	}
 
+	void ButtonReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		GUI::Capture(*m_control);
+	}
+
+	void ButtonReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		GUI::ReleaseCapture(*m_control);
+	}
+
 	Button::Button(Window* parent, const Rectangle& rectangle, std::wstring text)
 	{
 		Create(parent, rectangle);

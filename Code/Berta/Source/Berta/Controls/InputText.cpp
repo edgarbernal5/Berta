@@ -50,6 +50,8 @@ namespace Berta
 
 	void InputTextReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
+		GUI::Capture(*m_control);
+
 		m_textEditor->OnMouseDown(args);
 		m_control->Handle()->Renderer.Update();
 		GUI::UpdateDeferred(m_control->Handle());
@@ -65,6 +67,8 @@ namespace Berta
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
 		m_textEditor->OnMouseUp(args);
+
+		GUI::ReleaseCapture(*m_control);
 	}
 
 	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)

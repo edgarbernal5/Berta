@@ -30,6 +30,8 @@ namespace Berta
 	{
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);
+		~FloatBox();
+
 		void SetItems(std::vector<std::wstring>& items)
 		{
 			m_items = &items;

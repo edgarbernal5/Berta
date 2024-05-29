@@ -21,6 +21,8 @@ namespace Berta
 
 		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 	private:
 		enum class State

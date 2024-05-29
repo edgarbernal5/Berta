@@ -129,6 +129,25 @@ namespace Berta
 		return m_windowNativeRegistry.size();
 	}
 
+	void WindowManager::Capture(Window* window)
+	{
+		if (m_captured_window != window)
+		{
+			API::CaptureWindow(window->RootHandle, true);
+
+			m_captured_window = window;
+		}
+	}
+
+	void WindowManager::ReleaseCapture(Window* window)
+	{
+		if (m_captured_window == window)
+		{
+			m_captured_window = nullptr;
+			API::CaptureWindow(window->RootHandle, false);
+		}
+	}
+
 	Window* WindowManager::Find(Window* window, const Point& point)
 	{
 		if (window == nullptr || !window->Visible)

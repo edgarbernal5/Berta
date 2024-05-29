@@ -317,7 +317,7 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, {x, y});
-			if (window != rootWindowData.Hovered)
+			if (window != rootWindowData.Hovered /* && rootWindowData.Pressed == nullptr*/)
 			{
 				/*if (window)
 				{
@@ -329,7 +329,7 @@ namespace Berta
 					BT_CORE_DEBUG << "mouse move: window: NULL." << std::endl;
 				}*/
 
-				if (rootWindowData.Hovered /* && (wParam & MK_LBUTTON) == 0*/)
+				if (rootWindowData.Hovered && rootWindowData.Pressed == nullptr)
 				{
 					ArgMouse argMouseLeave;
 					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
@@ -354,9 +354,10 @@ namespace Berta
 					window->Renderer.MouseEnter(argMouseEnter);
 					window->Events->MouseEnter.Emit(argMouseEnter);
 				}
+				
 			}
 			
-			if (rootWindowData.Pressed)
+			if (rootWindowData.Pressed == window)
 			{
 				ArgMouse argMouseMove;
 				argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Pressed);

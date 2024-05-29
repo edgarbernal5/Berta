@@ -74,6 +74,7 @@ namespace Berta
 				auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,300 });
 				m_floatBox->SetItems(m_items);
+				::SetCapture(window->RootWindow->RootHandle.Handle);
 				m_floatBox->Show();
 			}
 		}
@@ -91,6 +92,7 @@ namespace Berta
 
 	void ComboBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		int aa = 3;
 		//m_textEditor->OnMouseUp(args);
 	}
 

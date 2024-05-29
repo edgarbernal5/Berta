@@ -29,6 +29,9 @@ namespace Berta
 
 		void MakeWindowActive(Window* window, bool active);
 
+		void Capture(Window* window);
+		void ReleaseCapture(Window* window);
+
 		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, ControlAppearance* controlAppearance);

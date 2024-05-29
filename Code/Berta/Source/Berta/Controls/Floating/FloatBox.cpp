@@ -36,4 +36,9 @@ namespace Berta
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
 	}
+
+	FloatBox::~FloatBox()
+	{
+		::ReleaseCapture();
+	}
 }
