@@ -45,6 +45,8 @@ namespace Berta
 
 		//m_textEditor->Render();
 
+		graphics.DrawRectangle({ (int)window->Size.Width - 25, 1, 25, window->Size.Height - 2 }, GUI::GetBackgroundColor(window), true);
+
 		graphics.DrawLine({ (int)window->Size.Width - 25, 1 }, { (int)window->Size.Width - 25, (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
 	}
@@ -74,7 +76,7 @@ namespace Berta
 				auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,300 });
 				m_floatBox->SetItems(m_items);
-				::SetCapture(window->RootWindow->RootHandle.Handle);
+				::SetCapture(window->RootHandle.Handle);
 				m_floatBox->Show();
 			}
 		}

@@ -253,10 +253,11 @@ namespace Berta
 			window->DPI = newDPI;
 
 			float scalingFactor = (float)newDPI / oldDPI;
-			window->Position.X = window->Position.X * scalingFactor;
-			window->Position.Y = window->Position.Y * scalingFactor;
-			window->Size.Width = window->Size.Width * scalingFactor;
-			window->Size.Height = window->Size.Height * scalingFactor;
+			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
+			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+			window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
+			window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+
 			window->Renderer.GetGraphics().Release();
 			window->Renderer.GetGraphics().Build(window->Size);
 			window->Renderer.GetGraphics().BuildFont(newDPI);

@@ -57,8 +57,6 @@ namespace Berta
 			if (formStyle.Floating)
 				styleEx |= WS_EX_TOPMOST;
 
-			uint32_t dpi = GetNativeWindowDPI(parentHandle);
-			
 			RECT rect = rectangle.ToRECT();
 
 			HINSTANCE hInstance = GetModuleInstance();
@@ -88,7 +86,11 @@ namespace Berta
 			::RECT client;
 			::GetClientRect(hwnd, &client);
 
-			return NativeWindowResult{ { hwnd },{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) }, dpi };
+			return NativeWindowResult{
+				{ hwnd },
+				{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) },
+				GetNativeWindowDPI(parentHandle) 
+			};
 #else
 			return {};
 #endif

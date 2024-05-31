@@ -275,7 +275,6 @@ namespace Berta
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
-			//::SetCapture(hWnd); //TODO: FIX
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -409,7 +408,6 @@ namespace Berta
 			}
 			rootWindowData.Pressed = nullptr;
 
-			//::ReleaseCapture(); //TODO: FIX
 			break;
 		}
 		case WM_LBUTTONDBLCLK:
