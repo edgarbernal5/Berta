@@ -53,6 +53,10 @@ namespace Berta
 
 		Window* RootWindow{ nullptr };
 		std::vector<Window*> DeferredRequests;
+
+#if BT_DEBUG
+		std::string Name;
+#endif
 	};
 }
 

@@ -29,6 +29,11 @@ namespace Berta
 		void Hide();
 		void Dispose();
 
+#if BT_DEBUG
+		void SetDebugName(const std::string& name) {
+			m_handle->Name = name;
+		}
+#endif
 		operator Window* () const { return m_handle; }
 	protected:
 		virtual void DoOnCaption(const std::wstring& caption);

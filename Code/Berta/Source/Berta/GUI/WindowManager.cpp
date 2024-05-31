@@ -155,6 +155,9 @@ namespace Berta
 			return nullptr;
 		}
 
+		if (m_captured_window)
+			return m_captured_window;
+
 		if (IsPointOnWindow(window, point))
 		{
 			return FindInTree(window, point);
