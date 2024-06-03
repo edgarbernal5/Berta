@@ -61,6 +61,12 @@ namespace Berta
 
 	void WindowManager::DestroyInternal(Window* window)
 	{
+		if (window->Flags.IsDestroying) {
+			return;
+		}
+
+		window->Flags.IsDestroying = true;
+
 		ArgDestroy argDestroy;
 		window->Events->Destroy.Emit(argDestroy);
 
@@ -72,7 +78,8 @@ namespace Berta
 		}
 		window->Children.clear();
 
-		if (m_capture.WindowPtr == window) {
+		if (m_capture.WindowPtr == window)
+		{
 			ReleaseCapture(m_capture.WindowPtr);
 		}
 		
@@ -84,6 +91,11 @@ namespace Berta
 
 	void WindowManager::Dispose(Window* window)
 	{
+		if (window->Flags.IsDestroying)
+		{
+			return;
+		}
+
 		if (window->Type == WindowType::Native)
 		{
 			ArgClosing argClosing{ false };
@@ -253,7 +265,7 @@ namespace Berta
 		{
 			if (window->Type == WindowType::Native)
 			{
-				API::ShowNativeWindow(window->RootHandle, visible, window->MakeActive);
+				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
 			}
 
 			window->Visible = visible;

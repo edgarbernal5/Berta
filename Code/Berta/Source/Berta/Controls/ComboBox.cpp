@@ -38,8 +38,7 @@ namespace Berta
 		window->Events->Focus.Connect([&](const ArgFocus& args) {
 			if (!args.Focused && m_floatBox)
 			{
-				delete m_floatBox;
-				m_floatBox = nullptr;
+				m_floatBox->Dispose();
 			}
 		});
 	}
@@ -71,23 +70,21 @@ namespace Berta
 	{
 		if (args.ButtonState.LeftButton)
 		{
-			BT_CORE_TRACE << " m_floatBox is not null? " << (m_floatBox != nullptr) << std::endl;
-			if (m_floatBox)
+			auto window = m_control->Handle();
+			auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
+				
+			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight) + 2 });
+			m_floatBox->SetItems(m_items);
+			m_floatBox->SetSelectedIndex(m_selectedIndex);
+
+			m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 			{
 				delete m_floatBox;
 				m_floatBox = nullptr;
-			}
-			else
-			{
-				auto window = m_control->Handle();
-				auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
-				
-				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight) + 2 });
-				m_floatBox->SetItems(m_items);
-				m_floatBox->SetSelectedIndex(m_selectedIndex);
-				GUI::Capture(m_floatBox->Handle());
-				m_floatBox->Show();
-			}
+			});
+			GUI::Capture(m_floatBox->Handle());
+			m_floatBox->Show();
+			
 		}
 		/*m_textEditor->OnMouseDown(args);
 		m_control->Handle()->Renderer.Update();

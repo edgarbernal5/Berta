@@ -250,7 +250,7 @@ namespace Berta
 		}
 		case WM_MOUSEACTIVATE:
 		{
-			if (!nativeWindow->MakeActive)
+			if (!nativeWindow->Flags.MakeActive)
 			{
 				return MA_NOACTIVATE;
 			}
@@ -395,15 +395,16 @@ namespace Berta
 				argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				window->Renderer.MouseUp(argMouseUp);
-				window->Events->MouseUp.Emit(argMouseUp);
-
 				if (window->Size.IsInside(argMouseUp.Position))
 				{
 					ArgClick argClick;
 					window->Renderer.Click(argClick);
 					window->Events->Click.Emit(argClick);
 				}
+
+				window->Renderer.MouseUp(argMouseUp);
+				window->Events->MouseUp.Emit(argMouseUp);
+
 
 				rootWindowData.Released = rootWindowData.Pressed;
 			}

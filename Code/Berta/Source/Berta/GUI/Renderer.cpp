@@ -21,7 +21,11 @@ namespace Berta
 
 	void Renderer::Shutdown()
 	{
-		m_controlReactor->Shutdown();
+		if (m_controlReactor)
+		{
+			m_controlReactor->Shutdown();
+			m_controlReactor = nullptr;
+		}
 	}
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)

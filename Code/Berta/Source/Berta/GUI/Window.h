@@ -41,7 +41,6 @@ namespace Berta
 
 		uint32_t DPI{ 0 }; //TODO:
 
-		bool MakeActive{ true };
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
@@ -53,6 +52,12 @@ namespace Berta
 
 		Window* RootWindow{ nullptr };
 		std::vector<Window*> DeferredRequests;
+
+		struct Flags
+		{
+			bool IsDestroying{ false };
+			bool MakeActive{ true };
+		}Flags;
 
 #if BT_DEBUG
 		std::string Name;
