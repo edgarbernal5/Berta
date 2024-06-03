@@ -21,6 +21,12 @@ namespace Berta
 			delete m_textEditor;
 			m_textEditor = nullptr;
 		}
+
+		if (m_floatBox)
+		{
+			delete m_floatBox;
+			m_floatBox = nullptr;
+		}
 	}
 
 	void ComboBoxReactor::Init(ControlBase& control)
@@ -65,6 +71,7 @@ namespace Berta
 	{
 		if (args.ButtonState.LeftButton)
 		{
+			BT_CORE_TRACE << " m_floatBox is not null? " << (m_floatBox != nullptr) << std::endl;
 			if (m_floatBox)
 			{
 				delete m_floatBox;
@@ -74,9 +81,11 @@ namespace Berta
 			{
 				auto window = m_control->Handle();
 				auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
-				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,300 });
+				
+				m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight) + 2 });
 				m_floatBox->SetItems(m_items);
-				::SetCapture(window->RootHandle.Handle);
+				m_floatBox->SetSelectedIndex(m_selectedIndex);
+				GUI::Capture(m_floatBox->Handle());
 				m_floatBox->Show();
 			}
 		}

@@ -385,23 +385,24 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			//auto window = windowManager.Find(nativeWindow, { x, y });
-			if (/*window && window ==*/ rootWindowData.Pressed)
+			auto window = windowManager.Find(nativeWindow, { x, y });
+			//if (/*window && window ==*/ rootWindowData.Pressed && windowManager.Exists(rootWindowData.Pressed))
+			if (window)
 			{
 				ArgMouse argMouseUp;
-				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Pressed);
+				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
 				argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				rootWindowData.Pressed->Renderer.MouseUp(argMouseUp);
-				rootWindowData.Pressed->Events->MouseUp.Emit(argMouseUp);
+				window->Renderer.MouseUp(argMouseUp);
+				window->Events->MouseUp.Emit(argMouseUp);
 
-				if (rootWindowData.Pressed->Size.IsInside(argMouseUp.Position))
+				if (window->Size.IsInside(argMouseUp.Position))
 				{
 					ArgClick argClick;
-					rootWindowData.Pressed->Renderer.Click(argClick);
-					rootWindowData.Pressed->Events->Click.Emit(argClick);
+					window->Renderer.Click(argClick);
+					window->Events->Click.Emit(argClick);
 				}
 
 				rootWindowData.Released = rootWindowData.Pressed;

@@ -46,8 +46,9 @@ int main()
 
 	inputText.SetDebugName("inputText");
 	Berta::ComboBox comboBox(form, { 190,60,200,25 });
-	comboBox.PushItem(L"Ejemplo");
-	comboBox.SetDebugName("inputText");
+	comboBox.PushItem(L"Ejemplo 1");
+	comboBox.PushItem(L"Ejemplo 2");
+	comboBox.SetDebugName("comboBox");
 
 	form.Show();
 	form.Exec();

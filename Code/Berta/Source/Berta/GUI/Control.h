@@ -30,7 +30,8 @@ namespace Berta
 		void Dispose();
 
 #if BT_DEBUG
-		void SetDebugName(const std::string& name) {
+		void SetDebugName(const std::string& name)
+		{
 			m_handle->Name = name;
 		}
 #endif

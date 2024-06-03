@@ -72,6 +72,10 @@ namespace Berta
 		}
 		window->Children.clear();
 
+		if (m_capture.WindowPtr == window) {
+			ReleaseCapture(m_capture.WindowPtr);
+		}
+		
 		window->Renderer.Shutdown();
 		m_windowRegistry.erase(window);
 
@@ -82,10 +86,22 @@ namespace Berta
 	{
 		if (window->Type == WindowType::Native)
 		{
-			API::DestroyNativeWindow(window->RootHandle);
-			m_windowNativeRegistry.erase(window->RootHandle);
+			ArgClosing argClosing{ false };
+			auto events = dynamic_cast<RootEvents*>(window->Events.get());
+			events->Closing.Emit(argClosing);
+
+			if (!argClosing.Cancel)
+			{
+				window->Renderer.Shutdown();
+
+				API::DestroyNativeWindow(window->RootHandle);
+				m_windowNativeRegistry.erase(window->RootHandle);
+			}
 		}
-		m_windowRegistry.erase(window);
+		else
+		{
+			Destroy(window);
+		}
 	}
 
 	void WindowManager::Remove(Window* window)
@@ -131,20 +147,47 @@ namespace Berta
 
 	void WindowManager::Capture(Window* window)
 	{
-		if (m_captured_window != window)
+		if (m_capture.WindowPtr != window)
 		{
-			API::CaptureWindow(window->RootHandle, true);
+			if (Exists(window))
+			{
+				API::CaptureWindow(window->RootHandle, true);
 
-			m_captured_window = window;
+				if (m_capture.WindowPtr)
+				{
+					m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr);
+				}
+				m_capture.WindowPtr = window;
+			}
 		}
 	}
 
 	void WindowManager::ReleaseCapture(Window* window)
 	{
-		if (m_captured_window == window)
+		if (m_capture.WindowPtr == window)
 		{
-			m_captured_window = nullptr;
-			API::CaptureWindow(window->RootHandle, false);
+			m_capture.WindowPtr = nullptr;
+			if (!m_capture.PrevCaptured.empty())
+			{
+				auto lastCaptured = m_capture.PrevCaptured.back();
+				m_capture.PrevCaptured.pop_back();
+
+				if (Exists(lastCaptured))
+				{
+					m_capture.WindowPtr = lastCaptured;
+
+					API::CaptureWindow(lastCaptured->RootHandle, true);
+				}
+			}
+
+			if (window && m_capture.WindowPtr == nullptr)
+			{
+				API::CaptureWindow(window->RootHandle, false);
+			}
+		}
+		else
+		{
+
 		}
 	}
 
@@ -155,14 +198,33 @@ namespace Berta
 			return nullptr;
 		}
 
-		if (m_captured_window)
-			return m_captured_window;
+		if (!m_capture.WindowPtr)
+		{
+			if (IsPointOnWindow(window, point))
+			{
+				return FindInTree(window, point);
+			}
+
+			return nullptr;
+		}
 
 		if (IsPointOnWindow(window, point))
 		{
-			return FindInTree(window, point);
+			auto target = FindInTree(window, point);
+
+			auto current = target;
+			while (current)
+			{
+				if (current == m_capture.WindowPtr)
+				{
+					return target;
+				}
+
+				current = current->Parent;
+			}
 		}
-		return nullptr;
+
+		return m_capture.WindowPtr;
 	}
 
 	void WindowManager::UpdateTree(Window* window)
@@ -299,7 +361,12 @@ namespace Berta
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
-		return Rectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height}.IsInside(point);
+		return Rectangle{ 
+			window->Position.X, 
+			window->Position.Y, 
+			window->Size.Width, 
+			window->Size.Height
+		}.IsInside(point);
 	}
 
 	Window* WindowManager::FindInTree(Window* window, const Point& point)

@@ -24,21 +24,59 @@ namespace Berta
 		if (m_control->m_items)
 		{
 			auto& items = *m_control->m_items;
+			auto textItemHeight = graphics.GetTextExtent().Height;
 			for (size_t i = 0; i < items.size(); i++)
 			{
-				graphics.DrawString({ 2, ((static_cast<int>(30 - graphics.GetTextExtent().Height) >> 1) + 1) + static_cast<int>(i * 30) }, items[i], m_control->Handle()->Appereance->Foreground);
+				if (m_index == i)
+				{
+					graphics.DrawRectangle({1, 1 + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight), m_control->Handle()->Size.Width-2, m_control->GetAppearance().ComboBoxItemHeight }, m_control->Handle()->Appereance->HighlightColor, true);
+					graphics.DrawString({ 2, ((static_cast<int>(m_control->GetAppearance().ComboBoxItemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight) }, items[i], m_control->Handle()->Appereance->HighlightTextColor);
+				}
+				else
+				{
+					graphics.DrawString({ 2, ((static_cast<int>(m_control->GetAppearance().ComboBoxItemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight) }, items[i], m_control->Handle()->Appereance->Foreground);
+				}
 			}
 		}
+
+		graphics.DrawRectangle(m_control->GetAppearance().BoxBorderColor, false);
+	}
+
+	void FloatBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		auto& items = *m_control->m_items;
+		if (args.Position.X > 0 && args.Position.X < m_control->Handle()->Size.Width - 1 &&
+			args.Position.Y > 0 && args.Position.Y < m_control->Handle()->Size.Height - 2)
+		{
+			auto index = args.Position.Y / m_control->GetAppearance().ComboBoxItemHeight;
+
+			m_index = index;
+
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
+		}
+	}
+
+	void FloatBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_control->m_ignoreFirstMouseUp)
+		{
+			m_control->m_ignoreFirstMouseUp = false;
+			return;
+		}
+		m_control->Dispose();
 	}
 
 	FloatBox::FloatBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
+
+		m_ignoreFirstMouseUp = true;
 	}
 
 	FloatBox::~FloatBox()
 	{
-		::ReleaseCapture();
+		GUI::ReleaseCapture(this->Handle());
 	}
 }

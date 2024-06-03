@@ -22,8 +22,12 @@ namespace Berta
 
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 	private:
 		FloatBox* m_control{ nullptr };
+		int m_index{ -1 };
 	};
 
 	class FloatBox : public Control<FloatBoxReactor, RootEvents>
@@ -37,9 +41,16 @@ namespace Berta
 			m_items = &items;
 		}
 
+		void SetSelectedIndex(int& index)
+		{
+			m_selectedIndex = &index;
+		}
+
 		friend class FloatBoxReactor;
 	private:
 		std::vector<std::wstring>* m_items{ nullptr };
+		int* m_selectedIndex{ nullptr };
+		bool m_ignoreFirstMouseUp{ false };
 	};
 }
 

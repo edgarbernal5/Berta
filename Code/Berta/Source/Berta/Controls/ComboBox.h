@@ -41,6 +41,7 @@ namespace Berta
 		TextEditor* m_textEditor{ nullptr };
 
 		std::vector<std::wstring> m_items;
+		int m_selectedIndex{ -1 };
 		FloatBox* m_floatBox{ nullptr };
 	};
 

@@ -70,7 +70,11 @@ namespace Berta
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 
-		Window* m_captured_window{ nullptr };
+		struct Capture
+		{
+			Window* WindowPtr{ nullptr };
+			std::vector<Window*> PrevCaptured;
+		}m_capture;
 
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;

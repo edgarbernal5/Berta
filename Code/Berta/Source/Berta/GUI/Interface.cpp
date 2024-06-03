@@ -272,6 +272,7 @@ namespace Berta::GUI
 			static_cast<uint32_t>(size.Height * upwardScale)
 		};
 	}
+
 	Point GetPointClientToScreen(Window* window, const Point& point)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

@@ -85,7 +85,7 @@ namespace Berta
 
 	struct ArgClosing
 	{
-		bool Cancel;
+		bool Cancel{ false };
 	};
 
 	struct RootEvents : public CommonEvents
