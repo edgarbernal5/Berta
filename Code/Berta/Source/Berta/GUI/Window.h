@@ -40,7 +40,7 @@ namespace Berta
 		Point Position;
 
 		uint32_t DPI{ 0 }; //TODO:
-
+		float DPIScaleFactor{ 1.0f };
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };

@@ -31,6 +31,7 @@ namespace Berta::GUI
 			window->Size = windowResult.ClientSize;
 			window->RootWindow = window;
 			window->DPI = windowResult.DPI;
+			window->DPIScaleFactor = windowResult.DPI / 96.0f;
 
 			windowManager.AddNative(windowResult.WindowHandle, WindowManager::RootData(window, window->Size));
 			windowManager.Add(window);
@@ -65,6 +66,7 @@ namespace Berta::GUI
 		if (parent)
 		{
 			window->DPI = parent->DPI;
+			window->DPIScaleFactor = parent->DPIScaleFactor;
 			window->RootWindow = parent->RootWindow;
 			window->RootHandle = parent->RootHandle;
 			window->RootGraphics = parent->RootGraphics;

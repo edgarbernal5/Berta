@@ -246,10 +246,6 @@ namespace Berta
 
 		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
 
-		if (m_caret->IsVisible())
-		{
-			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
-		}
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
@@ -260,6 +256,10 @@ namespace Berta
 
 			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appereance->HighlightColor, true);
 			m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, selectionText, m_owner->Appereance->HighlightTextColor);
+		}
+		if (m_caret->IsVisible())
+		{
+			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
 		}
 	}
 

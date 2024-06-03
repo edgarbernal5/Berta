@@ -25,16 +25,20 @@ namespace Berta
 		{
 			auto& items = *m_control->m_items;
 			auto textItemHeight = graphics.GetTextExtent().Height;
+
+			auto window = m_control->Handle();
+			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+
 			for (size_t i = 0; i < items.size(); i++)
 			{
 				if (m_index == i)
 				{
-					graphics.DrawRectangle({1, 1 + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight), m_control->Handle()->Size.Width-2, m_control->GetAppearance().ComboBoxItemHeight }, m_control->Handle()->Appereance->HighlightColor, true);
-					graphics.DrawString({ 2, ((static_cast<int>(m_control->GetAppearance().ComboBoxItemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight) }, items[i], m_control->Handle()->Appereance->HighlightTextColor);
+					graphics.DrawRectangle({ 1, 1 + static_cast<int>(i * itemHeight), m_control->Handle()->Size.Width - 2,itemHeight }, m_control->Handle()->Appereance->HighlightColor, true);
+					graphics.DrawString({ 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->HighlightTextColor);
 				}
 				else
 				{
-					graphics.DrawString({ 2, ((static_cast<int>(m_control->GetAppearance().ComboBoxItemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * m_control->GetAppearance().ComboBoxItemHeight) }, items[i], m_control->Handle()->Appereance->Foreground);
+					graphics.DrawString({ 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->Foreground);
 				}
 			}
 		}
@@ -48,7 +52,9 @@ namespace Berta
 		if (args.Position.X > 0 && args.Position.X < m_control->Handle()->Size.Width - 1 &&
 			args.Position.Y > 0 && args.Position.Y < m_control->Handle()->Size.Height - 2)
 		{
-			auto index = args.Position.Y / m_control->GetAppearance().ComboBoxItemHeight;
+			auto window = m_control->Handle();
+			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto index = args.Position.Y / itemHeight;
 
 			m_index = index;
 
@@ -92,6 +98,5 @@ namespace Berta
 
 	FloatBox::~FloatBox()
 	{
-		//GUI::ReleaseCapture(this->Handle());
 	}
 }

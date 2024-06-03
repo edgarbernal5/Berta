@@ -50,9 +50,32 @@ namespace Berta
 
 		//m_textEditor->Render();
 
-		graphics.DrawRectangle({ (int)window->Size.Width - 25, 1, 25, window->Size.Height - 2 }, GUI::GetBackgroundColor(window), true);
+		auto buttonSize = static_cast<uint32_t>(25 * window->DPIScaleFactor);
 
-		graphics.DrawLine({ (int)window->Size.Width - 25, 1 }, { (int)window->Size.Width - 25, (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
+		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, GUI::GetBackgroundColor(window), true);
+
+		int arrowSize = static_cast<uint32_t>(11 * window->DPIScaleFactor);
+		Point arrowPosition{ ((int)buttonSize - arrowSize) >> 1, ((int)window->Size.Height - arrowSize) >> 1 };
+
+		graphics.DrawLine(
+			{
+				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X,1 + arrowPosition.Y
+			},
+			{
+				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + (arrowSize >> 1), 1 + arrowPosition.Y + arrowSize
+			},
+			window->Appereance->BoxBorderColor);
+
+		graphics.DrawLine(
+			{
+				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + (arrowSize >> 1),1 + arrowPosition.Y + arrowSize
+			},
+			{
+				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + arrowSize, 1 + arrowPosition.Y
+			},
+			window->Appereance->BoxBorderColor);
+
+		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, { static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
 	}
 
@@ -72,8 +95,9 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
-				
-			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight) + 2 });
+
+			auto floatBoxHeight = static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,floatBoxHeight + 2 });
 			m_floatBox->SetItems(m_items);
 			m_floatBox->SetSelectedIndex(m_selectedIndex);
 

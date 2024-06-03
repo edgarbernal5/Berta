@@ -199,7 +199,7 @@ namespace Berta
 		}
 		else
 		{
-
+			
 		}
 	}
 
@@ -325,6 +325,7 @@ namespace Berta
 		{
 			auto oldDPI = window->DPI;
 			window->DPI = newDPI;
+			window->DPIScaleFactor = newDPI / 96.0f;
 
 			float scalingFactor = (float)newDPI / oldDPI;
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
