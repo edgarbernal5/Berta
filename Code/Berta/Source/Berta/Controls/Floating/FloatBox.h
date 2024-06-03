@@ -25,6 +25,8 @@ namespace Berta
 
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+
+		void SetIndex(int index);
 	private:
 		FloatBox* m_control{ nullptr };
 		int m_index{ -1 };
@@ -44,6 +46,7 @@ namespace Berta
 		void SetSelectedIndex(int& index)
 		{
 			m_selectedIndex = &index;
+			m_reactor.SetIndex(index);
 		}
 
 		friend class FloatBoxReactor;

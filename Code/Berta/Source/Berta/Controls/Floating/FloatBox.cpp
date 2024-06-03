@@ -64,7 +64,22 @@ namespace Berta
 			m_control->m_ignoreFirstMouseUp = false;
 			return;
 		}
+
+		if (args.Position.X > 0 && args.Position.X < m_control->Handle()->Size.Width - 1 &&
+			args.Position.Y > 0 && args.Position.Y < m_control->Handle()->Size.Height - 2)
+		{
+			*m_control->m_selectedIndex = m_index;
+
+			//update combo box?
+			GUI::UpdateDeferred(*m_control);
+		}
+
 		m_control->Dispose();
+	}
+
+	void FloatBoxReactor::SetIndex(int index)
+	{
+		m_index = index;
 	}
 
 	FloatBox::FloatBox(Window* parent, const Rectangle& rectangle)
@@ -77,6 +92,6 @@ namespace Berta
 
 	FloatBox::~FloatBox()
 	{
-		GUI::ReleaseCapture(this->Handle());
+		//GUI::ReleaseCapture(this->Handle());
 	}
 }
