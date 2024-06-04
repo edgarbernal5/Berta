@@ -28,9 +28,13 @@ namespace Berta
 		void Build(const Size& size);
 		void BuildFont(uint32_t dpi);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
+		void BeginPath(const Color& color);
+		void EndPath();
+		void FillPath();
+
 		void DrawLine(const Point& point1, const Point& point2, const Color& color);
 		void DrawBeginLine(const Point& point, const Color& color);
-		void DrawEndLine(const Point& point, const Color& color, bool lastPoint = false);
+		void DrawLineTo(const Point& point, const Color& color);
 
 		void DrawRectangle(const Color& color, bool solid);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);

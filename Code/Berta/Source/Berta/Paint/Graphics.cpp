@@ -119,6 +119,42 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::BeginPath(const Color& color)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc)
+		{
+			auto brush = ::CreateSolidBrush(color.BGR);
+			::SelectObject(m_attributes->m_hdc, brush);
+			
+			::BeginPath(m_attributes->m_hdc);
+		}
+#endif
+	}
+
+	void Graphics::EndPath()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc)
+		{
+			::EndPath(m_attributes->m_hdc);
+		}
+#endif
+	}
+
+	void Graphics::FillPath()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc)
+		{
+			::FillPath(m_attributes->m_hdc);
+
+			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, m_attributes->m_hLastPen);
+			::DeleteObject(hOldPen);
+		}
+#endif
+	}
+
 	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -151,18 +187,12 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawEndLine(const Point& point, const Color& color, bool lastPoint)
+	void Graphics::DrawLineTo(const Point& point, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc)
 		{
 			::LineTo(m_attributes->m_hdc, point.X, point.Y);
-
-			if (lastPoint)
-			{
-				HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, m_attributes->m_hLastPen);
-				::DeleteObject(hOldPen);
-			}
 		}
 #endif
 	}
