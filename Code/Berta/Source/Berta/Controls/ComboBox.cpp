@@ -54,26 +54,8 @@ namespace Berta
 
 		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, GUI::GetBackgroundColor(window), true);
 
-		int arrowSize = static_cast<uint32_t>(11 * window->DPIScaleFactor);
-		Point arrowPosition{ ((int)buttonSize - arrowSize) >> 1, ((int)window->Size.Height - arrowSize) >> 1 };
-
-		graphics.DrawLine(
-			{
-				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X,1 + arrowPosition.Y
-			},
-			{
-				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + (arrowSize >> 1), 1 + arrowPosition.Y + arrowSize
-			},
-			window->Appereance->BoxBorderColor);
-
-		graphics.DrawLine(
-			{
-				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + (arrowSize >> 1),1 + arrowPosition.Y + arrowSize
-			},
-			{
-				static_cast<int>(window->Size.Width - buttonSize) + arrowPosition.X + arrowSize, 1 + arrowPosition.Y
-			},
-			window->Appereance->BoxBorderColor);
+		int arrowWidth = static_cast<uint32_t>(5 * window->DPIScaleFactor);
+		DrawArrow(graphics, { static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, arrowWidth, arrowWidth);
 
 		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, { static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
@@ -154,6 +136,37 @@ namespace Berta
 			//window->Renderer.Update();
 			//GUI::UpdateDeferred(window);
 		}
+	}
+
+	void ComboBoxReactor::DrawArrow(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth)
+	{
+		Point arrowPoints[3];
+
+		int centerX = (rect.X * 2 + rect.Width) >> 1;
+		int centerY = (rect.Y * 2 + rect.Height) >> 1;
+
+		arrowPoints[0].X = centerX - arrowWidth;
+		arrowPoints[0].Y = centerY - arrowLength;
+
+		arrowPoints[1].X = centerX + arrowWidth;
+		arrowPoints[1].Y = centerY - arrowLength;
+
+		arrowPoints[2].X = centerX;
+		arrowPoints[2].Y = centerY + arrowLength;
+
+		auto window = m_control->Handle();
+		// Move to the first point
+		//MoveToEx(hdc, points[0].x, points[0].y, NULL);
+		graphics.DrawBeginLine(arrowPoints[0], window->Appereance->BoxBorderColor);
+
+		// Draw lines to each subsequent point
+		for (int i = 1; i < 3; ++i) {
+			//LineTo(hdc, points[i].x, points[i].y);
+			graphics.DrawEndLine(arrowPoints[i], window->Appereance->BoxBorderColor);
+		}
+
+		// Close the polygon by drawing a line back to the first point
+		graphics.DrawEndLine(arrowPoints[0], window->Appereance->BoxBorderColor, true);
 	}
 
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
