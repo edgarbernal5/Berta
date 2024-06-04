@@ -31,7 +31,7 @@ namespace Berta
 
 	void ComboBoxReactor::Init(ControlBase& control)
 	{
-		m_control = &control;
+		m_control = reinterpret_cast<ComboBox*>(&control);
 		m_textEditor = new TextEditor(*m_control);
 
 		auto window = m_control->Handle();
@@ -49,6 +49,8 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBoxBackgroundColor(window), true);
 
 		//m_textEditor->Render();
+		auto textItemHeight = graphics.GetTextExtent().Height;
+		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, GUI::GetForegroundColor(window));
 
 		auto buttonSize = static_cast<uint32_t>(24 * window->DPIScaleFactor);
 
@@ -79,64 +81,66 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
-			auto floatBoxHeight = static_cast<uint32_t>(m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto floatBoxHeight = static_cast<uint32_t>(m_selectionState.m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
 			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,floatBoxHeight + 2 });
-			m_floatBox->SetItems(m_items);
-			m_floatBox->SetSelectedIndex(m_selectedIndex);
+			m_floatBox->Init(m_selectionState);
 
 			m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 			{
+				int selectedIndex = m_floatBox->GetState().m_index;
+
 				delete m_floatBox;
 				m_floatBox = nullptr;
+
+				if (m_selectionState.m_isSelected && selectedIndex != m_selectionState.m_selectedIndex)
+				{
+					m_selectionState.m_selectedIndex = selectedIndex;
+					m_text = m_selectionState.m_items[m_selectionState.m_selectedIndex];
+					
+					auto window = m_control->Handle();
+					window->Renderer.Update();
+					GUI::UpdateDeferred(window);
+				}
 			});
+
 			GUI::Capture(m_floatBox->Handle());
 			m_floatBox->Show();
-			
 		}
-		/*m_textEditor->OnMouseDown(args);
-		m_control->Handle()->Renderer.Update();
-		GUI::UpdateDeferred(m_control->Handle());*/
 	}
 
 	void ComboBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		//m_textEditor->OnMouseMove(args);
-		//m_control->Handle()->Renderer.Update();
-		//GUI::UpdateDeferred(m_control->Handle());
 	}
 
 	void ComboBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		int aa = 3;
-		//m_textEditor->OnMouseUp(args);
 	}
 
 	void ComboBoxReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
-		//auto window = m_control->Handle();
-		//m_textEditor->OnFocus(args);
 	}
 
 	void ComboBoxReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
 	{
-		BT_CORE_DEBUG << "key char: " << (int)args.Key << ". " << std::endl;
-		if (m_textEditor->OnKeyChar(args))
-		{
-			//GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
-			//m_control->Handle()->Renderer.Update();
-			//GUI::UpdateDeferred(m_control->Handle());
-		}
+
 	}
 
 	void ComboBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-		//bool redraw = m_textEditor->OnKeyPressed(args);
-		//if (redraw)
-		{
-			//auto window = m_control->Handle();
-			//window->Renderer.Update();
-			//GUI::UpdateDeferred(window);
-		}
+
+	}
+
+	std::wstring ComboBoxReactor::GetText() const
+	{
+		return m_text;
+	}
+
+	void ComboBoxReactor::SetText(const std::wstring& text)
+	{
+		m_text = text;
+		auto window = m_control->Handle();
+		window->Renderer.Update();
+		GUI::UpdateDeferred(window);
 	}
 
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
@@ -146,20 +150,16 @@ namespace Berta
 
 	void ComboBox::PushItem(const std::wstring& text)
 	{
-		m_reactor.m_items.push_back(text);
+		m_reactor.GetSelectionState().m_items.push_back(text);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)
 	{
-		//auto editor = m_reactor.GetEditor();
-		//if (editor)
-		//{
-		//	editor->SetContent(caption);
-		//}
+		m_reactor.SetText(caption);
 	}
 
 	std::wstring ComboBox::DoOnCaption()
 	{
-		return std::wstring();
+		return m_reactor.GetText();
 	}
 }

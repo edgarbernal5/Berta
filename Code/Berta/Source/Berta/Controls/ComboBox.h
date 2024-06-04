@@ -10,11 +10,13 @@
 #include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Controls/Floating/InteractionData.h"
 
 namespace Berta
 {
 	class TextEditor;
 	class FloatBox;
+	class ComboBox;
 
 	class ComboBoxReactor : public ControlReactor
 	{
@@ -33,15 +35,19 @@ namespace Berta
 		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
+		std::wstring GetText() const;
+		void SetText(const std::wstring& text);
+
+		GUI::InteractionData& GetSelectionState() { return m_selectionState; }
 		TextEditor* GetEditor() const { return m_textEditor; }
 
-		friend class ComboBox;
 	private:
-		ControlBase* m_control{ nullptr };
+		ComboBox* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
+		std::wstring m_text;
 
-		std::vector<std::wstring> m_items;
-		int m_selectedIndex{ -1 };
+		GUI::InteractionData m_selectionState;
+		
 		FloatBox* m_floatBox{ nullptr };
 	};
 

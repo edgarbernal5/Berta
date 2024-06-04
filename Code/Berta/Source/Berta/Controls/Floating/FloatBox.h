@@ -10,6 +10,7 @@
 #include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Controls/Floating/InteractionData.h"
 
 namespace Berta
 {
@@ -26,10 +27,26 @@ namespace Berta
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
-		void SetIndex(int index);
+		void SetState(GUI::InteractionData& selection)
+		{
+			m_selectionState = &selection;
+			m_state.m_index = selection.m_selectedIndex;
+			selection.m_isSelected = false;
+		}
+
+		struct State {
+			int m_index;
+		};
+
+		State& GetState() {	return m_state; }
+
 	private:
 		FloatBox* m_control{ nullptr };
-		int m_index{ -1 };
+
+		GUI::InteractionData* m_selectionState{ nullptr };
+		State m_state;
+
+		bool m_ignoreFirstMouseUp{ true };
 	};
 
 	class FloatBox : public Control<FloatBoxReactor, RootEvents>
@@ -38,22 +55,14 @@ namespace Berta
 		FloatBox(Window* parent, const Rectangle& rectangle);
 		~FloatBox();
 
-		void SetItems(std::vector<std::wstring>& items)
+		void Init(GUI::InteractionData& state)
 		{
-			m_items = &items;
+			m_reactor.SetState(state);
 		}
 
-		void SetSelectedIndex(int& index)
-		{
-			m_selectedIndex = &index;
-			m_reactor.SetIndex(index);
-		}
+		FloatBoxReactor::State& GetState() { return m_reactor.GetState(); }
 
-		friend class FloatBoxReactor;
 	private:
-		std::vector<std::wstring>* m_items{ nullptr };
-		int* m_selectedIndex{ nullptr };
-		bool m_ignoreFirstMouseUp{ false };
 	};
 }
 

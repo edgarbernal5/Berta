@@ -23,7 +23,7 @@ namespace Berta
 		Color HighlightColor{ Colors::Light_HighlightColor };
 		Color HighlightTextColor{ Colors::Light_HighlightTextColor };
 
-		uint32_t ComboBoxItemHeight = 24;
+		uint32_t ComboBoxItemHeight = 20;
 	};
 }
 

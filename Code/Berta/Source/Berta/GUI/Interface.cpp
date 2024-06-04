@@ -22,6 +22,7 @@ namespace Berta::GUI
 		{
 			parentHandle = parent->RootWindow->RootHandle;
 		}
+
 		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle);
 		if (windowResult.WindowHandle.Handle)
 		{
