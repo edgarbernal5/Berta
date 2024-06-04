@@ -28,10 +28,7 @@ namespace Berta
 		void Build(const Size& size);
 		void BuildFont(uint32_t dpi);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
-		void BeginPath(const Color& color);
-		void EndPath();
-		void FillPath();
-
+		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color);
 		void DrawBeginLine(const Point& point, const Color& color);
 		void DrawLineTo(const Point& point, const Color& color);
@@ -39,6 +36,8 @@ namespace Berta
 		void DrawRectangle(const Color& color, bool solid);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
 		void DrawString(const Point& position, const std::wstring& str, const Color& color);
+
+		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, bool solid = true);
 
 		const Size& GetSize() const { return m_attributes->m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
@@ -61,7 +60,6 @@ namespace Berta
 			HDC m_hdc{ nullptr };
 			HBITMAP	m_hBitmap{ nullptr };
 			HFONT m_hFont{ nullptr };
-			HPEN m_hLastPen{ nullptr };
 			uint32_t m_lastForegroundColor{ 0 };
 			Size m_size;
 			Size m_textExtent;

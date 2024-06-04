@@ -199,7 +199,11 @@ namespace Berta
 		}
 		else
 		{
-			
+			auto it = std::find(m_capture.PrevCaptured.begin(), m_capture.PrevCaptured.end(), window);
+			if (it != m_capture.PrevCaptured.end())
+			{
+				m_capture.PrevCaptured.erase(it);
+			}
 		}
 	}
 

@@ -119,56 +119,22 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::BeginPath(const Color& color)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
-		{
-			auto brush = ::CreateSolidBrush(color.BGR);
-			::SelectObject(m_attributes->m_hdc, brush);
-			
-			::BeginPath(m_attributes->m_hdc);
-		}
-#endif
-	}
-
-	void Graphics::EndPath()
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
-		{
-			::EndPath(m_attributes->m_hdc);
-		}
-#endif
-	}
-
-	void Graphics::FillPath()
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
-		{
-			::FillPath(m_attributes->m_hdc);
-
-			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, m_attributes->m_hLastPen);
-			::DeleteObject(hOldPen);
-		}
-#endif
-	}
-
 	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
+		if (!m_attributes->m_hdc)
 		{
-			HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
-			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
-
-			::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
-			::LineTo(m_attributes->m_hdc, point2.X, point2.Y);
-
-			::SelectObject(m_attributes->m_hdc, hOldPen);
-			::DeleteObject(hPen);
+			return;
 		}
+
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+
+		::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
+		::LineTo(m_attributes->m_hdc, point2.X, point2.Y);
+
+		::SelectObject(m_attributes->m_hdc, hOldPen);
+		::DeleteObject(hPen);
 #endif
 	}
 
@@ -181,8 +147,6 @@ namespace Berta
 			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 			::MoveToEx(m_attributes->m_hdc, point.X, point.Y, 0);
-
-			m_attributes->m_hLastPen = hOldPen;
 		}
 #endif
 	}
@@ -190,10 +154,11 @@ namespace Berta
 	void Graphics::DrawLineTo(const Point& point, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
+		if (!m_attributes->m_hdc)
 		{
-			::LineTo(m_attributes->m_hdc, point.X, point.Y);
+			return;
 		}
+		::LineTo(m_attributes->m_hdc, point.X, point.Y);
 #endif
 	}
 
@@ -249,6 +214,65 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, bool solid)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+
+		Point arrowPoints[3];
+
+		int centerX = (rect.X * 2 + rect.Width) >> 1;
+		int centerY = (rect.Y * 2 + rect.Height) >> 1;
+
+		arrowPoints[0].X = centerX - arrowWidth;
+		arrowPoints[0].Y = centerY - arrowLength;
+
+		arrowPoints[1].X = centerX + arrowWidth;
+		arrowPoints[1].Y = centerY - arrowLength;
+
+		arrowPoints[2].X = centerX;
+		arrowPoints[2].Y = centerY + arrowLength;
+
+		HBRUSH brush = ::CreateSolidBrush(color.BGR);
+		::SelectObject(m_attributes->m_hdc, brush);
+
+		if (solid)
+		{
+			::BeginPath(m_attributes->m_hdc);
+		}
+
+		// Move to the first point
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+
+		::MoveToEx(m_attributes->m_hdc, arrowPoints[0].X, arrowPoints[0].Y, 0);
+
+		// Draw lines to each subsequent point
+		for (int i = 1; i < 3; ++i)
+		{
+			::LineTo(m_attributes->m_hdc, arrowPoints[i].X, arrowPoints[i].Y);
+		}
+
+		// Close the polygon by drawing a line back to the first point
+		::LineTo(m_attributes->m_hdc, arrowPoints[0].X, arrowPoints[0].Y);
+
+		if (solid)
+		{
+			::EndPath(m_attributes->m_hdc);
+			::FillPath(m_attributes->m_hdc);
+		}
+
+		if (hPen)
+			::DeleteObject(hPen);
+
+		if (brush)
+			::DeleteObject(brush);
+#endif
+	}
+
 	void Graphics::Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const
 	{
 		Paste(destination, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
@@ -257,20 +281,22 @@ namespace Berta
 	void Graphics::Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc)
+		if (!m_attributes->m_hdc)
 		{
-			HDC dc = ::GetDC(destination.Handle);
-			if (dc)
-			{
-				if (!::BitBlt(dc, dx, dy, width, height, m_attributes->m_hdc, sx, sy, SRCCOPY))
-				{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-					BT_CORE_ERROR << "BitBlt / Paste ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-				}
+			return;
+		}
 
-				::ReleaseDC(destination.Handle, dc);
+		HDC dc = ::GetDC(destination.Handle);
+		if (dc)
+		{
+			if (!::BitBlt(dc, dx, dy, width, height, m_attributes->m_hdc, sx, sy, SRCCOPY))
+			{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+				BT_CORE_ERROR << "BitBlt / Paste ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
 			}
+
+			::ReleaseDC(destination.Handle, dc);
 		}
 #endif
 	}
@@ -290,7 +316,7 @@ namespace Berta
 	Size Graphics::GetTextExtent(const std::wstring& wstr)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
+		if (!m_attributes->m_hdc || wstr.size() == 0)
 			return {};
 
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);

@@ -37,8 +37,6 @@ namespace Berta
 
 		friend class ComboBox;
 	private:
-		void DrawArrow(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth);
-
 		ControlBase* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
 
