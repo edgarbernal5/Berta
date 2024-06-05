@@ -11,6 +11,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/Interface.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -98,22 +99,22 @@ namespace Berta
 	{
 		bool redraw = false;
 		auto contentSize = m_content.size();
-		if (args.Key == VK_LEFT && (m_caretPosition > 0 || m_selectionStartPosition != m_selectionEndPosition))
+		if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			MoveCaretLeft();
 			redraw = true;
 		}
-		else if (args.Key == VK_RIGHT && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
+		else if (args.Key == KeyboardKey::ArrowRight && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			MoveCaretRight();
 			redraw = true;
 		}
-		else if (args.Key == VK_BACK && m_caretPosition > 0)
+		else if (args.Key == KeyboardKey::Backspace && m_caretPosition > 0)
 		{
 			DeleteBack();
 			redraw = true;
 		}
-		else if (args.Key == VK_DELETE && m_caretPosition < contentSize)
+		else if (args.Key == KeyboardKey::Delete && m_caretPosition < contentSize)
 		{
 			Delete();
 			redraw = true;

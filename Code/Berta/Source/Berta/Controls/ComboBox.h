@@ -38,7 +38,7 @@ namespace Berta
 		std::wstring GetText() const;
 		void SetText(const std::wstring& text);
 
-		GUI::InteractionData& GetSelectionState() { return m_selectionState; }
+		GUI::InteractionData& GetInteractionData() { return m_interactionData; }
 		TextEditor* GetEditor() const { return m_textEditor; }
 
 	private:
@@ -49,22 +49,27 @@ namespace Berta
 			Hovered
 		};
 
+
+		void EmitSelectionEvent(int index);
+
 		ComboBox* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
 		std::wstring m_text;
 
 		State m_status{ State::Normal };
-		GUI::InteractionData m_selectionState;
+		GUI::InteractionData m_interactionData;
 		
 		FloatBox* m_floatBox{ nullptr };
 	};
 
-	class ComboBox : public Control<ComboBoxReactor>
+	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents>
 	{
 	public:
 		ComboBox(Window* parent, const Rectangle& rectangle);
 
+		void Clear();
 		void PushItem(const std::wstring& text);
+		int GetSelectedIndex() { m_reactor.GetInteractionData().m_selectedIndex; }
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

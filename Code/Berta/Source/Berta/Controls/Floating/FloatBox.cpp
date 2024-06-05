@@ -6,6 +6,7 @@
 
 #include "btpch.h"
 #include "FloatBox.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -23,9 +24,9 @@ namespace Berta
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Appereance->BoxBackground, true);
 		
-		if (m_selectionState)
+		if (m_interactionData)
 		{
-			auto& items = m_selectionState->m_items;
+			auto& items = m_interactionData->m_items;
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
 			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
@@ -73,23 +74,29 @@ namespace Berta
 
 		if (IsInside(args.Position))
 		{
-			m_selectionState->m_isSelected = true;
+			m_interactionData->m_isSelected = true;
 		}
 
 		m_control->Dispose();
 	}
 
-
-	void FloatBoxReactor::MoveSelectedItem(int direction)
+	void FloatBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-		int newIndex = (std::max)(0, (std::min)(m_state.m_index + direction, (int)(m_selectionState->m_items.size()) - 1));
-		if (m_state.m_index != newIndex)
+	}
+
+
+	bool FloatBoxReactor::MoveSelectedItem(int direction)
+	{
+		int newIndex = (std::max)(0, (std::min)(m_state.m_index + direction, (int)(m_interactionData->m_items.size()) - 1));
+		if (m_state.m_index != newIndex && !m_interactionData->m_items.empty())
 		{
 			m_state.m_index = newIndex;
 
 			m_control->Handle()->Renderer.Update();
 			GUI::RefreshWindow(m_control->Handle());
+			return true;
 		}
+		return false;
 	}
 
 	bool FloatBoxReactor::IsInside(const Point& point)
@@ -111,12 +118,12 @@ namespace Berta
 	bool FloatBox::OnKeyPressed(const ArgKeyboard& args)
 	{
 		bool redraw = false;
-		
+		//m_reactor.KeyPressed(m_handle->Renderer.GetGraphics(), args);
 		return redraw;
 	}
 
-	void FloatBox::MoveSelectedItem(int direction)
+	bool FloatBox::MoveSelectedItem(int direction)
 	{
-		m_reactor.MoveSelectedItem(direction);
+		return m_reactor.MoveSelectedItem(direction);
 	}
 }

@@ -95,6 +95,16 @@ namespace Berta
 		Event<ArgSizeMove>	ExitSizeMove;
 		Event<ArgClosing>	Closing;
 	};
+
+	struct ArgComboBox
+	{
+		int SelectedIndex;
+	};
+
+	struct ComboboxEvents : public CommonEvents
+	{
+		Event<ArgComboBox>	Selected;
+	};
 }
 
 #endif

@@ -138,6 +138,7 @@
     <ClInclude Include="Source\Berta\Controls\Floating\InteractionData.h">
       <Filter>Source\Berta\Controls\Floating</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\EnumTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

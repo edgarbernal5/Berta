@@ -26,10 +26,11 @@ namespace Berta
 
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 		void SetState(GUI::InteractionData& selection)
 		{
-			m_selectionState = &selection;
+			m_interactionData = &selection;
 			m_state.m_index = selection.m_selectedIndex;
 			selection.m_isSelected = false;
 		}
@@ -42,13 +43,13 @@ namespace Berta
 		State& GetState() {	return m_state; }
 
 
-		void MoveSelectedItem(int direction);
+		bool MoveSelectedItem(int direction);
 	private:
 		bool IsInside(const Point& point);
 
 		FloatBox* m_control{ nullptr };
 
-		GUI::InteractionData* m_selectionState{ nullptr };
+		GUI::InteractionData* m_interactionData{ nullptr };
 		State m_state;
 
 		bool m_ignoreFirstMouseUp{ true };
@@ -66,7 +67,7 @@ namespace Berta
 			m_reactor.SetState(state);
 		}
 
-		void MoveSelectedItem(int direction);
+		bool MoveSelectedItem(int direction);
 		FloatBoxReactor::State& GetState() { return m_reactor.GetState(); }
 
 	private:

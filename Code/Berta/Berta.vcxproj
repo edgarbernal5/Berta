@@ -145,6 +145,7 @@
     <ClInclude Include="Source\Berta\Core\Timer.h" />
     <ClInclude Include="Source\Berta\GUI\CommonEvents.h" />
     <ClInclude Include="Source\Berta\GUI\Cursor.h" />
+    <ClInclude Include="Source\Berta\GUI\EnumTypes.h" />
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
     <ClInclude Include="Source\Berta\GUI\ControlAppearance.h" />
     <ClInclude Include="Source\Berta\Paint\Font.h" />

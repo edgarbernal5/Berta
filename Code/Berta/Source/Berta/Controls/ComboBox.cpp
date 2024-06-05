@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
+#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Controls/TextEditors/TextEditor.h"
 #include "Berta/Controls/Floating/FloatBox.h"
 
@@ -92,9 +93,9 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
-			auto floatBoxHeight = static_cast<uint32_t>(m_selectionState.m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto floatBoxHeight = static_cast<uint32_t>(m_interactionData.m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
 			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,floatBoxHeight + 2 });
-			m_floatBox->Init(m_selectionState);
+			m_floatBox->Init(m_interactionData);
 
 			m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 			{
@@ -103,11 +104,12 @@ namespace Berta
 				delete m_floatBox;
 				m_floatBox = nullptr;
 
-				if (m_selectionState.m_isSelected && selectedIndex != m_selectionState.m_selectedIndex)
+				if (m_interactionData.m_isSelected && selectedIndex != m_interactionData.m_selectedIndex && !m_interactionData.m_items.empty())
 				{
-					m_selectionState.m_selectedIndex = selectedIndex;
-					m_text = m_selectionState.m_items[m_selectionState.m_selectedIndex];
-					
+					m_interactionData.m_selectedIndex = selectedIndex;
+					m_text = m_interactionData.m_items[m_interactionData.m_selectedIndex];
+
+					EmitSelectionEvent(selectedIndex);
 					auto window = m_control->Handle();
 					window->Renderer.Update();
 					GUI::UpdateDeferred(window);
@@ -141,16 +143,55 @@ namespace Berta
 		bool redraw = false;
 		if (m_floatBox)
 		{
-			if (args.Key == VK_UP)
+			if (args.Key == KeyboardKey::ArrowUp)
 			{
-				m_floatBox->MoveSelectedItem(-1);
-				redraw = true;
+				if (m_floatBox->MoveSelectedItem(-1))
+				{
+					redraw = true;
+				}
 			}
 
-			if (args.Key == VK_DOWN)
+			if (args.Key == KeyboardKey::ArrowDown)
 			{
-				m_floatBox->MoveSelectedItem(1);
-				redraw = true;
+				if (m_floatBox->MoveSelectedItem(1))
+				{
+					redraw = true;
+				}
+			}
+			if (args.Key == KeyboardKey::Enter)
+			{
+				if (m_floatBox->GetState().m_index >= 0 && m_floatBox->GetState().m_index < m_interactionData.m_items.size())
+				{
+					m_interactionData.m_selectedIndex = m_floatBox->GetState().m_index;
+					m_text = m_interactionData.m_items[m_interactionData.m_selectedIndex];
+					m_floatBox->Dispose();
+					EmitSelectionEvent(m_interactionData.m_selectedIndex);
+					redraw = true;
+				}
+				
+			}
+		}
+		else
+		{
+			if (args.Key == KeyboardKey::ArrowUp)
+			{
+				int newIndex = (std::max)(0, (std::min)(m_interactionData.m_selectedIndex - 1, (int)(m_interactionData.m_items.size()) - 1));
+				if (m_interactionData.m_selectedIndex != newIndex && !m_interactionData.m_items.empty()) {
+					m_interactionData.m_selectedIndex = newIndex;
+					m_text = m_interactionData.m_items[newIndex];
+					EmitSelectionEvent(newIndex);
+					redraw = true;
+				}
+			}
+			if (args.Key == KeyboardKey::ArrowDown)
+			{
+				int newIndex = (std::max)(0, (std::min)(m_interactionData.m_selectedIndex + 1, (int)(m_interactionData.m_items.size()) - 1));
+				if (m_interactionData.m_selectedIndex != newIndex && !m_interactionData.m_items.empty()) {
+					m_interactionData.m_selectedIndex = newIndex;
+					m_text = m_interactionData.m_items[newIndex];
+					EmitSelectionEvent(newIndex);
+					redraw = true;
+				}
 			}
 		}
 		if (redraw)
@@ -174,14 +215,28 @@ namespace Berta
 		GUI::UpdateDeferred(window);
 	}
 
+
+	void ComboBoxReactor::EmitSelectionEvent(int index)
+	{
+		ArgComboBox argComboBox;
+		argComboBox.SelectedIndex = index;
+		auto events = dynamic_cast<ComboboxEvents*>(m_control->Handle()->Events.get());
+		events->Selected.Emit(argComboBox);
+	}
+
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle);
 	}
 
+	void ComboBox::Clear()
+	{
+		m_reactor.GetInteractionData().m_items.clear();
+	}
+
 	void ComboBox::PushItem(const std::wstring& text)
 	{
-		m_reactor.GetSelectionState().m_items.push_back(text);
+		m_reactor.GetInteractionData().m_items.push_back(text);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)
