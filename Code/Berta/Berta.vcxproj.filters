@@ -179,9 +179,6 @@
     <ClCompile Include="Source\Berta\Controls\Form.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\ControlAppearance.cpp">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>

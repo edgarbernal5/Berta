@@ -264,13 +264,6 @@ namespace Berta
 			}
 			break;
 		}
-		case WM_CAPTURECHANGED:
-		{
-			if ((HWND)lParam != hWnd) {
-				BT_CORE_DEBUG << "   Hide(): (HWND)lParam = " << (HWND)lParam << ". hWnd = " << hWnd << std::endl;
-			}
-			break;
-		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:

@@ -18,7 +18,7 @@ namespace Berta
 
 	void FormReactor::Update(Graphics& graphics)
 	{
-		graphics.DrawRectangle(GUI::GetBackgroundColor(*m_control), true);
+		graphics.DrawRectangle(m_control->Handle()->Appereance->Background, true);
 	}
 
 	Form::Form(const Size& size, const FormStyle& windowStyle)

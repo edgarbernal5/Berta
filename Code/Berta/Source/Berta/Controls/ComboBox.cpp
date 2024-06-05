@@ -46,15 +46,22 @@ namespace Berta
 	void ComboBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBoxBackgroundColor(window), true);
+		if (m_status == State::Normal)
+		{
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+		}
+		else if (m_status == State::Hovered)
+		{
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxHightlightBackground, true);
+		}
 
 		//m_textEditor->Render();
 		auto textItemHeight = graphics.GetTextExtent().Height;
-		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, GUI::GetForegroundColor(window));
+		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, window->Appereance->Foreground);
 
 		auto buttonSize = static_cast<uint32_t>(24 * window->DPIScaleFactor);
 
-		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, GUI::GetBackgroundColor(window), true);
+		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, window->Appereance->Background, true);
 
 		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
 		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
@@ -66,12 +73,16 @@ namespace Berta
 
 	void ComboBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 	{
-		//GUI::ChangeCursor(*m_control, Cursor::IBeam);
+		m_status = State::Hovered;
+		Update(graphics);
+		GUI::UpdateDeferred(*m_control);
 	}
 
 	void ComboBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		//GUI::ChangeCursor(*m_control, Cursor::Default);
+		m_status = State::Normal;
+		Update(graphics);
+		GUI::UpdateDeferred(*m_control);
 	}
 
 	void ComboBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -127,7 +138,27 @@ namespace Berta
 
 	void ComboBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
+		bool redraw = false;
+		if (m_floatBox)
+		{
+			if (args.Key == VK_UP)
+			{
+				m_floatBox->MoveSelectedItem(-1);
+				redraw = true;
+			}
 
+			if (args.Key == VK_DOWN)
+			{
+				m_floatBox->MoveSelectedItem(1);
+				redraw = true;
+			}
+		}
+		if (redraw)
+		{
+			auto window = m_control->Handle();
+			window->Renderer.Update();
+			GUI::UpdateDeferred(window);
+		}
 	}
 
 	std::wstring ComboBoxReactor::GetText() const

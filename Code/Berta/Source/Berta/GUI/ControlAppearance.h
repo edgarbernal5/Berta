@@ -17,11 +17,19 @@ namespace Berta
 		Color Background{ Colors::Light_Background };
 		Color Foreground{ Colors::Light_Foreground };
 
+		Color ButtonBackground{ Colors::Light_ButtonBackground };
+		Color ButtonHighlightBackground{ Colors::Light_ButtonHightlighBackground };
+		Color ButtonPressedBackground{ Colors::Light_ButtonPressedBackground };
+
 		Color BoxBackground{ Colors::Light_BoxBackground };
 		Color BoxBorderColor{ Colors::Light_BoxBorderColor };
 
 		Color HighlightColor{ Colors::Light_HighlightColor };
 		Color HighlightTextColor{ Colors::Light_HighlightTextColor };
+
+		Color BoxBorderHighlightColor{ Colors::Light_BoxBorderHighlightColor };
+		Color BoxHightlightBackground{ Colors::Light_BoxHightlightBackground };
+		Color BoxPressedBackground{ Colors::Light_BoxPressedBackground };
 
 		uint32_t ComboBoxItemHeight = 20;
 	};

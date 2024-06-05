@@ -34,13 +34,18 @@ namespace Berta
 			selection.m_isSelected = false;
 		}
 
-		struct State {
+		struct State
+		{
 			int m_index;
 		};
 
 		State& GetState() {	return m_state; }
 
+
+		void MoveSelectedItem(int direction);
 	private:
+		bool IsInside(const Point& point);
+
 		FloatBox* m_control{ nullptr };
 
 		GUI::InteractionData* m_selectionState{ nullptr };
@@ -55,11 +60,13 @@ namespace Berta
 		FloatBox(Window* parent, const Rectangle& rectangle);
 		~FloatBox();
 
+		bool OnKeyPressed(const ArgKeyboard& args);
 		void Init(GUI::InteractionData& state)
 		{
 			m_reactor.SetState(state);
 		}
 
+		void MoveSelectedItem(int direction);
 		FloatBoxReactor::State& GetState() { return m_reactor.GetState(); }
 
 	private:

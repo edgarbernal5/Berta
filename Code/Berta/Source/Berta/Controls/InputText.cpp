@@ -31,7 +31,7 @@ namespace Berta
 	void InputTextReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), GUI::GetBoxBackgroundColor(window), true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
 
 		m_textEditor->Render();
 		

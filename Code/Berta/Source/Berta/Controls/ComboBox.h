@@ -42,10 +42,18 @@ namespace Berta
 		TextEditor* GetEditor() const { return m_textEditor; }
 
 	private:
+		enum class State
+		{
+			Normal,
+			Pressed,
+			Hovered
+		};
+
 		ComboBox* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
 		std::wstring m_text;
 
+		State m_status{ State::Normal };
 		GUI::InteractionData m_selectionState;
 		
 		FloatBox* m_floatBox{ nullptr };

@@ -195,36 +195,6 @@ namespace Berta::GUI
 		}
 	}
 
-	Color GetBackgroundColor(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
-		{
-			return window->Appereance->Background;
-		}
-		return {};
-	}
-
-	Color GetBoxBackgroundColor(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
-		{
-			return window->Appereance->BoxBackground;
-		}
-		return {};
-	}
-
-	Color GetForegroundColor(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
-		{
-			return window->Appereance->Foreground;
-		}
-		return {};
-	}
-
 	void UpdateDeferred(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

@@ -25,7 +25,7 @@ int main()
 		//std::cout << "LABEL>mouse move" << std::endl;
 	});
 	
-	Berta::Button button(form, { 0,140,100,40 }, L"Click me!");
+	Berta::Button button(form, { 5,140,100,40 }, L"Click me!");
 	button.SetDebugName("button");
 	button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 	{
@@ -48,6 +48,8 @@ int main()
 	Berta::ComboBox comboBox(form, { 190,60,200,25 });
 	comboBox.PushItem(L"Ejemplo 1");
 	comboBox.PushItem(L"Ejemplo 2");
+	comboBox.PushItem(L"Ejemplo 3");
+	comboBox.PushItem(L"Ejemplo 4");
 	comboBox.SetDebugName("comboBox");
 
 	form.Show();
