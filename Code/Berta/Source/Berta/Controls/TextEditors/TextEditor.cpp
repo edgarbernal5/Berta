@@ -43,9 +43,17 @@ namespace Berta
 			return;
 		}
 		isSelecting = true;
-		m_selectionStartPosition = GetPositionUnderMouse(args.Position);
-		m_selectionEndPosition = m_selectionStartPosition;
-		m_caretPosition = m_selectionStartPosition;
+		if (m_shiftPressed)
+		{
+			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+			m_caretPosition = m_selectionEndPosition;
+		}
+		else
+		{
+			m_selectionStartPosition = GetPositionUnderMouse(args.Position);
+			m_selectionEndPosition = m_selectionStartPosition;
+			m_caretPosition = m_selectionStartPosition;
+		}
 	}
 
 	void TextEditor::OnMouseMove(const ArgMouse& args)
@@ -99,6 +107,8 @@ namespace Berta
 	{
 		bool redraw = false;
 		auto contentSize = m_content.size();
+		m_shiftPressed = m_shiftPressed || args.Key == KeyboardKey::Shift;
+		m_ctrlPressed = m_ctrlPressed || args.Key == KeyboardKey::Control;
 		if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			MoveCaretLeft();
@@ -109,7 +119,17 @@ namespace Berta
 			MoveCaretRight();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::Backspace && m_caretPosition > 0)
+		else if (args.Key == KeyboardKey::Home)
+		{
+			MoveCaretHome();
+			redraw = true;
+		}
+		else if (args.Key == KeyboardKey::End)
+		{
+			MoveCaretEnd();
+			redraw = true;
+		}
+		else if (args.Key == KeyboardKey::Backspace && contentSize > 0)
 		{
 			DeleteBack();
 			redraw = true;
@@ -120,6 +140,13 @@ namespace Berta
 			redraw = true;
 		}
 		return redraw;
+	}
+
+	bool TextEditor::OnKeyReleased(const ArgKeyboard& args)
+	{
+		if (args.Key == KeyboardKey::Shift) m_shiftPressed = false;
+		if (args.Key == KeyboardKey::Control) m_ctrlPressed = false;
+		return false;
 	}
 
 	void TextEditor::ActivateCaret()
@@ -159,19 +186,96 @@ namespace Berta
 
 	void TextEditor::MoveCaretLeft()
 	{
-		if (m_caretPosition > 0)
-			--m_caretPosition;
+		uint32_t newCaretPosition = m_caretPosition;
+		if (newCaretPosition > 0)
+			--newCaretPosition;
 
-		m_selectionEndPosition = m_selectionStartPosition = 0;
+		if (m_ctrlPressed)
+		{
+			int ctrlPos = GetPositionNextWord(m_caretPosition - 1, -1);
+			newCaretPosition = ctrlPos;
+		}
+		if (m_shiftPressed)
+		{
+			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			{
+				m_selectionStartPosition = m_caretPosition;
+			}
+			m_selectionEndPosition = newCaretPosition;
+		}
+		else
+		{
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		m_caretPosition = newCaretPosition;
+		AdjustView(true);
+	}
+
+	void TextEditor::MoveCaretHome()
+	{
+		uint32_t newCaretPosition = 0;
+
+		if (m_shiftPressed)
+		{
+			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			{
+				m_selectionStartPosition = m_caretPosition;
+			}
+			m_selectionEndPosition = newCaretPosition;
+		}
+		else
+		{
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		m_caretPosition = newCaretPosition;
 		AdjustView(true);
 	}
 
 	void TextEditor::MoveCaretRight()
 	{
-		if (m_caretPosition < m_content.size())
-			++m_caretPosition;
+		uint32_t newCaretPosition = m_caretPosition;
 
-		m_selectionEndPosition = m_selectionStartPosition = 0;
+		if (newCaretPosition < m_content.size())
+			++newCaretPosition;
+
+		if (m_ctrlPressed)
+		{
+			int ctrlPos = GetPositionNextWord(m_caretPosition, 1);
+			newCaretPosition = ctrlPos;
+		}
+		if (m_shiftPressed)
+		{
+			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			{
+				m_selectionStartPosition = m_caretPosition;
+			}
+			m_selectionEndPosition = newCaretPosition;
+		}
+		else
+		{
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		m_caretPosition = newCaretPosition;
+		AdjustView();
+	}
+
+	void TextEditor::MoveCaretEnd()
+	{
+		uint32_t newCaretPosition = m_content.size();
+
+		if (m_shiftPressed)
+		{
+			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			{
+				m_selectionStartPosition = m_caretPosition;
+			}
+			m_selectionEndPosition = newCaretPosition;
+		}
+		else
+		{
+			m_selectionEndPosition = m_selectionStartPosition = 0;
+		}
+		m_caretPosition = newCaretPosition;
 		AdjustView();
 	}
 
@@ -316,5 +420,38 @@ namespace Berta
 			}
 		}
 		return index;
+	}
+	uint32_t TextEditor::GetPositionNextWord(int currentPosition, int direction) const
+	{
+		if (m_content.size() == 0)
+		{
+			return currentPosition;
+		}
+		if (currentPosition < 0)
+			return 0;
+		if (currentPosition >= m_content.size())
+			return m_content.size();
+
+		auto p = currentPosition;
+		bool ignore = m_content[p] == ' ';
+		do
+		{
+			if (ignore)
+			{
+				ignore = false;
+			}
+			else if (m_content[p] == ' ')
+			{
+				if (direction == -1)
+					++p;
+				break;
+			}
+			p += direction;
+		}
+		while (p >= 0 && p < m_content.size());
+		
+		if (p < 0) p = 0;
+		
+		return p;
 	}
 }

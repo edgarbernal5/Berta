@@ -31,6 +31,7 @@ namespace Berta
 		void Focus(Graphics& graphics, const ArgFocus& args) override;
 		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
 		TextEditor* GetEditor() const { return m_textEditor; }
 	private:

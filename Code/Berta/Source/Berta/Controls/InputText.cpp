@@ -99,6 +99,11 @@ namespace Berta
 		}
 	}
 
+	void InputTextReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
+	{
+		m_textEditor->OnKeyReleased(args);
+	}
+
 	InputText::InputText(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle);

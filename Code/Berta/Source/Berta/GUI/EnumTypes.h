@@ -13,13 +13,19 @@ namespace Berta
 	{
 		enum {
 			Backspace = 0x8,
-			Enter= 0x0D,
+			Enter = 0x0D,
+			Shift = 0x10,
+			Control = 0x11,
+			Alt = 0x12,
 			Escape = 0x1b,
+			End = 0x23,
+			Home = 0x24,
 			ArrowLeft = 0x25,
 			ArrowUp,
 			ArrowRight,
 			ArrowDown,
-			Delete=0x7F,
+			Delete = 0x7F,
+
 		};
 	};
 }

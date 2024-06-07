@@ -30,6 +30,7 @@ namespace Berta
 		void OnFocus(const ArgFocus& args);
 		bool OnKeyChar(const ArgKeyboard& args);
 		bool OnKeyPressed(const ArgKeyboard& args);
+		bool OnKeyReleased(const ArgKeyboard& args);
 
 		uint32_t GetCaretPosition() const { return m_caretPosition; }
 		const std::wstring& GetContent() const { return m_content; }
@@ -44,14 +45,16 @@ namespace Berta
 		void Insert(wchar_t chr);
 
 		void MoveCaretLeft();
+		void MoveCaretHome();
 		void MoveCaretRight();
+		void MoveCaretEnd();
 		void Delete();
 		void DeleteBack();
 
 		void AdjustView(bool scrollToLeft = false);
 		Size GetContentTextExtent() const;
 		uint32_t GetPositionUnderMouse(const Point& mousePosition) const;
-
+		uint32_t GetPositionNextWord(int currentPosition, int direction) const;
 		Graphics& m_graphics;
 		uint32_t m_caretPosition{ 0 };
 		uint32_t m_selectionStartPosition{ 0 };
@@ -59,6 +62,9 @@ namespace Berta
 		bool isSelecting{ false };
 		int m_offsetView{ 0 };
 		std::wstring m_content;
+		bool m_shiftPressed{ false };
+		bool m_ctrlPressed{ false };
+
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
 	};
