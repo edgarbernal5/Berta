@@ -36,11 +36,11 @@ namespace Berta
 				if (m_state.m_index == i)
 				{
 					graphics.DrawRectangle({ 1, 1 + static_cast<int>(i * itemHeight), m_control->Handle()->Size.Width - 2,itemHeight }, m_control->Handle()->Appereance->HighlightColor, true);
-					graphics.DrawString({ 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->HighlightTextColor);
+					graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->HighlightTextColor);
 				}
 				else
 				{
-					graphics.DrawString({ 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->Foreground);
+					graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[i], m_control->Handle()->Appereance->Foreground);
 				}
 			}
 		}

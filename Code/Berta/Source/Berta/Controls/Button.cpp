@@ -30,7 +30,7 @@ namespace Berta
 		}
 		else if (m_status == State::Pressed)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxPressedBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonPressedBackground, true);
 		}
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
 

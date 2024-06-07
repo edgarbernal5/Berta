@@ -49,7 +49,6 @@ namespace Berta
 			Hovered
 		};
 
-
 		void EmitSelectionEvent(int index);
 
 		ComboBox* m_control{ nullptr };
@@ -68,6 +67,7 @@ namespace Berta
 		ComboBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
+		void Erase(const uint32_t& index);
 		void PushItem(const std::wstring& text);
 		int GetSelectedIndex() { m_reactor.GetInteractionData().m_selectedIndex; }
 

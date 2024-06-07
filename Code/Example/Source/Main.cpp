@@ -51,6 +51,10 @@ int main()
 	comboBox.PushItem(L"Ejemplo 3");
 	comboBox.PushItem(L"Ejemplo 4");
 	comboBox.SetDebugName("comboBox");
+	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
+	{
+		std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
+	});
 
 	form.Show();
 	form.Exec();

@@ -210,6 +210,7 @@ namespace Berta
 	void ComboBoxReactor::SetText(const std::wstring& text)
 	{
 		m_text = text;
+
 		auto window = m_control->Handle();
 		window->Renderer.Update();
 		GUI::UpdateDeferred(window);
@@ -220,6 +221,7 @@ namespace Berta
 	{
 		ArgComboBox argComboBox;
 		argComboBox.SelectedIndex = index;
+
 		auto events = dynamic_cast<ComboboxEvents*>(m_control->Handle()->Events.get());
 		events->Selected.Emit(argComboBox);
 	}
@@ -232,6 +234,23 @@ namespace Berta
 	void ComboBox::Clear()
 	{
 		m_reactor.GetInteractionData().m_items.clear();
+		m_reactor.GetInteractionData().m_selectedIndex = -1;
+	}
+
+	void ComboBox::Erase(const uint32_t& index)
+	{
+		if (index < m_reactor.GetInteractionData().m_items.size())
+		{
+			auto& items = m_reactor.GetInteractionData().m_items;
+			auto& selectedIndex = m_reactor.GetInteractionData().m_selectedIndex;
+			items.erase(items.begin() + index);
+			if (selectedIndex >= static_cast<int>(items.size()))
+			{
+				selectedIndex = static_cast<int>(items.size()) - 1;
+
+				m_reactor.SetText(items[selectedIndex]);
+			}
+		}
 	}
 
 	void ComboBox::PushItem(const std::wstring& text)
