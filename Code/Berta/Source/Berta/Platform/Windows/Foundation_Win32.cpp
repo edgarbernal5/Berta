@@ -398,7 +398,6 @@ namespace Berta
 				window->Renderer.MouseUp(argMouseUp);
 				window->Events->MouseUp.Emit(argMouseUp);
 
-
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
 			rootWindowData.Pressed = nullptr;

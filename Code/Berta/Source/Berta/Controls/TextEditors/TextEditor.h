@@ -31,6 +31,7 @@ namespace Berta
 		bool OnKeyChar(const ArgKeyboard& args);
 		bool OnKeyPressed(const ArgKeyboard& args);
 		bool OnKeyReleased(const ArgKeyboard& args);
+		bool OnDblClick(const ArgClick& args);
 
 		uint32_t GetCaretPosition() const { return m_caretPosition; }
 		const std::wstring& GetContent() const { return m_content; }
@@ -64,6 +65,7 @@ namespace Berta
 		std::wstring m_content;
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };
+		bool m_wasDblClick{ false };
 
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };

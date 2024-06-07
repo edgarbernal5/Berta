@@ -104,6 +104,16 @@ namespace Berta
 		m_textEditor->OnKeyReleased(args);
 	}
 
+	void InputTextReactor::DblClick(Graphics& graphics, const ArgClick& args)
+	{
+		if (m_textEditor->OnDblClick(args))
+		{
+			auto window = m_control->Handle();
+			window->Renderer.Update();
+			GUI::UpdateDeferred(window);
+		}
+	}
+
 	InputText::InputText(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle);

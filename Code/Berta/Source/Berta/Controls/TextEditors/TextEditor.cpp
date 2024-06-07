@@ -67,6 +67,11 @@ namespace Berta
 
 	void TextEditor::OnMouseUp(const ArgMouse& args)
 	{
+		if (m_wasDblClick)
+		{
+			m_wasDblClick = false;
+			return;
+		}
 		if (m_content.size() == 0)
 		{
 			return;
@@ -147,6 +152,21 @@ namespace Berta
 		if (args.Key == KeyboardKey::Shift) m_shiftPressed = false;
 		if (args.Key == KeyboardKey::Control) m_ctrlPressed = false;
 		return false;
+	}
+
+	bool TextEditor::OnDblClick(const ArgClick& args)
+	{
+		m_wasDblClick = true;
+		if (m_content.empty())
+			return false;
+
+		int start = GetPositionNextWord(m_caretPosition, -1);
+		int end = GetPositionNextWord(m_caretPosition, 1);
+
+		m_selectionStartPosition = start;
+		m_selectionEndPosition = end;
+		m_caretPosition = end;
+		return true;
 	}
 
 	void TextEditor::ActivateCaret()
@@ -421,6 +441,7 @@ namespace Berta
 		}
 		return index;
 	}
+
 	uint32_t TextEditor::GetPositionNextWord(int currentPosition, int direction) const
 	{
 		if (m_content.size() == 0)
