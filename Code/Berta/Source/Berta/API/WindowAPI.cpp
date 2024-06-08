@@ -223,6 +223,7 @@ namespace Berta
 			{
 				return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
 			}
+			return {};
 #else
 			return {};
 #endif

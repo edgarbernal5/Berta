@@ -154,7 +154,7 @@ namespace Berta
 
 	uint32_t WindowManager::NativeWindowCount()
 	{
-		return m_windowNativeRegistry.size();
+		return static_cast<uint32_t>(m_windowNativeRegistry.size());
 	}
 
 	void WindowManager::Capture(Window* window)

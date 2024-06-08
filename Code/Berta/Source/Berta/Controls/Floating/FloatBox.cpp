@@ -101,14 +101,17 @@ namespace Berta
 
 	bool FloatBoxReactor::IsInside(const Point& point)
 	{
-		return (point.X > 0 && point.X < m_control->Handle()->Size.Width - 1 &&
-			point.Y > 0 && point.Y < m_control->Handle()->Size.Height - 2);
+		return (point.X > 0 && point.X < static_cast<int>(m_control->Handle()->Size.Width) - 1 &&
+			point.Y > 0 && point.Y < static_cast<int>(m_control->Handle()->Size.Height) - 2);
 	}
 
 	FloatBox::FloatBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
+#if BT_DEBUG
+		SetDebugName("Float box");
+#endif
 	}
 
 	FloatBox::~FloatBox()

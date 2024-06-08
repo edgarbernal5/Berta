@@ -55,10 +55,10 @@ namespace Berta::GUI
 		if (parent && parent->DPI != 96)
 		{
 			float scalingFactor = parent->DPI / 96.0f;
-			rect.X = rect.X * scalingFactor;
-			rect.Y = rect.Y * scalingFactor;
-			rect.Width = rect.Width * scalingFactor;
-			rect.Height = rect.Height * scalingFactor;
+			rect.X = static_cast<int>(rect.X * scalingFactor);
+			rect.Y = static_cast<int>(rect.Y * scalingFactor);
+			rect.Width = static_cast<uint32_t>(rect.Width * scalingFactor);
+			rect.Height = static_cast<uint32_t>(rect.Height * scalingFactor);
 		}
 		window->Size = rect;
 		window->Parent = parent;
@@ -186,7 +186,7 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetAppearance(Window* window, ControlAppearance* controlAppearance)
+	void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))

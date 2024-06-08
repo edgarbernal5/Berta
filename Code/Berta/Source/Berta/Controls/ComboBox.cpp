@@ -237,7 +237,19 @@ namespace Berta
 		m_reactor.GetInteractionData().m_selectedIndex = -1;
 	}
 
-	void ComboBox::Erase(const uint32_t& index)
+	void ComboBox::SetSelectedIndex(uint32_t index)
+	{
+		if (index < m_reactor.GetInteractionData().m_items.size())
+		{
+			auto& items = m_reactor.GetInteractionData().m_items;
+			auto& selectedIndex = m_reactor.GetInteractionData().m_selectedIndex;
+			selectedIndex = static_cast<int>(index);
+
+			m_reactor.SetText(items[selectedIndex]);
+		}
+	}
+
+	void ComboBox::Erase(uint32_t index)
 	{
 		if (index < m_reactor.GetInteractionData().m_items.size())
 		{

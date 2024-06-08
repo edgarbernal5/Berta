@@ -33,7 +33,7 @@ namespace Berta
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgClick& args);
 
-		uint32_t GetCaretPosition() const { return m_caretPosition; }
+		size_t GetCaretPosition() const { return m_caretPosition; }
 		const std::wstring& GetContent() const { return m_content; }
 		void SetContent(const std::wstring& newContent) { m_content = newContent; }
 
@@ -54,12 +54,12 @@ namespace Berta
 
 		void AdjustView(bool scrollToLeft = false);
 		Size GetContentTextExtent() const;
-		uint32_t GetPositionUnderMouse(const Point& mousePosition) const;
-		uint32_t GetPositionNextWord(int currentPosition, int direction) const;
+		size_t GetPositionUnderMouse(const Point& mousePosition) const;
+		size_t GetPositionNextWord(int64_t currentPosition, int direction) const;
 		Graphics& m_graphics;
-		uint32_t m_caretPosition{ 0 };
-		uint32_t m_selectionStartPosition{ 0 };
-		uint32_t m_selectionEndPosition{ 0 };
+		size_t m_caretPosition{ 0 };
+		size_t m_selectionStartPosition{ 0 };
+		size_t m_selectionEndPosition{ 0 };
 		bool isSelecting{ false };
 		int m_offsetView{ 0 };
 		std::wstring m_content;

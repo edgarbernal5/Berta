@@ -42,7 +42,7 @@ namespace Berta
 		const Size& GetSize() const { return m_attributes->m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& str);
-		Size GetTextExtent(const std::wstring& str, int length);
+		Size GetTextExtent(const std::wstring& str, size_t length);
 
 		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
@@ -53,8 +53,6 @@ namespace Berta
 	private:
 
 #ifdef BT_PLATFORM_WINDOWS
-		HFONT CreateTransparentFont(int height, int weight, bool italic, bool underline);
-
 		struct NativeAttributes
 		{
 			HDC m_hdc{ nullptr };

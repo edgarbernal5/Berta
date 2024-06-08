@@ -67,9 +67,10 @@ namespace Berta
 		ComboBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
-		void Erase(const uint32_t& index);
+		void Erase(uint32_t index);
 		void PushItem(const std::wstring& text);
 		int GetSelectedIndex() { m_reactor.GetInteractionData().m_selectedIndex; }
+		void SetSelectedIndex(uint32_t index);
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

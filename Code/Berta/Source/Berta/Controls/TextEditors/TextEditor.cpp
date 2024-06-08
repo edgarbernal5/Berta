@@ -160,8 +160,8 @@ namespace Berta
 		if (m_content.empty())
 			return false;
 
-		int start = GetPositionNextWord(m_caretPosition, -1);
-		int end = GetPositionNextWord(m_caretPosition, 1);
+		size_t start = GetPositionNextWord(m_caretPosition, -1);
+		size_t end = GetPositionNextWord(m_caretPosition, 1);
 
 		m_selectionStartPosition = start;
 		m_selectionEndPosition = end;
@@ -206,13 +206,13 @@ namespace Berta
 
 	void TextEditor::MoveCaretLeft()
 	{
-		uint32_t newCaretPosition = m_caretPosition;
+		size_t newCaretPosition = m_caretPosition;
 		if (newCaretPosition > 0)
 			--newCaretPosition;
 
 		if (m_ctrlPressed)
 		{
-			int ctrlPos = GetPositionNextWord(m_caretPosition - 1, -1);
+			size_t ctrlPos = GetPositionNextWord(m_caretPosition - 1, -1);
 			newCaretPosition = ctrlPos;
 		}
 		if (m_shiftPressed)
@@ -233,7 +233,7 @@ namespace Berta
 
 	void TextEditor::MoveCaretHome()
 	{
-		uint32_t newCaretPosition = 0;
+		size_t newCaretPosition = 0;
 
 		if (m_shiftPressed)
 		{
@@ -253,14 +253,14 @@ namespace Berta
 
 	void TextEditor::MoveCaretRight()
 	{
-		uint32_t newCaretPosition = m_caretPosition;
+		size_t newCaretPosition = m_caretPosition;
 
 		if (newCaretPosition < m_content.size())
 			++newCaretPosition;
 
 		if (m_ctrlPressed)
 		{
-			int ctrlPos = GetPositionNextWord(m_caretPosition, 1);
+			size_t ctrlPos = GetPositionNextWord(m_caretPosition, 1);
 			newCaretPosition = ctrlPos;
 		}
 		if (m_shiftPressed)
@@ -281,7 +281,7 @@ namespace Berta
 
 	void TextEditor::MoveCaretEnd()
 	{
-		uint32_t newCaretPosition = m_content.size();
+		size_t newCaretPosition = m_content.size();
 
 		if (m_shiftPressed)
 		{
@@ -301,13 +301,14 @@ namespace Berta
 
 	void TextEditor::Delete()
 	{
+		bool scrollToLeft = false;
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
 			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
 
 			m_content.erase(start, (end - start));
-			int caretPosition = m_caretPosition;
+			int64_t caretPosition = static_cast<int64_t>(m_caretPosition);
 			if (m_caretPosition == end)
 				caretPosition -= (end - start);
 
@@ -326,6 +327,7 @@ namespace Berta
 		{
 			m_content.erase(m_caretPosition, 1);
 		}
+		AdjustView(scrollToLeft);
 	}
 
 	void TextEditor::DeleteBack()
@@ -337,13 +339,13 @@ namespace Berta
 
 			std::wstring stringToDelete{ m_content.data() + start, m_content.data() + end };
 			m_content.erase(start, (end - start));
-			int caretPosition = m_caretPosition;
+			int64_t caretPosition = m_caretPosition;
 			if (m_caretPosition == end)
 				caretPosition -= (end - start);
 
 			if (caretPosition < 0)
 			{
-				m_caretPosition = m_content.size();
+				m_caretPosition = static_cast<uint32_t>(m_content.size());
 			}
 			else
 			{
@@ -352,7 +354,7 @@ namespace Berta
 			if (m_offsetView < 0)
 			{
 				m_offsetView += m_graphics.GetTextExtent(stringToDelete).Width;
-				if (m_offsetView > 0)m_offsetView = 0;
+				if (m_offsetView > 0) m_offsetView = 0;
 			}
 
 			m_selectionEndPosition = m_selectionStartPosition = 0;
@@ -424,9 +426,9 @@ namespace Berta
 		return contentSize;
 	}
 
-	uint32_t TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
+	size_t TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
-		uint32_t index = 0;
+		size_t index = 0;
 		
 		int nearest = (std::numeric_limits<int>::max)();
 		for (size_t i = 0; i <= m_content.size(); i++)
@@ -442,17 +444,20 @@ namespace Berta
 		return index;
 	}
 
-	uint32_t TextEditor::GetPositionNextWord(int currentPosition, int direction) const
+	size_t TextEditor::GetPositionNextWord(int64_t currentPosition, int direction) const
 	{
 		if (m_content.size() == 0)
 		{
-			return currentPosition;
+			return currentPosition; //0
 		}
+
 		if (currentPosition < 0)
 			return 0;
-		if (currentPosition >= m_content.size())
+
+		if (static_cast<size_t>(currentPosition) >= m_content.size())
 			return m_content.size();
 
+		int64_t contentSize = static_cast<int64_t>(m_content.size());
 		auto p = currentPosition;
 		bool ignore = m_content[p] == ' ';
 		do
@@ -465,11 +470,12 @@ namespace Berta
 			{
 				if (direction == -1)
 					++p;
+
 				break;
 			}
 			p += direction;
 		}
-		while (p >= 0 && p < m_content.size());
+		while (p >= 0 && p < contentSize);
 		
 		if (p < 0) p = 0;
 		

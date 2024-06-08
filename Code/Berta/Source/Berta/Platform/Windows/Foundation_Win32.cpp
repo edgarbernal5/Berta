@@ -122,7 +122,9 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"}
+		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		{WM_MOUSEHWHEEL,		"WM_MOUSEHWHEEL"},
+		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
 
 	};
 #endif
@@ -435,6 +437,12 @@ namespace Berta
 				rootWindowData.Hovered = nullptr;
 			}
 			defaultToWindowProc = false;
+			break;
+		}
+		case WM_MOUSEHWHEEL:
+		case WM_MOUSEWHEEL:
+		{
+
 			break;
 		}
 		case WM_CHAR:

@@ -138,7 +138,12 @@
     <ClInclude Include="Source\Berta\Controls\Floating\InteractionData.h">
       <Filter>Source\Berta\Controls\Floating</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\EnumTypes.h" />
+    <ClInclude Include="Source\Berta\GUI\EnumTypes.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\ScrollBar.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -212,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Floating\FloatBox.cpp">
       <Filter>Source\Berta\Controls\Floating</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\ScrollBar.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

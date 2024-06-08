@@ -44,7 +44,7 @@ namespace Berta
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
-		ControlAppearance* Appereance{ nullptr };
+		std::shared_ptr<ControlAppearance> Appereance{ nullptr };
 		std::shared_ptr<CommonEvents> Events{ nullptr };
 
 		Window* Parent{ nullptr };

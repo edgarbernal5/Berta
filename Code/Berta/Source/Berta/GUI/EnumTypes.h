@@ -24,7 +24,7 @@ namespace Berta
 			ArrowUp,
 			ArrowRight,
 			ArrowDown,
-			Delete = 0x7F,
+			Delete = 0x2E,
 
 		};
 	};

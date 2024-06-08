@@ -34,7 +34,7 @@ namespace Berta
 
 		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
-		void SetAppearance(Window* window, ControlAppearance* controlAppearance);
+		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
 		void UpdateDeferred(Window* window);
 
