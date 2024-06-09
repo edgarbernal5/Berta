@@ -93,7 +93,8 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto point = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
-			auto floatBoxHeight = static_cast<uint32_t>(m_interactionData.m_items.size() * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto clampedSize = (std::min)(m_interactionData.m_items.size(), m_interactionData.m_maxItemsToDisplay);
+			auto floatBoxHeight = static_cast<uint32_t>(clampedSize * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
 			m_floatBox = new FloatBox(window, { point.X,point.Y + (int)window->Size.Height,window->Size.Width,floatBoxHeight + 2 });
 			m_floatBox->Init(m_interactionData);
 

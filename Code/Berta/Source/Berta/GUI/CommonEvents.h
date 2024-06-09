@@ -55,6 +55,11 @@ namespace Berta
 	{
 	};
 
+	struct ArgWheel
+	{
+		int WheelDelta;
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
@@ -63,6 +68,7 @@ namespace Berta
 		Event<ArgMouse>		MouseLeave;
 		Event<ArgMouse>		MouseDown;
 		Event<ArgMouse>		MouseMove;
+		Event<ArgWheel>		MouseWheel;
 		Event<ArgMouse>		MouseUp;
 		Event<ArgClick>		Click;
 		Event<ArgClick>		DblClick;
@@ -105,6 +111,7 @@ namespace Berta
 	{
 		Event<ArgComboBox>	Selected;
 	};
+
 }
 
 #endif

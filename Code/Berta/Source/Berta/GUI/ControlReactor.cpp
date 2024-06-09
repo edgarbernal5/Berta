@@ -43,6 +43,10 @@ namespace Berta
 	{
 	}
 
+	void ControlReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
+	{
+	}
+
 	void ControlReactor::Click(Graphics& graphics, const ArgClick& args)
 	{
 	}

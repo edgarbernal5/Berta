@@ -29,6 +29,7 @@ namespace Berta
 		void MouseDown(const ArgMouse& args);
 		void MouseMove(const ArgMouse& args);
 		void MouseUp(const ArgMouse& args);
+		void MouseWheel(const ArgWheel& args);
 		void Click(const ArgClick& args);
 		void DblClick(const ArgClick& args);
 		void Focus(const ArgFocus& args);

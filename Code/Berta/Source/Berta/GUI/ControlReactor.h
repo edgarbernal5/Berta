@@ -29,6 +29,7 @@ namespace Berta
 		virtual void MouseDown(Graphics& graphics, const ArgMouse& args);
 		virtual void MouseMove(Graphics& graphics, const ArgMouse& args);
 		virtual void MouseUp(Graphics& graphics, const ArgMouse& args);
+		virtual void MouseWheel(Graphics& graphics, const ArgWheel& args);
 		virtual void Click(Graphics& graphics, const ArgClick& args);
 		virtual void DblClick(Graphics& graphics, const ArgClick& args);
 		virtual void Focus(Graphics& graphics, const ArgFocus& args);

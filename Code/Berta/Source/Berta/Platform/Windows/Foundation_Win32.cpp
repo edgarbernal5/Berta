@@ -442,7 +442,23 @@ namespace Berta
 		case WM_MOUSEHWHEEL:
 		case WM_MOUSEWHEEL:
 		{
+			int wheelDelta = ((int)(short)HIWORD(wParam));
+			int x = ((int)(short)LOWORD(lParam));
+			int y = ((int)(short)HIWORD(lParam));
+			POINT screenToClientPoint;
+			screenToClientPoint.x = x;
+			screenToClientPoint.y = y;
+			::ScreenToClient(hWnd, &screenToClientPoint);
 
+			auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.x), static_cast<int>(screenToClientPoint.y) });
+			
+			if (window)
+			{
+				ArgWheel argWheel;
+				argWheel.WheelDelta = wheelDelta;
+				window->Renderer.MouseWheel(argWheel);
+				window->Events->MouseWheel.Emit(argWheel);
+			}
 			break;
 		}
 		case WM_CHAR:

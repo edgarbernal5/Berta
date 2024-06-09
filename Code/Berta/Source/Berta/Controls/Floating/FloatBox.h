@@ -38,6 +38,7 @@ namespace Berta
 		struct State
 		{
 			int m_index;
+			int m_offset;
 		};
 
 		State& GetState() {	return m_state; }

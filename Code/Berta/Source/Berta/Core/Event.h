@@ -80,6 +80,12 @@ namespace Berta
             }
         }
 
+        size_t Length() const
+        {
+            std::lock_guard<std::mutex> lock(data->observerMutex);
+            return data->observers.size();
+        }
+
         void Reset() const
         {
             std::lock_guard<std::mutex> lock(data->observerMutex);

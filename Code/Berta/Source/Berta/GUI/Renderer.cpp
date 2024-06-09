@@ -69,6 +69,11 @@ namespace Berta
 		m_controlReactor->MouseUp(m_graphics, args);
 	}
 
+	void Renderer::MouseWheel(const ArgWheel& args)
+	{
+		m_controlReactor->MouseWheel(m_graphics, args);
+	}
+
 	void Renderer::Click(const ArgClick& args)
 	{
 		m_controlReactor->Click(m_graphics, args);

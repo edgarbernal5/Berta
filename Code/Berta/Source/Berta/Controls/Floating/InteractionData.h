@@ -17,6 +17,8 @@ namespace Berta::GUI
 		std::vector<std::wstring> m_items;
 		int m_selectedIndex{ -1 };
 		bool m_isSelected{ false };
+
+		size_t m_maxItemsToDisplay = 5;
 	};
 }
 
