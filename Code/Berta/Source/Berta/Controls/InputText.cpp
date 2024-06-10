@@ -130,6 +130,6 @@ namespace Berta
 
 	std::wstring InputText::DoOnCaption()
 	{
-		return  m_reactor.GetEditor()->GetContent();
+		return m_reactor.GetEditor()->GetContent();
 	}
 }

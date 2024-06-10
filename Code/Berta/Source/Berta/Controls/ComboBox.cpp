@@ -60,7 +60,7 @@ namespace Berta
 		auto textItemHeight = graphics.GetTextExtent().Height;
 		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, window->Appereance->Foreground);
 
-		auto buttonSize = static_cast<uint32_t>(24 * window->DPIScaleFactor);
+		auto buttonSize = static_cast<uint32_t>(20 * window->DPIScaleFactor);
 
 		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, window->Appereance->Background, true);
 

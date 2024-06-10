@@ -18,6 +18,9 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		void SetOrientation(bool isVertical);
 		void SetMinMax(int min, int max);
@@ -28,6 +31,17 @@ namespace Berta
 		int m_min = 0;
 		int m_value = 0;
 		int m_max = 1;
+
+		enum class HoverArea
+		{
+			None,
+			Button1,
+			Button2,
+			Center
+		};
+
+		HoverArea m_hoverArea;
+		HoverArea m_pressedArea;
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
