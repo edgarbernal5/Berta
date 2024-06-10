@@ -66,7 +66,7 @@ namespace Berta
 
 		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
 		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
-		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, true);
+		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, Graphics::ArrowDirection::Downwards, true);
 
 		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, { static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);

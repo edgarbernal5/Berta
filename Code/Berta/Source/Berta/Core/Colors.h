@@ -30,6 +30,8 @@ namespace Berta
 		static Color Light_BoxBorderHighlightColor{ 0x7B99A8 };
 		static Color Light_BoxHightlightBackground{ 0xF6FFFC };
 		static Color Light_BoxPressedBackground{ 0xE0E8E5 };
+
+		static Color Light_ScrollBarBackground{ 0x93999C };
 	}
 }
 

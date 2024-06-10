@@ -9,6 +9,7 @@
 #include <Berta/Controls/Button.h>
 #include <Berta/Controls/InputText.h>
 #include <Berta/Controls/ComboBox.h>
+#include <Berta/Controls/ScrollBar.h>
 #include <iostream>
 
 int main()
@@ -55,6 +56,9 @@ int main()
 	{
 		std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
 	});
+
+	Berta::ScrollBar scrollbar(form, { 300, 200, 20, 150 }, true);
+
 
 	form.Show();
 	form.Exec();

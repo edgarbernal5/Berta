@@ -214,7 +214,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, bool solid)
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -227,14 +227,28 @@ namespace Berta
 		int centerX = (rect.X * 2 + rect.Width) >> 1;
 		int centerY = (rect.Y * 2 + rect.Height) >> 1;
 
-		arrowPoints[0].X = centerX - arrowWidth;
-		arrowPoints[0].Y = centerY - arrowLength;
+		if (direction == ArrowDirection::Downwards)
+		{
+			arrowPoints[0].X = centerX - arrowWidth;
+			arrowPoints[0].Y = centerY - arrowLength;
 
-		arrowPoints[1].X = centerX + arrowWidth;
-		arrowPoints[1].Y = centerY - arrowLength;
+			arrowPoints[1].X = centerX + arrowWidth;
+			arrowPoints[1].Y = centerY - arrowLength;
 
-		arrowPoints[2].X = centerX;
-		arrowPoints[2].Y = centerY + arrowLength;
+			arrowPoints[2].X = centerX;
+			arrowPoints[2].Y = centerY + arrowLength;
+		}
+		else if (direction == ArrowDirection::Upwards)
+		{
+			arrowPoints[0].X = centerX - arrowWidth;
+			arrowPoints[0].Y = centerY + arrowLength;
+
+			arrowPoints[1].X = centerX + arrowWidth;
+			arrowPoints[1].Y = centerY + arrowLength;
+
+			arrowPoints[2].X = centerX;
+			arrowPoints[2].Y = centerY - arrowLength;
+		}
 
 		HBRUSH brush = ::CreateSolidBrush(color.BGR);
 		::SelectObject(m_attributes->m_hdc, brush);

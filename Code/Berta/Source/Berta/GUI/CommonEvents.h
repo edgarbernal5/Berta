@@ -112,6 +112,16 @@ namespace Berta
 		Event<ArgComboBox>	Selected;
 	};
 
+	struct ArgScrollBar
+	{
+		int Value;
+	};
+
+	struct ScrollBarEvents : public CommonEvents
+	{
+		Event<ArgScrollBar>	ValueChanged;
+	};
+
 }
 
 #endif

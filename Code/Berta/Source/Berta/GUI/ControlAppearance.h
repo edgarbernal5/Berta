@@ -32,8 +32,10 @@ namespace Berta
 		Color BoxHightlightBackground{ Colors::Light_BoxHightlightBackground };
 		Color BoxPressedBackground{ Colors::Light_BoxPressedBackground };
 
+		Color ScrollBarBackground{ Colors::Light_ScrollBarBackground };
+
 		uint32_t ComboBoxItemHeight = 20;
-		uint32_t ScrollBarSize = 16;
+		uint32_t ScrollBarSize = 20;
 	};
 }
 

@@ -25,6 +25,14 @@ namespace Berta
 		Graphics(Graphics&& other) noexcept;
 		~Graphics();
 
+		enum class ArrowDirection
+		{
+			Downwards,
+			Upwards,
+			Left,
+			Right
+		};
+
 		void Build(const Size& size);
 		void BuildFont(uint32_t dpi);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
@@ -37,7 +45,7 @@ namespace Berta
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
 		void DrawString(const Point& position, const std::wstring& str, const Color& color);
 
-		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, bool solid = true);
+		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
 
 		const Size& GetSize() const { return m_attributes->m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
