@@ -261,7 +261,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			return API::SendCustomMessage(window->RootWindow->RootHandle, messageId, func);
+			API::SendCustomMessage(window->RootWindow->RootHandle, messageId, func);
 		}
 	}
 }
