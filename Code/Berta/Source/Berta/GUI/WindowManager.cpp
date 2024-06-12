@@ -89,6 +89,24 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 	}
 
+	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics)
+	{
+		if (window == nullptr || !window->Visible)
+			return;
+
+		for (auto& child : window->Children)
+		{
+			if (!child->Visible)
+				continue;
+
+			child->Renderer.Update();
+			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+
+			UpdateTreeInternal(child, rootGraphics);
+		}
+	}
+
 	void WindowManager::Dispose(Window* window)
 	{
 		if (window->Flags.IsDestroying)
@@ -249,16 +267,7 @@ namespace Berta
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
 		
-		//TODO: traverse the entire tree.
-		for (auto& child : window->Children)
-		{
-			if (!child->Visible)
-				continue;
-
-			child->Renderer.Update();
-			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
-			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-		}
+		UpdateTreeInternal(window, rootGraphics);
 
 		window->Renderer.Map(window, window->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
 	}

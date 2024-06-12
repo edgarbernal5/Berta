@@ -69,6 +69,7 @@ namespace Berta
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
+		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
 
 		struct Capture
 		{
