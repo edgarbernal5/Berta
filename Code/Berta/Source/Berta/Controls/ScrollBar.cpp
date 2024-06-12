@@ -20,7 +20,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto buttonSize = static_cast<uint32_t>(window->Appereance->ScrollBarSize * window->DPIScaleFactor);
-
+		bool isScrollable = m_min != m_max;
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
 		if (m_isVertical)
 		{
@@ -73,22 +73,26 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto buttonSize = static_cast<uint32_t>(window->Appereance->ScrollBarSize * window->DPIScaleFactor);
 			HoverArea newHoverArea = HoverArea::None;
-
-			if (m_isVertical)
+			bool isScrollable = m_min != m_max;
+			if (isScrollable)
 			{
-				if (Rectangle{ 0, 0, buttonSize, buttonSize }.IsInside(args.Position))
+				if (m_isVertical)
 				{
-					newHoverArea = HoverArea::Button1;
-				}
-				else if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), buttonSize, buttonSize }.IsInside(args.Position))
-				{
-					newHoverArea = HoverArea::Button2;
-				}
-				else
-				{
-					newHoverArea = HoverArea::Center;
+					if (Rectangle{ 0, 0, buttonSize, buttonSize }.IsInside(args.Position))
+					{
+						newHoverArea = HoverArea::Button1;
+					}
+					else if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), buttonSize, buttonSize }.IsInside(args.Position))
+					{
+						newHoverArea = HoverArea::Button2;
+					}
+					else
+					{
+						newHoverArea = HoverArea::Center;
+					}
 				}
 			}
+			
 			if (m_hoverArea != newHoverArea)
 			{
 				m_hoverArea = newHoverArea;
@@ -123,14 +127,18 @@ namespace Berta
 
 		if (m_value < m_min)
 			m_value = m_min;
-
-		if (m_value > m_max)
+		else if (m_value > m_max)
 			m_value = m_max;
 	}
 
 	void ScrollBarReactor::SetValue(int value)
 	{
-		m_value = value;
+		if (m_value < m_min)
+			m_value = m_min;
+		else if (m_value > m_max)
+			m_value = m_max;
+		else
+			m_value = value;
 	}
 
 	ScrollBar::ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical)

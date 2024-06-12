@@ -59,6 +59,8 @@ int main()
 
 	Berta::ScrollBar scrollbar(form, { 300, 200, 20, 150 }, true);
 
+	Berta::ScrollBar scrollbar2(form, { 330, 200, 20, 150 }, true);
+	scrollbar2.SetMinMax(0, 0);
 
 	form.Show();
 	form.Exec();
