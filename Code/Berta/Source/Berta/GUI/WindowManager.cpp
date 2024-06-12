@@ -91,7 +91,7 @@ namespace Berta
 
 	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics)
 	{
-		if (window == nullptr || !window->Visible)
+		if (window == nullptr)
 			return;
 
 		for (auto& child : window->Children)

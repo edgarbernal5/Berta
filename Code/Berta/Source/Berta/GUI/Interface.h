@@ -45,7 +45,7 @@ namespace Berta
 
 		Point GetPointClientToScreen(Window *window, const Point& point);
 
-		void SendCustomMessage(Window* window, CustomMessageId messageId, std::function<void()> func);
+		void SendCustomMessage(Window* window, std::function<void()> body);
 	}
 }
 

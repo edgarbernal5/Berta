@@ -12,13 +12,13 @@
 
 namespace Berta
 {
-	struct CustomMessageParam
+	struct CustomCallbackMessage
 	{
 		std::function<void()> Body;
 	};
 	enum class CustomMessageId : uint32_t
 	{
-		Timer = WM_USER + 1
+		CustomCallback = WM_USER + 1
 	};
 }
 

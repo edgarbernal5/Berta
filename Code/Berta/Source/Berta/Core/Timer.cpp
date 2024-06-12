@@ -58,7 +58,7 @@ namespace Berta
 			std::this_thread::sleep_for(m_interval);
 			if (m_isRunning.load())
 			{
-				API::SendCustomMessage(m_owner->RootHandle, CustomMessageId::Timer, [this]()
+				API::SendCustomMessage(m_owner->RootHandle, [this]()
 				{
 					ArgTimer argTimer;
 					m_tick.Emit(argTimer);

@@ -60,7 +60,7 @@ namespace Berta
 		Size GetPrimaryMonitorSize();
 
 		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);
-		void SendCustomMessage(API::NativeWindowHandle nativaHandle, CustomMessageId messageId, std::function<void()> func);
+		void SendCustomMessage(API::NativeWindowHandle nativaHandle, std::function<void()> body);
 	}
 }
 

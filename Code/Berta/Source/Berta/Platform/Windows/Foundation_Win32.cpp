@@ -155,11 +155,11 @@ namespace Berta
 
 		switch (message)
 		{
-		case static_cast<uint32_t>(CustomMessageId::Timer):
+		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
 		{
 			if (wParam)
 			{
-				auto argParam = reinterpret_cast<CustomMessageParam*>(wParam);
+				auto argParam = reinterpret_cast<CustomCallbackMessage*>(wParam);
 				if (argParam->Body)
 				{
 					argParam->Body();
