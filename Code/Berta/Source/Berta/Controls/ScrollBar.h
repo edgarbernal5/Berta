@@ -29,8 +29,9 @@ namespace Berta
 		ControlBase* m_control{ nullptr };
 		bool m_isVertical;
 		int m_min = 0;
-		int m_value = 0;
 		int m_max = 1;
+		int m_step = 1;
+		int m_value = 0;
 
 		enum class HoverArea
 		{

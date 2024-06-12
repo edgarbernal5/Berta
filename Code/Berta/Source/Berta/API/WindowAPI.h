@@ -11,6 +11,8 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/BasicTypes.h"
 
+#include "Berta/Platform/Windows/Messages.h"
+
 namespace Berta
 {
 	namespace API
@@ -58,6 +60,7 @@ namespace Berta
 		Size GetPrimaryMonitorSize();
 
 		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);
+		void SendCustomMessage(API::NativeWindowHandle nativaHandle, CustomMessageId messageId, std::function<void()> func);
 	}
 }
 

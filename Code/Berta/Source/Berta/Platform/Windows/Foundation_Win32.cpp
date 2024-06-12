@@ -13,6 +13,7 @@
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/CommonEvents.h"
+#include "Berta/Platform/Windows/Messages.h"
 
 namespace Berta
 {
@@ -154,6 +155,20 @@ namespace Berta
 
 		switch (message)
 		{
+		case static_cast<uint32_t>(CustomMessageId::Timer):
+		{
+			if (wParam)
+			{
+				auto argParam = reinterpret_cast<CustomMessageParam*>(wParam);
+				if (argParam->Body)
+				{
+					argParam->Body();
+				}
+
+				delete argParam;
+			}
+			break;
+		}
 		//case WM_SETCURSOR:
 		//	if (textBox) {
 		//		POINT pt;

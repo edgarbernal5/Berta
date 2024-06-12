@@ -255,4 +255,13 @@ namespace Berta::GUI
 		}
 		return {};
 	}
+
+	void SendCustomMessage(Window* window, CustomMessageId messageId, std::function<void()> func)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return API::SendCustomMessage(window->RootWindow->RootHandle, messageId, func);
+		}
+	}
 }

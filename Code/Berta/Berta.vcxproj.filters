@@ -144,6 +144,9 @@
     <ClInclude Include="Source\Berta\Controls\ScrollBar.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Platform\Windows\Messages.h">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

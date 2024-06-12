@@ -228,5 +228,12 @@ namespace Berta
 			return {};
 #endif
 		}
+
+		void SendCustomMessage(API::NativeWindowHandle nativaHandle, CustomMessageId messageId, std::function<void()> func)
+		{
+			auto param = new CustomMessageParam;
+			param->Body = func;
+			::PostMessage(nativaHandle.Handle, static_cast<UINT>(messageId), reinterpret_cast<WPARAM>(param), 0);
+		}
 	}
 }

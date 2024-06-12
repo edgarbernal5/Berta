@@ -14,11 +14,11 @@ namespace Berta
 {
 	Caret::Caret(Window* owner, const Size& size) :
 		m_owner(owner),
-		m_size(size)
+		m_size(size),
+		m_timer(owner)
 	{
-		m_timer.GetTickEvent().Connect([this](const ArgTimer& args)
+		m_timer.Connect([this](const ArgTimer& args)
 		{
-			//TODO: sync with main thread
 			Show(!m_visible);
 		});
 

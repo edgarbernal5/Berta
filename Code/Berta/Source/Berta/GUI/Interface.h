@@ -9,6 +9,7 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Window.h"
+#include "Berta/Platform/Windows/Messages.h"
 
 namespace Berta
 {
@@ -43,6 +44,8 @@ namespace Berta
 		Rectangle GetCenteredOnScreen(const Size& size);
 
 		Point GetPointClientToScreen(Window *window, const Point& point);
+
+		void SendCustomMessage(Window* window, CustomMessageId messageId, std::function<void()> func);
 	}
 }
 

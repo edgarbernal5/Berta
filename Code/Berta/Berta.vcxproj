@@ -167,6 +167,7 @@
     <ClInclude Include="Source\Berta\Core\Log.h" />
     <ClInclude Include="Source\Berta\Core\Logger.h" />
     <ClInclude Include="Source\Berta\EntryPoint.h" />
+    <ClInclude Include="Source\Berta\Platform\Windows\Messages.h" />
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\GUI\Control.h" />
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
