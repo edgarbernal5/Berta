@@ -58,7 +58,11 @@ int main()
 	});
 
 	Berta::ScrollBar scrollbar(form, { 300, 200, 20, 150 }, true);
-
+	scrollbar.SetMinMax(0, 10);
+	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
+		{
+			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
+		});
 	Berta::ScrollBar scrollbar2(form, { 330, 200, 20, 150 }, true);
 	scrollbar2.SetMinMax(0, 0);
 

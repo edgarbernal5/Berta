@@ -14,6 +14,29 @@ namespace Berta
 	void ScrollBarReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
+		m_timer.SetOwner(control.Handle());
+		m_timer.Connect([this](const ArgTimer& args)
+			{
+				auto oldValue = m_value;
+				BT_CORE_DEBUG << "timeer... " << (int)m_pressedArea << ". oldValue " << oldValue << std::endl;
+				if (m_pressedArea == HoverArea::Button1)
+				{
+					SetValue(m_value - m_step);
+				}
+				else if (m_pressedArea == HoverArea::Button2)
+				{
+					SetValue(m_value + m_step);
+				}
+				if (oldValue != m_value)
+				{
+					ArgScrollBar argScrollbar;
+					argScrollbar.Value = m_value;
+					reinterpret_cast<ScrollBarEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
+
+					Update(m_control->Handle()->Renderer.GetGraphics());
+					GUI::UpdateDeferred(*m_control);
+				}
+			});
 	}
 
 	void ScrollBarReactor::Update(Graphics& graphics)
@@ -35,11 +58,12 @@ namespace Berta
 			graphics.DrawRectangle({ 0, 0, window->Size.Width, buttonSize }, window->Appereance->BoxBorderColor, false);
 			graphics.DrawArrow({ 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, Graphics::ArrowDirection::Upwards, true);
 
-			if (m_min != m_max)
+			if (isScrollable)
 			{
 				float num = 1.0f / ((m_max - m_min) + 1.0f);
 				Rectangle remainRect{ 0, (int)buttonSize + 1, window->Size.Width, window->Size.Height - buttonSize * 2 - 2 };
-				Rectangle buttonRect{ 0, (int)buttonSize + 1, window->Size.Width, remainRect.Height * num };
+				uint32_t scrollButtonSize = (uint32_t)remainRect.Height * num;
+				Rectangle buttonRect{ 0, (int)buttonSize + 1 + (int)((m_value - m_min) * scrollButtonSize), window->Size.Width, scrollButtonSize };
 
 				graphics.DrawRectangle(buttonRect, window->Appereance->Background, true);
 				graphics.DrawRectangle(buttonRect, window->Appereance->BoxBorderColor, false);
@@ -64,6 +88,17 @@ namespace Berta
 		m_hoverArea = HoverArea::None;
 		Update(graphics);
 		GUI::UpdateDeferred(window);
+	}
+
+	void ScrollBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		if (args.ButtonState.LeftButton)
+		{
+
+			m_pressedArea = m_hoverArea;
+			m_timer.SetInterval(100);
+			m_timer.Start();
+		}
 	}
 
 	void ScrollBarReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -100,14 +135,15 @@ namespace Berta
 				GUI::UpdateDeferred(window);
 			}
 		}
-		else
-		{
-			m_pressedArea = m_hoverArea;
-		}
 	}
 
 	void ScrollBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		m_timer.Stop();
+
+		if (m_pressedArea!= HoverArea::None)
+		{
+		}
 		m_pressedArea = HoverArea::None;
 		m_hoverArea= HoverArea::None;
 		auto window = m_control->Handle();
@@ -133,11 +169,7 @@ namespace Berta
 
 	void ScrollBarReactor::SetValue(int value)
 	{
-		if (m_value < m_min)
-			m_value = m_min;
-		else if (m_value > m_max)
-			m_value = m_max;
-		else
+		if (value >= m_min && value <= m_max)
 			m_value = value;
 	}
 
