@@ -16,6 +16,7 @@ namespace Berta
 	{
 		std::function<void()> Body;
 	};
+
 	enum class CustomMessageId : uint32_t
 	{
 		CustomCallback = WM_USER + 1

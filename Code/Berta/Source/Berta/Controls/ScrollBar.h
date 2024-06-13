@@ -30,24 +30,29 @@ namespace Berta
 		void SetValue(int value);
 
 	private:
+		inline bool isScrollable() const { return m_min != m_max; }
+		uint32_t GetButtonSize() const;
+
 		ControlBase* m_control{ nullptr };
 		bool m_isVertical{ false };
 		int m_min = 0;
 		int m_max = 1;
 		int m_step = 1;
+		int m_localStep = 1;
 		int m_value = 0;
 		Timer m_timer;
 
-		enum class HoverArea
+		enum class InteractionArea
 		{
 			None,
 			Button1,
 			Button2,
-			Center
+			Scrollbox,
+			ScrollTrack
 		};
 
-		HoverArea m_hoverArea{ HoverArea::None };
-		HoverArea m_pressedArea{ HoverArea::None };
+		InteractionArea m_hoverArea{ InteractionArea::None };
+		InteractionArea m_pressedArea{ InteractionArea::None };
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
