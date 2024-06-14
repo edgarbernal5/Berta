@@ -71,7 +71,7 @@ namespace Berta
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
 
-		struct Capture
+		struct CaptureData
 		{
 			Window* WindowPtr{ nullptr };
 			std::vector<Window*> PrevCaptured;

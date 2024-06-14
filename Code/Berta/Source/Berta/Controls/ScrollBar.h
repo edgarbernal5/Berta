@@ -30,18 +30,6 @@ namespace Berta
 		void SetValue(int value);
 
 	private:
-		inline bool isScrollable() const { return m_min != m_max; }
-		uint32_t GetButtonSize() const;
-
-		ControlBase* m_control{ nullptr };
-		bool m_isVertical{ false };
-		int m_min = 0;
-		int m_max = 1;
-		int m_step = 1;
-		int m_localStep = 1;
-		int m_value = 0;
-		Timer m_timer;
-
 		enum class InteractionArea
 		{
 			None,
@@ -51,8 +39,25 @@ namespace Berta
 			ScrollTrack
 		};
 
+		inline bool isScrollable() const { return m_min != m_max; }
+		uint32_t GetButtonSize() const;
+		void DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted);
+		InteractionArea DetermineHoverArea(const Point& position) const;
+		void UpdateScrollBoxValue(int position, int buttonSize);
+		
+		ControlBase* m_control{ nullptr };
+		bool m_isVertical{ false };
+		int m_min{ 0 };
+		int m_max{ 1 };
+		int m_step{ 1 };
+		int m_localStep{ 1 };
+		int m_value{ 0 };
+		Timer m_timer;
+
 		InteractionArea m_hoverArea{ InteractionArea::None };
 		InteractionArea m_pressedArea{ InteractionArea::None };
+		Point m_mouseDownPosition{};
+		int m_prevTrackValue{};
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
@@ -62,7 +67,6 @@ namespace Berta
 
 		void SetMinMax(int min, int max);
 		void SetValue(int value);
-	private:
 	};
 }
 

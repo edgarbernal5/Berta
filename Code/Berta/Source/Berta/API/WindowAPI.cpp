@@ -229,11 +229,52 @@ namespace Berta
 #endif
 		}
 
+		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::RECT nativeRect;
+			::GetWindowRect(reinterpret_cast<HWND>(nativeHandle.Handle), &nativeRect);
+			HWND coord_wd = ::GetWindow(reinterpret_cast<HWND>(nativeHandle.Handle), GW_OWNER);
+			
+			if (!coord_wd)
+			{
+				coord_wd = ::GetParent(reinterpret_cast<HWND>(nativeHandle.Handle));
+			}
+
+			if (coord_wd)
+			{
+				::POINT pointNative = { nativeRect.left, nativeRect.top };
+				if (::ScreenToClient(reinterpret_cast<HWND>(coord_wd), &pointNative))
+				{
+					return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
+				}
+			}
+
+			return { nativeRect.left, nativeRect.top};
+#else
+			return {};
+#endif
+		}
+
 		void SendCustomMessage(API::NativeWindowHandle nativaHandle, std::function<void()> body)
 		{
+#ifdef BT_PLATFORM_WINDOWS
 			auto param = new CustomCallbackMessage();
 			param->Body = body;
 			::PostMessage(nativaHandle.Handle, static_cast<UINT>(CustomMessageId::CustomCallback), reinterpret_cast<WPARAM>(param), 0);
+#endif
+		}
+
+		Point GetMousePosition()
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::POINT nativePoint;
+			::GetCursorPos(&nativePoint);
+			BT_CORE_DEBUG << "native mouse x = " << nativePoint.x << ". y = " << nativePoint.y << std::endl;
+			return Point(nativePoint.x, nativePoint.y);
+#else
+			return {};
+#endif
 		}
 	}
 }

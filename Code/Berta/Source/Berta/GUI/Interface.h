@@ -37,6 +37,9 @@ namespace Berta
 		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
 		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
+		Point GetAbsolutePosition(Window* window);
+		Point GetMousePositionToWindow(Window* window);
+
 		void UpdateDeferred(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
@@ -44,6 +47,7 @@ namespace Berta
 		Rectangle GetCenteredOnScreen(const Size& size);
 
 		Point GetPointClientToScreen(Window *window, const Point& point);
+		Point GetPointScreenToClient(Window *window, const Point& point);
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
 	}

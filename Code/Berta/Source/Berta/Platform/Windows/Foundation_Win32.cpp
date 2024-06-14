@@ -401,9 +401,9 @@ namespace Berta
 			{
 				ArgMouse argMouseUp;
 				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
-				argMouseUp.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouseUp.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouseUp.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+				argMouseUp.ButtonState.LeftButton = message == WM_LBUTTONUP;
+				argMouseUp.ButtonState.RightButton = message == WM_RBUTTONUP;
+				argMouseUp.ButtonState.MiddleButton = message == WM_MBUTTONUP;
 
 				if (window->Size.IsInside(argMouseUp.Position))
 				{

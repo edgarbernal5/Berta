@@ -18,7 +18,8 @@ namespace Berta
 		m_timer.Connect([this](const ArgTimer& args)
 			{
 				auto oldValue = m_value;
-				BT_CORE_DEBUG << "timeer... " << (int)m_pressedArea << ". oldValue " << oldValue << std::endl;
+				auto window = m_control->Handle();
+				BT_CORE_DEBUG << "timer... " << static_cast<int>(m_pressedArea) << ". oldValue " << oldValue << std::endl;
 				if (m_pressedArea == InteractionArea::Button1)
 				{
 					SetValue(m_value - m_localStep);
@@ -27,13 +28,23 @@ namespace Berta
 				{
 					SetValue(m_value + m_localStep);
 				}
+				else if (m_pressedArea == InteractionArea::ScrollTrack)
+				{
+					if (m_isVertical)
+					{
+						auto mousePosition = GUI::GetMousePositionToWindow(window);
+						if (m_mouseDownPosition.Y > mousePosition.Y)
+						{
+
+						}
+					}
+				}
 				if (oldValue != m_value)
 				{
 					ArgScrollBar argScrollbar;
 					argScrollbar.Value = m_value;
-					reinterpret_cast<ScrollBarEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
+					reinterpret_cast<ScrollBarEvents*>(window->Events.get())->ValueChanged.Emit(argScrollbar);
 
-					auto window = m_control->Handle();
 					Update(window->Renderer.GetGraphics());
 					GUI::UpdateDeferred(window);
 				}
@@ -45,38 +56,24 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
-		if (m_isVertical)
+
+		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
+		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
+
+		DrawButton(graphics, { 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Upwards, m_hoverArea == InteractionArea::Button1);
+
+		if (isScrollable())
 		{
-			int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
-			int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
+			float num = 1.0f / ((m_max - m_min) + 1.0f);
+			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
+			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
+			Rectangle scrollBoxRect{ 0, static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
 
-			//upward button
-			if (m_hoverArea == InteractionArea::Button1)
-			{
-				graphics.DrawRectangle({ 0, 0, window->Size.Width, buttonSize }, window->Appereance->ButtonHighlightBackground, true);
-			}
-			graphics.DrawRectangle({ 0, 0, window->Size.Width, buttonSize }, window->Appereance->BoxBorderColor, false);
-			graphics.DrawArrow({ 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, Graphics::ArrowDirection::Upwards, true);
-
-			if (isScrollable())
-			{
-				float num = 1.0f / ((m_max - m_min) + 1.0f);
-				Rectangle scrollTrackRect{ 0, (int)buttonSize + 1, window->Size.Width, window->Size.Height - buttonSize * 2 - 2 };
-				uint32_t scrollBoxSize = (uint32_t)scrollTrackRect.Height * num;
-				Rectangle scrollBoxRect{ 0, (int)buttonSize + 1 + (int)(((m_value - m_min) / (float)(m_max - m_min)) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
-
-				graphics.DrawRectangle(scrollBoxRect, window->Appereance->Background, true);
-				graphics.DrawRectangle(scrollBoxRect, window->Appereance->BoxBorderColor, false);
-			}
-
-			//downward button
-			if (m_hoverArea == InteractionArea::Button2)
-			{
-				graphics.DrawRectangle({ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, window->Appereance->ButtonHighlightBackground, true);
-			}
-			graphics.DrawRectangle({ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, window->Appereance->BoxBorderColor, false);
-			graphics.DrawArrow({ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, Graphics::ArrowDirection::Downwards, true);
+			graphics.DrawRectangle(scrollBoxRect, window->Appereance->Background, true);
+			graphics.DrawRectangle(scrollBoxRect, window->Appereance->BoxBorderColor, false);
 		}
+
+		DrawButton(graphics, { 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Downwards, m_hoverArea == InteractionArea::Button2);
 	}
 
 	void ScrollBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -92,17 +89,18 @@ namespace Berta
 
 	void ScrollBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		if (args.ButtonState.LeftButton)
+		if (!args.ButtonState.LeftButton || !isScrollable())
+			return;
+
+		m_mouseDownPosition = args.Position;
+		m_prevTrackValue = m_value;
+		GUI::Capture(*m_control);
+
+		m_pressedArea = m_hoverArea;
+		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
-			if (isScrollable())
-			{
-				m_pressedArea = m_hoverArea;
-				if (m_pressedArea != InteractionArea::Scrollbox)
-				{
-					m_timer.SetInterval(100);
-					m_timer.Start();
-				}
-			}
+			m_timer.SetInterval(100);
+			m_timer.Start();
 		}
 	}
 
@@ -110,41 +108,10 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
+
 		if (!args.ButtonState.LeftButton && !args.ButtonState.RightButton && !args.ButtonState.MiddleButton)
 		{
-			InteractionArea newHoverArea = InteractionArea::None;
-
-			if (isScrollable())
-			{
-				if (m_isVertical)
-				{
-					if (Rectangle{ 0, 0, buttonSize, buttonSize }.IsInside(args.Position))
-					{
-						newHoverArea = InteractionArea::Button1;
-					}
-					else if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), buttonSize, buttonSize }.IsInside(args.Position))
-					{
-						newHoverArea = InteractionArea::Button2;
-					}
-					else
-					{
-						float num = 1.0f / ((m_max - m_min) + 1.0f);
-						Rectangle scrollTrackRect{ 0, (int)buttonSize + 1, window->Size.Width, window->Size.Height - buttonSize * 2 - 2 };
-						uint32_t scrollBoxSize = (uint32_t)scrollTrackRect.Height * num;
-						Rectangle scrollBoxRect{ 0, (int)buttonSize + 1 + (int)(((m_value - m_min) / (float)(m_max - m_min)) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
-
-						if (scrollBoxRect.IsInside(args.Position))
-						{
-							newHoverArea = InteractionArea::Scrollbox;
-						}
-						else
-						{
-							newHoverArea = InteractionArea::ScrollTrack;
-						}
-					}
-				}
-			}
-			
+			InteractionArea newHoverArea = DetermineHoverArea(args.Position);
 			if (m_hoverArea != newHoverArea)
 			{
 				m_hoverArea = newHoverArea;
@@ -152,31 +119,9 @@ namespace Berta
 				GUI::UpdateDeferred(window);
 			}
 		}
-		else if (args.ButtonState.LeftButton)
+		else if (args.ButtonState.LeftButton && m_pressedArea == InteractionArea::Scrollbox)
 		{
-			if (m_pressedArea == InteractionArea::Scrollbox) {
-				float num = 1.0f / ((m_max - m_min) + 1.0f);
-				Rectangle scrollTrackRect{ 0, (int)buttonSize + 1, window->Size.Width, window->Size.Height - buttonSize * 2 - 2 };
-				uint32_t scrollBoxSize = (uint32_t)scrollTrackRect.Height * num;
-				Rectangle scrollBoxRect{ 0, (int)buttonSize + 1 + (int)(((m_value - m_min) / (float)(m_max - m_min)) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
-
-				int newValue = (int)(((float)(args.Position.Y - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (float)(m_max - m_min)) + m_min;
-				if (newValue < m_min)
-					newValue = m_min;
-				if (newValue > m_max)
-					newValue = m_max;
-
-				if (m_value != newValue)
-				{
-					m_value = newValue;
-					ArgScrollBar argScrollbar;
-					argScrollbar.Value = m_value;
-					reinterpret_cast<ScrollBarEvents*>(window->Events.get())->ValueChanged.Emit(argScrollbar);
-
-					Update(window->Renderer.GetGraphics());
-					GUI::UpdateDeferred(window);
-				}
-			}
+			UpdateScrollBoxValue(m_isVertical ? args.Position.Y : args.Position.X, buttonSize);
 		}
 	}
 
@@ -185,14 +130,14 @@ namespace Berta
 		if (!isScrollable())
 			return;
 
-		m_timer.Stop();
+		auto window = m_control->Handle();
+		if (args.ButtonState.LeftButton)
+			GUI::ReleaseCapture(window);
 
-		if (m_pressedArea != InteractionArea::None)
-		{
-		}
+		m_timer.Stop();
 		m_pressedArea = InteractionArea::None;
 		m_hoverArea = InteractionArea::None;
-		auto window = m_control->Handle();
+
 		Update(graphics);
 		GUI::UpdateDeferred(window);
 	}
@@ -206,17 +151,12 @@ namespace Berta
 	{
 		m_min = (std::min)(min, max);
 		m_max = (std::max)(min, max);
-
-		if (m_value < m_min)
-			m_value = m_min;
-		else if (m_value > m_max)
-			m_value = m_max;
+		m_value = std::clamp(m_value, m_min, m_max);
 	}
 
 	void ScrollBarReactor::SetValue(int value)
 	{
-		if (value >= m_min && value <= m_max)
-			m_value = value;
+		m_value = std::clamp(value, m_min, m_max);
 	}
 
 	uint32_t ScrollBarReactor::GetButtonSize() const
@@ -238,5 +178,77 @@ namespace Berta
 	void ScrollBar::SetValue(int value)
 	{
 		m_reactor.SetValue(value);
+	}
+
+	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted)
+	{
+		if (isHighlighted)
+		{
+			graphics.DrawRectangle(rect, m_control->Handle()->Appereance->ButtonHighlightBackground, true);
+		}
+		graphics.DrawRectangle(rect, m_control->Handle()->Appereance->BoxBorderColor, false);
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, m_control->Handle()->Appereance->BoxBorderColor, direction, true);
+	}
+
+	ScrollBarReactor::InteractionArea ScrollBarReactor::DetermineHoverArea(const Point& position) const
+	{
+		auto window = m_control->Handle();
+		auto buttonSize = GetButtonSize();
+
+		if (m_isVertical)
+		{
+			if (Rectangle{ 0, 0, window->Size.Width, buttonSize }.IsInside(position))
+				return InteractionArea::Button1;
+			if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }.IsInside(position))
+				return InteractionArea::Button2;
+
+			if (isScrollable())
+			{
+				float num = 1.0f / ((m_max - m_min) + 1.0f);
+				Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
+				uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
+				Rectangle scrollBoxRect{ 0, static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
+
+				if (scrollBoxRect.IsInside(position))
+					return InteractionArea::Scrollbox;
+
+				return InteractionArea::ScrollTrack;
+			}
+		}
+		return InteractionArea::None;
+	}
+
+	void ScrollBarReactor::UpdateScrollBoxValue(int position, int buttonSize)
+	{
+		auto window = m_control->Handle();
+		float num = 1.0f / ((m_max - m_min) + 1.0f);
+		int newValue = m_value;
+		if (m_isVertical)
+		{
+			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
+			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
+
+			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
+		}
+		else
+		{
+			Rectangle scrollTrackRect{ buttonSize + 1, 0 , window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
+			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Width * num);
+
+			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.X) / (scrollTrackRect.Width - scrollBoxSize)) * (m_max - m_min)) + m_min;
+		}
+		
+		newValue = std::clamp(newValue, m_min, m_max);
+
+		if (m_value != newValue)
+		{
+			m_value = newValue;
+			ArgScrollBar argScrollbar;
+			argScrollbar.Value = m_value;
+			reinterpret_cast<ScrollBarEvents*>(window->Events.get())->ValueChanged.Emit(argScrollbar);
+
+			Update(window->Renderer.GetGraphics());
+			GUI::UpdateDeferred(window);
+		}
 	}
 }

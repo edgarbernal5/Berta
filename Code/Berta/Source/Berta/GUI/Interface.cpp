@@ -195,6 +195,28 @@ namespace Berta::GUI
 		}
 	}
 
+	Point GetAbsolutePosition(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return windowManager.GetAbsolutePosition(window);
+		}
+		return {};
+	}
+
+	Point GetMousePositionToWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetMousePosition());
+
+			return mousePosition - windowManager.GetAbsolutePosition(window);
+		}
+		return {};
+	}
+
 	void UpdateDeferred(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -252,6 +274,16 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			return API::GetPointClientToScreen(window->RootWindow->RootHandle, point);
+		}
+		return {};
+	}
+
+	Point GetPointScreenToClient(Window* window, const Point& point)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return API::GetPointScreenToClient(window->RootWindow->RootHandle, point);
 		}
 		return {};
 	}
