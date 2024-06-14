@@ -45,6 +45,8 @@ namespace Berta
 		InteractionArea DetermineHoverArea(const Point& position) const;
 		void UpdateScrollBoxValue(int position, int buttonSize);
 		
+		Rectangle GetScrollBoxRect() const;
+
 		ControlBase* m_control{ nullptr };
 		bool m_isVertical{ false };
 		int m_min{ 0 };
@@ -58,6 +60,7 @@ namespace Berta
 		InteractionArea m_pressedArea{ InteractionArea::None };
 		Point m_mouseDownPosition{};
 		int m_prevTrackValue{};
+		bool m_trackUpwards{ false };
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>

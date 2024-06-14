@@ -232,25 +232,13 @@ namespace Berta
 		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::RECT nativeRect;
-			::GetWindowRect(reinterpret_cast<HWND>(nativeHandle.Handle), &nativeRect);
-			HWND coord_wd = ::GetWindow(reinterpret_cast<HWND>(nativeHandle.Handle), GW_OWNER);
-			
-			if (!coord_wd)
+			::POINT pointNative = { point.X, point.Y };
+			if (::ScreenToClient(reinterpret_cast<HWND>(nativeHandle.Handle), &pointNative))
 			{
-				coord_wd = ::GetParent(reinterpret_cast<HWND>(nativeHandle.Handle));
+				return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
 			}
 
-			if (coord_wd)
-			{
-				::POINT pointNative = { nativeRect.left, nativeRect.top };
-				if (::ScreenToClient(reinterpret_cast<HWND>(coord_wd), &pointNative))
-				{
-					return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
-				}
-			}
-
-			return { nativeRect.left, nativeRect.top};
+			return point;
 #else
 			return {};
 #endif

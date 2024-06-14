@@ -97,6 +97,15 @@ namespace Berta
 		GUI::Capture(*m_control);
 
 		m_pressedArea = m_hoverArea;
+		if (m_pressedArea == InteractionArea::ScrollTrack)
+		{
+			if (m_isVertical) {
+				
+
+				//m_trackUpwards = m_mouseDownPosition.Y >
+			}
+			
+		}
 		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
 			m_timer.SetInterval(100);
@@ -250,5 +259,35 @@ namespace Berta
 			Update(window->Renderer.GetGraphics());
 			GUI::UpdateDeferred(window);
 		}
+	}
+
+	Rectangle ScrollBarReactor::GetScrollBoxRect() const
+	{
+		auto window = m_control->Handle();
+		auto buttonSize = GetButtonSize();
+
+		float num = 1.0f / ((m_max - m_min) + 1.0f);
+
+		if (m_isVertical)
+		{
+			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
+			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
+
+			return {
+				0,
+				static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
+				window->Size.Width,
+				scrollBoxSize
+			};
+		}
+		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + 1, 0, window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
+		uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Width * num);
+
+		return { 
+			static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
+			0,
+			scrollBoxSize,
+			window->Size.Height
+		};
 	}
 }
