@@ -14,41 +14,13 @@ namespace Berta
 	void ScrollBarReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
+
 		m_timer.SetOwner(control.Handle());
 		m_timer.Connect([this](const ArgTimer& args)
-			{
-				auto oldValue = m_value;
-				auto window = m_control->Handle();
-				BT_CORE_DEBUG << "timer... " << static_cast<int>(m_pressedArea) << ". oldValue " << oldValue << std::endl;
-				if (m_pressedArea == InteractionArea::Button1)
-				{
-					SetValue(m_value - m_localStep);
-				}
-				else if (m_pressedArea == InteractionArea::Button2)
-				{
-					SetValue(m_value + m_localStep);
-				}
-				else if (m_pressedArea == InteractionArea::ScrollTrack)
-				{
-					if (m_isVertical)
-					{
-						auto mousePosition = GUI::GetMousePositionToWindow(window);
-						if (m_mouseDownPosition.Y > mousePosition.Y)
-						{
-
-						}
-					}
-				}
-				if (oldValue != m_value)
-				{
-					ArgScrollBar argScrollbar;
-					argScrollbar.Value = m_value;
-					reinterpret_cast<ScrollBarEvents*>(window->Events.get())->ValueChanged.Emit(argScrollbar);
-
-					Update(window->Renderer.GetGraphics());
-					GUI::UpdateDeferred(window);
-				}
-			});
+		{
+			DoScrollStep();
+			m_timer.SetInterval(50);
+		});
 	}
 
 	void ScrollBarReactor::Update(Graphics& graphics)
@@ -64,10 +36,7 @@ namespace Berta
 
 		if (isScrollable())
 		{
-			float num = 1.0f / ((m_max - m_min) + 1.0f);
-			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
-			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
-			Rectangle scrollBoxRect{ 0, static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
+			auto scrollBoxRect = GetScrollBoxRect();
 
 			graphics.DrawRectangle(scrollBoxRect, window->Appereance->Background, true);
 			graphics.DrawRectangle(scrollBoxRect, window->Appereance->BoxBorderColor, false);
@@ -99,16 +68,26 @@ namespace Berta
 		m_pressedArea = m_hoverArea;
 		if (m_pressedArea == InteractionArea::ScrollTrack)
 		{
-			if (m_isVertical) {
-				
-
-				//m_trackUpwards = m_mouseDownPosition.Y >
+			m_localStep = m_pageStep;
+			auto scrollBoxRect = GetScrollBoxRect();
+			if (m_isVertical)
+			{
+				m_trackPageUp = m_mouseDownPosition.Y < scrollBoxRect.Y;
 			}
-			
+			else
+			{
+				m_trackPageUp = m_mouseDownPosition.X < scrollBoxRect.X;
+			}
 		}
+		else
+		{
+			m_localStep = m_step;
+		}
+
 		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
-			m_timer.SetInterval(100);
+			DoScrollStep();
+			m_timer.SetInterval(2000);
 			m_timer.Start();
 		}
 	}
@@ -168,25 +147,55 @@ namespace Berta
 		m_value = std::clamp(value, m_min, m_max);
 	}
 
+	void ScrollBarReactor::DoScrollStep()
+	{
+		auto oldValue = m_value;
+		auto window = m_control->Handle();
+		BT_CORE_DEBUG << "timer... " << static_cast<int>(m_pressedArea) << ". oldValue " << oldValue << std::endl;
+		if (m_pressedArea == InteractionArea::Button1)
+		{
+			SetValue(m_value - m_localStep);
+		}
+		else if (m_pressedArea == InteractionArea::Button2)
+		{
+			SetValue(m_value + m_localStep);
+		}
+		else if (m_pressedArea == InteractionArea::ScrollTrack)
+		{
+			auto mousePosition = GUI::GetMousePositionToWindow(window);
+			auto scrollBoxRect = GetScrollBoxRect();
+			if (m_isVertical)
+			{
+				if (m_trackPageUp && mousePosition.Y <= scrollBoxRect.Y)
+				{
+					SetValue(m_value - m_localStep);
+				}
+				else if (!m_trackPageUp && mousePosition.Y >= scrollBoxRect.Y + (int)scrollBoxRect.Height)
+				{
+					SetValue(m_value + m_localStep);
+				}
+			}
+		}
+
+		if (oldValue != m_value)
+		{
+			EmitValueChanged();
+
+			Update(window->Renderer.GetGraphics());
+			GUI::UpdateDeferred(window);
+		}
+	}
+
+	void ScrollBarReactor::EmitValueChanged()
+	{
+		ArgScrollBar argScrollbar;
+		argScrollbar.Value = m_value;
+		reinterpret_cast<ScrollBarEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
+	}
+
 	uint32_t ScrollBarReactor::GetButtonSize() const
 	{
 		return static_cast<uint32_t>(m_control->Handle()->Appereance->ScrollBarSize * m_control->Handle()->DPIScaleFactor);
-	}
-
-	ScrollBar::ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical)
-	{
-		Create(parent, rectangle);
-		m_reactor.SetOrientation(isVertical);
-	}
-
-	void ScrollBar::SetMinMax(int min, int max)
-	{
-		m_reactor.SetMinMax(min, max);
-	}
-
-	void ScrollBar::SetValue(int value)
-	{
-		m_reactor.SetValue(value);
 	}
 
 	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted)
@@ -213,10 +222,7 @@ namespace Berta
 
 			if (isScrollable())
 			{
-				float num = 1.0f / ((m_max - m_min) + 1.0f);
-				Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
-				uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
-				Rectangle scrollBoxRect{ 0, static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)), window->Size.Width, scrollBoxSize };
+				auto scrollBoxRect = GetScrollBoxRect();
 
 				if (scrollBoxRect.IsInside(position))
 					return InteractionArea::Scrollbox;
@@ -246,15 +252,13 @@ namespace Berta
 
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.X) / (scrollTrackRect.Width - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
-		
+
 		newValue = std::clamp(newValue, m_min, m_max);
 
 		if (m_value != newValue)
 		{
 			m_value = newValue;
-			ArgScrollBar argScrollbar;
-			argScrollbar.Value = m_value;
-			reinterpret_cast<ScrollBarEvents*>(window->Events.get())->ValueChanged.Emit(argScrollbar);
+			EmitValueChanged();
 
 			Update(window->Renderer.GetGraphics());
 			GUI::UpdateDeferred(window);
@@ -283,11 +287,27 @@ namespace Berta
 		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + 1, 0, window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
 		uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Width * num);
 
-		return { 
+		return {
 			static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
 			0,
 			scrollBoxSize,
 			window->Size.Height
 		};
+	}
+
+	ScrollBar::ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical)
+	{
+		Create(parent, rectangle);
+		m_reactor.SetOrientation(isVertical);
+	}
+
+	void ScrollBar::SetMinMax(int min, int max)
+	{
+		m_reactor.SetMinMax(min, max);
+	}
+
+	void ScrollBar::SetValue(int value)
+	{
+		m_reactor.SetValue(value);
 	}
 }

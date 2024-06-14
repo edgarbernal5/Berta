@@ -31,8 +31,8 @@ namespace Berta
 		void Stop();
 
 		void SetOwner(Window* owner) { m_owner = owner; }
-		void SetInterval(std::chrono::milliseconds milliseconds) { m_interval = milliseconds; }
-		void SetInterval(uint32_t milliseconds) { m_interval = std::chrono::milliseconds(milliseconds); }
+		void SetInterval(std::chrono::milliseconds milliseconds) { m_interval.store(milliseconds); }
+		void SetInterval(uint32_t milliseconds) { m_interval.store(std::chrono::milliseconds(milliseconds)); }
 		void Connect(std::function<void(const ArgTimer&)> callback)
 		{
 			m_tick.Connect(callback);
@@ -43,7 +43,7 @@ namespace Berta
 		void Run();
 
 		std::atomic_bool m_isRunning{ false };
-		std::chrono::milliseconds m_interval{ 1000 };
+		std::atomic<std::chrono::milliseconds> m_interval{ std::chrono::milliseconds{ 1000 } };
 		
 		std::thread m_timerThread;
 		Event<ArgTimer> m_tick;

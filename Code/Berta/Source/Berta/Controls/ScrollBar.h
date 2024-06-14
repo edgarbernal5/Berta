@@ -39,6 +39,8 @@ namespace Berta
 			ScrollTrack
 		};
 
+		void DoScrollStep();
+		void EmitValueChanged();
 		inline bool isScrollable() const { return m_min != m_max; }
 		uint32_t GetButtonSize() const;
 		void DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted);
@@ -53,6 +55,7 @@ namespace Berta
 		int m_max{ 1 };
 		int m_step{ 1 };
 		int m_localStep{ 1 };
+		int m_pageStep{ 2 };
 		int m_value{ 0 };
 		Timer m_timer;
 
@@ -60,7 +63,7 @@ namespace Berta
 		InteractionArea m_pressedArea{ InteractionArea::None };
 		Point m_mouseDownPosition{};
 		int m_prevTrackValue{};
-		bool m_trackUpwards{ false };
+		bool m_trackPageUp{ false };
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>

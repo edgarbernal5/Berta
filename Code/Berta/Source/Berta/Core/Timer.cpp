@@ -55,7 +55,7 @@ namespace Berta
 		
 		while (m_isRunning.load())
 		{
-			std::this_thread::sleep_for(m_interval);
+			std::this_thread::sleep_for(m_interval.load());
 			if (m_isRunning.load())
 			{
 				API::SendCustomMessage(m_owner->RootHandle, [this]()

@@ -258,7 +258,6 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			::POINT nativePoint;
 			::GetCursorPos(&nativePoint);
-			BT_CORE_DEBUG << "native mouse x = " << nativePoint.x << ". y = " << nativePoint.y << std::endl;
 			return Point(nativePoint.x, nativePoint.y);
 #else
 			return {};
