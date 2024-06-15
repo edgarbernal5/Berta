@@ -90,7 +90,7 @@ namespace Berta
 		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
 			DoScrollStep();
-			m_timer.SetInterval(2000);
+			m_timer.SetInterval(400);
 			m_timer.Start();
 		}
 	}
@@ -168,7 +168,7 @@ namespace Berta
 	{
 		auto oldValue = m_value;
 		auto window = m_control->Handle();
-		BT_CORE_DEBUG << "timer... " << static_cast<int>(m_pressedArea) << ". oldValue " << oldValue << std::endl;
+		
 		if (m_pressedArea == InteractionArea::Button1)
 		{
 			SetValue(m_value - m_localStep);

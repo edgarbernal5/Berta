@@ -40,32 +40,67 @@ namespace Berta
 
 	void Timer::Stop()
 	{
+		{
+			std::lock_guard<std::mutex> lock(m_conditionMutex);
+			m_isRunning.store(false);
+		}
+		m_conditionVariable.notify_all();
+		if (m_timerThread.joinable())
+		{
+			m_timerThread.join();
+		}
+	}
+
+	void Timer::SetInterval(std::chrono::milliseconds milliseconds)
+	{
 		if (!m_isRunning.load())
 		{
+			m_interval.store(milliseconds);
 			return;
 		}
+		if (m_interval.load() == milliseconds)
+			return;
 
-		m_isRunning.store(false);
-		m_timerThread.join();
+		Stop();
+		m_interval.store(milliseconds);
+
+		Start();
+	}
+
+	void Timer::SetInterval(uint32_t milliseconds)
+	{
+		if (!m_isRunning.load())
+		{
+			m_interval.store(std::chrono::milliseconds(milliseconds));
+			return;
+		}
+		if (m_interval.load() == std::chrono::milliseconds(milliseconds))
+			return;
+
+		Stop();
+		m_interval.store(std::chrono::milliseconds(milliseconds));
+		
+		Start();
 	}
 
 	void Timer::Run()
 	{
-		//https://chatgpt.com/c/781edcee-9945-4f63-baba-d0ce43746f42
-		
+		std::unique_lock<std::mutex> lock(m_conditionMutex);
 		while (m_isRunning.load())
 		{
-			std::this_thread::sleep_for(m_interval.load());
-			if (m_isRunning.load())
+			// Wait for a signal to wake up or continue checking periodically
+			m_conditionVariable.wait_for(lock, std::chrono::milliseconds(m_interval), [this] { return !m_isRunning.load(); });
+			
+			if (!m_isRunning.load())
 			{
-				API::SendCustomMessage(m_owner->RootHandle, [this]()
-				{
-					ArgTimer argTimer;
-					m_tick.Emit(argTimer);
-				});
-			}
-			else
 				break;
+			}
+
+			API::SendCustomMessage(m_owner->RootHandle, [this]()
+			{
+				ArgTimer argTimer;
+				m_tick.Emit(argTimer);
+			});
 		}
 	}
 }

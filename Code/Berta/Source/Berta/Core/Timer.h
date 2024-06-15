@@ -11,6 +11,8 @@
 #include <thread>
 #include <functional>
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include "Berta/Core/Event.h"
 
 namespace Berta
@@ -31,8 +33,8 @@ namespace Berta
 		void Stop();
 
 		void SetOwner(Window* owner) { m_owner = owner; }
-		void SetInterval(std::chrono::milliseconds milliseconds) { m_interval.store(milliseconds); }
-		void SetInterval(uint32_t milliseconds) { m_interval.store(std::chrono::milliseconds(milliseconds)); }
+		void SetInterval(std::chrono::milliseconds milliseconds);
+		void SetInterval(uint32_t milliseconds);
 		void Connect(std::function<void(const ArgTimer&)> callback)
 		{
 			m_tick.Connect(callback);
@@ -42,6 +44,8 @@ namespace Berta
 	private:
 		void Run();
 
+		std::mutex m_conditionMutex;
+		std::condition_variable m_conditionVariable;
 		std::atomic_bool m_isRunning{ false };
 		std::atomic<std::chrono::milliseconds> m_interval{ std::chrono::milliseconds{ 1000 } };
 		
