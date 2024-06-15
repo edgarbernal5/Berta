@@ -39,6 +39,7 @@ namespace Berta
 			ScrollTrack
 		};
 
+		bool IsValid() const;
 		void DoScrollStep();
 		void EmitValueChanged();
 		inline bool isScrollable() const { return m_min != m_max; }

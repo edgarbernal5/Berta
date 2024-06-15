@@ -29,6 +29,9 @@ namespace Berta
 		auto buttonSize = GetButtonSize();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
 
+		if (!IsValid())
+			return;
+
 		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
 		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
 
@@ -145,6 +148,20 @@ namespace Berta
 	void ScrollBarReactor::SetValue(int value)
 	{
 		m_value = std::clamp(value, m_min, m_max);
+	}
+
+	bool ScrollBarReactor::IsValid() const
+	{
+		auto window = m_control->Handle();
+		auto buttonSize = GetButtonSize();
+
+		if (m_isVertical && window->Size.Height < buttonSize * 2 + 2 + 4)
+			return false;
+
+		if (!m_isVertical && window->Size.Width < buttonSize * 2 + 2 + 4)
+			return false;
+
+		return true;
 	}
 
 	void ScrollBarReactor::DoScrollStep()
