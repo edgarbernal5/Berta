@@ -69,8 +69,8 @@ namespace Berta
 		Control(Control&&) = delete;
 		Control& operator=(Control&&) = delete;
 
-		AppearanceType& GetAppearance() { return *m_appearance; }
-		EventsType& GetEvents() { return *m_events; }
+		AppearanceType& GetAppearance() const { return *m_appearance; }
+		EventsType& GetEvents() const { return *m_events; }
 
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)

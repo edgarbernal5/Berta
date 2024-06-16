@@ -26,6 +26,13 @@ namespace Berta
 	{
 		m_control = &control;
 		m_textEditor = new TextEditor(*m_control);
+
+		m_textEditor->SetValueChangedCallback([this]()
+		{
+			ArgTextChanged args;
+			args.NewValue = m_textEditor->GetContent();
+			reinterpret_cast<InputTextEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(args);
+		});
 	}
 
 	void InputTextReactor::Update(Graphics& graphics)

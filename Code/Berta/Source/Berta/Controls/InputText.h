@@ -40,7 +40,7 @@ namespace Berta
 		TextEditor* m_textEditor{ nullptr };
 	};
 
-	class InputText : public Control<InputTextReactor>
+	class InputText : public Control<InputTextReactor, InputTextEvents>
 	{
 	public:
 		InputText(Window* parent, const Rectangle& rectangle);

@@ -11,6 +11,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/Floating/InteractionData.h"
+#include "Berta/Controls/ScrollBar.h"
 
 namespace Berta
 {
@@ -28,12 +29,7 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-		void SetState(GUI::InteractionData& selection)
-		{
-			m_interactionData = &selection;
-			m_state.m_index = selection.m_selectedIndex;
-			selection.m_isSelected = false;
-		}
+		void SetState(GUI::InteractionData& selection);
 
 		struct State
 		{
@@ -47,6 +43,7 @@ namespace Berta
 		bool MoveSelectedItem(int direction);
 	private:
 		bool IsInside(const Point& point);
+		void UpdateScrollBar();
 
 		FloatBox* m_control{ nullptr };
 
@@ -54,6 +51,7 @@ namespace Berta
 		State m_state;
 
 		bool m_ignoreFirstMouseUp{ true };
+		std::unique_ptr<ScrollBar> m_scrollBar;
 	};
 
 	class FloatBox : public Control<FloatBoxReactor, RootEvents>

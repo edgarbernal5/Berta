@@ -44,6 +44,10 @@ int main()
 
 	Berta::InputText inputText(form, { 190,30,200,25 });
 	inputText.Caption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
+		{
+			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
+		});
 
 	inputText.SetDebugName("inputText");
 	Berta::ComboBox comboBox(form, { 190,60,200,25 });
@@ -51,6 +55,9 @@ int main()
 	comboBox.PushItem(L"Ejemplo 2");
 	comboBox.PushItem(L"Ejemplo 3");
 	comboBox.PushItem(L"Ejemplo 4");
+	comboBox.PushItem(L"Ejemplo 5");
+	comboBox.PushItem(L"Ejemplo 6");
+	comboBox.PushItem(L"Ejemplo 7");
 	comboBox.SetDebugName("comboBox");
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
 	{

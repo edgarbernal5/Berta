@@ -46,6 +46,9 @@ namespace Berta
 		if (m_shiftPressed)
 		{
 			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+			if (m_selectionStartPosition == -1)
+				m_selectionStartPosition = m_caretPosition;
+
 			m_caretPosition = m_selectionEndPosition;
 		}
 		else
@@ -194,7 +197,7 @@ namespace Berta
 			m_content.insert(m_caretPosition, 1, chr);
 			++m_caretPosition;
 
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		else
 		{
@@ -202,6 +205,7 @@ namespace Berta
 			++m_caretPosition;
 		}
 		AdjustView();
+		EmitValueChanged();
 	}
 
 	void TextEditor::MoveCaretLeft()
@@ -217,7 +221,7 @@ namespace Berta
 		}
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
 			{
 				m_selectionStartPosition = m_caretPosition;
 			}
@@ -225,10 +229,10 @@ namespace Berta
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
-		AdjustView(true);
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretHome()
@@ -237,7 +241,7 @@ namespace Berta
 
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
 			{
 				m_selectionStartPosition = m_caretPosition;
 			}
@@ -245,10 +249,10 @@ namespace Berta
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
-		AdjustView(true);
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretRight()
@@ -265,7 +269,7 @@ namespace Berta
 		}
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
 			{
 				m_selectionStartPosition = m_caretPosition;
 			}
@@ -273,7 +277,7 @@ namespace Berta
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -285,7 +289,7 @@ namespace Berta
 
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == 0 && m_selectionEndPosition == 0)
+			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
 			{
 				m_selectionStartPosition = m_caretPosition;
 			}
@@ -293,7 +297,7 @@ namespace Berta
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -301,7 +305,6 @@ namespace Berta
 
 	void TextEditor::Delete()
 	{
-		bool scrollToLeft = false;
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
@@ -321,17 +324,21 @@ namespace Berta
 				m_caretPosition = caretPosition;
 			}
 
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		else
 		{
 			m_content.erase(m_caretPosition, 1);
 		}
-		AdjustView(scrollToLeft);
+		AdjustView();
+		EmitValueChanged();
 	}
 
 	void TextEditor::DeleteBack()
 	{
+		if (m_caretPosition == 0)
+			return;
+
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
@@ -357,7 +364,7 @@ namespace Berta
 				if (m_offsetView > 0) m_offsetView = 0;
 			}
 
-			m_selectionEndPosition = m_selectionStartPosition = 0;
+			m_selectionEndPosition = m_selectionStartPosition = -1;
 		}
 		else
 		{
@@ -365,11 +372,12 @@ namespace Berta
 			--m_caretPosition;
 		}
 		AdjustView();
+		EmitValueChanged();
 	}
 
 	void TextEditor::Render()
 	{
-		Size contentSize = GetContentTextExtent();
+		Size contentSize = GetContentTextExtent(m_caretPosition);
 
 		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
 
@@ -390,38 +398,42 @@ namespace Berta
 		}
 	}
 
-	void TextEditor::AdjustView(bool scrollToLeft)
+	void TextEditor::AdjustView()
 	{
-		auto contentSize = GetContentTextExtent();
+		auto contentSizeAtCaret = GetContentTextExtent(m_caretPosition);
+		auto contentSize = GetContentTextExtent(m_content.size());
 		auto ownerSize = m_graphics.GetSize();
 
 		constexpr int adjustment = 4;
-		bool needAdjustment = m_offsetView + contentSize.Width < 0 || m_offsetView + contentSize.Width > ownerSize.Width - adjustment;
-
+		bool needAdjustment = m_offsetView + (int)contentSize.Width  < (int)ownerSize.Width - adjustment || m_offsetView + (int)contentSizeAtCaret.Width < 0 || m_offsetView + (int)contentSizeAtCaret.Width > (int)ownerSize.Width - adjustment;
 		if (needAdjustment)
 		{
-			if (scrollToLeft)
+			if (m_offsetView + (int)contentSize.Width < (int)ownerSize.Width - adjustment)
 			{
-				m_offsetView = -static_cast<int>(contentSize.Width) + adjustment;
+				m_offsetView = static_cast<int>(ownerSize.Width - contentSizeAtCaret.Width) - adjustment;
+			}
+			else if (m_offsetView + (int)contentSizeAtCaret.Width < 0)
+			{
+				m_offsetView = -static_cast<int>(contentSizeAtCaret.Width) + adjustment;
 			}
 			else
 			{
-				m_offsetView = static_cast<int>(ownerSize.Width - contentSize.Width) - adjustment;
+				m_offsetView = static_cast<int>(ownerSize.Width - contentSizeAtCaret.Width) - adjustment;
 			}
-			m_offsetView = (std::min)(m_offsetView, 0);
+			m_offsetView = std::clamp(m_offsetView, -(int)contentSize.Width, 0);
 		}
 	}
 
-	Size TextEditor::GetContentTextExtent() const
+	Size TextEditor::GetContentTextExtent(size_t position) const
 	{
 		Size contentSize;
-		if (m_caretPosition == 0)
+		if (position == 0)
 		{
 			contentSize = { 0,m_graphics.GetTextExtent().Height };
 		}
 		else
 		{
-			contentSize = m_graphics.GetTextExtent(m_content, m_caretPosition);
+			contentSize = m_graphics.GetTextExtent(m_content, position);
 		}
 		return contentSize;
 	}
@@ -480,5 +492,13 @@ namespace Berta
 		if (p < 0) p = 0;
 		
 		return p;
+	}
+
+	void TextEditor::EmitValueChanged()
+	{
+		if (m_valueChangedCallback)
+		{
+			m_valueChangedCallback();
+		}
 	}
 }

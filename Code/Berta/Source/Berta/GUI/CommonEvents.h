@@ -80,6 +80,17 @@ namespace Berta
 		Event<ArgDestroy>	Destroy;
 	};
 
+	struct ArgTextChanged
+	{
+		//ArgTextChanged(std::wstring& value):NewValue(value){}
+		std::wstring NewValue;
+	};
+
+	struct InputTextEvents : public CommonEvents
+	{
+		Event<ArgTextChanged>	ValueChanged;
+	};
+
 	struct ArgSizeMove
 	{
 	};
