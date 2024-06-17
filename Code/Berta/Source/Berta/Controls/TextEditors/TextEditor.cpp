@@ -142,7 +142,7 @@ namespace Berta
 			DeleteBack();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::Delete && m_caretPosition < contentSize)
+		else if (args.Key == KeyboardKey::Delete && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			Delete();
 			redraw = true;
