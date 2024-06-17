@@ -51,13 +51,16 @@ int main()
 
 	inputText.SetDebugName("inputText");
 	Berta::ComboBox comboBox(form, { 190,60,200,25 });
-	comboBox.PushItem(L"Ejemplo 1");
-	comboBox.PushItem(L"Ejemplo 2");
-	comboBox.PushItem(L"Ejemplo 3");
-	comboBox.PushItem(L"Ejemplo 4");
-	comboBox.PushItem(L"Ejemplo 5");
-	comboBox.PushItem(L"Ejemplo 6");
-	comboBox.PushItem(L"Ejemplo 7");
+	for (size_t i = 0; i < 2; i++)
+	{
+		comboBox.PushItem(L"Ejemplo 1");
+		comboBox.PushItem(L"Ejemplo 2");
+		comboBox.PushItem(L"Ejemplo 3");
+		comboBox.PushItem(L"Ejemplo 4");
+		comboBox.PushItem(L"Ejemplo 5");
+		comboBox.PushItem(L"Ejemplo 6");
+		comboBox.PushItem(L"Ejemplo 7");
+	}
 	comboBox.SetDebugName("comboBox");
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
 	{

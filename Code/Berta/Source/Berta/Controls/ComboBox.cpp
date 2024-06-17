@@ -111,6 +111,7 @@ namespace Berta
 					m_text = m_interactionData.m_items[m_interactionData.m_selectedIndex];
 
 					EmitSelectionEvent(selectedIndex);
+
 					auto window = m_control->Handle();
 					window->Renderer.Update();
 					GUI::UpdateDeferred(window);

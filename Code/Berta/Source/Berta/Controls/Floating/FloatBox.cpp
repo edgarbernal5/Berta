@@ -32,7 +32,7 @@ namespace Berta
 		if (m_interactionData)
 		{
 			auto& items = m_interactionData->m_items;
-			auto& visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
+			auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
 			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
@@ -87,6 +87,27 @@ namespace Berta
 		m_control->Dispose();
 	}
 
+	void FloatBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
+	{
+		if (!m_scrollBar)
+			return;
+
+		int direction = args.WheelDelta > 0 ? -1 : 1;
+		int newOffset = std::clamp(m_state.m_offset + direction, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+
+		if (newOffset != m_state.m_offset)
+		{
+			m_state.m_offset = newOffset;
+			m_scrollBar->SetValue(m_state.m_offset);
+
+			m_scrollBar->Handle()->Renderer.Update();
+			GUI::UpdateDeferred(m_scrollBar->Handle());
+
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
+		}
+	}
+
 	void FloatBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
 	}
@@ -97,7 +118,6 @@ namespace Berta
 		m_state.m_index = selection.m_selectedIndex;
 		selection.m_isSelected = false;
 
-		//m_scrollBar
 		UpdateScrollBar();
 	}
 
@@ -107,6 +127,31 @@ namespace Berta
 		if (m_state.m_index != newIndex && !m_interactionData->m_items.empty())
 		{
 			m_state.m_index = newIndex;
+			if (m_scrollBar)
+			{
+				auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
+				bool redrawScrollbar = false;
+				if (newIndex - m_state.m_offset < 0)
+				{
+					--m_state.m_offset;
+					m_scrollBar->SetValue(m_state.m_offset);
+
+					redrawScrollbar = true;
+				}
+				else if (newIndex - m_state.m_offset >= visibleItemsCount)
+				{
+					++m_state.m_offset;
+					m_scrollBar->SetValue(m_state.m_offset);
+
+					redrawScrollbar = true;
+				}
+
+				if (redrawScrollbar)
+				{
+					m_scrollBar->Handle()->Renderer.Update();
+					GUI::RefreshWindow(m_scrollBar->Handle());
+				}
+			}
 
 			m_control->Handle()->Renderer.Update();
 			GUI::RefreshWindow(m_control->Handle());
@@ -135,22 +180,31 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		auto scrollSize = static_cast<uint32_t>(window->Appereance->ScrollBarSize * window->DPIScaleFactor);
-		Rectangle rect{ window->Size.Width - scrollSize - 1,0,scrollSize, window->Size.Height };
+		Rectangle rect{ window->Size.Width - scrollSize - 1,1,scrollSize, window->Size.Height - 2 };
 		if (!m_scrollBar)
 		{
 			m_scrollBar = std::make_unique<ScrollBar>(window, rect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args) 
-				{
-					m_state.m_offset = args.Value;
-					//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
+			{
+				m_state.m_offset = args.Value;
+				//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
 					
-					m_control->Handle()->Renderer.Update();
-					GUI::RefreshWindow(m_control->Handle());
-				});
+				m_control->Handle()->Renderer.Update();
+				GUI::RefreshWindow(m_control->Handle());
+			});
 		}
 
 		auto delta = m_interactionData->m_items.size() - m_interactionData->m_maxItemsToDisplay;
 		m_scrollBar->SetMinMax(0, delta);
+		if (m_state.m_index >= 0)
+		{
+			auto blockId = (size_t)m_state.m_index / m_interactionData->m_maxItemsToDisplay;
+			int value = blockId * m_interactionData->m_maxItemsToDisplay;
+			value = std::clamp(value, 0, (int)delta);
+
+			m_scrollBar->SetValue(value);
+			m_state.m_offset = value;
+		}
 	}
 
 	FloatBox::FloatBox(Window* parent, const Rectangle& rectangle)

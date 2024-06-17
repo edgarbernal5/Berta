@@ -131,6 +131,16 @@ namespace Berta::GUI
 
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
+			//TODO:
+			for (auto& child : window->Children)
+			{
+				if (!child->Visible)
+					continue;
+
+				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+			}
+
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
 	}

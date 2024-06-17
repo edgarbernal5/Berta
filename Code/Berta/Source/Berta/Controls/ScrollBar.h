@@ -29,6 +29,8 @@ namespace Berta
 		void SetMinMax(int min, int max);
 		void SetValue(int value);
 
+		int GetMin() const { return m_min; }
+		int GetMax() const { return m_max; }
 	private:
 		enum class InteractionArea
 		{
@@ -74,6 +76,9 @@ namespace Berta
 
 		void SetMinMax(int min, int max);
 		void SetValue(int value);
+
+		int GetMin() const { return m_reactor.GetMin(); }
+		int GetMax() const { return m_reactor.GetMax(); }
 	};
 }
 

@@ -27,6 +27,7 @@ namespace Berta
 
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 		void SetState(GUI::InteractionData& selection);
