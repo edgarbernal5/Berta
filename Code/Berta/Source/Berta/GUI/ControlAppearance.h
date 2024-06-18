@@ -24,6 +24,9 @@ namespace Berta
 		Color BoxBackground{ Colors::Light_BoxBackground };
 		Color BoxBorderColor{ Colors::Light_BoxBorderColor };
 
+		Color ButtonDisabledBackground{ Colors::Light_ButtonDisabledBackground };
+		Color BoxBorderDisabledColor{ Colors::Light_BoxBorderDisabledColor };
+
 		Color HighlightColor{ Colors::Light_HighlightColor };
 		Color HighlightBorderColor{ Colors::Light_HighlightBorderColor };
 		Color HighlightTextColor{ Colors::Light_HighlightTextColor };

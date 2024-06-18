@@ -20,7 +20,13 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 
-		if (m_status == State::Normal)
+		bool enabled = m_control->GetEnabled();
+		
+		if (!enabled)
+		{
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonDisabledBackground, true);
+		}
+		else if (m_status == State::Normal)
 		{
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonBackground, true);
 		}
@@ -32,12 +38,12 @@ namespace Berta
 		{
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonPressedBackground, true);
 		}
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 
-		auto caption = m_control->Caption();
+		auto caption = m_control->GetCaption();
 		auto center = window->Size - graphics.GetTextExtent(caption);
 		center = center * 0.5f;
-		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, window->Appereance->Foreground);
+		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
 	}
 
 	void ButtonReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -82,6 +88,6 @@ namespace Berta
 	Button::Button(Window* parent, const Rectangle& rectangle, std::wstring text)
 	{
 		Create(parent, rectangle);
-		Caption(text);
+		SetCaption(text);
 	}
 }

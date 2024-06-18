@@ -38,11 +38,12 @@ namespace Berta
 	void InputTextReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
+		bool enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
 
 		m_textEditor->Render();
 		
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 	}
 
 	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -135,7 +136,7 @@ namespace Berta
 		}
 	}
 
-	std::wstring InputText::DoOnCaption()
+	std::wstring InputText::DoOnCaption() const
 	{
 		return m_reactor.GetEditor()->GetContent();
 	}

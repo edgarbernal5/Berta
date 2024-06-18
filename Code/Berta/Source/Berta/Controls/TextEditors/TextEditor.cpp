@@ -379,7 +379,8 @@ namespace Berta
 	{
 		Size contentSize = GetContentTextExtent(m_caretPosition);
 
-		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, m_owner->Appereance->Foreground);
+		bool enabled = m_owner->Flags.IsEnabled;
+		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, enabled ? m_owner->Appereance->Foreground : m_owner->Appereance->BoxBorderDisabledColor);
 
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{

@@ -74,7 +74,7 @@ namespace Berta
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
-		std::wstring DoOnCaption() override;
+		std::wstring DoOnCaption() const override;
 
 	private:
 		bool m_isEditable{ false };

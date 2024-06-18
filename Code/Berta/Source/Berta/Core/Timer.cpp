@@ -53,13 +53,14 @@ namespace Berta
 
 	void Timer::SetInterval(std::chrono::milliseconds milliseconds)
 	{
+		if (m_interval.load() == milliseconds)
+			return;
+
 		if (!m_isRunning.load())
 		{
 			m_interval.store(milliseconds);
 			return;
 		}
-		if (m_interval.load() == milliseconds)
-			return;
 
 		Stop();
 		m_interval.store(milliseconds);
@@ -69,13 +70,14 @@ namespace Berta
 
 	void Timer::SetInterval(uint32_t milliseconds)
 	{
+		if (m_interval.load() == std::chrono::milliseconds(milliseconds))
+			return;
+
 		if (!m_isRunning.load())
 		{
 			m_interval.store(std::chrono::milliseconds(milliseconds));
 			return;
 		}
-		if (m_interval.load() == std::chrono::milliseconds(milliseconds))
-			return;
 
 		Stop();
 		m_interval.store(std::chrono::milliseconds(milliseconds));

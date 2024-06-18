@@ -175,6 +175,14 @@ namespace Berta
 #endif
 		}
 
+		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::EnableWindow(nativeHandle.Handle, isEnabled);
+#else
+#endif
+		}
+
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS

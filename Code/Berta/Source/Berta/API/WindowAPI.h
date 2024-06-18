@@ -52,6 +52,7 @@ namespace Berta
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible, bool active);
 		void RefreshWindow(NativeWindowHandle nativeHandle);
+		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled);
 
 		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture);
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);

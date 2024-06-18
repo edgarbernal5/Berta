@@ -58,6 +58,7 @@ namespace Berta
 	struct ArgWheel
 	{
 		int WheelDelta;
+		bool IsVertical;
 	};
 
 	struct CommonEvents

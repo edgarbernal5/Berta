@@ -289,35 +289,39 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			rootWindowData.Pressed = window;
-
-			if (window)
+			if (window && window->Flags.IsEnabled)
 			{
-				ArgMouse argMouseDown;
-				argMouseDown.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
-				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+				rootWindowData.Pressed = window;
 
-				window->Renderer.MouseDown(argMouseDown);
-				window->Events->MouseDown.Emit(argMouseDown);
-			}
-			if (rootWindowData.Focused != window)
-			{
-				if (rootWindowData.Focused)
-				{
-					ArgFocus argFocus{ false };
-					rootWindowData.Focused->Renderer.Focus(argFocus);
-					rootWindowData.Focused->Events->Focus.Emit(argFocus);
-				}
 				if (window)
 				{
-					ArgFocus argFocus{ true };
-					window->Renderer.Focus(argFocus);
-					window->Events->Focus.Emit(argFocus);
+					ArgMouse argMouseDown;
+					argMouseDown.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+					argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+					window->Renderer.MouseDown(argMouseDown);
+					window->Events->MouseDown.Emit(argMouseDown);
 				}
+				if (rootWindowData.Focused != window)
+				{
+					if (rootWindowData.Focused)
+					{
+						ArgFocus argFocus{ false };
+						rootWindowData.Focused->Renderer.Focus(argFocus);
+						rootWindowData.Focused->Events->Focus.Emit(argFocus);
+					}
+					if (window)
+					{
+						ArgFocus argFocus{ true };
+						window->Renderer.Focus(argFocus);
+						window->Events->Focus.Emit(argFocus);
+					}
+				}
+				rootWindowData.Focused = window;
 			}
-			rootWindowData.Focused = window;
+			
 			break;
 		}
 		case WM_MOUSEMOVE:
@@ -326,7 +330,7 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, {x, y});
-			if (window != rootWindowData.Hovered /* && rootWindowData.Pressed == nullptr*/)
+			if (window /* && window->Flags.IsEnabled*/ && window != rootWindowData.Hovered)
 			{
 				/*if (window)
 				{
@@ -354,7 +358,7 @@ namespace Berta
 				}
 			}
 
-			if (window)
+			if (window && window->Flags.IsEnabled)
 			{
 				if (window != rootWindowData.Hovered)
 				{
@@ -397,7 +401,7 @@ namespace Berta
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			//if (/*window && window ==*/ rootWindowData.Pressed && windowManager.Exists(rootWindowData.Pressed))
-			if (window)
+			if (window && window->Flags.IsEnabled)
 			{
 				ArgMouse argMouseUp;
 				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
@@ -426,14 +430,14 @@ namespace Berta
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
-			ArgClick argClick;
-			argClick.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-			argClick.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-			argClick.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window == rootWindowData.Released)
+			if (window && window->Flags.IsEnabled && window == rootWindowData.Released)
 			{
+				ArgClick argClick;
+				argClick.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argClick.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argClick.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
 				window->Renderer.DblClick(argClick);
 				window->Events->DblClick.Emit(argClick);
 			}
@@ -471,6 +475,8 @@ namespace Berta
 			{
 				ArgWheel argWheel;
 				argWheel.WheelDelta = wheelDelta;
+				argWheel.IsVertical = message == WM_MOUSEWHEEL;
+
 				window->Renderer.MouseWheel(argWheel);
 				window->Events->MouseWheel.Emit(argWheel);
 			}

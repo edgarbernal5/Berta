@@ -39,7 +39,7 @@ namespace Berta
 		Size Size;
 		Point Position;
 
-		uint32_t DPI{ 0 }; //TODO:
+		uint32_t DPI{ 0 };
 		float DPIScaleFactor{ 1.0f };
 
 		Renderer Renderer;
@@ -55,6 +55,7 @@ namespace Berta
 
 		struct Flags
 		{
+			bool IsEnabled{ true };
 			bool IsDestroying{ false };
 			bool MakeActive{ true };
 		}Flags;

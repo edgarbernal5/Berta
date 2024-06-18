@@ -27,6 +27,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
+		bool enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
 
 		if (!IsValid())
@@ -35,7 +36,7 @@ namespace Berta
 		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
 		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
 
-		DrawButton(graphics, { 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Upwards, m_hoverArea == InteractionArea::Button1);
+		DrawButton(graphics, { 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Upwards, m_hoverArea == InteractionArea::Button1, enabled);
 
 		if (isScrollable())
 		{
@@ -45,7 +46,7 @@ namespace Berta
 			graphics.DrawRectangle(scrollBoxRect, window->Appereance->BoxBorderColor, false);
 		}
 
-		DrawButton(graphics, { 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Downwards, m_hoverArea == InteractionArea::Button2);
+		DrawButton(graphics, { 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Downwards, m_hoverArea == InteractionArea::Button2, enabled);
 	}
 
 	void ScrollBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -215,14 +216,14 @@ namespace Berta
 		return static_cast<uint32_t>(m_control->Handle()->Appereance->ScrollBarSize * m_control->Handle()->DPIScaleFactor);
 	}
 
-	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted)
+	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled)
 	{
-		if (isHighlighted)
+		if (isHighlighted && isEnabled)
 		{
 			graphics.DrawRectangle(rect, m_control->Handle()->Appereance->ButtonHighlightBackground, true);
 		}
-		graphics.DrawRectangle(rect, m_control->Handle()->Appereance->BoxBorderColor, false);
-		graphics.DrawArrow(rect, arrowLength, arrowWidth, m_control->Handle()->Appereance->BoxBorderColor, direction, true);
+		graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appereance->BoxBorderColor : m_control->Handle()->Appereance->BoxBorderDisabledColor, false);
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appereance->BoxBorderColor : m_control->Handle()->Appereance->BoxBorderDisabledColor, direction, true);
 	}
 
 	ScrollBarReactor::InteractionArea ScrollBarReactor::DetermineHoverArea(const Point& position) const

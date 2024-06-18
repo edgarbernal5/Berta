@@ -23,8 +23,12 @@ namespace Berta
 
 		Window* Handle() const { return m_handle; }
 
-		void Caption(const std::wstring& caption);
-		std::wstring Caption();
+		void SetCaption(const std::wstring& caption);
+		std::wstring GetCaption() const;
+
+		void SetEnabled(bool enabled);
+		bool GetEnabled() const;
+
 		void Show();
 		void Hide();
 		void Dispose();
@@ -38,7 +42,9 @@ namespace Berta
 		operator Window* () const { return m_handle; }
 	protected:
 		virtual void DoOnCaption(const std::wstring& caption);
-		virtual std::wstring DoOnCaption();
+		virtual std::wstring DoOnCaption() const;
+		virtual void DoOnEnabled(bool enabled);
+		virtual bool DoOnEnabled() const;
 
 		Window* m_handle{ nullptr };
 	};

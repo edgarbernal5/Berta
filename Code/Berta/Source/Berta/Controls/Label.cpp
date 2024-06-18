@@ -20,12 +20,12 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
-		graphics.DrawString({ 0,0 }, m_control->Caption(), window->Appereance->Foreground);
+		graphics.DrawString({ 0,0 }, m_control->GetCaption(), window->Appereance->Foreground);
 	}
 
 	Label::Label(Window* parent, const Rectangle& rectangle, std::wstring text)
 	{
 		Create(parent, rectangle);
-		Caption(text);
+		SetCaption(text);
 	}
 }

@@ -88,7 +88,7 @@ namespace Berta::GUI
 		}
 	}
 
-	std::wstring GetCaptionWindow(Window* window)
+	std::wstring CaptionWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
@@ -143,6 +143,32 @@ namespace Berta::GUI
 
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
+	}
+
+	void EnableWindow(Window* window, bool isEnabled)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window) && window->Flags.IsEnabled != isEnabled)
+		{
+			window->Flags.IsEnabled = isEnabled;
+			window->Renderer.Update();
+			RefreshWindow(window);
+			if (window->Type == WindowType::Native)
+			{
+				API::EnableWindow(window->RootHandle, isEnabled);
+			}
+		}
+	}
+
+	bool EnableWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->Flags.IsEnabled;
+			
+		}
+		return false;
 	}
 
 	void MakeWindowActive(Window* window, bool active)

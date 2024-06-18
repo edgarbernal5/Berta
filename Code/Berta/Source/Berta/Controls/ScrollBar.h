@@ -20,6 +20,7 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
@@ -46,7 +47,7 @@ namespace Berta
 		void EmitValueChanged();
 		inline bool isScrollable() const { return m_min != m_max; }
 		uint32_t GetButtonSize() const;
-		void DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted);
+		void DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled);
 		InteractionArea DetermineHoverArea(const Point& position) const;
 		void UpdateScrollBoxValue(int position, int buttonSize);
 		

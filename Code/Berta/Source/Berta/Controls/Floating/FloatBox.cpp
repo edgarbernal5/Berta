@@ -180,7 +180,7 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		auto scrollSize = static_cast<uint32_t>(window->Appereance->ScrollBarSize * window->DPIScaleFactor);
-		Rectangle rect{ window->Size.Width - scrollSize - 1,1,scrollSize, window->Size.Height - 2 };
+		Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 		if (!m_scrollBar)
 		{
 			m_scrollBar = std::make_unique<ScrollBar>(window, rect);
@@ -195,11 +195,11 @@ namespace Berta
 		}
 
 		auto delta = m_interactionData->m_items.size() - m_interactionData->m_maxItemsToDisplay;
-		m_scrollBar->SetMinMax(0, delta);
+		m_scrollBar->SetMinMax(0ULL, delta);
 		if (m_state.m_index >= 0)
 		{
 			auto blockId = (size_t)m_state.m_index / m_interactionData->m_maxItemsToDisplay;
-			int value = blockId * m_interactionData->m_maxItemsToDisplay;
+			int value = static_cast<int>(blockId * m_interactionData->m_maxItemsToDisplay);
 			value = std::clamp(value, 0, (int)delta);
 
 			m_scrollBar->SetValue(value);

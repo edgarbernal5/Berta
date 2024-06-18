@@ -20,6 +20,9 @@ namespace Berta
 		static Color Light_ButtonHightlighBackground{ 0xCBD3D6 };
 		static Color Light_ButtonPressedBackground{ 0x9FA6A8 };
 
+		static Color Light_ButtonDisabledBackground{ 0xD2D9DE };
+		static Color Light_BoxBorderDisabledColor{ 0x92989C };
+
 		static Color Light_BoxBackground{ 0xFFFFFF };
 		static Color Light_BoxBorderColor{ 0x64667A };
 
@@ -31,7 +34,7 @@ namespace Berta
 		static Color Light_BoxHightlightBackground{ 0xF6FFFC };
 		static Color Light_BoxPressedBackground{ 0xE0E8E5 };
 
-		static Color Light_ScrollBarBackground{ 0x93999C };
+		static Color Light_ScrollBarBackground{ 0x8E8E8F };
 	}
 }
 

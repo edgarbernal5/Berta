@@ -23,10 +23,12 @@ namespace Berta
 		Window* CreateControl(Window* parent, const Rectangle& rectangle);
 
 		void CaptionWindow(Window* window, const std::wstring& caption);
-		std::wstring GetCaptionWindow(Window* window);
+		std::wstring CaptionWindow(Window* window);
 		void DisposeWindow(Window* window);
 		void ShowWindow(Window* window, bool visible);
 		void RefreshWindow(Window* window);
+		void EnableWindow(Window* window, bool isEnabled);
+		bool EnableWindow(Window* window);
 
 		void MakeWindowActive(Window* window, bool active);
 

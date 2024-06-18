@@ -16,7 +16,7 @@ int main()
 {
 	Berta::Form form(Berta::Size(800u, 600u), { true, true, true });
 	form.SetDebugName("form");
-	form.Caption(L"Window");
+	form.SetCaption(L"Window");
 	
 	Berta::Label label(form, { 50,10,130,40 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
@@ -25,25 +25,19 @@ int main()
 	{
 		//std::cout << "LABEL>mouse move" << std::endl;
 	});
-	
-	Berta::Button button(form, { 5,140,100,40 }, L"Click me!");
-	button.SetDebugName("button");
-	button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
+
+	Berta::Button button2(form, { 5,190,100,40 }, L"Disabled");
+	button2.SetDebugName("button2");
+	button2.SetEnabled(false);
+	button2.GetEvents().Click.Connect([&form](const Berta::ArgClick& args)
 	{
-		std::cout << "BUTTON>Click" << std::endl;
+		std::cout << "BUTTON 2 >Click" << std::endl;
+		//form.SetEnabled(false);
 	});
 	
-	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
-	{
-		std::cout << "BUTTON < mouse leave" << std::endl;
-	});
-	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
-	{
-		std::cout << "BUTTON > mouse enter" << std::endl;
-	});
 
 	Berta::InputText inputText(form, { 190,30,200,25 });
-	inputText.Caption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
 		{
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
@@ -75,6 +69,25 @@ int main()
 		});
 	Berta::ScrollBar scrollbar2(form, { 330, 200, 20, 150 }, true);
 	scrollbar2.SetMinMax(0, 0);
+	scrollbar2.SetEnabled(false);
+
+	Berta::Button button(form, { 5,140,100,40 }, L"Click me!");
+	button.SetDebugName("button");
+	button.GetEvents().Click.Connect([&button2, &inputText, &comboBox](const Berta::ArgClick& args)
+	{
+		std::cout << "BUTTON > Click" << std::endl;
+		button2.SetEnabled(!button2.GetEnabled());
+		inputText.SetEnabled(!inputText.GetEnabled());
+		comboBox.SetEnabled(!comboBox.GetEnabled());
+	});
+	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON < mouse leave" << std::endl;
+	});
+	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON > mouse enter" << std::endl;
+	});
 
 	form.Show();
 	form.Exec();

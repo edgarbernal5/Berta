@@ -47,6 +47,7 @@ namespace Berta
 	void ComboBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
+		bool enabled = m_control->GetEnabled();
 		if (m_status == State::Normal)
 		{
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
@@ -58,7 +59,7 @@ namespace Berta
 
 		//m_textEditor->Render();
 		auto textItemHeight = graphics.GetTextExtent().Height;
-		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, window->Appereance->Foreground);
+		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
 
 		auto buttonSize = static_cast<uint32_t>(20 * window->DPIScaleFactor);
 
@@ -66,10 +67,18 @@ namespace Berta
 
 		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
 		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
-		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, arrowLength, arrowWidth, window->Appereance->BoxBorderColor, Graphics::ArrowDirection::Downwards, true);
+		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, 
+			arrowLength, 
+			arrowWidth, 
+			enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor,
+			Graphics::ArrowDirection::Downwards, 
+			true);
 
-		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, { static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 }, window->Appereance->BoxBorderColor);
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBorderColor, false);
+		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, 
+			{ static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 },
+			enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor);
+
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 	}
 
 	void ComboBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -277,7 +286,7 @@ namespace Berta
 		m_reactor.SetText(caption);
 	}
 
-	std::wstring ComboBox::DoOnCaption()
+	std::wstring ComboBox::DoOnCaption() const
 	{
 		return m_reactor.GetText();
 	}
