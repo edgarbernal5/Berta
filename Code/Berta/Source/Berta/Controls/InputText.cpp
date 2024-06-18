@@ -33,6 +33,7 @@ namespace Berta
 			args.NewValue = m_textEditor->GetContent();
 			reinterpret_cast<InputTextEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(args);
 		});
+
 	}
 
 	void InputTextReactor::Update(Graphics& graphics)
@@ -67,15 +68,16 @@ namespace Berta
 
 	void InputTextReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
+		auto window = m_control->Handle();
+		
 		m_textEditor->OnMouseMove(args);
-		m_control->Handle()->Renderer.Update();
-		GUI::UpdateDeferred(m_control->Handle());
+		window->Renderer.Update();
+		GUI::UpdateDeferred(window);
 	}
 
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
 		m_textEditor->OnMouseUp(args);
-
 		GUI::ReleaseCapture(*m_control);
 	}
 

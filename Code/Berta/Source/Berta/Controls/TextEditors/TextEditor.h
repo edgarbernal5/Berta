@@ -9,8 +9,10 @@
 
 #include <string>
 #include <functional>
+
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/CommonEvents.h"
+#include "Berta/Core/Timer.h"
 
 namespace Berta
 {
@@ -73,6 +75,10 @@ namespace Berta
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };
 		bool m_wasDblClick{ false };
+
+		Point m_selectionMousePosition;
+		Timer m_selectionTimer;
+		bool m_selectionDirection;
 
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };

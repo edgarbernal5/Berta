@@ -20,6 +20,19 @@ namespace Berta
 		m_owner(owner)
 	{
 		m_caret = new Caret(owner, {1,0});
+
+		m_selectionTimer.SetOwner(m_owner);
+		m_selectionTimer.Connect([this](const ArgTimer& args)
+		{
+			BT_CORE_DEBUG << "timer tick..." << std::endl;
+			//if (m_selectionDirection)
+			//{
+			//	m_offsetView += 10;
+			//}
+			//else
+			//	m_offsetView -= 10;
+			//AdjustView();
+		});
 	}
 
 	TextEditor::~TextEditor()
@@ -42,6 +55,7 @@ namespace Berta
 		{
 			return;
 		}
+		m_selectionMousePosition = args.Position;
 		isSelecting = true;
 		if (m_shiftPressed)
 		{
@@ -66,10 +80,21 @@ namespace Berta
 			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
 			m_caretPosition = m_selectionEndPosition;
 		}
+		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > (int)m_owner->Size.Width || args.Position.X < 0))
+		{
+			m_selectionTimer.SetInterval(300);
+			m_selectionTimer.Start();
+			m_selectionDirection = args.Position.X < 0;
+		}
+		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > (int)m_owner->Size.Width || args.Position.X < 0))
+		{
+			m_selectionTimer.Stop();
+		}
 	}
 
 	void TextEditor::OnMouseUp(const ArgMouse& args)
 	{
+		m_selectionTimer.Stop();
 		if (m_wasDblClick)
 		{
 			m_wasDblClick = false;
