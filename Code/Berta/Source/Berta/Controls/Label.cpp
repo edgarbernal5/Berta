@@ -25,7 +25,7 @@ namespace Berta
 
 	Label::Label(Window* parent, const Rectangle& rectangle, std::wstring text)
 	{
-		Create(parent, rectangle);
+		Create(parent, true, rectangle);
 		SetCaption(text);
 	}
 }

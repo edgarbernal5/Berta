@@ -315,7 +315,13 @@ namespace Berta
 
 	ScrollBar::ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical)
 	{
-		Create(parent, rectangle);
+		Create(parent, true, rectangle);
+		m_reactor.SetOrientation(isVertical);
+	}
+
+	ScrollBar::ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical)
+	{
+		Create(parent, isUnscaleRect, rectangle);
 		m_reactor.SetOrientation(isVertical);
 	}
 

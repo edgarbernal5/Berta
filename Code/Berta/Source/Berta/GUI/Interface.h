@@ -20,7 +20,7 @@ namespace Berta
 	namespace GUI
 	{
 		Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& windowStyle);
-		Window* CreateControl(Window* parent, const Rectangle& rectangle);
+		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle);
 
 		void CaptionWindow(Window* window, const std::wstring& caption);
 		std::wstring CaptionWindow(Window* window);

@@ -46,13 +46,13 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
-	Window* CreateControl(Window* parent, const Rectangle& rectangle)
+	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		Window* window = new Window(WindowType::Control);
 		
 		Rectangle rect{ rectangle };
-		if (parent && parent->DPI != 96)
+		if (isUnscaleRect && parent && parent->DPI != 96)
 		{
 			float scalingFactor = parent->DPI / 96.0f;
 			rect.X = static_cast<int>(rect.X * scalingFactor);

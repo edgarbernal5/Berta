@@ -89,9 +89,9 @@ namespace Berta
 			GUI::InitRendererReactor(this, m_reactor);
 		}
 
-		void Create(Window* parent, const Rectangle& rectangle, bool visible = true)
+		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true)
 		{
-			m_handle = GUI::CreateControl(parent, rectangle);
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle);
 			m_appearance = std::make_shared<Appearance>();
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);

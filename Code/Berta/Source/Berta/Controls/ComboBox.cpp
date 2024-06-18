@@ -239,7 +239,7 @@ namespace Berta
 
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
 	{
-		Create(parent, rectangle);
+		Create(parent, true, rectangle);
 	}
 
 	void ComboBox::Clear()

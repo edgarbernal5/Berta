@@ -183,7 +183,7 @@ namespace Berta
 		Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 		if (!m_scrollBar)
 		{
-			m_scrollBar = std::make_unique<ScrollBar>(window, rect);
+			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args) 
 			{
 				m_state.m_offset = args.Value;
@@ -195,7 +195,7 @@ namespace Berta
 		}
 
 		auto delta = m_interactionData->m_items.size() - m_interactionData->m_maxItemsToDisplay;
-		m_scrollBar->SetMinMax(0ULL, delta);
+		m_scrollBar->SetMinMax(0, (int)delta);
 		if (m_state.m_index >= 0)
 		{
 			auto blockId = (size_t)m_state.m_index / m_interactionData->m_maxItemsToDisplay;

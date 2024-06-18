@@ -74,8 +74,10 @@ namespace Berta
 	{
 	public:
 		ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical = true);
+		ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
 		void SetMinMax(int min, int max);
+		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
 		void SetValue(int value);
 
 		int GetMin() const { return m_reactor.GetMin(); }
