@@ -147,6 +147,9 @@
     <ClInclude Include="Source\Berta\Platform\Windows\Messages.h">
       <Filter>Source\Berta\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\MenuBar.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -222,6 +225,9 @@
       <Filter>Source\Berta\Controls\Floating</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\ScrollBar.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\MenuBar.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>

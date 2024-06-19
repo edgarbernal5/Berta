@@ -78,7 +78,7 @@ namespace Berta
 
 		Point m_selectionMousePosition;
 		Timer m_selectionTimer;
-		bool m_selectionDirection;
+		bool m_selectionDirection{ false };
 
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };

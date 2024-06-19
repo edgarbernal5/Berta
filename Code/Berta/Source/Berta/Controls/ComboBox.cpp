@@ -221,6 +221,14 @@ namespace Berta
 	void ComboBoxReactor::SetText(const std::wstring& text)
 	{
 		m_text = text;
+		//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
+		//{
+		//	if (m_interactionData.m_items[i] == m_text)
+		//	{
+		//		m_interactionData.m_selectedIndex = (int)i;
+		//		break;
+		//	}
+		//}
 
 		auto window = m_control->Handle();
 		window->Renderer.Update();
