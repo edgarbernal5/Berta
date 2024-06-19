@@ -19,11 +19,18 @@ int main()
 	form.SetDebugName("form");
 	form.SetCaption(L"Window");
 
-	Berta::MenuBar menuBar(form, {0,0, form.Handle()->Size.Width, 25});
+	Berta::MenuBar menuBar(form, {0,0, 100, 25});
 	menuBar.SetDebugName("menuBar");
 	menuBar.PushBack(L"File");
 	menuBar.PushBack(L"Edit");
 	menuBar.PushBack(L"Help");
+
+	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
+	{
+		auto currentSize = menuBar.GetSize();
+		menuBar.SetSize({ args.NewSize.Width, currentSize.Height });
+	});
+	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height});
 
 	Berta::Label label(form, { 50,35,130,40 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };

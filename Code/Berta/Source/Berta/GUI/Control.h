@@ -26,9 +26,12 @@ namespace Berta
 		void SetCaption(const std::wstring& caption);
 		std::wstring GetCaption() const;
 
-		void SetEnabled(bool enabled);
 		bool GetEnabled() const;
-
+		void SetEnabled(bool enabled);
+		
+		Size GetSize() const;
+		void SetSize(const Size& newSize);
+		
 		void Show();
 		void Hide();
 		void Dispose();
@@ -45,6 +48,9 @@ namespace Berta
 		virtual std::wstring DoOnCaption() const;
 		virtual void DoOnEnabled(bool enabled);
 		virtual bool DoOnEnabled() const;
+
+		virtual void DoOnSize(const Size& newSize);
+		virtual Size DoOnSize() const;
 
 		Window* m_handle{ nullptr };
 	};

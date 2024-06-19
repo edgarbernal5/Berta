@@ -30,7 +30,7 @@ namespace Berta
 		MouseButtonState ButtonState;
 	};
 
-	struct ArgSize
+	struct ArgResize
 	{
 		Size NewSize;
 	};
@@ -73,7 +73,7 @@ namespace Berta
 		Event<ArgMouse>		MouseUp;
 		Event<ArgClick>		Click;
 		Event<ArgClick>		DblClick;
-		Event<ArgSize>		Size;
+		Event<ArgResize>	Resize;
 		Event<ArgFocus>		Focus;
 		Event<ArgKeyboard>	KeyChar;
 		Event<ArgKeyboard>	KeyPressed;

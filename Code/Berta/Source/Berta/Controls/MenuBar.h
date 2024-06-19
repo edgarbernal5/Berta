@@ -26,20 +26,22 @@ namespace Berta
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
-		struct MenuItemData
+		struct MenuBarItemData
 		{
-			std::wstring name;
+			std::wstring text;
 			Size size;
 			Point position;
 
-			MenuItemData(const std::wstring& _name) :name(_name){}
+			MenuBarItemData(const std::wstring& _text) :text(_text){}
 		};
-		struct MenuCollectionData
+
+		struct MenuBarCollectionData
 		{
-			std::vector<MenuItemData> m_items;
+			std::vector<MenuBarItemData*> m_items;
 			int m_hoveredItemIndex{ -1 };
 		};
-		MenuCollectionData& GetCollectionData() { return m_menuCollectionData; }
+		MenuBarCollectionData& GetCollectionData() { return m_menuCollectionData; }
+
 	private:
 		enum class State
 		{
@@ -50,7 +52,7 @@ namespace Berta
 
 		ControlBase* m_control{ nullptr };
 		State m_status{ State::Normal };
-		MenuCollectionData m_menuCollectionData;
+		MenuBarCollectionData m_menuCollectionData;
 	};
 
 	class MenuBar : public Control<MenuBarReactor>

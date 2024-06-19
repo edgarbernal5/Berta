@@ -215,13 +215,13 @@ namespace Berta
 
 			if (newWidth > 0 && newHeight > 0)
 			{
-				ArgSize argSize;
-				argSize.NewSize.Width = newWidth;
-				argSize.NewSize.Height = newHeight;
-				BT_CORE_DEBUG << "Size: new size " << argSize.NewSize << std::endl;
+				ArgResize argResize;
+				argResize.NewSize.Width = newWidth;
+				argResize.NewSize.Height = newHeight;
+				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
 
-				windowManager.Resize(nativeWindow, argSize.NewSize);
-				nativeWindow->Events->Size.Emit(argSize);
+				windowManager.Resize(nativeWindow, argResize.NewSize);
+				nativeWindow->Events->Resize.Emit(argResize);
 			}
 			break;
 		}

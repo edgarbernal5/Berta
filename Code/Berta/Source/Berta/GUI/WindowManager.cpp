@@ -92,7 +92,9 @@ namespace Berta
 	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics)
 	{
 		if (window == nullptr)
+		{
 			return;
+		}
 
 		for (auto& child : window->Children)
 		{
@@ -294,9 +296,11 @@ namespace Berta
 			Graphics newGraphics;
 			Graphics newRootGraphics;
 			newGraphics.Build(newSize);
+			newGraphics.BuildFont(window->DPI);
 			if (window->Type == WindowType::Native)
 			{
 				newRootGraphics.Build(newSize);
+				newRootGraphics.BuildFont(window->DPI);
 			}
 
 			window->Renderer.GetGraphics().Swap(newGraphics);
@@ -304,8 +308,9 @@ namespace Berta
 			if (window->Type == WindowType::Native)
 			{
 				window->RootGraphics->Swap(newRootGraphics);
-				UpdateTree(window);
 			}
+
+			UpdateTree(window);
 		}
 	}
 
@@ -356,9 +361,10 @@ namespace Berta
 			window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
 			window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
 
-			window->Renderer.GetGraphics().Release();
-			window->Renderer.GetGraphics().Build(window->Size);
-			window->Renderer.GetGraphics().BuildFont(newDPI);
+			auto& graphics = window->Renderer.GetGraphics();
+			graphics.Release();
+			graphics.Build(window->Size);
+			graphics.BuildFont(newDPI);
 
 			for (auto& child : window->Children)
 			{

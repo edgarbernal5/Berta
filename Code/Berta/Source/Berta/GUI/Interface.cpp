@@ -171,6 +171,25 @@ namespace Berta::GUI
 		return false;
 	}
 
+	void ResizeWindow(Window* window, const Size& newSize)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.Resize(window, newSize);
+		}
+	}
+
+	Size ResizeWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->Size;
+		}
+		return {};
+	}
+
 	void MakeWindowActive(Window* window, bool active)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

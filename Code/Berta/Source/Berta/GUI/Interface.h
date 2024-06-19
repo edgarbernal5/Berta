@@ -30,6 +30,9 @@ namespace Berta
 		void EnableWindow(Window* window, bool isEnabled);
 		bool EnableWindow(Window* window);
 
+		void ResizeWindow(Window* window, const Size& newSize);
+		Size ResizeWindow(Window* window);
+
 		void MakeWindowActive(Window* window, bool active);
 
 		void Capture(Window* window);

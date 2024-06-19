@@ -35,9 +35,9 @@ namespace Berta
 		Point offset{ 0, (int)itemMargin };
 		for (size_t i = 0; i < items.size(); i++)
 		{
-			auto& itemData = m_menuCollectionData.m_items[i];
+			auto& itemData = *m_menuCollectionData.m_items[i];
 
-			auto textSize = graphics.GetTextExtent(itemData.name);
+			auto textSize = graphics.GetTextExtent(itemData.text);
 			Size itemSize{ textSize.Width + itemMargin * 2, window->Size.Height - itemMargin * 2 };
 
 			auto center = itemSize - textSize;
@@ -45,11 +45,11 @@ namespace Berta
 
 			if (m_menuCollectionData.m_hoveredItemIndex == i)
 			{
-				graphics.DrawString({ offset.X + (int)center.Width , offset.Y + (int)center.Height }, itemData.name, window->Appereance->Foreground);
+				graphics.DrawString({ offset.X + (int)center.Width, offset.Y + (int)center.Height }, itemData.text, window->Appereance->Foreground);
 			}
 			else
 			{
-				graphics.DrawString({ offset.X + (int)center.Width , offset.Y + (int)center.Height }, itemData.name, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ offset.X + (int)center.Width, offset.Y + (int)center.Height }, itemData.text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
 			}
 			offset.X += (int)itemSize.Width;
 		}
@@ -123,6 +123,6 @@ namespace Berta
 
 	void MenuBar::PushBack(const std::wstring& itemName)
 	{
-		m_reactor.GetCollectionData().m_items.emplace_back(MenuBarReactor::MenuItemData{ itemName });
+		m_reactor.GetCollectionData().m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ itemName });
 	}
 }

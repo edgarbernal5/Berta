@@ -21,14 +21,24 @@ namespace Berta
 		return DoOnCaption();
 	}
 
+	bool ControlBase::GetEnabled() const
+	{
+		return DoOnEnabled();
+	}
+
 	void ControlBase::SetEnabled(bool enabled)
 	{
 		DoOnEnabled(enabled);
 	}
 
-	bool ControlBase::GetEnabled() const
+	Size ControlBase::GetSize() const
 	{
-		return DoOnEnabled();
+		return DoOnSize();
+	}
+
+	void ControlBase::SetSize(const Size& newSize)
+	{
+		DoOnSize(newSize);
 	}
 
 	void ControlBase::Show()
@@ -63,5 +73,15 @@ namespace Berta
 	bool ControlBase::DoOnEnabled() const
 	{
 		return GUI::EnableWindow(m_handle);
+	}
+
+	void ControlBase::DoOnSize(const Size& newSize)
+	{
+		GUI::ResizeWindow(m_handle, newSize);
+	}
+
+	Size ControlBase::DoOnSize() const
+	{
+		return GUI::ResizeWindow(m_handle);
 	}
 }
