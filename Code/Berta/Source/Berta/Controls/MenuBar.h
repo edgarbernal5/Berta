@@ -28,31 +28,37 @@ namespace Berta
 
 		struct MenuBarItemData
 		{
+			MenuBarItemData(const std::wstring& _text) :text(_text) {}
+
 			std::wstring text;
 			Size size;
 			Point position;
-
-			MenuBarItemData(const std::wstring& _text) :text(_text){}
+			Size center;
 		};
 
 		struct MenuBarCollectionData
 		{
 			std::vector<MenuBarItemData*> m_items;
-			int m_hoveredItemIndex{ -1 };
+
 		};
-		MenuBarCollectionData& GetCollectionData() { return m_menuCollectionData; }
+
+		struct InteractionData
+		{
+			void PushBack(const std::wstring& text);
+			void BuildItems();
+
+			MenuBarCollectionData m_menuCollectionData;
+			int m_hoveredItemIndex{ -1 };
+			Window* m_owner{ nullptr };
+
+		};
+		InteractionData& GetInteractionData() { return m_interactionData; }
 
 	private:
-		enum class State
-		{
-			Normal,
-			Pressed,
-			Hovered
-		};
+		int FindItem(const Point& position);
 
 		ControlBase* m_control{ nullptr };
-		State m_status{ State::Normal };
-		MenuBarCollectionData m_menuCollectionData;
+		InteractionData m_interactionData;
 	};
 
 	class MenuBar : public Control<MenuBarReactor>
