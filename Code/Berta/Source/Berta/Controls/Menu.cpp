@@ -81,10 +81,11 @@ namespace Berta
 		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * parent->DPIScaleFactor);
 		auto menuBoxSubMenuArrowWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor);
 		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
+		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
 
 		return { 
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth,
-			2 + itemTextPadding * 2u + (uint32_t)(m_items.size() - separators) * (parent->Appereance->MenuBoxItemHeight) + separators * separatorHeight
+			2 + itemTextPadding * 2u + (uint32_t)(m_items.size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 		};
 	}
 
@@ -106,7 +107,8 @@ namespace Berta
 		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * window->DPIScaleFactor);
 		auto menuBoxItemHeight = static_cast<uint32_t>(window->Appereance->MenuBoxItemHeight * window->DPIScaleFactor);
 		auto menuBoxSubMenuArrowWidth = static_cast<uint32_t>(window->Appereance->MenuBoxSubMenuArrowWidth * window->DPIScaleFactor);
-		
+		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * window->DPIScaleFactor);
+
 		if (m_items)
 		{
 			int offsetY = 1 + (int)itemTextPadding;
@@ -115,8 +117,9 @@ namespace Berta
 				auto& item = *(m_items->at(i));
 				if (item.isSpearator)
 				{
-					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + 1 }, { (int)window->Size.Width - 2, offsetY + 1 }, window->Appereance->BoxBorderColor);
-					offsetY += SeparatorHeight;
+					int separatorCenterOffset = (separatorHeight >> 1) - 1;
+					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->Size.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appereance->BoxBorderColor);
+					offsetY += separatorHeight;
 				}
 				else
 				{
