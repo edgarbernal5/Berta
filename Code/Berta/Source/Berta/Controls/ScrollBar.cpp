@@ -259,14 +259,14 @@ namespace Berta
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
-			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Height * num);
+			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
 
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
 		else
 		{
 			Rectangle scrollTrackRect{ buttonSize + 1, 0 , window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
-			uint32_t scrollBoxSize = static_cast<uint32_t>(scrollTrackRect.Width * num);
+			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
 
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.X) / (scrollTrackRect.Width - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
