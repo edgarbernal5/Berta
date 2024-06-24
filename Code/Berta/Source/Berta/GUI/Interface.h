@@ -55,6 +55,8 @@ namespace Berta
 		Point GetPointScreenToClient(Window *window, const Point& point);
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
+
+		void SetMenu(Window* window, bool calledFromMenuBar);
 	}
 }
 

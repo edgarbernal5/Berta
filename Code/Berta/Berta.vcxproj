@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Controls\Menu.h" />
     <ClInclude Include="Source\Berta\Controls\MenuBar.h" />
     <ClInclude Include="Source\Berta\Controls\ScrollBar.h" />
     <ClInclude Include="Source\Berta\Controls\Floating\InteractionData.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Controls\Menu.cpp" />
     <ClCompile Include="Source\Berta\Controls\ComboBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Floating\FloatBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\MenuBar.cpp" />

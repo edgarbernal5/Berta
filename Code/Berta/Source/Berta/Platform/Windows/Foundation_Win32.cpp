@@ -15,6 +15,8 @@
 #include "Berta/GUI/CommonEvents.h"
 #include "Berta/Platform/Windows/Messages.h"
 
+#include "Berta/Controls/Menu.h"
+
 namespace Berta
 {
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
@@ -123,7 +125,7 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 		{WM_MOUSEHWHEEL,		"WM_MOUSEHWHEEL"},
 		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
 

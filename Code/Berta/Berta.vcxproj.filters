@@ -150,6 +150,9 @@
     <ClInclude Include="Source\Berta\Controls\MenuBar.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Menu.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -228,6 +231,9 @@
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\MenuBar.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Menu.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>

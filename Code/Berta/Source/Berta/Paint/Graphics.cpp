@@ -249,6 +249,17 @@ namespace Berta
 			arrowPoints[2].X = centerX;
 			arrowPoints[2].Y = centerY - arrowLength;
 		}
+		else if (direction == ArrowDirection::Right)
+		{
+			arrowPoints[0].X = centerX - arrowLength;
+			arrowPoints[0].Y = centerY - arrowWidth;
+
+			arrowPoints[1].X = centerX - arrowLength;
+			arrowPoints[1].Y = centerY + arrowWidth;
+
+			arrowPoints[2].X = centerX + arrowLength;
+			arrowPoints[2].Y = centerY;
+		}
 
 		HBRUSH brush = ::CreateSolidBrush(color.BGR);
 		::SelectObject(m_attributes->m_hdc, brush);

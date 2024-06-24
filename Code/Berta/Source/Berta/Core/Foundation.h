@@ -12,10 +12,18 @@
 namespace Berta
 {
 	class Logger;
+	struct Window;
+	struct Menu;
 
 	class Foundation
 	{
 	public:
+		struct MenuData
+		{
+			Window* m_menuBar{ nullptr };
+			Menu* m_activeMenu{ nullptr };
+		};
+
 		Foundation();
 		~Foundation();
 
@@ -25,12 +33,15 @@ namespace Berta
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		void ProcessMessages();
 
+		//void SetMenu(Menu* menu);
+
 		static Foundation& GetInstance();
 
 	private:
 		static Foundation g_foundation;
 		std::shared_ptr<Logger> m_logger;
 		WindowManager m_windowManager;
+
 	};
 }
 

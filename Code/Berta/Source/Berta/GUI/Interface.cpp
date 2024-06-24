@@ -227,6 +227,7 @@ namespace Berta::GUI
 			graphics.Build(window->Size);
 			graphics.BuildFont(window->DPI);
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
+			
 			window->Renderer.Init(*control, controlReactor);
 			window->Renderer.Update();
 		}
@@ -350,5 +351,8 @@ namespace Berta::GUI
 		{
 			API::SendCustomMessage(window->RootWindow->RootHandle, body);
 		}
+	}
+	void SetMenu(Window* window, bool calledFromMenuBar)
+	{
 	}
 }

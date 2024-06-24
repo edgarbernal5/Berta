@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Controls/Menu.h"
 #include <string>
 #include <vector>
 
@@ -30,35 +31,35 @@ namespace Berta
 		{
 			MenuBarItemData(const std::wstring& _text) :text(_text) {}
 
+			Menu menu;
 			std::wstring text;
 			Size size;
 			Point position;
 			Size center;
 		};
 
-		struct MenuBarCollectionData
-		{
-			std::vector<MenuBarItemData*> m_items;
-
-		};
-
 		struct InteractionData
 		{
-			void PushBack(const std::wstring& text);
-			void BuildItems();
-
-			MenuBarCollectionData m_menuCollectionData;
-			int m_hoveredItemIndex{ -1 };
-			Window* m_owner{ nullptr };
-
+			int						m_selectedItemIndex{ -1 };
+			Menu*					m_activeMenu{ nullptr };
 		};
-		InteractionData& GetInteractionData() { return m_interactionData; }
+		struct Module
+		{
+			Menu& PushBack(const std::wstring& text);
+			void BuildItems();
+			int FindItem(const Point& position);
+			void OpenMenu();
+
+			ControlBase* m_control{ nullptr };
+			Window* m_owner{ nullptr };
+			std::vector<MenuBarItemData*> m_items;
+			InteractionData m_interactionData;
+		};
+		Module& GetModule() { return m_module; }
 
 	private:
-		int FindItem(const Point& position);
 
-		ControlBase* m_control{ nullptr };
-		InteractionData m_interactionData;
+		Module m_module;
 	};
 
 	class MenuBar : public Control<MenuBarReactor>
@@ -66,7 +67,7 @@ namespace Berta
 	public:
 		MenuBar(Window* parent, const Rectangle& rectangle);
 
-		void PushBack(const std::wstring& itemName);
+		Menu& PushBack(const std::wstring& itemName);
 	};
 }
 
