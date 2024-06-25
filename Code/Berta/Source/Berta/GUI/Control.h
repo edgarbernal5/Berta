@@ -63,6 +63,7 @@ namespace Berta
 		using EventsType = Events;
 		using AppearanceType = Appearance;
 
+	public:
 		Control()
 		{
 			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");

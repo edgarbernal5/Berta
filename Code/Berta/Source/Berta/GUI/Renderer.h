@@ -36,6 +36,7 @@ namespace Berta
 		void KeyChar(const ArgKeyboard& args);
 		void KeyPressed(const ArgKeyboard& args);
 		void KeyReleased(const ArgKeyboard& args);
+		void Resize(const ArgResize& args);
 
 		Graphics& GetGraphics() { return m_graphics; }
 	private:

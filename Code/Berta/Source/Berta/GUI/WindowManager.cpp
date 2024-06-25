@@ -370,6 +370,10 @@ namespace Berta
 			{
 				ChangeDPI(child, newDPI);
 			}
+
+			ArgResize argResize;
+			argResize.NewSize = window->Size;
+			window->Renderer.Resize(argResize);
 		}
 	}
 

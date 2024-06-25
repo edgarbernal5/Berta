@@ -70,4 +70,8 @@ namespace Berta
 	void ControlReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
 	{
 	}
+
+	void ControlReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+	}
 }

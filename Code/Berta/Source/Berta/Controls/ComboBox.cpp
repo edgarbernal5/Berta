@@ -58,6 +58,7 @@ namespace Berta
 		}
 
 		//m_textEditor->Render();
+
 		auto textItemHeight = graphics.GetTextExtent().Height;
 		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
 
@@ -179,7 +180,6 @@ namespace Berta
 					EmitSelectionEvent(m_interactionData.m_selectedIndex);
 					redraw = true;
 				}
-				
 			}
 		}
 		else

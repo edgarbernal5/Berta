@@ -118,6 +118,11 @@ namespace Berta
 		}
 	}
 
+	void MenuBarReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+		m_module.BuildItems();
+	}
+
 	int MenuBarReactor::Module::FindItem(const Point& position)
 	{
 		auto window = m_control->Handle();
@@ -160,17 +165,27 @@ namespace Berta
 
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
 	{
+		auto startIndex = m_items.size();
 		auto newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
-		BuildItems();
+		BuildItems(startIndex);
+
 		return newItem->menu;
 	}
 
-	void MenuBarReactor::Module::BuildItems()
+	void MenuBarReactor::Module::BuildItems(size_t startIndex)
 	{
+		if (startIndex >= m_items.size())
+			return;
+
 		auto itemMargin = static_cast<uint32_t>(4u * m_owner->DPIScaleFactor);
 		Point offset{ 0, (int)itemMargin };
 
-		for (size_t i = 0; i < m_items.size(); i++)
+		if (startIndex > 0)
+		{
+			offset.X = m_items[startIndex - 1]->position.X + (int)m_items[startIndex - 1]->size.Width;
+		}
+
+		for (size_t i = startIndex; i < m_items.size(); i++)
 		{
 			auto& itemData = *m_items[i];
 			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(itemData.text);

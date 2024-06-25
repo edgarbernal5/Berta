@@ -23,6 +23,7 @@ namespace Berta
     public:
         using Handler = std::function<void(const Argument&)>;
 
+    public:
         Event() : data(std::make_shared<Data>()) {}
         Event(Event&& other) : Event() { *this = std::move(other); }
         Event(const Event&) = default;

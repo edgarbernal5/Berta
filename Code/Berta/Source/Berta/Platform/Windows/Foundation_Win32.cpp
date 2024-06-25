@@ -223,6 +223,7 @@ namespace Berta
 				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
 
 				windowManager.Resize(nativeWindow, argResize.NewSize);
+				nativeWindow->Renderer.Resize(argResize);
 				nativeWindow->Events->Resize.Emit(argResize);
 			}
 			break;
@@ -280,6 +281,8 @@ namespace Berta
 		{
 			if (LOWORD(wParam) == WA_INACTIVE) {
 				BT_CORE_DEBUG << "   Hide()" << ". hWnd = " << hWnd << std::endl;
+			} else if (LOWORD(wParam) == WA_ACTIVE) {
+				BT_CORE_DEBUG << "   Active()" << ". hWnd = " << hWnd << std::endl;
 			}
 			break;
 		}
@@ -348,9 +351,9 @@ namespace Berta
 				{
 					ArgMouse argMouseLeave;
 					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
-					argMouseLeave.ButtonState.LeftButton = false;
-					argMouseLeave.ButtonState.RightButton = false;
-					argMouseLeave.ButtonState.MiddleButton = false;
+					argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 					//BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave " << rootWindowData.Hovered->Name << std::endl;
 					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);

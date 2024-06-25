@@ -95,12 +95,13 @@ int main()
 
 	Berta::Button button(form, { 5,165,100,40 }, L"Click me!");
 	button.SetDebugName("button");
-	button.GetEvents().Click.Connect([&button2, &inputText, &comboBox](const Berta::ArgClick& args)
+	button.GetEvents().Click.Connect([&button2, &inputText, &comboBox, &menuBar](const Berta::ArgClick& args)
 	{
 		std::cout << "BUTTON > Click" << std::endl;
 		button2.SetEnabled(!button2.GetEnabled());
 		inputText.SetEnabled(!inputText.GetEnabled());
 		comboBox.SetEnabled(!comboBox.GetEnabled());
+		menuBar.SetEnabled(!menuBar.GetEnabled());
 	});
 	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
 	{

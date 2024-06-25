@@ -23,6 +23,7 @@ namespace Berta
 	{
 	public:
 		using TextEditorCallback = std::function<void()>;
+
 	public:
 		TextEditor(Window* owner);
 		~TextEditor();

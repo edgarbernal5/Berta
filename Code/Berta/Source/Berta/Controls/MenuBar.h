@@ -26,6 +26,7 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		struct MenuBarItemData
 		{
@@ -46,7 +47,7 @@ namespace Berta
 		struct Module
 		{
 			Menu& PushBack(const std::wstring& text);
-			void BuildItems();
+			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
 			void OpenMenu();
 

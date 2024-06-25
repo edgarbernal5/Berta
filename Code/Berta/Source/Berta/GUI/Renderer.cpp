@@ -106,4 +106,9 @@ namespace Berta
 	{
 		m_controlReactor->KeyReleased(m_graphics, args);
 	}
+
+	void Renderer::Resize(const ArgResize& args)
+	{
+		m_controlReactor->Resize(m_graphics, args);
+	}
 }
