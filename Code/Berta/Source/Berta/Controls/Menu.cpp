@@ -164,7 +164,7 @@ namespace Berta
 			auto& item = m_itemSizePositions[i];
 			if (!m_items->at(i)->isSpearator && Rectangle{ item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
 			{
-				selectedIndex = i;
+				selectedIndex = (int)i;
 				break;
 			}
 		}

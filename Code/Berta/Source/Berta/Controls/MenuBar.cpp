@@ -73,7 +73,7 @@ namespace Berta
 			else
 			{
 				m_module.OpenMenu();
-				
+				GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
 			}
 		}
 		else
@@ -121,6 +121,20 @@ namespace Berta
 	void MenuBarReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.BuildItems();
+	}
+
+	bool MenuBarReactor::OnNewMenuBarItem(const ArgMouse& args)
+	{
+		int selectedItem = m_module.FindItem(args.Position);
+		BT_CORE_TRACE << "---- OnNewMenuBarItem " << selectedItem << std::endl;
+
+		if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
+		{
+
+
+			m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+		}
+		return selectedItem != -1;
 	}
 
 	int MenuBarReactor::Module::FindItem(const Point& position)

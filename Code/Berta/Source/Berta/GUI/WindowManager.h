@@ -17,6 +17,7 @@
 namespace Berta
 {
 	struct Window;
+	class MenuBarItemReactor;
 
 	class WindowManager
 	{
@@ -33,6 +34,9 @@ namespace Berta
 
 			API::NativeCursor CurrentCursor;
 
+			Window* MenuBarWindow{ nullptr };
+			MenuBarItemReactor* MenuBarReactor{ nullptr };
+
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
 		private:
@@ -46,9 +50,9 @@ namespace Berta
 		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);
-		Window* Get(API::NativeWindowHandle nativeWindowHandle);
+		Window* Get(API::NativeWindowHandle nativeWindowHandle) const;
 		RootData* GetWindowData(API::NativeWindowHandle nativeWindowHandle);
-		bool Exists(Window* window);
+		bool Exists(Window* window) const;
 		uint32_t NativeWindowCount();
 
 		void Capture(Window* window);
@@ -65,6 +69,10 @@ namespace Berta
 		void ChangeCursor(Window* window, Cursor newCursor);
 
 		Point GetAbsolutePosition(Window* window);
+
+		void SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox);
+		std::pair<MenuBarItemReactor*, Window*> GetMenu(Window* window);
+
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

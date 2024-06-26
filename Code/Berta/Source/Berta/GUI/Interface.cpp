@@ -12,6 +12,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/Caret.h"
+#include "Berta/Controls/MenuBar.h"
 
 namespace Berta::GUI
 {
@@ -352,7 +353,13 @@ namespace Berta::GUI
 			API::SendCustomMessage(window->RootWindow->RootHandle, body);
 		}
 	}
-	void SetMenu(Window* window, bool calledFromMenuBar)
+
+	void SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox)
 	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window) && windowManager.Exists(menuBox))
+		{
+			windowManager.SetMenu(window, menuBarItemReactor, menuBox);
+		}
 	}
 }

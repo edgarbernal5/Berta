@@ -8,6 +8,7 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
+#include "Berta/Controls/MenuBar.h"
 
 namespace Berta
 {
@@ -145,7 +146,7 @@ namespace Berta
 		}
 	}
 
-	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle)
+	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle) const
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
@@ -167,7 +168,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	bool WindowManager::Exists(Window* window)
+	bool WindowManager::Exists(Window* window) const
 	{
 		return m_windowRegistry.find(window) != m_windowRegistry.end();
 	}
@@ -403,6 +404,19 @@ namespace Berta
 			window = window->Parent;
 		}
 		return position;
+	}
+
+	void WindowManager::SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox)
+	{
+		auto windowData = GetWindowData(menuBox->RootHandle);
+		windowData->MenuBarWindow = window;
+		windowData->MenuBarReactor = menuBarItemReactor;
+	}
+
+	std::pair<MenuBarItemReactor*, Window*> WindowManager::GetMenu(Window* window)
+	{
+		auto windowData = GetWindowData(window->RootHandle);
+		return std::make_pair(windowData->MenuBarReactor, windowData->MenuBarWindow);
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)

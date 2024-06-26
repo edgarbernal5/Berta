@@ -16,6 +16,7 @@
 #include "Berta/Platform/Windows/Messages.h"
 
 #include "Berta/Controls/Menu.h"
+#include "Berta/Controls/MenuBar.h"
 
 namespace Berta
 {
@@ -361,6 +362,22 @@ namespace Berta
 
 					rootWindowData.Hovered = nullptr;
 				}
+			}
+
+			auto [menuBarReactor, menuBarWindow] = windowManager.GetMenu(nativeWindow);
+			if (menuBarReactor && menuBarWindow)
+			{
+				POINT screenToClientPoint;
+				screenToClientPoint.x = x;
+				screenToClientPoint.y = y;
+				::ClientToScreen(hWnd, &screenToClientPoint);
+
+				::ScreenToClient(menuBarWindow->RootHandle.Handle, &screenToClientPoint);
+
+				ArgMouse argMouseMove;
+				argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(menuBarWindow);
+
+				bool onNewMenuBarItem = menuBarReactor->OnNewMenuBarItem(argMouseMove);
 			}
 
 			if (window && window->Flags.IsEnabled)
