@@ -147,7 +147,7 @@ namespace Berta
 			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
 			
 			Update(m_module.m_owner->Renderer.GetGraphics());
-			GUI::UpdateDeferred(m_module.m_owner);
+			GUI::RefreshWindow(m_module.m_owner);
 
 		}
 		return selectedItem != -1;
