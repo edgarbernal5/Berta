@@ -23,7 +23,7 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* parent, const Point& position)
+	void Menu::ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp)
 	{
 		m_popupFromMenuBar = true;
 		m_parent = parent;
@@ -31,6 +31,7 @@ namespace Berta
 		auto boxSize = GetMenuBoxSize(parent);
 		m_menuBox = new MenuBox(parent, { position.X, position.Y, boxSize.Width, boxSize.Height });
 		m_menuBox->Init(m_items);
+		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
@@ -57,6 +58,16 @@ namespace Berta
 			return menuItem->m_subMenu;
 		}
 		return nullptr;
+	}
+
+	void Menu::CloseMenuBox()
+	{
+		if (!m_menuBox)
+			return;
+
+		GUI::ReleaseCapture(m_menuBox->Handle());
+		m_menuBox->Dispose();
+		m_menuBox = nullptr;
 	}
 
 	Size Menu::GetMenuBoxSize(Window* parent)
@@ -243,5 +254,10 @@ namespace Berta
 	void MenuBox::Init(std::vector<Menu::Item*>& items)
 	{
 		m_reactor.SetItems(items);
+	}
+
+	void MenuBox::SetIgnoreFirstMouseUp(bool value)
+	{
+		m_reactor.SetIgnoreFirstMouseUp(value);
 	}
 }

@@ -21,16 +21,18 @@ int main()
 
 	Berta::MenuBar menuBar(form, {0,0, 100, 25});
 	menuBar.SetDebugName("menuBar");
-	auto& menu = menuBar.PushBack(L"File");
-	menu.Append(L"New", []() {});
-	menu.Append(L"Open file...", []() {});
-	menu.AppendSeparator();
-	menu.Append(L"Exit", []() {});
-	auto newSubmenu = menu.CreateSubMenu(0);
+	auto& menuFile = menuBar.PushBack(L"File");
+	menuFile.Append(L"New", []() {});
+	menuFile.Append(L"Open file...", []() {});
+	menuFile.AppendSeparator();
+	menuFile.Append(L"Exit", []() {});
+	auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append(L"Texture", []() {});
 	newSubmenu->Append(L"Scene", []() {});
 
-	menuBar.PushBack(L"Edit");
+	auto& menuEdit = menuBar.PushBack(L"Edit");
+	menuEdit.Append(L"Undo", []() {});
+
 	menuBar.PushBack(L"Help");
 
 	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)

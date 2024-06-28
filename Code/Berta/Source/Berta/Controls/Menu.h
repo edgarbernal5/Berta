@@ -26,7 +26,7 @@ namespace Berta
 
 		void Append(const std::wstring& text, ClickCallback onClick);
 		void AppendSeparator();
-		void ShowPopup(Window* parent, const Point& position);
+		void ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp = true);
 		Menu* CreateSubMenu(std::size_t index);
 
 		struct Item
@@ -50,7 +50,7 @@ namespace Berta
 		DestroyCallback m_destroyCallback;
 
 		MenuBox* GetMenuBox() const { return m_menuBox; }
-
+		void CloseMenuBox();
 	private:
 		Size GetMenuBoxSize(Window* parent);
 	};
@@ -70,7 +70,7 @@ namespace Berta
 		//void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
-
+		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 	private:
 		struct MenuBoxItem
 		{
@@ -92,6 +92,7 @@ namespace Berta
 		~MenuBox();
 
 		void Init(std::vector<Menu::Item*>& items);
+		void SetIgnoreFirstMouseUp(bool value);
 	private:
 	};
 }

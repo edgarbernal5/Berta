@@ -59,7 +59,7 @@ namespace Berta
 			Menu& PushBack(const std::wstring& text);
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
-			void OpenMenu();
+			void OpenMenu(bool ignoreFirstMouseUp = true);
 
 			ControlBase* m_control{ nullptr };
 			Window* m_owner{ nullptr };

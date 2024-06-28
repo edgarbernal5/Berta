@@ -157,7 +157,10 @@ namespace Berta
 			}
 			else
 			{
-				::ReleaseCapture();
+				if (!::ReleaseCapture())
+				{
+					BT_CORE_ERROR << "ReleaseCapture ::GetLastError() = " << ::GetLastError() << std::endl;
+				}
 			}
 #endif
 		}

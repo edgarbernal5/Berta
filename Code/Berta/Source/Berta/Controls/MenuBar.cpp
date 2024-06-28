@@ -126,13 +126,21 @@ namespace Berta
 	bool MenuBarReactor::OnNewMenuBarItem(const ArgMouse& args)
 	{
 		int selectedItem = m_module.FindItem(args.Position);
-		BT_CORE_TRACE << "---- OnNewMenuBarItem " << selectedItem << std::endl;
 
 		if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
 		{
-
+			if (m_module.m_interactionData.m_activeMenu->m_menuBox)
+			{
+				m_module.m_interactionData.m_activeMenu->CloseMenuBox();
+			}
 
 			m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+			m_module.OpenMenu(false);
+			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
+			
+			Update(m_module.m_owner->Renderer.GetGraphics());
+			GUI::UpdateDeferred(m_module.m_owner);
+
 		}
 		return selectedItem != -1;
 	}
@@ -155,7 +163,7 @@ namespace Berta
 		return -1;
 	}
 
-	void MenuBarReactor::Module::OpenMenu()
+	void MenuBarReactor::Module::OpenMenu(bool ignoreFirstMouseUp)
 	{
 		auto window = m_owner;
 		auto itemData = m_items[m_interactionData.m_selectedItemIndex];
@@ -174,7 +182,7 @@ namespace Berta
 			m_control->Handle()->Renderer.Update();
 			GUI::UpdateDeferred(*m_control);	
 		};
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition);
+		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, ignoreFirstMouseUp);
 	}
 
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)

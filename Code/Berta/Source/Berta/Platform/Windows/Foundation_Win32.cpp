@@ -84,6 +84,8 @@ namespace Berta
 	}
 
 #ifdef BT_DEBUG
+	uint32_t g_debugLastMessageId{};
+	uint32_t g_debugLastMessageCount{0};
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
 		{WM_CREATE,			"WM_CREATE"},
@@ -139,7 +141,22 @@ namespace Berta
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
-			BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
+			if (g_debugLastMessageId != message)
+			{
+				g_debugLastMessageCount = 1;
+			}
+			else
+			{
+				++g_debugLastMessageCount;
+			}
+			if (g_debugLastMessageCount == 1)
+			{
+				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
+			}
+			if (g_debugLastMessageCount > 20)
+				g_debugLastMessageCount = 0;
+
+			g_debugLastMessageId = message;
 		}
 #endif
 		static TRACKMOUSEEVENT trackEvent = {sizeof(trackEvent), TME_LEAVE };
@@ -378,6 +395,11 @@ namespace Berta
 				argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(menuBarWindow);
 
 				bool onNewMenuBarItem = menuBarReactor->OnNewMenuBarItem(argMouseMove);
+				if (onNewMenuBarItem)
+				{
+					
+					window = nullptr;
+				}
 			}
 
 			if (window && window->Flags.IsEnabled)
