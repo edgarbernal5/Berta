@@ -16,6 +16,14 @@ namespace Berta
 		m_module.m_control = &control;
 
 		m_module.m_owner = control.Handle();
+
+		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
+		{
+			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
+			{
+				m_module.m_interactionData.m_activeMenu->CloseMenuBox();
+			}
+		});
 	}
 
 	void MenuBarReactor::Update(Graphics& graphics)
