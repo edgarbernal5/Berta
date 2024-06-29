@@ -165,6 +165,21 @@ namespace Berta
 		graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
 	}
 
+	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+		{
+			if (!m_items->at(m_selectedIndex)->m_subMenu->m_menuBox)
+			{
+				auto window = m_control->Handle();
+				auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
+
+				Point position{ pointInScreen.X + (int)m_control->GetSize().Width - 2, pointInScreen.Y + 2 };
+				m_items->at(m_selectedIndex)->m_subMenu->ShowPopup(window, position);
+			}
+		}
+	}
+
 	void MenuBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
@@ -197,6 +212,10 @@ namespace Berta
 			return;
 		}
 
+		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+		{
+			return;
+		}
 		m_control->Dispose();
 	}
 
