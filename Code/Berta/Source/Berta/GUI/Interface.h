@@ -16,7 +16,7 @@ namespace Berta
 	class ControlBase;
 	class ControlReactor;
 	struct CommonEvents;
-	class MenuBarItemReactor;
+	class MenuItemReactor;
 
 	namespace GUI
 	{
@@ -57,7 +57,7 @@ namespace Berta
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
-		void SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox);
+		void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuBox);
 	}
 }
 

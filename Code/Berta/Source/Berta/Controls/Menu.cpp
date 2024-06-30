@@ -15,7 +15,6 @@ namespace Berta
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
 		auto& newItem = m_items.emplace_back(new Menu::Item{ text , onClick });
-		
 	}
 
 	void Menu::AppendSeparator()
@@ -23,13 +22,13 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp)
+	void Menu::ShowPopup(Window* parentWindow, const Point& position, bool ignoreFirstMouseUp)
 	{
 		m_popupFromMenuBar = true;
-		m_parent = parent;
+		m_parentWindow = parentWindow;
 
-		auto boxSize = GetMenuBoxSize(parent);
-		m_menuBox = new MenuBox(parent, { position.X, position.Y, boxSize.Width, boxSize.Height });
+		auto boxSize = GetMenuBoxSize(parentWindow);
+		m_menuBox = new MenuBox(parentWindow, { position.X, position.Y, boxSize.Width, boxSize.Height });
 		m_menuBox->Init(m_items);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
@@ -169,13 +168,16 @@ namespace Berta
 	{
 		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
 		{
-			if (!m_items->at(m_selectedIndex)->m_subMenu->m_menuBox)
+			auto& subMenu = m_items->at(m_selectedIndex)->m_subMenu;
+			if (!subMenu->m_menuBox)
 			{
 				auto window = m_control->Handle();
 				auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
 				Point position{ pointInScreen.X + (int)m_control->GetSize().Width - 2, pointInScreen.Y + 2 };
-				m_items->at(m_selectedIndex)->m_subMenu->ShowPopup(window, position);
+				subMenu->ShowPopup(window, position);
+
+				m_next = subMenu->m_menuBox->GetItemReactor();
 			}
 		}
 	}
@@ -217,6 +219,16 @@ namespace Berta
 			return;
 		}
 		m_control->Dispose();
+	}
+
+	bool MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)
+	{
+		return false;
+	}
+
+	Window* MenuBoxReactor::Owner() const
+	{
+		return m_control->Handle();
 	}
 
 	void MenuBoxReactor::SetItems(std::vector<Menu::Item*>& items)

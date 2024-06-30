@@ -81,7 +81,11 @@ namespace Berta
 			else
 			{
 				m_module.OpenMenu();
-				GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
+				if (m_module.m_interactionData.m_activeMenu)
+				{
+					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
+					GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
+				}
 			}
 		}
 		else
@@ -131,7 +135,7 @@ namespace Berta
 		m_module.BuildItems();
 	}
 
-	bool MenuBarReactor::OnNewMenuBarItem(const ArgMouse& args)
+	bool MenuBarReactor::OnMenuItemMouseMove(const ArgMouse& args)
 	{
 		int selectedItem = m_module.FindItem(args.Position);
 
@@ -144,6 +148,7 @@ namespace Berta
 
 			m_module.m_interactionData.m_selectedItemIndex = selectedItem;
 			m_module.OpenMenu(false);
+			m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
 			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
 			
 			Update(m_module.m_owner->Renderer.GetGraphics());
@@ -151,6 +156,11 @@ namespace Berta
 
 		}
 		return selectedItem != -1;
+	}
+
+	Window* MenuBarReactor::Owner() const
+	{
+		return m_module.m_owner;
 	}
 
 	int MenuBarReactor::Module::FindItem(const Point& position)

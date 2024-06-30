@@ -48,6 +48,7 @@ namespace Berta
 		std::shared_ptr<CommonEvents> Events{ nullptr };
 
 		Window* Parent{ nullptr };
+		Window* Owner{ nullptr };
 		std::vector<Window*> Children;
 
 		Window* RootWindow{ nullptr };

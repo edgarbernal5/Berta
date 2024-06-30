@@ -15,13 +15,7 @@
 
 namespace Berta
 {
-	class MenuBarItemReactor
-	{
-	public:
-		virtual bool OnNewMenuBarItem(const ArgMouse& args) = 0;
-	};
-
-	class MenuBarReactor : public ControlReactor, public MenuBarItemReactor
+	class MenuBarReactor : public ControlReactor, public MenuItemReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -34,8 +28,9 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
-		bool OnNewMenuBarItem(const ArgMouse& args) override;
+		bool OnMenuItemMouseMove(const ArgMouse& args) override;
 
+		Window* Owner() const override;
 
 		struct MenuBarItemData
 		{
@@ -50,8 +45,8 @@ namespace Berta
 
 		struct InteractionData
 		{
-			int						m_selectedItemIndex{ -1 };
-			Menu*					m_activeMenu{ nullptr };
+			int		m_selectedItemIndex{ -1 };
+			Menu*	m_activeMenu{ nullptr };
 		};
 
 		struct Module

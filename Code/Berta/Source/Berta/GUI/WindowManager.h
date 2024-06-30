@@ -17,7 +17,7 @@
 namespace Berta
 {
 	struct Window;
-	class MenuBarItemReactor;
+	class MenuItemReactor;
 
 	class WindowManager
 	{
@@ -34,8 +34,8 @@ namespace Berta
 
 			API::NativeCursor CurrentCursor;
 
-			Window* MenuBarWindow{ nullptr };
-			MenuBarItemReactor* MenuBarReactor{ nullptr };
+			Window* MenuRootWindow{ nullptr };
+			MenuItemReactor* MenuItemReactor{ nullptr };
 
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
@@ -70,8 +70,8 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox);
-		std::pair<MenuBarItemReactor*, Window*> GetMenu(Window* window);
+		void SetMenu(Window* window, MenuItemReactor* menuBarItemReactor, Window* menuBox);
+		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
 
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);

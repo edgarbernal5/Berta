@@ -381,25 +381,32 @@ namespace Berta
 				}
 			}
 
-			auto [menuBarReactor, menuBarWindow] = windowManager.GetMenu(nativeWindow);
-			if (menuBarReactor && menuBarWindow)
+			auto [menuItemReactor, menuRootWindow] = windowManager.GetMenu(nativeWindow);
+			if (menuItemReactor && menuRootWindow)
 			{
-				POINT screenToClientPoint;
-				screenToClientPoint.x = x;
-				screenToClientPoint.y = y;
-				::ClientToScreen(hWnd, &screenToClientPoint);
-
-				::ScreenToClient(menuBarWindow->RootHandle.Handle, &screenToClientPoint);
-
-				ArgMouse argMouseMove;
-				argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(menuBarWindow);
-
-				bool onNewMenuBarItem = menuBarReactor->OnNewMenuBarItem(argMouseMove);
-				if (onNewMenuBarItem)
+				do
 				{
-					
-					window = nullptr;
-				}
+					auto currentWindow = menuItemReactor->Owner();
+
+					POINT screenToClientPoint;
+					screenToClientPoint.x = x;
+					screenToClientPoint.y = y;
+					::ClientToScreen(hWnd, &screenToClientPoint);
+
+					::ScreenToClient(currentWindow->RootHandle.Handle, &screenToClientPoint);
+
+					ArgMouse argMouseMove;
+					argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
+
+					bool onNewMenuBarItem = menuItemReactor->OnMenuItemMouseMove(argMouseMove);
+					if (onNewMenuBarItem)
+					{
+						window = nullptr;
+						break;
+					}
+					menuItemReactor = menuItemReactor->Next();
+					//currentWindow= menuItemReactor
+				} while (menuItemReactor);
 			}
 
 			if (window && window->Flags.IsEnabled)

@@ -19,6 +19,23 @@ namespace Berta
 	constexpr uint32_t ItemTextPadding = 2;
 	constexpr uint32_t SeparatorHeight = 3;
 
+	class MenuItemReactor
+	{
+	public:
+		virtual bool OnMenuItemMouseMove(const ArgMouse& args) = 0;
+
+		virtual MenuItemReactor* Next() const {
+			return m_next;
+		}
+		virtual Window* Owner() const = 0;
+		/*virtual Window* Owner() const {
+			return m_owner;
+		}*/
+	protected:
+		MenuItemReactor* m_next{ nullptr };
+		//Window* m_owner{ nullptr };
+	};
+
 	struct Menu
 	{
 		using ClickCallback = std::function<void()>;
@@ -46,7 +63,7 @@ namespace Berta
 		std::vector<Item*> m_items;
 		MenuBox* m_menuBox;
 		bool m_popupFromMenuBar{ false };
-		Window* m_parent{ nullptr };
+		Window* m_parentWindow{ nullptr };
 		DestroyCallback m_destroyCallback;
 
 		MenuBox* GetMenuBox() const { return m_menuBox; }
@@ -56,7 +73,7 @@ namespace Berta
 	};
 
 
-	class MenuBoxReactor : public ControlReactor
+	class MenuBoxReactor : public ControlReactor, public MenuItemReactor
 	{
 	public:
 		~MenuBoxReactor();
@@ -69,6 +86,9 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		//void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		//void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+		
+		bool OnMenuItemMouseMove(const ArgMouse& args) override;
+		Window* Owner() const override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
@@ -94,6 +114,8 @@ namespace Berta
 
 		void Init(std::vector<Menu::Item*>& items);
 		void SetIgnoreFirstMouseUp(bool value);
+
+		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
 	private:
 	};
 }

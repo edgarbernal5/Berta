@@ -406,17 +406,17 @@ namespace Berta
 		return position;
 	}
 
-	void WindowManager::SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox)
+	void WindowManager::SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuWindow)
 	{
-		auto windowData = GetWindowData(menuBox->RootHandle);
-		windowData->MenuBarWindow = window;
-		windowData->MenuBarReactor = menuBarItemReactor;
+		auto windowData = GetWindowData(menuWindow->RootHandle);
+		windowData->MenuRootWindow = window;
+		windowData->MenuItemReactor = menuItemReactor;
 	}
 
-	std::pair<MenuBarItemReactor*, Window*> WindowManager::GetMenu(Window* window)
+	std::pair<MenuItemReactor*, Window*> WindowManager::GetMenu(Window* window)
 	{
 		auto windowData = GetWindowData(window->RootHandle);
-		return std::make_pair(windowData->MenuBarReactor, windowData->MenuBarWindow);
+		return std::make_pair(windowData->MenuItemReactor, windowData->MenuRootWindow);
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)

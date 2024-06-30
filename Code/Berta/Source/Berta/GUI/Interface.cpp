@@ -41,6 +41,8 @@ namespace Berta::GUI
 			auto& rootGraphics = windowManager.GetWindowData(windowResult.WindowHandle)->RootGraphics;
 			window->RootGraphics = &rootGraphics;
 
+			window->Owner = parent;
+
 			return window;
 		}
 
@@ -354,12 +356,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetMenu(Window* window, MenuBarItemReactor* menuBarItemReactor, Window* menuBox)
+	void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuItemWindow)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && windowManager.Exists(menuBox))
+		if (windowManager.Exists(window) && windowManager.Exists(menuItemWindow))
 		{
-			windowManager.SetMenu(window, menuBarItemReactor, menuBox);
+			windowManager.SetMenu(window, menuItemReactor, menuItemWindow);
 		}
 	}
 }
