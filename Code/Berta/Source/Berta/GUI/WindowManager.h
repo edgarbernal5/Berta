@@ -70,7 +70,7 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(Window* window, MenuItemReactor* menuBarItemReactor, Window* menuBox);
+		void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuBox);
 		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
 
 	private:

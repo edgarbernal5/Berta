@@ -15,6 +15,8 @@
 
 namespace Berta
 {
+	class MenuBar;
+
 	class MenuBarReactor : public ControlReactor, public MenuItemReactor
 	{
 	public:
@@ -55,11 +57,13 @@ namespace Berta
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
 			void OpenMenu(bool ignoreFirstMouseUp = true);
+			void SelectIndex(int index);
 
-			ControlBase* m_control{ nullptr };
+			MenuBar* m_control{ nullptr };
 			Window* m_owner{ nullptr };
 			std::vector<MenuBarItemData*> m_items;
 			InteractionData m_interactionData;
+			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 		};
 		Module& GetModule() { return m_module; }
 

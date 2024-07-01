@@ -13,9 +13,10 @@ namespace Berta
 {
 	void MenuBarReactor::Init(ControlBase& control)
 	{
-		m_module.m_control = &control;
+		m_module.m_control = reinterpret_cast<MenuBar*>(&control);
 
 		m_module.m_owner = control.Handle();
+		m_module.m_rootMenuItemReactor = this;
 
 		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
 		{
@@ -61,7 +62,7 @@ namespace Berta
 		if (m_module.m_interactionData.m_activeMenu)
 			return;
 
-		m_module.m_interactionData.m_selectedItemIndex = -1;
+		m_module.SelectIndex(-1);
 
 		Update(graphics);
 		GUI::UpdateDeferred(m_module.m_owner);
@@ -70,7 +71,7 @@ namespace Berta
 	void MenuBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		int selectedItem = m_module.FindItem(args.Position);
-		m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+		m_module.SelectIndex(selectedItem);
 		if (selectedItem != -1)
 		{
 			if (m_module.m_interactionData.m_activeMenu)
@@ -109,11 +110,11 @@ namespace Berta
 			if (m_module.m_interactionData.m_activeMenu && selectedItem != -1)
 			{
 				m_module.m_interactionData.m_activeMenu = &m_module.m_items[selectedItem]->menu;
-				m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+				m_module.SelectIndex(selectedItem);
 			}
 			else if (!m_module.m_interactionData.m_activeMenu)
 			{
-				m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+				m_module.SelectIndex(selectedItem);
 			}
 
 			Update(graphics);
@@ -146,7 +147,7 @@ namespace Berta
 				m_module.m_interactionData.m_activeMenu->CloseMenuBox();
 			}
 
-			m_module.m_interactionData.m_selectedItemIndex = selectedItem;
+			m_module.SelectIndex(selectedItem);
 			m_module.OpenMenu(false);
 			m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
 			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
@@ -194,13 +195,24 @@ namespace Berta
 
 		m_interactionData.m_activeMenu->m_destroyCallback = [this]()
 		{
+			//m_interactionData.m_activeMenu->CreateSubMenu
+			/*auto currentItem = m_rootMenuItemReactor->Next();
+			while (currentItem)
+			{
+				currentItem = currentItem->Next();
+			}*/
 			m_interactionData.m_activeMenu = nullptr;
-			m_interactionData.m_selectedItemIndex = -1;
+			SelectIndex(-1);
 
 			m_control->Handle()->Renderer.Update();
 			GUI::UpdateDeferred(*m_control);	
 		};
 		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, ignoreFirstMouseUp);
+	}
+
+	void MenuBarReactor::Module::SelectIndex(int index)
+	{
+		m_interactionData.m_selectedItemIndex = index;
 	}
 
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
