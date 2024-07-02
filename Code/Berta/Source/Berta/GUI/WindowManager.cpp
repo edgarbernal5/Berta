@@ -408,15 +408,51 @@ namespace Berta
 
 	void WindowManager::SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuWindow)
 	{
-		auto windowData = GetWindowData(menuWindow->RootHandle);
-		windowData->MenuRootWindow = window;
-		windowData->MenuItemReactor = menuItemReactor;
+		m_menuRootWindow = window;
+		m_menuItemReactor = menuItemReactor;
+	}
+
+	void WindowManager::SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor)
+	{
+		m_menuRootWindow = rootWindow;
+		m_menuItemReactor = menuItemReactor;
+	}
+
+	void WindowManager::SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuBarItemReactor)
+	{
+
 	}
 
 	std::pair<MenuItemReactor*, Window*> WindowManager::GetMenu(Window* window)
 	{
-		auto windowData = GetWindowData(window->RootHandle);
-		return std::make_pair(windowData->MenuItemReactor, windowData->MenuRootWindow);
+		return std::make_pair(m_menuItemReactor, m_menuRootWindow);
+	}
+
+	void WindowManager::DisposeMenu()
+	{
+		if (!m_menuItemReactor)
+			return;
+
+		auto current = m_menuItemReactor;
+		bool first = true;
+		while (current)
+		{
+			auto temp = current->Next();
+
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				Dispose(current->Owner());
+			}
+			
+			current = temp;
+		}
+
+		m_menuItemReactor = nullptr;
+		m_menuRootWindow = nullptr;
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)

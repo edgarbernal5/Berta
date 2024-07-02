@@ -85,7 +85,7 @@ namespace Berta
 				if (m_module.m_interactionData.m_activeMenu)
 				{
 					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-					GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
+					GUI::SetMenu(m_module.m_owner, this);
 				}
 			}
 		}

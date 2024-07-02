@@ -172,12 +172,14 @@ namespace Berta
 			if (!subMenu->m_menuBox)
 			{
 				auto window = m_control->Handle();
+				int two = static_cast<int>(2 * window->DPIScaleFactor);
 				auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
-				Point position{ pointInScreen.X + (int)m_control->GetSize().Width - 2, pointInScreen.Y + 2 };
+				Point position{ pointInScreen.X + (int)m_control->GetSize().Width - two, pointInScreen.Y + two };
 				subMenu->ShowPopup(window, position);
 
 				m_next = subMenu->m_menuBox->GetItemReactor();
+				GUI::SetSubMenu(window, subMenu->m_menuBox->GetItemReactor());
 			}
 		}
 	}
@@ -218,7 +220,9 @@ namespace Berta
 		{
 			return;
 		}
-		m_control->Dispose();
+
+		GUI::DisposeMenu();
+		//m_control->Dispose();
 	}
 
 	bool MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)

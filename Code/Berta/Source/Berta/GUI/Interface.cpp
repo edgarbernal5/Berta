@@ -364,4 +364,31 @@ namespace Berta::GUI
 			windowManager.SetMenu(window, menuItemReactor, menuItemWindow);
 		}
 	}
+
+	void SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(rootWindow))
+		{
+			windowManager.SetMenu(rootWindow, menuItemReactor);
+		}
+	}
+
+	void SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuItemReactor)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(ownerWindow))
+		{
+			windowManager.SetSubMenu(ownerWindow, submenuItemReactor);
+		}
+	}
+
+	void DisposeMenu()
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		{
+
+			windowManager.DisposeMenu();
+		}
+	}
 }

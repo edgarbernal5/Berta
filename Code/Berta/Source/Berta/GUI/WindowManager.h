@@ -34,9 +34,6 @@ namespace Berta
 
 			API::NativeCursor CurrentCursor;
 
-			Window* MenuRootWindow{ nullptr };
-			MenuItemReactor* MenuItemReactor{ nullptr };
-
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
 		private:
@@ -70,9 +67,12 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuBox);
+		void SetMenu(Window* window, MenuItemReactor* menuBarItemReactor, Window* menuBox);
+		void SetMenu(Window* rootWindow, MenuItemReactor* menuBarItemReactor);
+		void SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuBarItemReactor);
 		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
 
+		void DisposeMenu();
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
@@ -87,6 +87,9 @@ namespace Berta
 
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
+
+		Window* m_menuRootWindow{ nullptr };
+		MenuItemReactor* m_menuItemReactor{ nullptr };
 	};
 }
 
