@@ -97,22 +97,5 @@ namespace Berta
 	//	m_control.NotifyDestroy();
 	//}
 
-	class ControlBase::ControlWindow : public ControlWindowInterface
-	{
-	public:
-		ControlWindow(ControlBase& control) : m_control(control)
-		{
-		}
-		virtual ControlBase* ControlPtr() const override
-		{
-			return &m_control;
-		}
-		virtual void Destroy() override
-		{
-			m_control.NotifyDestroy();
-		}
-
-	private:
-		ControlBase& m_control;
-	};
+	
 }

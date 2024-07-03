@@ -411,7 +411,7 @@ namespace Berta
 
 			if (window && window->Flags.IsEnabled)
 			{
-				if (window != rootWindowData.Hovered)
+				if (window != rootWindowData.Hovered && !window->Flags.IsDestroying)
 				{
 					ArgMouse argMouseEnter;
 					argMouseEnter.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);

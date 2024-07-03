@@ -63,7 +63,8 @@ namespace Berta
 
 	void WindowManager::DestroyInternal(Window* window)
 	{
-		if (window->Flags.IsDestroying) {
+		if (window->Flags.IsDestroying)
+		{
 			return;
 		}
 
@@ -86,7 +87,11 @@ namespace Berta
 		}
 		
 		window->Renderer.Shutdown();
-		m_windowRegistry.erase(window);
+		window->ControlWindowPtr->Destroy();
+		if (window->Type != WindowType::Native)
+		{
+			m_windowRegistry.erase(window);
+		}
 
 		window->Renderer.GetGraphics().Release();
 	}
@@ -126,11 +131,12 @@ namespace Berta
 
 			if (!argClosing.Cancel)
 			{
-				window->Renderer.Shutdown();
-
-				window->Flags.IsDestroying = true;
+				if (!window->Flags.IsDestroying)
+				{
+					window->Renderer.Shutdown();
+					window->ControlWindowPtr->Destroy();
+				}
 				API::DestroyNativeWindow(window->RootHandle);
-				//m_windowNativeRegistry.erase(window->RootHandle);
 			}
 		}
 		else
@@ -239,7 +245,7 @@ namespace Berta
 
 		if (!m_capture.WindowPtr)
 		{
-			if (IsPointOnWindow(window, point))
+			if (window->Visible && IsPointOnWindow(window, point))
 			{
 				return FindInTree(window, point);
 			}
@@ -247,7 +253,7 @@ namespace Berta
 			return nullptr;
 		}
 
-		if (IsPointOnWindow(window, point))
+		if (window->Visible && IsPointOnWindow(window, point))
 		{
 			auto target = FindInTree(window, point);
 

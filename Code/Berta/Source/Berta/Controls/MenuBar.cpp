@@ -138,6 +138,9 @@ namespace Berta
 
 	bool MenuBarReactor::OnMenuItemMouseMove(const ArgMouse& args)
 	{
+		if (!Rectangle{ 0,0, m_module.m_owner->Size.Width, m_module.m_owner->Size.Height }.IsInside(args.Position))
+			return false;
+
 		int selectedItem = m_module.FindItem(args.Position);
 
 		if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)

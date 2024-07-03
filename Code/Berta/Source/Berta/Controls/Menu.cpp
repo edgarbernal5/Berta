@@ -227,6 +227,10 @@ namespace Berta
 
 	bool MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)
 	{
+		auto window = m_control->Handle();
+		if (!Rectangle{ 0,0, window->Size.Width, window->Size.Height }.IsInside(args.Position))
+			return false;
+
 		return false;
 	}
 
