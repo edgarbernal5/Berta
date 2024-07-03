@@ -15,8 +15,13 @@
 
 namespace Berta
 {
+	class ControlWindowInterface;
+
 	class ControlBase
 	{
+		class ControlWindow;
+
+		friend class ControlWindowInterface;
 	public:
 		ControlBase() = default;
 		virtual ~ControlBase() = default;
@@ -51,6 +56,13 @@ namespace Berta
 
 		virtual void DoOnSize(const Size& newSize);
 		virtual Size DoOnSize() const;
+
+		virtual void NotifyDestroy()
+		{
+			m_handle = nullptr;
+			DoOnNotifyDestroy();
+		}
+		virtual void DoOnNotifyDestroy(){}
 
 		Window* m_handle{ nullptr };
 	};
@@ -88,7 +100,7 @@ namespace Berta
 	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
-			m_handle = GUI::CreateForm(parent, rectangle, formStyle);
+			m_handle = GUI::CreateForm(parent, rectangle, formStyle, this);
 			m_appearance = std::make_shared<Appearance>();
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);
@@ -98,7 +110,7 @@ namespace Berta
 
 		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true)
 		{
-			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle);
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this);
 			m_appearance = std::make_shared<Appearance>();
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);
@@ -110,10 +122,17 @@ namespace Berta
 			}
 		}
 
+		virtual void DoOnNotifyDestroy() override
+		{
+			m_events = std::make_shared<Events>();
+		}
+
 		ReactorType m_reactor;
 		std::shared_ptr<Events> m_events;
 		std::shared_ptr<ControlAppearance> m_appearance;
 	};
+
+	
 }
 
 #endif

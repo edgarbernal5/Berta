@@ -8,6 +8,7 @@
 #include "Control.h"
 
 #include "Berta/GUI/Window.h"
+#include "Berta/GUI/ControlWindow.h"
 
 namespace Berta
 {
@@ -84,4 +85,34 @@ namespace Berta
 	{
 		return GUI::ResizeWindow(m_handle);
 	}
+
+	/*void ControlBase::NotifyDestroy()
+	{
+		m_handle = nullptr;
+		DoOnNotifyDestroy();
+	}*/
+
+	//void ControlWindow::Destroy()
+	//{
+	//	m_control.NotifyDestroy();
+	//}
+
+	class ControlBase::ControlWindow : public ControlWindowInterface
+	{
+	public:
+		ControlWindow(ControlBase& control) : m_control(control)
+		{
+		}
+		virtual ControlBase* ControlPtr() const override
+		{
+			return &m_control;
+		}
+		virtual void Destroy() override
+		{
+			m_control.NotifyDestroy();
+		}
+
+	private:
+		ControlBase& m_control;
+	};
 }

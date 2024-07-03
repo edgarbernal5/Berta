@@ -11,6 +11,7 @@
 #include <vector>
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Renderer.h"
+#include "Berta/GUI/ControlWindow.h"
 #include "Berta/API/WindowAPI.h"
 
 namespace Berta
@@ -29,7 +30,7 @@ namespace Berta
 	{
 		Window() = default;
 		Window(WindowType type) : Type(type) {}
-		~Window() = default;
+		~Window();
 
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};
@@ -46,6 +47,7 @@ namespace Berta
 		Graphics* RootGraphics{ nullptr };
 		std::shared_ptr<ControlAppearance> Appereance{ nullptr };
 		std::shared_ptr<CommonEvents> Events{ nullptr };
+		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr };
 
 		Window* Parent{ nullptr };
 		Window* Owner{ nullptr };

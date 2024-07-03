@@ -16,7 +16,7 @@
 
 namespace Berta::GUI
 {
-	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
+	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle, ControlBase* control)
 	{
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
@@ -34,6 +34,7 @@ namespace Berta::GUI
 			window->RootWindow = window;
 			window->DPI = windowResult.DPI;
 			window->DPIScaleFactor = windowResult.DPI / 96.0f;
+			//window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 
 			windowManager.AddNative(windowResult.WindowHandle, WindowManager::RootData(window, window->Size));
 			windowManager.Add(window);
@@ -49,10 +50,11 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
-	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle)
+	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		Window* window = new Window(WindowType::Control);
+		//window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 		
 		Rectangle rect{ rectangle };
 		if (isUnscaleRect && parent && parent->DPI != 96)

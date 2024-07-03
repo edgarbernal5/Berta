@@ -27,6 +27,10 @@ namespace Berta
 		virtual MenuItemReactor* Next() const {
 			return m_next;
 		}
+
+		virtual void Clear() {
+			m_next = nullptr;
+		}
 		virtual Window* Owner() const = 0;
 		/*virtual Window* Owner() const {
 			return m_owner;

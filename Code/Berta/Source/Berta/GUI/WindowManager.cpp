@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/Controls/MenuBar.h"
+#include <stack>
 
 namespace Berta
 {
@@ -127,8 +128,9 @@ namespace Berta
 			{
 				window->Renderer.Shutdown();
 
+				window->Flags.IsDestroying = true;
 				API::DestroyNativeWindow(window->RootHandle);
-				m_windowNativeRegistry.erase(window->RootHandle);
+				//m_windowNativeRegistry.erase(window->RootHandle);
 			}
 		}
 		else
@@ -433,6 +435,7 @@ namespace Berta
 		if (!m_menuItemReactor)
 			return;
 
+		std::stack<Window*> stack;
 		auto current = m_menuItemReactor;
 		bool first = true;
 		while (current)
@@ -445,12 +448,22 @@ namespace Berta
 			}
 			else
 			{
-				Dispose(current->Owner());
+				stack.push(current->Owner());
+				//Dispose(current->Owner());
 			}
 			
 			current = temp;
 		}
 
+		while (!stack.empty())
+		{
+			auto& it = stack.top();
+			stack.pop();
+
+			Dispose(it);
+		}
+
+		m_menuItemReactor->Clear();
 		m_menuItemReactor = nullptr;
 		m_menuRootWindow = nullptr;
 	}

@@ -147,6 +147,7 @@
     <ClInclude Include="Source\Berta\Core\Event.h" />
     <ClInclude Include="Source\Berta\Core\Timer.h" />
     <ClInclude Include="Source\Berta\GUI\CommonEvents.h" />
+    <ClInclude Include="Source\Berta\GUI\ControlWindow.h" />
     <ClInclude Include="Source\Berta\GUI\Cursor.h" />
     <ClInclude Include="Source\Berta\GUI\EnumTypes.h" />
     <ClInclude Include="Source\Berta\GUI\Renderer.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="Source\Berta\Core\Event.cpp" />
     <ClCompile Include="Source\Berta\Core\Timer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Window.cpp" />
     <ClCompile Include="Source\Berta\Paint\Graphics.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlReactor.cpp" />
     <ClCompile Include="Source\Berta\Controls\Button.cpp" />
