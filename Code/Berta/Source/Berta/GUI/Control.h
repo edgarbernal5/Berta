@@ -62,11 +62,16 @@ namespace Berta
 			}
 			virtual void Destroy() override
 			{
+				if (m_isDestroyed)
+					return;
+
+				m_isDestroyed = true;
 				m_control.NotifyDestroy();
 			}
 
 		private:
 			ControlBase& m_control;
+			bool m_isDestroyed{ false };
 		};
 	protected:
 		virtual void DoOnCaption(const std::wstring& caption);
