@@ -46,6 +46,9 @@ namespace Berta
 
 	void WindowManager::Destroy(Window* window)
 	{
+		if (!Exists(window))
+			return;
+
 		if (window->Parent)
 		{
 			for (size_t i = 0; i < window->Parent->Children.size(); i++)
