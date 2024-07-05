@@ -147,7 +147,8 @@ namespace Berta
 		{
 			if (m_module.m_interactionData.m_activeMenu->m_menuBox)
 			{
-				m_module.m_interactionData.m_activeMenu->CloseMenuBox();
+				GUI::DisposeMenu(false);
+				//m_module.m_interactionData.m_activeMenu->CloseMenuBox();
 			}
 
 			m_module.SelectIndex(selectedItem);

@@ -439,27 +439,17 @@ namespace Berta
 		return std::make_pair(m_menuItemReactor, m_menuRootWindow);
 	}
 
-	void WindowManager::DisposeMenu()
+	void WindowManager::DisposeMenu(bool disposeRoot)
 	{
 		if (!m_menuItemReactor)
 			return;
 
 		std::stack<Window*> stack;
-		auto current = m_menuItemReactor;
-		bool first = true;
+		auto current = m_menuItemReactor->Next();
 		while (current)
 		{
 			auto temp = current->Next();
-
-			if (first)
-			{
-				first = false;
-			}
-			else
-			{
-				stack.push(current->Owner());
-				//Dispose(current->Owner());
-			}
+			stack.push(current->Owner());
 			
 			current = temp;
 		}
@@ -472,9 +462,12 @@ namespace Berta
 			Dispose(it);
 		}
 
-		m_menuItemReactor->Clear();
-		m_menuItemReactor = nullptr;
-		m_menuRootWindow = nullptr;
+		if (disposeRoot)
+		{
+			m_menuItemReactor->Clear();
+			m_menuItemReactor = nullptr;
+			m_menuRootWindow = nullptr;
+		}
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)

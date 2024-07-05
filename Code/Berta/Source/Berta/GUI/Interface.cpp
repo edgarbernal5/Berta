@@ -385,12 +385,9 @@ namespace Berta::GUI
 		}
 	}
 
-	void DisposeMenu()
+	void DisposeMenu(bool disposeRoot)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		{
-
-			windowManager.DisposeMenu();
-		}
+		windowManager.DisposeMenu(disposeRoot);
 	}
 }

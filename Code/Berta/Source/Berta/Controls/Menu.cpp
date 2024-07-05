@@ -221,7 +221,7 @@ namespace Berta
 			return;
 		}
 
-		GUI::DisposeMenu();
+		GUI::DisposeMenu(true);
 		//m_control->Dispose();
 	}
 
