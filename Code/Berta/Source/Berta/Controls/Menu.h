@@ -26,20 +26,20 @@ namespace Berta
 		virtual bool OnCheckMenuItemMouseMove(const ArgMouse& args) = 0;
 		virtual void OnMenuItemMouseMove(const ArgMouse& args) = 0;
 
-		virtual MenuItemReactor* Next() const {
-			return m_next;
+		virtual MenuItemReactor* Next() const { return m_next; }
+		virtual MenuItemReactor* Prev() const { return m_prev; }
+
+		virtual void Prev(MenuItemReactor* prev) { m_prev = prev; }
+		virtual void Clear()
+		{ 
+			m_next = nullptr;
+			m_prev = nullptr;
 		}
 
-		virtual void Clear() {
-			m_next = nullptr;
-		}
 		virtual Window* Owner() const = 0;
-		/*virtual Window* Owner() const {
-			return m_owner;
-		}*/
 	protected:
 		MenuItemReactor* m_next{ nullptr };
-		//Window* m_owner{ nullptr };
+		MenuItemReactor* m_prev{ nullptr };
 	};
 
 	struct Menu
@@ -71,7 +71,6 @@ namespace Berta
 		bool m_popupFromMenuBar{ false };
 		Window* m_parentWindow{ nullptr };
 		DestroyCallback m_destroyCallback;
-		Menu* m_parentMenu{ nullptr };
 
 		MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
@@ -112,7 +111,7 @@ namespace Berta
 			Open,
 			Close
 		};
-		void OpenSubMenu(Menu* subMenu, Menu* parentMenu);
+		void OpenSubMenu(Menu* subMenu);
 		bool MouseMoveInternal(const ArgMouse& args);
 
 		MenuBox* m_control{ nullptr };

@@ -34,6 +34,7 @@ namespace Berta
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
+			BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;
 			delete m_menuBox;
 			m_menuBox = nullptr;
 
@@ -74,6 +75,7 @@ namespace Berta
 		Size size;
 		uint32_t separators = 0;
 		uint32_t maxWidth = 0;
+		bool hasSubmenu = false;
 		for (size_t i = 0; i < m_items.size(); i++)
 		{
 			if (m_items[i]->isSpearator)
@@ -84,17 +86,19 @@ namespace Berta
 			{
 				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items[i]->text));
 				maxWidth = (std::max)(maxWidth, textSize.Width);
+				hasSubmenu |= m_items[i]->m_subMenu != nullptr;
 			}
 		}
 
 		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxLeftPaneWidth * parent->DPIScaleFactor);
 		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * parent->DPIScaleFactor);
-		auto menuBoxSubMenuArrowWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor);
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor) : 0;
 		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
 		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
+		auto menuBoxShorcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
 
 		return { 
-			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth,
+			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShorcutWidth,
 			2 + itemTextPadding * 2u + (uint32_t)(m_items.size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 		};
 	}
@@ -124,7 +128,7 @@ namespace Berta
 				if (!subMenu->m_menuBox)
 				{
 					m_openedSubMenuIndex = m_selectedSubMenuIndex;
-					OpenSubMenu(subMenu, nullptr);
+					OpenSubMenu(subMenu);
 					m_subMenuTimer.Stop();
 				}
 			}
@@ -133,6 +137,7 @@ namespace Berta
 				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
 				GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
 				m_next = nullptr;
+				m_openedSubMenuIndex = -1;
 			}
 			m_subMenuTimer.Stop();
 		});
@@ -203,7 +208,7 @@ namespace Berta
 			{
 				m_selectedSubMenuIndex = m_selectedIndex;
 				m_openedSubMenuIndex = m_selectedIndex;
-				OpenSubMenu(subMenu, nullptr);
+				OpenSubMenu(subMenu);
 				m_subMenuTimer.Stop();
 			}
 		}
@@ -272,7 +277,6 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(window->Appereance->MenuBoxLeftPaneWidth * window->DPIScaleFactor);
 		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * window->DPIScaleFactor);
-		auto menuBoxSubMenuArrowWidth = static_cast<uint32_t>(window->Appereance->MenuBoxSubMenuArrowWidth * window->DPIScaleFactor);
 		auto menuBoxItemHeight = static_cast<uint32_t>(window->Appereance->MenuBoxItemHeight * window->DPIScaleFactor);
 		auto separatorHeight = static_cast<uint32_t>(3u * window->DPIScaleFactor);
 
@@ -302,7 +306,7 @@ namespace Berta
 		}
 	}
 
-	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu)
+	void MenuBoxReactor::OpenSubMenu(Menu* subMenu)
 	{
 		auto window = m_control->Handle();
 		int two = static_cast<int>(2 * window->DPIScaleFactor);
@@ -311,9 +315,9 @@ namespace Berta
 
 		Point position{ pointInScreen.X + (int)m_control->GetSize().Width - four, pointInScreen.Y + two };
 		subMenu->ShowPopup(window, position);
-		subMenu->m_parentMenu = parentMenu;
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
+		subMenu->m_menuBox->GetItemReactor()->Prev(this);
 		GUI::SetSubMenu(window, subMenu->m_menuBox->GetItemReactor());
 	}
 

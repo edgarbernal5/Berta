@@ -60,6 +60,8 @@ namespace Berta
 			void OpenMenu(bool ignoreFirstMouseUp = true);
 			void SelectIndex(int index);
 
+			MenuBox* GetActiveMenuBox();
+
 			MenuBar* m_control{ nullptr };
 			Window* m_owner{ nullptr };
 			std::vector<MenuBarItemData*> m_items;

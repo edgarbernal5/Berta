@@ -156,8 +156,6 @@ namespace Berta
 		std::shared_ptr<Events> m_events;
 		std::shared_ptr<ControlAppearance> m_appearance;
 	};
-
-	
 }
 
 #endif

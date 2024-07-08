@@ -35,6 +35,10 @@ namespace Berta
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};
 
+#if BT_DEBUG
+		std::string Name;
+#endif
+
 		std::wstring Title;
 		bool Visible{ false };
 		Size Size;
@@ -63,9 +67,6 @@ namespace Berta
 			bool MakeActive{ true };
 		}Flags;
 
-#if BT_DEBUG
-		std::string Name;
-#endif
 	};
 }
 

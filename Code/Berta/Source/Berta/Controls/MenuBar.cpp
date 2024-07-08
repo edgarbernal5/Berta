@@ -22,7 +22,6 @@ namespace Berta
 		{
 			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
 			{
-				//m_module.m_interactionData.m_activeMenu->CloseMenuBox();
 				GUI::DisposeMenu(true);
 			}
 		});
@@ -42,7 +41,7 @@ namespace Berta
 		{
 			auto& itemData = *(items[i]);
 
-			if (m_module.m_interactionData.m_selectedItemIndex == i)
+			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height}, m_module.m_interactionData.m_activeMenu ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
 				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, window->Appereance->HighlightTextColor);
@@ -167,8 +166,8 @@ namespace Berta
 
 			m_module.SelectIndex(selectedItem);
 			m_module.OpenMenu(false);
-			m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
+			m_next = m_module.GetActiveMenuBox()->GetItemReactor();
+			GUI::SetMenu(m_module.m_owner, this, m_module.GetActiveMenuBox()->Handle());
 
 			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::RefreshWindow(m_module.m_owner);
@@ -229,6 +228,11 @@ namespace Berta
 	void MenuBarReactor::Module::SelectIndex(int index)
 	{
 		m_interactionData.m_selectedItemIndex = index;
+	}
+
+	MenuBox* MenuBarReactor::Module::GetActiveMenuBox()
+	{
+		return m_interactionData.m_activeMenu->m_menuBox;
 	}
 
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)

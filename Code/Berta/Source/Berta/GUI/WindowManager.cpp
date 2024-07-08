@@ -80,7 +80,7 @@ namespace Berta
 		{
 			auto child = window->Children[i];
 			DestroyInternal(child);
-			//delete child;
+			//delete child; //TODO: make it shared ptr (Window*)
 		}
 		window->Children.clear();
 
