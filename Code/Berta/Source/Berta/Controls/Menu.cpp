@@ -106,6 +106,36 @@ namespace Berta
 	void MenuBoxReactor::Init(ControlBase& control)
 	{
 		m_control = reinterpret_cast<MenuBox*>(&control);
+
+		m_subMenuTimer.SetOwner(m_control->Handle());
+		m_subMenuTimer.SetInterval(400);
+		m_subMenuTimer.Connect([this](const ArgTimer& args)
+		{
+			//opens submenu
+			if (m_selectedSubMenuIndex != -1 && m_items->at(m_selectedSubMenuIndex)->m_subMenu)
+			{
+				if (m_openedSubMenuIndex != m_selectedIndex && m_openedSubMenuIndex >= 0)
+				{
+					auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
+					GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
+					m_next = nullptr;
+				}
+				auto subMenu = m_items->at(m_selectedSubMenuIndex)->m_subMenu;
+				if (!subMenu->m_menuBox)
+				{
+					m_openedSubMenuIndex = m_selectedSubMenuIndex;
+					OpenSubMenu(subMenu, nullptr);
+					m_subMenuTimer.Stop();
+				}
+			}
+			else if (m_selectedSubMenuIndex == -1 && m_openedSubMenuIndex >= 0)
+			{
+				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
+				GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
+				m_next = nullptr;
+			}
+			m_subMenuTimer.Stop();
+		});
 	}
 
 	void MenuBoxReactor::Update(Graphics& graphics)
@@ -168,18 +198,13 @@ namespace Berta
 	{
 		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
 		{
-			auto& subMenu = m_items->at(m_selectedIndex)->m_subMenu;
+			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu;
 			if (!subMenu->m_menuBox)
 			{
-				auto window = m_control->Handle();
-				int two = static_cast<int>(2 * window->DPIScaleFactor);
-				auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
-
-				Point position{ pointInScreen.X + (int)m_control->GetSize().Width - two, pointInScreen.Y + two };
-				subMenu->ShowPopup(window, position);
-
-				m_next = subMenu->m_menuBox->GetItemReactor();
-				GUI::SetSubMenu(window, subMenu->m_menuBox->GetItemReactor());
+				m_selectedSubMenuIndex = m_selectedIndex;
+				m_openedSubMenuIndex = m_selectedIndex;
+				OpenSubMenu(subMenu, nullptr);
+				m_subMenuTimer.Stop();
 			}
 		}
 	}
@@ -187,22 +212,10 @@ namespace Berta
 	void MenuBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
-
-		int selectedIndex = -1;
-		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
+		BT_CORE_TRACE << " MouseMove " << std::endl;
+		bool changes = MouseMoveInternal(args);
+		if (changes)
 		{
-			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle{ item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
-			{
-				selectedIndex = (int)i;
-				break;
-			}
-		}
-
-		if (selectedIndex != m_selectedIndex)
-		{
-			m_selectedIndex = selectedIndex;
-
 			Update(graphics);
 			GUI::UpdateDeferred(window);
 		}
@@ -222,16 +235,28 @@ namespace Berta
 		}
 
 		GUI::DisposeMenu(true);
-		//m_control->Dispose();
 	}
 
-	bool MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)
+	bool MenuBoxReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
 		if (!Rectangle{ 0,0, window->Size.Width, window->Size.Height }.IsInside(args.Position))
 			return false;
 
-		return false;
+		return true;
+	}
+
+	void MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)
+	{
+		auto window = m_control->Handle();
+
+		BT_CORE_TRACE << " OnMenuItemMouseMove " << std::endl;
+		bool changes = MouseMoveInternal(args);
+		if (changes)
+		{
+			Update(window->Renderer.GetGraphics());
+			GUI::RefreshWindow(window);
+		}
 	}
 
 	Window* MenuBoxReactor::Owner() const
@@ -275,6 +300,90 @@ namespace Berta
 				position.Y += menuBoxItemHeight;
 			}
 		}
+	}
+
+	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu)
+	{
+		auto window = m_control->Handle();
+		int two = static_cast<int>(2 * window->DPIScaleFactor);
+		int four = static_cast<int>(4 * window->DPIScaleFactor);
+		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
+
+		Point position{ pointInScreen.X + (int)m_control->GetSize().Width - four, pointInScreen.Y + two };
+		subMenu->ShowPopup(window, position);
+		subMenu->m_parentMenu = parentMenu;
+
+		m_next = subMenu->m_menuBox->GetItemReactor();
+		GUI::SetSubMenu(window, subMenu->m_menuBox->GetItemReactor());
+	}
+
+	bool MenuBoxReactor::MouseMoveInternal(const ArgMouse& args)
+	{
+		int selectedIndex = -1;
+		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
+		{
+			auto& item = m_itemSizePositions[i];
+			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
+			{
+				selectedIndex = (int)i;
+				break;
+			}
+		}
+		bool hasChanged = selectedIndex != m_selectedIndex;
+		if (hasChanged)
+		{
+			BT_CORE_TRACE << "  cambio de indice. selected " << selectedIndex << " != m_selected " << m_selectedIndex << ". m_openedSubMenuIndex = " << m_openedSubMenuIndex << ". m_selectedSubMenuIndex = " << m_selectedSubMenuIndex << std::endl;
+			
+			m_selectedIndex = selectedIndex;
+			
+			if (selectedIndex == -1)
+				BT_CORE_TRACE << "      - seleccion nula..." << std::endl;
+
+			if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+			{
+				auto& subMenu = m_items->at(m_selectedIndex)->m_subMenu;
+				if (!subMenu->m_menuBox)
+				{
+					if (m_selectedSubMenuIndex >= 0)
+					{
+						m_selectedSubMenuIndex = m_selectedIndex;
+						m_subMenuTimer.Stop();
+					}
+					else
+					{
+						m_selectedSubMenuIndex = m_selectedIndex;
+						m_subMenuTimer.Start();
+					}
+				}
+			}
+			else if (m_selectedIndex == -1 || m_selectedSubMenuIndex != m_selectedIndex)
+			{
+				if (m_subMenuTimer.IsRunning())
+				{
+					m_subMenuTimer.Stop();
+					m_selectedSubMenuIndex = -1;
+				}
+				else
+				{
+					m_selectedSubMenuIndex = -1;
+					m_subMenuTimer.Start();
+				}
+			}
+			else if (m_selectedIndex == -1 || m_openedSubMenuIndex != m_selectedIndex)
+			{
+				if (m_subMenuTimer.IsRunning())
+				{
+					m_subMenuTimer.Stop();
+
+					GUI::DisposeMenu(m_next);
+					m_next = nullptr;
+					m_openedSubMenuIndex = -1;
+					m_selectedSubMenuIndex = -1;
+				}
+			}
+		}
+
+		return hasChanged;
 	}
 
 	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)

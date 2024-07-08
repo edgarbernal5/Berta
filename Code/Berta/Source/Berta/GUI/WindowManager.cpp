@@ -80,7 +80,7 @@ namespace Berta
 		{
 			auto child = window->Children[i];
 			DestroyInternal(child);
-			delete child;
+			//delete child;
 		}
 		window->Children.clear();
 
@@ -469,6 +469,30 @@ namespace Berta
 			m_menuRootWindow = nullptr;
 		}
 	}
+	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
+	{
+		if (!rootReactor)
+			return;
+
+		std::stack<Window*> stack;
+		auto current = rootReactor;
+		while (current)
+		{
+			auto temp = current->Next();
+			stack.push(current->Owner());
+
+			current = temp;
+		}
+
+		while (!stack.empty())
+		{
+			auto& it = stack.top();
+			stack.pop();
+
+			Dispose(it);
+		}
+	}
+
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{

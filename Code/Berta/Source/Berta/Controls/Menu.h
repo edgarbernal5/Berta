@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Core/Timer.h"
 #include <string>
 #include <functional>
 #include <vector>
@@ -22,7 +23,8 @@ namespace Berta
 	class MenuItemReactor
 	{
 	public:
-		virtual bool OnMenuItemMouseMove(const ArgMouse& args) = 0;
+		virtual bool OnCheckMenuItemMouseMove(const ArgMouse& args) = 0;
+		virtual void OnMenuItemMouseMove(const ArgMouse& args) = 0;
 
 		virtual MenuItemReactor* Next() const {
 			return m_next;
@@ -69,6 +71,7 @@ namespace Berta
 		bool m_popupFromMenuBar{ false };
 		Window* m_parentWindow{ nullptr };
 		DestroyCallback m_destroyCallback;
+		Menu* m_parentMenu{ nullptr };
 
 		MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
@@ -91,7 +94,8 @@ namespace Berta
 		//void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		//void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		
-		bool OnMenuItemMouseMove(const ArgMouse& args) override;
+		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
+		void OnMenuItemMouseMove(const ArgMouse& args) override;
 		Window* Owner() const override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
@@ -102,12 +106,24 @@ namespace Berta
 			Point m_position;
 			Size m_size;
 		};
+		enum SubMenuAction
+		{
+			None,
+			Open,
+			Close
+		};
+		void OpenSubMenu(Menu* subMenu, Menu* parentMenu);
+		bool MouseMoveInternal(const ArgMouse& args);
+
 		MenuBox* m_control{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
 		std::vector<Menu::Item*>* m_items{ nullptr };
 		std::vector<MenuBoxItem> m_itemSizePositions;
-
+		Timer m_subMenuTimer;
 		int m_selectedIndex{ -1 };
+		int m_selectedSubMenuIndex{ -1 };
+		int m_openedSubMenuIndex{ -1 };
+		SubMenuAction m_subMenuAction{ SubMenuAction::None };
 	};
 
 	class MenuBox : public Control<MenuBoxReactor, RootEvents>

@@ -73,6 +73,7 @@ namespace Berta
 		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
 
 		void DisposeMenu(bool disposeRoot);
+		void DisposeMenu(MenuItemReactor* rootReactor);
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

@@ -398,14 +398,14 @@ namespace Berta
 					ArgMouse argMouseMove;
 					argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
 
-					bool onNewMenuBarItem = menuItemReactor->OnMenuItemMouseMove(argMouseMove);
+					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
 					if (onNewMenuBarItem)
 					{
+						menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 						window = nullptr;
 						break;
 					}
 					menuItemReactor = menuItemReactor->Next();
-					//currentWindow= menuItemReactor
 				} while (menuItemReactor);
 			}
 

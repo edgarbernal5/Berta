@@ -22,7 +22,8 @@ namespace Berta
 		{
 			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
 			{
-				m_module.m_interactionData.m_activeMenu->CloseMenuBox();
+				//m_module.m_interactionData.m_activeMenu->CloseMenuBox();
+				GUI::DisposeMenu(true);
 			}
 		});
 	}
@@ -136,11 +137,25 @@ namespace Berta
 		m_module.BuildItems();
 	}
 
-	bool MenuBarReactor::OnMenuItemMouseMove(const ArgMouse& args)
+	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
 	{
 		if (!Rectangle{ 0,0, m_module.m_owner->Size.Width, m_module.m_owner->Size.Height }.IsInside(args.Position))
+		{
+			return false;
+		}
+
+		if (m_module.m_items.empty())
 			return false;
 
+		auto& last = m_module.m_items.back();
+		if (args.Position.X >= last->position.X + (int)last->size.Width)
+			return false;
+
+		return true;
+	}
+
+	void MenuBarReactor::OnMenuItemMouseMove(const ArgMouse& args)
+	{
 		int selectedItem = m_module.FindItem(args.Position);
 
 		if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
@@ -148,19 +163,16 @@ namespace Berta
 			if (m_module.m_interactionData.m_activeMenu->m_menuBox)
 			{
 				GUI::DisposeMenu(false);
-				//m_module.m_interactionData.m_activeMenu->CloseMenuBox();
 			}
 
 			m_module.SelectIndex(selectedItem);
 			m_module.OpenMenu(false);
 			m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
 			GUI::SetMenu(m_module.m_owner, this, m_module.m_interactionData.m_activeMenu->m_menuBox->Handle());
-			
+
 			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::RefreshWindow(m_module.m_owner);
-
 		}
-		return selectedItem != -1;
 	}
 
 	Window* MenuBarReactor::Owner() const

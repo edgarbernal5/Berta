@@ -30,7 +30,8 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
-		bool OnMenuItemMouseMove(const ArgMouse& args) override;
+		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
+		void OnMenuItemMouseMove(const ArgMouse& args) override;
 
 		Window* Owner() const override;
 
