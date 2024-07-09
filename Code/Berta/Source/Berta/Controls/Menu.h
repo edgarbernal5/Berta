@@ -41,10 +41,11 @@ namespace Berta
 		MenuItemReactor* m_next{ nullptr };
 		MenuItemReactor* m_prev{ nullptr };
 	};
+	struct MenuItem;
 
 	struct Menu
 	{
-		using ClickCallback = std::function<void()>;
+		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
 
 		void Append(const std::wstring& text, ClickCallback onClick);
@@ -67,7 +68,7 @@ namespace Berta
 		};
 
 		std::vector<Item*> m_items;
-		MenuBox* m_menuBox;
+		MenuBox* m_menuBox{ nullptr };
 		bool m_popupFromMenuBar{ false };
 		Window* m_parentWindow{ nullptr };
 		DestroyCallback m_destroyCallback;
@@ -78,6 +79,14 @@ namespace Berta
 		Size GetMenuBoxSize(Window* parent);
 	};
 
+	struct MenuItem
+	{
+		MenuItem(Menu::Item* target) : m_target(target) {}
+
+		void SetText(const std::wstring& text);
+	private:
+		Menu::Item* m_target{ nullptr };
+	};
 
 	class MenuBoxReactor : public ControlReactor, public MenuItemReactor
 	{
@@ -90,8 +99,6 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-		//void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
-		//void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		
 		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
 		void OnMenuItemMouseMove(const ArgMouse& args) override;

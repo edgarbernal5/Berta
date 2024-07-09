@@ -234,9 +234,23 @@ namespace Berta
 			return;
 		}
 
-		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+		size_t selectedIndex = m_selectedIndex;
+		if (m_selectedIndex == -1 || selectedIndex >= m_items->size())
+		{
+			GUI::DisposeMenu(true);
+			return;
+		}
+
+		auto& item = m_items->at(selectedIndex);
+		if (item->m_subMenu)
 		{
 			return;
+		}
+
+		if (!item->isSpearator)
+		{
+			MenuItem menuItem(item);
+			item->onClick(menuItem);
 		}
 
 		GUI::DisposeMenu(true);
@@ -411,5 +425,10 @@ namespace Berta
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
 		m_reactor.SetIgnoreFirstMouseUp(value);
+	}
+
+	void MenuItem::SetText(const std::wstring& text)
+	{
+		m_target->text = text;
 	}
 }
