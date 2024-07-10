@@ -271,7 +271,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetMousePosition());
+			auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetScreenMousePosition());
 
 			return mousePosition - windowManager.GetAbsolutePosition(window);
 		}

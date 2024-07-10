@@ -264,7 +264,7 @@ namespace Berta
 #endif
 		}
 
-		Point GetMousePosition()
+		Point GetScreenMousePosition()
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			::POINT nativePoint;

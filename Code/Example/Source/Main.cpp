@@ -15,7 +15,7 @@
 
 int main()
 {
-	Berta::Form form(Berta::Size(800u, 600u), { true, true, true });
+	Berta::Form form(Berta::Size(500u, 450u), { true, true, true });
 	form.SetDebugName("form");
 	form.SetCaption(L"Window");
 
