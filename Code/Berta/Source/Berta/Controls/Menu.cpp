@@ -128,7 +128,7 @@ namespace Berta
 				if (!subMenu->m_menuBox)
 				{
 					m_openedSubMenuIndex = m_selectedSubMenuIndex;
-					OpenSubMenu(subMenu);
+					OpenSubMenu(subMenu, false);
 					m_subMenuTimer.Stop();
 				}
 			}
@@ -217,7 +217,6 @@ namespace Berta
 	void MenuBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
-		BT_CORE_TRACE << " MouseMove " << std::endl;
 		bool changes = MouseMoveInternal(args);
 		if (changes)
 		{
@@ -269,7 +268,6 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 
-		BT_CORE_TRACE << " OnMenuItemMouseMove " << std::endl;
 		bool changes = MouseMoveInternal(args);
 		if (changes)
 		{
@@ -320,7 +318,7 @@ namespace Berta
 		}
 	}
 
-	void MenuBoxReactor::OpenSubMenu(Menu* subMenu)
+	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, bool ignoreFirstMouseUp)
 	{
 		auto window = m_control->Handle();
 		int two = static_cast<int>(2 * window->DPIScaleFactor);
@@ -328,7 +326,7 @@ namespace Berta
 		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
 		Point position{ pointInScreen.X + (int)m_control->GetSize().Width - four, pointInScreen.Y + two };
-		subMenu->ShowPopup(window, position);
+		subMenu->ShowPopup(window, position, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
 		subMenu->m_menuBox->GetItemReactor()->Prev(this);
@@ -343,64 +341,65 @@ namespace Berta
 			auto& item = m_itemSizePositions[i];
 			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
 			{
-				selectedIndex = (int)i;
+				selectedIndex = static_cast<int>(i);
 				break;
 			}
 		}
-		bool hasChanged = selectedIndex != m_selectedIndex;
-		if (hasChanged)
-		{
-			BT_CORE_TRACE << "  cambio de indice. selected " << selectedIndex << " != m_selected " << m_selectedIndex << ". m_openedSubMenuIndex = " << m_openedSubMenuIndex << ". m_selectedSubMenuIndex = " << m_selectedSubMenuIndex << std::endl;
-			
-			m_selectedIndex = selectedIndex;
-			
-			if (selectedIndex == -1)
-				BT_CORE_TRACE << "      - seleccion nula..." << std::endl;
 
-			if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+		if (selectedIndex == m_selectedIndex)
+		{
+			return false;
+		}
+
+		BT_CORE_TRACE << "  cambio de indice. newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ". openedIndex = " << m_openedSubMenuIndex << ". selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
+		
+		if (selectedIndex != -1 && m_items->at(selectedIndex)->m_subMenu)
+		{
+			auto& subMenu = m_items->at(selectedIndex)->m_subMenu;
+			if (!subMenu->m_menuBox)
 			{
-				auto& subMenu = m_items->at(m_selectedIndex)->m_subMenu;
-				if (!subMenu->m_menuBox)
+				if (m_selectedSubMenuIndex >= 0)
 				{
-					if (m_selectedSubMenuIndex >= 0)
-					{
-						m_selectedSubMenuIndex = m_selectedIndex;
-						m_subMenuTimer.Stop();
-					}
-					else
-					{
-						m_selectedSubMenuIndex = m_selectedIndex;
-						m_subMenuTimer.Start();
-					}
-				}
-			}
-			else if (m_selectedIndex == -1 || m_selectedSubMenuIndex != m_selectedIndex)
-			{
-				if (m_subMenuTimer.IsRunning())
-				{
+					m_selectedSubMenuIndex = selectedIndex;
 					m_subMenuTimer.Stop();
-					m_selectedSubMenuIndex = -1;
 				}
 				else
 				{
-					m_selectedSubMenuIndex = -1;
+					m_selectedSubMenuIndex = selectedIndex;
 					m_subMenuTimer.Start();
 				}
 			}
-			else if (m_selectedIndex == -1 || m_openedSubMenuIndex != m_selectedIndex)
+		}
+		else if (selectedIndex != -1 && m_openedSubMenuIndex != -1 && !m_items->at(selectedIndex)->m_subMenu)
+		{
+			m_selectedSubMenuIndex = -1;
+			m_openedSubMenuIndex = -1;
+			m_subMenuTimer.Stop();
+			GUI::DisposeMenu(m_next);
+			m_next = nullptr;
+		}
+		else if (/*selectedIndex == -1 && */ m_selectedSubMenuIndex != -1 && m_selectedSubMenuIndex != m_openedSubMenuIndex)
+		{
+			m_subMenuTimer.Stop();
+			m_selectedSubMenuIndex = -1;
+		}
+		else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
+		{
+			auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
+			if (args.Position.Y >= openedSubItem.m_position.Y && args.Position.Y <= openedSubItem.m_position.Y + (int)openedSubItem.m_size.Height)
 			{
-				if (m_subMenuTimer.IsRunning())
-				{
-					m_subMenuTimer.Stop();
-
-					GUI::DisposeMenu(m_next);
-					m_next = nullptr;
-					m_openedSubMenuIndex = -1;
-					m_selectedSubMenuIndex = -1;
-				}
+				BT_CORE_TRACE << "      - ...." << std::endl;
+				selectedIndex = m_openedSubMenuIndex;
+			}
+			else
+			{
+				GUI::DisposeMenu(m_next);
+				m_next = nullptr;
 			}
 		}
-
+		
+		bool hasChanged = selectedIndex != m_selectedIndex;
+		m_selectedIndex = selectedIndex;
 		return hasChanged;
 	}
 

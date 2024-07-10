@@ -84,6 +84,7 @@ namespace Berta
 		}
 		window->Children.clear();
 
+		BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			ReleaseCapture(m_capture.WindowPtr);
