@@ -395,6 +395,8 @@ namespace Berta
 			{
 				GUI::DisposeMenu(m_next);
 				m_next = nullptr;
+				m_selectedSubMenuIndex = -1;
+				m_openedSubMenuIndex = -1;
 			}
 		}
 		
