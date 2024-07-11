@@ -32,6 +32,7 @@ namespace Berta
 
 		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
 		void OnMenuItemMouseMove(const ArgMouse& args) override;
+		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
 
 		Window* Owner() const override;
 

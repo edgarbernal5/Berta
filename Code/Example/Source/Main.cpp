@@ -25,10 +25,17 @@ int main()
 	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
 	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
 	menuFile.AppendSeparator();
-	menuFile.Append(L"Exit", [](Berta::MenuItem& item) {});
+	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
+		{
+			std::cout << "EXITO" << std::endl;
+		});
+
 	auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
 	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});
+	newSubmenu->Append(L"Complex", [](Berta::MenuItem& item) {});
+	auto complexSubMenu = newSubmenu->CreateSubMenu(2);
+	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
 
 	auto& menuEdit = menuBar.PushBack(L"Edit");
 	menuEdit.Append(L"Undo", [](Berta::MenuItem& item) {});

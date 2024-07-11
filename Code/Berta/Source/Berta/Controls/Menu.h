@@ -25,6 +25,7 @@ namespace Berta
 	public:
 		virtual bool OnCheckMenuItemMouseMove(const ArgMouse& args) = 0;
 		virtual void OnMenuItemMouseMove(const ArgMouse& args) = 0;
+		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
 		virtual MenuItemReactor* Next() const { return m_next; }
 		virtual MenuItemReactor* Prev() const { return m_prev; }
@@ -102,6 +103,7 @@ namespace Berta
 		
 		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
 		void OnMenuItemMouseMove(const ArgMouse& args) override;
+		bool OnClickSubMenu(const ArgMouse& args) override;
 		Window* Owner() const override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
@@ -118,7 +120,7 @@ namespace Berta
 			Open,
 			Close
 		};
-		void OpenSubMenu(Menu* subMenu, bool ignoreFirstMouseUp = true);
+		void OpenSubMenu(Menu* subMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
 		bool MouseMoveInternal(const ArgMouse& args);
 
 		MenuBox* m_control{ nullptr };

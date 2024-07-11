@@ -430,11 +430,6 @@ namespace Berta
 		m_menuItemReactor = menuItemReactor;
 	}
 
-	void WindowManager::SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuBarItemReactor)
-	{
-
-	}
-
 	std::pair<MenuItemReactor*, Window*> WindowManager::GetMenu(Window* window)
 	{
 		return std::make_pair(m_menuItemReactor, m_menuRootWindow);
@@ -470,6 +465,7 @@ namespace Berta
 			m_menuRootWindow = nullptr;
 		}
 	}
+
 	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
 	{
 		if (!rootReactor)

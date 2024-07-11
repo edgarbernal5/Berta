@@ -69,7 +69,6 @@ namespace Berta
 
 		void SetMenu(Window* window, MenuItemReactor* menuBarItemReactor, Window* menuBox);
 		void SetMenu(Window* rootWindow, MenuItemReactor* menuBarItemReactor);
-		void SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuBarItemReactor);
 		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
 
 		void DisposeMenu(bool disposeRoot);

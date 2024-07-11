@@ -59,7 +59,6 @@ namespace Berta
 
 		void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuBox);
 		void SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor);
-		void SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuBarItemReactor);
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);

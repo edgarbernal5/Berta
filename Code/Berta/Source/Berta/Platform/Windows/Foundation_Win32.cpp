@@ -373,7 +373,7 @@ namespace Berta
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave " << rootWindowData.Hovered->Name << std::endl;
+					BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave " << rootWindowData.Hovered->Name << std::endl;
 					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 
@@ -398,18 +398,18 @@ namespace Berta
 					ArgMouse argMouseMove;
 					argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
 
+					menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
 					if (onNewMenuBarItem)
 					{
-						menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 						window = nullptr;
-						break;
+						//break;
 					}
 					menuItemReactor = menuItemReactor->Next();
 				} while (menuItemReactor);
 			}
 
-			if (window && window->Flags.IsEnabled)
+			if (window && window->Flags.IsEnabled && !window->Flags.IsDestroying)
 			{
 				if (window != rootWindowData.Hovered && !window->Flags.IsDestroying)
 				{
@@ -500,6 +500,7 @@ namespace Berta
 		{
 			if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
 			{
+				BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave 2" << rootWindowData.Hovered->Name << std::endl;
 				ArgMouse argMouseLeave;
 				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 				rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);

@@ -376,15 +376,6 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetSubMenu(Window* ownerWindow, MenuItemReactor* submenuItemReactor)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(ownerWindow))
-		{
-			windowManager.SetSubMenu(ownerWindow, submenuItemReactor);
-		}
-	}
-
 	void DisposeMenu(bool disposeRoot)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
