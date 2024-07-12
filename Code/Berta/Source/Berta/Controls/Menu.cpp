@@ -391,6 +391,11 @@ namespace Berta
 
 	int MenuBoxReactor::FindItem(const ArgMouse& args)
 	{
+		if (!Rectangle{ m_control->Handle()->Size}.IsInside(args.Position))
+		{
+			return -1;
+		}
+
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
