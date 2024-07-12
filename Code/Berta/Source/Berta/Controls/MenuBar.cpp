@@ -44,7 +44,14 @@ namespace Berta
 			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height}, m_module.m_interactionData.m_activeMenu ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, window->Appereance->HighlightTextColor);
+
+				if (m_module.m_interactionData.m_activeMenu)
+				{
+					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appereance->BoxBorderColor);
+					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
+					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
+				}
+				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, m_module.m_interactionData.m_activeMenu ? window->Appereance->Foreground : window->Appereance->HighlightTextColor);
 			}
 			else
 			{
@@ -199,7 +206,7 @@ namespace Berta
 			m_control->Handle()->Renderer.Update();
 			GUI::UpdateDeferred(*m_control);	
 		};
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, ignoreFirstMouseUp);
+		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, ignoreFirstMouseUp, { 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height });
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

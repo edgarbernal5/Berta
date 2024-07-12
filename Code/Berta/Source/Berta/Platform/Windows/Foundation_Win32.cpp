@@ -457,7 +457,6 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			//if (/*window && window ==*/ rootWindowData.Pressed && windowManager.Exists(rootWindowData.Pressed))
 			if (window && window->Flags.IsEnabled)
 			{
 				ArgMouse argMouseUp;

@@ -26,15 +26,15 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* parentWindow, const Point& position, bool ignoreFirstMouseUp)
+	void Menu::ShowPopup(Window* parentWindow, const Point& position, bool ignoreFirstMouseUp, Rectangle menuBarItem)
 	{
-		m_popupFromMenuBar = true;
 		m_parentWindow = parentWindow;
 
 		auto boxSize = GetMenuBoxSize(parentWindow);
 		m_menuBox = new MenuBox(parentWindow, { position.X, position.Y, boxSize.Width, boxSize.Height });
 		m_menuBox->Init(m_items);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
+		m_menuBox->SetMenuBarItemRect(menuBarItem);
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
@@ -155,6 +155,7 @@ namespace Berta
 	void MenuBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
+
 		graphics.DrawRectangle(window->Appereance->MenuBackground, true);
 
 		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(window->Appereance->MenuBoxLeftPaneWidth * window->DPIScaleFactor);
@@ -205,7 +206,15 @@ namespace Berta
 			}
 		}
 
-		graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
+		if (m_menuBarItemRect.Width > 0)
+		{
+			graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
+			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appereance->MenuBackground);
+		}
+		else
+		{
+			graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
+		}
 	}
 
 	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -493,6 +502,7 @@ namespace Berta
 	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
+		GUI::MakeWindowActive(m_handle, false);
 #if BT_DEBUG
 		std::ostringstream builder;
 		builder << "Menu box" << g_globalId;
@@ -500,7 +510,6 @@ namespace Berta
 		SetDebugName(builder.str());
 		++g_globalId;
 #endif
-		GUI::MakeWindowActive(m_handle, false);
 	}
 
 	MenuBox::~MenuBox()
@@ -518,6 +527,11 @@ namespace Berta
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
 		m_reactor.SetIgnoreFirstMouseUp(value);
+	}
+
+	void MenuBox::SetMenuBarItemRect(const Rectangle& rect)
+	{
+		m_reactor.SetMenuBarItemRect(rect);
 	}
 
 	void MenuItem::SetText(const std::wstring& text)

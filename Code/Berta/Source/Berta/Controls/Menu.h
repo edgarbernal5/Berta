@@ -51,7 +51,7 @@ namespace Berta
 
 		void Append(const std::wstring& text, ClickCallback onClick);
 		void AppendSeparator();
-		void ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp = true);
+		void ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp = true, Rectangle menuBarItem={});
 		Menu* CreateSubMenu(std::size_t index);
 		void SetEnabled(size_t index, bool enabled);
 
@@ -72,7 +72,6 @@ namespace Berta
 
 		std::vector<Item*> m_items;
 		MenuBox* m_menuBox{ nullptr };
-		bool m_popupFromMenuBar{ false };
 		Window* m_parentWindow{ nullptr };
 		DestroyCallback m_destroyCallback;
 
@@ -112,6 +111,8 @@ namespace Berta
 
 		void SetItems(std::vector<Menu::Item*>& items);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
+		void SetMenuBarItemRect(const Rectangle& rect) { m_menuBarItemRect = rect; }
+
 	private:
 		struct MenuBoxItem
 		{
@@ -130,6 +131,7 @@ namespace Berta
 
 		MenuBox* m_control{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
+		Rectangle m_menuBarItemRect{  };
 		std::vector<Menu::Item*>* m_items{ nullptr };
 		std::vector<MenuBoxItem> m_itemSizePositions;
 		Timer m_subMenuTimer;
@@ -147,6 +149,7 @@ namespace Berta
 
 		void Init(std::vector<Menu::Item*>& items);
 		void SetIgnoreFirstMouseUp(bool value);
+		void SetMenuBarItemRect(const Rectangle& rect);
 
 		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
 	private:
