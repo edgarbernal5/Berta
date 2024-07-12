@@ -37,6 +37,8 @@ int main()
 	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});
 	newSubmenu->Append(L"Complex", [](Berta::MenuItem& item) {});
 	auto complexSubMenu = newSubmenu->CreateSubMenu(2);
+	newSubmenu->CreateSubMenu(1);
+	//newSubmenu->SetEnabled(1, false);
 	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
 
 	auto& menuEdit = menuBar.PushBack(L"Edit");

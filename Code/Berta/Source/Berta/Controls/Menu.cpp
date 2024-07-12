@@ -12,6 +12,10 @@
 
 namespace Berta
 {
+#if BT_DEBUG
+	int MenuBox::g_globalId = 0;
+#endif
+
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
 		auto& newItem = m_items.emplace_back(new Menu::Item{ text , onClick });
@@ -391,7 +395,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (m_items->at(i)->isEnabled && !m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
+			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
 			{
 				selectedIndex = static_cast<int>(i);
 				break;
@@ -403,53 +407,73 @@ namespace Berta
 			return false;
 		}
 
-		BT_CORE_TRACE << "  cambio de indice. newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ". openedIndex = " << m_openedSubMenuIndex << ". selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
+		BT_CORE_TRACE << "  " << m_control->Handle()->Name << ": cambio de indice.newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ".openedIndex = " << m_openedSubMenuIndex << ".selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
 		
-		if (selectedIndex != -1 && m_items->at(selectedIndex)->m_subMenu)
+		if (selectedIndex != -1 && !m_items->at(selectedIndex)->isEnabled)
 		{
-			auto& subMenu = m_items->at(selectedIndex)->m_subMenu;
-			if (!subMenu->m_menuBox)
+			if (m_openedSubMenuIndex != -1)
 			{
-				if (m_selectedSubMenuIndex >= 0)
+				m_selectedSubMenuIndex = -1;
+				m_openedSubMenuIndex = -1;
+				m_subMenuTimer.Stop();
+
+				GUI::DisposeMenu(m_next);
+				m_next = nullptr;
+			}
+			selectedIndex = -1;
+		}
+		else
+		{
+			if (selectedIndex != -1 && m_items->at(selectedIndex)->m_subMenu)
+			{
+				auto& subMenu = m_items->at(selectedIndex)->m_subMenu;
+				if (!subMenu->m_menuBox)
 				{
-					m_selectedSubMenuIndex = selectedIndex;
-					m_subMenuTimer.Stop();
+					if (m_openedSubMenuIndex == -1)
+					{
+						m_selectedSubMenuIndex = selectedIndex;
+						if (m_selectedSubMenuIndex >= 0)
+						{
+							m_subMenuTimer.Stop();
+						}
+						m_subMenuTimer.Start();
+					}
+					else
+					{
+						GUI::DisposeMenu(m_next);
+						m_next = nullptr;
+
+						m_openedSubMenuIndex = -1;
+						m_selectedSubMenuIndex = selectedIndex;
+						m_subMenuTimer.Start();
+					}
+				}
+			}
+			else if (selectedIndex != -1 && m_openedSubMenuIndex != -1 && !m_items->at(selectedIndex)->m_subMenu)
+			{
+				m_selectedSubMenuIndex = -1;
+				m_openedSubMenuIndex = -1;
+				m_subMenuTimer.Stop();
+				GUI::DisposeMenu(m_next);
+				m_next = nullptr;
+			}
+			else if (m_selectedSubMenuIndex != -1 && m_selectedSubMenuIndex != m_openedSubMenuIndex)
+			{
+				m_subMenuTimer.Stop();
+				m_selectedSubMenuIndex = -1;
+			}
+			else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
+			{
+				auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
+				if (args.Position.Y >= openedSubItem.m_position.Y && args.Position.Y <= openedSubItem.m_position.Y + (int)openedSubItem.m_size.Height)
+				{
+					BT_CORE_TRACE << "      - ...." << std::endl;
+					selectedIndex = m_openedSubMenuIndex;
 				}
 				else
 				{
-					m_selectedSubMenuIndex = selectedIndex;
-					m_subMenuTimer.Start();
+					selectedIndex = m_openedSubMenuIndex;
 				}
-			}
-		}
-		else if (selectedIndex != -1 && m_openedSubMenuIndex != -1 && !m_items->at(selectedIndex)->m_subMenu)
-		{
-			m_selectedSubMenuIndex = -1;
-			m_openedSubMenuIndex = -1;
-			m_subMenuTimer.Stop();
-			GUI::DisposeMenu(m_next);
-			m_next = nullptr;
-		}
-		else if (/*selectedIndex == -1 && */ m_selectedSubMenuIndex != -1 && m_selectedSubMenuIndex != m_openedSubMenuIndex)
-		{
-			m_subMenuTimer.Stop();
-			m_selectedSubMenuIndex = -1;
-		}
-		else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
-		{
-			auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
-			if (args.Position.Y >= openedSubItem.m_position.Y && args.Position.Y <= openedSubItem.m_position.Y + (int)openedSubItem.m_size.Height)
-			{
-				BT_CORE_TRACE << "      - ...." << std::endl;
-				selectedIndex = m_openedSubMenuIndex;
-			}
-			else
-			{
-				/*GUI::DisposeMenu(m_next);
-				m_next = nullptr;
-				m_selectedSubMenuIndex = -1;
-				m_openedSubMenuIndex = -1;*/
-				selectedIndex = m_openedSubMenuIndex;
 			}
 		}
 		
@@ -461,14 +485,21 @@ namespace Berta
 	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
-		GUI::MakeWindowActive(m_handle, false);
 #if BT_DEBUG
-		SetDebugName("Menu box");
+		std::ostringstream builder;
+		builder << "Menu box" << g_globalId;
+		BT_CORE_DEBUG << " new name for menu box> " << builder.str() << std::endl;
+		SetDebugName(builder.str());
+		++g_globalId;
 #endif
+		GUI::MakeWindowActive(m_handle, false);
 	}
 
 	MenuBox::~MenuBox()
 	{
+#if BT_DEBUG
+		--g_globalId;
+#endif
 	}
 
 	void MenuBox::Init(std::vector<Menu::Item*>& items)

@@ -149,6 +149,9 @@ namespace Berta
 
 		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
 	private:
+#if BT_DEBUG
+		static int g_globalId;
+#endif
 	};
 }
 
