@@ -30,6 +30,8 @@ int main()
 			std::cout << "EXITO" << std::endl;
 		});
 
+	menuFile.SetEnabled(1, false);
+
 	auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
 	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});

@@ -111,7 +111,7 @@ namespace Berta::GUI
 	void DisposeWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && !window->Flags.IsDestroying)
+		if (windowManager.Exists(window) && !window->Flags.IsDestroyed)
 		{
 			windowManager.Dispose(window);
 		}

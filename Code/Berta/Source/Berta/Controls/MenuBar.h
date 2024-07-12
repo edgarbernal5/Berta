@@ -45,6 +45,7 @@ namespace Berta
 			Size size;
 			Point position;
 			Size center;
+			bool isEnabled{ true };
 		};
 
 		struct InteractionData
@@ -70,6 +71,7 @@ namespace Berta
 			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 		};
 		Module& GetModule() { return m_module; }
+		const Module& GetModule() const { return m_module; }
 
 	private:
 
@@ -82,6 +84,7 @@ namespace Berta
 		MenuBar(Window* parent, const Rectangle& rectangle);
 
 		Menu& PushBack(const std::wstring& itemName);
+		size_t GetTotal() const;
 	};
 }
 

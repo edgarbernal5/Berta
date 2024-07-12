@@ -74,26 +74,11 @@ namespace Berta
 		m_module.SelectIndex(selectedItem);
 		if (selectedItem != -1)
 		{
+			m_module.OpenMenu();
 			if (m_module.m_interactionData.m_activeMenu)
 			{
-				m_module.m_interactionData.m_activeMenu = nullptr;
-				//GUI::ReleaseCapture(*m_control);
-			}
-			else
-			{
-				m_module.OpenMenu();
-				if (m_module.m_interactionData.m_activeMenu)
-				{
-					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-					GUI::SetMenu(m_module.m_owner, this);
-				}
-			}
-		}
-		else
-		{
-			if (m_module.m_interactionData.m_activeMenu)
-			{
-				m_module.m_interactionData.m_activeMenu = nullptr;
+				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
+				GUI::SetMenu(m_module.m_owner, this);
 			}
 		}
 
@@ -181,7 +166,6 @@ namespace Berta
 
 	int MenuBarReactor::Module::FindItem(const Point& position)
 	{
-		auto window = m_control->Handle();
 		auto& items = m_items;
 
 		for (size_t i = 0; i < items.size(); i++)
@@ -210,12 +194,6 @@ namespace Berta
 
 		m_interactionData.m_activeMenu->m_destroyCallback = [this]()
 		{
-			//m_interactionData.m_activeMenu->CreateSubMenu
-			/*auto currentItem = m_rootMenuItemReactor->Next();
-			while (currentItem)
-			{
-				currentItem = currentItem->Next();
-			}*/
 			m_interactionData.m_activeMenu = nullptr;
 			SelectIndex(-1);
 
@@ -283,5 +261,10 @@ namespace Berta
 	Menu& MenuBar::PushBack(const std::wstring& itemName)
 	{
 		return m_reactor.GetModule().PushBack(itemName);
+	}
+
+	size_t MenuBar::GetTotal() const
+	{
+		return m_reactor.GetModule().m_items.size();
 	}
 }

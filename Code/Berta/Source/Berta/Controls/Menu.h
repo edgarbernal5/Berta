@@ -53,6 +53,7 @@ namespace Berta
 		void AppendSeparator();
 		void ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp = true);
 		Menu* CreateSubMenu(std::size_t index);
+		void SetEnabled(size_t index, bool enabled);
 
 		struct Item
 		{
@@ -64,6 +65,7 @@ namespace Berta
 
 			std::wstring text;
 			bool isSpearator{ false };
+			bool isEnabled{ true };
 			ClickCallback onClick;
 			Menu* m_subMenu{ nullptr };
 		};
@@ -97,6 +99,8 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;

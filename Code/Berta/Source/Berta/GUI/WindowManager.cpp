@@ -66,12 +66,12 @@ namespace Berta
 
 	void WindowManager::DestroyInternal(Window* window)
 	{
-		if (window->Flags.IsDestroying)
+		if (window->Flags.IsDestroyed)
 		{
 			return;
 		}
 
-		window->Flags.IsDestroying = true;
+		window->Flags.IsDestroyed = true;
 
 		ArgDestroy argDestroy;
 		window->Events->Destroy.Emit(argDestroy);
@@ -122,7 +122,7 @@ namespace Berta
 
 	void WindowManager::Dispose(Window* window)
 	{
-		if (window->Flags.IsDestroying)
+		if (window->Flags.IsDestroyed)
 		{
 			return;
 		}
@@ -135,7 +135,7 @@ namespace Berta
 
 			if (!argClosing.Cancel)
 			{
-				if (!window->Flags.IsDestroying)
+				if (!window->Flags.IsDestroyed)
 				{
 					window->Renderer.Shutdown();
 					window->ControlWindowPtr->Destroy();

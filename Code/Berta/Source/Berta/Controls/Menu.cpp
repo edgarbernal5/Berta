@@ -60,6 +60,11 @@ namespace Berta
 		return nullptr;
 	}
 
+	void Menu::SetEnabled(size_t index, bool enabled)
+	{
+		m_items.at(index)->isEnabled = enabled;
+	}
+
 	void Menu::CloseMenuBox()
 	{
 		if (!m_menuBox)
@@ -177,7 +182,7 @@ namespace Berta
 					{
 						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->Size.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appereance->HighlightColor, true);
 					}
-					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
+					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
 					
 					if (item.m_subMenu)
 					{
@@ -186,7 +191,7 @@ namespace Berta
 						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
-							isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground,
+							item.isEnabled ? (isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor,
 							Graphics::ArrowDirection::Right,
 							true);
 					}
@@ -197,6 +202,16 @@ namespace Berta
 		}
 
 		graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
+	}
+
+	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
+	{
+		BT_CORE_TRACE << "   - Menu box mouse enter" << std::endl;
+	}
+
+	void MenuBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
 	}
 
 	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -376,7 +391,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
+			if (m_items->at(i)->isEnabled && !m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
 			{
 				selectedIndex = static_cast<int>(i);
 				break;

@@ -137,7 +137,7 @@ namespace Berta
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
-#ifdef BT_DEBUG
+#ifdef BT_DEBUG2
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
@@ -381,6 +381,7 @@ namespace Berta
 				}
 			}
 
+			bool usingMenu = false;
 			auto [menuItemReactor, menuRootWindow] = windowManager.GetMenu(nativeWindow);
 			if (menuItemReactor && menuRootWindow)
 			{
@@ -397,21 +398,25 @@ namespace Berta
 
 					ArgMouse argMouseMove;
 					argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
+					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 					menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
 					if (onNewMenuBarItem)
 					{
-						window = nullptr;
+						//window = nullptr;
+						usingMenu = true;
 						//break;
 					}
 					menuItemReactor = menuItemReactor->Next();
 				} while (menuItemReactor);
 			}
 
-			if (window && window->Flags.IsEnabled && !window->Flags.IsDestroying)
+			if (window && window->Flags.IsEnabled && !window->Flags.IsDestroyed)
 			{
-				if (window != rootWindowData.Hovered && !window->Flags.IsDestroying)
+				if (window != rootWindowData.Hovered)
 				{
 					ArgMouse argMouseEnter;
 					argMouseEnter.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
@@ -419,14 +424,14 @@ namespace Berta
 					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
+					BT_CORE_DEBUG << " - mouse enter / name " << window->Name << " .menu = " << usingMenu << ".hovered " << rootWindowData.Hovered << std::endl;
 					window->Renderer.MouseEnter(argMouseEnter);
 					window->Events->MouseEnter.Emit(argMouseEnter);
-					//BT_CORE_DEBUG << "window. MouseEnter " << window->Name << std::endl;
 
 					rootWindowData.Hovered = window;
 				}
 
-				if (rootWindowData.Hovered)
+				if (!usingMenu && rootWindowData.Hovered)
 				{
 					ArgMouse argMouseMove;
 					argMouseMove.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
