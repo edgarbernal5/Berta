@@ -83,8 +83,8 @@ namespace Berta
 	public:
 		MenuBar(Window* parent, const Rectangle& rectangle);
 
+		size_t GetCount() const;
 		Menu& PushBack(const std::wstring& itemName);
-		size_t GetTotal() const;
 	};
 }
 

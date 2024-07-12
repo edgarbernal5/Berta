@@ -296,7 +296,7 @@ namespace Berta
 	bool MenuBoxReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
-		if (!Rectangle{ 0,0, window->Size.Width, window->Size.Height }.IsInside(args.Position))
+		if (!Rectangle{ window->Size }.IsInside(args.Position))
 			return false;
 
 		return true;
@@ -320,7 +320,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
+			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
 				selectedIndex = static_cast<int>(i);
 				break;
@@ -389,25 +389,28 @@ namespace Berta
 		subMenu->m_menuBox->GetItemReactor()->Prev(this);
 	}
 
-	bool MenuBoxReactor::MouseMoveInternal(const ArgMouse& args)
+	int MenuBoxReactor::FindItem(const ArgMouse& args)
 	{
-		int selectedIndex = -1;
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position.X, item.m_position.Y, item.m_size.Width, item.m_size.Height }.IsInside(args.Position))
+			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
-				selectedIndex = static_cast<int>(i);
-				break;
+				return static_cast<int>(i);
 			}
 		}
+		return -1;
+	}
 
+	bool MenuBoxReactor::MouseMoveInternal(const ArgMouse& args)
+	{
+		int selectedIndex = FindItem(args);
 		if (selectedIndex == m_selectedIndex)
 		{
 			return false;
 		}
 
-		BT_CORE_TRACE << "  " << m_control->Handle()->Name << ": cambio de indice.newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ".openedIndex = " << m_openedSubMenuIndex << ".selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
+		//BT_CORE_TRACE << "  " << m_control->Handle()->Name << ": cambio de indice.newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ".openedIndex = " << m_openedSubMenuIndex << ".selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
 		
 		if (selectedIndex != -1 && !m_items->at(selectedIndex)->isEnabled)
 		{

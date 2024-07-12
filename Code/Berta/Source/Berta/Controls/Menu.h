@@ -125,6 +125,7 @@ namespace Berta
 			Close
 		};
 		void OpenSubMenu(Menu* subMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
+		int FindItem(const ArgMouse& args);
 		bool MouseMoveInternal(const ArgMouse& args);
 
 		MenuBox* m_control{ nullptr };

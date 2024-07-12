@@ -123,7 +123,7 @@ namespace Berta
 
 	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
 	{
-		if (!Rectangle{ 0,0, m_module.m_owner->Size.Width, m_module.m_owner->Size.Height }.IsInside(args.Position))
+		if (!Rectangle{ m_module.m_owner->Size }.IsInside(args.Position))
 		{
 			return false;
 		}
@@ -172,8 +172,7 @@ namespace Berta
 		{
 			auto& itemData = *(items[i]);
 
-			if (position.X >= itemData.position.X && position.X <= itemData.position.X + (int)itemData.size.Width &&
-				position.Y >= itemData.position.Y && position.Y <= itemData.position.Y + (int)itemData.size.Height)
+			if (Rectangle{ itemData.position , itemData.size}.IsInside(position))
 			{
 				return (int)i;
 			}
@@ -216,7 +215,7 @@ namespace Berta
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
 	{
 		auto startIndex = m_items.size();
-		auto newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
+		auto& newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
 		BuildItems(startIndex);
 
 		return newItem->menu;
@@ -258,13 +257,13 @@ namespace Berta
 		Create(parent, true, rectangle);
 	}
 
+	size_t MenuBar::GetCount() const
+	{
+		return m_reactor.GetModule().m_items.size();
+	}
+
 	Menu& MenuBar::PushBack(const std::wstring& itemName)
 	{
 		return m_reactor.GetModule().PushBack(itemName);
-	}
-
-	size_t MenuBar::GetTotal() const
-	{
-		return m_reactor.GetModule().m_items.size();
 	}
 }

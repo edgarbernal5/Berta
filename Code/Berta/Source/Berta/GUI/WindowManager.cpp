@@ -494,10 +494,8 @@ namespace Berta
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		return Rectangle{ 
-			window->Position.X, 
-			window->Position.Y, 
-			window->Size.Width, 
-			window->Size.Height
+			window->Position, 
+			window->Size
 		}.IsInside(point);
 	}
 

@@ -404,6 +404,7 @@ namespace Berta
 
 					menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
+					BT_CORE_DEBUG << " - MENU item reactor / name " << menuItemReactor->Owner()->Name << ". check " << onNewMenuBarItem << std::endl;
 					if (onNewMenuBarItem)
 					{
 						//window = nullptr;

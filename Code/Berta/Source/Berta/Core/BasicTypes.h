@@ -109,6 +109,11 @@ namespace Berta
 		uint32_t Width{ 0 };
 		uint32_t Height{ 0 };
 
+		Rectangle() = default;
+		Rectangle(int x, int y, uint32_t width, uint32_t height);
+		explicit Rectangle(const Size& s);
+		explicit Rectangle(const Point& p, const Size& s);
+
 #ifdef BT_PLATFORM_WINDOWS
 		void FromRECT(const RECT& rect)
 		{

@@ -11,6 +11,28 @@ namespace Berta
 {
 	const Size Size::Zero = { 0,0 };
 
+	Rectangle::Rectangle(int x, int y, uint32_t width, uint32_t height) :
+		X(x),
+		Y(y),
+		Width(width),
+		Height(height)
+	{
+	}
+
+	Rectangle::Rectangle(const Size& s) :
+		Width(s.Width),
+		Height(s.Height)
+	{
+	}
+
+	Rectangle::Rectangle(const Point& p, const Size& s) :
+		X(p.X),
+		Y(p.Y),
+		Width(s.Width),
+		Height(s.Height)
+	{
+	}
+
 #ifdef BT_PLATFORM_WINDOWS
 	RECT Rectangle::ToRECT() const
 	{
