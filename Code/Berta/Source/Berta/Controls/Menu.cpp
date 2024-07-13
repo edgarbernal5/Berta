@@ -219,12 +219,12 @@ namespace Berta
 
 	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 	{
-		BT_CORE_TRACE << "   - Menu box mouse enter" << std::endl;
+		//BT_CORE_TRACE << "   - Menu box mouse enter" << std::endl;
 	}
 
 	void MenuBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
+		//BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
 	}
 
 	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -506,7 +506,6 @@ namespace Berta
 #if BT_DEBUG
 		std::ostringstream builder;
 		builder << "Menu box" << g_globalId;
-		BT_CORE_DEBUG << " new name for menu box> " << builder.str() << std::endl;
 		SetDebugName(builder.str());
 		++g_globalId;
 #endif

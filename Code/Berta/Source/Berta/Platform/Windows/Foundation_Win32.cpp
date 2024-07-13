@@ -295,15 +295,6 @@ namespace Berta
 
 			break;
 		}
-		case WM_ACTIVATE:
-		{
-			if (LOWORD(wParam) == WA_INACTIVE) {
-				BT_CORE_DEBUG << "   Hide()" << ". hWnd = " << hWnd << std::endl;
-			} else if (LOWORD(wParam) == WA_ACTIVE) {
-				BT_CORE_DEBUG << "   Active()" << ". hWnd = " << hWnd << std::endl;
-			}
-			break;
-		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
@@ -373,7 +364,7 @@ namespace Berta
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave " << rootWindowData.Hovered->Name << std::endl;
+					BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 
@@ -404,7 +395,7 @@ namespace Berta
 
 					menuItemReactor->OnMenuItemMouseMove(argMouseMove);
 					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
-					BT_CORE_DEBUG << " - MENU item reactor / name " << menuItemReactor->Owner()->Name << ". check " << onNewMenuBarItem << std::endl;
+					//BT_CORE_DEBUG << " - MENU item reactor / name " << menuItemReactor->Owner()->Name << ". check " << onNewMenuBarItem << std::endl;
 					if (onNewMenuBarItem)
 					{
 						//window = nullptr;
@@ -417,10 +408,11 @@ namespace Berta
 
 			if (window && window->Flags.IsEnabled && !window->Flags.IsDestroyed)
 			{
-				if (window != rootWindowData.Hovered)
+				Point position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				if (window != rootWindowData.Hovered && Rectangle{ window->Size}.IsInside(position))
 				{
 					ArgMouse argMouseEnter;
-					argMouseEnter.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+					argMouseEnter.Position = position;
 					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -440,10 +432,11 @@ namespace Berta
 					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
+					//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
 					window->Renderer.MouseMove(argMouseMove);
 					window->Events->MouseMove.Emit(argMouseMove);
-					//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
 				}
+				//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 			}
@@ -503,9 +496,10 @@ namespace Berta
 		}
 		case WM_MOUSELEAVE:
 		{
+			BT_CORE_DEBUG << " - mouse leave 2 / preparing... " << std::endl;
 			if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
 			{
-				BT_CORE_DEBUG << "rootWindowData.Hovered. MouseLeave 2" << rootWindowData.Hovered->Name << std::endl;
+				BT_CORE_DEBUG << " - mouse leave 2 / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 				ArgMouse argMouseLeave;
 				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 				rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
