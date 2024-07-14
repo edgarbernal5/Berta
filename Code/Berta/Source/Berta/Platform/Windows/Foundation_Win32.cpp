@@ -137,25 +137,26 @@ namespace Berta
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
-#ifdef BT_DEBUG2
+#ifdef BT_DEBUG
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
-			if (g_debugLastMessageId != message)
-			{
-				g_debugLastMessageCount = 1;
-			}
-			else
-			{
-				++g_debugLastMessageCount;
-			}
-			if (g_debugLastMessageCount == 1)
-			{
-				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
-			}
-			if (g_debugLastMessageCount > 20)
-				g_debugLastMessageCount = 0;
+			//if (g_debugLastMessageId != message)
+			//{
+			//	g_debugLastMessageCount = 1;
+			//}
+			//else
+			//{
+			//	++g_debugLastMessageCount;
+			//}
+			//if (g_debugLastMessageCount == 1)
+			//{
+			//	BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
+			//}
+			//if (g_debugLastMessageCount > 1)
+			//	g_debugLastMessageCount = 0;
 
+			BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId = message;
 		}
 #endif
@@ -409,7 +410,7 @@ namespace Berta
 			if (window && window->Flags.IsEnabled && !window->Flags.IsDestroyed)
 			{
 				Point position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
-				if (window != rootWindowData.Hovered && Rectangle{ window->Size}.IsInside(position))
+				if (window != rootWindowData.Hovered && window->Size.IsInside(position))
 				{
 					ArgMouse argMouseEnter;
 					argMouseEnter.Position = position;
@@ -436,7 +437,7 @@ namespace Berta
 					window->Renderer.MouseMove(argMouseMove);
 					window->Events->MouseMove.Emit(argMouseMove);
 				}
-				//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+				BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 				trackEvent.hwndTrack = hWnd;
 				TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 			}
@@ -536,7 +537,6 @@ namespace Berta
 		case WM_CHAR:
 		{
 			ArgKeyboard argKeyboard;
-
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
@@ -558,7 +558,6 @@ namespace Berta
 		case WM_SYSKEYUP:
 		{
 			ArgKeyboard argKeyboard;
-
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
@@ -576,8 +575,21 @@ namespace Berta
 			}
 			else
 			{
-				window->Renderer.KeyPressed(argKeyboard);
-				window->Events->KeyPressed.Emit(argKeyboard);
+				auto target = window;
+				auto [menuItemReactor, menuRootWindow] = windowManager.GetMenu(nativeWindow);
+				if (menuItemReactor && menuRootWindow)
+				{
+					do
+					{
+						auto currentWindow = menuItemReactor->Owner();
+
+						
+						menuItemReactor = menuItemReactor->Next();
+					} while (menuItemReactor);
+				}
+
+				target->Renderer.KeyPressed(argKeyboard);
+				target->Events->KeyPressed.Emit(argKeyboard);
 			}
 			defaultToWindowProc = false;
 			break;
