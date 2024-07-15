@@ -367,12 +367,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuItemReactor)
+	void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(menuItemReactor->Owner()))
+		if (windowManager.Exists(rootMenuItemWindow->Owner()))
 		{
-			windowManager.SetMenu(rootMenuItemWindow, menuItemReactor);
+			windowManager.SetMenu(rootMenuItemWindow, menuBarItemReactor);
 		}
 	}
 

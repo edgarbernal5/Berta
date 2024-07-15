@@ -85,7 +85,7 @@ namespace Berta
 			if (m_module.m_interactionData.m_activeMenu)
 			{
 				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-				GUI::SetMenu(this, m_next);
+				GUI::SetMenu(this, this);
 			}
 		}
 
@@ -153,7 +153,7 @@ namespace Berta
 			m_module.SelectIndex(selectedItem);
 			m_module.OpenMenu(args.ButtonState.LeftButton);
 			m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-			GUI::SetMenu(m_next, this);
+			GUI::SetMenu(this, this);
 
 			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::RefreshWindow(m_module.m_owner);

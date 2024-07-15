@@ -418,24 +418,24 @@ namespace Berta
 		return position;
 	}
 
-	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuItemReactor)
+	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor)
 	{
 		m_rootMenuItemReactor = rootMenuItemWindow;
-		m_menuItemReactor = menuItemReactor;
+		m_menuBarItemReactor = menuBarItemReactor;
 	}
 
-	std::pair<MenuItemReactor*, MenuItemReactor*> WindowManager::GetMenu(Window* window)
+	std::pair<MenuBarItemReactor*, MenuItemReactor*> WindowManager::GetMenu(Window* window)
 	{
-		return std::make_pair(m_menuItemReactor, m_rootMenuItemReactor);
+		return std::make_pair(m_menuBarItemReactor, m_rootMenuItemReactor);
 	}
 
 	void WindowManager::DisposeMenu(bool disposeRoot)
 	{
-		if (!m_menuItemReactor)
+		if (!m_rootMenuItemReactor)
 			return;
 
 		std::stack<Window*> stack;
-		auto current = m_menuItemReactor->Next();
+		auto current = m_rootMenuItemReactor->Next();
 		while (current)
 		{
 			auto temp = current->Next();
@@ -454,9 +454,9 @@ namespace Berta
 
 		if (disposeRoot)
 		{
-			m_menuItemReactor->Clear();
-			m_menuItemReactor = nullptr;
+			m_rootMenuItemReactor->Clear();
 			m_rootMenuItemReactor = nullptr;
+			m_menuBarItemReactor = nullptr;
 		}
 	}
 

@@ -362,8 +362,8 @@ namespace Berta
 			}
 
 			bool usingMenu = false;
-			auto [menuItemReactor, menuRootWindow] = windowManager.GetMenu(nativeWindow);
-			if (menuItemReactor && menuRootWindow)
+			auto [menuBarRootWindow, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+			if (menuItemReactor && menuBarRootWindow)
 			{
 				do
 				{
@@ -568,8 +568,8 @@ namespace Berta
 			else
 			{
 				auto target = window;
-				auto [menuItemReactor, menuRootWindow] = windowManager.GetMenu(nativeWindow);
-				if (menuItemReactor && menuRootWindow)
+				auto [menuBarRootWindow, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+				if (menuItemReactor && menuBarRootWindow)
 				{
 					do
 					{

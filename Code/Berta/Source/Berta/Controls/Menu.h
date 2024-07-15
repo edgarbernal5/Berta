@@ -46,15 +46,10 @@ namespace Berta
 	class MenuBarItemReactor
 	{
 	public:
-		virtual bool OnKeyPressed(const ArgKeyboard& args) = 0;
-		virtual void OnMoveRight() = 0;
-
-		virtual MenuBarItemReactor* Next() const { return m_next; }
-		virtual MenuBarItemReactor* Prev() const { return m_prev; }
+		virtual bool OnMBIKeyPressed(const ArgKeyboard& args) = 0;
+		virtual void OnMBIMoveRight() = 0;
 
 	protected:
-		MenuBarItemReactor* m_next{ nullptr };
-		MenuBarItemReactor* m_prev{ nullptr };
 	};
 
 	struct MenuItem;

@@ -17,6 +17,7 @@
 namespace Berta
 {
 	struct Window;
+	class MenuBarItemReactor;
 	class MenuItemReactor;
 
 	class WindowManager
@@ -72,8 +73,8 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuBarItemReactor);
-		std::pair<MenuItemReactor*, MenuItemReactor*> GetMenu(Window* window);
+		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor);
+		std::pair<MenuBarItemReactor*, MenuItemReactor*> GetMenu(Window* window);
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);
@@ -93,7 +94,7 @@ namespace Berta
 		std::set<Window*> m_windowRegistry;
 
 		MenuItemReactor* m_rootMenuItemReactor{ nullptr };
-		MenuItemReactor* m_menuItemReactor{ nullptr };
+		MenuBarItemReactor* m_menuBarItemReactor{ nullptr };
 	};
 }
 
