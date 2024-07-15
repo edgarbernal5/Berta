@@ -32,9 +32,8 @@ namespace Berta
 
 		auto boxSize = GetMenuBoxSize(parentWindow);
 		m_menuBox = new MenuBox(parentWindow, { position.X, position.Y, boxSize.Width, boxSize.Height });
-		m_menuBox->Init(m_items);
+		m_menuBox->Init(m_items, menuBarItem);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
-		m_menuBox->SetMenuBarItemRect(menuBarItem);
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
@@ -396,6 +395,14 @@ namespace Berta
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
 		subMenu->m_menuBox->GetItemReactor()->Prev(this);
+		subMenu->m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& args)
+		{
+			if (m_openedSubMenuIndex == -1)
+				BT_CORE_DEBUG << "ya esta..." << std::endl;
+			else
+				BT_CORE_DEBUG << "NNNOOOOO ya esta..." << std::endl;
+			m_openedSubMenuIndex = -1;
+		});
 	}
 
 	int MenuBoxReactor::FindItem(const ArgMouse& args)
@@ -424,8 +431,6 @@ namespace Berta
 			return false;
 		}
 
-		//BT_CORE_TRACE << "  " << m_control->Handle()->Name << ": cambio de indice.newIndex " << selectedIndex << " != selectedIndex " << m_selectedIndex << ".openedIndex = " << m_openedSubMenuIndex << ".selectedSubIndex = " << m_selectedSubMenuIndex << std::endl;
-		
 		if (selectedIndex != -1 && !m_items->at(selectedIndex)->isEnabled)
 		{
 			if (m_openedSubMenuIndex != -1)
@@ -518,19 +523,15 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(std::vector<Menu::Item*>& items)
+	void MenuBox::Init(std::vector<Menu::Item*>& items, const Rectangle& rect)
 	{
 		m_reactor.SetItems(items);
+		m_reactor.SetMenuBarItemRect(rect);
 	}
 
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
 		m_reactor.SetIgnoreFirstMouseUp(value);
-	}
-
-	void MenuBox::SetMenuBarItemRect(const Rectangle& rect)
-	{
-		m_reactor.SetMenuBarItemRect(rect);
 	}
 
 	void MenuItem::SetText(const std::wstring& text)

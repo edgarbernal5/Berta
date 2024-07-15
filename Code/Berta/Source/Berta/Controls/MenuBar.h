@@ -17,7 +17,7 @@ namespace Berta
 {
 	class MenuBar;
 
-	class MenuBarReactor : public ControlReactor, public MenuItemReactor
+	class MenuBarReactor : public ControlReactor, public MenuBarItemReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -30,11 +30,11 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
-		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
+		/*bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
 		void OnMenuItemMouseMove(const ArgMouse& args) override;
-		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
+		bool OnClickSubMenu(const ArgMouse& args) override { return false; }*/
 
-		Window* Owner() const override;
+		//Window* Owner() const override;
 
 		struct MenuBarItemData
 		{
@@ -62,7 +62,7 @@ namespace Berta
 			void OpenMenu(bool ignoreFirstMouseUp = true);
 			void SelectIndex(int index);
 
-			MenuBox* GetActiveMenuBox();
+			MenuBox* GetActiveMenuBox() const;
 
 			MenuBar* m_control{ nullptr };
 			Window* m_owner{ nullptr };
@@ -74,7 +74,6 @@ namespace Berta
 		const Module& GetModule() const { return m_module; }
 
 	private:
-
 		Module m_module;
 	};
 

@@ -124,7 +124,9 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		if (args.ButtonState.LeftButton)
+		{
 			GUI::ReleaseCapture(window);
+		}
 
 		m_timer.Stop();
 		m_pressedArea = InteractionArea::None;

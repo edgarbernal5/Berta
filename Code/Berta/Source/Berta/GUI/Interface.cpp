@@ -185,7 +185,7 @@ namespace Berta::GUI
 		}
 	}
 
-	Size ResizeWindow(Window* window)
+	Size SizeWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
@@ -283,7 +283,15 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			window->RootWindow->DeferredRequests.push_back(window);
+			if (std::find
+			(
+				window->RootWindow->DeferredRequests.begin(),
+				window->RootWindow->DeferredRequests.end(),
+				window) == window->RootWindow->DeferredRequests.end()
+			)
+			{
+				window->RootWindow->DeferredRequests.push_back(window);
+			}
 		}
 	}
 
@@ -295,6 +303,7 @@ namespace Berta::GUI
 			windowManager.ChangeCursor(window, newCursor);
 		}
 	}
+
 	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
 	{
 		uint32_t dpi = API::GetNativeWindowDPI({});
@@ -358,21 +367,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuItemWindow)
+	void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuItemReactor)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && windowManager.Exists(menuItemWindow))
+		if (windowManager.Exists(menuItemReactor->Owner()))
 		{
-			windowManager.SetMenu(window, menuItemReactor, menuItemWindow);
-		}
-	}
-
-	void SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(rootWindow))
-		{
-			windowManager.SetMenu(rootWindow, menuItemReactor);
+			windowManager.SetMenu(rootMenuItemWindow, menuItemReactor);
 		}
 	}
 

@@ -42,6 +42,21 @@ namespace Berta
 		MenuItemReactor* m_next{ nullptr };
 		MenuItemReactor* m_prev{ nullptr };
 	};
+
+	class MenuBarItemReactor
+	{
+	public:
+		virtual bool OnKeyPressed(const ArgKeyboard& args) = 0;
+		virtual void OnMoveRight() = 0;
+
+		virtual MenuBarItemReactor* Next() const { return m_next; }
+		virtual MenuBarItemReactor* Prev() const { return m_prev; }
+
+	protected:
+		MenuBarItemReactor* m_next{ nullptr };
+		MenuBarItemReactor* m_prev{ nullptr };
+	};
+
 	struct MenuItem;
 
 	struct Menu
@@ -147,9 +162,8 @@ namespace Berta
 		MenuBox(Window* parent, const Rectangle& rectangle);
 		~MenuBox();
 
-		void Init(std::vector<Menu::Item*>& items);
+		void Init(std::vector<Menu::Item*>& items, const Rectangle& rect);
 		void SetIgnoreFirstMouseUp(bool value);
-		void SetMenuBarItemRect(const Rectangle& rect);
 
 		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
 	private:

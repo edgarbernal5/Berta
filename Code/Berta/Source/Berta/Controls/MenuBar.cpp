@@ -19,31 +19,31 @@ namespace Berta
 		m_module.m_rootMenuItemReactor = this;
 
 		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
-		{
-			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
 			{
-				GUI::DisposeMenu(true);
-			}
-		});
+				if (!args.Focused && m_module.m_interactionData.m_activeMenu)
+				{
+					GUI::DisposeMenu(true);
+				}
+			});
 	}
 
 	void MenuBarReactor::Update(Graphics& graphics)
 	{
 		auto window = m_module.m_owner;
 		bool enabled = m_module.m_control->GetEnabled();
-		
+
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->ButtonBackground : window->Appereance->ButtonDisabledBackground, true);
 
 		auto& items = m_module.m_items;
 		auto itemMargin = static_cast<uint32_t>(4u * window->DPIScaleFactor);
-		
+
 		for (size_t i = 0; i < items.size(); i++)
 		{
 			auto& itemData = *(items[i]);
 
 			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
-				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height}, m_module.m_interactionData.m_activeMenu ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
+				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.m_interactionData.m_activeMenu ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
 
 				if (m_module.m_interactionData.m_activeMenu)
 				{
@@ -85,7 +85,7 @@ namespace Berta
 			if (m_module.m_interactionData.m_activeMenu)
 			{
 				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-				GUI::SetMenu(m_module.m_owner, this);
+				GUI::SetMenu(this, m_next);
 			}
 		}
 
@@ -116,11 +116,6 @@ namespace Berta
 
 	void MenuBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		//if (m_module.m_interactionData.m_activeMenu)
-		{
-			//GUI::ReleaseCapture(*m_control);
-			//m_interactionData.m_activeMenu = nullptr;
-		}
 	}
 
 	void MenuBarReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -130,17 +125,16 @@ namespace Berta
 
 	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
 	{
-		if (!Rectangle{ m_module.m_owner->Size }.IsInside(args.Position))
+		if (m_module.m_items.empty() || !Rectangle{ m_module.m_owner->Size }.IsInside(args.Position))
 		{
 			return false;
 		}
 
-		if (m_module.m_items.empty())
-			return false;
-
 		auto& last = m_module.m_items.back();
 		if (args.Position.X >= last->position.X + (int)last->size.Width)
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -157,9 +151,9 @@ namespace Berta
 			}
 
 			m_module.SelectIndex(selectedItem);
-			m_module.OpenMenu(false);
+			m_module.OpenMenu(args.ButtonState.LeftButton);
 			m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-			GUI::SetMenu(m_module.m_owner, this, m_module.GetActiveMenuBox()->Handle());
+			GUI::SetMenu(m_next, this);
 
 			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::RefreshWindow(m_module.m_owner);
@@ -214,7 +208,7 @@ namespace Berta
 		m_interactionData.m_selectedItemIndex = index;
 	}
 
-	MenuBox* MenuBarReactor::Module::GetActiveMenuBox()
+	MenuBox* MenuBarReactor::Module::GetActiveMenuBox() const
 	{
 		return m_interactionData.m_activeMenu->m_menuBox;
 	}
@@ -231,7 +225,9 @@ namespace Berta
 	void MenuBarReactor::Module::BuildItems(size_t startIndex)
 	{
 		if (startIndex >= m_items.size())
+		{
 			return;
+		}
 
 		auto itemMargin = static_cast<uint32_t>(4u * m_owner->DPIScaleFactor);
 		Point offset{ 0, (int)itemMargin };

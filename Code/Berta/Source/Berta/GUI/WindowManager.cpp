@@ -84,7 +84,7 @@ namespace Berta
 		}
 		window->Children.clear();
 
-		BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			ReleaseCapture(m_capture.WindowPtr);
@@ -280,7 +280,7 @@ namespace Berta
 	{
 		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
-		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
+		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		
 		UpdateTreeInternal(window, rootGraphics);
 
@@ -341,7 +341,7 @@ namespace Berta
 			{
 				Rectangle requestRectangle{ request->Position.X, request->Position.Y, request->Size.Width, request->Size.Height };
 
-				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from root graphics to control's graphics.
+				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
 				//TODO:
 				for (auto& child : request->Children)
@@ -418,21 +418,15 @@ namespace Berta
 		return position;
 	}
 
-	void WindowManager::SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuWindow)
+	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuItemReactor)
 	{
-		m_menuRootWindow = window;
+		m_rootMenuItemReactor = rootMenuItemWindow;
 		m_menuItemReactor = menuItemReactor;
 	}
 
-	void WindowManager::SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor)
+	std::pair<MenuItemReactor*, MenuItemReactor*> WindowManager::GetMenu(Window* window)
 	{
-		m_menuRootWindow = rootWindow;
-		m_menuItemReactor = menuItemReactor;
-	}
-
-	std::pair<MenuItemReactor*, Window*> WindowManager::GetMenu(Window* window)
-	{
-		return std::make_pair(m_menuItemReactor, m_menuRootWindow);
+		return std::make_pair(m_menuItemReactor, m_rootMenuItemReactor);
 	}
 
 	void WindowManager::DisposeMenu(bool disposeRoot)
@@ -462,7 +456,7 @@ namespace Berta
 		{
 			m_menuItemReactor->Clear();
 			m_menuItemReactor = nullptr;
-			m_menuRootWindow = nullptr;
+			m_rootMenuItemReactor = nullptr;
 		}
 	}
 

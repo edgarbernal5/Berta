@@ -34,6 +34,11 @@ namespace Berta
 
 			API::NativeCursor CurrentCursor;
 
+#ifdef BT_PLATFORM_WINDOWS
+			TRACKMOUSEEVENT TrackEvent = { sizeof(TRACKMOUSEEVENT), TME_LEAVE };
+			bool IsTracking{ false };
+#endif
+
 			RootData(RootData&& other) noexcept;
 			RootData(Window* window, const Size& size);
 		private:
@@ -67,9 +72,8 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(Window* window, MenuItemReactor* menuBarItemReactor, Window* menuBox);
-		void SetMenu(Window* rootWindow, MenuItemReactor* menuBarItemReactor);
-		std::pair<MenuItemReactor*, Window*> GetMenu(Window* window);
+		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuBarItemReactor);
+		std::pair<MenuItemReactor*, MenuItemReactor*> GetMenu(Window* window);
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);
@@ -88,7 +92,7 @@ namespace Berta
 		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
 
-		Window* m_menuRootWindow{ nullptr };
+		MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 		MenuItemReactor* m_menuItemReactor{ nullptr };
 	};
 }

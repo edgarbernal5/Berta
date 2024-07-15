@@ -83,19 +83,6 @@ namespace Berta
 
 	Size ControlBase::DoOnSize() const
 	{
-		return GUI::ResizeWindow(m_handle);
+		return GUI::SizeWindow(m_handle);
 	}
-
-	/*void ControlBase::NotifyDestroy()
-	{
-		m_handle = nullptr;
-		DoOnNotifyDestroy();
-	}*/
-
-	//void ControlWindow::Destroy()
-	//{
-	//	m_control.NotifyDestroy();
-	//}
-
-	
 }

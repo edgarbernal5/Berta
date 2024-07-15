@@ -32,7 +32,7 @@ namespace Berta
 		bool EnableWindow(Window* window);
 
 		void ResizeWindow(Window* window, const Size& newSize);
-		Size ResizeWindow(Window* window);
+		Size SizeWindow(Window* window);
 
 		void MakeWindowActive(Window* window, bool active);
 
@@ -57,8 +57,7 @@ namespace Berta
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
-		void SetMenu(Window* window, MenuItemReactor* menuItemReactor, Window* menuBox);
-		void SetMenu(Window* rootWindow, MenuItemReactor* menuItemReactor);
+		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuItemReactor* menuItemReactor);
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);
