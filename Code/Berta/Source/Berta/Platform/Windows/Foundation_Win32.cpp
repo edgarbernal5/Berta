@@ -13,6 +13,7 @@
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/CommonEvents.h"
+#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Platform/Windows/Messages.h"
 
 #include "Berta/Controls/Menu.h"
@@ -571,7 +572,21 @@ namespace Berta
 				auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
 				if (menuItemReactor && menuBarRootReactor)
 				{
-					menuBarRootReactor->OnMBIKeyPressed(argKeyboard);
+					auto activeMenuItemReactor = menuItemReactor;
+					while (activeMenuItemReactor->Next() != nullptr)
+					{
+						activeMenuItemReactor = activeMenuItemReactor->Next();
+					}
+					if (argKeyboard.Key == KeyboardKey::ArrowUp)
+					{
+						activeMenuItemReactor->OnKeyUpPressed();
+					}else if (argKeyboard.Key == KeyboardKey::ArrowRight)
+					{
+						if (!activeMenuItemReactor->OnKeyRightPressed())
+						{
+							menuBarRootReactor->OnMBIMoveRight();
+						}
+					}
 				}
 
 				target->Renderer.KeyPressed(argKeyboard);

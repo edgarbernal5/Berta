@@ -346,6 +346,60 @@ namespace Berta
 		return m_control->Handle();
 	}
 
+	void MenuBoxReactor::OnKeyUpPressed()
+	{
+		if (m_items->empty())
+		{
+			return;
+		}
+		auto selectedIndex = m_selectedIndex;
+		if (selectedIndex == -1)
+		{
+			selectedIndex = m_items->size() - 1;
+		}
+		else
+		{
+			selectedIndex = ((selectedIndex - 1 + m_items->size()) % m_items->size());
+		}
+		auto savedIndex = selectedIndex;
+		auto item = m_items->at(selectedIndex);
+		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
+		{
+			selectedIndex = ((selectedIndex - 1 + m_items->size()) % m_items->size());
+			if (selectedIndex == savedIndex)
+				break;
+
+			item = m_items->at(selectedIndex);
+		}
+
+		if (m_selectedIndex != selectedIndex)
+		{
+			m_selectedIndex = selectedIndex;
+
+			Update(m_control->Handle()->Renderer.GetGraphics());
+			GUI::RefreshWindow(m_control->Handle());
+		}
+	}
+
+	bool MenuBoxReactor::OnKeyRightPressed()
+	{
+		if (m_items->empty() || m_selectedIndex == -1)
+		{
+			return false;
+		}
+		auto& item = m_items->at(m_selectedIndex);
+		if (!item->m_subMenu)
+		{
+			return false;
+		}
+		m_openedSubMenuIndex = m_selectedIndex;
+		m_selectedSubMenuIndex = m_selectedIndex;
+		OpenSubMenu(item->m_subMenu, m_openedSubMenuIndex, false);
+		m_subMenuTimer.Stop();
+
+		return true;
+	}
+
 	void MenuBoxReactor::SetItems(std::vector<Menu::Item*>& items)
 	{
 		m_items = &items;

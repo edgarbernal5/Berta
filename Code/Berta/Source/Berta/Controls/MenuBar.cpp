@@ -128,19 +128,30 @@ namespace Berta
 	{
 		if (args.Key == KeyboardKey::ArrowUp && m_next)
 		{
-			/*if (m_module.m_items.empty())
-			{
-				return false;
-			}
-			auto& selectedIndex = m_module.m_interactionData.m_selectedItemIndex;
-			if (selectedIndex == -1)
-			{
-				selectedIndex = m_module.m_items.size() - 1;
-				while (selectedIndex >= 0 && (!m_module.m_items[selectedIndex]->isEnabled || m_module.m_items[selectedIndex]->))
-			}*/
+			
 			return true;
 		}
 		return false;
+	}
+
+	void MenuBarReactor::OnMBIMoveRight()
+	{
+		if (!m_module.m_interactionData.m_activeMenu)
+		{
+			return;
+		}
+
+		int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
+		selectedItem = (selectedItem + 1) % m_module.m_items.size();
+		GUI::DisposeMenu(false);
+
+		m_module.SelectIndex(selectedItem);
+		m_module.OpenMenu(false);
+		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
+		GUI::SetMenu(this, this);
+
+		Update(m_module.m_owner->Renderer.GetGraphics());
+		GUI::RefreshWindow(m_module.m_owner);
 	}
 
 	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)

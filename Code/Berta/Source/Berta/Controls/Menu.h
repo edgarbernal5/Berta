@@ -27,6 +27,9 @@ namespace Berta
 		virtual void OnMenuItemMouseMove(const ArgMouse& args) = 0;
 		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
+		virtual void OnKeyUpPressed() = 0;
+		virtual bool OnKeyRightPressed() = 0;
+
 		virtual MenuItemReactor* Next() const { return m_next; }
 		virtual MenuItemReactor* Prev() const { return m_prev; }
 
@@ -118,6 +121,9 @@ namespace Berta
 		void OnMenuItemMouseMove(const ArgMouse& args) override;
 		bool OnClickSubMenu(const ArgMouse& args) override;
 		Window* Owner() const override;
+
+		void OnKeyUpPressed() override;
+		bool OnKeyRightPressed() override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
