@@ -8,6 +8,7 @@
 #include "MenuBar.h"
 
 #include "Berta/GUI/Interface.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -121,6 +122,25 @@ namespace Berta
 	void MenuBarReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.BuildItems();
+	}
+
+	bool MenuBarReactor::OnMBIKeyPressed(const ArgKeyboard& args)
+	{
+		if (args.Key == KeyboardKey::ArrowUp && m_next)
+		{
+			/*if (m_module.m_items.empty())
+			{
+				return false;
+			}
+			auto& selectedIndex = m_module.m_interactionData.m_selectedItemIndex;
+			if (selectedIndex == -1)
+			{
+				selectedIndex = m_module.m_items.size() - 1;
+				while (selectedIndex >= 0 && (!m_module.m_items[selectedIndex]->isEnabled || m_module.m_items[selectedIndex]->))
+			}*/
+			return true;
+		}
+		return false;
 	}
 
 	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)

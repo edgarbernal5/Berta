@@ -362,8 +362,8 @@ namespace Berta
 			}
 
 			bool usingMenu = false;
-			auto [menuBarRootWindow, menuItemReactor] = windowManager.GetMenu(nativeWindow);
-			if (menuItemReactor && menuBarRootWindow)
+			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+			if (menuItemReactor)
 			{
 				do
 				{
@@ -568,17 +568,10 @@ namespace Berta
 			else
 			{
 				auto target = window;
-				auto [menuBarRootWindow, menuItemReactor] = windowManager.GetMenu(nativeWindow);
-				if (menuItemReactor && menuBarRootWindow)
+				auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+				if (menuItemReactor && menuBarRootReactor)
 				{
-					do
-					{
-						auto currentWindow = menuItemReactor->Owner();
-
-
-						
-						menuItemReactor = menuItemReactor->Next();
-					} while (menuItemReactor);
+					menuBarRootReactor->OnMBIKeyPressed(argKeyboard);
 				}
 
 				target->Renderer.KeyPressed(argKeyboard);

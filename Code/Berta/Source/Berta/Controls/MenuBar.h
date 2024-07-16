@@ -30,7 +30,7 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
-		bool OnMBIKeyPressed(const ArgKeyboard& args) override { return false; }
+		bool OnMBIKeyPressed(const ArgKeyboard& args) override;
 		void OnMBIMoveRight() override {};
 
 		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;

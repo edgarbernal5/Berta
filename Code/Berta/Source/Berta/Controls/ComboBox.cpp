@@ -133,23 +133,6 @@ namespace Berta
 		}
 	}
 
-	void ComboBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
-	{
-	}
-
-	void ComboBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
-	{
-	}
-
-	void ComboBoxReactor::Focus(Graphics& graphics, const ArgFocus& args)
-	{
-	}
-
-	void ComboBoxReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
-	{
-
-	}
-
 	void ComboBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
 		bool redraw = false;
