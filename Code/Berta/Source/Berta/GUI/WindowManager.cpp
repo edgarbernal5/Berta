@@ -463,7 +463,9 @@ namespace Berta
 	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
 	{
 		if (!rootReactor)
+		{
 			return;
+		}
 
 		std::stack<Window*> stack;
 		auto current = rootReactor;

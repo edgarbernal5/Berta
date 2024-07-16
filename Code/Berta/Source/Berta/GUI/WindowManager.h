@@ -95,6 +95,7 @@ namespace Berta
 
 		MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 		MenuBarItemReactor* m_menuBarItemReactor{ nullptr };
+		bool m_keyboardCaptured{ false };
 	};
 }
 

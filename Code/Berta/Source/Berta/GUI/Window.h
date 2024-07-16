@@ -53,8 +53,8 @@ namespace Berta
 		std::shared_ptr<CommonEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr };
 
-		Window* Parent{ nullptr };
-		Window* Owner{ nullptr };
+		Window* Parent{ nullptr };		//A parent window is directly above a child window in the window hierarchy.
+		Window* Owner{ nullptr };		//An owner window is a window that is responsible for another window but not necessarily in a direct hierarchical manner.
 		std::vector<Window*> Children;
 
 		Window* RootWindow{ nullptr };
@@ -66,7 +66,6 @@ namespace Berta
 			bool IsDestroyed{ false };
 			bool MakeActive{ true };
 		}Flags;
-
 	};
 }
 

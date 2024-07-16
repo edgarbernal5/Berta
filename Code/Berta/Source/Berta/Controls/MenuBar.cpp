@@ -20,12 +20,12 @@ namespace Berta
 		m_module.m_rootMenuItemReactor = this;
 
 		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
+		{
+			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
 			{
-				if (!args.Focused && m_module.m_interactionData.m_activeMenu)
-				{
-					GUI::DisposeMenu(true);
-				}
-			});
+				GUI::DisposeMenu(true);
+			}
+		});
 	}
 
 	void MenuBarReactor::Update(Graphics& graphics)
@@ -204,7 +204,7 @@ namespace Berta
 		{
 			auto& itemData = *(items[i]);
 
-			if (Rectangle{ itemData.position , itemData.size}.IsInside(position))
+			if (Rectangle{ itemData.position, itemData.size}.IsInside(position))
 			{
 				return (int)i;
 			}

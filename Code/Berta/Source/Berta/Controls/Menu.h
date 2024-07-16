@@ -167,6 +167,8 @@ namespace Berta
 		void SetIgnoreFirstMouseUp(bool value);
 
 		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
+		void Popup();
+
 	private:
 #if BT_DEBUG
 		static int g_globalId;

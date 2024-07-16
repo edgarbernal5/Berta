@@ -37,7 +37,7 @@ namespace Berta
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
-			BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;
+			//BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;
 			delete m_menuBox;
 			m_menuBox = nullptr;
 
@@ -47,8 +47,7 @@ namespace Berta
 			}
 		});
 
-		m_menuBox->Show();
-		GUI::Capture(m_menuBox->Handle());
+		m_menuBox->Popup();
 	}
 
 	Menu* Menu::CreateSubMenu(std::size_t index)
@@ -586,6 +585,12 @@ namespace Berta
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
 		m_reactor.SetIgnoreFirstMouseUp(value);
+	}
+
+	void MenuBox::Popup()
+	{
+		GUI::Capture(m_handle);
+		Show();
 	}
 
 	void MenuItem::SetText(const std::wstring& text)
