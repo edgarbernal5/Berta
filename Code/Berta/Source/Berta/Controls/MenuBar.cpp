@@ -100,7 +100,7 @@ namespace Berta
 
 		if (m_module.m_interactionData.m_activeMenu)
 		{
-			if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
+			if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex && m_module.m_lastMousePosition != args.Position) // check last mouse position, or might be better if the keyboard is captured ?
 			{
 				if (m_module.m_interactionData.m_activeMenu->m_menuBox)
 				{
@@ -120,21 +120,13 @@ namespace Berta
 		{
 			if (selectedItem != m_module.m_interactionData.m_selectedItemIndex)
 			{
-				if (m_module.m_interactionData.m_activeMenu && selectedItem != -1)
-				{
-					m_module.m_interactionData.m_activeMenu = &m_module.m_items[selectedItem]->menu;
-					m_module.SelectIndex(selectedItem);
-				}
-				else if (!m_module.m_interactionData.m_activeMenu)
-				{
-					m_module.SelectIndex(selectedItem);
-				}
+				m_module.SelectIndex(selectedItem);
 
 				Update(graphics);
 				GUI::UpdateDeferred(m_module.m_owner);
 			}
 		}
-		
+		m_module.m_lastMousePosition = args.Position;
 	}
 
 	void MenuBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -229,15 +221,6 @@ namespace Berta
 		return m_interactionData.m_activeMenu->m_menuBox;
 	}
 
-	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
-	{
-		auto startIndex = m_items.size();
-		auto& newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
-		BuildItems(startIndex);
-
-		return newItem->menu;
-	}
-
 	void MenuBarReactor::Module::BuildItems(size_t startIndex)
 	{
 		if (startIndex >= m_items.size())
@@ -269,6 +252,15 @@ namespace Berta
 
 			offset.X += (int)itemSize.Width;
 		}
+	}
+
+	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
+	{
+		auto startIndex = m_items.size();
+		auto& newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
+		BuildItems(startIndex);
+
+		return newItem->menu;
 	}
 
 	MenuBar::MenuBar(Window* parent, const Rectangle& rectangle)

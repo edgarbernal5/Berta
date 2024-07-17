@@ -433,7 +433,7 @@ namespace Berta
 					}
 					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
 					{
-						//BT_CORE_DEBUG << " - keep track / name " << target->Name << ". hWnd " << hWnd << std::endl;
+						BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 						trackEvent.hwndTrack = hWnd;
 						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 						rootWindowData.IsTracking = true;
@@ -585,21 +585,23 @@ namespace Berta
 				bool shouldCaptureKeyboard = false;
 				if (argKeyboard.Key == KeyboardKey::ArrowUp)
 				{
-					activeMenuItemReactor->OnKeyUpPressed();
+					if (!isKeyReleased)
+						activeMenuItemReactor->OnKeyUpPressed();
 					shouldCaptureKeyboard = true;
 				}
 				else if (argKeyboard.Key == KeyboardKey::ArrowRight)
 				{
 					if (!activeMenuItemReactor->OnKeyRightPressed())
 					{
-						menuBarRootReactor->OnMBIMoveRight();
+						if (!isKeyReleased)
+							menuBarRootReactor->OnMBIMoveRight();
 						shouldCaptureKeyboard = true;
 					}
 				}
 
 				if (shouldCaptureKeyboard)
 				{
-
+					target = nullptr;
 				}
 			}
 

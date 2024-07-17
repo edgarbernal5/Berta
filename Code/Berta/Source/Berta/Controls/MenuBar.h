@@ -59,9 +59,9 @@ namespace Berta
 
 		struct Module
 		{
-			Menu& PushBack(const std::wstring& text);
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
+			Menu& PushBack(const std::wstring& text);
 			void OpenMenu(bool ignoreFirstMouseUp = true);
 			void SelectIndex(int index);
 
@@ -72,6 +72,7 @@ namespace Berta
 			std::vector<MenuBarItemData*> m_items;
 			InteractionData m_interactionData;
 			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
+			Point m_lastMousePosition{ -1,-1 };
 		};
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
