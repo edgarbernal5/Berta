@@ -74,7 +74,7 @@ namespace Berta
 		Point GetAbsolutePosition(Window* window);
 
 		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor);
-		std::pair<MenuBarItemReactor*, MenuItemReactor*> GetMenu(Window* window);
+		std::pair<MenuBarItemReactor*, MenuItemReactor*> GetMenu();
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);

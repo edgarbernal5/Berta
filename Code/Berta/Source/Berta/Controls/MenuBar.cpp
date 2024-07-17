@@ -148,6 +148,26 @@ namespace Berta
 		return false;
 	}
 
+	void MenuBarReactor::OnMBIMoveLeft()
+	{
+		if (!m_module.m_interactionData.m_activeMenu)
+		{
+			return;
+		}
+
+		int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
+		selectedItem = (selectedItem - 1 + m_module.m_items.size()) % m_module.m_items.size();
+		GUI::DisposeMenu(false);
+
+		m_module.SelectIndex(selectedItem);
+		m_module.OpenMenu(false);
+		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
+		GUI::SetMenu(this, this);
+
+		Update(m_module.m_owner->Renderer.GetGraphics());
+		GUI::RefreshWindow(m_module.m_owner);
+	}
+
 	void MenuBarReactor::OnMBIMoveRight()
 	{
 		if (!m_module.m_interactionData.m_activeMenu)
@@ -206,9 +226,10 @@ namespace Berta
 			SelectIndex(-1);
 
 			m_control->Handle()->Renderer.Update();
-			GUI::UpdateDeferred(*m_control);	
+			GUI::UpdateDeferred(*m_control);
 		};
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, ignoreFirstMouseUp, { 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height });
+		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
+		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

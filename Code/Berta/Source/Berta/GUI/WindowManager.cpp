@@ -424,7 +424,7 @@ namespace Berta
 		m_menuBarItemReactor = menuBarItemReactor;
 	}
 
-	std::pair<MenuBarItemReactor*, MenuItemReactor*> WindowManager::GetMenu(Window* window)
+	std::pair<MenuBarItemReactor*, MenuItemReactor*> WindowManager::GetMenu()
 	{
 		return std::make_pair(m_menuBarItemReactor, m_rootMenuItemReactor);
 	}

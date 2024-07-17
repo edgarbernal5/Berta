@@ -26,7 +26,9 @@ namespace Berta
 	public:
 		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
+		virtual void OnKeyDownPressed() = 0;
 		virtual void OnKeyUpPressed() = 0;
+		virtual bool OnKeyLeftPressed() = 0;
 		virtual bool OnKeyRightPressed() = 0;
 
 		virtual MenuItemReactor* Next() const { return m_next; }
@@ -49,6 +51,7 @@ namespace Berta
 	{
 	public:
 		virtual bool OnMBIKeyPressed(const ArgKeyboard& args) = 0;
+		virtual void OnMBIMoveLeft() = 0;
 		virtual void OnMBIMoveRight() = 0;
 
 	protected:
@@ -63,7 +66,7 @@ namespace Berta
 
 		void Append(const std::wstring& text, ClickCallback onClick);
 		void AppendSeparator();
-		void ShowPopup(Window* parent, const Point& position, bool ignoreFirstMouseUp = true, Rectangle menuBarItem={});
+		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true, Rectangle menuBarItem={});
 		Menu* CreateSubMenu(std::size_t index);
 		void SetEnabled(size_t index, bool enabled);
 
@@ -85,6 +88,7 @@ namespace Berta
 		std::vector<Item*> m_items;
 		MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
+		Menu* m_parentMenu{ nullptr };
 		DestroyCallback m_destroyCallback;
 
 		MenuBox* GetMenuBox() const { return m_menuBox; }
@@ -119,7 +123,9 @@ namespace Berta
 		bool OnClickSubMenu(const ArgMouse& args) override;
 		Window* Owner() const override;
 
+		void OnKeyDownPressed() override;
 		void OnKeyUpPressed() override;
+		bool OnKeyLeftPressed() override;
 		bool OnKeyRightPressed() override;
 
 		void SetItems(std::vector<Menu::Item*>& items);
@@ -157,7 +163,7 @@ namespace Berta
 	class MenuBox : public Control<MenuBoxReactor, RootEvents>
 	{
 	public:
-		MenuBox(Window* parent, const Rectangle& rectangle);
+		MenuBox(Window* parent, const Rectangle& rectangle, Menu* menuOwner);
 		~MenuBox();
 
 		void Init(std::vector<Menu::Item*>& items, const Rectangle& rect);

@@ -362,7 +362,7 @@ namespace Berta
 				}
 			}
 
-			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
 			if (menuItemReactor)
 			{
 				//TODO: a lo mejor se puede eliminar la dependencia con MenuItemReactor haciendo uso de Children de las Window
@@ -439,10 +439,7 @@ namespace Berta
 						rootWindowData.IsTracking = true;
 					}
 				}
-				
 			}
-
-			
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -573,39 +570,42 @@ namespace Berta
 			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 
 			auto target = window;
-			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
+			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
 			if (menuItemReactor && menuBarRootReactor)
 			{
-				auto activeMenuItemReactor = menuItemReactor;
-				while (activeMenuItemReactor->Next() != nullptr)
+				if (!isKeyReleased)
 				{
-					activeMenuItemReactor = activeMenuItemReactor->Next();
-				}
-
-				bool shouldCaptureKeyboard = false;
-				if (argKeyboard.Key == KeyboardKey::ArrowUp)
-				{
-					if (!isKeyReleased)
-						activeMenuItemReactor->OnKeyUpPressed();
-					shouldCaptureKeyboard = true;
-				}
-				else if (argKeyboard.Key == KeyboardKey::ArrowRight)
-				{
-					if (!activeMenuItemReactor->OnKeyRightPressed())
+					auto activeMenuItemReactor = menuItemReactor;
+					while (activeMenuItemReactor->Next() != nullptr)
 					{
-						if (!isKeyReleased)
+						activeMenuItemReactor = activeMenuItemReactor->Next();
+					}
+
+					if (argKeyboard.Key == KeyboardKey::ArrowUp)
+					{
+						activeMenuItemReactor->OnKeyUpPressed();
+					}
+					else if (argKeyboard.Key == KeyboardKey::ArrowDown)
+					{
+						activeMenuItemReactor->OnKeyDownPressed();
+					}
+					else if (argKeyboard.Key == KeyboardKey::ArrowLeft)
+					{
+						if (!activeMenuItemReactor->OnKeyLeftPressed())
+						{
+							menuBarRootReactor->OnMBIMoveLeft();
+						}
+					}
+					else if (argKeyboard.Key == KeyboardKey::ArrowRight)
+					{
+						if (!activeMenuItemReactor->OnKeyRightPressed())
+						{
 							menuBarRootReactor->OnMBIMoveRight();
-						shouldCaptureKeyboard = true;
+						}
 					}
 				}
-
-				if (shouldCaptureKeyboard)
-				{
-					target = nullptr;
-				}
 			}
-
-			if (target)
+			else
 			{
 				if (isKeyReleased)
 				{

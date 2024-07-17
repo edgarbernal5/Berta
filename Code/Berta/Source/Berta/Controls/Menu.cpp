@@ -26,12 +26,12 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* parentWindow, const Point& position, bool ignoreFirstMouseUp, Rectangle menuBarItem)
+	void Menu::ShowPopup(Window* owner, const Point& position, Menu* parentMenu, bool ignoreFirstMouseUp, Rectangle menuBarItem)
 	{
-		m_parentWindow = parentWindow;
+		m_parentWindow = owner;
 
-		auto boxSize = GetMenuBoxSize(parentWindow);
-		m_menuBox = new MenuBox(parentWindow, { position.X, position.Y, boxSize.Width, boxSize.Height });
+		auto boxSize = GetMenuBoxSize(owner);
+		m_menuBox = new MenuBox(owner, { position.X, position.Y, boxSize.Width, boxSize.Height }, this);
 		m_menuBox->Init(m_items, menuBarItem);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
@@ -55,7 +55,10 @@ namespace Berta
 		if (index >= 0 && index < m_items.size())
 		{
 			auto& menuItem = m_items.at(index);
-			menuItem->m_subMenu = new Menu();
+			if (!menuItem->m_subMenu)
+			{
+				menuItem->m_subMenu = new Menu();
+			}
 
 			return menuItem->m_subMenu;
 		}
@@ -242,10 +245,10 @@ namespace Berta
 
 	void MenuBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		auto window = m_control->Handle();
 		bool changes = MouseMoveInternal(args);
 		if (changes)
 		{
+			auto window = m_control->Handle();
 			Update(graphics);
 			GUI::UpdateDeferred(window);
 		}
@@ -262,6 +265,7 @@ namespace Berta
 		if (m_selectedIndex == -1)
 		{
 			bool found = false;
+			//TODO: acá también podríamos usar el árbol de "owner"s en vez del prev.
 			auto current = m_prev;
 			while (current)
 			{
@@ -323,6 +327,41 @@ namespace Berta
 		return m_control->Handle();
 	}
 
+	void MenuBoxReactor::OnKeyDownPressed()
+	{
+		if (m_items->empty())
+		{
+			return;
+		}
+		auto selectedIndex = m_selectedIndex;
+		if (selectedIndex == -1)
+		{
+			selectedIndex = 0;
+		}
+		else
+		{
+			selectedIndex = ((selectedIndex + 1) % m_items->size());
+		}
+		auto savedIndex = selectedIndex;
+		auto item = m_items->at(selectedIndex);
+		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
+		{
+			selectedIndex = ((selectedIndex + 1) % m_items->size());
+			if (selectedIndex == savedIndex)
+				break;
+
+			item = m_items->at(selectedIndex);
+		}
+
+		if (m_selectedIndex != selectedIndex)
+		{
+			m_selectedIndex = selectedIndex;
+
+			Update(m_control->Handle()->Renderer.GetGraphics());
+			GUI::RefreshWindow(m_control->Handle());
+		}
+	}
+
 	void MenuBoxReactor::OnKeyUpPressed()
 	{
 		if (m_items->empty())
@@ -332,7 +371,7 @@ namespace Berta
 		auto selectedIndex = m_selectedIndex;
 		if (selectedIndex == -1)
 		{
-			selectedIndex = m_items->size() - 1;
+			selectedIndex = static_cast<int>(m_items->size()) - 1;
 		}
 		else
 		{
@@ -356,6 +395,23 @@ namespace Berta
 			Update(m_control->Handle()->Renderer.GetGraphics());
 			GUI::RefreshWindow(m_control->Handle());
 		}
+	}
+
+	bool MenuBoxReactor::OnKeyLeftPressed()
+	{
+		if (m_items->empty() || m_selectedIndex == -1)
+		{
+			return false;
+		}
+		m_subMenuTimer.Stop();
+
+		if (m_control->Handle()->Owner) {
+
+			return false;
+
+		}
+
+		return true;
 	}
 
 	bool MenuBoxReactor::OnKeyRightPressed()
@@ -421,8 +477,12 @@ namespace Berta
 		int four = static_cast<int>(4 * window->DPIScaleFactor);
 		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
-		Point position{ pointInScreen.X + (int)m_control->GetSize().Width - four, pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y };
-		subMenu->ShowPopup(window, position, ignoreFirstMouseUp);
+		Point position
+		{ 
+			pointInScreen.X + (int)m_control->GetSize().Width - four,
+			pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y
+		};
+		subMenu->ShowPopup(window, position, nullptr, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
 		subMenu->m_menuBox->GetItemReactor()->Prev(this);
@@ -535,7 +595,7 @@ namespace Berta
 		return hasChanged;
 	}
 
-	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
+	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle, Menu* menuOwner)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
