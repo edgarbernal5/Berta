@@ -275,7 +275,6 @@ namespace Berta
 				}
 				current = current->Prev();
 			}
-			
 		}
 
 		size_t selectedIndex = static_cast<size_t>(m_selectedIndex);
@@ -298,27 +297,6 @@ namespace Berta
 		}
 
 		GUI::DisposeMenu(true);
-	}
-
-	bool MenuBoxReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
-	{
-		auto window = m_control->Handle();
-		if (!Rectangle{ window->Size }.IsInside(args.Position))
-			return false;
-
-		return true;
-	}
-
-	void MenuBoxReactor::OnMenuItemMouseMove(const ArgMouse& args)
-	{
-		auto window = m_control->Handle();
-
-		bool changes = MouseMoveInternal(args);
-		if (changes)
-		{
-			Update(window->Renderer.GetGraphics());
-			GUI::RefreshWindow(window);
-		}
 	}
 
 	bool MenuBoxReactor::OnClickSubMenu(const ArgMouse& args)

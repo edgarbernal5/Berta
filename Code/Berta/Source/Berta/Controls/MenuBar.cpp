@@ -98,21 +98,43 @@ namespace Berta
 	{
 		int selectedItem = m_module.FindItem(args.Position);
 
-		if (selectedItem != m_module.m_interactionData.m_selectedItemIndex)
+		if (m_module.m_interactionData.m_activeMenu)
 		{
-			if (m_module.m_interactionData.m_activeMenu && selectedItem != -1)
+			if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
 			{
-				m_module.m_interactionData.m_activeMenu = &m_module.m_items[selectedItem]->menu;
-				m_module.SelectIndex(selectedItem);
-			}
-			else if (!m_module.m_interactionData.m_activeMenu)
-			{
-				m_module.SelectIndex(selectedItem);
-			}
+				if (m_module.m_interactionData.m_activeMenu->m_menuBox)
+				{
+					GUI::DisposeMenu(false);
+				}
 
-			Update(graphics);
-			GUI::UpdateDeferred(m_module.m_owner);
+				m_module.SelectIndex(selectedItem);
+				m_module.OpenMenu(args.ButtonState.LeftButton);
+				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
+				GUI::SetMenu(this, this);
+
+				Update(m_module.m_owner->Renderer.GetGraphics());
+				GUI::RefreshWindow(m_module.m_owner);
+			}
 		}
+		else
+		{
+			if (selectedItem != m_module.m_interactionData.m_selectedItemIndex)
+			{
+				if (m_module.m_interactionData.m_activeMenu && selectedItem != -1)
+				{
+					m_module.m_interactionData.m_activeMenu = &m_module.m_items[selectedItem]->menu;
+					m_module.SelectIndex(selectedItem);
+				}
+				else if (!m_module.m_interactionData.m_activeMenu)
+				{
+					m_module.SelectIndex(selectedItem);
+				}
+
+				Update(graphics);
+				GUI::UpdateDeferred(m_module.m_owner);
+			}
+		}
+		
 	}
 
 	void MenuBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -152,43 +174,6 @@ namespace Berta
 
 		Update(m_module.m_owner->Renderer.GetGraphics());
 		GUI::RefreshWindow(m_module.m_owner);
-	}
-
-	bool MenuBarReactor::OnCheckMenuItemMouseMove(const ArgMouse& args)
-	{
-		if (m_module.m_items.empty() || !Rectangle{ m_module.m_owner->Size }.IsInside(args.Position))
-		{
-			return false;
-		}
-
-		auto& last = m_module.m_items.back();
-		if (args.Position.X >= last->position.X + (int)last->size.Width)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	void MenuBarReactor::OnMenuItemMouseMove(const ArgMouse& args)
-	{
-		int selectedItem = m_module.FindItem(args.Position);
-
-		if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex)
-		{
-			if (m_module.m_interactionData.m_activeMenu->m_menuBox)
-			{
-				GUI::DisposeMenu(false);
-			}
-
-			m_module.SelectIndex(selectedItem);
-			m_module.OpenMenu(args.ButtonState.LeftButton);
-			m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-			GUI::SetMenu(this, this);
-
-			Update(m_module.m_owner->Renderer.GetGraphics());
-			GUI::RefreshWindow(m_module.m_owner);
-		}
 	}
 
 	Window* MenuBarReactor::Owner() const

@@ -362,11 +362,12 @@ namespace Berta
 				}
 			}
 
-			bool usingMenu = false;
-			auto target = window;
 			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu(nativeWindow);
 			if (menuItemReactor)
 			{
+				//TODO: a lo mejor se puede eliminar la dependencia con MenuItemReactor haciendo uso de Children de las Window
+				//Se podría hackear que el hijo del menu bar sea el menu box, el hijo de un menu box sea otro menu box.
+				//También se puede usar el owner de los menu box.
 				do
 				{
 					auto currentWindow = menuItemReactor->Owner();
@@ -378,62 +379,70 @@ namespace Berta
 
 					::ScreenToClient(currentWindow->RootHandle.Handle, &screenToClientPoint);
 
-					ArgMouse argMouseMove;
-					argMouseMove.Position = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
-					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
 
-					menuItemReactor->OnMenuItemMouseMove(argMouseMove);
-					bool onNewMenuBarItem = menuItemReactor->OnCheckMenuItemMouseMove(argMouseMove);
-					//BT_CORE_DEBUG << " - MENU item reactor / name " << menuItemReactor->Owner()->Name << ". check " << onNewMenuBarItem << std::endl;
-					if (onNewMenuBarItem)
+					if (currentWindow->Size.IsInside(localPosition))
 					{
-						target = nullptr;
-						usingMenu = true;
+						ArgMouse argMouseMove;
+						argMouseMove.Position = localPosition;
+						argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+						//BT_CORE_DEBUG << " - MENU / name " << currentWindow->Name << std::endl;
+						currentWindow->Renderer.MouseMove(argMouseMove);
+						currentWindow->Events->MouseMove.Emit(argMouseMove);
+
+						break;
 					}
+					
 					menuItemReactor = menuItemReactor->Next();
 				} while (menuItemReactor);
 			}
-
-			if (target && target->Flags.IsEnabled && !target->Flags.IsDestroyed)
+			else
 			{
-				Point position = Point{ x, y } - windowManager.GetAbsolutePosition(target);
-				if (target != rootWindowData.Hovered && target->Size.IsInside(position))
+				if (window && window->Flags.IsEnabled && !window->Flags.IsDestroyed)
 				{
-					ArgMouse argMouseEnter;
-					argMouseEnter.Position = position;
-					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					Point position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+					if (window != rootWindowData.Hovered && window->Size.IsInside(position))
+					{
+						ArgMouse argMouseEnter;
+						argMouseEnter.Position = position;
+						argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << " - mouse enter / name " << target->Name << " .menu = " << usingMenu << ".hovered " << rootWindowData.Hovered << std::endl;
-					target->Renderer.MouseEnter(argMouseEnter);
-					target->Events->MouseEnter.Emit(argMouseEnter);
+						//BT_CORE_DEBUG << " - mouse enter / name " << target->Name << " .menu = " << usingMenu << ".hovered " << rootWindowData.Hovered << std::endl;
+						window->Renderer.MouseEnter(argMouseEnter);
+						window->Events->MouseEnter.Emit(argMouseEnter);
 
-					rootWindowData.Hovered = target;
+						rootWindowData.Hovered = window;
+					}
+
+					if (rootWindowData.Hovered)
+					{
+						ArgMouse argMouseMove;
+						argMouseMove.Position = position;
+						argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+						//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
+						window->Renderer.MouseMove(argMouseMove);
+						window->Events->MouseMove.Emit(argMouseMove);
+					}
+					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
+					{
+						//BT_CORE_DEBUG << " - keep track / name " << target->Name << ". hWnd " << hWnd << std::endl;
+						trackEvent.hwndTrack = hWnd;
+						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
+						rootWindowData.IsTracking = true;
+					}
 				}
-
-				if (/*!usingMenu &&*/ rootWindowData.Hovered)
-				{
-					ArgMouse argMouseMove;
-					argMouseMove.Position = position;
-					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
-					//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
-					target->Renderer.MouseMove(argMouseMove);
-					target->Events->MouseMove.Emit(argMouseMove);
-				}
-				if (!rootWindowData.IsTracking && window->Size.IsInside(position))
-				{
-					//BT_CORE_DEBUG << " - keep track / name " << target->Name << ". hWnd " << hWnd << std::endl;
-					trackEvent.hwndTrack = hWnd;
-					::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
-					rootWindowData.IsTracking = true;
-				}
+				
 			}
+
+			
 			break;
 		}
 		case WM_LBUTTONUP:

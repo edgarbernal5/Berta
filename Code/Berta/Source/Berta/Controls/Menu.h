@@ -20,11 +20,10 @@ namespace Berta
 	constexpr uint32_t ItemTextPadding = 2;
 	constexpr uint32_t SeparatorHeight = 3;
 
+	//TODO: eliminar esta clase.
 	class MenuItemReactor
 	{
 	public:
-		virtual bool OnCheckMenuItemMouseMove(const ArgMouse& args) = 0;
-		virtual void OnMenuItemMouseMove(const ArgMouse& args) = 0;
 		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
 		virtual void OnKeyUpPressed() = 0;
@@ -117,8 +116,6 @@ namespace Berta
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		
-		bool OnCheckMenuItemMouseMove(const ArgMouse& args) override;
-		void OnMenuItemMouseMove(const ArgMouse& args) override;
 		bool OnClickSubMenu(const ArgMouse& args) override;
 		Window* Owner() const override;
 
