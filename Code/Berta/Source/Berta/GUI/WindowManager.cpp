@@ -80,11 +80,11 @@ namespace Berta
 		{
 			auto child = window->Children[i];
 			DestroyInternal(child);
-			//delete child; //TODO: make it shared ptr (Window*)
+			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method here (when WM_NCDESTROY is sent)
 		}
 		window->Children.clear();
 
-		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			ReleaseCapture(m_capture.WindowPtr);
@@ -192,6 +192,7 @@ namespace Berta
 
 	void WindowManager::Capture(Window* window)
 	{
+		BT_CORE_TRACE << "Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr != window)
 		{
 			if (Exists(window))

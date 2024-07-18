@@ -128,7 +128,9 @@ namespace Berta
 		bool OnKeyLeftPressed() override;
 		bool OnKeyRightPressed() override;
 
+		Menu* GetMenuOwner() const { return m_menuOwner; }
 		void SetItems(std::vector<Menu::Item*>& items);
+		void SetMenuOwner(Menu* menuOwner);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 		void SetMenuBarItemRect(const Rectangle& rect) { m_menuBarItemRect = rect; }
 
@@ -144,11 +146,12 @@ namespace Berta
 			Open,
 			Close
 		};
-		void OpenSubMenu(Menu* subMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
+		void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
 		int FindItem(const ArgMouse& args);
 		bool MouseMoveInternal(const ArgMouse& args);
 
 		MenuBox* m_control{ nullptr };
+		Menu* m_menuOwner{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
 		Rectangle m_menuBarItemRect{  };
 		std::vector<Menu::Item*>* m_items{ nullptr };
@@ -163,10 +166,10 @@ namespace Berta
 	class MenuBox : public Control<MenuBoxReactor, RootEvents>
 	{
 	public:
-		MenuBox(Window* parent, const Rectangle& rectangle, Menu* menuOwner);
+		MenuBox(Window* parent, const Rectangle& rectangle);
 		~MenuBox();
 
-		void Init(std::vector<Menu::Item*>& items, const Rectangle& rect);
+		void Init(Menu* menuOwner, std::vector<Menu::Item*>& items, const Rectangle& rect);
 		void SetIgnoreFirstMouseUp(bool value);
 
 		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }

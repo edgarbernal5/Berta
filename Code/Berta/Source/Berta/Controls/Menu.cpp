@@ -31,8 +31,8 @@ namespace Berta
 		m_parentWindow = owner;
 
 		auto boxSize = GetMenuBoxSize(owner);
-		m_menuBox = new MenuBox(owner, { position.X, position.Y, boxSize.Width, boxSize.Height }, this);
-		m_menuBox->Init(m_items, menuBarItem);
+		m_menuBox = new MenuBox(owner, { position.X, position.Y, boxSize.Width, boxSize.Height });
+		m_menuBox->Init(this, m_items, menuBarItem);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
@@ -138,7 +138,7 @@ namespace Berta
 				if (!subMenu->m_menuBox)
 				{
 					m_openedSubMenuIndex = m_selectedSubMenuIndex;
-					OpenSubMenu(subMenu, m_openedSubMenuIndex, false);
+					OpenSubMenu(subMenu, m_menuOwner, m_openedSubMenuIndex, false);
 					m_subMenuTimer.Stop();
 				}
 			}
@@ -237,7 +237,7 @@ namespace Berta
 			{
 				m_selectedSubMenuIndex = m_selectedIndex;
 				m_openedSubMenuIndex = m_selectedIndex;
-				OpenSubMenu(subMenu, m_selectedIndex);
+				OpenSubMenu(subMenu, m_menuOwner, m_selectedIndex);
 				m_subMenuTimer.Stop();
 			}
 		}
@@ -265,7 +265,7 @@ namespace Berta
 		if (m_selectedIndex == -1)
 		{
 			bool found = false;
-			//TODO: acá también podríamos usar el árbol de "owner"s en vez del prev.
+			//TODO: acá también podríamos usar el árbol de "owner"s/parent_menu en vez del prev.
 			auto current = m_prev;
 			while (current)
 			{
@@ -399,19 +399,19 @@ namespace Berta
 
 	bool MenuBoxReactor::OnKeyLeftPressed()
 	{
-		if (m_items->empty() || m_selectedIndex == -1)
+		m_subMenuTimer.Stop();
+		if (m_menuOwner->m_parentMenu == nullptr && (m_items->empty() || m_selectedIndex == -1))
 		{
 			return false;
 		}
-		m_subMenuTimer.Stop();
 
-		if (m_control->Handle()->Owner) {
-
-			return false;
+		if (m_menuOwner->m_parentMenu) {
+			GUI::DisposeMenu(this);
+			return true;
 
 		}
 
-		return true;
+		return false;
 	}
 
 	bool MenuBoxReactor::OnKeyRightPressed()
@@ -427,7 +427,7 @@ namespace Berta
 		}
 		m_openedSubMenuIndex = m_selectedIndex;
 		m_selectedSubMenuIndex = m_selectedIndex;
-		OpenSubMenu(item->m_subMenu, m_openedSubMenuIndex, false);
+		OpenSubMenu(item->m_subMenu, m_menuOwner, m_openedSubMenuIndex, false);
 		m_subMenuTimer.Stop();
 
 		return true;
@@ -470,29 +470,33 @@ namespace Berta
 		}
 	}
 
-	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, int selectedIndex, bool ignoreFirstMouseUp)
+	void MenuBoxReactor::SetMenuOwner(Menu* menuOwner)
+	{
+		m_menuOwner = menuOwner;
+	}
+
+	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
 	{
 		auto window = m_control->Handle();
 		int two = static_cast<int>(2 * window->DPIScaleFactor);
 		int four = static_cast<int>(4 * window->DPIScaleFactor);
 		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
+		subMenu->m_parentMenu = parentMenu;
+
 		Point position
 		{ 
 			pointInScreen.X + (int)m_control->GetSize().Width - four,
 			pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y
 		};
-		subMenu->ShowPopup(window, position, nullptr, ignoreFirstMouseUp);
+		subMenu->ShowPopup(window, position, m_menuOwner, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
 		subMenu->m_menuBox->GetItemReactor()->Prev(this);
 		subMenu->m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& args)
 		{
-			if (m_openedSubMenuIndex == -1)
-				BT_CORE_DEBUG << "ya esta..." << std::endl;
-			else
-				BT_CORE_DEBUG << "NNNOOOOO ya esta..." << std::endl;
 			m_openedSubMenuIndex = -1;
+			m_next = nullptr;
 		});
 	}
 
@@ -595,7 +599,7 @@ namespace Berta
 		return hasChanged;
 	}
 
-	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle, Menu* menuOwner)
+	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
@@ -614,10 +618,11 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(std::vector<Menu::Item*>& items, const Rectangle& rect)
+	void MenuBox::Init(Menu* menuOwner, std::vector<Menu::Item*>& items, const Rectangle& rect)
 	{
 		m_reactor.SetItems(items);
 		m_reactor.SetMenuBarItemRect(rect);
+		m_reactor.SetMenuOwner(menuOwner);
 	}
 
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
