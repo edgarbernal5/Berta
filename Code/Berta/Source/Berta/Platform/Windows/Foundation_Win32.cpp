@@ -664,7 +664,11 @@ namespace Berta
 			break;
 		}
 		}
-
+		//TODO: no se si es mejor tener una lista global de peticiones en vez de por ventana nativa. Asi se estaria actualizando todo al mismo tiempo
+		//(cuando se manipulan menu's es un caso especial, cada menu es una ventana nativa que es diferente a la ventana emisora.
+		//Otra cosa que hay que mejorar es no repetir dos solicitudes para la misma ventana en el mismo "tick"
+		//Otra mejora: solo actualizar el segmento (rectangulo) que necesita cambiar (por ejemplo al moverse dentro de un menu solo se deberia actualizar el rectangulo
+		//del nuevo elemento seleccionado y no todo el menu
 		windowManager.UpdateDeferredRequests(nativeWindow);
 
 		if (defaultToWindowProc)
