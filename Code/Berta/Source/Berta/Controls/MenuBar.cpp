@@ -138,6 +138,11 @@ namespace Berta
 		m_module.BuildItems();
 	}
 
+	void MenuBarReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
+	{
+
+	}
+
 	bool MenuBarReactor::OnMBIKeyPressed(const ArgKeyboard& args)
 	{
 		if (args.Key == KeyboardKey::ArrowUp && m_next)
