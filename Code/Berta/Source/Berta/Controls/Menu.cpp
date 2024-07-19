@@ -405,10 +405,10 @@ namespace Berta
 			return false;
 		}
 
-		if (m_menuOwner->m_parentMenu) {
+		if (m_menuOwner->m_parentMenu)
+		{
 			GUI::DisposeMenu(this);
 			return true;
-
 		}
 
 		return false;

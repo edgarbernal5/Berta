@@ -26,9 +26,9 @@ int main()
 	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
 	menuFile.AppendSeparator();
 	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
-		{
-			std::cout << "EXITO" << std::endl;
-		});
+	{
+		std::cout << "EXITO" << std::endl;
+	});
 
 	menuFile.SetEnabled(1, false);
 

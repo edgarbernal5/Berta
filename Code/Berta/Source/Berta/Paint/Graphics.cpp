@@ -291,10 +291,14 @@ namespace Berta
 		}
 
 		if (hPen)
+		{
 			::DeleteObject(hPen);
+		}
 
 		if (brush)
+		{
 			::DeleteObject(brush);
+		}
 #endif
 	}
 
@@ -342,7 +346,9 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc || wstr.size() == 0)
+		{
 			return {};
+		}
 
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		::SIZE nativeSize;
@@ -363,7 +369,9 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
+		{
 			return {};
+		}
 
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		::SIZE nativeSize;
@@ -383,7 +391,6 @@ namespace Berta
 	void Graphics::Release()
 	{
 		m_attributes.reset();
-
 	}
 
 	Graphics::NativeAttributes::~NativeAttributes()

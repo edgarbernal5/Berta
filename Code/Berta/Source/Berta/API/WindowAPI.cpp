@@ -112,7 +112,7 @@ namespace Berta
 			{
 				std::wstring result(length + 1, L'\0');
 				::GetWindowText(nativeHandle.Handle, result.data(), length + 1);
-				result.resize(length); // remove extra null character
+				result.resize(length);
 				return result;
 			}
 #else

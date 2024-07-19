@@ -603,6 +603,10 @@ namespace Berta
 							menuBarRootReactor->OnMBIMoveRight();
 						}
 					}
+					else if (argKeyboard.Key == KeyboardKey::Enter)
+					{
+
+					}
 				}
 			}
 			else

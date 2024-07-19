@@ -490,10 +490,14 @@ namespace Berta
 		}
 
 		if (currentPosition < 0)
+		{
 			return 0;
+		}
 
 		if (static_cast<size_t>(currentPosition) >= m_content.size())
+		{
 			return m_content.size();
+		}
 
 		int64_t contentSize = static_cast<int64_t>(m_content.size());
 		auto p = currentPosition;

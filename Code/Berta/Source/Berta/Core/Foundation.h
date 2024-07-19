@@ -33,8 +33,6 @@ namespace Berta
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		void ProcessMessages();
 
-		//void SetMenu(Menu* menu);
-
 		static Foundation& GetInstance();
 
 	private:
