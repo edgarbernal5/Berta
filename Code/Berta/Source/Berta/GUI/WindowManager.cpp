@@ -51,10 +51,12 @@ namespace Berta
 
 		if (window->Parent)
 		{
+			BT_CORE_DEBUG << "  Window " << window << " has parent ." << window->Parent << std::endl;
 			for (size_t i = 0; i < window->Parent->Children.size(); i++)
 			{
 				if (window->Parent->Children[i] == window)
 				{
+					BT_CORE_DEBUG << "    - Child index " << i << std::endl;
 					window->Parent->Children.erase(window->Parent->Children.begin() + i);
 					break;
 				}
@@ -79,6 +81,7 @@ namespace Berta
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
 			auto child = window->Children[i];
+			BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
 			DestroyInternal(child);
 			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method here (when WM_NCDESTROY is sent)
 		}

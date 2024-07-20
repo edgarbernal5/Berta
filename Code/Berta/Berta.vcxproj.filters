@@ -156,6 +156,12 @@
     <ClInclude Include="Source\Berta\GUI\ControlWindow.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\MenuManager.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Image.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -241,6 +247,12 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Window.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\MenuManager.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Image.cpp">
+      <Filter>Source\Berta\Paint</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

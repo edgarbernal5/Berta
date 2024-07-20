@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\GUI\MenuManager.h" />
     <ClInclude Include="Source\Berta\Controls\Menu.h" />
     <ClInclude Include="Source\Berta\Controls\MenuBar.h" />
     <ClInclude Include="Source\Berta\Controls\ScrollBar.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="Source\Berta\Core\Log.h" />
     <ClInclude Include="Source\Berta\Core\Logger.h" />
     <ClInclude Include="Source\Berta\EntryPoint.h" />
+    <ClInclude Include="Source\Berta\Paint\Image.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\Messages.h" />
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\GUI\Control.h" />
@@ -177,6 +179,7 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\GUI\MenuManager.cpp" />
     <ClCompile Include="Source\Berta\Controls\Menu.cpp" />
     <ClCompile Include="Source\Berta\Controls\ComboBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Floating\FloatBox.cpp" />
@@ -197,6 +200,7 @@
     <ClCompile Include="Source\Berta\GUI\Control.cpp" />
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
     <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
+    <ClCompile Include="Source\Berta\Paint\Image.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />
     <ClCompile Include="Source\Berta\Controls\Form.cpp" />

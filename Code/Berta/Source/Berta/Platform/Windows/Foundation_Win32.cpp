@@ -19,6 +19,12 @@
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
 
+#if BT_DEBUG
+#ifndef BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES
+#endif // !BT_PRINT_WND_MESSAGES
+#endif
+
 namespace Berta
 {
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
@@ -84,7 +90,7 @@ namespace Berta
 		}
 	}
 
-#ifdef BT_DEBUG
+#ifdef BT_PRINT_WND_MESSAGES
 	uint32_t g_debugLastMessageId{};
 	uint32_t g_debugLastMessageCount{0};
 	std::map<uint32_t, std::string> g_debugWndMessages
@@ -138,7 +144,7 @@ namespace Berta
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
-#ifdef BT_DEBUG
+#ifdef BT_PRINT_WND_MESSAGES
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
@@ -365,9 +371,7 @@ namespace Berta
 			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
 			if (menuItemReactor)
 			{
-				//TODO: a lo mejor se puede eliminar la dependencia con MenuItemReactor haciendo uso de Children de las Window
-				//Se podría hackear que el hijo del menu bar sea el menu box, el hijo de un menu box sea otro menu box.
-				//También se puede usar el owner de los menu box.
+				//TODO se puede usar el owner de los menu box.
 				do
 				{
 					auto currentWindow = menuItemReactor->Owner();
