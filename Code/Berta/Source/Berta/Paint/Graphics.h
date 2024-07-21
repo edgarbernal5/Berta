@@ -58,6 +58,8 @@ namespace Berta
 
 		void Swap(Graphics& other);
 		void Release();
+
+		friend class Image;
 	private:
 
 #ifdef BT_PLATFORM_WINDOWS

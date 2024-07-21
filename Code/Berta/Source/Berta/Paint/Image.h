@@ -8,7 +8,7 @@
 #define BT_IMAGE_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include <filesystem>
+#include "Berta/Core/Base.h"
 
 namespace Berta
 {
@@ -17,12 +17,25 @@ namespace Berta
 	class Image
 	{
 	public:
-		Image(const std::filesystem::path& filepath);
+		Image() = default;
+		Image(const std::string& filepath);
 		~Image();
 
-		void Open(const std::filesystem::path& filepath);
+		void Open(const std::string& filepath);
 		void Paste(Graphics& destination, const Point& positionDestination);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
+
 	private:
+		struct NativeAttributes
+		{
+			Size m_size{};
+			int m_channels{0};
+			HDC m_hdc{ nullptr };
+			HBITMAP hBitmap{ nullptr };
+
+		};
+		unsigned char* m_imageData{ nullptr };
+		std::unique_ptr<NativeAttributes> m_attributes;
 	};
 }
 

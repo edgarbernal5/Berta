@@ -53,7 +53,7 @@ int main()
 	});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height});
 
-	Berta::Label label(form, { 50,35,130,40 }, L"Hello world!");
+	Berta::Label label(form, { 50,35,130,90 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 	label.SetDebugName("Label");
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)

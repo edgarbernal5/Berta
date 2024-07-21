@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Paint/Image.h"
 #include <string>
 
 namespace Berta
@@ -21,6 +22,7 @@ namespace Berta
 
 	private:
 		ControlBase* m_control{ nullptr };
+		Image m_image;
 	};
 
 	class Label : public Control<LabelReactor>

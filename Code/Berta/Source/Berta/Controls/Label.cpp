@@ -14,6 +14,7 @@ namespace Berta
 	void LabelReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
+		m_image.Open("D:\\repos\\Berta\\Resources\\Escudo.png");
 	}
 
 	void LabelReactor::Update(Graphics& graphics)
@@ -21,6 +22,8 @@ namespace Berta
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
 		graphics.DrawString({ 0,0 }, m_control->GetCaption(), window->Appereance->Foreground);
+
+		m_image.Paste(graphics, { 0, 0 });
 	}
 
 	Label::Label(Window* parent, const Rectangle& rectangle, std::wstring text)
