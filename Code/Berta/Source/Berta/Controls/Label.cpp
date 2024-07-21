@@ -15,6 +15,7 @@ namespace Berta
 	{
 		m_control = &control;
 		m_image.Open("D:\\repos\\Berta\\Resources\\Escudo.png");
+		//m_image.Open("D:\\repos\\Berta\\Resources\\Icono.jpg");
 	}
 
 	void LabelReactor::Update(Graphics& graphics)

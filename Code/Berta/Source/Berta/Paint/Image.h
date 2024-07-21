@@ -28,13 +28,13 @@ namespace Berta
 	private:
 		struct NativeAttributes
 		{
-			Size m_size{};
-			int m_channels{0};
 			HDC m_hdc{ nullptr };
 			HBITMAP hBitmap{ nullptr };
-
 		};
 		unsigned char* m_imageData{ nullptr };
+		Size m_size{};
+		int m_channels{ 0 };
+		bool m_hasTransparency{ false };
 		std::unique_ptr<NativeAttributes> m_attributes;
 	};
 }
