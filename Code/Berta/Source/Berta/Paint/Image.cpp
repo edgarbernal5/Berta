@@ -86,7 +86,7 @@ namespace Berta
 		if (m_hasTransparency)
 		{
 			auto totalBytes = static_cast<size_t>(width * height * 4);
-			for (size_t i = 0; i < totalBytes; i += sizeof(unsigned char) * 4)
+			for (size_t i = 0; i < totalBytes; i += 4)
 			{
 				m_imageData[i] = imageData[i + 2];
 				m_imageData[i + 1] = imageData[i + 1];
@@ -97,7 +97,7 @@ namespace Berta
 		else
 		{
 			auto totalBytes = static_cast<size_t>(width * height * 3);
-			for (size_t i = 0; i < totalBytes; i += sizeof(unsigned char) * 3)
+			for (size_t i = 0; i < totalBytes; i += 3)
 			{
 				m_imageData[i] = imageData[i + 2];
 				m_imageData[i + 1] = imageData[i + 1];
