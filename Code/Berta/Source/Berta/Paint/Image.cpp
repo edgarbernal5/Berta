@@ -30,24 +30,40 @@ namespace Berta
 		}
 		if (m_attributes)
 		{
-			if (m_attributes->hBitmap)
+#if BT_PLATFORM_WINDOWS
+			if (m_attributes->m_hBitmap)
 			{
-				::DeleteObject(m_attributes->hBitmap);
-				m_attributes->hBitmap = nullptr;
+				::DeleteObject(m_attributes->m_hBitmap);
+				m_attributes->m_hBitmap = nullptr;
 			}
 			if (m_attributes->m_hdc)
 			{
 				::DeleteDC(m_attributes->m_hdc);
 				m_attributes->m_hdc = nullptr;
 			}
+			if (m_attributes->m_hIcon) {
+				::DestroyIcon(m_attributes->m_hIcon);
+				m_attributes->m_hIcon = nullptr;
+			}
+#endif
+			m_attributes.reset();
 		}
 	}
 
 	void Image::Open(const std::string& filepath)
 	{
+#if BT_PLATFORM_WINDOWS
+		std::filesystem::path path{ filepath };
+		if (path.has_extension() && path.extension() == ".ico")
+		{
+			OpenIcon(filepath);
+			return;
+		}
+		m_isIcon = false;
+#endif
+
 		int width, height, channels;
 		unsigned char* imageData = stbi_load(filepath.c_str(), &width, &height, &channels, 0); // Don't force RGBA
-		//unsigned char* imageData = stbi_load(filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 		if (imageData == nullptr)
 		{
 			BT_CORE_ERROR << "Failed to load image: " << filepath << std::endl;
@@ -105,10 +121,32 @@ namespace Berta
 			}
 		}
 
-		m_attributes->hBitmap = hBitmap;
+		m_attributes->m_hBitmap = hBitmap;
 		m_attributes->m_hdc = hMemDC;
 
 		::ReleaseDC(0, hdc);
+	}
+
+	void Image::OpenIcon(const std::string& filepath)
+	{
+		m_isIcon = true;
+
+		std::filesystem::path path{ filepath };
+		auto hIcon = (HICON)LoadImage(
+			NULL,                 // HINSTANCE: Handle to the instance of the module that contains the image
+			path.c_str(),     // Image file path
+			IMAGE_ICON,           // Image type: IMAGE_ICON
+			0,                    // Desired width (0 to use actual width)
+			0,                    // Desired height (0 to use actual height)
+			LR_LOADFROMFILE | LR_DEFAULTSIZE // Load flags
+		);
+
+		if (!hIcon) {
+			BT_CORE_ERROR << "Failed to load icon: " << GetLastError() << std::endl;
+		}
+
+		m_attributes.reset(new NativeAttributes());
+		m_attributes->m_hIcon = hIcon;
 	}
 
 	void Image::Paste(Graphics& destination, const Point& positionDestination)
@@ -118,13 +156,32 @@ namespace Berta
 
 	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
 	{
-		if (!m_attributes->hBitmap)
+		if (!m_attributes)
 		{
 			return;
 		}
+
+#if BT_PLATFORM_WINDOWS
 		HDC& destDC = destination.m_attributes->m_hdc;
-		
-		HBITMAP hOldBitmap = (HBITMAP)SelectObject(m_attributes->m_hdc, m_attributes->hBitmap);
+
+		if (m_isIcon)
+		{
+			::DrawIconEx(
+				destDC,					// HDC: Handle to device context
+				positionDestination.X,	// X-coordinate of the upper-left corner
+				positionDestination.Y,	// Y-coordinate of the upper-left corner
+				m_attributes->m_hIcon,	// HICON: Handle to the icon to draw
+				sourceRect.Width,		// Width of the icon
+				sourceRect.Height,		// Height of the icon
+				0,						// Frame index for animated icons (0 for single icons)
+				NULL,					// Handle to a background brush (NULL if no background)
+				DI_NORMAL				// Drawing flags
+			);
+
+			return;
+		}
+
+		HBITMAP hOldBitmap = (HBITMAP)SelectObject(m_attributes->m_hdc, m_attributes->m_hBitmap);
 		if (m_hasTransparency)
 		{
 			// Set up alpha blending
@@ -161,5 +218,6 @@ namespace Berta
 				DIB_RGB_COLORS);
 		}
 		::SelectObject(m_attributes->m_hdc, hOldBitmap);
+#endif
 	}
 }

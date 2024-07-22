@@ -225,7 +225,7 @@ namespace Berta
 
 	void MenuBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		//BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
+		BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
 	}
 
 	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)

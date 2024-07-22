@@ -28,13 +28,22 @@ namespace Berta
 	private:
 		struct NativeAttributes
 		{
+#if BT_PLATFORM_WINDOWS
 			HDC m_hdc{ nullptr };
-			HBITMAP hBitmap{ nullptr };
+			HBITMAP m_hBitmap{ nullptr };
+			HICON m_hIcon{ nullptr };
+#endif
 		};
+		void OpenIcon(const std::string& filepath);
+
 		unsigned char* m_imageData{ nullptr };
 		Size m_size{};
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };
+
+#if BT_PLATFORM_WINDOWS
+		bool m_isIcon{ false };
+#endif
 		std::unique_ptr<NativeAttributes> m_attributes;
 	};
 }
