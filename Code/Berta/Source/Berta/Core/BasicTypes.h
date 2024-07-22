@@ -158,9 +158,9 @@ namespace Berta
 		}
 
 		Size operator-(const Size& size) const;
-		Size operator*(float s) const;
-		Size& operator*= (uint32_t s) noexcept;
-		Size& operator/= (uint32_t s) noexcept;
+		Size operator*(float scalar) const;
+		Size& operator*= (uint32_t scalar) noexcept;
+		Size& operator/= (uint32_t scalar) noexcept;
 
 		Rectangle ToRectangle() const;
 		bool IsInside(const Point& point) const;

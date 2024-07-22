@@ -60,22 +60,22 @@ namespace Berta
 		return { Width - other.Width, Height - other.Height };
 	}
 
-	Size Size::operator*(float other) const
+	Size Size::operator*(float scalar) const
 	{
-		return { static_cast<uint32_t>(Width * other), static_cast<uint32_t>(Height * other) };
+		return { static_cast<uint32_t>(Width * scalar), static_cast<uint32_t>(Height * scalar) };
 	}
 
-	Size& Size::operator*=(uint32_t s) noexcept
+	Size& Size::operator*=(uint32_t scalar) noexcept
 	{
-		Width *= s;
-		Height *= s;
+		Width *= scalar;
+		Height *= scalar;
 		return *this;
 	}
 
-	Size& Size::operator/=(uint32_t s) noexcept
+	Size& Size::operator/=(uint32_t scalar) noexcept
 	{
-		Width /= s;
-		Height /= s;
+		Width /= scalar;
+		Height /= scalar;
 		return *this;
 	}
 

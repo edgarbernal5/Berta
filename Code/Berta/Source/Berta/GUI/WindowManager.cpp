@@ -47,7 +47,9 @@ namespace Berta
 	void WindowManager::Destroy(Window* window)
 	{
 		if (!Exists(window))
+		{
 			return;
+		}
 
 		if (window->Parent)
 		{
@@ -81,13 +83,13 @@ namespace Berta
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
 			auto child = window->Children[i];
-			BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
+			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
 			DestroyInternal(child);
 			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method here (when WM_NCDESTROY is sent)
 		}
 		window->Children.clear();
 
-		BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			ReleaseCapture(m_capture.WindowPtr);

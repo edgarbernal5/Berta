@@ -63,7 +63,9 @@ namespace Berta
 			virtual void Destroy() override
 			{
 				if (m_isDestroyed)
+				{
 					return;
+				}
 
 				m_isDestroyed = true;
 				m_control.NotifyDestroy();
@@ -82,7 +84,7 @@ namespace Berta
 		virtual void DoOnSize(const Size& newSize);
 		virtual Size DoOnSize() const;
 
-		virtual void NotifyDestroy()
+		void NotifyDestroy()
 		{
 			m_handle = nullptr;
 			DoOnNotifyDestroy();

@@ -39,7 +39,7 @@ namespace Berta
 	class Button : public Control<ButtonReactor>
 	{
 	public:
-		Button(Window* parent, const Rectangle& rectangle, std::wstring text);
+		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text);
 	};
 }
 

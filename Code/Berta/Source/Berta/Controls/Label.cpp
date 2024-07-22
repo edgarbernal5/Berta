@@ -14,9 +14,9 @@ namespace Berta
 	void LabelReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
-		//m_image.Open("..\\..\\Resources\\Escudo.png");
+		m_image.Open("..\\..\\Resources\\Escudo.png");
 		//m_image.Open("..\\..\\Resources\\Icono.jpg");
-		m_image.Open("..\\..\\Resources\\Icons\\Game.ico");
+		//m_image.Open("..\\..\\Resources\\Icons\\Game.ico");
 	}
 
 	void LabelReactor::Update(Graphics& graphics)

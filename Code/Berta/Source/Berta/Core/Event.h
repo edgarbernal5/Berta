@@ -24,22 +24,22 @@ namespace Berta
         using Handler = std::function<void(const Argument&)>;
 
     public:
-        Event() : data(std::make_shared<Data>()) {}
+        Event() : m_data(std::make_shared<Data>()) {}
         Event(Event&& other) : Event() { *this = std::move(other); }
         Event(const Event&) = default;
 
         Event& operator=(const Event&) = default;
         Event& operator=(Event&& other)
         {
-            std::swap(data, other.data);
+            std::swap(m_data, other.m_data);
             return *this;
         }
 
     private:
         struct StoredHandler
         {
-            EventHandlerId id;
-            std::shared_ptr<Handler> callback;
+            EventHandlerId Id;
+            std::shared_ptr<Handler> Callback;
         };
 
         using HandlerList = std::vector<StoredHandler>;
@@ -47,17 +47,17 @@ namespace Berta
         struct Data
         {
             EventHandlerId IdCounter = 0;
-            HandlerList observers;
-            std::mutex observerMutex;
+            HandlerList Observers;
+            std::mutex ObserverMutex;
         };
 
-        std::shared_ptr<Data> data;
+        std::shared_ptr<Data> m_data;
 
         EventHandlerId AddHandler(Handler h) const
         {
-            std::lock_guard<std::mutex> lock(data->observerMutex);
-            data->observers.emplace_back(StoredHandler{ data->IdCounter, std::make_shared<Handler>(h) });
-            return data->IdCounter++;
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(h) });
+            return m_data->IdCounter++;
         }
 
     public:
@@ -68,39 +68,39 @@ namespace Berta
 
         void Disconnect(EventHandlerId id) const
         {
-            std::lock_guard<std::mutex> lock(data->observerMutex);
-            auto it = std::find_if(data->observers.begin(), data->observers.end(),
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            auto it = std::find_if(m_data->Observers.begin(), m_data->Observers.end(),
                 [&](auto& o)
                 {
                     return o.id == id;
                 });
 
-            if (it != data->observers.end())
+            if (it != m_data->Observers.end())
             {
-                data->observers.erase(it);
+                m_data->Observers.erase(it);
             }
         }
 
         size_t Length() const
         {
-            std::lock_guard<std::mutex> lock(data->observerMutex);
-            return data->observers.size();
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            return m_data->Observers.size();
         }
 
         void Reset() const
         {
-            std::lock_guard<std::mutex> lock(data->observerMutex);
-            data->observers.clear();
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            m_data->Observers.clear();
         }
 
         void Emit(Argument& args) const
         {
             std::vector<std::weak_ptr<Handler>> handlers;
             {
-                std::lock_guard<std::mutex> lock(data->observerMutex);
-                handlers.resize(data->observers.size());
-                std::transform(data->observers.begin(), data->observers.end(), handlers.begin(),
-                    [](auto& h) { return h.callback; });
+                std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+                handlers.resize(m_data->Observers.size());
+                std::transform(m_data->Observers.begin(), m_data->Observers.end(), handlers.begin(),
+                    [](auto& h) { return h.Callback; });
             }
 
             for (auto& weakCallback : handlers)
