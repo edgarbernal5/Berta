@@ -41,13 +41,49 @@ namespace Berta
 				::DeleteDC(m_attributes->m_hdc);
 				m_attributes->m_hdc = nullptr;
 			}
-			if (m_attributes->m_hIcon) {
+			if (m_attributes->m_hIcon)
+			{
 				::DestroyIcon(m_attributes->m_hIcon);
 				m_attributes->m_hIcon = nullptr;
 			}
 #endif
 			m_attributes.reset();
 		}
+	}
+
+	Image::operator bool() const
+	{
+		return m_attributes.get() != nullptr;
+	}
+
+	Image& Image::operator=(const Image& rhs)
+	{
+		if (this != &rhs)
+		{
+			m_attributes = rhs.m_attributes;
+			m_size = rhs.m_size;
+			m_channels = rhs.m_channels;
+			m_hasTransparency = rhs.m_hasTransparency;
+			m_imageData = rhs.m_imageData;
+			m_isIcon = rhs.m_isIcon;
+		}
+
+		return *this;
+	}
+
+	Image& Image::operator=(Image&& other) noexcept
+	{
+		if (this != &other)
+		{
+			m_attributes = std::move(other.m_attributes);
+			m_size = std::move(other.m_size);
+			m_channels = std::move(other.m_channels);
+			m_hasTransparency = std::move(other.m_hasTransparency);
+			m_imageData = std::move(other.m_imageData);
+			m_isIcon = std::move(other.m_isIcon);
+		}
+
+		return *this;
 	}
 
 	void Image::Open(const std::string& filepath)

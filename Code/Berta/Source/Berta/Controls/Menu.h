@@ -10,6 +10,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Core/Timer.h"
+#include "Berta/Paint/Image.h"
 #include <string>
 #include <functional>
 #include <vector>
@@ -68,6 +69,7 @@ namespace Berta
 		void AppendSeparator();
 		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true, Rectangle menuBarItem={});
 		Menu* CreateSubMenu(std::size_t index);
+		void SetImage(size_t index, const Image& image);
 		void SetEnabled(size_t index, bool enabled);
 
 		struct Item
@@ -83,6 +85,7 @@ namespace Berta
 			bool isEnabled{ true };
 			ClickCallback onClick;
 			Menu* m_subMenu{ nullptr };
+			Image m_image;
 		};
 
 		std::vector<Item*> m_items;
@@ -101,6 +104,8 @@ namespace Berta
 	{
 		MenuItem(Menu::Item* target) : m_target(target) {}
 
+		bool GetEnabled() const;
+		void SetEnabled(bool isEnabled);
 		void SetText(const std::wstring& text);
 	private:
 		Menu::Item* m_target{ nullptr };

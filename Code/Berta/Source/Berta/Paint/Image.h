@@ -21,6 +21,13 @@ namespace Berta
 		Image(const std::string& filepath);
 		~Image();
 
+		operator bool() const;
+
+		Image& operator=(const Image& rhs);
+		Image& operator=(Image&&) noexcept;
+
+		Size GetSize() const { return m_size; }
+
 		void Open(const std::string& filepath);
 		void Paste(Graphics& destination, const Point& positionDestination);
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
@@ -44,7 +51,7 @@ namespace Berta
 #if BT_PLATFORM_WINDOWS
 		bool m_isIcon{ false };
 #endif
-		std::unique_ptr<NativeAttributes> m_attributes;
+		std::shared_ptr<NativeAttributes> m_attributes;
 	};
 }
 

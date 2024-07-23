@@ -29,8 +29,9 @@ int main()
 	{
 		std::cout << "EXITO" << std::endl;
 	});
-
+	Berta::Image image("..\\..\\Resources\\Icons\\Icono1_16.png");
 	menuFile.SetEnabled(1, false);
+	menuFile.SetImage(0, image);
 
 	auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});

@@ -72,6 +72,13 @@ namespace Berta
 		return *this;
 	}
 
+	Size& Size::operator*=(float scalar) noexcept
+	{
+		Width *= scalar;
+		Height *= scalar;
+		return *this;
+	}
+
 	Size& Size::operator/=(uint32_t scalar) noexcept
 	{
 		Width /= scalar;

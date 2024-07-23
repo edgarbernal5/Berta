@@ -65,6 +65,11 @@ namespace Berta
 		return nullptr;
 	}
 
+	void Menu::SetImage(size_t index, const Image& image)
+	{
+		m_items.at(index)->m_image = image;
+	}
+
 	void Menu::SetEnabled(size_t index, bool enabled)
 	{
 		m_items.at(index)->isEnabled = enabled;
@@ -187,6 +192,14 @@ namespace Berta
 					if (isItemSelected)
 					{
 						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->Size.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appereance->HighlightColor, true);
+					}
+					if (item.m_image)
+					{
+						Size paneSize{ menuBoxLeftPaneWidth, menuBoxItemHeight };
+
+						Size centerImage = paneSize - item.m_image.GetSize();
+						centerImage *= 0.5f;
+						item.m_image.Paste(graphics, { 1 + (int)centerImage.Width +(int)itemTextPadding, offsetY + (int)centerImage.Height });
 					}
 					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
 					
@@ -634,6 +647,16 @@ namespace Berta
 	{
 		GUI::Capture(m_handle);
 		Show();
+	}
+
+	bool MenuItem::GetEnabled() const
+	{
+		return m_target->isEnabled;
+	}
+
+	void MenuItem::SetEnabled(bool isEnabled)
+	{
+		m_target->isEnabled = isEnabled;
 	}
 
 	void MenuItem::SetText(const std::wstring& text)

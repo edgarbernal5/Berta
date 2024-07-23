@@ -160,6 +160,7 @@ namespace Berta
 		Size operator-(const Size& size) const;
 		Size operator*(float scalar) const;
 		Size& operator*= (uint32_t scalar) noexcept;
+		Size& operator*= (float scalar) noexcept;
 		Size& operator/= (uint32_t scalar) noexcept;
 
 		Rectangle ToRectangle() const;
