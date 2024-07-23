@@ -113,31 +113,10 @@ namespace Berta
 		m_size.Height = static_cast<uint32_t>(height);
 		m_size.Width = static_cast<uint32_t>(width);
 
-		BITMAPINFO bmi;
-		ZeroMemory(&bmi, sizeof(BITMAPINFO));
-		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmi.bmiHeader.biWidth = static_cast<LONG>(m_size.Width);
-		bmi.bmiHeader.biHeight = -static_cast<LONG>(m_size.Height);  // top-down image
-		bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = channels * 8;
-		bmi.bmiHeader.biCompression = BI_RGB;
-
-		void* bitmapData;
-		// Create a compatible DC and bitmap
-		HDC hdc = GetDC(NULL);
-		HDC hMemDC = ::CreateCompatibleDC(hdc);
-		HBITMAP hBitmap = ::CreateDIBSection(hMemDC, &bmi, DIB_RGB_COLORS, (void**)&bitmapData, NULL, 0);
-		if (!hBitmap)
-		{
-			BT_CORE_ERROR << "Failed to create DIB section." << std::endl;
-			stbi_image_free(imageData);
-			return;
-		}
-
-		m_imageData = (unsigned char*)bitmapData;
 		if (m_hasTransparency)
 		{
 			auto totalBytes = static_cast<size_t>(width * height * 4);
+			m_imageData = new unsigned char[totalBytes];
 			for (size_t i = 0; i < totalBytes; i += 4)
 			{
 				m_imageData[i] = imageData[i + 2];
@@ -149,6 +128,7 @@ namespace Berta
 		else
 		{
 			auto totalBytes = static_cast<size_t>(width * height * 3);
+			m_imageData = new unsigned char[totalBytes];
 			for (size_t i = 0; i < totalBytes; i += 3)
 			{
 				m_imageData[i] = imageData[i + 2];
@@ -157,10 +137,7 @@ namespace Berta
 			}
 		}
 
-		m_attributes->m_hBitmap = hBitmap;
-		m_attributes->m_hdc = hMemDC;
-
-		::ReleaseDC(0, hdc);
+		stbi_image_free(imageData);
 	}
 
 	void Image::OpenIcon(const std::string& filepath)
@@ -168,7 +145,8 @@ namespace Berta
 		m_isIcon = true;
 
 		std::filesystem::path path{ filepath };
-		auto hIcon = (HICON)LoadImage(
+		auto hIcon = (HICON)LoadImage
+		(
 			NULL,                 // HINSTANCE: Handle to the instance of the module that contains the image
 			path.c_str(),     // Image file path
 			IMAGE_ICON,           // Image type: IMAGE_ICON
@@ -177,12 +155,59 @@ namespace Berta
 			LR_LOADFROMFILE | LR_DEFAULTSIZE // Load flags
 		);
 
-		if (!hIcon) {
+		if (!hIcon)
+		{
 			BT_CORE_ERROR << "Failed to load icon: " << GetLastError() << std::endl;
 		}
 
 		m_attributes.reset(new NativeAttributes());
 		m_attributes->m_hIcon = hIcon;
+	}
+
+	void Image::CheckAndUpdateHdc(uint32_t currentDpi)
+	{
+		if (m_lastDpi == currentDpi)
+		{
+			return;
+		}
+		float scaleFactor = m_hasTransparency ? 1.0f : currentDpi / 96.0f;
+
+		int adjustedWidth = static_cast<int>(m_size.Width * scaleFactor);
+		int adjustedHeight = static_cast<int>(m_size.Height * scaleFactor);
+
+		HDC hdc = ::GetDC(NULL);
+		// Create compatible DC
+		HDC hdcMem = ::CreateCompatibleDC(hdc);
+
+		::BITMAPINFO bmpInfo;
+		ZeroMemory(&bmpInfo, sizeof(BITMAPINFO));
+		bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmpInfo.bmiHeader.biWidth = static_cast<LONG>(adjustedWidth);
+		bmpInfo.bmiHeader.biHeight = -static_cast<LONG>(adjustedHeight);  // top-down image
+		bmpInfo.bmiHeader.biPlanes = 1;
+		bmpInfo.bmiHeader.biBitCount = m_channels * 8;
+		bmpInfo.bmiHeader.biCompression = BI_RGB;
+
+		// Allocate memory for bitmap data
+		void* pBits;
+		HBITMAP hBitmap = ::CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, &pBits, NULL, 0);
+		if (!hBitmap)
+		{
+			BT_CORE_ERROR << "Failed to create DIB section." << std::endl;
+			return;
+		}
+
+		if (m_hasTransparency)
+		{
+			//TODO: DONT KNOW WHY I HAVE TO CALL THIS!
+			memcpy(pBits, m_imageData, m_size.Width * m_size.Height * 4);
+		}
+
+		m_attributes->m_hBitmap = hBitmap;
+		m_attributes->m_hdc = hdcMem;
+
+		m_lastDpi = currentDpi;
+		::ReleaseDC(0, hdc);
 	}
 
 	void Image::Paste(Graphics& destination, const Point& positionDestination)
@@ -200,9 +225,12 @@ namespace Berta
 #if BT_PLATFORM_WINDOWS
 		HDC& destDC = destination.m_attributes->m_hdc;
 
+		CheckAndUpdateHdc(destination.GetDpi());
+		
 		if (m_isIcon)
 		{
-			::DrawIconEx(
+			::DrawIconEx
+			(
 				destDC,					// HDC: Handle to device context
 				positionDestination.X,	// X-coordinate of the upper-left corner
 				positionDestination.Y,	// Y-coordinate of the upper-left corner
@@ -227,33 +255,50 @@ namespace Berta
 			blendFunc.SourceConstantAlpha = 255;
 			blendFunc.AlphaFormat = AC_SRC_ALPHA;
 
+			float scaleFactor = destination.GetDpi() / 96.0f;
+
 			// Apply alpha blending
 			if (!::AlphaBlend(destDC, positionDestination.X, positionDestination.Y,
-				(int)m_size.Width, (int)m_size.Height, m_attributes->m_hdc,
-				sourceRect.X, sourceRect.Y, m_size.Width, m_size.Height, blendFunc))
+				(int)(m_size.Width * scaleFactor), (int)(m_size.Height * scaleFactor), m_attributes->m_hdc,
+				sourceRect.X, sourceRect.Y,
+				m_size.Width, m_size.Height, blendFunc))
 			{
 				BT_CORE_ERROR << "Error en AlphaBlend. " << GetLastError() << std::endl;
 			}
 		}
 		else
 		{
+			float scaleFactor = destination.GetDpi() / 96.0f;
+
+			int adjustedWidth = static_cast<int>(m_size.Width * scaleFactor);
+			int adjustedHeight = static_cast<int>(m_size.Height * scaleFactor);
+
 			::BITMAPINFO bmpInfo;
 			ZeroMemory(&bmpInfo, sizeof(BITMAPINFO));
 			bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			bmpInfo.bmiHeader.biWidth = m_size.Width;
-			bmpInfo.bmiHeader.biHeight = -static_cast<LONG>(m_size.Height); // negative to indicate top-down DIB
+			bmpInfo.bmiHeader.biWidth = static_cast<LONG>(m_size.Width);
+			bmpInfo.bmiHeader.biHeight = -static_cast<LONG>(m_size.Height);
 			bmpInfo.bmiHeader.biPlanes = 1;
-			bmpInfo.bmiHeader.biBitCount = 8 * m_channels;
+			bmpInfo.bmiHeader.biBitCount = m_channels * 8;
 			bmpInfo.bmiHeader.biCompression = BI_RGB;
 
-			::SetDIBitsToDevice(destDC,
-				positionDestination.X, positionDestination.Y,
-				sourceRect.Width, sourceRect.Height,
-				sourceRect.X, sourceRect.Y, 0, m_size.Height,
-				m_imageData, &bmpInfo,
-				DIB_RGB_COLORS);
+			// Stretch the image data to the scaled bitmap
+			if (::StretchDIBits(m_attributes->m_hdc, 0, 0, adjustedWidth, adjustedHeight, 
+				0, 0, (int)m_size.Width, (int)m_size.Height,
+				m_imageData,
+				&bmpInfo, DIB_RGB_COLORS, SRCCOPY) == 0)
+			{
+				BT_CORE_ERROR << "Failed to strech DIB bits." << std::endl;
+			}
+
+			// Render the scaled bitmap
+			if (!::BitBlt(destDC, positionDestination.X, positionDestination.Y,
+				adjustedWidth, adjustedHeight, m_attributes->m_hdc, 0, 0, SRCCOPY))
+			{
+				BT_CORE_ERROR << " - BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
+			}
+
 		}
-		::SelectObject(m_attributes->m_hdc, hOldBitmap);
 #endif
 	}
 }

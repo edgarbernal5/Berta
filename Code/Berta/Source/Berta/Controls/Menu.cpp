@@ -195,11 +195,13 @@ namespace Berta
 					}
 					if (item.m_image)
 					{
-						Size paneSize{ menuBoxLeftPaneWidth, menuBoxItemHeight };
+						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
 
-						Size centerImage = paneSize - item.m_image.GetSize();
-						centerImage *= 0.5f;
-						item.m_image.Paste(graphics, { 1 + (int)centerImage.Width +(int)itemTextPadding, offsetY + (int)centerImage.Height });
+						Point imageSize{ (int)item.m_image.GetSize().Width, (int)item.m_image.GetSize().Height };
+						imageSize *= window->DPIScaleFactor;
+						Point centerImage = paneSize - imageSize;
+						centerImage /= 2;
+						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y });
 					}
 					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
 					

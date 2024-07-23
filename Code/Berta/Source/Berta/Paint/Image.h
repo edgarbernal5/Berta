@@ -41,12 +41,14 @@ namespace Berta
 			HICON m_hIcon{ nullptr };
 #endif
 		};
+		void CheckAndUpdateHdc(uint32_t currentDpi);
 		void OpenIcon(const std::string& filepath);
 
 		unsigned char* m_imageData{ nullptr };
 		Size m_size{};
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };
+		uint32_t m_lastDpi{ 0 };
 
 #if BT_PLATFORM_WINDOWS
 		bool m_isIcon{ false };

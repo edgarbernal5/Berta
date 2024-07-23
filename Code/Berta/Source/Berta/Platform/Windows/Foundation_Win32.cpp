@@ -46,7 +46,7 @@ namespace Berta
 		m_logger = Log::GetCoreLogger();
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
-		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
 		
 		// Register class
@@ -249,6 +249,7 @@ namespace Berta
 				//BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
 
 				windowManager.Resize(nativeWindow, argResize.NewSize);
+
 				nativeWindow->Renderer.Resize(argResize);
 				nativeWindow->Events->Resize.Emit(argResize);
 			}

@@ -47,6 +47,7 @@ namespace Berta
 
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
 
+		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_attributes->m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& str);
@@ -87,6 +88,7 @@ namespace Berta
 			~NativeAttributes();
 		};
 #endif
+		uint32_t m_dpi{ 96u };
 		std::unique_ptr<NativeAttributes> m_attributes;
 	};
 }

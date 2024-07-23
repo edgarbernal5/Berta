@@ -62,6 +62,20 @@ namespace Berta
 			return *this;
 		}
 
+		BasicPoint& operator*=(const ValueType& other) noexcept
+		{
+			X *= other;
+			Y *= other;
+			return *this;
+		}
+
+		BasicPoint& operator/=(const ValueType& other) noexcept
+		{
+			X /= other;
+			Y /= other;
+			return *this;
+		}
+
 		BasicPoint& operator++() noexcept
 		{
 			++X;

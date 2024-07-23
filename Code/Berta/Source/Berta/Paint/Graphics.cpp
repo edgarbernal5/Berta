@@ -84,6 +84,7 @@ namespace Berta
 
 	void Graphics::BuildFont(uint32_t dpi)
 	{
+		m_dpi = dpi;
 		if (!m_attributes || m_attributes->m_hdc == nullptr)
 		{
 			return;
