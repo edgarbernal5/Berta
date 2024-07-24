@@ -283,8 +283,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			if (std::find
-			(
+			if (std::find(
 				window->RootWindow->DeferredRequests.begin(),
 				window->RootWindow->DeferredRequests.end(),
 				window) == window->RootWindow->DeferredRequests.end()

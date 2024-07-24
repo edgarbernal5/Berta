@@ -110,10 +110,10 @@ namespace Berta
 		auto menuBoxSubMenuArrowWidth = hasSubmenu ? static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor) : 0;
 		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
 		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
-		auto menuBoxShorcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
+		auto menuBoxShortcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
 
 		return { 
-			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShorcutWidth,
+			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
 			2 + itemTextPadding * 2u + (uint32_t)(m_items.size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 		};
 	}
@@ -198,10 +198,11 @@ namespace Berta
 						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
 
 						Point imageSize{ (int)item.m_image.GetSize().Width, (int)item.m_image.GetSize().Height };
-						imageSize *= window->DPIScaleFactor;
+						imageSize.X *= window->DPIScaleFactor;
+						imageSize.Y *= window->DPIScaleFactor;
 						Point centerImage = paneSize - imageSize;
 						centerImage /= 2;
-						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y });
+						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, item.isEnabled);
 					}
 					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
 					

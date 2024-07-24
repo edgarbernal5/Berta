@@ -36,7 +36,9 @@ namespace Berta
 	void Renderer::Update()
 	{
 		if (m_controlReactor && m_updating)
+		{
 			BT_CORE_TRACE << "Renderer::Update(). it is already updating... " << std::endl;
+		}
 
 		if (m_controlReactor && !m_updating)
 		{

@@ -29,19 +29,21 @@ namespace Berta
 		Size GetSize() const { return m_size; }
 
 		void Open(const std::string& filepath);
-		void Paste(Graphics& destination, const Point& positionDestination);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
+		void Paste(Graphics& destination, const Point& positionDestination, bool isEnabled = true);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, bool isEnabled);
 
 	private:
 		struct NativeAttributes
 		{
+			~NativeAttributes();
+
 #if BT_PLATFORM_WINDOWS
 			HDC m_hdc{ nullptr };
 			HBITMAP m_hBitmap{ nullptr };
 			HICON m_hIcon{ nullptr };
 #endif
 		};
-		void CheckAndUpdateHdc(uint32_t currentDpi);
+		void CheckAndUpdateHdc(uint32_t currentDpi, bool enabled);
 		void OpenIcon(const std::string& filepath);
 
 		unsigned char* m_imageData{ nullptr };
@@ -49,6 +51,7 @@ namespace Berta
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };
 		uint32_t m_lastDpi{ 0 };
+		bool m_enabled{ true };
 
 #if BT_PLATFORM_WINDOWS
 		bool m_isIcon{ false };

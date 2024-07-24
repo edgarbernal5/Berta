@@ -34,7 +34,11 @@ int main()
 	menuFile.SetImage(0, image1);
 
 	Berta::Image image2("..\\..\\Resources\\Icons\\Icono5_2_16.png");
-	menuFile.SetImage(3, image2);
+	menuFile.SetImage(1, image2);
+	menuFile.SetEnabled(1, false);
+
+	Berta::Image image3("..\\..\\Resources\\Icons\\Icono5_2_16.png");
+	menuFile.SetImage(3, image3);
 
 	auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
