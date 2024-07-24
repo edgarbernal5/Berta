@@ -15,7 +15,7 @@ namespace Berta
 	{
 		m_control = &control;
 		//m_image.Open("..\\..\\Resources\\Escudo.png");
-		//m_image.Open("..\\..\\Resources\\Icono.bmp");
+		m_image.Open("..\\..\\Resources\\Icono.bmp");
 		//m_image.Open("..\\..\\Resources\\Icono.jpg");
 		//m_image.Open("..\\..\\Resources\\Icons\\Game.ico");
 	}
