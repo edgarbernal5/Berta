@@ -352,6 +352,7 @@ namespace Berta
 			return;
 		}
 
+		float scaleFactor = destination.GetDpi() / 96.0f;
 		HBITMAP hOldBitmap = (HBITMAP)::SelectObject(m_attributes->m_hdc, m_attributes->m_hBitmap);
 		if (m_hasTransparency)
 		{
@@ -361,8 +362,6 @@ namespace Berta
 			blendFunc.BlendFlags = 0;
 			blendFunc.SourceConstantAlpha = 255;
 			blendFunc.AlphaFormat = AC_SRC_ALPHA;
-
-			float scaleFactor = destination.GetDpi() / 96.0f;
 
 			// Apply alpha blending
 			if (!::AlphaBlend(destDC, positionDestination.X, positionDestination.Y,
@@ -375,8 +374,6 @@ namespace Berta
 		}
 		else
 		{
-			float scaleFactor = destination.GetDpi() / 96.0f;
-
 			int adjustedWidth = static_cast<int>(m_size.Width * scaleFactor);
 			int adjustedHeight = static_cast<int>(m_size.Height * scaleFactor);
 
@@ -404,7 +401,6 @@ namespace Berta
 			{
 				BT_CORE_ERROR << " - BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
 			}
-
 		}
 #endif
 	}
