@@ -83,6 +83,7 @@ namespace Berta
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
+		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
 
 		struct CaptureData
 		{

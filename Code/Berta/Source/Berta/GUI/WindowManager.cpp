@@ -125,6 +125,25 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics)
+	{
+		if (request == nullptr)
+		{
+			return;
+		}
+
+		for (auto& child : request->Children)
+		{
+			if (!child->Visible || !Exists(child))
+				continue;
+
+			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+
+			UpdateDeferredRequestsInternal(child, rootGraphics);
+		}
+	}
+
 	void WindowManager::Dispose(Window* window)
 	{
 		if (window->Flags.IsDestroyed)
@@ -349,15 +368,7 @@ namespace Berta
 
 				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
-				//TODO:
-				for (auto& child : request->Children)
-				{
-					if (!child->Visible)
-						continue;
-
-					Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
-					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-				}
+				UpdateDeferredRequestsInternal(request, rootGraphics);
 
 				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 			}
