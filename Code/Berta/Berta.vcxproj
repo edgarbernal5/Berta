@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Controls\Panel.h" />
     <ClInclude Include="Source\Berta\GUI\MenuManager.h" />
     <ClInclude Include="Source\Berta\Controls\Menu.h" />
     <ClInclude Include="Source\Berta\Controls\MenuBar.h" />
@@ -178,8 +179,10 @@
     <ClInclude Include="Source\Berta\GUI\Control.h" />
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
+    <ClInclude Include="Source\Berta\Controls\TabBar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Controls\Panel.cpp" />
     <ClCompile Include="Source\Berta\GUI\MenuManager.cpp" />
     <ClCompile Include="Source\Berta\Controls\Menu.cpp" />
     <ClCompile Include="Source\Berta\Controls\ComboBox.cpp" />
@@ -212,6 +215,7 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\WindowManager.cpp" />
     <ClCompile Include="Source\Berta\Controls\TextEditors\TextEditor.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TabBar.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,31 +4,31 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_LABEL_HEADER
-#define BT_LABEL_HEADER
+#ifndef BT_PANEL_HEADER
+#define BT_PANEL_HEADER
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Paint/Image.h"
+
 #include <string>
+#include <vector>
 
 namespace Berta
 {
-	class LabelReactor : public ControlReactor
+	class PanelReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
 	private:
-		ControlBase* m_control{ nullptr };
-		Image m_image;
 	};
 
-	class Label : public Control<LabelReactor>
+	class Panel : public Control<PanelReactor>
 	{
 	public:
-		Label(Window* parent, const Rectangle& rectangle, const std::wstring& text);
+		Panel() = default;
+		Panel(Window* parent, const Rectangle& rectangle);
 	};
 }
 

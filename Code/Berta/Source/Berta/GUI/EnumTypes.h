@@ -11,7 +11,8 @@ namespace Berta
 {
 	struct KeyboardKey
 	{
-		enum {
+		enum
+		{
 			Backspace = 0x8,
 			Enter = 0x0D,
 			Shift = 0x10,
@@ -25,7 +26,6 @@ namespace Berta
 			ArrowRight,
 			ArrowDown,
 			Delete = 0x2E,
-
 		};
 	};
 }

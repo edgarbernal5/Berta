@@ -11,6 +11,7 @@
 #include <Berta/Controls/ComboBox.h>
 #include <Berta/Controls/ScrollBar.h>
 #include <Berta/Controls/MenuBar.h>
+#include <Berta/Controls/TabBar.h>
 #include <iostream>
 
 int main()
@@ -61,7 +62,7 @@ int main()
 	});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height});
 
-	Berta::Label label(form, { 50,35,130,90 }, L"Hello world!");
+	Berta::Label label(form, { 50,35,105,90 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 	label.SetDebugName("Label");
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
@@ -69,7 +70,7 @@ int main()
 		//std::cout << "LABEL>mouse move" << std::endl;
 	});
 
-	Berta::Button button2(form, { 5,215,100,40 }, L"Disabled");
+	Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
 	button2.SetDebugName("button2");
 	button2.SetEnabled(false);
 	button2.GetEvents().Click.Connect([&form](const Berta::ArgClick& args)
@@ -79,7 +80,7 @@ int main()
 	});
 	
 
-	Berta::InputText inputText(form, { 190,55,200,25 });
+	Berta::InputText inputText(form, { 190,35,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
 	{
@@ -87,7 +88,7 @@ int main()
 	});
 
 	inputText.SetDebugName("inputText");
-	Berta::ComboBox comboBox(form, { 190,85,200,25 });
+	Berta::ComboBox comboBox(form, { 190,65,200,25 });
 	for (size_t i = 0; i < 2; i++)
 	{
 		comboBox.PushItem(L"Ejemplo 1");
@@ -104,17 +105,17 @@ int main()
 		std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
 	});
 
-	Berta::ScrollBar scrollbar(form, { 300, 225, 20, 150 }, true);
+	Berta::ScrollBar scrollbar(form, { 10, 250, 20, 150 }, true);
 	scrollbar.SetMinMax(0, 10);
 	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
 		{
 			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
 		});
-	Berta::ScrollBar scrollbar2(form, { 330, 225, 20, 150 }, true);
+	Berta::ScrollBar scrollbar2(form, { 40,250, 20, 150 }, true);
 	scrollbar2.SetMinMax(0, 0);
 	scrollbar2.SetEnabled(false);
 
-	Berta::Button button(form, { 5,165,100,40 }, L"Click me!");
+	Berta::Button button(form, { 5,135,100,40 }, L"Click me!");
 	button.SetDebugName("button");
 	button.GetEvents().Click.Connect([&button2, &inputText, &comboBox, &menuBar](const Berta::ArgClick& args)
 	{
@@ -132,6 +133,8 @@ int main()
 	{
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
+
+	Berta::TabBar tabbar(form, { 60, 250, 200, 200 });
 
 	form.Show();
 	form.Exec();
