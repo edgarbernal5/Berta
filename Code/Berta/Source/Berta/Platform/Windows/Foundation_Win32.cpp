@@ -135,7 +135,7 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 		{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
 		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
 
@@ -160,7 +160,7 @@ namespace Berta
 			{
 				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			}
-			if (g_debugLastMessageCount > 20)
+			if (g_debugLastMessageCount > 0)
 				g_debugLastMessageCount = 0;
 
 			//BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
@@ -230,6 +230,7 @@ namespace Berta
 
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
+			BT_CORE_DEBUG << "   areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "}" << std::endl;
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);

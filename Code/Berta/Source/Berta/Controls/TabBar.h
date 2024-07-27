@@ -25,14 +25,18 @@ namespace Berta
 	private:
 		struct Module
 		{
-			std::vector<Panel> panels;
+			std::vector<Panel> Panels;
 		};
+		ControlBase* m_control{ nullptr };
+		Module m_module;
 	};
 
 	class TabBar : public Control<TabBarReactor>
 	{
 	public:
 		TabBar(Window* parent, const Rectangle& rectangle);
+
+		void PushBack(const std::string& name, Window* parent);
 	};
 }
 

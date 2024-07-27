@@ -11,9 +11,19 @@
 #include <Berta/Controls/ComboBox.h>
 #include <Berta/Controls/ScrollBar.h>
 #include <Berta/Controls/MenuBar.h>
+#include <Berta/Controls/Panel.h>
 #include <Berta/Controls/TabBar.h>
 #include <iostream>
 
+class TabExample : public Berta::Panel
+{
+public:
+	TabExample(Berta::Window* parent, const Berta::Rectangle& rectangle) : Panel(parent, rectangle) {}
+	TabExample() : Panel()
+	{
+
+	}
+};
 int main()
 {
 	Berta::Form form(Berta::Size(500u, 450u), { true, true, true });
@@ -134,7 +144,9 @@ int main()
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
 
-	Berta::TabBar tabbar(form, { 60, 250, 200, 200 });
+	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
+	TabExample tab1;
+	tabbar.PushBack("Tab1", tab1);
 
 	form.Show();
 	form.Exec();
