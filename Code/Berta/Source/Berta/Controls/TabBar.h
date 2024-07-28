@@ -36,7 +36,17 @@ namespace Berta
 	public:
 		TabBar(Window* parent, const Rectangle& rectangle);
 
-		void PushBack(const std::string& name, Window* parent);
+		template<typename TPanel, typename ...Args>
+		TPanel* PushBack(const std::string& tabId, Args&& ... args)
+		{
+			return reinterpret_cast<TPanel*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
+			{
+				return std::unique_ptr<ControlBase>(new TPanel(parent, std::forward<Args>(tabArgs)...));
+			}, std::placeholders::_1, args...)));
+		}
+
+	private:
+		ControlBase* PushBackTab(const std::string& tabId, std::function<std::unique_ptr<ControlBase>(Window*)> factory);
 	};
 }
 

@@ -34,8 +34,10 @@ namespace Berta
 		Create(parent, true, rectangle);
 	}
 
-	void TabBar::PushBack(const std::string& name, Window* parent)
+	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<std::unique_ptr<ControlBase>(Window*)> factory)
 	{
-
+		auto newTab = factory(*this);
+		return newTab.release();
 	}
+
 }

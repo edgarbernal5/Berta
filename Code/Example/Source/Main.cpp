@@ -18,7 +18,7 @@
 class TabExample : public Berta::Panel
 {
 public:
-	TabExample(Berta::Window* parent, const Berta::Rectangle& rectangle) : Panel(parent, rectangle) {}
+	TabExample(Berta::Window* parent) : Panel(parent) {}
 	TabExample() : Panel()
 	{
 
@@ -146,7 +146,7 @@ int main()
 
 	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
 	TabExample tab1;
-	tabbar.PushBack("Tab1", tab1);
+	tabbar.PushBack<TabExample>("Tab1");
 
 	form.Show();
 	form.Exec();
