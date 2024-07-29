@@ -49,6 +49,7 @@ namespace Berta
 
 	void ControlBase::Hide()
 	{
+		GUI::ShowWindow(m_handle, false);
 	}
 
 	void ControlBase::Dispose()

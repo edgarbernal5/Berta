@@ -45,6 +45,8 @@ namespace Berta
 		uint32_t MenuBoxItemHeight = 20;
 		uint32_t MenuBoxSubMenuArrowWidth = 20;
 		uint32_t MenuBoxShortcutWidth = 20;
+
+		uint32_t TabBarItemHeight = 26;
 	};
 }
 

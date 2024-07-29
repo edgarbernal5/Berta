@@ -146,7 +146,8 @@ int main()
 
 	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
 	TabExample tab1;
-	tabbar.PushBack<TabExample>("Tab1");
+	auto tabExample1=tabbar.PushBack<TabExample>("Tab1");
+	auto tabExample2=tabbar.PushBack<TabExample>("Tab2");
 
 	form.Show();
 	form.Exec();

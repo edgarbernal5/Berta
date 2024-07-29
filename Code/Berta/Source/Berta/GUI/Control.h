@@ -56,10 +56,12 @@ namespace Berta
 			ControlWindow(ControlBase& control) : m_control(control)
 			{
 			}
+
 			virtual ControlBase* ControlPtr() const override
 			{
 				return &m_control;
 			}
+
 			virtual void Destroy() override
 			{
 				if (m_isDestroyed)

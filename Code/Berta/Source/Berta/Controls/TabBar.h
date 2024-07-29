@@ -22,10 +22,19 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		void AddTab(const std::string& tabId, Panel* panel);
 	private:
+		struct PanelWithId
+		{
+			Panel* PanelPtr;
+			std::string Id;
+		};
 		struct Module
 		{
-			std::vector<Panel> Panels;
+			void AddTab(const std::string& tabId, Panel* panel);
+
+			std::vector<PanelWithId> Panels;
+			int SelectedTabIndex{ -1 };
 		};
 		ControlBase* m_control{ nullptr };
 		Module m_module;
@@ -39,10 +48,13 @@ namespace Berta
 		template<typename TPanel, typename ...Args>
 		TPanel* PushBack(const std::string& tabId, Args&& ... args)
 		{
-			return reinterpret_cast<TPanel*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
+			auto newPanel = reinterpret_cast<TPanel*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
 			{
 				return std::unique_ptr<ControlBase>(new TPanel(parent, std::forward<Args>(tabArgs)...));
 			}, std::placeholders::_1, args...)));
+
+			m_reactor.AddTab(tabId, newPanel);
+			return newPanel;
 		}
 
 	private:

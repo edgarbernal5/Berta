@@ -7,6 +7,8 @@
 #ifndef BT_BASE_HEADER
 #define BT_BASE_HEADER
 
+#include <string>
+
 namespace Berta
 {
 	void InitializeCore();
@@ -14,5 +16,10 @@ namespace Berta
 }
 
 #include "Assert.h"
+
+namespace Berta::StringUtils
+{
+	std::wstring Convert(const std::string& str);
+}
 
 #endif

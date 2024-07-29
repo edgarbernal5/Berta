@@ -44,6 +44,7 @@ namespace Berta
 		void DrawRectangle(const Color& color, bool solid);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
 		void DrawString(const Point& position, const std::wstring& str, const Color& color);
+		void DrawString(const Point& position, const std::string& str, const Color& color);
 
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
 
@@ -51,6 +52,7 @@ namespace Berta
 		const Size& GetSize() const { return m_attributes->m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& str);
+		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
 
 		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;

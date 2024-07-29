@@ -215,6 +215,26 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
+	{
+		if (str.size() == 0)
+		{
+			return;
+		}
+
+		auto wstr = StringUtils::Convert(str);
+#ifdef BT_PLATFORM_WINDOWS
+		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
+		if (m_attributes->m_lastForegroundColor != color.BGR)
+		{
+			::SetTextColor(m_attributes->m_hdc, color.BGR);
+			m_attributes->m_lastForegroundColor = color.BGR;
+		}
+		::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
+		::SelectObject(m_attributes->m_hdc, oldFont);
+#endif
+	}
+
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -360,6 +380,29 @@ namespace Berta
 		}
 		::SelectObject(m_attributes->m_hdc, oldFont);
 
+		return {};
+#else
+		return {};
+#endif
+	}
+
+	Size Graphics::GetTextExtent(const std::string& str)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc == nullptr || str.size() == 0)
+		{
+			return {};
+		}
+		auto wstr = StringUtils::Convert(str);
+		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
+		::SIZE nativeSize;
+		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
+		{
+			::SelectObject(m_attributes->m_hdc, oldFont);
+			return Size(nativeSize.cx, nativeSize.cy);
+		}
+
+		::SelectObject(m_attributes->m_hdc, oldFont);
 		return {};
 #else
 		return {};

@@ -129,10 +129,6 @@ namespace Berta
 		m_module.m_lastMousePosition = args.Position;
 	}
 
-	void MenuBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
-	{
-	}
-
 	void MenuBarReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.BuildItems();
@@ -140,7 +136,6 @@ namespace Berta
 
 	void MenuBarReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-
 	}
 
 	bool MenuBarReactor::OnMBIKeyPressed(const ArgKeyboard& args)
@@ -161,7 +156,8 @@ namespace Berta
 		}
 
 		int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
-		selectedItem = (selectedItem - 1 + m_module.m_items.size()) % m_module.m_items.size();
+		int totalItems = static_cast<int>(m_module.m_items.size());
+		selectedItem = (selectedItem - 1 + totalItems) % totalItems;
 		GUI::DisposeMenu(false);
 
 		m_module.SelectIndex(selectedItem);
