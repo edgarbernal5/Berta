@@ -22,19 +22,29 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void Resize(Graphics& graphics, const ArgResize& args) override;
+
 		void AddTab(const std::string& tabId, Panel* panel);
 	private:
-		struct PanelWithId
+		struct PanelItem
 		{
-			Panel* PanelPtr;
+			PanelItem(const std::string& id, Panel* panel): Id(id), PanelPtr(panel){}
+			Point Position;
+			Size Center;
+			Size Size;
 			std::string Id;
+			Panel* PanelPtr;
 		};
 		struct Module
 		{
 			void AddTab(const std::string& tabId, Panel* panel);
+			void BuildItems(size_t startIndex = 0);
+			int FindItem(const Point& position);
 
-			std::vector<PanelWithId> Panels;
+			std::vector<PanelItem> Panels;
 			int SelectedTabIndex{ -1 };
+			Window* m_owner{ nullptr };
 		};
 		ControlBase* m_control{ nullptr };
 		Module m_module;
