@@ -47,6 +47,7 @@ namespace Berta
 		void DrawString(const Point& position, const std::string& str, const Color& color);
 
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
+		void DrawRoundRectBox(const Rectangle& rect, const Color& color);
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_attributes->m_size; }
@@ -64,7 +65,9 @@ namespace Berta
 
 		friend class Image;
 	private:
-
+		void MyArc(HDC hdc, int left, int top, int right, int bottom, int startX, int startY, int endX, int endY);
+		void MyPolyBezier(HDC hdc, const POINT* points, int numPoints);
+		void MyRoundRect(HDC hdc, int left, int top, int right, int bottom, int width, int height);
 #ifdef BT_PLATFORM_WINDOWS
 		struct NativeAttributes
 		{

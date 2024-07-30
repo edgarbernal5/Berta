@@ -144,11 +144,11 @@ int main()
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
 
-	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
-	TabExample tab1;
-	auto tabExample1 = tabbar.PushBack<TabExample>("Tab1");
-	auto tabExample2 = tabbar.PushBack<TabExample>("Tab2");
-	auto tabExample3 = tabbar.PushBack<TabExample>("Tab3");
+	//Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
+	//TabExample tab1;
+	//auto tabExample1 = tabbar.PushBack<TabExample>("Tab1");
+	//auto tabExample2 = tabbar.PushBack<TabExample>("Tab2");
+	//auto tabExample3 = tabbar.PushBack<TabExample>("Tab3");
 
 	form.Show();
 	form.Exec();
