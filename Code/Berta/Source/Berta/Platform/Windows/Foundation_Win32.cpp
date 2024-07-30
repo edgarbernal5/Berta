@@ -252,7 +252,13 @@ namespace Berta
 				windowManager.Resize(nativeWindow, argResize.NewSize);
 				
 				auto aa = &Renderer::Resize;
-				//foundation.EmitEvent<ArgResize>(aa);
+				auto aaa=std::bind([&nativeWindow](const ArgResize& args)
+					{
+						nativeWindow->Renderer.Resize(args);
+						//nativeWindow->Events->Resize.Emit(args);
+					}, std::placeholders::_1);
+
+				foundation.EmitEvent<ArgResize>(aaa);
 				nativeWindow->Renderer.Resize(argResize);
 				nativeWindow->Events->Resize.Emit(argResize);
 			}
