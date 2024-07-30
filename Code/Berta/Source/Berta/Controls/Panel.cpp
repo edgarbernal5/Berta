@@ -18,7 +18,6 @@ namespace Berta
 
 	void PanelReactor::Update(Graphics& graphics)
 	{
-
 	}
 
 	Panel::Panel(Window* parent, const Rectangle& rectangle)

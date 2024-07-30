@@ -177,6 +177,11 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+
 		auto brush = ::CreateSolidBrush(color.BGR);
 		RECT nativeRect = rectangle.ToRECT();
 		if (solid)

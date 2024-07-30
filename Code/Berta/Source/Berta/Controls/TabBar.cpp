@@ -112,10 +112,10 @@ namespace Berta
 		Create(parent, true, rectangle);
 	}
 
-	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<std::unique_ptr<ControlBase>(Window*)> factory)
+	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory)
 	{
 		auto newTab = factory(*this);
-		auto result = newTab.get();
+		auto result = newTab;
 		//m_reactor.AddTab(tabId, result);
 
 		return result;
@@ -124,7 +124,9 @@ namespace Berta
 	void TabBarReactor::Module::AddTab(const std::string& tabId, Panel* panel)
 	{
 		auto startIndex = Panels.size();
-		Panels.emplace_back(PanelItem{ tabId, panel });
+		auto& newItem = Panels.emplace_back();
+		newItem.Id = tabId;
+		newItem.PanelPtr.reset(panel);
 		if (SelectedTabIndex == -1)
 		{
 			SelectedTabIndex = 0;

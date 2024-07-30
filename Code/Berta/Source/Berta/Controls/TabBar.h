@@ -29,13 +29,16 @@ namespace Berta
 	private:
 		struct PanelItem
 		{
-			PanelItem(const std::string& id, Panel* panel): Id(id), PanelPtr(panel){}
+			PanelItem() = default;
+			PanelItem(const std::string& id, Panel* panel) : Id(id), PanelPtr(panel) {}
+
 			Point Position;
 			Size Center;
 			Size Size;
 			std::string Id;
-			Panel* PanelPtr;
+			std::shared_ptr<Panel> PanelPtr;
 		};
+
 		struct Module
 		{
 			void AddTab(const std::string& tabId, Panel* panel);
@@ -58,9 +61,11 @@ namespace Berta
 		template<typename TPanel, typename ...Args>
 		TPanel* PushBack(const std::string& tabId, Args&& ... args)
 		{
+			static_assert(std::is_base_of<Panel, TPanel>::value, "TPanel must be derived from Panel");
+
 			auto newPanel = reinterpret_cast<TPanel*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
 			{
-				return std::unique_ptr<ControlBase>(new TPanel(parent, std::forward<Args>(tabArgs)...));
+				return new TPanel(parent, std::forward<Args>(tabArgs)...);
 			}, std::placeholders::_1, args...)));
 
 			m_reactor.AddTab(tabId, newPanel);
@@ -68,7 +73,7 @@ namespace Berta
 		}
 
 	private:
-		ControlBase* PushBackTab(const std::string& tabId, std::function<std::unique_ptr<ControlBase>(Window*)> factory);
+		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);
 	};
 }
 

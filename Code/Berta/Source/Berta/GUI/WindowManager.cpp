@@ -53,7 +53,7 @@ namespace Berta
 
 		if (window->Parent)
 		{
-			BT_CORE_DEBUG << "  Window " << window << " has parent ." << window->Parent << std::endl;
+			BT_CORE_DEBUG << "  Window " << window << " name = " << window->Name << " has parent ." << window->Parent << std::endl;
 			for (size_t i = 0; i < window->Parent->Children.size(); i++)
 			{
 				if (window->Parent->Children[i] == window)
