@@ -87,14 +87,19 @@ namespace Berta
 
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		int selectedIndex = m_module.FindItem(args.Position);
-		if (selectedIndex == -1)
+		int newSelectedIndex = m_module.FindItem(args.Position);
+		if (newSelectedIndex == -1)
 			return;
 
-		m_module.SelectedTabIndex = selectedIndex;
+		if (m_module.NewSelectedIndex(newSelectedIndex))
+		{
+			m_module.Panels[m_module.SelectedTabIndex].PanelPtr->Hide();
+			m_module.SelectIndex(newSelectedIndex);
+			m_module.Panels[newSelectedIndex].PanelPtr->Show();
 
-		Update(graphics);
-		GUI::UpdateDeferred(m_module.m_owner);
+			Update(graphics);
+			GUI::UpdateDeferred(m_module.m_owner);
+		}
 	}
 
 	void TabBarReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -127,11 +132,22 @@ namespace Berta
 		auto& newItem = Panels.emplace_back();
 		newItem.Id = tabId;
 		newItem.PanelPtr.reset(panel);
+
+		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
+		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
+		GUI::MoveWindow(panel->Handle(), rect);
+
 		if (SelectedTabIndex == -1)
 		{
 			SelectedTabIndex = 0;
 		}
+		else
+		{
+			panel->Hide();
+		}
 		BuildItems(startIndex);
+
+		GUI::UpdateTree(m_owner);
 	}
 
 	void TabBarReactor::Module::BuildItems(size_t startIndex)

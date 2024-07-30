@@ -22,7 +22,7 @@ namespace Berta
 	namespace GUI
 	{
 		Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& windowStyle, ControlBase* control);
-		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control);
+		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel);
 
 		void CaptionWindow(Window* window, const std::wstring& caption);
 		std::wstring CaptionWindow(Window* window);
@@ -34,6 +34,7 @@ namespace Berta
 
 		void ResizeWindow(Window* window, const Size& newSize);
 		Size SizeWindow(Window* window);
+		void MoveWindow(Window* window, const Rectangle& newRect);
 
 		void MakeWindowActive(Window* window, bool active);
 
@@ -47,6 +48,7 @@ namespace Berta
 		Point GetAbsolutePosition(Window* window);
 		Point GetMousePositionToWindow(Window* window);
 
+		void UpdateTree(Window* window);
 		void UpdateDeferred(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);

@@ -28,7 +28,7 @@ namespace Berta
 	{
 	public:
 		Panel() = default;
-		Panel(Window* parent, const Rectangle& rectangle = {});
+		Panel(Window* parent, const Rectangle& rectangle = {}, bool visible = true);
 	};
 }
 

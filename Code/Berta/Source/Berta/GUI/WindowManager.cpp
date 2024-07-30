@@ -117,10 +117,15 @@ namespace Berta
 			if (!child->Visible)
 				continue;
 
-			child->Renderer.Update();
-			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
-			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-
+			if (child->Type != WindowType::Panel)
+			{
+				child->Renderer.Update();
+				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+				auto absolutePosition = GetAbsolutePosition(child);
+				childRectangle.X = absolutePosition.X;
+				childRectangle.Y = absolutePosition.Y;
+				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+			}
 			UpdateTreeInternal(child, rootGraphics);
 		}
 	}
@@ -137,9 +142,14 @@ namespace Berta
 			if (!child->Visible || !Exists(child))
 				continue;
 
-			Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
-			rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-
+			if (child->Type != WindowType::Panel)
+			{
+				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+				auto absolutePosition = GetAbsolutePosition(child);
+				childRectangle.X = absolutePosition.X;
+				childRectangle.Y = absolutePosition.Y;
+				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+			}
 			UpdateDeferredRequestsInternal(child, rootGraphics);
 		}
 	}
@@ -305,11 +315,17 @@ namespace Berta
 	{
 		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
-		rootGraphics.BitBlt(window->Size.ToRectangle(), window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+
+		Rectangle requestRectangle = window->Size.ToRectangle();
+		auto absolutePosition = GetAbsolutePosition(window);
+		requestRectangle.X = absolutePosition.X;
+		requestRectangle.Y = absolutePosition.Y;
+
+		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		
 		UpdateTreeInternal(window, rootGraphics);
 
-		window->Renderer.Map(window, window->Size.ToRectangle()); // Copy from root graphics to native hwnd window.
+		window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -325,7 +341,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Resize(Window* window, const Size& newSize)
+	void WindowManager::Resize(Window* window, const Size& newSize, bool updateTree)
 	{
 		if (window->Size != newSize)
 		{
@@ -333,22 +349,45 @@ namespace Berta
 
 			Graphics newGraphics;
 			Graphics newRootGraphics;
-			newGraphics.Build(newSize);
-			newGraphics.BuildFont(window->DPI);
-			if (window->Type == WindowType::Native)
+			if (window->Type != WindowType::Panel)
 			{
-				newRootGraphics.Build(newSize);
-				newRootGraphics.BuildFont(window->DPI);
+				newGraphics.Build(newSize);
+				newGraphics.BuildFont(window->DPI);
+
+				if (window->Type == WindowType::Native)
+				{
+					newRootGraphics.Build(newSize);
+					newRootGraphics.BuildFont(window->DPI);
+				}
+			}			
+
+			if (window->Type != WindowType::Panel)
+			{
+				window->Renderer.GetGraphics().Swap(newGraphics);
+
+				if (window->Type == WindowType::Native)
+				{
+					window->RootGraphics->Swap(newRootGraphics);
+				}
 			}
 
-			window->Renderer.GetGraphics().Swap(newGraphics);
-
-			if (window->Type == WindowType::Native)
+			if (updateTree)
 			{
-				window->RootGraphics->Swap(newRootGraphics);
+				UpdateTree(window);
 			}
+		}
+	}
 
-			UpdateTree(window);
+	void WindowManager::Move(Window* window, const Rectangle& newRect)
+	{
+		Rectangle currentRect{ window->Position, window->Size };
+		if (currentRect != newRect)
+		{
+			window->Position = newRect;
+			if (window->Size != newRect)
+			{
+				Resize(window, newRect, false);
+			}
 		}
 	}
 
@@ -370,6 +409,9 @@ namespace Berta
 
 				UpdateDeferredRequestsInternal(request, rootGraphics);
 
+				auto absolutePosition = GetAbsolutePosition(request);
+				requestRectangle.X = absolutePosition.X;
+				requestRectangle.Y = absolutePosition.Y;
 				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 			}
 		}
@@ -506,10 +548,14 @@ namespace Berta
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
-		return Rectangle{ 
-			window->Position, 
+		auto absolutePosition = GetAbsolutePosition(window);
+
+		Rectangle rect
+		{
+			absolutePosition,
 			window->Size
-		}.IsInside(point);
+		};
+		return rect.IsInside(point);
 	}
 
 	Window* WindowManager::FindInTree(Window* window, const Point& point)
@@ -531,11 +577,13 @@ namespace Berta
 					child = FindInTree(child, point);
 					if (child)
 					{
+						BT_CORE_DEBUG << " -- find tree child = " << child->Name << std::endl;
 						return child;
 					}
 				}
 			} while (index != 0);
 		}
+		BT_CORE_DEBUG << " -- find tree fallback = " << window->Name << std::endl;
 		return window;
 	}
 }

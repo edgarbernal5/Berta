@@ -126,7 +126,6 @@ namespace Berta
 		AppearanceType& GetAppearance() const { return *m_appearance; }
 		EventsType& GetEvents() const { return *m_events; }
 
-	protected:
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 			m_handle = GUI::CreateForm(parent, rectangle, formStyle, this);
@@ -137,19 +136,25 @@ namespace Berta
 			GUI::InitRendererReactor(this, m_reactor);
 		}
 
-		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true)
+		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)
 		{
-			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this);
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);
 			m_appearance = std::make_shared<Appearance>();
 			m_events = std::make_shared<Events>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			GUI::InitRendererReactor(this, m_reactor);
+			if (!isPanel)
+			{
+				GUI::InitRendererReactor(this, m_reactor);
+			}
+
 			if (visible)
 			{
 				GUI::ShowWindow(m_handle, true);
 			}
 		}
+
+	protected:
 
 		virtual void DoOnNotifyDestroy() override
 		{

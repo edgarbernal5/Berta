@@ -44,6 +44,8 @@ namespace Berta
 			void AddTab(const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
+			bool NewSelectedIndex(int newIndex) { return SelectedTabIndex != newIndex; }
+			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
 
 			std::vector<PanelItem> Panels;
 			int SelectedTabIndex{ -1 };

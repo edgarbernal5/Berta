@@ -65,7 +65,8 @@ namespace Berta
 		void UpdateTree(Window* window);
 		void Show(Window* window, bool visible);
 
-		void Resize(Window* window, const Size& newSize);
+		void Resize(Window* window, const Size& newSize, bool updateTree = true);
+		void Move(Window* window, const Rectangle& newRect);
 		void UpdateDeferredRequests(Window* rootWindow);
 
 		void ChangeDPI(Window* window, uint32_t newDPI);

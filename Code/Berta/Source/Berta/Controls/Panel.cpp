@@ -20,8 +20,8 @@ namespace Berta
 	{
 	}
 
-	Panel::Panel(Window* parent, const Rectangle& rectangle)
+	Panel::Panel(Window* parent, const Rectangle& rectangle, bool visible)
 	{
-		Create(parent, true, rectangle);
+		Create(parent, true, rectangle, visible, true);
 	}
 }

@@ -39,6 +39,7 @@ namespace Berta
 	class Button : public Control<ButtonReactor>
 	{
 	public:
+		Button() = default;
 		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text);
 	};
 }

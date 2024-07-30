@@ -50,14 +50,14 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
-	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control)
+	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		Window* window = new Window(WindowType::Control);
+		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
 		window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 		
 		Rectangle rect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != 96)
+		if (isUnscaleRect && parent && parent->DPI != 96u)
 		{
 			float scalingFactor = parent->DPI / 96.0f;
 			rect.X = static_cast<int>(rect.X * scalingFactor);
@@ -142,10 +142,18 @@ namespace Berta::GUI
 				if (!child->Visible)
 					continue;
 
-				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
-				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+
+				if (child->Type != WindowType::Panel)
+				{
+					Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				}
 			}
 
+			
+			auto absolutePosition = GetAbsolutePosition(window);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
 	}
@@ -193,6 +201,15 @@ namespace Berta::GUI
 			return window->Size;
 		}
 		return {};
+	}
+
+	void MoveWindow(Window* window, const Rectangle& newRect)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.Move(window, newRect);
+		}
 	}
 
 	void MakeWindowActive(Window* window, bool active)
@@ -276,6 +293,15 @@ namespace Berta::GUI
 			return mousePosition - windowManager.GetAbsolutePosition(window);
 		}
 		return {};
+	}
+
+	void UpdateTree(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.UpdateTree(window);
+		}
 	}
 
 	void UpdateDeferred(Window* window)

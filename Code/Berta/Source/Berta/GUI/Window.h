@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_BASIC_WINDOW_HEADER
-#define BT_BASIC_WINDOW_HEADER
+#ifndef BT_WINDOW_HEADER
+#define BT_WINDOW_HEADER
 
 #include <string>
 #include <vector>
@@ -23,7 +23,8 @@ namespace Berta
 	enum class WindowType
 	{
 		Native = 0,
-		Control
+		Control,
+		Panel			//It has no renderer, empty Graphics. Serves as a logical container of Window.
 	};
 
 	struct Window

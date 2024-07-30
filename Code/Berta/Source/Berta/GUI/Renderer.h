@@ -41,7 +41,7 @@ namespace Berta
 		Graphics& GetGraphics() { return m_graphics; }
 	private:
 		bool m_updating{ false };
-		ControlReactor* m_controlReactor;
+		ControlReactor* m_controlReactor{ nullptr };
 		Graphics m_graphics;
 	};
 }
