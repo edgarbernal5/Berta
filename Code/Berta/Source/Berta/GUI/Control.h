@@ -136,6 +136,7 @@ namespace Berta
 			GUI::InitRendererReactor(this, m_reactor);
 		}
 
+		//TODO: hacer este método polimórfico para que la clase Panel no inicie renderer ni reactor
 		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)
 		{
 			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);

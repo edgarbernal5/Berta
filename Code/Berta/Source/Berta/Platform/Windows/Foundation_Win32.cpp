@@ -250,7 +250,9 @@ namespace Berta
 				//BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
 
 				windowManager.Resize(nativeWindow, argResize.NewSize);
-
+				
+				auto aa = &Renderer::Resize;
+				//foundation.EmitEvent<ArgResize>(aa);
 				nativeWindow->Renderer.Resize(argResize);
 				nativeWindow->Events->Resize.Emit(argResize);
 			}
