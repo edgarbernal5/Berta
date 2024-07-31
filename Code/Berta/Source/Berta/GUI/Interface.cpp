@@ -43,6 +43,7 @@ namespace Berta::GUI
 			window->RootGraphics = &rootGraphics;
 
 			window->Owner = parent;
+			window->Parent = nullptr;
 
 			return window;
 		}
@@ -131,6 +132,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
+			//TODO:move this to WindowManager.
 			auto& rootGraphics = *(window->RootWindow->RootGraphics);
 
 			auto absolutePosition = GetAbsolutePosition(window);
