@@ -251,14 +251,6 @@ namespace Berta
 
 				windowManager.Resize(nativeWindow, argResize.NewSize);
 				
-				auto aa = &Renderer::Resize;
-				auto aaa=std::bind([&nativeWindow](const ArgResize& args)
-					{
-						nativeWindow->Renderer.Resize(args);
-						//nativeWindow->Events->Resize.Emit(args);
-					}, std::placeholders::_1);
-
-				foundation.EmitEvent<ArgResize>(aaa);
 				nativeWindow->Renderer.Resize(argResize);
 				nativeWindow->Events->Resize.Emit(argResize);
 			}
@@ -426,7 +418,7 @@ namespace Berta
 						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						//BT_CORE_DEBUG << " - mouse enter / name " << target->Name << " .menu = " << usingMenu << ".hovered " << rootWindowData.Hovered << std::endl;
+						BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
 						window->Renderer.MouseEnter(argMouseEnter);
 						window->Events->MouseEnter.Emit(argMouseEnter);
 
@@ -441,7 +433,7 @@ namespace Berta
 						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
+						BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
 						window->Renderer.MouseMove(argMouseMove);
 						window->Events->MouseMove.Emit(argMouseMove);
 					}

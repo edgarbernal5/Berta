@@ -120,10 +120,8 @@ namespace Berta
 			if (child->Type != WindowType::Panel)
 			{
 				child->Renderer.Update();
-				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
 				auto absolutePosition = GetAbsolutePosition(child);
-				childRectangle.X = absolutePosition.X;
-				childRectangle.Y = absolutePosition.Y;
+				Rectangle childRectangle{ absolutePosition.X, absolutePosition.Y, child->Size.Width, child->Size.Height };
 				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 			}
 			UpdateTreeInternal(child, rootGraphics);
@@ -144,10 +142,9 @@ namespace Berta
 
 			if (child->Type != WindowType::Panel)
 			{
-				Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
 				auto absolutePosition = GetAbsolutePosition(child);
-				childRectangle.X = absolutePosition.X;
-				childRectangle.Y = absolutePosition.Y;
+				Rectangle childRectangle{ absolutePosition.X, absolutePosition.Y, child->Size.Width, child->Size.Height };
+
 				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 			}
 			UpdateDeferredRequestsInternal(child, rootGraphics);
@@ -403,15 +400,12 @@ namespace Berta
 		{
 			if (Exists(request))
 			{
-				Rectangle requestRectangle{ request->Position.X, request->Position.Y, request->Size.Width, request->Size.Height };
-
+				auto absolutePosition = GetAbsolutePosition(request);
+				Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, request->Size.Width, request->Size.Height };
 				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
 				UpdateDeferredRequestsInternal(request, rootGraphics);
 
-				auto absolutePosition = GetAbsolutePosition(request);
-				requestRectangle.X = absolutePosition.X;
-				requestRectangle.Y = absolutePosition.Y;
 				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 			}
 		}
@@ -577,13 +571,13 @@ namespace Berta
 					child = FindInTree(child, point);
 					if (child)
 					{
-						BT_CORE_DEBUG << " -- find tree child = " << child->Name << std::endl;
+						//BT_CORE_DEBUG << " -- find tree child = " << child->Name << std::endl;
 						return child;
 					}
 				}
 			} while (index != 0);
 		}
-		BT_CORE_DEBUG << " -- find tree fallback = " << window->Name << std::endl;
+		//BT_CORE_DEBUG << " -- find tree fallback = " << window->Name << std::endl;
 		return window;
 	}
 }

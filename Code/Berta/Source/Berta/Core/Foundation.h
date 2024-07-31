@@ -34,12 +34,6 @@ namespace Berta
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		void ProcessMessages();
 
-		template<typename ArgType>
-		void EmitEvent(std::function<void(const ArgType&)> rendererMethod)
-		{
-
-		}
-
 		static Foundation& GetInstance();
 
 	private:

@@ -132,7 +132,9 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			auto& rootGraphics = *(window->RootWindow->RootGraphics);
-			Rectangle requestRectangle{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+
+			auto absolutePosition = GetAbsolutePosition(window);
+			Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
@@ -142,18 +144,14 @@ namespace Berta::GUI
 				if (!child->Visible)
 					continue;
 
-
 				if (child->Type != WindowType::Panel)
 				{
-					Rectangle childRectangle{ child->Position.X, child->Position.Y, child->Size.Width, child->Size.Height };
+					auto childAbsolutePosition = GetAbsolutePosition(child);
+					Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
 
-			
-			auto absolutePosition = GetAbsolutePosition(window);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
 			window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 		}
 	}

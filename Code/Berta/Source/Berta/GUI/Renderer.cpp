@@ -51,66 +51,105 @@ namespace Berta
 
 	void Renderer::MouseEnter(const ArgMouse& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseEnter(m_graphics, args);
 	}
 
 	void Renderer::MouseLeave(const ArgMouse& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseLeave(m_graphics, args);
 	}
 
 	void Renderer::MouseDown(const ArgMouse& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseDown(m_graphics, args);
 	}
 
 	void Renderer::MouseMove(const ArgMouse& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseMove(m_graphics, args);
 	}
 
 	void Renderer::MouseUp(const ArgMouse& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseUp(m_graphics, args);
 	}
 
 	void Renderer::MouseWheel(const ArgWheel& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->MouseWheel(m_graphics, args);
 	}
 
 	void Renderer::Click(const ArgClick& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->Click(m_graphics, args);
 	}
 
 	void Renderer::DblClick(const ArgClick& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->DblClick(m_graphics, args);
 	}
 
 	void Renderer::Focus(const ArgFocus& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->Focus(m_graphics, args);
 	}
 
 	void Renderer::KeyChar(const ArgKeyboard& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->KeyChar(m_graphics, args);
 	}
 
 	void Renderer::KeyPressed(const ArgKeyboard& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->KeyPressed(m_graphics, args);
 	}
 
 	void Renderer::KeyReleased(const ArgKeyboard& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->KeyReleased(m_graphics, args);
 	}
 
 	void Renderer::Resize(const ArgResize& args)
 	{
+		if (m_controlReactor == nullptr)
+			return;
+
 		m_controlReactor->Resize(m_graphics, args);
 	}
 }
