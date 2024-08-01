@@ -198,8 +198,8 @@ namespace Berta
 						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
 
 						Point imageSize{ (int)item.m_image.GetSize().Width, (int)item.m_image.GetSize().Height };
-						imageSize.X *= window->DPIScaleFactor;
-						imageSize.Y *= window->DPIScaleFactor;
+						imageSize.X = static_cast<int>(imageSize.X * window->DPIScaleFactor);
+						imageSize.Y = static_cast<int>(imageSize.Y * window->DPIScaleFactor);
 						Point centerImage = paneSize - imageSize;
 						centerImage /= 2;
 						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, item.isEnabled);
