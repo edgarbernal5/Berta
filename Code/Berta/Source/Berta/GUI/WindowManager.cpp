@@ -128,6 +128,28 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::RefreshInternal(Window* window, Graphics& rootGraphics)
+	{
+		if (window == nullptr)
+		{
+			return;
+		}
+
+		for (auto& child : window->Children)
+		{
+			if (!child->Visible)
+				continue;
+
+			if (child->Type != WindowType::Panel)
+			{
+				auto childAbsolutePosition = GetAbsolutePosition(child);
+				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
+				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+			}
+			RefreshInternal(child, rootGraphics);
+		}
+	}
+
 	void WindowManager::UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics)
 	{
 		if (request == nullptr)
@@ -388,6 +410,20 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::Refresh(Window* window)
+	{
+		auto& rootGraphics = *(window->RootWindow->RootGraphics);
+
+		auto absolutePosition = GetAbsolutePosition(window);
+		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+
+		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+
+		RefreshInternal(window, rootGraphics);
+
+		window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+	}
+
 	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
 	{
 		if (rootWindow->DeferredRequests.size() == 0)
@@ -400,6 +436,7 @@ namespace Berta
 		{
 			if (Exists(request))
 			{
+				//TODO: don't update a window twice. A child could be in the queue, add check.
 				auto absolutePosition = GetAbsolutePosition(request);
 				Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, request->Size.Width, request->Size.Height };
 				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.

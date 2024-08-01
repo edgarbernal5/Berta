@@ -149,6 +149,7 @@ namespace Berta
 		else
 		{
 			panel->Hide();
+			GUI::UpdateTree(*panel);
 		}
 		BuildItems(startIndex);
 

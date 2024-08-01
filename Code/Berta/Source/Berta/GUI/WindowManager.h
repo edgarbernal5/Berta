@@ -67,6 +67,7 @@ namespace Berta
 
 		void Resize(Window* window, const Size& newSize, bool updateTree = true);
 		void Move(Window* window, const Rectangle& newRect);
+		void Refresh(Window* window);
 		void UpdateDeferredRequests(Window* rootWindow);
 
 		void ChangeDPI(Window* window, uint32_t newDPI);
@@ -84,6 +85,7 @@ namespace Berta
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
+		void RefreshInternal(Window* window, Graphics& rootGraphics);
 		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
 
 		struct CaptureData
