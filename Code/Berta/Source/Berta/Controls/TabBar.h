@@ -26,6 +26,8 @@ namespace Berta
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		void AddTab(const std::string& tabId, Panel* panel);
+		void EraseTab(size_t index);
+
 	private:
 		struct PanelItem
 		{
@@ -43,6 +45,7 @@ namespace Berta
 		{
 			void AddTab(const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
+			void EraseTab(size_t index);
 			int FindItem(const Point& position);
 			bool NewSelectedIndex(int newIndex) { return SelectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
@@ -73,6 +76,8 @@ namespace Berta
 			m_reactor.AddTab(tabId, newPanel);
 			return newPanel;
 		}
+
+		void Erase(size_t index);
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);

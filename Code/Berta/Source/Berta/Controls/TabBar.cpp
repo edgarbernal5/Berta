@@ -112,6 +112,11 @@ namespace Berta
 		m_module.AddTab(tabId, panel);
 	}
 
+	void TabBarReactor::EraseTab(size_t index)
+	{
+		m_module.EraseTab(index);
+	}
+
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
@@ -185,6 +190,22 @@ namespace Berta
 		}
 	}
 
+	void TabBarReactor::Module::EraseTab(size_t index)
+	{
+		if (index >= Panels.size())
+			return;
+
+		auto& tab = Panels[index];
+		
+		Panels.erase(Panels.begin() + index);
+		if (SelectedTabIndex >= Panels.size())
+		{
+			SelectedTabIndex = Panels.size() - 1;
+		}
+		BuildItems(index);
+		GUI::UpdateTree(m_owner);
+	}
+
 	int TabBarReactor::Module::FindItem(const Point& position)
 	{
 		auto& items = Panels;
@@ -199,5 +220,10 @@ namespace Berta
 			}
 		}
 		return -1;
+	}
+
+	void TabBar::Erase(size_t index)
+	{
+		m_reactor.EraseTab(index);
 	}
 }

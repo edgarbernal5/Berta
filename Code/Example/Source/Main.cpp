@@ -22,13 +22,13 @@ public:
 
 		SetDebugName("tabexample_1");
 
-		m_button.Create(*this,true, { 5,35,100,40 });
+		m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab!");
 		m_button.SetDebugName("button tab");
 		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
-			{
-				std::cout << "CLICK button tab" << std::endl;
-			});
+		{
+			std::cout << "CLICK button tab" << std::endl;
+		});
 	}
 	TabExample1() : Panel()
 	{
@@ -106,15 +106,6 @@ int main()
 	//	//std::cout << "LABEL>mouse move" << std::endl;
 	//});
 
-	//Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
-	//button2.SetDebugName("button2");
-	//button2.SetEnabled(false);
-	//button2.GetEvents().Click.Connect([&form](const Berta::ArgClick& args)
-	//{
-	//	std::cout << "BUTTON 2 >Click" << std::endl;
-	//	//form.SetEnabled(false);
-	//});
-	//
 
 	//Berta::InputText inputText(form, { 190,35,200,25 });
 	//inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
@@ -151,31 +142,40 @@ int main()
 	//scrollbar2.SetMinMax(0, 0);
 	//scrollbar2.SetEnabled(false);
 
-	//Berta::Button button(form, { 5,135,100,40 }, L"Click me!");
-	//button.SetDebugName("button");
-	//button.GetEvents().Click.Connect([&button2, &inputText, &comboBox, &menuBar](const Berta::ArgClick& args)
-	//{
-	//	std::cout << "BUTTON > Click" << std::endl;
-	//	button2.SetEnabled(!button2.GetEnabled());
-	//	inputText.SetEnabled(!inputText.GetEnabled());
-	//	comboBox.SetEnabled(!comboBox.GetEnabled());
-	//	menuBar.SetEnabled(!menuBar.GetEnabled());
-	//});
-	//button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
-	//{
-	//	std::cout << "BUTTON < mouse leave" << std::endl;
-	//});
-	//button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
-	//{
-	//	std::cout << "BUTTON > mouse enter" << std::endl;
-	//});
-
 	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
 	tabbar.SetDebugName("tabbar");
 	
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
-	//auto tabExample3 = tabbar.PushBack<TabExample2>("Input");
+	auto tabExample3 = tabbar.PushBack<TabExample1>("Input");
+	
+	Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
+	button2.SetDebugName("button2");
+	button2.SetEnabled(false);
+	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
+	{
+		std::cout << "BUTTON 2 >Click" << std::endl;
+		tabbar.Erase(1);
+	});
+
+	Berta::Button button(form, { 5,135,100,40 }, L"Click me!");
+	button.SetDebugName("button");
+	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
+	{
+		std::cout << "BUTTON > Click" << std::endl;
+		button2.SetEnabled(!button2.GetEnabled());
+		/*inputText.SetEnabled(!inputText.GetEnabled());
+		comboBox.SetEnabled(!comboBox.GetEnabled());
+		menuBar.SetEnabled(!menuBar.GetEnabled());*/
+	});
+	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON < mouse leave" << std::endl;
+	});
+	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
+	{
+		std::cout << "BUTTON > mouse enter" << std::endl;
+	});
 
 	form.Show();
 	form.Exec();
