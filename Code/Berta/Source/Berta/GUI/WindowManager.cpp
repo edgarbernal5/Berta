@@ -38,7 +38,7 @@ namespace Berta
 	void WindowManager::Caption(Window* window, const std::wstring& caption)
 	{
 		window->Title = caption;
-		if (window->Type == WindowType::Native)
+		if (window->Type == WindowType::Form)
 		{
 			API::CaptionNativeWindow(window->RootHandle, caption);
 		}
@@ -97,7 +97,7 @@ namespace Berta
 		
 		window->Renderer.Shutdown();
 		window->ControlWindowPtr->Destroy();
-		if (window->Type != WindowType::Native)
+		if (window->Type != WindowType::Form)
 		{
 			m_windowRegistry.erase(window);
 		}
@@ -180,10 +180,10 @@ namespace Berta
 			return;
 		}
 
-		if (window->Type == WindowType::Native)
+		if (window->Type == WindowType::Form)
 		{
 			ArgClosing argClosing{ false };
-			auto events = dynamic_cast<RootEvents*>(window->Events.get());
+			auto events = dynamic_cast<FormEvents*>(window->Events.get());
 			events->Closing.Emit(argClosing);
 
 			if (!argClosing.Cancel)
@@ -204,7 +204,7 @@ namespace Berta
 
 	void WindowManager::Remove(Window* window)
 	{
-		if (window->Type == WindowType::Native)
+		if (window->Type == WindowType::Form)
 		{
 			m_windowNativeRegistry.erase(window->RootHandle);
 			m_windowRegistry.erase(window);
@@ -351,12 +351,24 @@ namespace Berta
 	{
 		if (window->Visible != visible)
 		{
-			if (window->Type == WindowType::Native)
+			ArgVisibility argVisibility;
+			argVisibility.IsVisible = visible;
+			window->Events->Visibility.Emit(argVisibility);
+
+			auto windowToUpdate = window->Parent;
+			while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
+			{
+				windowToUpdate = windowToUpdate->Parent;
+			}
+			window->Visible = visible;
+			if (windowToUpdate)
+			{
+				UpdateTree(windowToUpdate);
+			}
+			if (window->Type == WindowType::Form)
 			{
 				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
 			}
-
-			window->Visible = visible;
 		}
 	}
 
@@ -373,7 +385,7 @@ namespace Berta
 				newGraphics.Build(newSize);
 				newGraphics.BuildFont(window->DPI);
 
-				if (window->Type == WindowType::Native)
+				if (window->Type == WindowType::Form)
 				{
 					newRootGraphics.Build(newSize);
 					newRootGraphics.BuildFont(window->DPI);
@@ -384,7 +396,7 @@ namespace Berta
 			{
 				window->Renderer.GetGraphics().Swap(newGraphics);
 
-				if (window->Type == WindowType::Native)
+				if (window->Type == WindowType::Form)
 				{
 					window->RootGraphics->Swap(newRootGraphics);
 				}
@@ -603,7 +615,7 @@ namespace Berta
 			do
 			{
 				auto child = window->Children[--index];
-				if (child->Type != WindowType::Native && IsPointOnWindow(child, point))
+				if (child->Type != WindowType::Form && IsPointOnWindow(child, point))
 				{
 					child = FindInTree(child, point);
 					if (child)

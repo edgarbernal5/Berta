@@ -22,7 +22,7 @@ namespace Berta
 
 	enum class WindowType
 	{
-		Native = 0,
+		Form = 0,		//Native window.
 		Control,
 		Panel			//It has no renderer, empty Graphics. Serves as a logical container of Window.
 	};

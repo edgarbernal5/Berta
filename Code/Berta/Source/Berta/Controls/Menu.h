@@ -168,7 +168,7 @@ namespace Berta
 		SubMenuAction m_subMenuAction{ SubMenuAction::None };
 	};
 
-	class MenuBox : public Control<MenuBoxReactor, RootEvents>
+	class MenuBox : public Control<MenuBoxReactor, FormEvents>
 	{
 	public:
 		MenuBox(Window* parent, const Rectangle& rectangle);

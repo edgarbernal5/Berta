@@ -214,12 +214,16 @@ namespace Berta
 			ArgActivated argActivated;
 			argActivated.IsActivated = wParam ? true : false;
 			//BT_CORE_TRACE << "    IsActivated = " << argActivated.IsActivated << ". " << hWnd << std::endl;
-			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->Activated.Emit(argActivated);
 			break;
 		}
 		case WM_SHOWWINDOW:
 		{
+			ArgVisibility argVisibility;
+			argVisibility.IsVisible = wParam == TRUE;
+			nativeWindow->Events->Visibility.Emit(argVisibility);
+
 			windowManager.UpdateTree(nativeWindow);
 			break;
 		}
@@ -418,7 +422,7 @@ namespace Berta
 						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
+						//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
 						window->Renderer.MouseEnter(argMouseEnter);
 						window->Events->MouseEnter.Emit(argMouseEnter);
 
@@ -433,13 +437,13 @@ namespace Berta
 						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
+						//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
 						window->Renderer.MouseMove(argMouseMove);
 						window->Events->MouseMove.Emit(argMouseMove);
 					}
 					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
 					{
-						BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 						trackEvent.hwndTrack = hWnd;
 						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 						rootWindowData.IsTracking = true;
@@ -634,21 +638,21 @@ namespace Berta
 		case WM_ENTERSIZEMOVE:
 		{
 			ArgSizeMove argSizeMove;
-			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->EnterSizeMove.Emit(argSizeMove);
 			break;
 		}
 		case WM_EXITSIZEMOVE:
 		{
 			ArgSizeMove argSizeMove;
-			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->ExitSizeMove.Emit(argSizeMove);
 			break;
 		}
 		case WM_CLOSE:
 		{
 			ArgClosing argClosing{ false };
-			auto events = dynamic_cast<RootEvents*>(nativeWindow->Events.get());
+			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->Closing.Emit(argClosing);
 			if (argClosing.Cancel)
 			{

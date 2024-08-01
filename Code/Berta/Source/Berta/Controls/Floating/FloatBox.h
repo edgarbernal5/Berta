@@ -55,7 +55,7 @@ namespace Berta
 		std::unique_ptr<ScrollBar> m_scrollBar;
 	};
 
-	class FloatBox : public Control<FloatBoxReactor, RootEvents>
+	class FloatBox : public Control<FloatBoxReactor, FormEvents>
 	{
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);

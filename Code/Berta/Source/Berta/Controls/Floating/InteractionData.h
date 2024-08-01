@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_SELECTION_STATE_HEADER
-#define BT_SELECTION_STATE_HEADER
+#ifndef BT_INTERCTION_DATA_HEADER
+#define BT_INTERCTION_DATA_HEADER
 
 #include <string>
 #include <vector>

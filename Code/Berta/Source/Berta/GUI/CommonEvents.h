@@ -61,24 +61,30 @@ namespace Berta
 		bool IsVertical;
 	};
 
+	struct ArgVisibility
+	{
+		bool IsVisible{ false };
+	};
+
 	struct CommonEvents
 	{
 		virtual ~CommonEvents() = default;
 
-		Event<ArgMouse>		MouseEnter;
-		Event<ArgMouse>		MouseLeave;
-		Event<ArgMouse>		MouseDown;
-		Event<ArgMouse>		MouseMove;
-		Event<ArgWheel>		MouseWheel;
-		Event<ArgMouse>		MouseUp;
-		Event<ArgClick>		Click;
-		Event<ArgClick>		DblClick;
-		Event<ArgResize>	Resize;
-		Event<ArgFocus>		Focus;
-		Event<ArgKeyboard>	KeyChar;
-		Event<ArgKeyboard>	KeyPressed;
-		Event<ArgKeyboard>	KeyReleased;
-		Event<ArgDestroy>	Destroy;
+		Event<ArgMouse>			MouseEnter;
+		Event<ArgMouse>			MouseLeave;
+		Event<ArgMouse>			MouseDown;
+		Event<ArgMouse>			MouseMove;
+		Event<ArgWheel>			MouseWheel;
+		Event<ArgMouse>			MouseUp;
+		Event<ArgClick>			Click;
+		Event<ArgClick>			DblClick;
+		Event<ArgResize>		Resize;
+		Event<ArgFocus>			Focus;
+		Event<ArgKeyboard>		KeyChar;
+		Event<ArgKeyboard>		KeyPressed;
+		Event<ArgKeyboard>		KeyReleased;
+		Event<ArgDestroy>		Destroy;
+		Event<ArgVisibility>	Visibility;
 	};
 
 	struct ArgTextChanged
@@ -89,7 +95,7 @@ namespace Berta
 
 	struct InputTextEvents : public CommonEvents
 	{
-		Event<ArgTextChanged>	ValueChanged;
+		Event<ArgTextChanged> ValueChanged;
 	};
 
 	struct ArgSizeMove
@@ -106,7 +112,7 @@ namespace Berta
 		bool Cancel{ false };
 	};
 
-	struct RootEvents : public CommonEvents
+	struct FormEvents : public CommonEvents
 	{
 		Event<ArgActivated>	Activated;
 		Event<ArgSizeMove>	EnterSizeMove;

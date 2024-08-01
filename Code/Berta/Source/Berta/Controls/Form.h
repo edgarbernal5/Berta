@@ -28,7 +28,7 @@ namespace Berta
 		ControlBase* m_control{ nullptr };
 	};
 
-	class Form : public Control<FormReactor, RootEvents>
+	class Form : public Control<FormReactor, FormEvents>
 	{
 	public:
 		explicit Form(const Size& size, const FormStyle& windowStyle = {true, true, true});

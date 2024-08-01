@@ -203,6 +203,11 @@ namespace Berta
 		{
 			SelectedTabIndex = Panels.size() - 1;
 		}
+		if (index == SelectedTabIndex)
+		{
+			Panels[index].PanelPtr->Show();
+		}
+
 		BuildItems(index);
 		GUI::UpdateTree(m_owner);
 	}

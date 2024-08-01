@@ -28,7 +28,7 @@ namespace Berta::GUI
 		if (windowResult.WindowHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
-			Window* window = new Window(WindowType::Native);
+			Window* window = new Window(WindowType::Form);
 			window->RootHandle = windowResult.WindowHandle;
 			window->Size = windowResult.ClientSize;
 			window->RootWindow = window;
@@ -99,7 +99,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			if (window->Type == WindowType::Native)
+			if (window->Type == WindowType::Form)
 			{
 				return API::GetCaptionNativeWindow(window->RootHandle);
 			}
@@ -144,7 +144,7 @@ namespace Berta::GUI
 			window->Flags.IsEnabled = isEnabled;
 			window->Renderer.Update();
 			RefreshWindow(window);
-			if (window->Type == WindowType::Native)
+			if (window->Type == WindowType::Form)
 			{
 				API::EnableWindow(window->RootHandle, isEnabled);
 			}
