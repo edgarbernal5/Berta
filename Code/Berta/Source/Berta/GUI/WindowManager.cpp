@@ -353,6 +353,8 @@ namespace Berta
 		{
 			if (window->Type != WindowType::Form)
 			{
+				window->Visible = visible;
+
 				ArgVisibility argVisibility;
 				argVisibility.IsVisible = visible;
 				window->Events->Visibility.Emit(argVisibility);
@@ -362,7 +364,6 @@ namespace Berta
 				{
 					windowToUpdate = windowToUpdate->Parent;
 				}
-				window->Visible = visible;
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
