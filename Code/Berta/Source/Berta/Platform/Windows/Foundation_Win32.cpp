@@ -220,8 +220,11 @@ namespace Berta
 		}
 		case WM_SHOWWINDOW:
 		{
+			bool isVisible = wParam == TRUE;
+			nativeWindow->Visible = isVisible;
+
 			ArgVisibility argVisibility;
-			argVisibility.IsVisible = wParam == TRUE;
+			argVisibility.IsVisible = isVisible;
 			nativeWindow->Events->Visibility.Emit(argVisibility);
 
 			windowManager.UpdateTree(nativeWindow);

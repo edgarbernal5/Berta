@@ -351,19 +351,22 @@ namespace Berta
 	{
 		if (window->Visible != visible)
 		{
-			ArgVisibility argVisibility;
-			argVisibility.IsVisible = visible;
-			window->Events->Visibility.Emit(argVisibility);
+			if (window->Type != WindowType::Form)
+			{
+				ArgVisibility argVisibility;
+				argVisibility.IsVisible = visible;
+				window->Events->Visibility.Emit(argVisibility);
 
-			auto windowToUpdate = window->Parent;
-			while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
-			{
-				windowToUpdate = windowToUpdate->Parent;
-			}
-			window->Visible = visible;
-			if (windowToUpdate)
-			{
-				UpdateTree(windowToUpdate);
+				auto windowToUpdate = window->Parent;
+				while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
+				{
+					windowToUpdate = windowToUpdate->Parent;
+				}
+				window->Visible = visible;
+				if (windowToUpdate)
+				{
+					UpdateTree(windowToUpdate);
+				}
 			}
 			if (window->Type == WindowType::Form)
 			{
