@@ -361,7 +361,7 @@ namespace Berta
 
 	void TextEditor::DeleteBack()
 	{
-		if (m_caretPosition == 0)
+		if (m_caretPosition == 0 && m_selectionEndPosition == m_selectionStartPosition)
 			return;
 
 		if (m_selectionEndPosition != m_selectionStartPosition)
