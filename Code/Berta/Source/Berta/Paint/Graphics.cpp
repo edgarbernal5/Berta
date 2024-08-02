@@ -334,7 +334,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color)
+	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -343,82 +343,29 @@ namespace Berta
 		}
 
 		float scaleFactor = m_dpi / 96.0f;
-		auto radius = static_cast<int>(8u * scaleFactor);
-		auto ellipseHeight = radius;
-		auto ellipseWidth = radius;
-		//SetGraphicsMode(m_attributes->m_hdc, GM_ADVANCED);
-		//SetBkMode(m_attributes->m_hdc, TRANSPARENT);
-		//SetStretchBltMode(m_attributes->m_hdc, HALFTONE); // Optional, for better stretching quality
-		HBRUSH brush = ::CreateSolidBrush(color.BGR);
-		::SelectObject(m_attributes->m_hdc, brush);
+		auto radius = static_cast<int>(3u * scaleFactor);
 
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		if (solid)
+		{
+			auto prv_pen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, color.BGR));
+			auto prv_brush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(0xFFFFFF));
 
-		HGDIOBJ oldBrush = ::SelectObject(m_attributes->m_hdc, brush);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height, static_cast<int>(radius * 2), static_cast<int>(radius * 2));
 
-		int left = rect.X;
-		int top = rect.Y;
-		int right = left+rect.Width-1;
-		int bottom = top+rect.Height-1;
-		
-		//// Draw top and bottom lines
-		//MoveToEx(m_attributes->m_hdc, left + ellipseWidth, top, NULL);
-		//LineTo(m_attributes->m_hdc, right - ellipseWidth, top);
-		//MoveToEx(m_attributes->m_hdc, left + ellipseWidth, bottom, NULL);
-		//LineTo(m_attributes->m_hdc, right - ellipseWidth, bottom);
+			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_brush));
+			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_pen));
+		}
+		else
+		{
+			auto brush = ::CreateSolidBrush(color.BGR);
 
-		//// Draw left and right lines
-		//MoveToEx(m_attributes->m_hdc, left, top + ellipseHeight, NULL);
-		//LineTo(m_attributes->m_hdc, left, bottom - ellipseHeight);
-		//MoveToEx(m_attributes->m_hdc, right, top + ellipseHeight, NULL);
-		//LineTo(m_attributes->m_hdc, right, bottom - ellipseHeight);
+			auto region = ::CreateRoundRectRgn(rect.X, rect.Y, rect.X + static_cast<int>(rect.Width) + 1, rect.Y + static_cast<int>(rect.Height) + 1, static_cast<int>(radius + 1), static_cast<int>(radius + 1));
 
-		// Draw corner arcs
-		//Arc(m_attributes->m_hdc, left, top, left + 2 * ellipseWidth, top + 2 * ellipseHeight, left + ellipseWidth, top + ellipseHeight, left + ellipseWidth, top);
-		//Arc(m_attributes->m_hdc, right - 2 * ellipseWidth, top, right, top + 2 * ellipseHeight, right - ellipseWidth, top + ellipseHeight, right - ellipseWidth, top);
-		//Arc(m_attributes->m_hdc, left, bottom - 2 * ellipseHeight, left + 2 * ellipseWidth, bottom, left + ellipseWidth, bottom - ellipseHeight, left + ellipseWidth, bottom);
-		/*Arc(m_attributes->m_hdc, right - 2 * ellipseWidth, bottom - 2 * ellipseHeight, right, bottom, right - ellipseWidth, bottom - ellipseHeight, right - ellipseWidth, bottom);*/
+			::FrameRgn(m_attributes->m_hdc, region, brush, 1, 1);
 
-		// Define the coordinates for the arcs
-		int arcWidth = radius * 2;
-		int arcHeight = radius * 2;
-
-		// Top-left corner arc
-		Arc(m_attributes->m_hdc, left, top, left + arcWidth, top + arcHeight, left + radius, top, left, top + radius);
-
-		// Top-right corner arc
-		Arc(m_attributes->m_hdc, right - arcWidth, top, right, top + arcHeight, right, top + radius, right - radius, top);
-
-		// Bottom-right corner arc
-		Arc(m_attributes->m_hdc, right - arcWidth, bottom - arcHeight, right, bottom, right - radius, bottom, right, bottom - radius);
-
-		// Bottom-left corner arc
-		Arc(m_attributes->m_hdc, left, bottom - arcHeight, left + arcWidth, bottom, left, bottom - radius, left + radius, bottom);
-
-		// Draw the straight sides
-		MoveToEx(m_attributes->m_hdc, left + radius, top, NULL);
-		LineTo(m_attributes->m_hdc, right - radius, top);
-
-		MoveToEx(m_attributes->m_hdc, right, top + radius, NULL);
-		LineTo(m_attributes->m_hdc, right, bottom - radius);
-
-		MoveToEx(m_attributes->m_hdc, right - radius, bottom, NULL);
-		LineTo(m_attributes->m_hdc, left + radius, bottom);
-
-		MoveToEx(m_attributes->m_hdc, left, bottom - radius, NULL);
-		LineTo(m_attributes->m_hdc, left, top + radius);
-
-
-		//MyRoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y+rect.Height, size, size);
-		//::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height, size, size);
-		
-		//SetBkMode(m_attributes->m_hdc, TRANSPARENT);
-		// Clean up
-		::SelectObject(m_attributes->m_hdc, oldBrush);
-		::SelectObject(m_attributes->m_hdc, hOldPen);
-		::DeleteObject(brush);
-		::DeleteObject(hPen);
+			::DeleteObject(region);
+			::DeleteObject(brush);
+		}
 #endif
 	}
 

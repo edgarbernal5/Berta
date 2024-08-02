@@ -38,8 +38,8 @@ namespace Berta
 		{
 			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonPressedBackground, true);
 		}
-		//graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor);
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+		graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+		//graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
 		auto center = window->Size - graphics.GetTextExtent(caption);
