@@ -68,7 +68,7 @@ namespace Berta
 			Menu& PushBack(const std::wstring& text);
 			void OpenMenu(bool ignoreFirstMouseUp = true);
 			void SelectIndex(int index);
-
+			bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
 			MenuBox* GetActiveMenuBox() const;
 
 			MenuBar* m_control{ nullptr };

@@ -17,7 +17,7 @@
 namespace Berta
 {
 	class Graphics;
-	struct CommonEvents;
+	struct ControlEvents;
 	struct ControlAppearance;
 
 	enum class WindowType
@@ -51,7 +51,7 @@ namespace Berta
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
 		std::shared_ptr<ControlAppearance> Appereance{ nullptr };
-		std::shared_ptr<CommonEvents> Events{ nullptr };
+		std::shared_ptr<ControlEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr }; //TODO: a lo mejor debemos usar un puntero a ControlBase y eliminamos esta interfaz
 
 		Window* Parent{ nullptr };		//A parent window is directly above a child window in the window hierarchy.

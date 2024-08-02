@@ -8,7 +8,7 @@
 #define BT_RENDERER_HEADER
 
 #include "Berta/Paint/Graphics.h"
-#include "Berta/GUI/CommonEvents.h"
+#include "Berta/GUI/ControlEvents.h"
 
 namespace Berta
 {

@@ -99,9 +99,6 @@
     <ClInclude Include="Source\Berta\Controls\Button.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\CommonEvents.h">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Core\Event.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
@@ -168,6 +165,7 @@
     <ClInclude Include="Source\Berta\Controls\Panel.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ControlEvents.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

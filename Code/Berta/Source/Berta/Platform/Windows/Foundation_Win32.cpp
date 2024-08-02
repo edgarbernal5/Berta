@@ -12,7 +12,7 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/CommonEvents.h"
+#include "Berta/GUI/ControlEvents.h"
 #include "Berta/GUI/EnumTypes.h"
 #include "Berta/Platform/Windows/Messages.h"
 

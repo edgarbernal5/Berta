@@ -15,7 +15,7 @@ namespace Berta
 {
 	class ControlBase;
 	class ControlReactor;
-	struct CommonEvents;
+	struct ControlEvents;
 	class MenuBarItemReactor;
 	class MenuItemReactor;
 
@@ -42,7 +42,7 @@ namespace Berta
 		void ReleaseCapture(Window* window);
 
 		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
-		void SetEvents(Window* window, std::shared_ptr<CommonEvents> events);
+		void SetEvents(Window* window, std::shared_ptr<ControlEvents> events);
 		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
 		Point GetAbsolutePosition(Window* window);

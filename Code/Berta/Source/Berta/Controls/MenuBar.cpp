@@ -21,7 +21,7 @@ namespace Berta
 
 		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
 		{
-			if (!args.Focused && m_module.m_interactionData.m_activeMenu)
+			if (!args.Focused && m_module.IsMenuOpen())
 			{
 				GUI::DisposeMenu(true);
 			}
@@ -44,15 +44,15 @@ namespace Berta
 
 			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
-				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.m_interactionData.m_activeMenu ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
+				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
 
-				if (m_module.m_interactionData.m_activeMenu)
+				if (m_module.IsMenuOpen())
 				{
 					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appereance->BoxBorderColor);
 					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
 					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
 				}
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, m_module.m_interactionData.m_activeMenu ? window->Appereance->Foreground : window->Appereance->HighlightTextColor);
+				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, m_module.IsMenuOpen() ? window->Appereance->Foreground : window->Appereance->HighlightTextColor);
 			}
 			else
 			{
@@ -67,7 +67,7 @@ namespace Berta
 
 	void MenuBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		if (m_module.m_interactionData.m_activeMenu)
+		if (m_module.IsMenuOpen())
 			return;
 
 		m_module.SelectIndex(-1);
@@ -83,26 +83,26 @@ namespace Berta
 		if (selectedItem != -1)
 		{
 			m_module.OpenMenu();
-			if (m_module.m_interactionData.m_activeMenu)
+			if (m_module.IsMenuOpen())
 			{
 				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
 				GUI::SetMenu(this, this);
 			}
-		}
 
-		Update(graphics);
-		GUI::UpdateDeferred(m_module.m_owner);
+			Update(graphics);
+			GUI::UpdateDeferred(m_module.m_owner);
+		}
 	}
 
 	void MenuBarReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		int selectedItem = m_module.FindItem(args.Position);
 
-		if (m_module.m_interactionData.m_activeMenu)
+		if (m_module.IsMenuOpen())
 		{
 			if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex && m_module.m_lastMousePosition != args.Position) // check last mouse position, or might be better if the keyboard is captured ?
 			{
-				if (m_module.m_interactionData.m_activeMenu->m_menuBox)
+				if (m_module.GetActiveMenuBox())
 				{
 					GUI::DisposeMenu(false);
 				}
@@ -150,7 +150,7 @@ namespace Berta
 
 	void MenuBarReactor::OnMBIMoveLeft()
 	{
-		if (!m_module.m_interactionData.m_activeMenu)
+		if (!m_module.IsMenuOpen())
 		{
 			return;
 		}
@@ -171,7 +171,7 @@ namespace Berta
 
 	void MenuBarReactor::OnMBIMoveRight()
 	{
-		if (!m_module.m_interactionData.m_activeMenu)
+		if (!m_module.IsMenuOpen())
 		{
 			return;
 		}

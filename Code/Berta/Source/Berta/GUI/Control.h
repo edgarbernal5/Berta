@@ -11,7 +11,7 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/ControlReactor.h"
 #include "Berta/GUI/ControlAppearance.h"
-#include "Berta/GUI/CommonEvents.h"
+#include "Berta/GUI/ControlEvents.h"
 
 namespace Berta
 {
@@ -96,7 +96,7 @@ namespace Berta
 		Window* m_handle{ nullptr };
 	};
 
-	template <typename Reactor, typename Events = CommonEvents, typename Appearance = ControlAppearance>
+	template <typename Reactor, typename Events = ControlEvents, typename Appearance = ControlAppearance>
 	class Control : public ControlBase
 	{
 	public:
@@ -108,7 +108,7 @@ namespace Berta
 		Control()
 		{
 			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
-			static_assert(std::is_base_of<CommonEvents, Events>::value, "Events must be derived from CommonEvents");
+			static_assert(std::is_base_of<ControlEvents, Events>::value, "Events must be derived from ControlEvents");
 			static_assert(std::is_base_of<ControlAppearance, Appearance>::value, "Appearance must be derived from ControlAppearance");
 		}
 

@@ -11,7 +11,7 @@
 #include <functional>
 
 #include "Berta/Paint/Graphics.h"
-#include "Berta/GUI/CommonEvents.h"
+#include "Berta/GUI/ControlEvents.h"
 #include "Berta/Core/Timer.h"
 
 namespace Berta

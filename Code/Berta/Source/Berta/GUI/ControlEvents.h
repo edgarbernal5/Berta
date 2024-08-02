@@ -66,9 +66,9 @@ namespace Berta
 		bool IsVisible{ false };
 	};
 
-	struct CommonEvents
+	struct ControlEvents
 	{
-		virtual ~CommonEvents() = default;
+		virtual ~ControlEvents() = default;
 
 		Event<ArgMouse>			MouseEnter;
 		Event<ArgMouse>			MouseLeave;
@@ -93,7 +93,7 @@ namespace Berta
 		std::wstring NewValue;
 	};
 
-	struct InputTextEvents : public CommonEvents
+	struct InputTextEvents : public ControlEvents
 	{
 		Event<ArgTextChanged> ValueChanged;
 	};
@@ -112,7 +112,7 @@ namespace Berta
 		bool Cancel{ false };
 	};
 
-	struct FormEvents : public CommonEvents
+	struct FormEvents : public ControlEvents
 	{
 		Event<ArgActivated>	Activated;
 		Event<ArgSizeMove>	EnterSizeMove;
@@ -125,7 +125,7 @@ namespace Berta
 		int SelectedIndex;
 	};
 
-	struct ComboboxEvents : public CommonEvents
+	struct ComboboxEvents : public ControlEvents
 	{
 		Event<ArgComboBox>	Selected;
 	};
@@ -135,7 +135,7 @@ namespace Berta
 		int Value;
 	};
 
-	struct ScrollBarEvents : public CommonEvents
+	struct ScrollBarEvents : public ControlEvents
 	{
 		Event<ArgScrollBar>	ValueChanged;
 	};

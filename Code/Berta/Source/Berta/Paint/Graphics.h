@@ -65,9 +65,6 @@ namespace Berta
 
 		friend class Image;
 	private:
-		void MyArc(HDC hdc, int left, int top, int right, int bottom, int startX, int startY, int endX, int endY);
-		void MyPolyBezier(HDC hdc, const POINT* points, int numPoints);
-		void MyRoundRect(HDC hdc, int left, int top, int right, int bottom, int width, int height);
 #ifdef BT_PLATFORM_WINDOWS
 		struct NativeAttributes
 		{
