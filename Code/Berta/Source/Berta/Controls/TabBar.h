@@ -26,6 +26,7 @@ namespace Berta
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		void AddTab(const std::string& tabId, Panel* panel);
+		void InsertTab(size_t index, const std::string& tabId, Panel* panel);
 		void EraseTab(size_t index);
 
 	private:
@@ -44,6 +45,7 @@ namespace Berta
 		struct Module
 		{
 			void AddTab(const std::string& tabId, Panel* panel);
+			void InsertTab(size_t index, const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
 			void EraseTab(size_t index);
 			int FindItem(const Point& position);
@@ -63,15 +65,29 @@ namespace Berta
 	public:
 		TabBar(Window* parent, const Rectangle& rectangle);
 
-		template<typename TPanel, typename ...Args>
-		TPanel* PushBack(const std::string& tabId, Args&& ... args)
+		template<typename PanelType, typename ...Args>
+		PanelType* PushBack(const std::string& tabId, Args&& ... args)
 		{
-			static_assert(std::is_base_of<Panel, TPanel>::value, "TPanel must be derived from Panel");
+			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
 
-			auto newPanel = reinterpret_cast<TPanel*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
+			auto newPanel = reinterpret_cast<PanelType*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
 			{
-				return new TPanel(parent, std::forward<Args>(tabArgs)...);
+				return new PanelType(parent, std::forward<Args>(tabArgs)...);
 			}, std::placeholders::_1, args...)));
+
+			m_reactor.AddTab(tabId, newPanel);
+			return newPanel;
+		}
+
+		template<typename PanelType, typename ...Args>
+		PanelType* Insert(size_t index, const std::string& tabId, Args&& ... args)
+		{
+			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
+
+			auto newPanel = reinterpret_cast<PanelType*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
+				{
+					return new PanelType(parent, std::forward<Args>(tabArgs)...);
+				}, std::placeholders::_1, args...)));
 
 			m_reactor.AddTab(tabId, newPanel);
 			return newPanel;

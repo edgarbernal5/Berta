@@ -255,12 +255,12 @@ namespace Berta
 #endif
 		}
 
-		void SendCustomMessage(API::NativeWindowHandle nativaHandle, std::function<void()> body)
+		void SendCustomMessage(API::NativeWindowHandle nativeHandle, std::function<void()> body)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			auto param = new CustomCallbackMessage();
 			param->Body = body;
-			::PostMessage(nativaHandle.Handle, static_cast<UINT>(CustomMessageId::CustomCallback), reinterpret_cast<WPARAM>(param), 0);
+			::PostMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomCallback), reinterpret_cast<WPARAM>(param), 0);
 #endif
 		}
 

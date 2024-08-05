@@ -36,10 +36,7 @@ namespace Berta
 		virtual void KeyChar(Graphics& graphics, const ArgKeyboard& args);
 		virtual void KeyPressed(Graphics& graphics, const ArgKeyboard& args);
 		virtual void KeyReleased(Graphics& graphics, const ArgKeyboard& args);
-		virtual void Resize(Graphics& graphics, const ArgResize& args);
-
-	private:
-		
+		virtual void Resize(Graphics& graphics, const ArgResize& args);		
 	};
 }
 

@@ -112,6 +112,11 @@ namespace Berta
 		m_module.AddTab(tabId, panel);
 	}
 
+	void TabBarReactor::InsertTab(size_t index, const std::string& tabId, Panel* panel)
+	{
+		m_module.InsertTab(index, tabId, panel);
+	}
+
 	void TabBarReactor::EraseTab(size_t index)
 	{
 		m_module.EraseTab(index);
@@ -150,6 +155,14 @@ namespace Berta
 		{
 			panel->Hide();
 		}
+		BuildItems(startIndex);
+
+		GUI::UpdateTree(m_owner);
+	}
+
+	void TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
+	{
+		auto startIndex = index;
 		BuildItems(startIndex);
 
 		GUI::UpdateTree(m_owner);
