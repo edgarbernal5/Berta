@@ -36,10 +36,11 @@ namespace Berta
 		//TODO: drawlineto
 		int lastPositionX = 0;
 		int selectedPositionX = 0;
-		for (size_t i = 0; i < m_module.Panels.size(); i++)
+		int i = 0;
+		
+		for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++i, ++tabItem)
 		{
-			auto& tabItem = m_module.Panels[i];
-			if (m_module.SelectedTabIndex == (int)i)
+			if (m_module.SelectedTabIndex == i)
 			{
 				/*if (lastPositionX == 0)
 				{
@@ -50,11 +51,11 @@ namespace Berta
 				else*/
 				{
 					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem.Size.Width - 1, 0 }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem.Size.Width - 1, 1 }, { lastPositionX + (int)tabItem.Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem->Size.Width - 1, 0 }, m_module.m_owner->Appereance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
 				}
 
-				graphics.DrawString({ (int)tabItem.Center.Width + lastPositionX,(int)tabItem.Center.Height }, tabItem.Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height }, tabItem->Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
 				selectedPositionX = lastPositionX;
 			}
 			else
@@ -63,14 +64,15 @@ namespace Berta
 				{
 					graphics.DrawLine({ lastPositionX, 1 + tabMarginUnselected }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
 				}
-				graphics.DrawLine({ lastPositionX + 1, tabMarginUnselected }, { lastPositionX + (int)tabItem.Size.Width - 1, tabMarginUnselected }, m_module.m_owner->Appereance->BoxBorderColor);
-				graphics.DrawLine({ lastPositionX + (int)tabItem.Size.Width - 1, tabMarginUnselected + 1 }, { lastPositionX + (int)tabItem.Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+				graphics.DrawLine({ lastPositionX + 1, tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected }, m_module.m_owner->Appereance->BoxBorderColor);
+				graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected + 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
 
-				graphics.DrawString({ (int)tabItem.Center.Width + lastPositionX,(int)tabItem.Center.Height + one }, tabItem.Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height + one }, tabItem->Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
 			}
-			lastPositionX += (int)tabItem.Size.Width;
+			lastPositionX += (int)tabItem->Size.Width;
 		}
-		auto& selectedTabItem = m_module.Panels[m_module.SelectedTabIndex];
+		auto selectedTabItem = m_module.Panels.cbegin();
+		std::advance(selectedTabItem, m_module.SelectedTabIndex);
 		if (selectedPositionX > 0)
 		{
 			graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
@@ -79,9 +81,9 @@ namespace Berta
 		graphics.DrawLine({ 0, (int)m_module.m_owner->Size.Height-1 }, { (int)m_module.m_owner->Size.Width, (int)m_module.m_owner->Size.Height-1 }, m_module.m_owner->Appereance->BoxBorderColor);
 		graphics.DrawLine({ (int)m_module.m_owner->Size.Width - 1,  tabBarItemHeight + 1 }, { (int)m_module.m_owner->Size.Width - 1, (int)m_module.m_owner->Size.Height }, m_module.m_owner->Appereance->BoxBorderColor);
 
-		if (selectedPositionX + (int)selectedTabItem.Size.Width < (int)m_module.m_owner->Size.Width)
+		if (selectedPositionX + (int)selectedTabItem->Size.Width < (int)m_module.m_owner->Size.Width)
 		{
-			graphics.DrawLine({ selectedPositionX + (int)selectedTabItem.Size.Width,tabBarItemHeight }, { (int)m_module.m_owner->Size.Width, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+			graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width,tabBarItemHeight }, { (int)m_module.m_owner->Size.Width, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
 		}
 	}
 
@@ -93,9 +95,15 @@ namespace Berta
 
 		if (m_module.NewSelectedIndex(newSelectedIndex))
 		{
-			m_module.Panels[m_module.SelectedTabIndex].PanelPtr->Hide();
+			auto selectedTabItem = m_module.Panels.cbegin();
+			std::advance(selectedTabItem, m_module.SelectedTabIndex);
+
+			selectedTabItem->PanelPtr->Hide();
 			m_module.SelectIndex(newSelectedIndex);
-			m_module.Panels[newSelectedIndex].PanelPtr->Show();
+
+			auto newSelectedTabItem = m_module.Panels.cbegin();
+			std::advance(newSelectedTabItem, newSelectedIndex);
+			newSelectedTabItem->PanelPtr->Show();
 
 			Update(graphics);
 			GUI::UpdateDeferred(m_module.m_owner);
@@ -112,14 +120,14 @@ namespace Berta
 		m_module.AddTab(tabId, panel);
 	}
 
-	void TabBarReactor::InsertTab(size_t index, const std::string& tabId, Panel* panel)
+	void TabBarReactor::InsertTab(size_t position, const std::string& tabId, Panel* panel)
 	{
-		m_module.InsertTab(index, tabId, panel);
+		m_module.InsertTab(position, tabId, panel);
 	}
 
-	void TabBarReactor::EraseTab(size_t index)
+	void TabBarReactor::EraseTab(size_t position)
 	{
-		m_module.EraseTab(index);
+		m_module.EraseTab(position);
 	}
 
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
@@ -129,9 +137,16 @@ namespace Berta
 
 	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory)
 	{
-		auto newTab = factory(*this);
-		auto result = newTab;
-		//m_reactor.AddTab(tabId, result);
+		auto result = factory(*this);
+		m_reactor.AddTab(tabId, reinterpret_cast<Panel*>(result));
+
+		return result;
+	}
+
+	ControlBase* TabBar::InsertTab(size_t position, const std::string& tabId, std::function<ControlBase* (Window*)> factory)
+	{
+		auto result = factory(*this);
+		m_reactor.InsertTab(position, tabId, reinterpret_cast<Panel*>(result));
 
 		return result;
 	}
@@ -143,9 +158,7 @@ namespace Berta
 		newItem.Id = tabId;
 		newItem.PanelPtr.reset(panel);
 
-		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
-		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
-		GUI::MoveWindow(panel->Handle(), rect);
+		UpdatePanelRect(panel);
 
 		if (SelectedTabIndex == -1)
 		{
@@ -162,7 +175,27 @@ namespace Berta
 
 	void TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
 	{
-		auto startIndex = index;
+		if (index >= Panels.size())
+		{
+			AddTab(tabId, panel);
+			return;
+		}
+		int startIndex = index;
+
+		auto newIt = Panels.emplace(At(index), std::move(tabId), std::move(panel));
+
+		UpdatePanelRect(panel);
+
+		if (SelectedTabIndex == -1)
+		{
+			SelectedTabIndex = 0;
+		}
+		else if (SelectedTabIndex == index)
+		{
+			++newIt;
+			newIt->PanelPtr->Hide();
+		}
+
 		BuildItems(startIndex);
 
 		GUI::UpdateTree(m_owner);
@@ -182,22 +215,25 @@ namespace Berta
 
 		if (startIndex > 0)
 		{
-			offset.X = Panels[startIndex - 1].Position.X + (int)Panels[startIndex - 1].Size.Width;
+			auto element = Panels.cbegin();
+			std::advance(element, startIndex - 1);
+			offset.X = element->Position.X + (int)element->Size.Width;
 		}
 
-		for (size_t i = startIndex; i < Panels.size(); i++)
+		auto current = Panels.begin();
+		std::advance(current, startIndex);
+		for (size_t i = startIndex; i < Panels.size(); ++i, ++current)
 		{
-			auto& itemData = Panels[i];
-			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(itemData.Id);
+			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(current->Id);
 			Size itemSize{ textSize.Width + tabPadding, tabBarItemHeight };
 
 			auto center = itemSize - textSize;
 			center = center * 0.5f;
 
 			Point itemPos = offset;
-			itemData.Position = itemPos;
-			itemData.Size = itemSize;
-			itemData.Center = center;
+			current->Position = itemPos;
+			current->Size = itemSize;
+			current->Center = center;
 
 			offset.X += (int)itemSize.Width;
 		}
@@ -208,16 +244,16 @@ namespace Berta
 		if (index >= Panels.size())
 			return;
 
-		auto& tab = Panels[index];
+		auto current = At(index);
 		
-		Panels.erase(Panels.begin() + index);
+		current = Panels.erase(current);
 		if (SelectedTabIndex >= Panels.size())
 		{
 			SelectedTabIndex = Panels.size() - 1;
 		}
 		if (index == SelectedTabIndex)
 		{
-			Panels[index].PanelPtr->Show();
+			current->PanelPtr->Show();
 		}
 
 		BuildItems(index);
@@ -227,21 +263,31 @@ namespace Berta
 	int TabBarReactor::Module::FindItem(const Point& position)
 	{
 		auto& items = Panels;
-
-		for (size_t i = 0; i < items.size(); i++)
+		int i = 0;
+		for (auto current = Panels.cbegin(); current != Panels.cend(); ++i, ++current)
 		{
-			auto& itemData = (items[i]);
-
-			if (Rectangle{ itemData.Position, itemData.Size }.IsInside(position))
+			if (Rectangle{ current->Position, current->Size }.IsInside(position))
 			{
-				return (int)i;
+				return i;
 			}
 		}
 		return -1;
 	}
 
+	void TabBarReactor::Module::UpdatePanelRect(Panel* panel)
+	{
+		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
+		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
+		GUI::MoveWindow(panel->Handle(), rect);
+	}
+
 	void TabBar::Erase(size_t index)
 	{
 		m_reactor.EraseTab(index);
+	}
+
+	TabBarReactor::PanelItem::~PanelItem()
+	{
+		BT_CORE_DEBUG << ":~PanelItem() id=" << Id << "." <<  std::endl;
 	}
 }

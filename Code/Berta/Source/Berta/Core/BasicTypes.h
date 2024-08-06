@@ -141,7 +141,6 @@ namespace Berta
 #endif
 		bool IsInside(const Point& point);
 
-
 		bool operator==(const Rectangle& other) const noexcept
 		{
 			return (X == other.X && Y == other.Y && Width == other.Width && Height == other.Height);

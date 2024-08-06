@@ -12,7 +12,7 @@
 #include "Berta/Controls/Panel.h"
 
 #include <string>
-#include <vector>
+#include <list>
 
 namespace Berta
 {
@@ -26,14 +26,15 @@ namespace Berta
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		void AddTab(const std::string& tabId, Panel* panel);
-		void InsertTab(size_t index, const std::string& tabId, Panel* panel);
-		void EraseTab(size_t index);
+		void InsertTab(size_t position, const std::string& tabId, Panel* panel);
+		void EraseTab(size_t position);
 
 	private:
 		struct PanelItem
 		{
 			PanelItem() = default;
 			PanelItem(const std::string& id, Panel* panel) : Id(id), PanelPtr(panel) {}
+			~PanelItem();
 
 			Point Position;
 			Size Center;
@@ -44,6 +45,9 @@ namespace Berta
 
 		struct Module
 		{
+			using PanelIterator = std::list<PanelItem>::iterator;
+			using ConstPanelIterator = std::list<PanelItem>::const_iterator;
+
 			void AddTab(const std::string& tabId, Panel* panel);
 			void InsertTab(size_t index, const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
@@ -52,9 +56,26 @@ namespace Berta
 			bool NewSelectedIndex(int newIndex) { return SelectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
 
-			std::vector<PanelItem> Panels;
+			PanelIterator At(std::size_t position)
+			{
+				auto it = Panels.begin();
+				std::advance(it, position);
+				return it;
+			}
+
+			ConstPanelIterator At(std::size_t position) const
+			{
+				auto it = Panels.cbegin();
+				std::advance(it, position);
+				return it;
+			}
+
+			std::list<PanelItem> Panels;
 			int SelectedTabIndex{ -1 };
 			Window* m_owner{ nullptr };
+
+		private:
+			void UpdatePanelRect(Panel* panel);
 		};
 		ControlBase* m_control{ nullptr };
 		Module m_module;
@@ -75,21 +96,19 @@ namespace Berta
 				return new PanelType(parent, std::forward<Args>(tabArgs)...);
 			}, std::placeholders::_1, args...)));
 
-			m_reactor.AddTab(tabId, newPanel);
 			return newPanel;
 		}
 
 		template<typename PanelType, typename ...Args>
-		PanelType* Insert(size_t index, const std::string& tabId, Args&& ... args)
+		PanelType* Insert(size_t position, const std::string& tabId, Args&& ... args)
 		{
 			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
 
-			auto newPanel = reinterpret_cast<PanelType*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
-				{
-					return new PanelType(parent, std::forward<Args>(tabArgs)...);
-				}, std::placeholders::_1, args...)));
+			auto newPanel = reinterpret_cast<PanelType*>(InsertTab(position, tabId, std::bind([](Window* parent, Args & ... tabArgs)
+			{
+				return new PanelType(parent, std::forward<Args>(tabArgs)...);
+			}, std::placeholders::_1, args...)));
 
-			m_reactor.AddTab(tabId, newPanel);
 			return newPanel;
 		}
 
@@ -97,6 +116,7 @@ namespace Berta
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);
+		ControlBase* InsertTab(size_t position, const std::string& tabId, std::function<ControlBase*(Window*)> factory);
 	};
 }
 

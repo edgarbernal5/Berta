@@ -49,6 +49,8 @@ namespace Berta
 		//TODO: proper way of implementing dpi awareness.
 		//JustCtrl_Init(): pGetDpiForSystem, pGetDpiForWindow...
 		//https://github.com/sullewarehouse/JustCtrl/blob/main/source/JustCtrl.cpp#L35
+
+		//https://github.com/b-sullender/WinGui/blob/main/WinGui.cpp#L363
 		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
 		

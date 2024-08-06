@@ -50,6 +50,37 @@ public:
 	}
 };
 
+
+class TabExample3 : public Berta::Panel
+{
+public:
+	TabExample3(Berta::Window* parent) : Panel(parent) {
+
+		SetDebugName("tabexample_3");
+
+		m_button.Create(*this, true, { 5,35,100,40 });
+		m_button.SetCaption(L"Click me on tab 3!");
+		m_button.SetDebugName("button tab 3");
+		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
+		{
+			std::cout << "CLICK button tab 3" << std::endl;
+		});
+
+		
+		m_button2.Create(*this, true, { 190,65,100,40 });
+		m_button2.SetCaption(L"Click me on tab 23!");
+		m_button2.SetDebugName("button tab 23");
+		m_button2.GetEvents().Click.Connect([](const Berta::ArgClick& args)
+		{
+			std::cout << "CLICK button tab 23" << std::endl;
+		});
+	}
+
+private:
+	Berta::Button m_button;
+	Berta::Button m_button2;
+};
+
 int main()
 {
 	Berta::Form form(Berta::Size(500u, 450u), { true, true, true });
@@ -147,7 +178,7 @@ int main()
 	
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
-	auto tabExample3 = tabbar.PushBack<TabExample1>("Input");
+	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
 	
 	Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
 	button2.SetDebugName("button2");
