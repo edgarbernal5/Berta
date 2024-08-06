@@ -33,13 +33,13 @@ namespace Berta::GUI
 			window->Size = windowResult.ClientSize;
 			window->RootWindow = window;
 			window->DPI = windowResult.DPI;
-			window->DPIScaleFactor = windowResult.DPI / 96.0f;
+			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 			window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 
-			windowManager.AddNative(windowResult.WindowHandle, WindowManager::RootData(window, window->Size));
+			windowManager.AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->Size));
 			windowManager.Add(window);
 
-			auto& rootGraphics = windowManager.GetWindowData(windowResult.WindowHandle)->RootGraphics;
+			auto& rootGraphics = windowManager.GetFormData(windowResult.WindowHandle)->RootGraphics;
 			window->RootGraphics = &rootGraphics;
 
 			window->Owner = parent;
@@ -60,7 +60,7 @@ namespace Berta::GUI
 		Rectangle rect{ rectangle };
 		if (isUnscaleRect && parent && parent->DPI != 96u)
 		{
-			float scalingFactor = parent->DPI / 96.0f;
+			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
 			rect.X = static_cast<int>(rect.X * scalingFactor);
 			rect.Y = static_cast<int>(rect.Y * scalingFactor);
 			rect.Width = static_cast<uint32_t>(rect.Width * scalingFactor);
@@ -310,8 +310,8 @@ namespace Berta::GUI
 	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
 	{
 		uint32_t dpi = API::GetNativeWindowDPI({});
-		float downwardScale = 96.0f / static_cast<float>(dpi);
-		float upwardScale = static_cast<float>(dpi) / 96.0f;
+		float downwardScale = LayoutUtils::CalculateDownwardDPIScaleFactor(dpi);
+		float upwardScale = LayoutUtils::CalculateDPIScaleFactor(dpi);
 		auto primaryScreen = API::GetPrimaryMonitorSize() * downwardScale;
 
 		int x = static_cast<int>((primaryScreen.Width - width) >> 1);
@@ -327,8 +327,8 @@ namespace Berta::GUI
 	Rectangle GetCenteredOnScreen(const Size& size)
 	{
 		uint32_t dpi = API::GetNativeWindowDPI({});
-		float downwardScale = 96.0f / static_cast<float>(dpi);
-		float upwardScale = static_cast<float>(dpi) / 96.0f;
+		float downwardScale = LayoutUtils::CalculateDownwardDPIScaleFactor(dpi);
+		float upwardScale = LayoutUtils::CalculateDPIScaleFactor(dpi);
 		auto primaryScreen = API::GetPrimaryMonitorSize() * downwardScale;
 
 		int x = static_cast<int>((primaryScreen.Width - size.Width) >> 1);

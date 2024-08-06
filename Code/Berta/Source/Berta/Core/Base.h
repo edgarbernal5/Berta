@@ -22,4 +22,10 @@ namespace Berta::StringUtils
 	std::wstring Convert(const std::string& str);
 }
 
+namespace Berta::LayoutUtils
+{
+	float CalculateDPIScaleFactor(uint32_t dpi);
+	float CalculateDownwardDPIScaleFactor(uint32_t dpi);
+}
+
 #endif

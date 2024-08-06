@@ -23,7 +23,7 @@ namespace Berta
 	class WindowManager
 	{
 	public:
-		struct RootData
+		struct FormData
 		{
 			Window* WindowPtr{ nullptr };
 			Graphics RootGraphics;
@@ -40,21 +40,21 @@ namespace Berta
 			bool IsTracking{ false };
 #endif
 
-			RootData(RootData&& other) noexcept;
-			RootData(Window* window, const Size& size);
+			FormData(FormData&& other) noexcept;
+			FormData(Window* window, const Size& size);
 		private:
-			RootData(const RootData&) = delete;
-			RootData& operator=(const RootData&) = delete;
+			FormData(const FormData&) = delete;
+			FormData& operator=(const FormData&) = delete;
 		};
 
 		void Add(Window* window);
-		void AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append);
+		void AddNative(API::NativeWindowHandle nativeWindowHandle, FormData&& append);
 		void Caption(Window* window, const std::wstring& caption);
 		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);
 		Window* Get(API::NativeWindowHandle nativeWindowHandle) const;
-		RootData* GetWindowData(API::NativeWindowHandle nativeWindowHandle);
+		FormData* GetFormData(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(Window* window) const;
 		uint32_t NativeWindowCount();
 
@@ -94,7 +94,7 @@ namespace Berta
 			std::vector<Window*> PrevCaptured;
 		}m_capture;
 
-		std::map<API::NativeWindowHandle, RootData> m_windowNativeRegistry;
+		std::map<API::NativeWindowHandle, FormData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
 
 		MenuItemReactor* m_rootMenuItemReactor{ nullptr };

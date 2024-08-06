@@ -342,7 +342,7 @@ namespace Berta
 			return;
 		}
 
-		float scaleFactor = m_dpi / 96.0f;
+		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
 		auto radius = static_cast<int>(3u * scaleFactor);
 
 		if (solid)

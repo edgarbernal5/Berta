@@ -46,6 +46,9 @@ namespace Berta
 		m_logger = Log::GetCoreLogger();
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
+		//TODO: proper way of implementing dpi awareness.
+		//JustCtrl_Init(): pGetDpiForSystem, pGetDpiForWindow...
+		//https://github.com/sullewarehouse/JustCtrl/blob/main/source/JustCtrl.cpp#L35
 		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
 		
@@ -178,7 +181,7 @@ namespace Berta
 		}
 
 		bool defaultToWindowProc = true;
-		auto& rootWindowData = *windowManager.GetWindowData(nativeWindowHandle);
+		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
 		auto& trackEvent = rootWindowData.TrackEvent;
 
 		switch (message)

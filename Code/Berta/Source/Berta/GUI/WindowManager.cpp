@@ -13,13 +13,13 @@
 
 namespace Berta
 {
-	WindowManager::RootData::RootData(RootData&& other) noexcept :
+	WindowManager::FormData::FormData(FormData&& other) noexcept :
 		WindowPtr(other.WindowPtr),
 		RootGraphics(std::move(other.RootGraphics))
 	{
 	}
 
-	WindowManager::RootData::RootData(Window* window, const Size& size) :
+	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
 		RootGraphics(size)
 	{
@@ -30,7 +30,7 @@ namespace Berta
 		m_windowRegistry.emplace(window);
 	}
 
-	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, RootData&& append)
+	void WindowManager::AddNative(API::NativeWindowHandle nativeWindowHandle, FormData&& append)
 	{
 		m_windowNativeRegistry.emplace(nativeWindowHandle, std::move(append));
 	}
@@ -222,7 +222,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	Berta::WindowManager::RootData* WindowManager::GetWindowData(API::NativeWindowHandle nativeWindowHandle)
+	Berta::WindowManager::FormData* WindowManager::GetFormData(API::NativeWindowHandle nativeWindowHandle)
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())
@@ -472,7 +472,7 @@ namespace Berta
 		{
 			auto oldDPI = window->DPI;
 			window->DPI = newDPI;
-			window->DPIScaleFactor = newDPI / 96.0f;
+			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
 			float scalingFactor = (float)newDPI / oldDPI;
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
@@ -499,7 +499,7 @@ namespace Berta
 	void WindowManager::ChangeCursor(Window* window, Cursor newCursor)
 	{
 		auto& rootHandle = window->RootWindow->RootHandle;
-		auto rootData = GetWindowData(rootHandle);
+		auto rootData = GetFormData(rootHandle);
 		if (rootData)
 		{
 			if (rootData->CurrentCursor.CursorType != newCursor)

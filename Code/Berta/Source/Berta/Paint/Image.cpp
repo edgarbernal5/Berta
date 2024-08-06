@@ -175,7 +175,7 @@ namespace Berta
 			return;
 		}
 		m_attributes.reset(new NativeAttributes());
-		float scaleFactor = m_hasTransparency ? 1.0f : currentDpi / 96.0f;
+		float scaleFactor = m_hasTransparency ? 1.0f : LayoutUtils::CalculateDPIScaleFactor(currentDpi);
 
 		int adjustedWidth = static_cast<int>(m_size.Width * scaleFactor);
 		int adjustedHeight = static_cast<int>(m_size.Height * scaleFactor);
@@ -352,7 +352,7 @@ namespace Berta
 			return;
 		}
 
-		float scaleFactor = destination.GetDpi() / 96.0f;
+		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(destination.GetDpi());
 		HBITMAP hOldBitmap = (HBITMAP)::SelectObject(m_attributes->m_hdc, m_attributes->m_hBitmap);
 		if (m_hasTransparency)
 		{

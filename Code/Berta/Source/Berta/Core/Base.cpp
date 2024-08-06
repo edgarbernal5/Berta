@@ -32,3 +32,13 @@ std::wstring Berta::StringUtils::Convert(const std::string& str)
 	std::wstring wstr(str.begin(), str.end());
 	return wstr;
 }
+
+float Berta::LayoutUtils::CalculateDPIScaleFactor(uint32_t dpi)
+{
+	return static_cast<float>(dpi / 96.0f);
+}
+
+float Berta::LayoutUtils::CalculateDownwardDPIScaleFactor(uint32_t dpi)
+{
+	return 96.0f / static_cast<float>(dpi);
+}
