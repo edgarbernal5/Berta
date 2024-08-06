@@ -90,7 +90,9 @@ namespace Berta
 	void FloatBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 	{
 		if (!m_scrollBar)
+		{
 			return;
+		}
 
 		int direction = args.WheelDelta > 0 ? -1 : 1;
 		int newOffset = std::clamp(m_state.m_offset + direction, m_scrollBar->GetMin(), m_scrollBar->GetMax());
