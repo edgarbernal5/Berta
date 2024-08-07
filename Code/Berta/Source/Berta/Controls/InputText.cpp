@@ -33,7 +33,6 @@ namespace Berta
 			args.NewValue = m_textEditor->GetContent();
 			reinterpret_cast<InputTextEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(args);
 		});
-
 	}
 
 	void InputTextReactor::Update(Graphics& graphics)

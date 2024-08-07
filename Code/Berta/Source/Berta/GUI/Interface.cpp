@@ -58,7 +58,7 @@ namespace Berta::GUI
 		window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 		
 		Rectangle rect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != 96u)
+		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
 		{
 			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
 			rect.X = static_cast<int>(rect.X * scalingFactor);
@@ -101,7 +101,7 @@ namespace Berta::GUI
 		{
 			if (window->Type == WindowType::Form)
 			{
-				return API::GetCaptionNativeWindow(window->RootHandle);
+				window->Title = API::GetCaptionNativeWindow(window->RootHandle);
 			}
 
 			return window->Title;

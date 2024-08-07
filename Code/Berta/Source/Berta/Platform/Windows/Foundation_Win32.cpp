@@ -308,7 +308,7 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
-		case WM_MOUSEACTIVATE: //This is not sent when mouse is captured
+		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured
 		{
 			if (!nativeWindow->Flags.MakeActive)
 			{

@@ -35,10 +35,10 @@ std::wstring Berta::StringUtils::Convert(const std::string& str)
 
 float Berta::LayoutUtils::CalculateDPIScaleFactor(uint32_t dpi)
 {
-	return static_cast<float>(dpi / 96.0f);
+	return static_cast<float>(dpi / BERTA_APPLICATION_DPI);
 }
 
 float Berta::LayoutUtils::CalculateDownwardDPIScaleFactor(uint32_t dpi)
 {
-	return 96.0f / static_cast<float>(dpi);
+	return BERTA_APPLICATION_DPI / static_cast<float>(dpi);
 }

@@ -129,25 +129,21 @@ namespace Berta
 		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
 		{
 			m_handle = GUI::CreateForm(parent, rectangle, formStyle, this);
-			m_appearance = std::make_shared<Appearance>();
-			m_events = std::make_shared<Events>();
+			m_appearance = std::make_shared<AppearanceType>();
+			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 			GUI::InitRendererReactor(this, m_reactor);
 		}
 
-		//TODO: hacer este método polimórfico para que la clase Panel no inicie renderer ni reactor
-		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)
+		virtual void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true)
 		{
-			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);
-			m_appearance = std::make_shared<Appearance>();
-			m_events = std::make_shared<Events>();
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, false);
+			m_appearance = std::make_shared<AppearanceType>();
+			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			if (!isPanel)
-			{
-				GUI::InitRendererReactor(this, m_reactor);
-			}
+			GUI::InitRendererReactor(this, m_reactor);
 
 			if (visible)
 			{
@@ -159,12 +155,12 @@ namespace Berta
 
 		virtual void DoOnNotifyDestroy() override
 		{
-			m_events = std::make_shared<Events>();
+			m_events = std::make_shared<EventsType>();
 		}
 
 		ReactorType m_reactor;
-		std::shared_ptr<Events> m_events;
-		std::shared_ptr<ControlAppearance> m_appearance;
+		std::shared_ptr<EventsType> m_events;
+		std::shared_ptr<AppearanceType> m_appearance;
 	};
 }
 

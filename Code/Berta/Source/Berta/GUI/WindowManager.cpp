@@ -351,7 +351,11 @@ namespace Berta
 	{
 		if (window->Visible != visible)
 		{
-			if (window->Type != WindowType::Form)
+			if (window->Type == WindowType::Form)
+			{
+				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
+			}
+			else
 			{
 				window->Visible = visible;
 
@@ -368,10 +372,6 @@ namespace Berta
 				{
 					UpdateTree(windowToUpdate);
 				}
-			}
-			if (window->Type == WindowType::Form)
-			{
-				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
 			}
 		}
 	}

@@ -11,11 +11,13 @@
 
 //#define NOMINMAX
 #include <Windows.h>
+#endif
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#endif
+#include "Berta/Core/Log.h"
+#include "Berta/Core/Assert.h"
 
 #endif

@@ -165,7 +165,7 @@ namespace Berta
 		newItem.Id = tabId;
 		newItem.PanelPtr.reset(panel);
 
-		UpdatePanelRect(panel);
+		UpdatePanelMoveRect(panel);
 
 		if (SelectedTabIndex == -1)
 		{
@@ -194,11 +194,11 @@ namespace Berta
 			AddTab(tabId, panel);
 			return;
 		}
-		int startIndex = index;
+		int startIndex = static_cast<int>(index);
 
 		auto newIt = Panels.emplace(At(index), std::move(tabId), std::move(panel));
 
-		UpdatePanelRect(panel);
+		UpdatePanelMoveRect(panel);
 
 		if (SelectedTabIndex == -1)
 		{
@@ -260,14 +260,14 @@ namespace Berta
 
 		auto current = At(index);
 		
-		bool isSelected = index == SelectedTabIndex;
+		bool removeSelectedIndex = index == SelectedTabIndex;
 		current = Panels.erase(current);
-		if (SelectedTabIndex >= Panels.size())
+		if (SelectedTabIndex >= static_cast<int>(Panels.size()))
 		{
-			SelectedTabIndex = Panels.size() - 1;
+			SelectedTabIndex = static_cast<int>(Panels.size()) - 1;
 			--current;
 		}
-		if (isSelected)
+		if (removeSelectedIndex)
 		{
 			current->PanelPtr->Show();
 		}
@@ -290,7 +290,7 @@ namespace Berta
 		return -1;
 	}
 
-	void TabBarReactor::Module::UpdatePanelRect(Panel* panel)
+	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel)
 	{
 		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
 		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
