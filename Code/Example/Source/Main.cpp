@@ -208,6 +208,14 @@ int main()
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
 
+	Berta::Button buttonClear(form, { 125,135,100,40 }, L"Click me!");
+	buttonClear.SetDebugName("buttonClear");
+	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
+	{
+		std::cout << "BUTTON > Click" << std::endl;
+		tabbar.Clear();
+	});
+
 	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 	{
 		std::cout << "form > Visibility = " << args.IsVisible << std::endl;

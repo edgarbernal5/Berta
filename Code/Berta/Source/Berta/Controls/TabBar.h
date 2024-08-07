@@ -26,6 +26,7 @@ namespace Berta
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		void AddTab(const std::string& tabId, Panel* panel);
+		void Clear();
 		void InsertTab(size_t position, const std::string& tabId, Panel* panel);
 		void EraseTab(size_t position);
 
@@ -49,6 +50,7 @@ namespace Berta
 			using ConstPanelIterator = std::list<PanelItem>::const_iterator;
 
 			void AddTab(const std::string& tabId, Panel* panel);
+			void Clear();
 			void InsertTab(size_t index, const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
 			void EraseTab(size_t index);
@@ -86,6 +88,8 @@ namespace Berta
 	public:
 		TabBar(Window* parent, const Rectangle& rectangle);
 
+		void Clear();
+
 		template<typename PanelType, typename ...Args>
 		PanelType* PushBack(const std::string& tabId, Args&& ... args)
 		{
@@ -111,8 +115,9 @@ namespace Berta
 
 			return newPanel;
 		}
-
+		
 		void Erase(size_t index);
+		
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);

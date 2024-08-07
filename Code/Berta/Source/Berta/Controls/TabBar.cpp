@@ -71,8 +71,7 @@ namespace Berta
 			}
 			lastPositionX += (int)tabItem->Size.Width;
 		}
-		auto selectedTabItem = m_module.Panels.cbegin();
-		std::advance(selectedTabItem, m_module.SelectedTabIndex);
+		auto selectedTabItem = m_module.At(m_module.SelectedTabIndex);
 		if (selectedPositionX > 0)
 		{
 			graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
@@ -95,14 +94,12 @@ namespace Berta
 
 		if (m_module.NewSelectedIndex(newSelectedIndex))
 		{
-			auto selectedTabItem = m_module.Panels.cbegin();
-			std::advance(selectedTabItem, m_module.SelectedTabIndex);
+			auto selectedTabItem = m_module.At(m_module.SelectedTabIndex);
 
 			selectedTabItem->PanelPtr->Hide();
 			m_module.SelectIndex(newSelectedIndex);
 
-			auto newSelectedTabItem = m_module.Panels.cbegin();
-			std::advance(newSelectedTabItem, newSelectedIndex);
+			auto newSelectedTabItem = m_module.At(newSelectedIndex);
 			newSelectedTabItem->PanelPtr->Show();
 
 			Update(graphics);
@@ -120,6 +117,11 @@ namespace Berta
 		m_module.AddTab(tabId, panel);
 	}
 
+	void TabBarReactor::Clear()
+	{
+		m_module.Clear();
+	}
+
 	void TabBarReactor::InsertTab(size_t position, const std::string& tabId, Panel* panel)
 	{
 		m_module.InsertTab(position, tabId, panel);
@@ -133,6 +135,11 @@ namespace Berta
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+	}
+
+	void TabBar::Clear()
+	{
+		m_reactor.Clear();
 	}
 
 	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory)
@@ -170,6 +177,13 @@ namespace Berta
 		}
 		BuildItems(startIndex);
 
+		GUI::UpdateTree(m_owner);
+	}
+
+	void TabBarReactor::Module::Clear()
+	{
+		SelectedTabIndex = -1;
+		Panels.clear();
 		GUI::UpdateTree(m_owner);
 	}
 
@@ -215,13 +229,11 @@ namespace Berta
 
 		if (startIndex > 0)
 		{
-			auto element = Panels.cbegin();
-			std::advance(element, startIndex - 1);
+			auto element = At(startIndex - 1);
 			offset.X = element->Position.X + (int)element->Size.Width;
 		}
 
-		auto current = Panels.begin();
-		std::advance(current, startIndex);
+		auto current = At(startIndex);
 		for (size_t i = startIndex; i < Panels.size(); ++i, ++current)
 		{
 			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(current->Id);
@@ -242,16 +254,20 @@ namespace Berta
 	void TabBarReactor::Module::EraseTab(size_t index)
 	{
 		if (index >= Panels.size())
+		{
 			return;
+		}
 
 		auto current = At(index);
 		
+		bool isSelected = index == SelectedTabIndex;
 		current = Panels.erase(current);
 		if (SelectedTabIndex >= Panels.size())
 		{
 			SelectedTabIndex = Panels.size() - 1;
+			--current;
 		}
-		if (index == SelectedTabIndex)
+		if (isSelected)
 		{
 			current->PanelPtr->Show();
 		}
