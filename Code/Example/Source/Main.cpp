@@ -24,10 +24,10 @@ public:
 
 		m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab!");
-		m_button.SetDebugName("button tab");
+		m_button.SetDebugName("button tab panel 1");
 		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
-			std::cout << "CLICK button tab" << std::endl;
+			std::cout << "CLICK button tab panel 1" << std::endl;
 		});
 	}
 	TabExample1() : Panel()
@@ -60,7 +60,7 @@ public:
 
 		m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab 3!");
-		m_button.SetDebugName("button tab 3");
+		m_button.SetDebugName("button tab panel 3");
 		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
 			std::cout << "CLICK button tab 3" << std::endl;
@@ -69,7 +69,7 @@ public:
 		
 		m_button2.Create(*this, true, { 190,65,100,40 });
 		m_button2.SetCaption(L"Click me on tab 23!");
-		m_button2.SetDebugName("button tab 23");
+		m_button2.SetDebugName("button tab 2 panel 3");
 		m_button2.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
 			std::cout << "CLICK button tab 23" << std::endl;
@@ -208,11 +208,11 @@ int main()
 		std::cout << "BUTTON > mouse enter" << std::endl;
 	});
 
-	Berta::Button buttonClear(form, { 125,135,100,40 }, L"Click me!");
+	Berta::Button buttonClear(form, { 125,135,100,40 }, L"Clear!");
 	buttonClear.SetDebugName("buttonClear");
 	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
 	{
-		std::cout << "BUTTON > Click" << std::endl;
+		std::cout << "BUTTON > Clear Click" << std::endl;
 		tabbar.Clear();
 	});
 

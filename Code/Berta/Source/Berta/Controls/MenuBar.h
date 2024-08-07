@@ -82,6 +82,7 @@ namespace Berta
 		const Module& GetModule() const { return m_module; }
 
 	private:
+		MenuItemReactor* GetLastMenuItem() const;
 		Module m_module;
 	};
 

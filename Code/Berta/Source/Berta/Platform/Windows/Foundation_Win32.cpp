@@ -591,40 +591,14 @@ namespace Berta
 			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
 			if (menuItemReactor && menuBarRootReactor)
 			{
-				if (!isKeyReleased)
+				if (isKeyReleased)
 				{
-					auto activeMenuItemReactor = menuItemReactor;
-					while (activeMenuItemReactor->Next() != nullptr)
-					{
-						activeMenuItemReactor = activeMenuItemReactor->Next();
-					}
-
-					if (argKeyboard.Key == KeyboardKey::ArrowUp)
-					{
-						activeMenuItemReactor->OnKeyUpPressed();
-					}
-					else if (argKeyboard.Key == KeyboardKey::ArrowDown)
-					{
-						activeMenuItemReactor->OnKeyDownPressed();
-					}
-					else if (argKeyboard.Key == KeyboardKey::ArrowLeft)
-					{
-						if (!activeMenuItemReactor->OnKeyLeftPressed())
-						{
-							menuBarRootReactor->OnMBIMoveLeft();
-						}
-					}
-					else if (argKeyboard.Key == KeyboardKey::ArrowRight)
-					{
-						if (!activeMenuItemReactor->OnKeyRightPressed())
-						{
-							menuBarRootReactor->OnMBIMoveRight();
-						}
-					}
-					else if (argKeyboard.Key == KeyboardKey::Enter)
-					{
-
-					}
+				}
+				else
+				{
+					auto owner = menuItemReactor->Owner();
+					owner->Renderer.KeyPressed(argKeyboard);
+					owner->Events->KeyPressed.Emit(argKeyboard);
 				}
 			}
 			else

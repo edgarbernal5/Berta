@@ -48,6 +48,7 @@ namespace Berta
 
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
 		void DrawRoundRectBox(const Rectangle& rect, const Color& color, bool solid);
+		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, bool solid);
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_attributes->m_size; }

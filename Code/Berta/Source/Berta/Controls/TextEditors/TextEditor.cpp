@@ -217,7 +217,9 @@ namespace Berta
 			m_content.erase(start, (end - start));
 			
 			if (m_caretPosition == end)
+			{
 				m_caretPosition -= (end - start);
+			}
 
 			m_content.insert(m_caretPosition, 1, chr);
 			++m_caretPosition;

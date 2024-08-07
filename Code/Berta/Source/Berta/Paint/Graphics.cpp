@@ -336,6 +336,11 @@ namespace Berta
 
 	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color, bool solid)
 	{
+		DrawRoundRectBox(rect, 3, color, solid);
+	}
+
+	void Graphics::DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, bool solid)
+	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
 		{
@@ -343,14 +348,14 @@ namespace Berta
 		}
 
 		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
-		auto radius = static_cast<int>(3u * scaleFactor);
+		auto radiusScaled = static_cast<int>(radius * scaleFactor);
 
 		if (solid)
 		{
 			auto prv_pen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, color.BGR));
 			auto prv_brush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(0xFFFFFF));
 
-			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height, static_cast<int>(radius * 2), static_cast<int>(radius * 2));
+			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height, static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
 
 			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_brush));
 			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_pen));
@@ -359,7 +364,7 @@ namespace Berta
 		{
 			auto brush = ::CreateSolidBrush(color.BGR);
 
-			auto region = ::CreateRoundRectRgn(rect.X, rect.Y, rect.X + static_cast<int>(rect.Width) + 1, rect.Y + static_cast<int>(rect.Height) + 1, static_cast<int>(radius + 1), static_cast<int>(radius + 1));
+			auto region = ::CreateRoundRectRgn(rect.X, rect.Y, rect.X + static_cast<int>(rect.Width) + 1, rect.Y + static_cast<int>(rect.Height) + 1, static_cast<int>(radiusScaled + 1), static_cast<int>(radiusScaled + 1));
 
 			::FrameRgn(m_attributes->m_hdc, region, brush, 1, 1);
 

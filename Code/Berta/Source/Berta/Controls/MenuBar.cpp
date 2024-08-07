@@ -136,6 +136,32 @@ namespace Berta
 
 	void MenuBarReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
+		if (m_module.IsMenuOpen())
+		{
+			auto lastMenuItem = GetLastMenuItem();
+			if (args.Key == KeyboardKey::ArrowUp)
+			{
+				lastMenuItem->OnKeyUpPressed();
+			}
+			else if (args.Key == KeyboardKey::ArrowDown)
+			{
+				lastMenuItem->OnKeyDownPressed();
+			}
+			else if (args.Key == KeyboardKey::ArrowLeft)
+			{
+				if (!lastMenuItem->OnKeyLeftPressed())
+				{
+					OnMBIMoveLeft();
+				}
+			}
+			else if (args.Key == KeyboardKey::ArrowRight)
+			{
+				if (!lastMenuItem->OnKeyRightPressed())
+				{
+					OnMBIMoveRight();
+				}
+			}
+		}
 	}
 
 	bool MenuBarReactor::OnMBIKeyPressed(const ArgKeyboard& args)
@@ -192,6 +218,16 @@ namespace Berta
 	Window* MenuBarReactor::Owner() const
 	{
 		return m_module.m_owner;
+	}
+
+	MenuItemReactor* MenuBarReactor::GetLastMenuItem() const
+	{
+		auto activeMenuItemReactor = (MenuItemReactor*)this;
+		while (activeMenuItemReactor->Next() != nullptr)
+		{
+			activeMenuItemReactor = activeMenuItemReactor->Next();
+		}
+		return activeMenuItemReactor;
 	}
 
 	int MenuBarReactor::Module::FindItem(const Point& position)
