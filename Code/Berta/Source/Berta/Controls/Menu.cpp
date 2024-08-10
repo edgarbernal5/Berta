@@ -319,6 +319,10 @@ namespace Berta
 		GUI::DisposeMenu(true);
 	}
 
+	void MenuBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
+	{
+	}
+
 	bool MenuBoxReactor::OnClickSubMenu(const ArgMouse& args)
 	{
 		int selectedIndex = -1;
@@ -501,7 +505,7 @@ namespace Berta
 		subMenu->m_parentMenu = parentMenu;
 
 		Point position
-		{ 
+		{
 			pointInScreen.X + (int)m_control->GetSize().Width - four,
 			pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y
 		};

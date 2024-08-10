@@ -577,10 +577,9 @@ namespace Berta
 		auto current = rootReactor;
 		while (current)
 		{
-			auto temp = current->Next();
 			stack.push(current->Owner());
 
-			current = temp;
+			current = current->Next();
 		}
 
 		while (!stack.empty())

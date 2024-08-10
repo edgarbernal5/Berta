@@ -124,7 +124,9 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-		
+
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+
 		bool OnClickSubMenu(const ArgMouse& args) override;
 		Window* Owner() const override;
 
