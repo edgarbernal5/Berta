@@ -34,7 +34,7 @@ namespace Berta
 		void MoveToNextItem(bool upwards) override;
 		bool EnterSubMenu() override { return false; };
 		bool ExitSubMenu() override { return false; };
-		virtual bool IsMenuBar() const override { return true; }
+		bool IsMenuBar() const override { return true; }
 
 		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
 

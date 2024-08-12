@@ -123,7 +123,7 @@ namespace Berta
 		void MoveToNextItem(bool upwards) override;
 		bool ExitSubMenu() override;
 		bool EnterSubMenu() override;
-		virtual bool IsMenuBar() const override { return false; }
+		bool IsMenuBar() const override { return false; }
 
 		Menu* GetMenuOwner() const { return m_menuOwner; }
 		void SetItems(std::vector<Menu::Item*>& items);
