@@ -80,6 +80,7 @@ namespace Berta
 
 		void DisposeMenu(bool disposeRoot);
 		void DisposeMenu(MenuItemReactor* rootReactor);
+		void DisposeContextMenu();
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

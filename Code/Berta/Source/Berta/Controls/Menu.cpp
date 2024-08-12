@@ -30,7 +30,7 @@ namespace Berta
 	{
 		m_parentWindow = owner;
 
-		auto boxSize = GetMenuBoxSize(owner);
+		auto boxSize = GetMenuBoxSize(owner);//TODO: meter esto dentro de la clase MenuBox
 		m_menuBox = new MenuBox(owner, { position.X, position.Y, boxSize.Width, boxSize.Height });
 		m_menuBox->Init(this, m_items, menuBarItem);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
@@ -48,6 +48,12 @@ namespace Berta
 		});
 
 		m_menuBox->Popup();
+	}
+
+	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
+	{
+		ShowPopup(owner, args.Position);
+		GUI::SetMenu(m_menuBox->GetItemReactor(), nullptr);
 	}
 
 	Menu* Menu::CreateSubMenu(std::size_t index)
@@ -310,7 +316,7 @@ namespace Berta
 			return;
 		}
 
-		if (!item->isSpearator)
+		if (!item->isSpearator && item->onClick)
 		{
 			MenuItem menuItem(item);
 			item->onClick(menuItem);

@@ -233,6 +233,13 @@ int main()
 		std::cout << "tabExample3 > Visibility = " << args.IsVisible << std::endl;
 	});
 
+	Berta::Menu popupMenu;
+	popupMenu.Append(L"Example");
+
+	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
+	{
+			popupMenu.ShowPopup(form.Handle(), args);
+	});
 	form.Show();
 	form.Exec();
 

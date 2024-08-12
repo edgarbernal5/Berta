@@ -391,4 +391,9 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		windowManager.DisposeMenu(rootReactor);
 	}
+	void DisposeContextMenu()
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		windowManager.DisposeContextMenu();
+	}
 }

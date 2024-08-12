@@ -538,16 +538,16 @@ namespace Berta
 	void WindowManager::DisposeMenu(bool disposeRoot)
 	{
 		if (!m_rootMenuItemReactor)
+		{
 			return;
-
+		}
+		
 		std::stack<Window*> stack;
 		auto current = m_rootMenuItemReactor->Next();
 		while (current)
 		{
-			auto temp = current->Next();
 			stack.push(current->Owner());
-			
-			current = temp;
+			current = current->Next();
 		}
 
 		while (!stack.empty())
@@ -589,6 +589,33 @@ namespace Berta
 
 			Dispose(it);
 		}
+	}
+
+	void WindowManager::DisposeContextMenu()
+	{
+		if (!m_rootMenuItemReactor)
+		{
+			return;
+		}
+
+		std::stack<Window*> stack;
+		auto current = m_rootMenuItemReactor;
+		while (current)
+		{
+			stack.push(current->Owner());
+
+			current = current->Next();
+		}
+
+		while (!stack.empty())
+		{
+			auto& it = stack.top();
+			stack.pop();
+
+			Dispose(it);
+		}
+
+		m_rootMenuItemReactor = nullptr;
 	}
 
 
