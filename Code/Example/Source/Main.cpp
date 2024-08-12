@@ -238,7 +238,7 @@ int main()
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 	{
-			popupMenu.ShowPopup(form.Handle(), args);
+		popupMenu.ShowPopup(form.Handle(), args);
 	});
 	form.Show();
 	form.Exec();

@@ -17,7 +17,6 @@
 namespace Berta
 {
 	struct Window;
-	class MenuBarItemReactor;
 	class MenuItemReactor;
 
 	class WindowManager
@@ -75,12 +74,11 @@ namespace Berta
 
 		Point GetAbsolutePosition(Window* window);
 
-		void SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor);
-		std::pair<MenuBarItemReactor*, MenuItemReactor*> GetMenu();
+		void SetMenu(MenuItemReactor* rootMenuItemWindow);
+		MenuItemReactor* GetMenu();
 
-		void DisposeMenu(bool disposeRoot);
+		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
-		void DisposeContextMenu();
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
@@ -99,7 +97,6 @@ namespace Berta
 		std::set<Window*> m_windowRegistry;
 
 		MenuItemReactor* m_rootMenuItemReactor{ nullptr };
-		MenuBarItemReactor* m_menuBarItemReactor{ nullptr };
 		bool m_keyboardCaptured{ false };
 	};
 }

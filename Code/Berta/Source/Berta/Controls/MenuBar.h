@@ -17,7 +17,7 @@ namespace Berta
 {
 	class MenuBar;
 
-	class MenuBarReactor : public ControlReactor, public MenuBarItemReactor, public MenuItemReactor
+	class MenuBarReactor : public ControlReactor, public MenuItemReactor
 	{
 	public:
 		void Init(ControlBase& control) override;
@@ -31,13 +31,10 @@ namespace Berta
 
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-		bool OnMBIKeyPressed(const ArgKeyboard& args) override;
-		void OnMBIMoveLeft() override;
-		void OnMBIMoveRight() override;
-		void OnKeyDownPressed() override {};
-		void OnKeyUpPressed() override {};
-		bool OnKeyRightPressed() override { return false; };
-		bool OnKeyLeftPressed() override { return false; };
+		void MoveToNextItem(bool upwards) override;
+		bool EnterSubMenu() override { return false; };
+		bool ExitSubMenu() override { return false; };
+		virtual bool IsMenuBar() const override { return true; }
 
 		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
 
@@ -78,6 +75,7 @@ namespace Berta
 			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 			Point m_lastMousePosition{ -1,-1 };
 		};
+
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
 

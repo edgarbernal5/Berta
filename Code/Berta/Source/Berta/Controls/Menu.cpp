@@ -53,7 +53,11 @@ namespace Berta
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
 	{
 		ShowPopup(owner, args.Position);
-		GUI::SetMenu(m_menuBox->GetItemReactor(), nullptr);
+		//m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
+		//{
+		//	//BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;			
+		//});
+		GUI::SetMenu(m_menuBox->GetItemReactor());
 	}
 
 	Menu* Menu::CreateSubMenu(std::size_t index)
@@ -142,7 +146,9 @@ namespace Berta
 				if (m_openedSubMenuIndex != m_selectedIndex && m_openedSubMenuIndex >= 0)
 				{
 					auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
-					GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
+
+					GUI::DisposeMenu(m_next);
+					//GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
 					m_next = nullptr;
 				}
 				auto subMenu = m_items->at(m_selectedSubMenuIndex)->m_subMenu;
@@ -156,7 +162,8 @@ namespace Berta
 			else if (m_selectedSubMenuIndex == -1 && m_openedSubMenuIndex >= 0)
 			{
 				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
-				GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
+				GUI::DisposeMenu(m_next);
+				//GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
 				m_next = nullptr;
 				m_openedSubMenuIndex = -1;
 			}
@@ -229,14 +236,10 @@ namespace Berta
 			}
 		}
 
+		graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
 		if (m_menuBarItemRect.Width > 0)
 		{
-			graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
 			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appereance->MenuBackground);
-		}
-		else
-		{
-			graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
 		}
 	}
 
@@ -287,12 +290,12 @@ namespace Berta
 		if (m_selectedIndex == -1)
 		{
 			bool found = false;
-			//TODO: acá también podríamos usar el árbol de "owner"s/parent_menu en vez del prev.
+			
 			auto current = m_prev;
 			while (current)
 			{
-				auto cliScreen = GUI::GetPointClientToScreen(m_control->Handle(), args.Position);
-				auto localPosition = GUI::GetPointScreenToClient(current->Owner(), cliScreen);
+				auto clicScreen = GUI::GetPointClientToScreen(m_control->Handle(), args.Position);
+				auto localPosition = GUI::GetPointScreenToClient(current->Owner(), clicScreen);
 				ArgMouse argMouse;
 				argMouse.Position = localPosition;
 				if (current->OnClickSubMenu(argMouse))
@@ -306,7 +309,7 @@ namespace Berta
 		size_t selectedIndex = static_cast<size_t>(m_selectedIndex);
 		if (selectedIndex >= m_items->size())
 		{
-			GUI::DisposeMenu(true);
+			GUI::DisposeMenu();
 			return;
 		}
 
@@ -322,7 +325,7 @@ namespace Berta
 			item->onClick(menuItem);
 		}
 
-		GUI::DisposeMenu(true);
+		GUI::DisposeMenu();
 	}
 
 	void MenuBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
@@ -343,7 +346,9 @@ namespace Berta
 		}
 
 		if (selectedIndex == -1)
+		{
 			return false;
+		}
 
 		return (m_items->at(selectedIndex)->m_subMenu != nullptr);
 	}
@@ -353,26 +358,28 @@ namespace Berta
 		return m_control->Handle();
 	}
 
-	void MenuBoxReactor::OnKeyDownPressed()
+	void MenuBoxReactor::MoveToNextItem(bool upwards)
 	{
 		if (m_items->empty())
 		{
 			return;
 		}
 		auto selectedIndex = m_selectedIndex;
+		int direction = upwards ? -1 : 1;
+		int totalItems = static_cast<int>(m_items->size());
 		if (selectedIndex == -1)
 		{
-			selectedIndex = 0;
+			selectedIndex = upwards ? totalItems - 1 : 0;
 		}
 		else
 		{
-			selectedIndex = ((selectedIndex + 1) % m_items->size());
+			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 		}
 		auto savedIndex = selectedIndex;
 		auto item = m_items->at(selectedIndex);
 		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
 		{
-			selectedIndex = ((selectedIndex + 1) % m_items->size());
+			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 			if (selectedIndex == savedIndex)
 				break;
 
@@ -388,42 +395,7 @@ namespace Berta
 		}
 	}
 
-	void MenuBoxReactor::OnKeyUpPressed()
-	{
-		if (m_items->empty())
-		{
-			return;
-		}
-		auto selectedIndex = m_selectedIndex;
-		if (selectedIndex == -1)
-		{
-			selectedIndex = static_cast<int>(m_items->size()) - 1;
-		}
-		else
-		{
-			selectedIndex = ((selectedIndex - 1 + m_items->size()) % m_items->size());
-		}
-		auto savedIndex = selectedIndex;
-		auto item = m_items->at(selectedIndex);
-		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
-		{
-			selectedIndex = ((selectedIndex - 1 + m_items->size()) % m_items->size());
-			if (selectedIndex == savedIndex)
-				break;
-
-			item = m_items->at(selectedIndex);
-		}
-
-		if (m_selectedIndex != selectedIndex)
-		{
-			m_selectedIndex = selectedIndex;
-
-			Update(m_control->Handle()->Renderer.GetGraphics());
-			GUI::RefreshWindow(m_control->Handle());
-		}
-	}
-
-	bool MenuBoxReactor::OnKeyLeftPressed()
+	bool MenuBoxReactor::ExitSubMenu()
 	{
 		m_subMenuTimer.Stop();
 		if (m_menuOwner->m_parentMenu == nullptr && (m_items->empty() || m_selectedIndex == -1))
@@ -440,7 +412,7 @@ namespace Berta
 		return false;
 	}
 
-	bool MenuBoxReactor::OnKeyRightPressed()
+	bool MenuBoxReactor::EnterSubMenu()
 	{
 		if (m_items->empty() || m_selectedIndex == -1)
 		{
@@ -453,8 +425,8 @@ namespace Berta
 		}
 		m_openedSubMenuIndex = m_selectedIndex;
 		m_selectedSubMenuIndex = m_selectedIndex;
-		OpenSubMenu(item->m_subMenu, m_menuOwner, m_openedSubMenuIndex, false);
 		m_subMenuTimer.Stop();
+		OpenSubMenu(item->m_subMenu, m_menuOwner, m_openedSubMenuIndex, false);
 
 		return true;
 	}
@@ -501,6 +473,41 @@ namespace Berta
 		m_menuOwner = menuOwner;
 	}
 
+	Size MenuBoxReactor::GetMenuBoxSize()
+	{
+		auto parent = m_control->Handle();
+
+		Size size;
+		uint32_t separators = 0;
+		uint32_t maxWidth = 0;
+		bool hasSubmenu = false;
+		for (size_t i = 0; i < m_items->size(); i++)
+		{
+			if (m_items->at(i)->isSpearator)
+			{
+				++separators;
+			}
+			else
+			{
+				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items->at(i)->text));
+				maxWidth = (std::max)(maxWidth, textSize.Width);
+				hasSubmenu |= m_items->at(i)->m_subMenu != nullptr;
+			}
+		}
+
+		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxLeftPaneWidth * parent->DPIScaleFactor);
+		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * parent->DPIScaleFactor);
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor) : 0;
+		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
+		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
+		auto menuBoxShortcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
+
+		return {
+			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
+			2 + itemTextPadding * 2u + (uint32_t)(m_items->size() - separators) * (menuBoxItemHeight)+separators * separatorHeight
+		};
+	}
+
 	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
 	{
 		auto window = m_control->Handle();
@@ -518,7 +525,7 @@ namespace Berta
 		subMenu->ShowPopup(window, position, m_menuOwner, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
-		subMenu->m_menuBox->GetItemReactor()->Prev(this);
+		m_next->Prev(this);
 		subMenu->m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& args)
 		{
 			m_openedSubMenuIndex = -1;
@@ -660,6 +667,11 @@ namespace Berta
 	{
 		GUI::Capture(m_handle);
 		Show();
+	}
+
+	Size MenuBox::GetMenuBoxSize()
+	{
+		return m_reactor.GetMenuBoxSize();
 	}
 
 	bool MenuItem::GetEnabled() const

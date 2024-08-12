@@ -382,7 +382,7 @@ namespace Berta
 				}
 			}
 
-			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
+			auto menuItemReactor = windowManager.GetMenu();
 			if (menuItemReactor)
 			{
 				//TODO se puede usar el owner de los menu box.
@@ -588,8 +588,8 @@ namespace Berta
 			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 
 			auto target = window;
-			auto [menuBarRootReactor, menuItemReactor] = windowManager.GetMenu();
-			if (menuItemReactor && menuBarRootReactor)
+			auto menuItemReactor = windowManager.GetMenu();
+			if (menuItemReactor)
 			{
 				if (isKeyReleased)
 				{

@@ -23,7 +23,7 @@ namespace Berta
 		{
 			if (!args.Focused && m_module.IsMenuOpen())
 			{
-				GUI::DisposeMenu(true);
+				GUI::DisposeMenu();
 			}
 		});
 	}
@@ -86,7 +86,7 @@ namespace Berta
 			if (m_module.IsMenuOpen())
 			{
 				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-				GUI::SetMenu(this, this);
+				GUI::SetMenu(this);
 			}
 
 			Update(graphics);
@@ -104,13 +104,13 @@ namespace Berta
 			{
 				if (m_module.GetActiveMenuBox())
 				{
-					GUI::DisposeMenu(false);
+					GUI::DisposeMenu(m_module.GetActiveMenuBox()->GetItemReactor());
 				}
 
 				m_module.SelectIndex(selectedItem);
 				m_module.OpenMenu(args.ButtonState.LeftButton);
 				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-				GUI::SetMenu(this, this);
+				GUI::SetMenu(this);
 
 				Update(m_module.m_owner->Renderer.GetGraphics());
 				GUI::RefreshWindow(m_module.m_owner);
@@ -141,75 +141,45 @@ namespace Berta
 			auto lastMenuItem = GetLastMenuItem();
 			if (args.Key == KeyboardKey::ArrowUp)
 			{
-				lastMenuItem->OnKeyUpPressed();
+				lastMenuItem->MoveToNextItem(true);
 			}
 			else if (args.Key == KeyboardKey::ArrowDown)
 			{
-				lastMenuItem->OnKeyDownPressed();
+				lastMenuItem->MoveToNextItem(false);
 			}
 			else if (args.Key == KeyboardKey::ArrowLeft)
 			{
-				if (!lastMenuItem->OnKeyLeftPressed())
+				if (!lastMenuItem->ExitSubMenu())
 				{
-					OnMBIMoveLeft();
+					MoveToNextItem(true);
 				}
 			}
 			else if (args.Key == KeyboardKey::ArrowRight)
 			{
-				if (!lastMenuItem->OnKeyRightPressed())
+				if (!lastMenuItem->EnterSubMenu())
 				{
-					OnMBIMoveRight();
+					MoveToNextItem(false);
 				}
 			}
 		}
 	}
 
-	bool MenuBarReactor::OnMBIKeyPressed(const ArgKeyboard& args)
-	{
-		if (args.Key == KeyboardKey::ArrowUp && m_next)
-		{
-			
-			return true;
-		}
-		return false;
-	}
-
-	void MenuBarReactor::OnMBIMoveLeft()
+	void MenuBarReactor::MoveToNextItem(bool upwards)
 	{
 		if (!m_module.IsMenuOpen())
 		{
 			return;
 		}
-
+		int direction = upwards ? -1 : 1;
 		int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
 		int totalItems = static_cast<int>(m_module.m_items.size());
-		selectedItem = (selectedItem - 1 + totalItems) % totalItems;
-		GUI::DisposeMenu(false);
+		selectedItem = (selectedItem + direction + totalItems) % totalItems;
+		GUI::DisposeMenu(m_module.GetActiveMenuBox()->GetItemReactor());
 
 		m_module.SelectIndex(selectedItem);
 		m_module.OpenMenu(false);
 		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-		GUI::SetMenu(this, this);
-
-		Update(m_module.m_owner->Renderer.GetGraphics());
-		GUI::RefreshWindow(m_module.m_owner);
-	}
-
-	void MenuBarReactor::OnMBIMoveRight()
-	{
-		if (!m_module.IsMenuOpen())
-		{
-			return;
-		}
-
-		int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
-		selectedItem = (selectedItem + 1) % m_module.m_items.size();
-		GUI::DisposeMenu(false);
-
-		m_module.SelectIndex(selectedItem);
-		m_module.OpenMenu(false);
-		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-		GUI::SetMenu(this, this);
+		GUI::SetMenu(this);
 
 		Update(m_module.m_owner->Renderer.GetGraphics());
 		GUI::RefreshWindow(m_module.m_owner);
@@ -262,6 +232,7 @@ namespace Berta
 			m_interactionData.m_activeMenu = nullptr;
 			SelectIndex(-1);
 
+			m_rootMenuItemReactor->Clear();
 			m_control->Handle()->Renderer.Update();
 			GUI::UpdateDeferred(*m_control);
 		};

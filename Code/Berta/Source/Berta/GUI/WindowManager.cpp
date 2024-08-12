@@ -524,46 +524,20 @@ namespace Berta
 		return position;
 	}
 
-	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow, MenuBarItemReactor* menuBarItemReactor)
+	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)
 	{
 		m_rootMenuItemReactor = rootMenuItemWindow;
-		m_menuBarItemReactor = menuBarItemReactor;
 	}
 
-	std::pair<MenuBarItemReactor*, MenuItemReactor*> WindowManager::GetMenu()
+	MenuItemReactor* WindowManager::GetMenu()
 	{
-		return std::make_pair(m_menuBarItemReactor, m_rootMenuItemReactor);
+		return m_rootMenuItemReactor;
 	}
 
-	void WindowManager::DisposeMenu(bool disposeRoot)
+	void WindowManager::DisposeMenu()
 	{
-		if (!m_rootMenuItemReactor)
-		{
-			return;
-		}
-		
-		std::stack<Window*> stack;
-		auto current = m_rootMenuItemReactor->Next();
-		while (current)
-		{
-			stack.push(current->Owner());
-			current = current->Next();
-		}
-
-		while (!stack.empty())
-		{
-			auto& it = stack.top();
-			stack.pop();
-
-			Dispose(it);
-		}
-
-		if (disposeRoot)
-		{
-			m_rootMenuItemReactor->Clear();
-			m_rootMenuItemReactor = nullptr;
-			m_menuBarItemReactor = nullptr;
-		}
+		DisposeMenu(m_rootMenuItemReactor);
+		m_rootMenuItemReactor = nullptr;
 	}
 
 	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
@@ -577,7 +551,10 @@ namespace Berta
 		auto current = rootReactor;
 		while (current)
 		{
-			stack.push(current->Owner());
+			if (!current->IsMenuBar())
+			{
+				stack.push(current->Owner());
+			}
 
 			current = current->Next();
 		}
@@ -590,34 +567,6 @@ namespace Berta
 			Dispose(it);
 		}
 	}
-
-	void WindowManager::DisposeContextMenu()
-	{
-		if (!m_rootMenuItemReactor)
-		{
-			return;
-		}
-
-		std::stack<Window*> stack;
-		auto current = m_rootMenuItemReactor;
-		while (current)
-		{
-			stack.push(current->Owner());
-
-			current = current->Next();
-		}
-
-		while (!stack.empty())
-		{
-			auto& it = stack.top();
-			stack.pop();
-
-			Dispose(it);
-		}
-
-		m_rootMenuItemReactor = nullptr;
-	}
-
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
