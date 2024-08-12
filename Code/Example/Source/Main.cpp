@@ -234,7 +234,22 @@ int main()
 	});
 
 	Berta::Menu popupMenu;
-	popupMenu.Append(L"Example");
+	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
+	{
+		std::cout << "Context menu click > Example" << std::endl;
+	});
+	popupMenu.Append(L"Example Submenu");
+	auto subMenuContext=popupMenu.CreateSubMenu(1);
+	subMenuContext->Append(L"hola", [](Berta::MenuItem& item)
+	{
+		std::cout << "Context sub menu click > hola" << std::endl;
+	});
+	subMenuContext->Append(L"hola 2");
+	auto subsubMenu = subMenuContext->CreateSubMenu(1);
+	subsubMenu->Append(L"hola 3", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context sub menu click > hola 3" << std::endl;
+		});
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 	{

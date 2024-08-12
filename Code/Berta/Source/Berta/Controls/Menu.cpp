@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/Controls/Menu.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -338,6 +339,34 @@ namespace Berta
 
 	void MenuBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
+		auto lastMenuItem = GetLastMenuItem();
+		if (args.Key == KeyboardKey::ArrowUp)
+		{
+			lastMenuItem->MoveToNextItem(true);
+		}
+		else if (args.Key == KeyboardKey::ArrowDown)
+		{
+			lastMenuItem->MoveToNextItem(false);
+		}
+		else if (args.Key == KeyboardKey::ArrowLeft)
+		{
+			lastMenuItem->ExitSubMenu();
+		}
+		else if (args.Key == KeyboardKey::ArrowRight)
+		{
+			lastMenuItem->EnterSubMenu();
+		}
+	}
+
+
+	MenuItemReactor* MenuBoxReactor::GetLastMenuItem() const
+	{
+		auto activeMenuItemReactor = (MenuItemReactor*)this;
+		while (activeMenuItemReactor->Next() != nullptr)
+		{
+			activeMenuItemReactor = activeMenuItemReactor->Next();
+		}
+		return activeMenuItemReactor;
 	}
 
 	bool MenuBoxReactor::OnClickSubMenu(const ArgMouse& args)

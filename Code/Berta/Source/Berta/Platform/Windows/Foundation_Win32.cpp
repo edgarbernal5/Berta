@@ -591,12 +591,14 @@ namespace Berta
 			auto menuItemReactor = windowManager.GetMenu();
 			if (menuItemReactor)
 			{
+				auto owner = menuItemReactor->Owner();
 				if (isKeyReleased)
 				{
+					owner->Renderer.KeyReleased(argKeyboard);
+					owner->Events->KeyReleased.Emit(argKeyboard);
 				}
 				else
 				{
-					auto owner = menuItemReactor->Owner();
 					owner->Renderer.KeyPressed(argKeyboard);
 					owner->Events->KeyPressed.Emit(argKeyboard);
 				}
