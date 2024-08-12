@@ -40,12 +40,13 @@ namespace Berta
 	class Sink
 	{
 	public:
+		friend class Logger;
+
+	public:
 		//typedef std::ostringstream Buffer;
 
 		virtual ~Sink() = default;
 		virtual void Commit(const std::string& outputMessage) = 0;
-
-		friend class Logger;
 	};
 
 	class ConsoleSink : public Sink

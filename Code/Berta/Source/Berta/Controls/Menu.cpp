@@ -52,11 +52,21 @@ namespace Berta
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
 	{
-		ShowPopup(owner, args.Position);
+		auto screenPosition = GUI::GetPointClientToScreen(owner, args.Position);
+		ShowPopup(owner, screenPosition);
 		//m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		//{
 		//	//BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;			
 		//});
+		
+		//TODO: Fix this! ConnectOnce
+		/*owner->Events->Focus.ConnectOnce([&](const ArgFocus& args)
+		{
+			if (!args.Focused)
+			{
+				GUI::DisposeMenu();
+			}
+		});*/
 		GUI::SetMenu(m_menuBox->GetItemReactor());
 	}
 
@@ -148,7 +158,6 @@ namespace Berta
 					auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
 
 					GUI::DisposeMenu(m_next);
-					//GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
 					m_next = nullptr;
 				}
 				auto subMenu = m_items->at(m_selectedSubMenuIndex)->m_subMenu;
@@ -163,7 +172,6 @@ namespace Berta
 			{
 				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
 				GUI::DisposeMenu(m_next);
-				//GUI::DisposeMenu(subMenu->m_menuBox->GetItemReactor());
 				m_next = nullptr;
 				m_openedSubMenuIndex = -1;
 			}

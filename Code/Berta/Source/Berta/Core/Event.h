@@ -40,6 +40,7 @@ namespace Berta
         {
             EventHandlerId Id;
             std::shared_ptr<Handler> Callback;
+            bool Once{ false };
         };
 
         using HandlerList = std::vector<StoredHandler>;
@@ -53,26 +54,31 @@ namespace Berta
 
         std::shared_ptr<Data> m_data;
 
-        EventHandlerId AddHandler(Handler h) const
+        EventHandlerId AddHandler(Handler handler, bool once = false) const
         {
             std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
-            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(h) });
+            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), once });
             return m_data->IdCounter++;
         }
 
     public:
-        EventHandlerId Connect(const Handler& h) const
+        EventHandlerId Connect(const Handler& handler) const
         {
-            return AddHandler(h);
+            return AddHandler(handler);
+        }
+
+        EventHandlerId ConnectOnce(const Handler& handler) const
+        {
+            return AddHandler(handler, true);
         }
 
         void Disconnect(EventHandlerId id) const
         {
             std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
             auto it = std::find_if(m_data->Observers.begin(), m_data->Observers.end(),
-                [&](auto& o)
+                [&](auto& observer)
                 {
-                    return o.id == id;
+                    return observer.Id == id;
                 });
 
             if (it != m_data->Observers.end())
@@ -108,6 +114,7 @@ namespace Berta
                 if (auto callback = weakCallback.lock())
                 {
                     (*callback)(args);
+                    //if ()
                 }
             }
         }

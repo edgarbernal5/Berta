@@ -19,6 +19,9 @@ namespace Berta
 	class Graphics
 	{
 	public:
+		friend class Image;
+
+	public:
 		Graphics();
 		Graphics(const Size& size);
 		Graphics(const Graphics& other);
@@ -63,8 +66,6 @@ namespace Berta
 
 		void Swap(Graphics& other);
 		void Release();
-
-		friend class Image;
 	private:
 #ifdef BT_PLATFORM_WINDOWS
 		struct NativeAttributes

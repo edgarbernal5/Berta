@@ -51,12 +51,14 @@ namespace Berta
 
 	struct Menu
 	{
+		friend class MenuBoxReactor;
+		friend class MenuBarReactor;
+
 		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
 
 		void Append(const std::wstring& text, ClickCallback onClick = {});
 		void AppendSeparator();
-		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true, Rectangle menuBarItem={});
 		void ShowPopup(Window* owner, const ArgMouse& args);
 		Menu* CreateSubMenu(std::size_t index);
 		void SetImage(size_t index, const Image& image);
@@ -87,6 +89,8 @@ namespace Berta
 		MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
 	private:
+		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true, Rectangle menuBarItem = {});
+
 		Size GetMenuBoxSize(Window* parent);
 	};
 
@@ -164,6 +168,11 @@ namespace Berta
 	class MenuBox : public Control<MenuBoxReactor, FormEvents>
 	{
 	public:
+		friend struct Menu;
+		friend class MenuBoxReactor;
+		friend class MenuBarReactor;
+
+	public:
 		MenuBox(Window* parent, const Rectangle& rectangle);
 		~MenuBox();
 
@@ -171,10 +180,6 @@ namespace Berta
 		void SetIgnoreFirstMouseUp(bool value);
 
 		void Popup();
-
-		friend struct Menu;
-		friend class MenuBoxReactor;
-		friend class MenuBarReactor;
 	private:
 #if BT_DEBUG
 		static int g_globalId;
