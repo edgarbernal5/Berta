@@ -14,6 +14,12 @@
 #include <filesystem>
 #include <mutex>
 
+//#include <dbghelp.h>
+
+//#pragma comment(lib, "dbghelp.lib")
+//TODO: implementar esto
+//https://chatgpt.com/c/32bf08ae-2615-477e-9352-879b12a59718
+
 namespace Berta
 {
 	//https://github.com/i42output/neolib/blob/master/include/neolib/app/i_logger.hpp

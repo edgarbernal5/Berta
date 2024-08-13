@@ -53,6 +53,10 @@ namespace Berta
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
 	{
+		if (!args.ButtonState.RightButton)
+		{
+			return;
+		}
 		auto screenPosition = GUI::GetPointClientToScreen(owner, args.Position);
 		ShowPopup(owner, screenPosition);
 		//m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
@@ -264,6 +268,11 @@ namespace Berta
 
 	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
+		if (!args.ButtonState.LeftButton)
+		{
+			return;
+		}
+
 		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
 		{
 			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu;
@@ -290,6 +299,7 @@ namespace Berta
 
 	void MenuBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
 		if (m_ignoreFirstMouseUp)
 		{
 			m_ignoreFirstMouseUp = false;
@@ -319,6 +329,11 @@ namespace Berta
 		if (selectedIndex >= m_items->size())
 		{
 			GUI::DisposeMenu();
+			return;
+		}
+
+		if (!args.ButtonState.LeftButton)
+		{
 			return;
 		}
 
@@ -357,7 +372,6 @@ namespace Berta
 			lastMenuItem->EnterSubMenu();
 		}
 	}
-
 
 	MenuItemReactor* MenuBoxReactor::GetLastMenuItem() const
 	{

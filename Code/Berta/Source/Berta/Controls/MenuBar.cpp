@@ -78,6 +78,11 @@ namespace Berta
 
 	void MenuBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
+		if (!args.ButtonState.LeftButton)
+		{
+			return;
+		}
+
 		int selectedItem = m_module.FindItem(args.Position);
 		m_module.SelectIndex(selectedItem);
 		if (selectedItem != -1)

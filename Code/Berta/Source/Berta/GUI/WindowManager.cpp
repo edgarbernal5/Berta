@@ -263,6 +263,7 @@ namespace Berta
 
 	void WindowManager::ReleaseCapture(Window* window)
 	{
+		BT_CORE_TRACE << "ReleaseCapture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			m_capture.WindowPtr = nullptr;
@@ -275,12 +276,14 @@ namespace Berta
 				{
 					m_capture.WindowPtr = lastCaptured;
 
+					BT_CORE_TRACE << "   ReleaseCapture / true" << std::endl;
 					API::CaptureWindow(lastCaptured->RootHandle, true);
 				}
 			}
 
 			if (window && m_capture.WindowPtr == nullptr)
 			{
+				BT_CORE_TRACE << "   ReleaseCapture / false" << std::endl;
 				API::CaptureWindow(window->RootHandle, false);
 			}
 		}
@@ -292,6 +295,7 @@ namespace Berta
 				m_capture.PrevCaptured.erase(it);
 			}
 		}
+		BT_CORE_TRACE << "ReleaseCapture / m_capture.PrevCaptured size = " << m_capture.PrevCaptured.size() << std::endl;
 	}
 
 	Window* WindowManager::Find(Window* window, const Point& point)
