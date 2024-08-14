@@ -36,7 +36,8 @@ namespace Berta
 		m_textEditor = new TextEditor(*m_control);
 
 		auto window = m_control->Handle();
-		window->Events->Focus.Connect([&](const ArgFocus& args) {
+		window->Events->Focus.Connect([&](const ArgFocus& args)
+		{
 			if (!args.Focused && m_floatBox)
 			{
 				m_floatBox->Dispose();

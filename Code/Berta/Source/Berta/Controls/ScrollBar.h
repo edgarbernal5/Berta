@@ -53,7 +53,6 @@ namespace Berta
 		
 		Rectangle GetScrollBoxRect() const;
 
-		ControlBase* m_control{ nullptr };
 		bool m_isVertical{ false };
 		int m_min{ 0 };
 		int m_max{ 1 };

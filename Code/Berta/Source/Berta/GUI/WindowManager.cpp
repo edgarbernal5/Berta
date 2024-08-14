@@ -70,12 +70,12 @@ namespace Berta
 
 	void WindowManager::DestroyInternal(Window* window)
 	{
-		if (window->Flags.IsDestroyed)
+		if (window->Flags.IsDisposed)
 		{
 			return;
 		}
 
-		window->Flags.IsDestroyed = true;
+		window->Flags.IsDisposed = true;
 
 		ArgDestroy argDestroy;
 		window->Events->Destroy.Emit(argDestroy);
@@ -85,7 +85,7 @@ namespace Berta
 			auto child = window->Children[i];
 			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
 			DestroyInternal(child);
-			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method here (when WM_NCDESTROY is sent)
+			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
 		}
 		window->Children.clear();
 
@@ -115,7 +115,9 @@ namespace Berta
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
+			{
 				continue;
+			}
 
 			if (child->Type != WindowType::Panel)
 			{
@@ -138,7 +140,9 @@ namespace Berta
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
+			{
 				continue;
+			}
 
 			if (child->Type != WindowType::Panel)
 			{
@@ -160,7 +164,9 @@ namespace Berta
 		for (auto& child : request->Children)
 		{
 			if (!child->Visible || !Exists(child))
+			{
 				continue;
+			}
 
 			if (child->Type != WindowType::Panel)
 			{
@@ -175,20 +181,20 @@ namespace Berta
 
 	void WindowManager::Dispose(Window* window)
 	{
-		if (window->Flags.IsDestroyed)
+		if (window->Flags.IsDisposed)
 		{
 			return;
 		}
 
 		if (window->Type == WindowType::Form)
 		{
-			ArgClosing argClosing{ false };
+			ArgDisposing argDisposing{ false };
 			auto events = dynamic_cast<FormEvents*>(window->Events.get());
-			events->Closing.Emit(argClosing);
+			events->Disposing.Emit(argDisposing);
 
-			if (!argClosing.Cancel)
+			if (!argDisposing.Cancel)
 			{
-				if (!window->Flags.IsDestroyed)
+				if (!window->Flags.IsDisposed)
 				{
 					window->Renderer.Shutdown();
 					window->ControlWindowPtr->Destroy();

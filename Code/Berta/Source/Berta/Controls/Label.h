@@ -21,7 +21,6 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 
 	private:
-		ControlBase* m_control{ nullptr };
 		Image m_image;
 	};
 

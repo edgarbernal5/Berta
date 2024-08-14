@@ -79,7 +79,6 @@ namespace Berta
 		private:
 			void UpdatePanelMoveRect(Panel* panel);
 		};
-		ControlBase* m_control{ nullptr };
 		Module m_module;
 	};
 

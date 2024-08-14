@@ -36,7 +36,6 @@ namespace Berta
 
 		TextEditor* GetEditor() const { return m_textEditor; }
 	private:
-		ControlBase* m_control{ nullptr };
 		TextEditor* m_textEditor{ nullptr };
 	};
 

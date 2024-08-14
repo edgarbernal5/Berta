@@ -263,7 +263,14 @@ namespace Berta
 
 	void MenuBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
+		//BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
+		bool changes = MouseMoveInternal(args);
+		if (changes)
+		{
+			auto window = m_control->Handle();
+			Update(graphics);
+			GUI::UpdateDeferred(window);
+		}
 	}
 
 	void MenuBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -666,7 +673,8 @@ namespace Berta
 			else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
 			{
 				auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
-				if (args.Position.Y >= openedSubItem.m_position.Y && args.Position.Y <= openedSubItem.m_position.Y + (int)openedSubItem.m_size.Height)
+				auto tolerance = openedSubItem.m_size.Height >> 2;
+				if (args.Position.Y >= (openedSubItem.m_position.Y - tolerance) && args.Position.Y <= (openedSubItem.m_position.Y + tolerance) + (int)openedSubItem.m_size.Height)
 				{
 					BT_CORE_TRACE << "      - ...." << std::endl;
 					selectedIndex = m_openedSubMenuIndex;

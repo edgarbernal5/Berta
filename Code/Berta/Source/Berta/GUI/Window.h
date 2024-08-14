@@ -64,7 +64,7 @@ namespace Berta
 		struct Flags
 		{
 			bool IsEnabled{ true };
-			bool IsDestroyed{ false };
+			bool IsDisposed{ false };
 			bool MakeActive{ true };
 		}Flags;
 	};

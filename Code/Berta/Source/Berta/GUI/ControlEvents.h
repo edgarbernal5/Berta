@@ -107,7 +107,7 @@ namespace Berta
 		bool IsActivated;
 	};
 
-	struct ArgClosing
+	struct ArgDisposing
 	{
 		bool Cancel{ false };
 	};
@@ -117,7 +117,7 @@ namespace Berta
 		Event<ArgActivated>	Activated;
 		Event<ArgSizeMove>	EnterSizeMove;
 		Event<ArgSizeMove>	ExitSizeMove;
-		Event<ArgClosing>	Closing;
+		Event<ArgDisposing>	Disposing;
 	};
 
 	struct ArgComboBox
@@ -139,7 +139,6 @@ namespace Berta
 	{
 		Event<ArgScrollBar>	ValueChanged;
 	};
-
 }
 
 #endif

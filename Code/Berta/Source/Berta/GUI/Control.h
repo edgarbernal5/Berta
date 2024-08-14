@@ -53,7 +53,8 @@ namespace Berta
 		class ControlWindow : public ControlWindowInterface
 		{
 		public:
-			ControlWindow(ControlBase& control) : m_control(control)
+			ControlWindow(ControlBase& control) : 
+				m_control(control)
 			{
 			}
 

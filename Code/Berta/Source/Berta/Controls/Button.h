@@ -31,8 +31,6 @@ namespace Berta
 			Pressed,
 			Hovered
 		};
-
-		ControlBase* m_control{ nullptr };
 		State m_status{ State::Normal };
 	};
 
