@@ -157,7 +157,6 @@ namespace Berta::GUI
 		if (windowManager.Exists(window))
 		{
 			return window->Flags.IsEnabled;
-			
 		}
 		return false;
 	}

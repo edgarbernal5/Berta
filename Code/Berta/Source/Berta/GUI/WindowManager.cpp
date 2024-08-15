@@ -576,6 +576,11 @@ namespace Berta
 
 			Dispose(it);
 		}
+
+		if (rootReactor == m_rootMenuItemReactor)
+		{
+			m_rootMenuItemReactor = nullptr;
+		}
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
@@ -609,13 +614,11 @@ namespace Berta
 					child = FindInTree(child, point);
 					if (child)
 					{
-						//BT_CORE_DEBUG << " -- find tree child = " << child->Name << std::endl;
 						return child;
 					}
 				}
 			} while (index != 0);
 		}
-		//BT_CORE_DEBUG << " -- find tree fallback = " << window->Name << std::endl;
 		return window;
 	}
 }

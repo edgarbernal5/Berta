@@ -87,16 +87,16 @@ int main()
 	form.SetDebugName("form");
 	form.SetCaption(L"Window");
 
-	Berta::MenuBar menuBar(form, {0,0, 100, 25});
+	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	menuBar.SetDebugName("menuBar");
 	auto& menuFile = menuBar.PushBack(L"File");
 	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
 	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
 	menuFile.AppendSeparator();
 	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
-	{
-		std::cout << "EXITO" << std::endl;
-	});
+		{
+			std::cout << "EXITO" << std::endl;
+		});
 	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 	menuFile.SetEnabled(1, false);
 	menuFile.SetImage(0, image1);
@@ -123,27 +123,27 @@ int main()
 	menuBar.PushBack(L"Help");
 
 	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
-	{
-		auto currentSize = menuBar.GetSize();
-		menuBar.SetSize({ args.NewSize.Width, currentSize.Height });
-	});
-	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height});
+		{
+			auto currentSize = menuBar.GetSize();
+			menuBar.SetSize({ args.NewSize.Width, currentSize.Height });
+		});
+	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
 	Berta::Label label(form, { 50,35,105,90 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 	label.SetDebugName("Label");
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
-	{
-		//std::cout << "LABEL>mouse move" << std::endl;
-	});
+		{
+			//std::cout << "LABEL>mouse move" << std::endl;
+		});
 
 
 	Berta::InputText inputText(form, { 190,35,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
-	{
-		std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
-	});
+		{
+			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
+		});
 
 	inputText.SetDebugName("inputText");
 	Berta::ComboBox comboBox(form, { 190,65,200,25 });
@@ -159,9 +159,9 @@ int main()
 	}
 	comboBox.SetDebugName("comboBox");
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
-	{
-		std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
-	});
+		{
+			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
+		});
 
 	Berta::ScrollBar scrollbar(form, { 10, 250, 20, 150 }, true);
 	scrollbar.SetMinMax(0, 10);
@@ -175,86 +175,86 @@ int main()
 
 	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
 	tabbar.SetDebugName("tabbar");
-	
+
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
 	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
-	
+
 	Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
 	button2.SetDebugName("button2");
 	button2.SetEnabled(false);
 	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
-	{
-		std::cout << "BUTTON 2 >Click" << std::endl;
-		tabbar.Erase(1);
-	});
+		{
+			std::cout << "BUTTON 2 >Click" << std::endl;
+			tabbar.Erase(1);
+		});
 
 	Berta::Button button(form, { 5,135,100,40 }, L"Click me!");
 	button.SetDebugName("button");
 	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
-	{
-		std::cout << "BUTTON > Click" << std::endl;
-		button2.SetEnabled(!button2.GetEnabled());
-		/*inputText.SetEnabled(!inputText.GetEnabled());
-		comboBox.SetEnabled(!comboBox.GetEnabled());
-		menuBar.SetEnabled(!menuBar.GetEnabled());*/
-	});
+		{
+			std::cout << "BUTTON > Click" << std::endl;
+			button2.SetEnabled(!button2.GetEnabled());
+			/*inputText.SetEnabled(!inputText.GetEnabled());
+			comboBox.SetEnabled(!comboBox.GetEnabled());
+			menuBar.SetEnabled(!menuBar.GetEnabled());*/
+		});
 	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
-	{
-		std::cout << "BUTTON < mouse leave" << std::endl;
-	});
+		{
+			std::cout << "BUTTON < mouse leave" << std::endl;
+		});
 	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
-	{
-		std::cout << "BUTTON > mouse enter" << std::endl;
-	});
+		{
+			std::cout << "BUTTON > mouse enter" << std::endl;
+		});
 
 	Berta::Button buttonClear(form, { 125,135,100,40 }, L"Clear!");
 	buttonClear.SetDebugName("buttonClear");
 	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
-	{
-		std::cout << "BUTTON > Clear Click" << std::endl;
-		tabbar.Clear();
-	});
+		{
+			std::cout << "BUTTON > Clear Click" << std::endl;
+			tabbar.Clear();
+		});
 
 	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-	{
-		std::cout << "form > Visibility = " << args.IsVisible << std::endl;
-	});
+		{
+			std::cout << "form > Visibility = " << args.IsVisible << std::endl;
+		});
 	tabExample1->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-	{
-		std::cout << "tabExample1 > Visibility = " << args.IsVisible << std::endl;
-	});
+		{
+			std::cout << "tabExample1 > Visibility = " << args.IsVisible << std::endl;
+		});
 	tabExample2->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-	{
-		std::cout << "tabExample2 > Visibility = " << args.IsVisible << std::endl;
-	});
+		{
+			std::cout << "tabExample2 > Visibility = " << args.IsVisible << std::endl;
+		});
 	tabExample3->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-	{
-		std::cout << "tabExample3 > Visibility = " << args.IsVisible << std::endl;
-	});
+		{
+			std::cout << "tabExample3 > Visibility = " << args.IsVisible << std::endl;
+		});
 
 	Berta::Menu popupMenu;
 	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
-	{
-		std::cout << "Context menu click > Example" << std::endl;
-	});
+		{
+			std::cout << "Context menu click > Example" << std::endl;
+		});
 	popupMenu.Append(L"Example Submenu");
-	auto subMenuContext=popupMenu.CreateSubMenu(1);
+	auto subMenuContext = popupMenu.CreateSubMenu(1);
 	subMenuContext->Append(L"hola", [](Berta::MenuItem& item)
-	{
-		std::cout << "Context sub menu click > hola" << std::endl;
-	});
+		{
+			std::cout << "Context sub menu click > hola" << std::endl;
+		});
 	subMenuContext->Append(L"hola 2");
 	auto subsubMenu = subMenuContext->CreateSubMenu(1);
 	subsubMenu->Append(L"hola 3", [](Berta::MenuItem& item)
 		{
 			std::cout << "Context sub menu click > hola 3" << std::endl;
 		});
-
+	
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
-	{
-		popupMenu.ShowPopup(form.Handle(), args);
-	});
+		{
+			popupMenu.ShowPopup(form.Handle(), args);
+		});
 	form.Show();
 	form.Exec();
 

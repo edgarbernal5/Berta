@@ -378,6 +378,14 @@ namespace Berta
 		{
 			lastMenuItem->EnterSubMenu();
 		}
+		else if (args.Key == KeyboardKey::Enter)
+		{
+			lastMenuItem->Select();
+		}
+		else if (args.Key == KeyboardKey::Escape)
+		{
+			lastMenuItem->Quit();
+		}
 	}
 
 	MenuItemReactor* MenuBoxReactor::GetLastMenuItem() const
@@ -487,6 +495,41 @@ namespace Berta
 		OpenSubMenu(item->m_subMenu, m_menuOwner, m_openedSubMenuIndex, false);
 
 		return true;
+	}
+
+	void MenuBoxReactor::Select()
+	{
+		size_t selectedIndex = static_cast<size_t>(m_selectedIndex);
+		if (selectedIndex >= m_items->size())
+		{
+			return;
+		}
+
+		auto& item = m_items->at(selectedIndex);
+		if (item->m_subMenu)
+		{
+			if (!item->m_subMenu->m_menuBox)
+			{
+				m_selectedSubMenuIndex = m_selectedIndex;
+				m_openedSubMenuIndex = m_selectedIndex;
+				OpenSubMenu(item->m_subMenu, m_menuOwner, m_selectedIndex);
+				m_subMenuTimer.Stop();
+			}
+			return;
+		}
+
+		if (!item->isSpearator && item->onClick)
+		{
+			MenuItem menuItem(item);
+			item->onClick(menuItem);
+		}
+
+		GUI::DisposeMenu();
+	}
+
+	void MenuBoxReactor::Quit()
+	{
+		GUI::DisposeMenu(this);
 	}
 
 	void MenuBoxReactor::SetItems(std::vector<Menu::Item*>& items)

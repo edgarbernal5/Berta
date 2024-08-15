@@ -29,6 +29,8 @@ namespace Berta
 		virtual void MoveToNextItem(bool upwards) = 0;
 		virtual bool ExitSubMenu() = 0;
 		virtual bool EnterSubMenu() = 0;
+		virtual void Select() = 0;
+		virtual void Quit() = 0;
 
 		virtual MenuItemReactor* Next() const { return m_next; }
 		virtual MenuItemReactor* Prev() const { return m_prev; }
@@ -127,6 +129,8 @@ namespace Berta
 		void MoveToNextItem(bool upwards) override;
 		bool ExitSubMenu() override;
 		bool EnterSubMenu() override;
+		void Select() override;
+		void Quit() override;
 		bool IsMenuBar() const override { return false; }
 
 		Menu* GetMenuOwner() const { return m_menuOwner; }

@@ -166,6 +166,14 @@ namespace Berta
 					MoveToNextItem(false);
 				}
 			}
+			else if(args.Key == KeyboardKey::Enter)
+			{
+				lastMenuItem->Select();
+			}
+			else if (args.Key == KeyboardKey::Escape)
+			{
+				lastMenuItem->Quit();
+			}
 		}
 	}
 
@@ -188,6 +196,14 @@ namespace Berta
 
 		Update(m_module.m_owner->Renderer.GetGraphics());
 		GUI::RefreshWindow(m_module.m_owner);
+	}
+
+	void MenuBarReactor::Select()
+	{
+	}
+
+	void MenuBarReactor::Quit()
+	{
 	}
 
 	Window* MenuBarReactor::Owner() const
