@@ -67,6 +67,9 @@ namespace Berta
 			bool IsDisposed{ false };
 			bool MakeActive{ true };
 		}Flags;
+
+		uint32_t ToScale(uint32_t units) const;
+		int ToScale(int units) const;
 	};
 }
 

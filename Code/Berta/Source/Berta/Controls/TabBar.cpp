@@ -28,10 +28,10 @@ namespace Berta
 			return;
 		}
 
-		auto tabBarItemHeight = static_cast<int>(m_module.m_owner->Appereance->TabBarItemHeight * m_module.m_owner->DPIScaleFactor);
-		auto tabPadding = static_cast<uint32_t>(10 * m_module.m_owner->DPIScaleFactor);
-		auto tabMarginUnselected = static_cast<int>(4 * m_module.m_owner->DPIScaleFactor);
-		auto one = static_cast<int>(1 * m_module.m_owner->DPIScaleFactor);
+		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_owner->Appereance->TabBarItemHeight);
+		auto tabPadding = m_module.m_owner->ToScale(10);
+		auto tabMarginUnselected = m_module.m_owner->ToScale(4);
+		auto one = m_module.m_owner->ToScale(1);
 
 		//TODO: drawlineto
 		int lastPositionX = 0;

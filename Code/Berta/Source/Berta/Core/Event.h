@@ -40,7 +40,11 @@ namespace Berta
         {
             EventHandlerId Id;
             std::shared_ptr<Handler> Callback;
-            bool Once{ false };
+            struct
+            {
+                bool Once : 1;
+                bool Triggered : 1;
+            }Flags;
         };
 
         using HandlerList = std::vector<StoredHandler>;
@@ -57,7 +61,7 @@ namespace Berta
         EventHandlerId AddHandler(Handler handler, bool once = false) const
         {
             std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
-            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), once });
+            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
             return m_data->IdCounter++;
         }
 
@@ -114,7 +118,6 @@ namespace Berta
                 if (auto callback = weakCallback.lock())
                 {
                     (*callback)(args);
-                    //if ()
                 }
             }
         }

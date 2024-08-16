@@ -53,12 +53,10 @@ namespace Berta
 
 		if (window->Parent)
 		{
-			BT_CORE_DEBUG << "  Window " << window << " name = " << window->Name << " has parent ." << window->Parent << std::endl;
 			for (size_t i = 0; i < window->Parent->Children.size(); i++)
 			{
 				if (window->Parent->Children[i] == window)
 				{
-					BT_CORE_DEBUG << "    - Child index " << i << std::endl;
 					window->Parent->Children.erase(window->Parent->Children.begin() + i);
 					break;
 				}
