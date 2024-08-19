@@ -19,7 +19,17 @@ namespace Berta
 	void ThumbListBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
+		bool enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+	}
+
+	void ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
+	{
+	}
+
+	void ThumbListBoxReactor::Module::Clear()
+	{
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
@@ -27,10 +37,13 @@ namespace Berta
 		Create(parent, true, rectangle);
 	}
 
+	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
+	{
+		m_reactor.GetModule().AddItem(text, thumbnail);
+	}
+
 	void ThumbListBox::Clear()
 	{
-	}
-	void ThumbListBox::PushItem(const std::wstring& text)
-	{
+		m_reactor.GetModule().Clear();
 	}
 }

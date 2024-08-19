@@ -60,6 +60,7 @@ namespace Berta
 	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents>
 	{
 	public:
+		ComboBox() = default;
 		ComboBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();

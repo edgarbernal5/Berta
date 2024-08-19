@@ -85,6 +85,7 @@ namespace Berta
 	class TabBar : public Control<TabBarReactor>
 	{
 	public:
+		TabBar() = default;
 		TabBar(Window* parent, const Rectangle& rectangle);
 
 		void Clear();

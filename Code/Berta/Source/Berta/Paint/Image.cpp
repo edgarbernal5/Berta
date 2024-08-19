@@ -212,14 +212,11 @@ namespace Berta
 			else
 			{
 				auto pBitsChar = (unsigned char*)pBits;
-				for (size_t i = 0; i < m_size.Width * m_size.Height * 4; i+=4)
+				for (size_t i = 0; i < m_size.Width * m_size.Height * 4; i += 4)
 				{
 					// Calculate luminosity value
-					unsigned char gray = static_cast<unsigned char>(0.2126f * m_imageData[i+2] + 0.7152f * m_imageData[i+1] + 0.0722f * m_imageData[i]);
-					pBitsChar[i] = pBitsChar[i+1] = pBitsChar[i+2] = gray;
-
-					/*unsigned char gray = (m_imageData[i] + m_imageData[i + 1] + m_imageData[i + 2]) / 3;
-					pBitsChar[i] = pBitsChar[i+1] = pBitsChar[i+2] = gray;*/
+					unsigned char gray = static_cast<unsigned char>(0.2126f * m_imageData[i + 2] + 0.7152f * m_imageData[i + 1] + 0.0722f * m_imageData[i]);
+					pBitsChar[i] = pBitsChar[i + 1] = pBitsChar[i + 2] = gray;
 
 					pBitsChar[i + 3] = m_imageData[i + 3];
 				}

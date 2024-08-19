@@ -72,6 +72,7 @@ namespace Berta
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
 	{
 	public:
+		ScrollBar() = default;
 		ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical = true);
 		ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
