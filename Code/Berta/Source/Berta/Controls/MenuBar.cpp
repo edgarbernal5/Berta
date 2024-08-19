@@ -36,7 +36,7 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->ButtonBackground : window->Appereance->ButtonDisabledBackground, true);
 
 		auto& items = m_module.m_items;
-		auto itemMargin = static_cast<uint32_t>(4u * window->DPIScaleFactor);
+		auto itemMargin = window->ToScale(4u);
 
 		for (size_t i = 0; i < items.size(); i++)
 		{
@@ -278,7 +278,7 @@ namespace Berta
 			return;
 		}
 
-		auto itemMargin = static_cast<uint32_t>(4u * m_owner->DPIScaleFactor);
+		auto itemMargin = m_owner->ToScale(4u);
 		Point offset{ 0, (int)itemMargin };
 
 		if (startIndex > 0)

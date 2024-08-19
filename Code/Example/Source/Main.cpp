@@ -13,6 +13,7 @@
 #include <Berta/Controls/MenuBar.h>
 #include <Berta/Controls/Panel.h>
 #include <Berta/Controls/TabBar.h>
+#include <Berta/Controls/ThumbListBox.h>
 #include <iostream>
 
 class TabExample1 : public Berta::Panel
@@ -74,11 +75,15 @@ public:
 		{
 			std::cout << "CLICK button tab 23" << std::endl;
 		});
+
+		m_thumbListBox.Create(*this, true, { 15, 15, 200, 400 });
+		m_thumbListBox.SetDebugName("thummb list box");
 	}
 
 private:
 	Berta::Button m_button;
 	Berta::Button m_button2;
+	Berta::ThumbListBox m_thumbListBox;
 };
 
 int main()

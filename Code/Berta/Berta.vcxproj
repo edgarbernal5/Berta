@@ -136,7 +136,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Controls\ListBox.h" />
     <ClInclude Include="Source\Berta\Controls\Panel.h" />
+    <ClInclude Include="Source\Berta\Controls\ThumbListBox.h" />
     <ClInclude Include="Source\Berta\GUI\MenuManager.h" />
     <ClInclude Include="Source\Berta\Controls\Menu.h" />
     <ClInclude Include="Source\Berta\Controls\MenuBar.h" />
@@ -182,7 +184,9 @@
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Controls\ListBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Panel.cpp" />
+    <ClCompile Include="Source\Berta\Controls\ThumbListBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\MenuManager.cpp" />
     <ClCompile Include="Source\Berta\Controls\Menu.cpp" />
     <ClCompile Include="Source\Berta\Controls\ComboBox.cpp" />

@@ -165,7 +165,15 @@
     <ClInclude Include="Source\Berta\Controls\Panel.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\ControlEvents.h" />
+    <ClInclude Include="Source\Berta\Controls\ListBox.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\ThumbListBox.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ControlEvents.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -262,6 +270,12 @@
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Panel.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\ListBox.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\ThumbListBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>

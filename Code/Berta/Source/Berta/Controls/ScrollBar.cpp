@@ -33,8 +33,8 @@ namespace Berta
 		if (!IsValid())
 			return;
 
-		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
-		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
+		int arrowWidth = window->ToScale(6);
+		int arrowLength = window->ToScale(3);
 
 		DrawButton(graphics, { 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Upwards, m_hoverArea == InteractionArea::Button1, enabled);
 

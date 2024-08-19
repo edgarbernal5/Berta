@@ -130,12 +130,12 @@ namespace Berta
 			}
 		}
 
-		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxLeftPaneWidth * parent->DPIScaleFactor);
-		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * parent->DPIScaleFactor);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor) : 0;
-		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
-		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
-		auto menuBoxShortcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
+		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appereance->MenuBoxLeftPaneWidth);
+		auto itemTextPadding = parent->ToScale(ItemTextPadding);
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appereance->MenuBoxSubMenuArrowWidth) : 0;
+		auto separatorHeight = parent->ToScale(SeparatorHeight);
+		auto menuBoxItemHeight = parent->ToScale(parent->Appereance->MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(parent->Appereance->MenuBoxShortcutWidth);
 
 		return { 
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
@@ -190,11 +190,11 @@ namespace Berta
 
 		graphics.DrawRectangle(window->Appereance->MenuBackground, true);
 
-		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(window->Appereance->MenuBoxLeftPaneWidth * window->DPIScaleFactor);
-		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * window->DPIScaleFactor);
-		auto menuBoxItemHeight = static_cast<uint32_t>(window->Appereance->MenuBoxItemHeight * window->DPIScaleFactor);
-		auto menuBoxSubMenuArrowWidth = static_cast<uint32_t>(window->Appereance->MenuBoxSubMenuArrowWidth * window->DPIScaleFactor);
-		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * window->DPIScaleFactor);
+		auto menuBoxLeftPaneWidth = window->ToScale(window->Appereance->MenuBoxLeftPaneWidth);
+		auto itemTextPadding = window->ToScale(ItemTextPadding);
+		auto menuBoxItemHeight = window->ToScale(window->Appereance->MenuBoxItemHeight);
+		auto menuBoxSubMenuArrowWidth = window->ToScale(window->Appereance->MenuBoxSubMenuArrowWidth);
+		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		if (m_items)
 		{
@@ -224,8 +224,8 @@ namespace Berta
 						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
 
 						Point imageSize{ (int)item.m_image.GetSize().Width, (int)item.m_image.GetSize().Height };
-						imageSize.X = static_cast<int>(imageSize.X * window->DPIScaleFactor);
-						imageSize.Y = static_cast<int>(imageSize.Y * window->DPIScaleFactor);
+						imageSize.X = window->ToScale(imageSize.X);
+						imageSize.Y = window->ToScale(imageSize.Y);
 						Point centerImage = paneSize - imageSize;
 						centerImage /= 2;
 						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, item.isEnabled);
@@ -234,8 +234,8 @@ namespace Berta
 					
 					if (item.m_subMenu)
 					{
-						int arrowWidth = static_cast<int>(4 * window->DPIScaleFactor);
-						int arrowLength = static_cast<int>(2 * window->DPIScaleFactor);
+						int arrowWidth = window->ToScale(4);
+						int arrowLength = window->ToScale(2);
 						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
@@ -538,10 +538,10 @@ namespace Berta
 		m_itemSizePositions.clear();
 
 		auto window = m_control->Handle();
-		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(window->Appereance->MenuBoxLeftPaneWidth * window->DPIScaleFactor);
-		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * window->DPIScaleFactor);
-		auto menuBoxItemHeight = static_cast<uint32_t>(window->Appereance->MenuBoxItemHeight * window->DPIScaleFactor);
-		auto separatorHeight = static_cast<uint32_t>(3u * window->DPIScaleFactor);
+		auto menuBoxLeftPaneWidth = window->ToScale(window->Appereance->MenuBoxLeftPaneWidth);
+		auto itemTextPadding = window->ToScale(ItemTextPadding);
+		auto menuBoxItemHeight = window->ToScale(window->Appereance->MenuBoxItemHeight);
+		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		Point position{ 1 + (int)itemTextPadding, 1 + (int)itemTextPadding };
 		uint32_t separators = 0;
@@ -596,12 +596,12 @@ namespace Berta
 			}
 		}
 
-		auto menuBoxLeftPaneWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxLeftPaneWidth * parent->DPIScaleFactor);
-		auto itemTextPadding = static_cast<uint32_t>(ItemTextPadding * parent->DPIScaleFactor);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? static_cast<uint32_t>(parent->Appereance->MenuBoxSubMenuArrowWidth * parent->DPIScaleFactor) : 0;
-		auto separatorHeight = static_cast<uint32_t>(SeparatorHeight * parent->DPIScaleFactor);
-		auto menuBoxItemHeight = static_cast<uint32_t>(parent->Appereance->MenuBoxItemHeight * parent->DPIScaleFactor);
-		auto menuBoxShortcutWidth = static_cast<uint32_t>(parent->Appereance->MenuBoxShortcutWidth * parent->DPIScaleFactor);
+		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appereance->MenuBoxLeftPaneWidth);
+		auto itemTextPadding = parent->ToScale(ItemTextPadding);
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appereance->MenuBoxSubMenuArrowWidth) : 0;
+		auto separatorHeight = parent->ToScale(SeparatorHeight);
+		auto menuBoxItemHeight = parent->ToScale(parent->Appereance->MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(parent->Appereance->MenuBoxShortcutWidth);
 
 		return {
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
@@ -612,8 +612,8 @@ namespace Berta
 	void MenuBoxReactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
 	{
 		auto window = m_control->Handle();
-		int two = static_cast<int>(2 * window->DPIScaleFactor);
-		int four = static_cast<int>(4 * window->DPIScaleFactor);
+		int two = window->ToScale(2);
+		int four = window->ToScale(4);
 		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
 		subMenu->m_parentMenu = parentMenu;
