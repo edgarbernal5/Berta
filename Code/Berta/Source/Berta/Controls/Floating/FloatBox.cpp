@@ -35,7 +35,7 @@ namespace Berta
 			auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
-			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto itemHeight = window->ToScale(window->Appereance->ComboBoxItemHeight);
 
 			for (size_t i = 0; i < visibleItemsCount; i++)
 			{
@@ -61,7 +61,7 @@ namespace Berta
 		if (IsInside(args.Position))
 		{
 			auto window = m_control->Handle();
-			auto itemHeight = static_cast<uint32_t>(window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto itemHeight = window->ToScale(window->Appereance->ComboBoxItemHeight);
 			auto index = (args.Position.Y - 1) / itemHeight;
 			
 			m_state.m_index = m_state.m_offset + index;
@@ -181,7 +181,7 @@ namespace Berta
 			return;
 
 		auto window = m_control->Handle();
-		auto scrollSize = static_cast<uint32_t>(window->Appereance->ScrollBarSize * window->DPIScaleFactor);
+		auto scrollSize = window->ToScale(window->Appereance->ScrollBarSize);
 		Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 		if (!m_scrollBar)
 		{

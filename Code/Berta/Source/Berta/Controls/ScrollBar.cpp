@@ -215,7 +215,7 @@ namespace Berta
 
 	uint32_t ScrollBarReactor::GetButtonSize() const
 	{
-		return static_cast<uint32_t>(m_control->Handle()->Appereance->ScrollBarSize * m_control->Handle()->DPIScaleFactor);
+		return m_control->Handle()->ToScale(m_control->Handle()->Appereance->ScrollBarSize);
 	}
 
 	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled)
@@ -261,14 +261,14 @@ namespace Berta
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
+			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
 		else
 		{
 			Rectangle scrollTrackRect{ buttonSize + 1, 0 , window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
+			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.X) / (scrollTrackRect.Width - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
@@ -295,7 +295,7 @@ namespace Berta
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
+			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
 			return {
 				0,
@@ -305,7 +305,7 @@ namespace Berta
 			};
 		}
 		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + 1, 0, window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
-		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), static_cast<uint32_t>(6u * window->DPIScaleFactor));
+		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
 		return {
 			static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),

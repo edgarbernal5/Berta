@@ -63,12 +63,12 @@ namespace Berta
 		auto textItemHeight = graphics.GetTextExtent().Height;
 		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
 
-		auto buttonSize = static_cast<uint32_t>(20 * window->DPIScaleFactor);
+		auto buttonSize = window->ToScale(20u);
 
 		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, window->Appereance->Background, true);
 
-		int arrowWidth = static_cast<int>(6 * window->DPIScaleFactor);
-		int arrowLength = static_cast<int>(3 * window->DPIScaleFactor);
+		int arrowWidth = window->ToScale(6);
+		int arrowLength = window->ToScale(3);
 		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, 
 			arrowLength, 
 			arrowWidth, 
@@ -104,8 +104,8 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto pointInScreen = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
-			auto clampedItemsToShow = (std::min)(m_interactionData.m_items.size(), m_interactionData.m_maxItemsToDisplay);
-			auto floatBoxHeight = static_cast<uint32_t>(clampedItemsToShow * window->Appereance->ComboBoxItemHeight * window->DPIScaleFactor);
+			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_interactionData.m_items.size(), m_interactionData.m_maxItemsToDisplay));
+			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appereance->ComboBoxItemHeight);
 			m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->Size.Height, window->Size.Width, floatBoxHeight + 2u });
 			m_floatBox->Init(m_interactionData);
 

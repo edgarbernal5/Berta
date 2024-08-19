@@ -222,8 +222,8 @@ namespace Berta
 			return;
 		}
 
-		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
-		auto tabPadding = static_cast<uint32_t>(10u * m_owner->DPIScaleFactor);
+		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appereance->TabBarItemHeight);
+		auto tabPadding = m_owner->ToScale(10u);
 
 		Point offset{ 0, 0 };
 
@@ -292,7 +292,7 @@ namespace Berta
 
 	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel)
 	{
-		auto tabBarItemHeight = static_cast<uint32_t>(m_owner->Appereance->TabBarItemHeight * m_owner->DPIScaleFactor);
+		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appereance->TabBarItemHeight);
 		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
 		GUI::MoveWindow(panel->Handle(), rect);
 	}

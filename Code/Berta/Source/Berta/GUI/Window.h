@@ -68,8 +68,15 @@ namespace Berta
 			bool MakeActive{ true };
 		}Flags;
 
-		uint32_t ToScale(uint32_t units) const;
-		int ToScale(int units) const;
+		uint32_t ToScale(uint32_t units) const
+		{
+			return static_cast<uint32_t>(units * DPIScaleFactor);
+		}
+
+		int ToScale(int units) const
+		{
+			return static_cast<int>(units * DPIScaleFactor);
+		}
 	};
 }
 
