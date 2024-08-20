@@ -30,13 +30,18 @@ namespace Berta
 			struct ItemType
 			{
 				std::wstring Text;
-				Image Image;
+				Image Thumbnail;
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			void Clear();
+			void SetThumbnailSize(uint32_t size);
 
 			std::vector<ItemType> Items;
+			uint32_t ThumbnailSize{ 96u };
+
+		private:
+			void BuildItems();
 		};
 
 		Module m_module;
@@ -50,6 +55,7 @@ namespace Berta
 
 		void AddItem(const std::wstring& text, const Image& thumbnail);
 		void Clear();
+		void SetThumbnailSize(uint32_t size);
 	};
 }
 
