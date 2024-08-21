@@ -22,13 +22,12 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
-		struct Module;
-		Module& GetModule() { return m_module; }
-	private:
 		struct Module
 		{
 			struct ItemType
 			{
+				ItemType() = default;
+
 				std::wstring Text;
 				Image Thumbnail;
 			};
@@ -40,14 +39,17 @@ namespace Berta
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
 
+			ThumbListBoxAppearance* Appearance{ nullptr };
 		private:
 			void BuildItems();
 		};
+		Module& GetModule() { return m_module; }
 
+	private:
 		Module m_module;
 	};
 
-	class ThumbListBox : public Control<ThumbListBoxReactor>
+	class ThumbListBox : public Control<ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>
 	{
 	public:
 		ThumbListBox() = default;

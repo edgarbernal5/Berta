@@ -47,6 +47,12 @@ namespace Berta
 		uint32_t MenuBoxShortcutWidth = 20;
 
 		uint32_t TabBarItemHeight = 27;
+
+	};
+
+	struct ThumbListBoxAppearance : public ControlAppearance
+	{
+		uint32_t ThumbnailCardHeight = 45;
 	};
 }
 

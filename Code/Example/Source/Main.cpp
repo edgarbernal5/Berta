@@ -76,8 +76,11 @@ public:
 			std::cout << "CLICK button tab 23" << std::endl;
 		});
 
-		m_thumbListBox.Create(*this, true, { 15, 15, 200, 400 });
+		m_thumbListBox.Create(*this, true, { 15, 15, 200, 200 });
 		m_thumbListBox.SetDebugName("thummb list box");
+
+		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
+		m_thumbListBox.AddItem(L"Text example", image1);
 	}
 
 private:
@@ -260,6 +263,8 @@ int main()
 		{
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
+
+
 	form.Show();
 	form.Exec();
 

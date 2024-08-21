@@ -139,6 +139,16 @@ namespace Berta
 	{
 		Event<ArgScrollBar>	ValueChanged;
 	};
+
+	struct ArgThumbListBox
+	{
+		int SelectedIndex;
+	};
+
+	struct ThumbListBoxEvents : public ControlEvents
+	{
+		Event<ArgThumbListBox>	Selected;
+	};
 }
 
 #endif

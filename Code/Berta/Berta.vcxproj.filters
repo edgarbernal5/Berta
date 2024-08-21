@@ -34,6 +34,9 @@
     <Filter Include="Source\Berta\Controls\Floating">
       <UniqueIdentifier>{ad295461-a638-4063-952c-61fcc47ad01b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Paint\Images">
+      <UniqueIdentifier>{83b73060-42cd-4f7e-a6fd-605961c91216}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -174,6 +177,12 @@
     <ClInclude Include="Source\Berta\GUI\ControlEvents.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Images\BasicImageAttributes.h">
+      <Filter>Source\Berta\Paint\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Images\IconImageAttributes.h">
+      <Filter>Source\Berta\Paint\Images</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -277,6 +286,12 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\ThumbListBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Images\BasicImageAttributes.cpp">
+      <Filter>Source\Berta\Paint\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Images\IconImageAttributes.cpp">
+      <Filter>Source\Berta\Paint\Images</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

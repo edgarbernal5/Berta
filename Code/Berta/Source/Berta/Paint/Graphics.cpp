@@ -374,12 +374,12 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const
+	void Graphics::Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
 	{
-		Paste(destination, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
+		Paste(destinationHandle, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
 	}
 
-	void Graphics::Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
+	void Graphics::Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -387,7 +387,7 @@ namespace Berta
 			return;
 		}
 
-		HDC dc = ::GetDC(destination.Handle);
+		HDC dc = ::GetDC(destinationHandle.Handle);
 		if (dc)
 		{
 			if (!::BitBlt(dc, dx, dy, width, height, m_attributes->m_hdc, sx, sy, SRCCOPY))
@@ -397,7 +397,7 @@ namespace Berta
 #endif
 			}
 
-			::ReleaseDC(destination.Handle, dc);
+			::ReleaseDC(destinationHandle.Handle, dc);
 		}
 #endif
 	}

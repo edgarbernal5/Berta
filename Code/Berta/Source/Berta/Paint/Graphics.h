@@ -60,8 +60,8 @@ namespace Berta
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
 
-		void Paste(API::NativeWindowHandle destination, const Rectangle& areaToUpdate, int x, int y) const;
-		void Paste(API::NativeWindowHandle destination, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
+		void Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;
+		void Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
 		void Flush();
 
 		void Swap(Graphics& other);

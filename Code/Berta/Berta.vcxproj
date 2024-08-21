@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Paint\Images\BasicImageAttributes.h" />
     <ClInclude Include="Source\Berta\Controls\ListBox.h" />
     <ClInclude Include="Source\Berta\Controls\Panel.h" />
     <ClInclude Include="Source\Berta\Controls\ThumbListBox.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="Source\Berta\Core\Logger.h" />
     <ClInclude Include="Source\Berta\EntryPoint.h" />
     <ClInclude Include="Source\Berta\Paint\Image.h" />
+    <ClInclude Include="Source\Berta\Paint\Images\IconImageAttributes.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\Messages.h" />
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\GUI\Control.h" />
@@ -184,6 +186,7 @@
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Paint\Images\BasicImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Controls\ListBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Panel.cpp" />
     <ClCompile Include="Source\Berta\Controls\ThumbListBox.cpp" />
@@ -209,6 +212,7 @@
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
     <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
     <ClCompile Include="Source\Berta\Paint\Image.cpp" />
+    <ClCompile Include="Source\Berta\Paint\Images\IconImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />
     <ClCompile Include="Source\Berta\Controls\Form.cpp" />
