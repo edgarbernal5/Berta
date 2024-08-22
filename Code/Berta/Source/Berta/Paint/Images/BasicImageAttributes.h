@@ -20,6 +20,7 @@ namespace Berta
 		Size GetSize() const override;
 		void Open(const std::string& filepath) override;
 		void Paste(Graphics& destination, const Point& positionDestination) override;
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
 
 	private:
 		//TODO: move this attributes to NativeAttributes

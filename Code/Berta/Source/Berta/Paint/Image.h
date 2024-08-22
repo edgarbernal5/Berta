@@ -24,6 +24,7 @@ namespace Berta
 		virtual void Open(const std::string& filepath) = 0;
 
 		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
+		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
 	};
 
 	class Image
@@ -44,8 +45,8 @@ namespace Berta
 
 		void Open(const std::string& filepath);
 		void Paste(Graphics& destination, const Point& positionDestination, bool isEnabled = true);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, bool isEnabled);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, bool isEnabled);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, bool isEnabled = true);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, bool isEnabled = true);
 
 	private:
 

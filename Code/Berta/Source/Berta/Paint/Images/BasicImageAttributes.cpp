@@ -92,4 +92,8 @@ namespace Berta
 	void BasicImageAttributes::Paste(Graphics& destination, const Point& positionDestination)
 	{
 	}
+
+	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
+	{
+	}
 }

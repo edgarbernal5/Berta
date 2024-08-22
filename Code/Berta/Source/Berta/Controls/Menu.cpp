@@ -716,7 +716,7 @@ namespace Berta
 			else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
 			{
 				auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
-				auto tolerance = openedSubItem.m_size.Height >> 2;
+				auto tolerance = (int)(openedSubItem.m_size.Height >> 2);
 				if (args.Position.Y >= (openedSubItem.m_position.Y - tolerance) && args.Position.Y <= (openedSubItem.m_position.Y + tolerance) + (int)openedSubItem.m_size.Height)
 				{
 					BT_CORE_TRACE << "      - ...." << std::endl;
