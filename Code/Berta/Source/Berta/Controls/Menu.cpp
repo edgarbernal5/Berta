@@ -223,12 +223,14 @@ namespace Berta
 					{
 						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
 
-						Point imageSize{ (int)item.m_image.GetSize().Width, (int)item.m_image.GetSize().Height };
-						imageSize.X = window->ToScale(imageSize.X);
-						imageSize.Y = window->ToScale(imageSize.Y);
+						Size scaleImageSize= item.m_image.GetSize();
+						scaleImageSize.Width = window->ToScale(scaleImageSize.Width);
+						scaleImageSize.Height = window->ToScale(scaleImageSize.Height);
+						Point imageSize{ (int)scaleImageSize.Width, (int)scaleImageSize.Height };
 						Point centerImage = paneSize - imageSize;
 						centerImage /= 2;
-						item.m_image.Paste(graphics, { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, item.isEnabled);
+						Rectangle destRect{ { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, scaleImageSize };
+						item.m_image.Paste(item.m_image.GetSize().ToRectangle(), graphics, destRect, item.isEnabled);
 					}
 					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
 					

@@ -31,7 +31,6 @@ namespace Berta
 		uint32_t m_lastDpi{ 0 };
 		bool m_enabled{ true };
 
-
 #if BT_PLATFORM_WINDOWS
 		HDC m_hdc{ nullptr };
 		HBITMAP m_hBitmap{ nullptr };

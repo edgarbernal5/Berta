@@ -20,6 +20,7 @@ namespace Berta
 	{
 	public:
 		friend class Image;
+		friend class BasicImageAttributes;
 
 	public:
 		Graphics();
