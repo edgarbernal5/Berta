@@ -99,11 +99,6 @@ namespace Berta
 	{
 #if BT_PLATFORM_WINDOWS
 		HDC& destDC = destination.m_attributes->m_hdc;
-		
-		//float scaleFactor = m_hasTransparency ? 1.0f : LayoutUtils::CalculateDPIScaleFactor(currentDpi);
-
-		//int adjustedWidth = static_cast<int>(m_size.Width * scaleFactor);
-		//int adjustedHeight = static_cast<int>(m_size.Height * scaleFactor);
 
 		HDC hdc = ::GetDC(NULL);
 		// Create compatible DC
@@ -202,9 +197,7 @@ namespace Berta
 			}
 		}
 
-		//m_enabled = enabled;
 		::ReleaseDC(0, hdc);
-
 #endif
 	}
 }

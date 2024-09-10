@@ -110,6 +110,8 @@ namespace Berta
 			return;
 		}
 
+		auto absolutePosition = GetAbsolutePosition(window);
+		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -120,9 +122,13 @@ namespace Berta
 			if (child->Type != WindowType::Panel)
 			{
 				child->Renderer.Update();
-				auto absolutePosition = GetAbsolutePosition(child);
-				Rectangle childRectangle{ absolutePosition.X, absolutePosition.Y, child->Size.Width, child->Size.Height };
-				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				auto absolutePositionChild = GetAbsolutePosition(child);
+
+				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
+				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
+				{
+					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				}
 			}
 			UpdateTreeInternal(child, rootGraphics);
 		}
@@ -135,6 +141,9 @@ namespace Berta
 			return;
 		}
 
+
+		auto absolutePosition = GetAbsolutePosition(window);
+		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -146,7 +155,10 @@ namespace Berta
 			{
 				auto childAbsolutePosition = GetAbsolutePosition(child);
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
-				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
+				{
+					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				}
 			}
 			RefreshInternal(child, rootGraphics);
 		}
@@ -158,6 +170,8 @@ namespace Berta
 		{
 			return;
 		}
+		auto absolutePosition = GetAbsolutePosition(request);
+		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, request->Size.Width, request->Size.Height };
 
 		for (auto& child : request->Children)
 		{
@@ -168,13 +182,37 @@ namespace Berta
 
 			if (child->Type != WindowType::Panel)
 			{
-				auto absolutePosition = GetAbsolutePosition(child);
-				Rectangle childRectangle{ absolutePosition.X, absolutePosition.Y, child->Size.Width, child->Size.Height };
-
-				rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				auto absolutePositionChild = GetAbsolutePosition(child);
+				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
+				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
+				{
+					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+				}
 			}
 			UpdateDeferredRequestsInternal(child, rootGraphics);
 		}
+	}
+
+	bool WindowManager::GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result)
+	{
+		if (parentRectangle.X + parentRectangle.Width <= childRectangle.X || childRectangle.X + childRectangle.Width <= parentRectangle.X ||
+			parentRectangle.Y + parentRectangle.Height <= childRectangle.Y || childRectangle.Y + childRectangle.Height <= parentRectangle.Y) {
+			return false;
+		}
+
+		// Calculate the intersection rectangle
+		int interLeft = (std::max)(parentRectangle.X, childRectangle.X);
+		int interTop = (std::max)(parentRectangle.Y, childRectangle.Y);
+		int interRight = (std::min)(parentRectangle.X + parentRectangle.Width, childRectangle.X + childRectangle.Width);
+		int interBottom = (std::min)(parentRectangle.Y + parentRectangle.Height, childRectangle.Y + childRectangle.Height);
+
+		// Set the intersection rectangle's position and size
+		result.X = interLeft;
+		result.Y = interTop;
+		result.Width = interRight - interLeft;
+		result.Height = interBottom - interTop;
+
+		return true;
 	}
 
 	void WindowManager::Dispose(Window* window)

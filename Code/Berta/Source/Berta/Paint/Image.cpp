@@ -75,14 +75,15 @@ namespace Berta
 	{
 		std::filesystem::path path{ filepath };
 		if (!path.has_extension())
+		{
 			return;
+		}
 
 		if (path.extension() == ".ico")
 		{
 			m_attributes = std::make_shared<IconImageAttributes>();
 		}
-		else if (path.extension() == ".bmp" || path.extension() == ".jpeg" ||
-			path.extension() == ".png")
+		else if (path.extension() == ".bmp" || path.extension() == ".jpeg" || path.extension() == ".png")
 		{
 			m_attributes = std::make_shared<BasicImageAttributes>();
 		}

@@ -87,6 +87,7 @@ namespace Berta
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
 		void RefreshInternal(Window* window, Graphics& rootGraphics);
 		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
+		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
 		struct CaptureData
 		{
