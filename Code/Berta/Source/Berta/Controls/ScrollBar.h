@@ -27,11 +27,12 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		void SetOrientation(bool isVertical);
-		void SetMinMax(int min, int max);
-		void SetValue(int value);
+		void SetMinMax(float min, float max);
+		void SetValue(float value);
+		void SetStepValue(float value);
 
-		int GetMin() const { return m_min; }
-		int GetMax() const { return m_max; }
+		float GetMin() const { return m_min; }
+		float GetMax() const { return m_max; }
 	private:
 		enum class InteractionArea
 		{
@@ -54,18 +55,18 @@ namespace Berta
 		Rectangle GetScrollBoxRect() const;
 
 		bool m_isVertical{ false };
-		int m_min{ 0 };
-		int m_max{ 1 };
-		int m_step{ 1 };
-		int m_localStep{ 1 };
-		int m_pageStep{ 2 };
-		int m_value{ 0 };
+		float m_min{ 0.0f };
+		float m_max{ 1.0f };
+		float m_value{ 0.0f };
+		float m_step{ 1.0f };
+		float m_localStep{ 1.0f };
+		float m_pageStep{ 2.0f };
 		Timer m_timer;
 
 		InteractionArea m_hoverArea{ InteractionArea::None };
 		InteractionArea m_pressedArea{ InteractionArea::None };
 		Point m_mouseDownPosition{};
-		int m_prevTrackValue{};
+		float m_prevTrackValue{};
 		bool m_trackPageUp{ false };
 	};
 
@@ -76,12 +77,13 @@ namespace Berta
 		ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical = true);
 		ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
-		void SetMinMax(int min, int max);
+		void SetMinMax(float min, float max);
 		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
-		void SetValue(int value);
+		void SetValue(float value);
+		void SetStepValue(float stepValue);
 
-		int GetMin() const { return m_reactor.GetMin(); }
-		int GetMax() const { return m_reactor.GetMax(); }
+		float GetMin() const { return m_reactor.GetMin(); }
+		float GetMax() const { return m_reactor.GetMax(); }
 	};
 }
 

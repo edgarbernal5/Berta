@@ -43,13 +43,13 @@ namespace Berta
 			graphics.DrawRectangle(cardRect, lineColor, false);
 			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 
-			Size imageSize = item.Thumbnail.GetSize();
-			imageSize *= window->DPIScaleFactor;
+			Size imageSize = window->ToScale(item.Thumbnail.GetSize());
 			Size thumbFrameSize{ thumbSize, thumbSize };
 			auto center = thumbFrameSize - imageSize;
 			center *= 0.5f;
 
-			item.Thumbnail.Paste(graphics, { cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height });
+			Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
+			item.Thumbnail.Paste(graphics, thumbnailRect);
 
 			graphics.DrawString({ cardRect.X + (int)cardMargin, cardRect.Y + (int)(thumbSize + cardMargin) }, item.Text, window->Appereance->Foreground);
 			offset.X += (int)cardSizeWithMargin.Width;

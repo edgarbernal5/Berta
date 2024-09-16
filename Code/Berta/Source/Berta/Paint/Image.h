@@ -45,6 +45,7 @@ namespace Berta
 
 		void Open(const std::string& filepath);
 		void Paste(Graphics& destination, const Point& positionDestination);
+		void Paste(Graphics& destination, const Rectangle& destinationRect);
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect);
 

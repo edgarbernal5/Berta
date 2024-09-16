@@ -63,7 +63,9 @@ namespace Berta
 	void ScrollBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		if (!args.ButtonState.LeftButton || !isScrollable())
+		{
 			return;
+		}
 
 		m_mouseDownPosition = args.Position;
 		m_prevTrackValue = m_value;
@@ -74,14 +76,7 @@ namespace Berta
 		{
 			m_localStep = m_pageStep;
 			auto scrollBoxRect = GetScrollBoxRect();
-			if (m_isVertical)
-			{
-				m_trackPageUp = m_mouseDownPosition.Y < scrollBoxRect.Y;
-			}
-			else
-			{
-				m_trackPageUp = m_mouseDownPosition.X < scrollBoxRect.X;
-			}
+			m_trackPageUp = m_isVertical ? m_mouseDownPosition.Y < scrollBoxRect.Y : m_mouseDownPosition.X < scrollBoxRect.X;
 		}
 		else
 		{
@@ -141,16 +136,21 @@ namespace Berta
 		m_isVertical = isVertical;
 	}
 
-	void ScrollBarReactor::SetMinMax(int min, int max)
+	void ScrollBarReactor::SetMinMax(float min, float max)
 	{
 		m_min = (std::min)(min, max);
 		m_max = (std::max)(min, max);
 		m_value = std::clamp(m_value, m_min, m_max);
 	}
 
-	void ScrollBarReactor::SetValue(int value)
+	void ScrollBarReactor::SetValue(float value)
 	{
 		m_value = std::clamp(value, m_min, m_max);
+	}
+
+	void ScrollBarReactor::SetStepValue(float value)
+	{
+		m_step = std::clamp(value, 0.01f, m_max);
 	}
 
 	bool ScrollBarReactor::IsValid() const
@@ -159,10 +159,14 @@ namespace Berta
 		auto buttonSize = GetButtonSize();
 
 		if (m_isVertical && window->Size.Height < buttonSize * 2 + 2 + 4)
+		{
 			return false;
+		}
 
 		if (!m_isVertical && window->Size.Width < buttonSize * 2 + 2 + 4)
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -236,16 +240,22 @@ namespace Berta
 		if (m_isVertical)
 		{
 			if (Rectangle{ 0, 0, window->Size.Width, buttonSize }.IsInside(position))
+			{
 				return InteractionArea::Button1;
+			}
 			if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }.IsInside(position))
+			{
 				return InteractionArea::Button2;
+			}
 
 			if (isScrollable())
 			{
 				auto scrollBoxRect = GetScrollBoxRect();
 
 				if (scrollBoxRect.IsInside(position))
+				{
 					return InteractionArea::Scrollbox;
+				}
 
 				return InteractionArea::ScrollTrack;
 			}
@@ -257,7 +267,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		float num = 1.0f / ((m_max - m_min) + 1.0f);
-		int newValue = m_value;
+		float newValue = m_value;
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
@@ -327,13 +337,17 @@ namespace Berta
 		m_reactor.SetOrientation(isVertical);
 	}
 
-	void ScrollBar::SetMinMax(int min, int max)
+	void ScrollBar::SetMinMax(float min, float max)
 	{
 		m_reactor.SetMinMax(min, max);
 	}
 
-	void ScrollBar::SetValue(int value)
+	void ScrollBar::SetValue(float value)
 	{
 		m_reactor.SetValue(value);
+	}
+	void ScrollBar::SetStepValue(float stepValue)
+	{
+		m_reactor.SetStepValue(stepValue);
 	}
 }

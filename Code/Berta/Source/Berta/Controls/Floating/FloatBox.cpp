@@ -95,7 +95,7 @@ namespace Berta
 		}
 
 		int direction = args.WheelDelta > 0 ? -1 : 1;
-		int newOffset = std::clamp(m_state.m_offset + direction, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+		int newOffset = std::clamp(m_state.m_offset + direction, (int)m_scrollBar->GetMin(), (int)m_scrollBar->GetMax());
 
 		if (newOffset != m_state.m_offset)
 		{

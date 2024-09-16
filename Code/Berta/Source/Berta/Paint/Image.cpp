@@ -164,6 +164,11 @@ namespace Berta
 		Paste(Rectangle{ GetSize() }, destination, positionDestination);
 	}
 
+	void Image::Paste(Graphics& destination, const Rectangle& destinationRect)
+	{
+		Paste(Rectangle{ GetSize() }, destination, destinationRect);
+	}
+
 	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
 	{
 		if (!m_attributes)
