@@ -49,7 +49,7 @@ namespace Berta
 			auto center = thumbFrameSize - imageSize;
 			center *= 0.5f;
 
-			item.Thumbnail.Paste(graphics, { cardRect.X+(int)center.Width, cardRect.Y+ (int)center.Height});
+			item.Thumbnail.Paste(graphics, { cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height });
 
 			graphics.DrawString({ cardRect.X + (int)cardMargin, cardRect.Y + (int)(thumbSize + cardMargin) }, item.Text, window->Appereance->Foreground);
 			offset.X += (int)cardSizeWithMargin.Width;

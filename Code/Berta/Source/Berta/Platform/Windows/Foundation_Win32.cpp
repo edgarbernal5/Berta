@@ -401,7 +401,7 @@ namespace Berta
 						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						BT_CORE_DEBUG << " - MENU / mouse move name " << currentWindow->Name << ". hovered " << rootWindowData.Hovered << std::endl;
+						//BT_CORE_DEBUG << " - MENU / mouse move name " << currentWindow->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 						currentWindow->Renderer.MouseMove(argMouseMove);
 						currentWindow->Events->MouseMove.Emit(argMouseMove);
 
@@ -420,7 +420,7 @@ namespace Berta
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					BT_CORE_DEBUG << " - MENU / mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
+					//BT_CORE_DEBUG << " - MENU / mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
 					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
 

@@ -44,9 +44,9 @@ namespace Berta
 		Size GetSize() const { return m_attributes->GetSize(); }
 
 		void Open(const std::string& filepath);
-		void Paste(Graphics& destination, const Point& positionDestination, bool isEnabled = true);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, bool isEnabled = true);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, bool isEnabled = true);
+		void Paste(Graphics& destination, const Point& positionDestination);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect);
 
 	private:
 

@@ -29,18 +29,7 @@ namespace Berta
 			m_imageData = nullptr;
 		}
 
-#if BT_PLATFORM_WINDOWS
-		if (m_hBitmap)
-		{
-			::DeleteObject(m_hBitmap);
-			m_hBitmap = nullptr;
-		}
-		if (m_hdc)
-		{
-			::DeleteDC(m_hdc);
-			m_hdc = nullptr;
-		}
-#endif
+		ReleaseNativeObjects();
 	}
 
 	Size BasicImageAttributes::GetSize() const
@@ -98,6 +87,17 @@ namespace Berta
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
 	{
 #if BT_PLATFORM_WINDOWS
+		if (m_hBitmap)
+		{
+			::DeleteObject(m_hBitmap);
+			m_hBitmap = nullptr;
+		}
+		if (m_hdc)
+		{
+			::DeleteDC(m_hdc);
+			m_hdc = nullptr;
+		}
+
 		HDC& destDC = destination.m_attributes->m_hdc;
 
 		HDC hdc = ::GetDC(NULL);
@@ -107,8 +107,8 @@ namespace Berta
 		::BITMAPINFO bmpInfo;
 		ZeroMemory(&bmpInfo, sizeof(BITMAPINFO));
 		bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmpInfo.bmiHeader.biWidth = static_cast<LONG>(destinationRect.Width);
-		bmpInfo.bmiHeader.biHeight = -static_cast<LONG>(destinationRect.Height);  // top-down image
+		bmpInfo.bmiHeader.biWidth = static_cast<LONG>(m_hasTransparency ? m_size.Width : destinationRect.Width);
+		bmpInfo.bmiHeader.biHeight = -static_cast<LONG>(m_hasTransparency ? m_size.Height : destinationRect.Height);  // top-down image
 		bmpInfo.bmiHeader.biPlanes = 1;
 		bmpInfo.bmiHeader.biBitCount = m_channels * 8;
 		bmpInfo.bmiHeader.biCompression = BI_RGB;
@@ -198,6 +198,22 @@ namespace Berta
 		}
 
 		::ReleaseDC(0, hdc);
+#endif
+	}
+
+	void BasicImageAttributes::ReleaseNativeObjects()
+	{
+#if BT_PLATFORM_WINDOWS
+		if (m_hBitmap)
+		{
+			::DeleteObject(m_hBitmap);
+			m_hBitmap = nullptr;
+		}
+		if (m_hdc)
+		{
+			::DeleteDC(m_hdc);
+			m_hdc = nullptr;
+		}
 #endif
 	}
 }

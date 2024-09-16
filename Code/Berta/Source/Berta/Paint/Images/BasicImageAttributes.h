@@ -11,6 +11,12 @@
 
 namespace Berta
 {
+	struct PixelBuffer
+	{
+		unsigned char* m_imageData{ nullptr };
+		Size m_size{};
+	};
+
 	class BasicImageAttributes : public AbstractImageAttributes
 	{
 	public:
@@ -23,13 +29,12 @@ namespace Berta
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
 
 	private:
-		//TODO: move this attributes to NativeAttributes
+		void ReleaseNativeObjects();
+
 		unsigned char* m_imageData{ nullptr };
 		Size m_size{};
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };
-		uint32_t m_lastDpi{ 0 };
-		bool m_enabled{ true };
 
 #if BT_PLATFORM_WINDOWS
 		HDC m_hdc{ nullptr };

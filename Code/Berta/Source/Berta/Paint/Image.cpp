@@ -159,12 +159,12 @@ namespace Berta
 		//::ReleaseDC(0, hdc);
 	}
 
-	void Image::Paste(Graphics& destination, const Point& positionDestination, bool isEnabled)
+	void Image::Paste(Graphics& destination, const Point& positionDestination)
 	{
-		Paste(Rectangle{ GetSize() }, destination, positionDestination, isEnabled);
+		Paste(Rectangle{ GetSize() }, destination, positionDestination);
 	}
 
-	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, bool isEnabled)
+	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
 	{
 		if (!m_attributes)
 		{
@@ -312,7 +312,7 @@ namespace Berta
 //#endif
 	}
 
-	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, bool isEnabled)
+	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
 	{
 		if (!m_attributes)
 		{

@@ -264,7 +264,6 @@ int main()
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
 
-
 	form.Show();
 	form.Exec();
 
