@@ -115,7 +115,9 @@ namespace Berta
 	void ScrollBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
 		if (!isScrollable())
+		{
 			return;
+		}
 
 		auto window = m_control->Handle();
 		if (args.ButtonState.LeftButton)
@@ -125,7 +127,10 @@ namespace Berta
 
 		m_timer.Stop();
 		m_pressedArea = InteractionArea::None;
-		m_hoverArea = InteractionArea::None;
+		if (!window->Size.IsInside(args.Position))
+		{
+			m_hoverArea = InteractionArea::None;
+		}		
 
 		Update(graphics);
 		GUI::UpdateDeferred(window);

@@ -80,7 +80,8 @@ public:
 		m_thumbListBox.SetDebugName("thummb list box");
 
 		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
-		m_thumbListBox.AddItem(L"Text example", image1);
+		m_thumbListBox.AddItem(L"Text example 1", image1);
+		m_thumbListBox.AddItem(L"Text example 2", image1);
 	}
 
 private:

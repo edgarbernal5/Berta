@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 
 #include <string>
@@ -38,7 +39,7 @@ namespace Berta
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
-
+			std::unique_ptr<ScrollBar> m_scrollBar;
 			ThumbListBoxAppearance* Appearance{ nullptr };
 		private:
 			void BuildItems();
