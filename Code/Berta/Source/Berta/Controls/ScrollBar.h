@@ -10,11 +10,13 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Core/Timer.h"
+#include "Berta/Core/BasicTypes.h"
 
 #include <string>
 
 namespace Berta
 {
+
 	class ScrollBarReactor : public ControlReactor
 	{
 	public:
@@ -27,9 +29,9 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		void SetOrientation(bool isVertical);
-		void SetMinMax(float min, float max);
-		void SetValue(float value);
-		void SetStepValue(float value);
+		void SetMinMax(ScrollBarUnit min, ScrollBarUnit max);
+		void SetValue(ScrollBarUnit value);
+		void SetStepValue(ScrollBarUnit value);
 
 		float GetMin() const { return m_min; }
 		float GetMax() const { return m_max; }
@@ -55,18 +57,18 @@ namespace Berta
 		Rectangle GetScrollBoxRect() const;
 
 		bool m_isVertical{ false };
-		float m_min{ 0.0f };
-		float m_max{ 1.0f };
-		float m_value{ 0.0f };
-		float m_step{ 1.0f };
-		float m_localStep{ 1.0f };
-		float m_pageStep{ 2.0f };
+		ScrollBarUnit m_min{ 0 };
+		ScrollBarUnit m_max{ 1 };
+		ScrollBarUnit m_value{ 0 };
+		ScrollBarUnit m_step{ 1 };
+		ScrollBarUnit m_localStep{ 1 };
+		ScrollBarUnit m_pageStep{ 2 };
 		Timer m_timer;
 
 		InteractionArea m_hoverArea{ InteractionArea::None };
 		InteractionArea m_pressedArea{ InteractionArea::None };
 		Point m_mouseDownPosition{};
-		float m_prevTrackValue{};
+		ScrollBarUnit m_prevTrackValue{};
 		bool m_trackPageUp{ false };
 	};
 
@@ -77,13 +79,13 @@ namespace Berta
 		ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical = true);
 		ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
-		void SetMinMax(float min, float max);
+		void SetMinMax(ScrollBarUnit min, ScrollBarUnit max);
 		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
-		void SetValue(float value);
-		void SetStepValue(float stepValue);
+		void SetValue(ScrollBarUnit value);
+		void SetStepValue(ScrollBarUnit stepValue);
 
-		float GetMin() const { return m_reactor.GetMin(); }
-		float GetMax() const { return m_reactor.GetMax(); }
+		ScrollBarUnit GetMin() const { return m_reactor.GetMin(); }
+		ScrollBarUnit GetMax() const { return m_reactor.GetMax(); }
 	};
 }
 

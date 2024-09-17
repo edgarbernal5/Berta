@@ -141,21 +141,21 @@ namespace Berta
 		m_isVertical = isVertical;
 	}
 
-	void ScrollBarReactor::SetMinMax(float min, float max)
+	void ScrollBarReactor::SetMinMax(ScrollBarUnit min, ScrollBarUnit max)
 	{
 		m_min = (std::min)(min, max);
 		m_max = (std::max)(min, max);
 		m_value = std::clamp(m_value, m_min, m_max);
 	}
 
-	void ScrollBarReactor::SetValue(float value)
+	void ScrollBarReactor::SetValue(ScrollBarUnit value)
 	{
 		m_value = std::clamp(value, m_min, m_max);
 	}
 
-	void ScrollBarReactor::SetStepValue(float value)
+	void ScrollBarReactor::SetStepValue(ScrollBarUnit value)
 	{
-		m_step = std::clamp(value, 0.01f, m_max);
+		m_step = std::clamp(value, 1, m_max);
 	}
 
 	bool ScrollBarReactor::IsValid() const
@@ -272,7 +272,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		float num = 1.0f / ((m_max - m_min) + 1.0f);
-		float newValue = m_value;
+		ScrollBarUnit newValue = m_value;
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
@@ -342,16 +342,16 @@ namespace Berta
 		m_reactor.SetOrientation(isVertical);
 	}
 
-	void ScrollBar::SetMinMax(float min, float max)
+	void ScrollBar::SetMinMax(ScrollBarUnit min, ScrollBarUnit max)
 	{
 		m_reactor.SetMinMax(min, max);
 	}
 
-	void ScrollBar::SetValue(float value)
+	void ScrollBar::SetValue(ScrollBarUnit value)
 	{
 		m_reactor.SetValue(value);
 	}
-	void ScrollBar::SetStepValue(float stepValue)
+	void ScrollBar::SetStepValue(ScrollBarUnit stepValue)
 	{
 		m_reactor.SetStepValue(stepValue);
 	}

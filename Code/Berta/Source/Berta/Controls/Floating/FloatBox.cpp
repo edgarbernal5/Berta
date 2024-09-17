@@ -178,7 +178,9 @@ namespace Berta
 		}
 
 		if (!needScrollBar && !m_scrollBar)
+		{
 			return;
+		}
 
 		auto window = m_control->Handle();
 		auto scrollSize = window->ToScale(window->Appereance->ScrollBarSize);

@@ -33,9 +33,15 @@ namespace Berta
 				Image Thumbnail;
 			};
 
+			struct State
+			{
+				int m_offset{ 0 };
+			};
+
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			void Clear();
 			void SetThumbnailSize(uint32_t size);
+			void UpdateScrollBar();
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
@@ -43,6 +49,8 @@ namespace Berta
 			ThumbListBoxAppearance* Appearance{ nullptr };
 		private:
 			void BuildItems();
+
+			State m_state;
 		};
 		Module& GetModule() { return m_module; }
 

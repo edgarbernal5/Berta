@@ -132,7 +132,7 @@ namespace Berta
 
 	struct ArgScrollBar
 	{
-		float Value;
+		ScrollBarUnit Value;
 	};
 
 	struct ScrollBarEvents : public ControlEvents

@@ -24,11 +24,13 @@ namespace Berta
 		bool enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
 
-		auto cardMargin = window->ToScale(10u);
+		auto maxCardMargin = window->ToScale(18u);
+		auto minCardMargin = window->ToScale(3u);
 		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
 		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
 
-		Point offset{ (int)cardMargin, (int)cardMargin };
+		auto cardMargin = minCardMargin;
+		Point offset{ 0, 0 };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
 		Size cardSizeWithMargin{ thumbSize + cardMargin * 2, thumbSize + cardHeight + cardMargin * 2 };
 		
@@ -77,6 +79,21 @@ namespace Berta
 	void ThumbListBoxReactor::Module::SetThumbnailSize(uint32_t size)
 	{
 		ThumbnailSize = size;
+	}
+
+	void ThumbListBoxReactor::Module::UpdateScrollBar()
+	{
+		bool needScrollBar = false;
+		if (!needScrollBar && m_scrollBar)
+		{
+			m_scrollBar.reset();
+			m_state.m_offset = 0;
+		}
+
+		if (!needScrollBar && !m_scrollBar)
+		{
+			return;
+		}
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()

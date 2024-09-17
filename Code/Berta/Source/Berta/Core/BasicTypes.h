@@ -219,6 +219,8 @@ namespace Berta
 		IBeam,
 		Wait
 	};
+
+	using ScrollBarUnit = int;
 }
 
 #endif
