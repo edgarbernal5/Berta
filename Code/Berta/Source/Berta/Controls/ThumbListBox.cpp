@@ -22,23 +22,32 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+		auto backgroundRect = window->Size.ToRectangle();
+		if (m_module.m_scrollBar)
+		{
+			backgroundRect.Width -= m_module.m_scrollBar->GetSize().Width;
+		}
+		graphics.DrawRectangle(backgroundRect, window->Appereance->BoxBackground, true);
 
+		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
 		auto maxCardMargin = window->ToScale(18u);
 		auto minCardMargin = window->ToScale(3u);
+		auto maxCardWidth = maxCardMargin * 2 + thumbSize;
+		auto totalCards = backgroundRect.Width / maxCardWidth;
+		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
-		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
 
-		auto cardMargin = minCardMargin;
 		Point offset{ 0, 0 };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		Size cardSizeWithMargin{ thumbSize + cardMargin * 2, thumbSize + cardHeight + cardMargin * 2 };
 		
+		auto cardMargin = marginRemainder / totalCards;
+		cardMargin >>= 1;
+		Size cardSizeWithMargin{ thumbSize + cardMargin * 2, thumbSize + cardHeight + cardMargin * 2 };
 		for (size_t i = 0; i < m_module.Items.size(); i++)
 		{
 			auto& item = m_module.Items[i];
 
-			Rectangle cardRect{ offset.X, offset.Y, cardSize.Width, cardSize.Height};
+			Rectangle cardRect{ offset.X + (int)cardMargin, offset.Y, cardSize.Width, cardSize.Height};
 			graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
 
 			auto lineColor = enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor;
@@ -54,10 +63,10 @@ namespace Berta
 			item.Thumbnail.Paste(graphics, thumbnailRect);
 
 			graphics.DrawString({ cardRect.X + (int)cardMargin, cardRect.Y + (int)(thumbSize + cardMargin) }, item.Text, window->Appereance->Foreground);
-			offset.X += (int)cardSizeWithMargin.Width;
+			offset.X += cardMargin * 2;
 			if (offset.X >= (int)window->Size.Width)
 			{
-				offset.X = (int)cardMargin;
+				offset.X = 0;
 				offset.Y += cardSizeWithMargin.Height;
 			}
 		}

@@ -59,22 +59,22 @@ public:
 
 		SetDebugName("tabexample_3");
 
-		m_button.Create(*this, true, { 5,35,100,40 });
+		/*m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab 3!");
 		m_button.SetDebugName("button tab panel 3");
 		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
 			std::cout << "CLICK button tab 3" << std::endl;
-		});
+		});*/
 
 		
-		m_button2.Create(*this, true, { 190,65,100,40 });
+		/*m_button2.Create(*this, true, { 190,65,100,40 });
 		m_button2.SetCaption(L"Click me on tab 23!");
 		m_button2.SetDebugName("button tab 2 panel 3");
 		m_button2.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
 			std::cout << "CLICK button tab 23" << std::endl;
-		});
+		});*/
 
 		m_thumbListBox.Create(*this, true, { 15, 15, 200, 200 });
 		m_thumbListBox.SetDebugName("thummb list box");
@@ -82,6 +82,11 @@ public:
 		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 		m_thumbListBox.AddItem(L"Text example 1", image1);
 		m_thumbListBox.AddItem(L"Text example 2", image1);
+		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+			{
+				auto currentPosition = m_thumbListBox.GetPosition();
+				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - 2, args.NewSize.Height - currentPosition.Y - 2 });
+			});
 	}
 
 private:
@@ -138,7 +143,7 @@ int main()
 		});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
-	Berta::Label label(form, { 50,35,105,90 }, L"Hello world!");
+	Berta::Label label(form, { 50,35,105,45 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 	label.SetDebugName("Label");
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
@@ -172,24 +177,30 @@ int main()
 			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
 		});
 
-	Berta::ScrollBar scrollbar(form, { 10, 250, 20, 150 }, true);
+	Berta::ScrollBar scrollbar(form, { 10, 200, 20, 150 }, true);
 	scrollbar.SetMinMax(0, 10);
 	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
 		{
 			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
 		});
-	Berta::ScrollBar scrollbar2(form, { 40,250, 20, 150 }, true);
+	Berta::ScrollBar scrollbar2(form, { 40,200, 20, 150 }, true);
 	scrollbar2.SetMinMax(0, 0);
 	scrollbar2.SetEnabled(false);
 
-	Berta::TabBar tabbar(form, { 70, 230, 400, 180 });
+	Berta::TabBar tabbar(form, { 70, 150, 400, 285 });
 	tabbar.SetDebugName("tabbar");
 
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
 	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
 
-	Berta::Button button2(form, { 5,185,100,40 }, L"Disabled");
+	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
+		{
+			auto currentPosition = tabbar.GetPosition();
+			tabbar.SetSize({ args.NewSize.Width - currentPosition.X-2, args.NewSize.Height - currentPosition.Y -2});
+		});
+
+	Berta::Button button2(form, { 5,120,100,25 }, L"Disabled");
 	button2.SetDebugName("button2");
 	button2.SetEnabled(false);
 	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
@@ -198,7 +209,7 @@ int main()
 			tabbar.Erase(1);
 		});
 
-	Berta::Button button(form, { 5,135,100,40 }, L"Click me!");
+	Berta::Button button(form, { 5,90,100,25 }, L"Click me!");
 	button.SetDebugName("button");
 	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
 		{
@@ -217,7 +228,7 @@ int main()
 			std::cout << "BUTTON > mouse enter" << std::endl;
 		});
 
-	Berta::Button buttonClear(form, { 125,135,100,40 }, L"Clear!");
+	Berta::Button buttonClear(form, { 125,90,100,25 }, L"Clear!");
 	buttonClear.SetDebugName("buttonClear");
 	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
 		{

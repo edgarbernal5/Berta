@@ -33,8 +33,8 @@ namespace Berta
 		void SetValue(ScrollBarUnit value);
 		void SetStepValue(ScrollBarUnit value);
 
-		float GetMin() const { return m_min; }
-		float GetMax() const { return m_max; }
+		ScrollBarUnit GetMin() const { return m_min; }
+		ScrollBarUnit GetMax() const { return m_max; }
 	private:
 		enum class InteractionArea
 		{

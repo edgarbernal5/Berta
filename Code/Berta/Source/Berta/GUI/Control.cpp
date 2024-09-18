@@ -32,6 +32,11 @@ namespace Berta
 		DoOnEnabled(enabled);
 	}
 
+	Point ControlBase::GetPosition() const
+	{
+		return GUI::GetAbsolutePosition(m_handle);
+	}
+
 	Size ControlBase::GetSize() const
 	{
 		return DoOnSize();

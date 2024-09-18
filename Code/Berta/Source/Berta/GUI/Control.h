@@ -35,6 +35,8 @@ namespace Berta
 		bool GetEnabled() const;
 		void SetEnabled(bool enabled);
 		
+		Point GetPosition() const;
+		
 		Size GetSize() const;
 		void SetSize(const Size& newSize);
 		
