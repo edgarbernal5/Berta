@@ -454,12 +454,15 @@ namespace Berta
 
 			if (updateTree)
 			{
-				auto windowToUpdate = window;
+				auto windowToUpdate = window->Parent;
 				while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
 				{
 					windowToUpdate = windowToUpdate->Parent;
 				}
-				UpdateTree(windowToUpdate);
+				if (windowToUpdate)
+				{
+					UpdateTree(windowToUpdate);
+				}
 			}
 			//TODO: emit Resize event?
 			//TODO: Perform a profiling and see if we can get an improvement on drawing/mapping
