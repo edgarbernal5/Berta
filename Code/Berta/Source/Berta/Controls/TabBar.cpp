@@ -15,6 +15,18 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_owner = control.Handle();
+
+		BT_CORE_TRACE << "TabBarReactor Init" << std::endl;
+		m_module.m_owner->Events->Resize.Connect([this](const ArgResize& args)
+			{
+				auto tabBarSize = m_module.m_owner->Size;
+				int i = 0;
+				for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++i, ++tabItem)
+				{
+					auto tabItemPanelPosition = tabItem->PanelPtr->GetPosition() - m_control->GetPosition();
+					tabItem->PanelPtr->SetSize({ tabBarSize.Width - tabItemPanelPosition.X, tabBarSize.Height - tabItemPanelPosition.Y });
+				}
+			});
 	}
 
 	void TabBarReactor::Update(Graphics& graphics)
@@ -22,7 +34,7 @@ namespace Berta
 		auto enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(m_module.m_owner->Appereance->Background, true);
 
-		if (m_module.Panels.empty())
+		if (m_module.Panels.empty() || m_module.SelectedTabIndex == -1)
 		{
 			graphics.DrawRectangle(m_module.m_owner->Appereance->BoxBorderColor, false);
 			return;
@@ -165,6 +177,7 @@ namespace Berta
 		newItem.Id = tabId;
 		newItem.PanelPtr.reset(panel);
 
+		//TODO: maybe we need to move this after selected tab index is set.
 		UpdatePanelMoveRect(panel);
 
 		if (SelectedTabIndex == -1)

@@ -55,7 +55,7 @@ namespace Berta
 			void BuildItems(size_t startIndex = 0);
 			void EraseTab(size_t index);
 			int FindItem(const Point& position);
-			bool NewSelectedIndex(int newIndex) { return SelectedTabIndex != newIndex; }
+			bool NewSelectedIndex(int newIndex) const { return SelectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
 
 			PanelIterator At(std::size_t position)
@@ -117,7 +117,6 @@ namespace Berta
 		}
 		
 		void Erase(size_t index);
-		
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);

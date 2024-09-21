@@ -263,8 +263,8 @@ namespace Berta
 
 				windowManager.Resize(nativeWindow, argResize.NewSize);
 				
-				nativeWindow->Renderer.Resize(argResize);
-				nativeWindow->Events->Resize.Emit(argResize);
+				/*nativeWindow->Renderer.Resize(argResize);
+				nativeWindow->Events->Resize.Emit(argResize);*/
 			}
 			break;
 		}
@@ -283,6 +283,7 @@ namespace Berta
 				rect->bottom - rect->top,
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
+			windowManager.UpdateTree(nativeWindow);
 			defaultToWindowProc = false;
 			break;
 		}

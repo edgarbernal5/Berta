@@ -65,10 +65,22 @@ namespace Berta
             return m_data->IdCounter++;
         }
 
+        EventHandlerId AddFrontHandler(Handler handler, bool once = false) const
+        {
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            m_data->Observers.emplace(m_data->Observers.begin(), StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
+            return m_data->IdCounter++;
+        }
+
     public:
         EventHandlerId Connect(const Handler& handler) const
         {
             return AddHandler(handler);
+        }
+
+        EventHandlerId ConnectFront(const Handler& handler) const
+        {
+            return AddFrontHandler(handler);
         }
 
         EventHandlerId ConnectOnce(const Handler& handler) const

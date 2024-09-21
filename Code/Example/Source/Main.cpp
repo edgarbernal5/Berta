@@ -84,8 +84,8 @@ public:
 		m_thumbListBox.AddItem(L"Text example 2", image1);
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
-				auto currentPosition = m_thumbListBox.GetPosition();
-				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - 2, args.NewSize.Height - currentPosition.Y - 2 });
+				auto currentPosition = m_thumbListBox.GetPosition()-this->GetPosition();
+				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - 10, args.NewSize.Height - currentPosition.Y - 10 });
 			});
 	}
 
@@ -197,7 +197,7 @@ int main()
 	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
 		{
 			auto currentPosition = tabbar.GetPosition();
-			tabbar.SetSize({ args.NewSize.Width - currentPosition.X-2, args.NewSize.Height - currentPosition.Y -2});
+			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - 2, args.NewSize.Height - currentPosition.Y - 2 });
 		});
 
 	Berta::Button button2(form, { 5,120,100,25 }, L"Disabled");

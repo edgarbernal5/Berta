@@ -195,8 +195,8 @@ namespace Berta
 
 	bool WindowManager::GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result)
 	{
-		if (parentRectangle.X + parentRectangle.Width <= childRectangle.X || childRectangle.X + childRectangle.Width <= parentRectangle.X ||
-			parentRectangle.Y + parentRectangle.Height <= childRectangle.Y || childRectangle.Y + childRectangle.Height <= parentRectangle.Y) {
+		if (parentRectangle.X + (int)parentRectangle.Width <= childRectangle.X || childRectangle.X + (int)childRectangle.Width <= parentRectangle.X ||
+			parentRectangle.Y + (int)parentRectangle.Height <= childRectangle.Y || childRectangle.Y + (int)childRectangle.Height <= parentRectangle.Y) {
 			return false;
 		}
 
@@ -454,8 +454,23 @@ namespace Berta
 
 			if (updateTree)
 			{
-				UpdateTree(window);
+				auto windowToUpdate = window;
+				while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
+				{
+					windowToUpdate = windowToUpdate->Parent;
+				}
+				UpdateTree(windowToUpdate);
 			}
+			//TODO: emit Resize event?
+			//TODO: Perform a profiling and see if we can get an improvement on drawing/mapping
+			//more efficient (avoid drawing an window twice), draw every window when all is set then.
+			//(after every window is resized)
+
+			ArgResize argResize;
+			argResize.NewSize = newSize;
+
+			window->Renderer.Resize(argResize);
+			window->Events->Resize.Emit(argResize);
 		}
 	}
 
@@ -467,7 +482,7 @@ namespace Berta
 			window->Position = newRect;
 			if (window->Size != newRect)
 			{
-				Resize(window, newRect, false);
+				Resize(window, newRect);
 			}
 		}
 	}

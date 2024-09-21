@@ -31,7 +31,9 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
 
 		if (!IsValid())
+		{
 			return;
+		}
 
 		int arrowWidth = window->ToScale(6);
 		int arrowLength = window->ToScale(3);
@@ -52,7 +54,9 @@ namespace Berta
 	void ScrollBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		if (m_pressedArea != InteractionArea::None)
+		{
 			return;
+		}
 
 		auto window = m_control->Handle();
 		m_hoverArea = InteractionArea::None;
@@ -304,17 +308,17 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
-
+		auto one = window->ToScale(1);
 		float num = 1.0f / ((m_max - m_min) + 1.0f);
 
 		if (m_isVertical)
 		{
-			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + 1, window->Size.Width, window->Size.Height - 2 * buttonSize - 2 };
+			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2 * buttonSize - one * 2 };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
 			return {
 				0,
-				static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
+				static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
 				window->Size.Width,
 				scrollBoxSize
 			};
@@ -323,7 +327,7 @@ namespace Berta
 		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
 		return {
-			static_cast<int>(buttonSize) + 1 + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
+			static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
 			0,
 			scrollBoxSize,
 			window->Size.Height
