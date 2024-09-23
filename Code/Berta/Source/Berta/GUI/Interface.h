@@ -45,6 +45,7 @@ namespace Berta
 		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
 		Point GetAbsolutePosition(Window* window);
+		Point GetLocalPosition(Window* window);
 		Point GetMousePositionToWindow(Window* window);
 
 		void UpdateTree(Window* window);

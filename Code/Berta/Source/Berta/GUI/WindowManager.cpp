@@ -452,6 +452,16 @@ namespace Berta
 				}
 			}
 
+			//TODO: emit Resize event? and before o after UpdateTree call?
+			//TODO: Perform a profiling and see if we can get an improvement on drawing/mapping
+			//more efficient (avoid drawing an window twice), draw every window when all is set then.
+			//(after every window is resized)
+			ArgResize argResize;
+			argResize.NewSize = newSize;
+			BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
+			window->Renderer.Resize(argResize);
+			window->Events->Resize.Emit(argResize);
+
 			if (updateTree)
 			{
 				auto windowToUpdate = window->Parent;
@@ -459,21 +469,12 @@ namespace Berta
 				{
 					windowToUpdate = windowToUpdate->Parent;
 				}
+				BT_CORE_TRACE << "   windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
 				}
 			}
-			//TODO: emit Resize event?
-			//TODO: Perform a profiling and see if we can get an improvement on drawing/mapping
-			//more efficient (avoid drawing an window twice), draw every window when all is set then.
-			//(after every window is resized)
-
-			ArgResize argResize;
-			argResize.NewSize = newSize;
-
-			window->Renderer.Resize(argResize);
-			window->Events->Resize.Emit(argResize);
 		}
 	}
 
@@ -586,6 +587,11 @@ namespace Berta
 			window = window->Parent;
 		}
 		return position;
+	}
+
+	Point WindowManager::GetLocalPosition(Window* window)
+	{
+		return window->Position;
 	}
 
 	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)

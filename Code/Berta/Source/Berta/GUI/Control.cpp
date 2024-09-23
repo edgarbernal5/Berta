@@ -34,7 +34,7 @@ namespace Berta
 
 	Point ControlBase::GetPosition() const
 	{
-		return GUI::GetAbsolutePosition(m_handle);
+		return GUI::GetLocalPosition(m_handle);
 	}
 
 	Size ControlBase::GetSize() const

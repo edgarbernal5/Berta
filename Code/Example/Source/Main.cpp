@@ -84,7 +84,7 @@ public:
 		m_thumbListBox.AddItem(L"Text example 2", image1);
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
-				auto currentPosition = m_thumbListBox.GetPosition()-this->GetPosition();
+				auto currentPosition = m_thumbListBox.GetPosition();
 				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - 10, args.NewSize.Height - currentPosition.Y - 10 });
 			});
 	}

@@ -260,6 +260,16 @@ namespace Berta::GUI
 		return {};
 	}
 
+	Point GetLocalPosition(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return windowManager.GetLocalPosition(window);
+		}
+		return {};
+	}
+
 	Point GetMousePositionToWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

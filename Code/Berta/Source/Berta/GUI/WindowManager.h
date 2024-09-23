@@ -73,6 +73,7 @@ namespace Berta
 		void ChangeCursor(Window* window, Cursor newCursor);
 
 		Point GetAbsolutePosition(Window* window);
+		Point GetLocalPosition(Window* window);
 
 		void SetMenu(MenuItemReactor* rootMenuItemWindow);
 		MenuItemReactor* GetMenu();
