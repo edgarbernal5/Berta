@@ -23,31 +23,34 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 		auto backgroundRect = window->Size.ToRectangle();
+		auto innerMargin = window->ToScale(3u);
 		if (m_module.m_scrollBar)
 		{
 			backgroundRect.Width -= m_module.m_scrollBar->GetSize().Width;
 		}
 		graphics.DrawRectangle(backgroundRect, window->Appereance->BoxBackground, true);
+		backgroundRect.Width -= innerMargin * 2;
 
 		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
 		auto maxCardMargin = window->ToScale(18u);
 		auto minCardMargin = window->ToScale(3u);
-		auto maxCardWidth = maxCardMargin * 2 + thumbSize;
+		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize;
 		auto totalCards = backgroundRect.Width / maxCardWidth;
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
 
-		Point offset{ 0, 0 };
+		Point offset{ (int)innerMargin, (int)innerMargin };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		
+
 		auto cardMargin = marginRemainder / totalCards;
-		cardMargin >>= 1;
-		Size cardSizeWithMargin{ thumbSize + cardMargin * 2, thumbSize + cardHeight + cardMargin * 2 };
+		auto cardMarginHalf = cardMargin >> 1;
+		Size cardSizeWithMargin{ thumbSize + cardMargin * 2, thumbSize + cardHeight };
+
 		for (size_t i = 0; i < m_module.Items.size(); i++)
 		{
 			auto& item = m_module.Items[i];
 
-			Rectangle cardRect{ offset.X + (int)cardMargin, offset.Y, cardSize.Width, cardSize.Height};
+			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
 			graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
 
 			auto lineColor = enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor;
@@ -62,12 +65,19 @@ namespace Berta
 			Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
 			item.Thumbnail.Paste(graphics, thumbnailRect);
 
-			graphics.DrawString({ cardRect.X + (int)cardMargin, cardRect.Y + (int)(thumbSize + cardMargin) }, item.Text, window->Appereance->Foreground);
-			offset.X += cardMargin * 2;
-			if (offset.X >= (int)window->Size.Width)
 			{
-				offset.X = 0;
-				offset.Y += cardSizeWithMargin.Height;
+				Size cardTextSize{ thumbSize, cardHeight };
+				auto center = cardTextSize - graphics.GetTextExtent(item.Text);
+				center *= 0.5f;
+
+				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, window->Appereance->Foreground);
+			}
+
+			offset.X += cardMargin + cardSize.Width;
+			if (offset.X + cardMargin + cardSize.Width >= (int)window->Size.Width)
+			{
+				offset.X = innerMargin;
+				offset.Y += cardSizeWithMargin.Height + innerMargin;
 			}
 		}
 
