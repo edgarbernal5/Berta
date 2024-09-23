@@ -23,7 +23,7 @@ namespace Berta
 				int i = 0;
 				for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++i, ++tabItem)
 				{
-					auto tabItemPanelPosition = tabItem->PanelPtr->GetPosition() - m_control->GetPosition();
+					auto tabItemPanelPosition = tabItem->PanelPtr->GetPosition();
 					tabItem->PanelPtr->SetSize({ tabBarSize.Width - tabItemPanelPosition.X, tabBarSize.Height - tabItemPanelPosition.Y });
 				}
 			});
