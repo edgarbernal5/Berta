@@ -41,6 +41,7 @@ namespace Berta
 
 		Point offset{ (int)innerMargin, (int)innerMargin };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
+		if (totalCards == 0) totalCards = 1;
 
 		auto cardMargin = marginRemainder / totalCards;
 		auto cardMarginHalf = cardMargin >> 1;
