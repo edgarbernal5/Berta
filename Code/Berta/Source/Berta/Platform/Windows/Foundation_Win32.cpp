@@ -283,7 +283,8 @@ namespace Berta
 				rect->bottom - rect->top,
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
-			windowManager.UpdateTree(nativeWindow);
+			//This is called inside Resize method of WindowManager.
+			//windowManager.UpdateTree(nativeWindow);
 			defaultToWindowProc = false;
 			break;
 		}

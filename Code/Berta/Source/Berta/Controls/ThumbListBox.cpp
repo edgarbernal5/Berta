@@ -32,7 +32,7 @@ namespace Berta
 		backgroundRect.Width -= innerMargin * 2;
 
 		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
-		auto maxCardMargin = window->ToScale(18u);
+		auto maxCardMargin = window->ToScale(8u);
 		auto minCardMargin = window->ToScale(3u);
 		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize;
 		auto totalCards = backgroundRect.Width / maxCardWidth;
