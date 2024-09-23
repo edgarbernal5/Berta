@@ -22,6 +22,7 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		struct Module
 		{

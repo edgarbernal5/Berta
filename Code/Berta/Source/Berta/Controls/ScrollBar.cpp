@@ -159,6 +159,10 @@ namespace Berta
 
 	void ScrollBarReactor::SetStepValue(ScrollBarUnit value)
 	{
+		if (m_max < 1)
+		{
+			return;
+		}
 		m_step = std::clamp(value, 1, m_max);
 	}
 
@@ -309,7 +313,8 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		auto one = window->ToScale(1);
-		float num = 1.0f / ((m_max - m_min) + 1.0f);
+		//float num = 1.0f / ((m_max - m_min) + 1.0f);
+		float num = (float)m_step / ((m_max - m_min) + 1.0f);
 
 		if (m_isVertical)
 		{
@@ -355,6 +360,7 @@ namespace Berta
 	{
 		m_reactor.SetValue(value);
 	}
+
 	void ScrollBar::SetStepValue(ScrollBarUnit stepValue)
 	{
 		m_reactor.SetStepValue(stepValue);
