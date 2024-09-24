@@ -458,7 +458,7 @@ namespace Berta
 			//(after every window is resized)
 			ArgResize argResize;
 			argResize.NewSize = newSize;
-			BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
+			//BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
 			window->Renderer.Resize(argResize);
 			window->Events->Resize.Emit(argResize);
 
@@ -469,7 +469,7 @@ namespace Berta
 				{
 					windowToUpdate = windowToUpdate->Parent;
 				}
-				BT_CORE_TRACE << "   windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
+				//BT_CORE_TRACE << "   windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);

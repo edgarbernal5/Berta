@@ -81,6 +81,7 @@ namespace Berta
 			m_localStep = m_pageStep;
 			auto scrollBoxRect = GetScrollBoxRect();
 			m_trackPageUp = m_isVertical ? m_mouseDownPosition.Y < scrollBoxRect.Y : m_mouseDownPosition.X < scrollBoxRect.X;
+			m_dragOffset = m_isVertical ? (args.Position.Y - scrollBoxRect.Y) : (args.Position.X - scrollBoxRect.X);
 		}
 		else
 		{
@@ -279,13 +280,15 @@ namespace Berta
 	void ScrollBarReactor::UpdateScrollBoxValue(int position, int buttonSize)
 	{
 		auto window = m_control->Handle();
-		float num = 1.0f / ((m_max - m_min) + 1.0f);
+		//float num = 1.0f / ((m_max - m_min) + 1.0f);
+		float num = m_step / ((m_max - m_min) + 1.0f);
 		ScrollBarUnit newValue = m_value;
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
+			//newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
 			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
 		}
 		else

@@ -48,10 +48,10 @@ namespace Berta
 			uint32_t ThumbnailSize{ 96u };
 			std::unique_ptr<ScrollBar> m_scrollBar;
 			ThumbListBoxAppearance* Appearance{ nullptr };
+			State m_state;
 		private:
 			void BuildItems();
 
-			State m_state;
 		};
 		Module& GetModule() { return m_module; }
 

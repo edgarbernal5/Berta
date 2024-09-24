@@ -41,7 +41,7 @@ namespace Berta
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
 
-		Point offset{ (int)innerMargin, (int)innerMargin };
+		Point offset{ (int)innerMargin, (int)innerMargin + m_module.m_state.m_offset };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
 		auto cardMargin = marginRemainder / totalCardsInRow;
 		auto cardMarginHalf = cardMargin >> 1;
@@ -52,7 +52,8 @@ namespace Berta
 			++totalRows;
 		}
 
-		auto contentSize = totalRows * (cardSize.Height + innerMargin*2);
+		auto contentSize = totalRows * (cardSize.Height + innerMargin);
+		BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
 		if (contentSize >= backgroundRect.Height)
 		{
 			if (!m_module.m_scrollBar)
@@ -61,13 +62,21 @@ namespace Berta
 				Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 
 				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
+				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
+					{
+						m_module.m_state.m_offset = -args.Value;
+
+						m_control->Handle()->Renderer.Update();
+						GUI::RefreshWindow(m_control->Handle());
+					});
 				backgroundRect.Width -= rect.Width;
 			}
 			m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
-			m_module.m_scrollBar->SetStepValue(window->ToScale(20));
+			m_module.m_scrollBar->SetStepValue(cardSize.Height);
 		}
 		else if (m_module.m_scrollBar)
 		{
+			m_module.m_state.m_offset = 0;
 			m_module.m_scrollBar.reset();
 		}
 
@@ -144,15 +153,16 @@ namespace Berta
 				++totalRows;
 			}
 
-			auto contentSize = totalRows * (cardSize.Height + innerMargin * 2);
+			auto contentSize = totalRows * (cardSize.Height + innerMargin);
 			if (contentSize >= backgroundRect.Height)
 			{
 				m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
-				m_module.m_scrollBar->SetStepValue(window->ToScale(20));
+				m_module.m_scrollBar->SetStepValue(cardSize.Height);
 				GUI::MoveWindow(m_module.m_scrollBar->Handle(), rect);
 			}
 			else
 			{
+				m_module.m_state.m_offset = 0;
 				m_module.m_scrollBar.reset();
 			}
 			

@@ -63,6 +63,7 @@ namespace Berta
 		ScrollBarUnit m_step{ 1 };
 		ScrollBarUnit m_localStep{ 1 };
 		ScrollBarUnit m_pageStep{ 2 };
+		int m_dragOffset{ 0 };
 		Timer m_timer;
 
 		InteractionArea m_hoverArea{ InteractionArea::None };
