@@ -12,6 +12,7 @@
 
 namespace Berta
 {
+
 	void ThumbListBoxReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
@@ -53,7 +54,7 @@ namespace Berta
 		}
 
 		auto contentSize = totalRows * (cardSize.Height + innerMargin);
-		BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
+		//BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
 		if (contentSize >= backgroundRect.Height)
 		{
 			if (!m_module.m_scrollBar)
@@ -64,6 +65,7 @@ namespace Berta
 				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
+						BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
 						m_module.m_state.m_offset = -args.Value;
 
 						m_control->Handle()->Renderer.Update();
@@ -72,6 +74,7 @@ namespace Berta
 				backgroundRect.Width -= rect.Width;
 			}
 			m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
+			m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
 			m_module.m_scrollBar->SetStepValue(cardSize.Height);
 		}
 		else if (m_module.m_scrollBar)
@@ -158,6 +161,7 @@ namespace Berta
 			{
 				m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
 				m_module.m_scrollBar->SetStepValue(cardSize.Height);
+				m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
 				GUI::MoveWindow(m_module.m_scrollBar->Handle(), rect);
 			}
 			else

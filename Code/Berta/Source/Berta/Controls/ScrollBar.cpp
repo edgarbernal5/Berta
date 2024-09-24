@@ -11,6 +11,12 @@
 
 namespace Berta
 {
+	constexpr int SCROLL_TIMER_INITIAL_DELAY = 400;
+	constexpr int SCROLL_TIMER_REPEAT_DELAY = 50;
+	constexpr uint32_t MIN_SCROLLBOX_SIZE = 6u;
+	constexpr int ARROW_WIDTH = 6;
+	constexpr int ARROW_LENGTH = 3;
+
 	void ScrollBarReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
@@ -19,7 +25,7 @@ namespace Berta
 		m_timer.Connect([this](const ArgTimer& args)
 		{
 			DoScrollStep();
-			m_timer.SetInterval(50);
+			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
 		});
 	}
 
@@ -76,12 +82,17 @@ namespace Berta
 		GUI::Capture(*m_control);
 
 		m_pressedArea = m_hoverArea;
+
+		auto scrollBoxRect = GetScrollBoxRect();
+		if (m_pressedArea == InteractionArea::Scrollbox)
+		{
+			m_dragOffset = m_isVertical ? (m_mouseDownPosition.Y - scrollBoxRect.Y) : (m_mouseDownPosition.X - scrollBoxRect.X);
+		}
+
 		if (m_pressedArea == InteractionArea::ScrollTrack)
 		{
 			m_localStep = m_pageStep;
-			auto scrollBoxRect = GetScrollBoxRect();
 			m_trackPageUp = m_isVertical ? m_mouseDownPosition.Y < scrollBoxRect.Y : m_mouseDownPosition.X < scrollBoxRect.X;
-			m_dragOffset = m_isVertical ? (args.Position.Y - scrollBoxRect.Y) : (args.Position.X - scrollBoxRect.X);
 		}
 		else
 		{
@@ -91,7 +102,7 @@ namespace Berta
 		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
 			DoScrollStep();
-			m_timer.SetInterval(400);
+			m_timer.SetInterval(SCROLL_TIMER_INITIAL_DELAY);
 			m_timer.Start();
 		}
 	}
@@ -113,7 +124,7 @@ namespace Berta
 		}
 		else if (args.ButtonState.LeftButton && m_pressedArea == InteractionArea::Scrollbox)
 		{
-			UpdateScrollBoxValue(m_isVertical ? args.Position.Y : args.Position.X, buttonSize);
+			UpdateScrollBoxValue(m_isVertical ? (args.Position.Y) : args.Position.X, buttonSize);
 		}
 	}
 
@@ -167,17 +178,26 @@ namespace Berta
 		m_step = std::clamp(value, 1, m_max);
 	}
 
+	void ScrollBarReactor::SetPageStepValue(ScrollBarUnit value)
+	{
+		if (m_max < 1)
+		{
+			return;
+		}
+		m_pageStep = std::clamp(value, 1, m_max);
+	}
+
 	bool ScrollBarReactor::IsValid() const
 	{
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 
-		if (m_isVertical && window->Size.Height < buttonSize * 2 + 2 + 4)
+		if (m_isVertical && window->Size.Height < buttonSize * 2u + 2u + 4u)
 		{
 			return false;
 		}
 
-		if (!m_isVertical && window->Size.Width < buttonSize * 2 + 2 + 4)
+		if (!m_isVertical && window->Size.Width < buttonSize * 2u + 2u + 4u)
 		{
 			return false;
 		}
@@ -280,23 +300,28 @@ namespace Berta
 	void ScrollBarReactor::UpdateScrollBoxValue(int position, int buttonSize)
 	{
 		auto window = m_control->Handle();
-		//float num = 1.0f / ((m_max - m_min) + 1.0f);
-		float num = m_step / ((m_max - m_min) + 1.0f);
+		auto one = window->ToScale(1);
+		float num = (float)m_pageStep / ((m_max - m_min) + (float)m_pageStep);
 		ScrollBarUnit newValue = m_value;
 		if (m_isVertical)
 		{
-			Rectangle scrollTrackRect{ 0, buttonSize + 1, window->Size.Width,  window->Size.Height - 2 * buttonSize - 2 };
+			Rectangle scrollTrackRect{ 0, buttonSize + one, window->Size.Width, window->Size.Height - 2u * buttonSize - 2u };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
-			//newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
-			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.Y) / (scrollTrackRect.Height - scrollBoxSize)) * (m_max - m_min)) + m_min;
+			int newBoxPosition = position - m_dragOffset - scrollTrackRect.Y;
+			newBoxPosition = (std::max)(0, (std::min)(newBoxPosition, (int)(scrollTrackRect.Height - scrollBoxSize)));
+			
+			newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / static_cast<float>(scrollTrackRect.Height - scrollBoxSize));
 		}
 		else
 		{
-			Rectangle scrollTrackRect{ buttonSize + 1, 0 , window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
+			Rectangle scrollTrackRect{ buttonSize + one, 0 , window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
-			newValue = static_cast<int>((static_cast<float>(position - scrollTrackRect.X) / (scrollTrackRect.Width - scrollBoxSize)) * (m_max - m_min)) + m_min;
+			int newBoxPosition = position - m_dragOffset - scrollTrackRect.X;
+			newBoxPosition = (std::max)(0, (std::min)(newBoxPosition, (int)(scrollTrackRect.Width - scrollBoxSize)));
+
+			newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / static_cast<float>(scrollTrackRect.Width - scrollBoxSize));
 		}
 
 		newValue = std::clamp(newValue, m_min, m_max);
@@ -316,12 +341,11 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		auto one = window->ToScale(1);
-		//float num = 1.0f / ((m_max - m_min) + 1.0f);
-		float num = (float)m_step / ((m_max - m_min) + 1.0f);
+		float num = (float)m_pageStep / ((m_max - m_min) + (float)m_pageStep);
 
 		if (m_isVertical)
 		{
-			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2 * buttonSize - one * 2 };
+			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2u * buttonSize - one * 2u };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 
 			return {
@@ -331,7 +355,7 @@ namespace Berta
 				scrollBoxSize
 			};
 		}
-		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + 1, 0, window->Size.Width - 2 * buttonSize - 2, window->Size.Height };
+		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
 		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
 		return {
@@ -367,5 +391,9 @@ namespace Berta
 	void ScrollBar::SetStepValue(ScrollBarUnit stepValue)
 	{
 		m_reactor.SetStepValue(stepValue);
+	}
+	void ScrollBar::SetPageStepValue(ScrollBarUnit pageStepValue)
+	{
+		m_reactor.SetPageStepValue(pageStepValue);
 	}
 }

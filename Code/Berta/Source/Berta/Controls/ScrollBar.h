@@ -16,7 +16,6 @@
 
 namespace Berta
 {
-
 	class ScrollBarReactor : public ControlReactor
 	{
 	public:
@@ -32,9 +31,12 @@ namespace Berta
 		void SetMinMax(ScrollBarUnit min, ScrollBarUnit max);
 		void SetValue(ScrollBarUnit value);
 		void SetStepValue(ScrollBarUnit value);
+		void SetPageStepValue(ScrollBarUnit value);
 
 		ScrollBarUnit GetMin() const { return m_min; }
 		ScrollBarUnit GetMax() const { return m_max; }
+		ScrollBarUnit GetValue() const { return m_value; }
+		ScrollBarUnit GetPageStepValue() const { return m_pageStep; }
 	private:
 		enum class InteractionArea
 		{
@@ -84,9 +86,12 @@ namespace Berta
 		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
 		void SetValue(ScrollBarUnit value);
 		void SetStepValue(ScrollBarUnit stepValue);
+		void SetPageStepValue(ScrollBarUnit pageStepValue);
 
 		ScrollBarUnit GetMin() const { return m_reactor.GetMin(); }
 		ScrollBarUnit GetMax() const { return m_reactor.GetMax(); }
+		ScrollBarUnit GetValue() const { return m_reactor.GetValue(); }
+		ScrollBarUnit GetPageStepValue() const { return m_reactor.GetPageStepValue(); }
 	};
 }
 
