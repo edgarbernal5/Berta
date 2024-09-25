@@ -49,6 +49,7 @@ namespace Berta
 			std::unique_ptr<ScrollBar> m_scrollBar;
 			ThumbListBoxAppearance* Appearance{ nullptr };
 			State m_state;
+			Window* m_window{ nullptr };
 		private:
 			void BuildItems();
 
