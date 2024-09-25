@@ -146,7 +146,11 @@ namespace Berta
 		if (!window->Size.IsInside(args.Position))
 		{
 			m_hoverArea = InteractionArea::None;
-		}		
+		}
+		else
+		{
+			m_hoverArea = DetermineHoverArea(args.Position);
+		}
 
 		Update(graphics);
 		GUI::UpdateDeferred(window);
@@ -184,7 +188,7 @@ namespace Berta
 		{
 			return;
 		}
-		m_pageStep = std::clamp(value, 1, m_max);
+		m_pageStep = value;
 	}
 
 	bool ScrollBarReactor::IsValid() const
@@ -301,7 +305,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto one = window->ToScale(1);
-		float num = (float)m_pageStep / ((m_max - m_min) + (float)m_pageStep);
+		float num = ((float)m_pageStep / ((m_max - m_min) + m_pageStep));
 		ScrollBarUnit newValue = m_value;
 		if (m_isVertical)
 		{
@@ -341,7 +345,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		auto one = window->ToScale(1);
-		float num = (float)m_pageStep / ((m_max - m_min) + (float)m_pageStep);
+		float num = ((float)m_pageStep / ((m_max - m_min) + m_pageStep));
 
 		if (m_isVertical)
 		{

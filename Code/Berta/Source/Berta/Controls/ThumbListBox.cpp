@@ -53,7 +53,7 @@ namespace Berta
 			++totalRows;
 		}
 
-		auto contentSize = totalRows * (cardSize.Height + innerMargin);
+		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
 		//BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
 		if (contentSize >= backgroundRect.Height)
 		{
@@ -156,20 +156,20 @@ namespace Berta
 				++totalRows;
 			}
 
-			auto contentSize = totalRows * (cardSize.Height + innerMargin);
+			auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
 			if (contentSize >= backgroundRect.Height)
 			{
 				m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
 				m_module.m_scrollBar->SetStepValue(cardSize.Height);
 				m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
 				GUI::MoveWindow(m_module.m_scrollBar->Handle(), rect);
+				m_module.m_state.m_offset = -m_module.m_scrollBar->GetValue();
 			}
 			else
 			{
 				m_module.m_state.m_offset = 0;
 				m_module.m_scrollBar.reset();
 			}
-			
 		}
 	}
 
