@@ -53,9 +53,9 @@ namespace Berta
 			++totalRows;
 		}
 
-		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
+		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
 		//BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
-		if (contentSize >= backgroundRect.Height)
+		if (contentSize >= static_cast<int>(backgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
 			{
@@ -66,14 +66,14 @@ namespace Berta
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
 						//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
-						m_module.m_state.m_offset = args.Value;
+						m_module.m_state.m_offset = -args.Value;
 
 						m_control->Handle()->Renderer.Update();
 						GUI::RefreshWindow(m_control->Handle());
 					});
 				backgroundRect.Width -= rect.Width;
 			}
-			m_module.m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
+			m_module.m_scrollBar->SetMinMax(0, contentSize - static_cast<int>(backgroundRect.Height));
 			m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
 			m_module.m_scrollBar->SetStepValue(cardSize.Height);
 		}
@@ -174,15 +174,14 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::UpdateScrollBar()
 	{
-		auto window = m_window;
-		auto backgroundRect = window->Size.ToRectangle();
-		auto innerMargin = window->ToScale(3u);
+		auto backgroundRect = m_window->Size.ToRectangle();
+		auto innerMargin = m_window->ToScale(3u);
 
 		backgroundRect.Width -= innerMargin * 2u;
 		backgroundRect.Height -= innerMargin * 2u;
 
-		auto thumbSize = window->ToScale(ThumbnailSize);
-		auto maxCardMargin = window->ToScale(8u);
+		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto maxCardMargin = m_window->ToScale(8u);
 		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
 		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
 		if (totalCardsInRow == 0)
@@ -190,7 +189,7 @@ namespace Berta
 			totalCardsInRow = 1;
 		}
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = window->ToScale(Appearance->ThumbnailCardHeight);
+		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
 
 		Point offset{ (int)innerMargin, (int)innerMargin + m_state.m_offset };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
@@ -202,26 +201,22 @@ namespace Berta
 			++totalRows;
 		}
 
-		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
-		
-		bool needScrollBar = contentSize >= backgroundRect.Height;
+		bool needScrollBar = NeedsScrollBar();
 		if (!needScrollBar && m_scrollBar)
 		{
 			m_scrollBar.reset();
 			m_state.m_offset = 0;
-		}
-
-		if (!needScrollBar && !m_scrollBar)
-		{
 			return;
 		}
 
+		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
+		
 		if (!m_scrollBar)
 		{
-			auto scrollSize = window->ToScale(window->Appereance->ScrollBarSize);
-			Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
+			auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
+			Rectangle rect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
 
-			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
+			m_scrollBar = std::make_unique<ScrollBar>(m_window, false, rect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 				{
 					//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_scrollBar->GetMax() << ". page step = " << m_scrollBar->GetPageStepValue() << std::endl;
@@ -230,7 +225,6 @@ namespace Berta
 					m_window->Renderer.Update();
 					GUI::RefreshWindow(m_window);
 				});
-			backgroundRect.Width -= rect.Width;
 		}
 		m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
 		m_scrollBar->SetPageStepValue(backgroundRect.Height);
@@ -239,6 +233,37 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
+	}
+
+	bool ThumbListBoxReactor::Module::NeedsScrollBar() const
+	{
+		auto backgroundRect = m_window->Size.ToRectangle();
+		auto innerMargin = m_window->ToScale(3u);
+
+		backgroundRect.Width -= innerMargin * 2u;
+		backgroundRect.Height -= innerMargin * 2u;
+
+		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto maxCardMargin = m_window->ToScale(8u);
+		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
+		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
+		if (totalCardsInRow == 0)
+		{
+			totalCardsInRow = 1;
+		}
+		auto marginRemainder = backgroundRect.Width % maxCardWidth;
+		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
+
+		Point offset{ (int)innerMargin, (int)innerMargin + m_state.m_offset };
+		Size cardSize{ thumbSize, thumbSize + cardHeight };
+		auto cardMargin = marginRemainder / totalCardsInRow;
+		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
+		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
+		{
+			++totalRows;
+		}
+		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
+		return contentSize >= static_cast<int>(backgroundRect.Height);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)

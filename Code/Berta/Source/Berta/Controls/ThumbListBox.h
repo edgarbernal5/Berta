@@ -53,6 +53,7 @@ namespace Berta
 			Window* m_window{ nullptr };
 		private:
 			void BuildItems();
+			bool NeedsScrollBar() const;
 
 		};
 		Module& GetModule() { return m_module; }
