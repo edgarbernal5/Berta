@@ -23,6 +23,7 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
+		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 
 		struct Module
 		{

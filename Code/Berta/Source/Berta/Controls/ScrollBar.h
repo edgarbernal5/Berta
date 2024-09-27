@@ -36,6 +36,7 @@ namespace Berta
 		ScrollBarUnit GetMin() const { return m_min; }
 		ScrollBarUnit GetMax() const { return m_max; }
 		ScrollBarUnit GetValue() const { return m_value; }
+		ScrollBarUnit GetStepValue() const { return m_step; }
 		ScrollBarUnit GetPageStepValue() const { return m_pageStep; }
 	private:
 		enum class InteractionArea
@@ -91,6 +92,7 @@ namespace Berta
 		ScrollBarUnit GetMin() const { return m_reactor.GetMin(); }
 		ScrollBarUnit GetMax() const { return m_reactor.GetMax(); }
 		ScrollBarUnit GetValue() const { return m_reactor.GetValue(); }
+		ScrollBarUnit GetStepValue() const { return m_reactor.GetStepValue(); }
 		ScrollBarUnit GetPageStepValue() const { return m_reactor.GetPageStepValue(); }
 	};
 }

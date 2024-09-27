@@ -43,7 +43,7 @@ namespace Berta
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
 
-		Point offset{ (int)innerMargin, (int)innerMargin + m_module.m_state.m_offset };
+		Point offset{ (int)innerMargin, (int)innerMargin - m_module.m_state.m_offset };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
 		auto cardMargin = marginRemainder / totalCardsInRow;
 		auto cardMarginHalf = cardMargin >> 1;
@@ -65,8 +65,8 @@ namespace Berta
 				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
-						BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
-						m_module.m_state.m_offset = -args.Value;
+						//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
+						m_module.m_state.m_offset = args.Value;
 
 						m_control->Handle()->Renderer.Update();
 						GUI::RefreshWindow(m_control->Handle());
@@ -129,6 +129,30 @@ namespace Berta
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appereance->ScrollBarSize);
 			Rectangle rect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
 			GUI::MoveWindow(m_module.m_scrollBar->Handle(), rect);
+		}
+	}
+
+	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
+	{
+		if (!m_module.m_scrollBar)
+		{
+			return;
+		}
+
+		int direction = args.WheelDelta > 0 ? -1 : 1;
+		direction *= m_module.m_scrollBar->GetStepValue();
+		int newOffset = std::clamp(m_module.m_state.m_offset + direction, (int)m_module.m_scrollBar->GetMin(), (int)m_module.m_scrollBar->GetMax());
+
+		if (newOffset != m_module.m_state.m_offset)
+		{
+			m_module.m_state.m_offset = newOffset;
+			m_module.m_scrollBar->SetValue(m_module.m_state.m_offset);
+
+			m_module.m_scrollBar->Handle()->Renderer.Update();
+			GUI::UpdateDeferred(m_module.m_scrollBar->Handle());
+
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
 		}
 	}
 
@@ -200,8 +224,8 @@ namespace Berta
 			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 				{
-					BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_scrollBar->GetMax() << ". page step = " << m_scrollBar->GetPageStepValue() << std::endl;
-					m_state.m_offset = -args.Value;
+					//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_scrollBar->GetMax() << ". page step = " << m_scrollBar->GetPageStepValue() << std::endl;
+					m_state.m_offset = args.Value;
 
 					m_window->Renderer.Update();
 					GUI::RefreshWindow(m_window);
