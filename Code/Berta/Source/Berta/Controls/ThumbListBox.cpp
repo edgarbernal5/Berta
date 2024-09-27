@@ -66,7 +66,7 @@ namespace Berta
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
 						//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
-						m_module.m_state.m_offset = -args.Value;
+						m_module.m_state.m_offset = args.Value;
 
 						m_control->Handle()->Renderer.Update();
 						GUI::RefreshWindow(m_control->Handle());
