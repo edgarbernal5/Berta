@@ -23,6 +23,8 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 
 		struct Module
@@ -33,6 +35,7 @@ namespace Berta
 
 				std::wstring Text;
 				Image Thumbnail;
+				bool IsSelected{ false };
 			};
 
 			struct State
@@ -44,6 +47,8 @@ namespace Berta
 			void Clear();
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
+			void OnMouseDown(const ArgMouse& args);
+			void EnableMultiselection(bool enabled);
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
@@ -55,7 +60,15 @@ namespace Berta
 			void BuildItems();
 			bool NeedsScrollBar() const;
 
+			struct Selection {
+				std::vector<uint32_t> m_indexes;
+				int m_lastSelectedIndex{ -1 };
+			};
+
+			Point m_mouseDownPosition;
+			bool m_multiselection{ false };
 		};
+
 		Module& GetModule() { return m_module; }
 
 	private:
@@ -71,6 +84,8 @@ namespace Berta
 		void AddItem(const std::wstring& text, const Image& thumbnail);
 		void Clear();
 		void SetThumbnailSize(uint32_t size);
+
+		void EnableMultiselection(bool enabled);
 	};
 }
 

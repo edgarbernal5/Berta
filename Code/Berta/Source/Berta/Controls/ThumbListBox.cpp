@@ -132,6 +132,15 @@ namespace Berta
 		}
 	}
 
+	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		m_module.OnMouseDown(args);
+	}
+
+	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
 	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 	{
 		if (!m_module.m_scrollBar)
@@ -231,6 +240,16 @@ namespace Berta
 		m_scrollBar->SetStepValue(cardSize.Height);
 	}
 
+	void ThumbListBoxReactor::Module::OnMouseDown(const ArgMouse& args)
+	{
+		m_mouseDownPosition = args.Position;
+	}
+
+	void ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
+	{
+		m_multiselection = enabled;
+	}
+
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
 	}
@@ -284,5 +303,10 @@ namespace Berta
 	void ThumbListBox::SetThumbnailSize(uint32_t size)
 	{
 		m_reactor.GetModule().SetThumbnailSize(size);
+	}
+
+	void ThumbListBox::EnableMultiselection(bool enabled)
+	{
+		m_reactor.GetModule().EnableMultiselection(enabled);
 	}
 }
