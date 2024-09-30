@@ -36,6 +36,7 @@ namespace Berta
 				std::wstring Text;
 				Image Thumbnail;
 				bool IsSelected{ false };
+				Rectangle PosSize;
 			};
 
 			struct State
@@ -44,11 +45,13 @@ namespace Berta
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
+			void BuildItems();
 			void Clear();
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
 			void OnMouseDown(const ArgMouse& args);
 			void EnableMultiselection(bool enabled);
+			int HitItem(const Point& position);
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
@@ -56,17 +59,17 @@ namespace Berta
 			ThumbListBoxAppearance* Appearance{ nullptr };
 			State m_state;
 			Window* m_window{ nullptr };
+			Point m_mouseDownPosition;
+			bool m_multiselection{ false };
 		private:
-			void BuildItems();
 			bool NeedsScrollBar() const;
 
-			struct Selection {
+			struct Selection
+			{
 				std::vector<uint32_t> m_indexes;
 				int m_lastSelectedIndex{ -1 };
 			};
 
-			Point m_mouseDownPosition;
-			bool m_multiselection{ false };
 		};
 
 		Module& GetModule() { return m_module; }

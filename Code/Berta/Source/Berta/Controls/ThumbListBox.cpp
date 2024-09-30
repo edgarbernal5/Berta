@@ -86,11 +86,12 @@ namespace Berta
 		for (size_t i = 0; i < m_module.Items.size(); i++)
 		{
 			auto& item = m_module.Items[i];
+			bool isSelected = item.IsSelected;
 
 			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-			graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
+			graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
 
-			auto lineColor = enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor;
+			auto lineColor = enabled ? (isSelected ? window->Appereance->HighlightBorderColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor, false);
 			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 
@@ -107,7 +108,7 @@ namespace Berta
 				auto center = cardTextSize - graphics.GetTextExtent(item.Text);
 				center *= 0.5f;
 
-				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, window->Appereance->Foreground);
+				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
 			}
 
 			offset.X += cardMargin + cardSize.Width + innerMargin;
@@ -123,6 +124,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
+		m_module.BuildItems();
 		m_module.UpdateScrollBar();
 		if (m_module.m_scrollBar)
 		{
@@ -134,11 +136,20 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		m_module.OnMouseDown(args);
+		m_module.m_mouseDownPosition = args.Position;
+
 	}
 
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		auto selectedIndex = m_module.HitItem(args.Position);
+		if (selectedIndex != -1)
+		{
+			m_module.Items[selectedIndex].IsSelected = true;
+
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
+		}
 	}
 
 	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
@@ -170,6 +181,8 @@ namespace Berta
 		auto& newItem = Items.emplace_back();
 		newItem.Text = text;
 		newItem.Thumbnail = thumbnail;
+
+		BuildItems();
 	}
 
 	void ThumbListBoxReactor::Module::Clear()
@@ -242,7 +255,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::OnMouseDown(const ArgMouse& args)
 	{
-		m_mouseDownPosition = args.Position;
+		//m_mouseDownPosition = args.Position;
 	}
 
 	void ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
@@ -250,8 +263,62 @@ namespace Berta
 		m_multiselection = enabled;
 	}
 
+	int ThumbListBoxReactor::Module::HitItem(const Point& position)
+	{
+		
+		for (size_t i = 0; i < Items.size(); i++)
+		{
+			if (Items[i].PosSize.IsInside(position)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
+		auto backgroundRect = m_window->Size.ToRectangle();
+		auto innerMargin = m_window->ToScale(3u);
+
+		backgroundRect.Width -= innerMargin * 2u;
+		backgroundRect.Height -= innerMargin * 2u;
+		
+		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto maxCardMargin = m_window->ToScale(8u);
+		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
+		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
+		if (totalCardsInRow == 0)
+		{
+			totalCardsInRow = 1;
+		}
+		auto marginRemainder = backgroundRect.Width % maxCardWidth;
+		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
+
+		Point offset{ (int)innerMargin, (int)innerMargin };
+		Size cardSize{ thumbSize, thumbSize + cardHeight };
+		auto cardMargin = marginRemainder / totalCardsInRow;
+		auto cardMarginHalf = cardMargin >> 1;
+		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
+		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
+		{
+			++totalRows;
+		}
+
+		for (size_t i = 0; i < Items.size(); i++)
+		{
+			auto& item = Items[i];
+
+			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
+
+			item.PosSize = { offset.X, offset.Y,cardSize.Width, cardSize.Height };
+
+			offset.X += cardMargin + cardSize.Width + innerMargin;
+			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)
+			{
+				offset.X = innerMargin;
+				offset.Y += cardSize.Height + innerMargin;
+			}
+		}
 	}
 
 	bool ThumbListBoxReactor::Module::NeedsScrollBar() const
