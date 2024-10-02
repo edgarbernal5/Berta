@@ -39,19 +39,25 @@ namespace Berta
 				Rectangle PosSize;
 			};
 
+			struct GridCardType
+			{
+				Rectangle PosSize{};
+			};
+
 			struct State
 			{
 				int m_offset{ 0 };
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
+			void BuildGridCards();
 			void BuildItems();
 			void Clear();
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
 			void OnMouseDown(const ArgMouse& args);
 			void EnableMultiselection(bool enabled);
-			int HitItem(const Point& position);
+			int GetItemIndexAtMousePosition(const Point& position);
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
@@ -60,15 +66,19 @@ namespace Berta
 			State m_state;
 			Window* m_window{ nullptr };
 			Point m_mouseDownPosition;
+			int m_selectedIndexOnMouseDown{ -1 };
 			bool m_multiselection{ false };
-		private:
-			bool NeedsScrollBar() const;
 
 			struct Selection
 			{
 				std::vector<uint32_t> m_indexes;
 				int m_lastSelectedIndex{ -1 };
 			};
+
+			Selection m_selection;
+			std::vector<GridCardType> m_gridCards;
+		private:
+			bool NeedsScrollBar() const;
 
 		};
 

@@ -52,9 +52,7 @@ namespace Berta
 		{
 			++totalRows;
 		}
-
 		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
-		//BT_CORE_TRACE << " -- content size " << contentSize << " totalRows " << totalRows << " backgroundRect " << backgroundRect.Height << " max " << (int)(contentSize - backgroundRect.Height) << std::endl;
 		if (contentSize >= static_cast<int>(backgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
@@ -65,7 +63,6 @@ namespace Berta
 				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
-						//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_module.m_scrollBar->GetMax() << ". page step = " << m_module.m_scrollBar->GetPageStepValue() << std::endl;
 						m_module.m_state.m_offset = args.Value;
 
 						m_control->Handle()->Renderer.Update();
@@ -86,29 +83,32 @@ namespace Berta
 		for (size_t i = 0; i < m_module.Items.size(); i++)
 		{
 			auto& item = m_module.Items[i];
-			bool isSelected = item.IsSelected;
 
 			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-			graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
-
-			auto lineColor = enabled ? (isSelected ? window->Appereance->HighlightBorderColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
-			graphics.DrawRectangle(cardRect, lineColor, false);
-			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
-
-			Size imageSize = window->ToScale(item.Thumbnail.GetSize());
-			Size thumbFrameSize{ thumbSize, thumbSize };
-			auto center = thumbFrameSize - imageSize;
-			center *= 0.5f;
-
-			Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
-			item.Thumbnail.Paste(graphics, thumbnailRect);
-
+			if (cardRect.Y >= 0 || cardRect.Y + cardRect.Height <= backgroundRect.Height)
 			{
-				Size cardTextSize{ thumbSize, cardHeight };
-				auto center = cardTextSize - graphics.GetTextExtent(item.Text);
+				bool isSelected = item.IsSelected;
+				graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
+
+				auto lineColor = enabled ? (isSelected ? window->Appereance->HighlightBorderColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
+				graphics.DrawRectangle(cardRect, lineColor, false);
+				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
+
+				Size imageSize = window->ToScale(item.Thumbnail.GetSize());
+				Size thumbFrameSize{ thumbSize, thumbSize };
+				auto center = thumbFrameSize - imageSize;
 				center *= 0.5f;
 
-				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
+				Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
+				item.Thumbnail.Paste(graphics, thumbnailRect);
+
+				{
+					Size cardTextSize{ thumbSize, cardHeight };
+					auto center = cardTextSize - graphics.GetTextExtent(item.Text);
+					center *= 0.5f;
+
+					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
+				}
 			}
 
 			offset.X += cardMargin + cardSize.Width + innerMargin;
@@ -124,6 +124,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
+		m_module.BuildGridCards();
 		m_module.BuildItems();
 		m_module.UpdateScrollBar();
 		if (m_module.m_scrollBar)
@@ -137,16 +138,28 @@ namespace Berta
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_module.m_mouseDownPosition = args.Position;
-
+		m_module.m_selectedIndexOnMouseDown = m_module.GetItemIndexAtMousePosition(args.Position);
+		
 	}
 
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		auto selectedIndex = m_module.HitItem(args.Position);
-		if (selectedIndex != -1)
+		bool hasChanged = false;
+		if (m_module.m_selection.m_lastSelectedIndex != -1)
 		{
-			m_module.Items[selectedIndex].IsSelected = true;
+			m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
+			hasChanged = true;
+			m_module.m_selection.m_lastSelectedIndex = -1;
+		}
+		if (m_module.m_selectedIndexOnMouseDown != -1)
+		{
+			m_module.Items[m_module.m_selectedIndexOnMouseDown].IsSelected = true;
+			m_module.m_selection.m_lastSelectedIndex = m_module.m_selectedIndexOnMouseDown;
+			hasChanged = true;
+		}
 
+		if (hasChanged)
+		{
 			Update(graphics);
 			GUI::UpdateDeferred(*m_control);
 		}
@@ -183,6 +196,57 @@ namespace Berta
 		newItem.Thumbnail = thumbnail;
 
 		BuildItems();
+		BuildGridCards();
+	}
+
+	void ThumbListBoxReactor::Module::BuildGridCards()
+	{
+		/*if (Items.empty())
+		{
+			return;
+		}
+
+		auto backgroundRect = m_window->Size.ToRectangle();
+		auto innerMargin = m_window->ToScale(3u);
+
+		backgroundRect.Width -= innerMargin * 2u;
+		backgroundRect.Height -= innerMargin * 2u;
+
+		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto maxCardMargin = m_window->ToScale(8u);
+		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
+		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
+		if (totalCardsInRow == 0)
+		{
+			totalCardsInRow = 1;
+		}
+		auto marginRemainder = backgroundRect.Width % maxCardWidth;
+		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
+
+		Point offset{ (int)innerMargin, (int)innerMargin };
+		Size cardSize{ thumbSize, thumbSize + cardHeight };
+		auto cardMargin = marginRemainder / totalCardsInRow;
+		auto cardMarginHalf = cardMargin >> 1;
+		auto totalRowsInHeight = backgroundRect.Height / (cardSize.Height + innerMargin);
+		if (backgroundRect.Height % (cardSize.Height + innerMargin) != 0)
+		{
+			++totalRowsInHeight;
+		}
+
+		m_gridCards.clear();
+		size_t totalCards = totalRowsInHeight * totalCardsInRow;
+		for (size_t i = 0; i < totalCards; i++)
+		{
+			auto& newCard = m_gridCards.emplace_back();
+			newCard.PosSize = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
+
+			offset.X += cardMargin + cardSize.Width + innerMargin;
+			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)
+			{
+				offset.X = innerMargin;
+				offset.Y += cardSize.Height + innerMargin;
+			}
+		}*/
 	}
 
 	void ThumbListBoxReactor::Module::Clear()
@@ -213,7 +277,7 @@ namespace Berta
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
 
-		Point offset{ (int)innerMargin, (int)innerMargin + m_state.m_offset };
+		Point offset{ (int)innerMargin, (int)innerMargin - m_state.m_offset };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
 		auto cardMargin = marginRemainder / totalCardsInRow;
 		auto cardMarginHalf = cardMargin >> 1;
@@ -232,7 +296,6 @@ namespace Berta
 		}
 
 		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
-		
 		if (!m_scrollBar)
 		{
 			auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
@@ -263,12 +326,14 @@ namespace Berta
 		m_multiselection = enabled;
 	}
 
-	int ThumbListBoxReactor::Module::HitItem(const Point& position)
+	int ThumbListBoxReactor::Module::GetItemIndexAtMousePosition(const Point& position)
 	{
-		
+		auto offsetPosition = position;
+		offsetPosition.Y += m_state.m_offset;
 		for (size_t i = 0; i < Items.size(); i++)
 		{
-			if (Items[i].PosSize.IsInside(position)) {
+			if (Items[i].PosSize.IsInside(offsetPosition))
+			{
 				return i;
 			}
 		}
@@ -308,9 +373,7 @@ namespace Berta
 		{
 			auto& item = Items[i];
 
-			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-
-			item.PosSize = { offset.X, offset.Y,cardSize.Width, cardSize.Height };
+			item.PosSize = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
 
 			offset.X += cardMargin + cardSize.Width + innerMargin;
 			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)
@@ -340,7 +403,7 @@ namespace Berta
 		auto marginRemainder = backgroundRect.Width % maxCardWidth;
 		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
 
-		Point offset{ (int)innerMargin, (int)innerMargin + m_state.m_offset };
+		Point offset{ (int)innerMargin, (int)innerMargin - m_state.m_offset };
 		Size cardSize{ thumbSize, thumbSize + cardHeight };
 		auto cardMargin = marginRemainder / totalCardsInRow;
 		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
