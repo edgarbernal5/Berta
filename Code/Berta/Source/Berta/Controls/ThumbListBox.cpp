@@ -88,9 +88,10 @@ namespace Berta
 			if (cardRect.Y >= 0 || cardRect.Y + cardRect.Height <= backgroundRect.Height)
 			{
 				bool isSelected = item.IsSelected;
-				graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
+				//graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
+				graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
 
-				auto lineColor = enabled ? (isSelected ? window->Appereance->HighlightBorderColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
+				auto lineColor = enabled ? (isSelected ? window->Appereance->BoxBorderHighlightColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
 				graphics.DrawRectangle(cardRect, lineColor, false);
 				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 
@@ -107,6 +108,10 @@ namespace Berta
 					auto center = cardTextSize - graphics.GetTextExtent(item.Text);
 					center *= 0.5f;
 
+					if (isSelected)
+					{
+						graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appereance->HighlightColor, true);
+					}
 					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
 				}
 			}
