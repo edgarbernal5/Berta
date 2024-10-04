@@ -142,12 +142,19 @@ namespace Berta
 
 	struct ArgThumbListBox
 	{
-		int SelectedIndex;
+		size_t SelectedIndex{ 0 };
+	};
+
+	struct ArgThumbListBoxItemVisibility
+	{
+		size_t SelectedIndex{ 0 };
+		bool Visible{ false };
 	};
 
 	struct ThumbListBoxEvents : public ControlEvents
 	{
 		Event<ArgThumbListBox>	Selected;
+		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
 	};
 }
 

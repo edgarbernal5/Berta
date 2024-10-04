@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/ControlAppearance.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -143,24 +144,39 @@ namespace Berta
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_module.m_mouseDownPosition = args.Position;
-		m_module.m_selectedIndexOnMouseDown = m_module.GetItemIndexAtMousePosition(args.Position);
-		
-	}
+		auto itemAtPosition = m_module.GetItemIndexAtMousePosition(args.Position);
+		bool hitOnBlank = itemAtPosition == -1;
 
-	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
-	{
 		bool hasChanged = false;
-		if (m_module.m_selection.m_lastSelectedIndex != -1)
+		auto savedLastSelectedIndex = m_module.m_selectedIndexOnMouseDown;
+		m_module.m_selectedIndexOnMouseDown = itemAtPosition;
+		if (!m_module.m_multiselection && hitOnBlank)
 		{
-			m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
-			hasChanged = true;
-			m_module.m_selection.m_lastSelectedIndex = -1;
+			if (m_module.m_selection.m_lastSelectedIndex != -1)
+			{
+				m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
+				m_module.m_selection.m_indexes.clear();
+				hasChanged = true;
+			}
 		}
-		if (m_module.m_selectedIndexOnMouseDown != -1)
+		else if (!m_module.m_multiselection && !hitOnBlank)
 		{
-			m_module.Items[m_module.m_selectedIndexOnMouseDown].IsSelected = true;
-			m_module.m_selection.m_lastSelectedIndex = m_module.m_selectedIndexOnMouseDown;
-			hasChanged = true;
+			hasChanged = (savedLastSelectedIndex != itemAtPosition);
+			if (hasChanged)
+			{
+				if (m_module.m_selection.m_lastSelectedIndex != -1)
+				{
+					m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
+					m_module.m_selection.m_indexes.clear();
+				}
+				m_module.Items[itemAtPosition].IsSelected = true;
+				m_module.m_selection.m_indexes.push_back(itemAtPosition);
+				m_module.m_selection.m_lastSelectedIndex = itemAtPosition;
+			}
+		}
+		else if (m_module.m_multiselection && !hitOnBlank)
+		{
+			
 		}
 
 		if (hasChanged)
@@ -168,6 +184,11 @@ namespace Berta
 			Update(graphics);
 			GUI::UpdateDeferred(*m_control);
 		}
+	}
+
+	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		
 	}
 
 	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
@@ -192,6 +213,18 @@ namespace Berta
 			Update(graphics);
 			GUI::UpdateDeferred(*m_control);
 		}
+	}
+
+	void ThumbListBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
+	{
+		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
+		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
+	}
+
+	void ThumbListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
+	{
+		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
+		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
 
 	void ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
@@ -260,7 +293,19 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::SetThumbnailSize(uint32_t size)
 	{
+		if (ThumbnailSize == size)
+		{
+			return;
+		}
+
 		ThumbnailSize = size;
+
+		BuildGridCards();
+		BuildItems();
+		UpdateScrollBar();
+
+		m_window->Renderer.Update();
+		GUI::RefreshWindow(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::UpdateScrollBar()
@@ -343,6 +388,11 @@ namespace Berta
 			}
 		}
 		return -1;
+	}
+
+	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
+	{
+		return m_selection.m_indexes;
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()
@@ -443,5 +493,10 @@ namespace Berta
 	void ThumbListBox::EnableMultiselection(bool enabled)
 	{
 		m_reactor.GetModule().EnableMultiselection(enabled);
+	}
+
+	std::vector<size_t> ThumbListBox::GetSelected() const
+	{
+		return m_reactor.GetModule().GetSelectedItems();
 	}
 }

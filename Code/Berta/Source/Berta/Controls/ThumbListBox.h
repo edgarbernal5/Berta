@@ -26,6 +26,8 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
 		struct Module
 		{
@@ -59,6 +61,8 @@ namespace Berta
 			void EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
 
+			std::vector<size_t> GetSelectedItems() const;
+
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };
 			std::unique_ptr<ScrollBar> m_scrollBar;
@@ -67,14 +71,15 @@ namespace Berta
 			Window* m_window{ nullptr };
 			Point m_mouseDownPosition;
 			int m_selectedIndexOnMouseDown{ -1 };
-			bool m_multiselection{ false };
+			bool m_multiselection{ true };
 
 			struct Selection
 			{
-				std::vector<uint32_t> m_indexes;
+				std::vector<size_t> m_indexes;
 				int m_lastSelectedIndex{ -1 };
 			};
-
+			bool m_shiftPressed = false;
+			bool m_ctrlPressed = false;
 			Selection m_selection;
 			std::vector<GridCardType> m_gridCards;
 		private:
@@ -83,6 +88,7 @@ namespace Berta
 		};
 
 		Module& GetModule() { return m_module; }
+		const Module& GetModule() const { return m_module; }
 
 	private:
 		Module m_module;
@@ -99,6 +105,8 @@ namespace Berta
 		void SetThumbnailSize(uint32_t size);
 
 		void EnableMultiselection(bool enabled);
+
+		std::vector<size_t> GetSelected() const;
 	};
 }
 
