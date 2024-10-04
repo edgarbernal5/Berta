@@ -555,9 +555,9 @@ namespace Berta
 				ChangeDPI(child, newDPI);
 			}
 
-			ArgResize argResize;
+			/*ArgResize argResize;
 			argResize.NewSize = window->Size;
-			window->Renderer.Resize(argResize);
+			window->Renderer.Resize(argResize);*/
 		}
 	}
 
