@@ -148,13 +148,13 @@ namespace Berta
 		bool hitOnBlank = itemAtPosition == -1;
 
 		bool hasChanged = false;
-		auto savedLastSelectedIndex = m_module.m_selectedIndexOnMouseDown;
-		m_module.m_selectedIndexOnMouseDown = itemAtPosition;
+		auto savedLastSelectedIndex = m_module.m_selection.m_pressedIndex;
+		m_module.m_selection.m_pressedIndex = itemAtPosition;
 		if (!m_module.m_multiselection && hitOnBlank)
 		{
-			if (m_module.m_selection.m_lastSelectedIndex != -1)
+			if (m_module.m_selection.m_selectedIndex != -1)
 			{
-				m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
+				m_module.Items[m_module.m_selection.m_selectedIndex].IsSelected = false;
 				m_module.m_selection.m_indexes.clear();
 				hasChanged = true;
 			}
@@ -164,19 +164,26 @@ namespace Berta
 			hasChanged = (savedLastSelectedIndex != itemAtPosition);
 			if (hasChanged)
 			{
-				if (m_module.m_selection.m_lastSelectedIndex != -1)
+				if (m_module.m_selection.m_selectedIndex != -1)
 				{
-					m_module.Items[m_module.m_selection.m_lastSelectedIndex].IsSelected = false;
+					m_module.Items[m_module.m_selection.m_selectedIndex].IsSelected = false;
 					m_module.m_selection.m_indexes.clear();
 				}
 				m_module.Items[itemAtPosition].IsSelected = true;
 				m_module.m_selection.m_indexes.push_back(itemAtPosition);
-				m_module.m_selection.m_lastSelectedIndex = itemAtPosition;
+				m_module.m_selection.m_selectedIndex = itemAtPosition;
 			}
 		}
-		else if (m_module.m_multiselection && !hitOnBlank)
+		else if (m_module.m_multiselection && hitOnBlank)
 		{
-			
+			auto logicalPosition = args.Position;
+			logicalPosition.Y -= m_module.m_state.m_offset;
+			m_module.m_selection.m_startPosition = logicalPosition;
+			if (m_module.m_ctrlPressed)
+			{
+
+			}
+			//setcapture
 		}
 
 		if (hasChanged)

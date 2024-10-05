@@ -70,13 +70,15 @@ namespace Berta
 			State m_state;
 			Window* m_window{ nullptr };
 			Point m_mouseDownPosition;
-			int m_selectedIndexOnMouseDown{ -1 };
 			bool m_multiselection{ true };
 
 			struct Selection
 			{
 				std::vector<size_t> m_indexes;
-				int m_lastSelectedIndex{ -1 };
+				int m_pressedIndex{ -1 };
+				int m_selectedIndex{ -1 };
+				int m_pivotIndex{ -1 };
+				Point m_startPosition;
 			};
 			bool m_shiftPressed = false;
 			bool m_ctrlPressed = false;
