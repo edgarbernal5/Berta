@@ -54,7 +54,7 @@ namespace Berta
 			++totalRows;
 		}
 		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
-		if (contentSize >= static_cast<int>(backgroundRect.Height))
+		if (contentSize > static_cast<int>(backgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
 			{
@@ -474,7 +474,7 @@ namespace Berta
 			++totalRows;
 		}
 		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
-		return contentSize >= static_cast<int>(backgroundRect.Height);
+		return contentSize > static_cast<int>(backgroundRect.Height);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
