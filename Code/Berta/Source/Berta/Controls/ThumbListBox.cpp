@@ -131,7 +131,7 @@ namespace Berta
 			(std::min)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
 			
 			Point endPoint{ (std::max)(m_module.m_selection.m_startPosition.X, m_module.m_selection.m_endPosition.X),
-			(std::min)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
+			(std::max)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 			/*Graphics selectionBox(boxSize);
