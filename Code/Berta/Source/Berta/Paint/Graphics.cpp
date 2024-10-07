@@ -10,6 +10,10 @@
 #include <iostream>
 #include <cmath>
 
+#if BT_PLATFORM_WINDOWS
+#pragma comment(lib, "Msimg32.lib") // added for AlphaBlend
+#endif
+
 // Define M_PI if it's not already defined
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

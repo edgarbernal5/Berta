@@ -13,4 +13,19 @@ namespace Berta
 	{
 		DeferredRequests.clear();
 	}
+
+	Window* Window::FindFirstNonPanelWindowHierarchy() const
+	{
+		if (!Parent)
+		{
+			return const_cast<Window*>(this);
+		}
+		auto windowToUpdate = this->Parent;
+		while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
+		{
+			windowToUpdate = windowToUpdate->Parent;
+		}
+		
+		return windowToUpdate;
+	}
 }

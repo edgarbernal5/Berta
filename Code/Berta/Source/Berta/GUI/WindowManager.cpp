@@ -464,11 +464,8 @@ namespace Berta
 
 			if (updateTree)
 			{
-				auto windowToUpdate = window->Parent;
-				while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
-				{
-					windowToUpdate = windowToUpdate->Parent;
-				}
+				auto windowToUpdate = window->FindFirstNonPanelWindowHierarchy();
+				
 				//BT_CORE_TRACE << "   windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
 				if (windowToUpdate)
 				{

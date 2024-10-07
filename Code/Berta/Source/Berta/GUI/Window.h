@@ -82,6 +82,8 @@ namespace Berta
 		{
 			return (units * DPIScaleFactor);
 		}
+
+		Window* FindFirstNonPanelWindowHierarchy() const;
 	};
 }
 
