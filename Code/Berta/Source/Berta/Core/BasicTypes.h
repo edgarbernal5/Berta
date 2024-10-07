@@ -205,13 +205,20 @@ namespace Berta
 		bool TitleBarAndCaption{ true };
 	};
 
-	struct Color
-	{
-		union
+	//struct Color
+	//{
+		union Color
 		{
+			//struct
+			//{
+			//	unsigned char B;
+			//	unsigned char G;
+			//	unsigned char R;
+			//	//unsigned char A;
+			//}Channels;
 			uint32_t BGR; //Format: 0xBBGGRR
 		};
-	};
+	//};
 
 	enum class Cursor
 	{

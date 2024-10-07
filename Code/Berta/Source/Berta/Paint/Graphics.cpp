@@ -111,6 +111,34 @@ namespace Berta
 		::SelectObject(m_attributes->m_hdc, oldFont);
 	}
 
+	void Graphics::Blend(const Graphics& graphicsSource, const Point& pointSource)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (m_attributes->m_hdc && graphicsSource.m_attributes->m_hdc)
+		{
+			// Set up alpha blending
+			BLENDFUNCTION blendFunc;
+			blendFunc.BlendOp = AC_SRC_OVER;
+			blendFunc.BlendFlags = 0;
+			blendFunc.SourceConstantAlpha = 255;
+			blendFunc.AlphaFormat = AC_SRC_ALPHA;
+
+			auto destSize = m_attributes->m_size;
+			auto sourceSize = graphicsSource.m_attributes->m_size;
+			// Apply alpha blending
+			if (!::AlphaBlend(m_attributes->m_hdc, 0, 0,
+				(int)(destSize.Width), (int)(destSize.Height), graphicsSource.m_attributes->m_hdc,
+				pointSource.X, pointSource.Y,
+				sourceSize.Width, sourceSize.Height, blendFunc))
+			{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+				BT_CORE_ERROR << "AlphaBlend ::GetLastError() = " << ::GetLastError() << std::endl;
+#endif
+			}
+		}
+#endif
+	}
+
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
 	{
 #ifdef BT_PLATFORM_WINDOWS

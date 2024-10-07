@@ -24,6 +24,7 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
@@ -79,6 +80,8 @@ namespace Berta
 				int m_selectedIndex{ -1 };
 				int m_pivotIndex{ -1 };
 				Point m_startPosition;
+				Point m_endPosition;
+				bool m_started{ false };
 			};
 			bool m_shiftPressed = false;
 			bool m_ctrlPressed = false;

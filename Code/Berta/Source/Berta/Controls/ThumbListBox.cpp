@@ -125,6 +125,20 @@ namespace Berta
 			}
 		}
 
+		if (m_module.m_selection.m_started && m_module.m_selection.m_startPosition != m_module.m_selection.m_endPosition)
+		{
+			Point startPoint{ (std::min)(m_module.m_selection.m_startPosition.X, m_module.m_selection.m_endPosition.X),
+			(std::min)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
+			
+			Point endPoint{ (std::max)(m_module.m_selection.m_startPosition.X, m_module.m_selection.m_endPosition.X),
+			(std::min)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
+
+			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
+			/*Graphics selectionBox(boxSize);
+			selectionBox.DrawRectangle({}, true);*/
+
+		}
+
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 	}
 
@@ -178,12 +192,47 @@ namespace Berta
 		{
 			auto logicalPosition = args.Position;
 			logicalPosition.Y -= m_module.m_state.m_offset;
+			m_module.m_selection.m_started = true;
 			m_module.m_selection.m_startPosition = logicalPosition;
+			m_module.m_selection.m_endPosition = logicalPosition;
+
+			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			{
+				hasChanged = !m_module.m_selection.m_indexes.empty();
+				for (auto& index : m_module.m_selection.m_indexes)
+				{
+					m_module.Items[index].IsSelected = false;
+				}
+				m_module.m_selection.m_indexes.clear();
+			}
+
+			//setcapture
+			GUI::Capture(m_module.m_window);
+		}
+
+		if (hasChanged)
+		{
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
+		}
+	}
+
+	void ThumbListBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		bool hasChanged = false;
+
+		if (m_module.m_selection.m_started)
+		{
+			auto logicalPosition = args.Position;
+			logicalPosition.Y -= m_module.m_state.m_offset;
+			m_module.m_selection.m_endPosition = logicalPosition;
+
 			if (m_module.m_ctrlPressed)
 			{
 
 			}
-			//setcapture
+
+			hasChanged |= m_module.m_selection.m_endPosition != m_module.m_selection.m_startPosition;
 		}
 
 		if (hasChanged)
@@ -195,7 +244,11 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		
+		if (m_module.m_selection.m_started)
+		{
+			m_module.m_selection.m_started = false;
+			GUI::ReleaseCapture(m_module.m_window);
+		}
 	}
 
 	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
@@ -391,7 +444,7 @@ namespace Berta
 		{
 			if (Items[i].PosSize.IsInside(offsetPosition))
 			{
-				return i;
+				return static_cast<int>(i);
 			}
 		}
 		return -1;

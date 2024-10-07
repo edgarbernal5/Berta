@@ -39,6 +39,7 @@ namespace Berta
 
 		void Build(const Size& size);
 		void BuildFont(uint32_t dpi);
+		void Blend(const Graphics& graphicsSource, const Point& pointSource);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color);
