@@ -14,7 +14,7 @@ namespace Berta
 		DeferredRequests.clear();
 	}
 
-	Window* Window::FindFirstNonPanelWindowHierarchy() const
+	Window* Window::FindFirstNonPanelAncestor() const
 	{
 		if (!Parent)
 		{
