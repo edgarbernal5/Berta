@@ -124,14 +124,14 @@ namespace Berta
 			BLENDFUNCTION blendFunc;
 			blendFunc.BlendOp = AC_SRC_OVER;
 			blendFunc.BlendFlags = 0;
-			blendFunc.SourceConstantAlpha = alpha * 255;
+			blendFunc.SourceConstantAlpha = static_cast<BYTE>(alpha * 255);
 			blendFunc.AlphaFormat = 0;
 
-			auto destSize = m_attributes->m_size;
 			auto sourceSize = graphicsSource.m_attributes->m_size;
+
 			// Apply alpha blending
 			if (!::AlphaBlend(m_attributes->m_hdc, blendRectangle.X, blendRectangle.Y,
-				(int)(destSize.Width), (int)(destSize.Height), graphicsSource.m_attributes->m_hdc,
+				(int)(blendRectangle.Width), (int)(blendRectangle.Height), graphicsSource.m_attributes->m_hdc,
 				pointSource.X, pointSource.Y,
 				sourceSize.Width, sourceSize.Height, blendFunc))
 			{
