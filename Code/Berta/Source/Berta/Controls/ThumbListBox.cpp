@@ -134,9 +134,12 @@ namespace Berta
 			(std::max)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) };
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
-			/*Graphics selectionBox(boxSize);
-			selectionBox.DrawRectangle({}, true);*/
+			Graphics selectionBox(boxSize);
+			Color blendColor = window->Appereance->HighlightColor;
+			selectionBox.DrawRectangle(blendColor, true);
 
+			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
+			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
 		}
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
@@ -244,10 +247,18 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		bool hasChanged = false;
 		if (m_module.m_selection.m_started)
 		{
 			m_module.m_selection.m_started = false;
+			hasChanged = true;
 			GUI::ReleaseCapture(m_module.m_window);
+		}
+
+		if (hasChanged)
+		{
+			Update(graphics);
+			GUI::UpdateDeferred(*m_control);
 		}
 	}
 

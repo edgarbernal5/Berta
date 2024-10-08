@@ -209,14 +209,14 @@ namespace Berta
 	//{
 		union Color
 		{
-			//struct
-			//{
-			//	unsigned char B;
-			//	unsigned char G;
-			//	unsigned char R;
-			//	//unsigned char A;
-			//}Channels;
 			uint32_t BGR; //Format: 0xBBGGRR
+			struct
+			{
+				unsigned char B;
+				unsigned char G;
+				unsigned char R;
+				unsigned char A;
+			}Channels;
 		};
 	//};
 
