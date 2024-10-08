@@ -140,6 +140,7 @@ namespace Berta
 		RECT ToRECT() const;
 #endif
 		bool IsInside(const Point& point);
+		bool Intersect(const Rectangle& other);
 
 		bool operator==(const Rectangle& other) const noexcept
 		{

@@ -39,7 +39,7 @@ namespace Berta
 				std::wstring Text;
 				Image Thumbnail;
 				bool IsSelected{ false };
-				Rectangle PosSize;
+				Rectangle Bounds;
 			};
 
 			struct GridCardType
@@ -73,19 +73,20 @@ namespace Berta
 			Point m_mouseDownPosition;
 			bool m_multiselection{ true };
 
-			struct Selection
+			struct MouseSelection
 			{
-				std::vector<size_t> m_indexes;
+				std::vector<size_t> m_selections;
 				int m_pressedIndex{ -1 };
 				int m_selectedIndex{ -1 };
 				int m_pivotIndex{ -1 };
 				Point m_startPosition;
 				Point m_endPosition;
 				bool m_started{ false };
+				bool m_inverseSelection{ false };
 			};
 			bool m_shiftPressed = false;
 			bool m_ctrlPressed = false;
-			Selection m_selection;
+			MouseSelection m_mouseSelection;
 			std::vector<GridCardType> m_gridCards;
 		private:
 			bool NeedsScrollBar() const;

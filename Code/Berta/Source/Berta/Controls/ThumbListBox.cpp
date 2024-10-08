@@ -125,16 +125,16 @@ namespace Berta
 			}
 		}
 
-		if (m_module.m_selection.m_started && m_module.m_selection.m_startPosition != m_module.m_selection.m_endPosition)
+		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
 		{
 			Point startPoint{ 
-				(std::min)(m_module.m_selection.m_startPosition.X, m_module.m_selection.m_endPosition.X),
-				(std::min)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) 
+				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::min)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y) 
 			};
 			
 			Point endPoint{ 
-				(std::max)(m_module.m_selection.m_startPosition.X, m_module.m_selection.m_endPosition.X),
-				(std::max)(m_module.m_selection.m_startPosition.Y, m_module.m_selection.m_endPosition.Y) 
+				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y) 
 			};
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
@@ -169,51 +169,54 @@ namespace Berta
 		bool hitOnBlank = itemAtPosition == -1;
 
 		bool hasChanged = false;
-		auto savedLastSelectedIndex = m_module.m_selection.m_pressedIndex;
-		m_module.m_selection.m_pressedIndex = itemAtPosition;
+		auto savedLastSelectedIndex = m_module.m_mouseSelection.m_pressedIndex;
+		m_module.m_mouseSelection.m_pressedIndex = itemAtPosition;
 		if (!m_module.m_multiselection && hitOnBlank)
 		{
-			if (m_module.m_selection.m_selectedIndex != -1)
+			if (m_module.m_mouseSelection.m_selectedIndex != -1)
 			{
-				m_module.Items[m_module.m_selection.m_selectedIndex].IsSelected = false;
-				m_module.m_selection.m_indexes.clear();
+				m_module.Items[m_module.m_mouseSelection.m_selectedIndex].IsSelected = false;
+				m_module.m_mouseSelection.m_selections.clear();
+				m_module.m_mouseSelection.m_selectedIndex = -1;
 				hasChanged = true;
 			}
 		}
 		else if (!m_module.m_multiselection && !hitOnBlank)
 		{
 			hasChanged = (savedLastSelectedIndex != itemAtPosition);
+			m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
 			if (hasChanged)
 			{
-				if (m_module.m_selection.m_selectedIndex != -1)
+				if (m_module.m_mouseSelection.m_selectedIndex != -1)
 				{
-					m_module.Items[m_module.m_selection.m_selectedIndex].IsSelected = false;
-					m_module.m_selection.m_indexes.clear();
+					m_module.Items[m_module.m_mouseSelection.m_selectedIndex].IsSelected = false;
+					m_module.m_mouseSelection.m_selections.clear();
 				}
 				m_module.Items[itemAtPosition].IsSelected = true;
-				m_module.m_selection.m_indexes.push_back(itemAtPosition);
-				m_module.m_selection.m_selectedIndex = itemAtPosition;
+				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+				m_module.m_mouseSelection.m_selectedIndex = itemAtPosition;
 			}
 		}
 		else if (m_module.m_multiselection && hitOnBlank)
 		{
 			auto logicalPosition = args.Position;
 			logicalPosition.Y -= m_module.m_state.m_offset;
-			m_module.m_selection.m_started = true;
-			m_module.m_selection.m_startPosition = logicalPosition;
-			m_module.m_selection.m_endPosition = logicalPosition;
+			m_module.m_mouseSelection.m_started = true;
+			m_module.m_mouseSelection.m_startPosition = logicalPosition;
+			m_module.m_mouseSelection.m_endPosition = logicalPosition;
+
+			m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
 
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
 			{
-				hasChanged = !m_module.m_selection.m_indexes.empty();
-				for (auto& index : m_module.m_selection.m_indexes)
+				hasChanged = !m_module.m_mouseSelection.m_selections.empty();
+				for (auto& index : m_module.m_mouseSelection.m_selections)
 				{
 					m_module.Items[index].IsSelected = false;
 				}
-				m_module.m_selection.m_indexes.clear();
+				m_module.m_mouseSelection.m_selections.clear();
 			}
 
-			//setcapture
 			GUI::Capture(m_module.m_window);
 		}
 
@@ -228,18 +231,46 @@ namespace Berta
 	{
 		bool hasChanged = false;
 
-		if (m_module.m_selection.m_started)
+		if (m_module.m_mouseSelection.m_started)
 		{
 			auto logicalPosition = args.Position;
 			logicalPosition.Y -= m_module.m_state.m_offset;
-			m_module.m_selection.m_endPosition = logicalPosition;
+			m_module.m_mouseSelection.m_endPosition = logicalPosition;
 
 			if (m_module.m_ctrlPressed)
 			{
 
 			}
 
-			hasChanged |= m_module.m_selection.m_endPosition != m_module.m_selection.m_startPosition;
+			Point startPoint{
+				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::min)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
+			};
+
+			Point endPoint{
+				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
+			};
+
+			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
+
+			hasChanged |= (boxSize.Width > 0 && boxSize.Height > 0);
+			if ((boxSize.Width > 0 && boxSize.Height > 0))
+			{
+				Rectangle selectionRect{ startPoint.X, startPoint.Y, boxSize.Width, boxSize.Height};
+				for (size_t i = 0; i < m_module.Items.size(); i++)
+				{
+					auto& item = m_module.Items[i];
+					if (item.Bounds.Intersect(selectionRect))
+					{
+						item.IsSelected = true;
+					}
+				}
+			}
+		}
+		else
+		{
+
 		}
 
 		if (hasChanged)
@@ -252,12 +283,13 @@ namespace Berta
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
 		bool hasChanged = false;
-		if (m_module.m_selection.m_started)
+		if (m_module.m_mouseSelection.m_started)
 		{
-			m_module.m_selection.m_started = false;
 			hasChanged = true;
+			m_module.m_mouseSelection.m_started = false;
 			GUI::ReleaseCapture(m_module.m_window);
 		}
+		m_module.m_mouseSelection.m_pressedIndex = -1;
 
 		if (hasChanged)
 		{
@@ -457,7 +489,7 @@ namespace Berta
 		offsetPosition.Y += m_state.m_offset;
 		for (size_t i = 0; i < Items.size(); i++)
 		{
-			if (Items[i].PosSize.IsInside(offsetPosition))
+			if (Items[i].Bounds.IsInside(offsetPosition))
 			{
 				return static_cast<int>(i);
 			}
@@ -467,7 +499,7 @@ namespace Berta
 
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
 	{
-		return m_selection.m_indexes;
+		return m_mouseSelection.m_selections;
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()
@@ -503,7 +535,7 @@ namespace Berta
 		{
 			auto& item = Items[i];
 
-			item.PosSize = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
+			item.Bounds = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
 
 			offset.X += cardMargin + cardSize.Width + innerMargin;
 			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)

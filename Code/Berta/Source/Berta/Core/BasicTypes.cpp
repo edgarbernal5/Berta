@@ -45,6 +45,12 @@ namespace Berta
 		return (X <= point.X && point.X <= X + static_cast<int>(Width) && Y <= point.Y && point.Y <= Y + static_cast<int>(Height));
 	}
 
+	bool Rectangle::Intersect(const Rectangle& other)
+	{
+		return !(this->X + (int)this->Width <= other.X || other.X + (int)other.Width <= this->X ||
+			this->Y + (int)this->Height <= other.Y || other.Y + (int)other.Height <= this->Y);
+	}
+
 	Rectangle::operator Size() const
 	{
 		return Size{ Width, Height };

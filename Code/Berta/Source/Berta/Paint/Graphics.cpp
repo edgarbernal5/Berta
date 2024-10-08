@@ -136,7 +136,7 @@ namespace Berta
 				sourceSize.Width, sourceSize.Height, blendFunc))
 			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << "AlphaBlend ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << " Graphics / AlphaBlend ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
 			}
 		}
@@ -151,7 +151,7 @@ namespace Berta
 			if (!::BitBlt(m_attributes->m_hdc, rectDestination.X, rectDestination.Y, rectDestination.Width, rectDestination.Height, graphicsSource.m_attributes->m_hdc, pointSource.X, pointSource.Y, SRCCOPY))
 			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << "BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << " Graphics / BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
 			}
 		}
@@ -221,7 +221,7 @@ namespace Berta
 			if (!::FillRect(m_attributes->m_hdc, &nativeRect, brush))
 			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << "FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << " Graphics / FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
 			}
 		}
@@ -230,7 +230,7 @@ namespace Berta
 			if (!::FrameRect(m_attributes->m_hdc, &nativeRect, brush))
 			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << "FrameRect ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << " Graphics / FrameRect ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
 			}
 		}
@@ -425,7 +425,7 @@ namespace Berta
 			if (!::BitBlt(dc, dx, dy, width, height, m_attributes->m_hdc, sx, sy, SRCCOPY))
 			{
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << "BitBlt / Paste ::GetLastError() = " << ::GetLastError() << std::endl;
+				BT_CORE_ERROR << " Graphics / BitBlt-Paste ::GetLastError() = " << ::GetLastError() << std::endl;
 #endif
 			}
 
