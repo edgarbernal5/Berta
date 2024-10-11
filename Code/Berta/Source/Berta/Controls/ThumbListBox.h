@@ -61,7 +61,7 @@ namespace Berta
 			void OnMouseDown(const ArgMouse& args);
 			void EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
-
+			void ClearSelection();
 			std::vector<size_t> GetSelectedItems() const;
 
 			std::vector<ItemType> Items;

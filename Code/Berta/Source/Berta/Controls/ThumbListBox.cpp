@@ -235,31 +235,47 @@ namespace Berta
 		}
 		else
 		{
+			BT_CORE_TRACE << "ctrl " << m_module.m_ctrlPressed << ". shift " << m_module.m_shiftPressed << std::endl;
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
 			{
-				for (size_t i = 0; i < m_module.m_mouseSelection.m_selections.size(); i++)
-				{
-					m_module.Items[m_module.m_mouseSelection.m_selections[i]].IsSelected = false;
-				}
-				m_module.m_mouseSelection.m_selections.clear();
+				m_module.ClearSelection();
 			}
-			if (!m_module.m_ctrlPressed)
+			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
 			{
 				m_module.Items[itemAtPosition].IsSelected = true;
 				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
 			}
 			else
 			{
-				m_module.Items[itemAtPosition].IsSelected = !m_module.Items[itemAtPosition].IsSelected;
-				if (m_module.Items[itemAtPosition].IsSelected)
+				if (m_module.m_shiftPressed && savedLastSelectedIndex != -1)
 				{
-					m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+					int minIndex = (std::min)(savedLastSelectedIndex, itemAtPosition);
+					int maxIndex = (std::max)(savedLastSelectedIndex, itemAtPosition);
+					for (size_t i = minIndex; i <= maxIndex; i++)
+					{
+						m_module.Items[i].IsSelected = true;
+						auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), i);
+						if (it == m_module.m_mouseSelection.m_selections.end())
+						{
+							m_module.m_mouseSelection.m_selections.push_back(i);
+						}
+					}
 				}
 				else
 				{
-					auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), itemAtPosition);
-					if (it != m_module.m_mouseSelection.m_selections.end()) {
-						m_module.m_mouseSelection.m_selections.erase(it);
+					m_module.Items[itemAtPosition].IsSelected = !m_module.Items[itemAtPosition].IsSelected;
+				
+					if (m_module.Items[itemAtPosition].IsSelected)
+					{
+						m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+					}
+					else
+					{
+						auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), itemAtPosition);
+						if (it != m_module.m_mouseSelection.m_selections.end())
+						{
+							m_module.m_mouseSelection.m_selections.erase(it);
+						}
 					}
 				}
 			}
@@ -298,7 +314,7 @@ namespace Berta
 			hasChanged |= (boxSize.Width > 0 && boxSize.Height > 0);
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
 			{
-				Rectangle selectionRect{ startPoint.X, startPoint.Y, boxSize.Width, boxSize.Height};
+				Rectangle selectionRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset * 2, boxSize.Width, boxSize.Height};
 				for (size_t i = 0; i < m_module.Items.size(); i++)
 				{
 					auto& item = m_module.Items[i];
@@ -311,7 +327,7 @@ namespace Berta
 						{
 							item.IsSelected = true;
 						}
-						else if (intersection && alreadySelected)
+						else if (intersection && alreadySelected || !intersection && !alreadySelected)
 						{
 							item.IsSelected = false;
 						}
@@ -322,10 +338,6 @@ namespace Berta
 					}
 				}
 			}
-		}
-		else
-		{
-
 		}
 
 		if (hasChanged)
@@ -338,6 +350,7 @@ namespace Berta
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
 		bool hasChanged = false;
+
 		if (m_module.m_mouseSelection.m_started)
 		{
 			hasChanged = true;
@@ -352,7 +365,6 @@ namespace Berta
 				}
 			}
 		}
-		m_module.m_mouseSelection.m_pressedIndex = -1;
 
 		if (hasChanged)
 		{
@@ -558,6 +570,15 @@ namespace Berta
 			}
 		}
 		return -1;
+	}
+
+	void ThumbListBoxReactor::Module::ClearSelection()
+	{
+		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		{
+			Items[m_mouseSelection.m_selections[i]].IsSelected = false;
+		}
+		m_mouseSelection.m_selections.clear();
 	}
 
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
