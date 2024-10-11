@@ -215,9 +215,55 @@ namespace Berta
 					m_module.Items[index].IsSelected = false;
 				}
 				m_module.m_mouseSelection.m_selections.clear();
+				m_module.m_mouseSelection.m_alreadySelected.clear();
+			}
+			else
+			{
+				m_module.m_mouseSelection.m_selections.clear();
+				for (size_t i = 0; i < m_module.Items.size(); i++)
+				{
+					if (m_module.Items[i].IsSelected)
+					{
+						m_module.m_mouseSelection.m_selections.push_back(i);
+					}
+				}
+				
+				m_module.m_mouseSelection.m_alreadySelected = m_module.m_mouseSelection.m_selections;
 			}
 
 			GUI::Capture(m_module.m_window);
+		}
+		else
+		{
+			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			{
+				for (size_t i = 0; i < m_module.m_mouseSelection.m_selections.size(); i++)
+				{
+					m_module.Items[m_module.m_mouseSelection.m_selections[i]].IsSelected = false;
+				}
+				m_module.m_mouseSelection.m_selections.clear();
+			}
+			if (!m_module.m_ctrlPressed)
+			{
+				m_module.Items[itemAtPosition].IsSelected = true;
+				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+			}
+			else
+			{
+				m_module.Items[itemAtPosition].IsSelected = !m_module.Items[itemAtPosition].IsSelected;
+				if (m_module.Items[itemAtPosition].IsSelected)
+				{
+					m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+				}
+				else
+				{
+					auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), itemAtPosition);
+					if (it != m_module.m_mouseSelection.m_selections.end()) {
+						m_module.m_mouseSelection.m_selections.erase(it);
+					}
+				}
+			}
+			hasChanged = true;
 		}
 
 		if (hasChanged)
@@ -236,11 +282,6 @@ namespace Berta
 			auto logicalPosition = args.Position;
 			logicalPosition.Y -= m_module.m_state.m_offset;
 			m_module.m_mouseSelection.m_endPosition = logicalPosition;
-
-			if (m_module.m_ctrlPressed)
-			{
-
-			}
 
 			Point startPoint{
 				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
@@ -261,9 +302,23 @@ namespace Berta
 				for (size_t i = 0; i < m_module.Items.size(); i++)
 				{
 					auto& item = m_module.Items[i];
-					if (item.Bounds.Intersect(selectionRect))
+					bool intersection = item.Bounds.Intersect(selectionRect);
+					bool alreadySelected = std::find(m_module.m_mouseSelection.m_alreadySelected.begin(), m_module.m_mouseSelection.m_alreadySelected.end(), i) != m_module.m_mouseSelection.m_alreadySelected.end();
+
+					if (m_module.m_mouseSelection.m_inverseSelection)
 					{
-						item.IsSelected = true;
+						if (intersection && !alreadySelected || !intersection && alreadySelected)
+						{
+							item.IsSelected = true;
+						}
+						else if (intersection && alreadySelected)
+						{
+							item.IsSelected = false;
+						}
+					}
+					else
+					{
+						item.IsSelected = intersection || alreadySelected;
 					}
 				}
 			}
@@ -288,6 +343,14 @@ namespace Berta
 			hasChanged = true;
 			m_module.m_mouseSelection.m_started = false;
 			GUI::ReleaseCapture(m_module.m_window);
+			m_module.m_mouseSelection.m_selections.clear();
+			for (size_t i = 0; i < m_module.Items.size(); i++)
+			{
+				if (m_module.Items[i].IsSelected)
+				{
+					m_module.m_mouseSelection.m_selections.push_back(i);
+				}
+			}
 		}
 		m_module.m_mouseSelection.m_pressedIndex = -1;
 

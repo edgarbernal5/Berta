@@ -76,6 +76,7 @@ namespace Berta
 			struct MouseSelection
 			{
 				std::vector<size_t> m_selections;
+				std::vector<size_t> m_alreadySelected;
 				int m_pressedIndex{ -1 };
 				int m_selectedIndex{ -1 };
 				int m_pivotIndex{ -1 };
