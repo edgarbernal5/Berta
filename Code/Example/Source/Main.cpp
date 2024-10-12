@@ -86,6 +86,7 @@ public:
 			builder << L"Text example " << i;
 			m_thumbListBox.AddItem(builder.str(), image1);
 		}
+
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_thumbListBox.GetPosition();

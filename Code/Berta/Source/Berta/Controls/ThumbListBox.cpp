@@ -228,7 +228,7 @@ namespace Berta
 		else
 		{
 			BT_CORE_TRACE << "ctrl " << m_module.m_ctrlPressed << ". shift " << m_module.m_shiftPressed << std::endl;
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed && (!args.ButtonState.RightButton || !m_module.Items[itemAtPosition].IsSelected))
 			{
 				m_module.ClearSelection();
 			}
