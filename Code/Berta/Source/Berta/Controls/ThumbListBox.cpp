@@ -515,7 +515,6 @@ namespace Berta
 			m_scrollBar = std::make_unique<ScrollBar>(m_window, false, scrollRect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 				{
-					BT_CORE_TRACE << "  - update scroll bar " << args.Value << std::endl;
 					m_state.m_offset = args.Value;
 
 					m_window->Renderer.Update();
