@@ -94,5 +94,9 @@ namespace Berta
 	{
 		Create(parent, true, rectangle);
 		SetCaption(text);
+
+#if BT_DEBUG
+		m_handle->Name = "Button";
+#endif
 	}
 }

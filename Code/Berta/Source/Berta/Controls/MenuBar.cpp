@@ -316,6 +316,10 @@ namespace Berta
 	MenuBar::MenuBar(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "MenuBar";
+#endif
 	}
 
 	size_t MenuBar::GetCount() const

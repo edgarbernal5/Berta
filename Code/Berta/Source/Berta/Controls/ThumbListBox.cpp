@@ -44,9 +44,9 @@ namespace Berta
 			if (!m_module.m_scrollBar)
 			{
 				auto scrollSize = window->ToScale(window->Appereance->ScrollBarSize);
-				Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
+				Rectangle scrollRect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 
-				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
+				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, scrollRect);
 				m_module.m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
 						m_module.m_state.m_offset = args.Value;
@@ -66,7 +66,7 @@ namespace Berta
 			m_module.m_state.m_offset = 0;
 			m_module.m_scrollBar.reset();
 		}
-		Point offset{ backgroundRect.X, backgroundRect.Y - m_module.m_state.m_offset };
+		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin - m_module.m_state.m_offset };
 
 		auto thumbSize = m_module.m_window->ToScale(m_module.ThumbnailSize);
 		auto cardHeight = m_module.m_window->ToScale(m_module.Appearance->ThumbnailCardHeight);
@@ -110,7 +110,7 @@ namespace Berta
 			if (k == totalCardsInRow)
 			{
 				k = 0;
-				offset.X = backgroundRect.X;
+				offset.X = backgroundRect.X + (int)innerMargin;
 				offset.Y += cardSize.Height + innerMargin * 2u;
 			}
 		}
@@ -347,7 +347,6 @@ namespace Berta
 		{
 			hasChanged = true;
 			m_module.m_mouseSelection.m_started = false;
-			GUI::ReleaseCapture(m_module.m_window);
 			m_module.m_mouseSelection.m_selections.clear();
 			for (size_t i = 0; i < m_module.Items.size(); i++)
 			{
@@ -356,6 +355,7 @@ namespace Berta
 					m_module.m_mouseSelection.m_selections.push_back(i);
 				}
 			}
+			GUI::ReleaseCapture(m_module.m_window);
 		}
 
 		if (hasChanged)
@@ -578,7 +578,7 @@ namespace Berta
 		Size cardSize;
 		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
-		Point offset{ backgroundRect.X, backgroundRect.Y /* - m_state.m_offset*/ };
+		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin/* - m_state.m_offset*/ };
 		for (size_t i = 0, k = 1; i < Items.size(); i++, ++k)
 		{
 			auto& item = Items[i];
@@ -589,7 +589,7 @@ namespace Berta
 			if (k == totalCardsInRow)
 			{
 				k = 0;
-				offset.X = backgroundRect.X;
+				offset.X = backgroundRect.X + (int)innerMargin;
 				offset.Y += cardSize.Height + innerMargin * 2u;
 			}
 		}
@@ -598,6 +598,10 @@ namespace Berta
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "ThumbListBox";
+#endif
 	}
 
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)

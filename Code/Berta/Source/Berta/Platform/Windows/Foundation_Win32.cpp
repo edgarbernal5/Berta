@@ -21,7 +21,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -432,6 +432,7 @@ namespace Berta
 			else
 			{
 				auto window = windowManager.Find(nativeWindow, { x, y });
+				//BT_CORE_DEBUG << " - window and hovered / window " << (window != nullptr ? window->Name :"NULL") << ". hovered " << (rootWindowData.Hovered != nullptr ? rootWindowData.Hovered->Name : "NULL") << std::endl;
 				if (window && window != rootWindowData.Hovered)
 				{
 					if (rootWindowData.Hovered)
@@ -476,7 +477,7 @@ namespace Berta
 						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						//BT_CORE_DEBUG << "window. MouseMove " << window->Name << std::endl;
+						//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
 						window->Renderer.MouseMove(argMouseMove);
 						window->Events->MouseMove.Emit(argMouseMove);
 					}

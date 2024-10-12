@@ -20,6 +20,7 @@ namespace Berta
 		{
 			return const_cast<Window*>(this);
 		}
+
 		auto windowToUpdate = this->Parent;
 		while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
 		{

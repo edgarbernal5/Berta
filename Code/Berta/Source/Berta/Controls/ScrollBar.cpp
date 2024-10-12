@@ -381,12 +381,20 @@ namespace Berta
 	{
 		Create(parent, true, rectangle);
 		m_reactor.SetOrientation(isVertical);
+
+#if BT_DEBUG
+		m_handle->Name = "ScrollBar";
+#endif
 	}
 
 	ScrollBar::ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical)
 	{
 		Create(parent, isUnscaleRect, rectangle);
 		m_reactor.SetOrientation(isVertical);
+
+#if BT_DEBUG
+		m_handle->Name = "ScrollBar";
+#endif
 	}
 
 	void ScrollBar::SetMinMax(ScrollBarUnit min, ScrollBarUnit max)

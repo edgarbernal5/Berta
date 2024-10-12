@@ -147,6 +147,10 @@ namespace Berta
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "TabBar";
+#endif
 	}
 
 	void TabBar::Clear()

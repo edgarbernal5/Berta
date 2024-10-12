@@ -24,11 +24,19 @@ namespace Berta
 	Form::Form(const Size& size, const FormStyle& windowStyle)
 	{
 		Create(nullptr, GUI::GetCenteredOnScreen(size), windowStyle);
+
+#if BT_DEBUG
+		m_handle->Name = "Form";
+#endif
 	}
 
 	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle)
 	{
 		Create(nullptr, rectangle, windowStyle);
+
+#if BT_DEBUG
+		m_handle->Name = "Form";
+#endif
 	}
 
 	void Form::Exec()

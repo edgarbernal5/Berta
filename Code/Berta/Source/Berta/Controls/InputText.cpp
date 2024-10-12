@@ -126,6 +126,10 @@ namespace Berta
 	InputText::InputText(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "InputText";
+#endif
 	}
 
 	void InputText::DoOnCaption(const std::wstring& caption)

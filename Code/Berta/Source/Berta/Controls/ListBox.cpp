@@ -25,5 +25,9 @@ namespace Berta
 	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "ListBox";
+#endif
 	}
 }

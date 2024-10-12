@@ -740,6 +740,7 @@ namespace Berta
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
 		GUI::MakeWindowActive(m_handle, false);
+
 #if BT_DEBUG
 		std::ostringstream builder;
 		builder << "Menu box" << g_globalId;
