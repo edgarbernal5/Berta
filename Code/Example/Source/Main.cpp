@@ -80,11 +80,12 @@ public:
 		m_thumbListBox.SetDebugName("thummb list box");
 
 		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
-		m_thumbListBox.AddItem(L"Text example 1", image1);
-		m_thumbListBox.AddItem(L"Text example 2", image1);
-		m_thumbListBox.AddItem(L"Text example 3", image1);
-		m_thumbListBox.AddItem(L"Text example 4", image1);
-		m_thumbListBox.AddItem(L"Text example 5", image1);
+		for (size_t i = 0; i < 20; i++)
+		{
+			std::wostringstream builder;
+			builder << L"Text example " << i;
+			m_thumbListBox.AddItem(builder.str(), image1);
+		}
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_thumbListBox.GetPosition();

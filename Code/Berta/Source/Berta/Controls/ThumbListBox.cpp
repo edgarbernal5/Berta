@@ -26,34 +26,21 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->Size.ToRectangle();
-		auto innerMargin = window->ToScale(3u);
-		
+
+		Rectangle backgroundRect;
+		uint32_t totalRows;
+		uint32_t totalCardsInRow;
+		uint32_t innerMargin;
+		uint32_t cardMargin;
+		uint32_t cardMarginHalf;
+		int contentSize;
+		Size cardSize;
+		m_module.CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
+
+		Point offset{ backgroundRect.X, backgroundRect.Y - m_module.m_state.m_offset };
+
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
-		backgroundRect.Width -= innerMargin * 2u;
-		backgroundRect.Height -= innerMargin * 2u;
 
-		auto thumbSize = window->ToScale(m_module.ThumbnailSize);
-		auto maxCardMargin = window->ToScale(8u);
-		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
-		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
-		if (totalCardsInRow == 0)
-		{
-			totalCardsInRow = 1;
-		}
-		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = window->ToScale(m_module.Appearance->ThumbnailCardHeight);
-
-		Point offset{ (int)innerMargin, (int)innerMargin - m_module.m_state.m_offset };
-		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		auto cardMargin = marginRemainder / totalCardsInRow;
-		auto cardMarginHalf = cardMargin >> 1;
-		auto totalRows = (uint32_t)(m_module.Items.size()) / totalCardsInRow;
-		if ((uint32_t)(m_module.Items.size()) % totalCardsInRow != 0)
-		{
-			++totalRows;
-		}
-		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
 		if (contentSize > static_cast<int>(backgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
@@ -69,7 +56,6 @@ namespace Berta
 						m_control->Handle()->Renderer.Update();
 						GUI::RefreshWindow(m_control->Handle());
 					});
-				backgroundRect.Width -= rect.Width;
 			}
 			m_module.m_scrollBar->SetMinMax(0, contentSize - static_cast<int>(backgroundRect.Height));
 			m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
@@ -81,7 +67,9 @@ namespace Berta
 			m_module.m_scrollBar.reset();
 		}
 
-		for (size_t i = 0; i < m_module.Items.size(); i++)
+		auto thumbSize = m_module.m_window->ToScale(m_module.ThumbnailSize);
+		auto cardHeight = m_module.m_window->ToScale(m_module.Appearance->ThumbnailCardHeight);
+		for (size_t i = 0, k = 1; i < m_module.Items.size(); i++, ++k)
 		{
 			auto& item = m_module.Items[i];
 
@@ -117,11 +105,12 @@ namespace Berta
 				}
 			}
 
-			offset.X += cardMargin + cardSize.Width + innerMargin;
-			if (offset.X + cardMargin + cardSize.Width >= (int)window->Size.Width)
+			offset.X += cardMargin + cardSize.Width + innerMargin * 2u;
+			if (k == totalCardsInRow)
 			{
-				offset.X = innerMargin;
-				offset.Y += cardSize.Height + innerMargin;
+				k = 0;
+				offset.X = backgroundRect.X;
+				offset.Y += cardSize.Height + innerMargin * 2u;
 			}
 		}
 
@@ -419,54 +408,60 @@ namespace Berta
 		BuildGridCards();
 	}
 
-	void ThumbListBoxReactor::Module::BuildGridCards()
+	void ThumbListBoxReactor::Module::CalculateViewport(Rectangle& backgroundRect, uint32_t& totalRows, uint32_t& totalCardsInRow, Size& cardSize, int& contentSize, uint32_t& innerMargin, uint32_t& cardMargin, uint32_t& cardMarginHalf) const
 	{
-		/*if (Items.empty())
-		{
-			return;
-		}
-
-		auto backgroundRect = m_window->Size.ToRectangle();
-		auto innerMargin = m_window->ToScale(3u);
+		backgroundRect = m_window->Size.ToRectangle();
+		innerMargin = m_window->ToScale(3u);
 
 		backgroundRect.Width -= innerMargin * 2u;
 		backgroundRect.Height -= innerMargin * 2u;
+		backgroundRect.X = innerMargin;
+		backgroundRect.Y = innerMargin;
 
-		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
+		
 		auto maxCardMargin = m_window->ToScale(8u);
-		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
-		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
+		auto thumbSize = m_window->ToScale(ThumbnailSize);
+		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
+		cardSize = { thumbSize, thumbSize + cardHeight };
+				
+		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin * 2u;
+		totalCardsInRow = backgroundRect.Width / maxCardWidth;
 		if (totalCardsInRow == 0)
 		{
 			totalCardsInRow = 1;
 		}
-		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
-
-		Point offset{ (int)innerMargin, (int)innerMargin };
-		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		auto cardMargin = marginRemainder / totalCardsInRow;
-		auto cardMarginHalf = cardMargin >> 1;
-		auto totalRowsInHeight = backgroundRect.Height / (cardSize.Height + innerMargin);
-		if (backgroundRect.Height % (cardSize.Height + innerMargin) != 0)
+		totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
+		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
 		{
-			++totalRowsInHeight;
+			++totalRows;
 		}
-
-		m_gridCards.clear();
-		size_t totalCards = totalRowsInHeight * totalCardsInRow;
-		for (size_t i = 0; i < totalCards; i++)
+		contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin * 2u));
+		if (contentSize > static_cast<int>(backgroundRect.Height))
 		{
-			auto& newCard = m_gridCards.emplace_back();
-			newCard.PosSize = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-
-			offset.X += cardMargin + cardSize.Width + innerMargin;
-			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)
+			backgroundRect.Width -= scrollSize;
+			totalCardsInRow = backgroundRect.Width / maxCardWidth;
+			if (totalCardsInRow == 0)
 			{
-				offset.X = innerMargin;
-				offset.Y += cardSize.Height + innerMargin;
+				totalCardsInRow = 1;
 			}
-		}*/
+			
+			totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
+			if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
+			{
+				++totalRows;
+			}
+			contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin * 2u));
+		}
+		auto marginRemainder = backgroundRect.Width % maxCardWidth;
+
+		cardMargin = marginRemainder / totalCardsInRow;
+		cardMarginHalf = cardMargin >> 1;
+	}
+
+	void ThumbListBoxReactor::Module::BuildGridCards()
+	{
+
 	}
 
 	void ThumbListBoxReactor::Module::Clear()
@@ -492,34 +487,17 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::UpdateScrollBar()
 	{
-		auto backgroundRect = m_window->Size.ToRectangle();
-		auto innerMargin = m_window->ToScale(3u);
+		Rectangle backgroundRect;
+		uint32_t totalRows;
+		uint32_t totalCardsInRow;
+		uint32_t innerMargin;
+		uint32_t cardMargin;
+		uint32_t cardMarginHalf;
+		int contentSize;
+		Size cardSize;
+		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
-		backgroundRect.Width -= innerMargin * 2u;
-		backgroundRect.Height -= innerMargin * 2u;
-
-		auto thumbSize = m_window->ToScale(ThumbnailSize);
-		auto maxCardMargin = m_window->ToScale(8u);
-		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
-		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
-		if (totalCardsInRow == 0)
-		{
-			totalCardsInRow = 1;
-		}
-		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
-
-		Point offset{ (int)innerMargin, (int)innerMargin - m_state.m_offset };
-		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		auto cardMargin = marginRemainder / totalCardsInRow;
-		auto cardMarginHalf = cardMargin >> 1;
-		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
-		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
-		{
-			++totalRows;
-		}
-
-		bool needScrollBar = NeedsScrollBar();
+		bool needScrollBar = contentSize > backgroundRect.Height;
 		if (!needScrollBar && m_scrollBar)
 		{
 			m_scrollBar.reset();
@@ -527,7 +505,6 @@ namespace Berta
 			return;
 		}
 
-		auto contentSize = totalRows * (cardSize.Height + innerMargin) - innerMargin;
 		if (!m_scrollBar)
 		{
 			auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
@@ -536,7 +513,6 @@ namespace Berta
 			m_scrollBar = std::make_unique<ScrollBar>(m_window, false, rect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 				{
-					//BT_CORE_TRACE << " - thumb scroll value = " << args.Value << ". max = " << m_scrollBar->GetMax() << ". page step = " << m_scrollBar->GetPageStepValue() << std::endl;
 					m_state.m_offset = args.Value;
 
 					m_window->Renderer.Update();
@@ -588,77 +564,31 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
-		auto backgroundRect = m_window->Size.ToRectangle();
-		auto innerMargin = m_window->ToScale(3u);
+		Rectangle backgroundRect;
+		uint32_t totalRows;
+		uint32_t totalCardsInRow;
+		uint32_t innerMargin;
+		uint32_t cardMargin;
+		uint32_t cardMarginHalf;
+		int contentSize;
+		Size cardSize;
+		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
-		backgroundRect.Width -= innerMargin * 2u;
-		backgroundRect.Height -= innerMargin * 2u;
-		
-		auto thumbSize = m_window->ToScale(ThumbnailSize);
-		auto maxCardMargin = m_window->ToScale(8u);
-		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
-		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
-		if (totalCardsInRow == 0)
-		{
-			totalCardsInRow = 1;
-		}
-		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
-
-		Point offset{ (int)innerMargin, (int)innerMargin };
-		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		auto cardMargin = marginRemainder / totalCardsInRow;
-		auto cardMarginHalf = cardMargin >> 1;
-		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
-		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
-		{
-			++totalRows;
-		}
-
-		for (size_t i = 0; i < Items.size(); i++)
+		Point offset{ backgroundRect.X, backgroundRect.Y - m_state.m_offset };
+		for (size_t i = 0, k = 1; i < Items.size(); i++, ++k)
 		{
 			auto& item = Items[i];
 
 			item.Bounds = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
 
-			offset.X += cardMargin + cardSize.Width + innerMargin;
-			if (offset.X + cardMargin + cardSize.Width >= (int)m_window->Size.Width)
+			offset.X += cardMargin + cardSize.Width + innerMargin * 2u;
+			if (k == totalCardsInRow)
 			{
-				offset.X = innerMargin;
-				offset.Y += cardSize.Height + innerMargin;
+				k = 0;
+				offset.X = backgroundRect.X;
+				offset.Y += cardSize.Height + innerMargin * 2u;
 			}
 		}
-	}
-
-	bool ThumbListBoxReactor::Module::NeedsScrollBar() const
-	{
-		auto backgroundRect = m_window->Size.ToRectangle();
-		auto innerMargin = m_window->ToScale(3u);
-
-		backgroundRect.Width -= innerMargin * 2u;
-		backgroundRect.Height -= innerMargin * 2u;
-
-		auto thumbSize = m_window->ToScale(ThumbnailSize);
-		auto maxCardMargin = m_window->ToScale(8u);
-		uint32_t maxCardWidth = maxCardMargin * 2u + thumbSize + innerMargin;
-		auto totalCardsInRow = backgroundRect.Width / maxCardWidth;
-		if (totalCardsInRow == 0)
-		{
-			totalCardsInRow = 1;
-		}
-		auto marginRemainder = backgroundRect.Width % maxCardWidth;
-		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
-
-		Point offset{ (int)innerMargin, (int)innerMargin - m_state.m_offset };
-		Size cardSize{ thumbSize, thumbSize + cardHeight };
-		auto cardMargin = marginRemainder / totalCardsInRow;
-		auto totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
-		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
-		{
-			++totalRows;
-		}
-		auto contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin)) - static_cast<int>(innerMargin);
-		return contentSize > static_cast<int>(backgroundRect.Height);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)

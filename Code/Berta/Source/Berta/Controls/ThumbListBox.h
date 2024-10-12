@@ -53,6 +53,7 @@ namespace Berta
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
+			void CalculateViewport(Rectangle& backgroundRect, uint32_t& totalRows, uint32_t& totalCardsInRow, Size& cardSize, int& contentSize, uint32_t& innerMargin, uint32_t& cardMargin, uint32_t& cardMarginHalf) const;
 			void BuildGridCards();
 			void BuildItems();
 			void Clear();
@@ -90,7 +91,6 @@ namespace Berta
 			MouseSelection m_mouseSelection;
 			std::vector<GridCardType> m_gridCards;
 		private:
-			bool NeedsScrollBar() const;
 
 		};
 
