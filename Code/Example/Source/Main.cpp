@@ -22,7 +22,7 @@ public:
 	TabExample1(Berta::Window* parent) : Panel(parent)
 	{
 #ifdef BT_DEBUG
-		SetDebugName("tabexample_1");
+		SetDebugName("Tab Apariencia");
 #endif
 
 		m_button.Create(*this, true, { 5,35,100,40 });
@@ -49,7 +49,7 @@ public:
 	TabExample2(Berta::Window* parent) : Panel(parent)
 	{
 #ifdef BT_DEBUG
-		SetDebugName("tabexample_2");
+		SetDebugName("Tab Player");
 #endif
 	}
 	TabExample2() : Panel()
@@ -64,7 +64,7 @@ public:
 	TabExample3(Berta::Window* parent) : Panel(parent)
 	{
 #ifdef BT_DEBUG
-		SetDebugName("tabexample_3");
+		SetDebugName("Tab Input");
 #endif
 		/*m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab 3!");
@@ -163,7 +163,6 @@ int main()
 			//std::cout << "LABEL>mouse move" << std::endl;
 		});
 
-
 	Berta::InputText inputText(form, { 190,35,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
@@ -257,15 +256,15 @@ int main()
 		});
 	tabExample1->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
-			std::cout << "tabExample1 > Visibility = " << args.IsVisible << std::endl;
+			std::cout << "Apariencia > Visibility = " << args.IsVisible << std::endl;
 		});
 	tabExample2->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
-			std::cout << "tabExample2 > Visibility = " << args.IsVisible << std::endl;
+			std::cout << "Tab Player > Visibility = " << args.IsVisible << std::endl;
 		});
 	tabExample3->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
-			std::cout << "tabExample3 > Visibility = " << args.IsVisible << std::endl;
+			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
 		});
 
 	Berta::Menu popupMenu;

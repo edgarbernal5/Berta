@@ -462,11 +462,13 @@ namespace Berta
 			window->Renderer.Resize(argResize);
 			window->Events->Resize.Emit(argResize);
 
+			//TODO: añadir un chequeo de visibilidad, no vale la pena hacer update de un window invisible
 			if (updateTree)
 			{
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-				
-				BT_CORE_TRACE << "  windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
+#if BT_DEBUG
+				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
+#endif
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
