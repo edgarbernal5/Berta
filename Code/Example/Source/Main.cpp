@@ -19,13 +19,17 @@
 class TabExample1 : public Berta::Panel
 {
 public:
-	TabExample1(Berta::Window* parent) : Panel(parent) {
-
+	TabExample1(Berta::Window* parent) : Panel(parent)
+	{
+#ifdef BT_DEBUG
 		SetDebugName("tabexample_1");
+#endif
 
 		m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab!");
+#ifdef BT_DEBUG
 		m_button.SetDebugName("button tab panel 1");
+#endif
 		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
 		{
 			std::cout << "CLICK button tab panel 1" << std::endl;
@@ -42,9 +46,11 @@ private:
 class TabExample2 : public Berta::Panel
 {
 public:
-	TabExample2(Berta::Window* parent) : Panel(parent) {
-
+	TabExample2(Berta::Window* parent) : Panel(parent)
+	{
+#ifdef BT_DEBUG
 		SetDebugName("tabexample_2");
+#endif
 	}
 	TabExample2() : Panel()
 	{
@@ -55,10 +61,11 @@ public:
 class TabExample3 : public Berta::Panel
 {
 public:
-	TabExample3(Berta::Window* parent) : Panel(parent) {
-
+	TabExample3(Berta::Window* parent) : Panel(parent)
+	{
+#ifdef BT_DEBUG
 		SetDebugName("tabexample_3");
-
+#endif
 		/*m_button.Create(*this, true, { 5,35,100,40 });
 		m_button.SetCaption(L"Click me on tab 3!");
 		m_button.SetDebugName("button tab panel 3");
@@ -77,7 +84,9 @@ public:
 		});*/
 
 		m_thumbListBox.Create(*this, true, { 15, 15, 200, 200 });
+#ifdef BT_DEBUG
 		m_thumbListBox.SetDebugName("thummb list box");
+#endif
 
 		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 		for (size_t i = 0; i < 20; i++)
@@ -103,11 +112,9 @@ private:
 int main()
 {
 	Berta::Form form(Berta::Size(500u, 450u), { true, true, true });
-	form.SetDebugName("form");
 	form.SetCaption(L"Window");
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
-	menuBar.SetDebugName("menuBar");
 	auto& menuFile = menuBar.PushBack(L"File");
 	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
 	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
@@ -150,7 +157,7 @@ int main()
 
 	Berta::Label label(form, { 50,35,105,45 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
-	label.SetDebugName("Label");
+
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
 		{
 			//std::cout << "LABEL>mouse move" << std::endl;
@@ -164,7 +171,6 @@ int main()
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
 		});
 
-	inputText.SetDebugName("inputText");
 	Berta::ComboBox comboBox(form, { 190,65,200,25 });
 	for (size_t i = 0; i < 2; i++)
 	{
@@ -176,7 +182,6 @@ int main()
 		comboBox.PushItem(L"Ejemplo 6");
 		comboBox.PushItem(L"Ejemplo 7");
 	}
-	comboBox.SetDebugName("comboBox");
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
 		{
 			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
@@ -193,7 +198,6 @@ int main()
 	scrollbar2.SetEnabled(false);
 
 	Berta::TabBar tabbar(form, { 70, 150, 400, 285 });
-	tabbar.SetDebugName("tabbar");
 
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
@@ -206,7 +210,9 @@ int main()
 		});
 
 	Berta::Button button2(form, { 5,120,100,25 }, L"Disabled");
+#ifdef BT_DEBUG
 	button2.SetDebugName("button2");
+#endif
 	button2.SetEnabled(false);
 	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
 		{
@@ -215,7 +221,9 @@ int main()
 		});
 
 	Berta::Button button(form, { 5,90,100,25 }, L"Click me!");
-	button.SetDebugName("button");
+#ifdef BT_DEBUG
+	button.SetDebugName("button1");
+#endif
 	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
 		{
 			std::cout << "BUTTON > Click" << std::endl;
@@ -234,7 +242,9 @@ int main()
 		});
 
 	Berta::Button buttonClear(form, { 125,90,100,25 }, L"Clear!");
+#ifdef BT_DEBUG
 	buttonClear.SetDebugName("buttonClear");
+#endif
 	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
 		{
 			std::cout << "BUTTON > Clear Click" << std::endl;
