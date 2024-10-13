@@ -29,4 +29,23 @@ namespace Berta
 		
 		return windowToUpdate;
 	}
+
+	bool Window::IsParentsVisible() const
+	{
+		auto current = Parent;
+		while (current != nullptr)
+		{
+			if (!current->Visible)
+			{
+				return false;
+			}
+			current = current->Parent;
+		}
+		return true;
+	}
+
+	bool Window::IsVisible() const
+	{
+		return Visible && IsParentsVisible();
+	}
 }

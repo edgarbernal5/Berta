@@ -409,11 +409,7 @@ namespace Berta
 				argVisibility.IsVisible = visible;
 				window->Events->Visibility.Emit(argVisibility);
 
-				auto windowToUpdate = window->Parent;
-				while (windowToUpdate && windowToUpdate->Type == WindowType::Panel)
-				{
-					windowToUpdate = windowToUpdate->Parent;
-				}
+				auto windowToUpdate = window->FindFirstNonPanelAncestor();
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
@@ -463,13 +459,13 @@ namespace Berta
 			window->Events->Resize.Emit(argResize);
 
 			//TODO: añadir un chequeo de visibilidad, no vale la pena hacer update de un window invisible
-			if (updateTree)
+			if (updateTree && window->Visible)
 			{
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
 #if BT_DEBUG
 				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
 #endif
-				if (windowToUpdate)
+				if (windowToUpdate && windowToUpdate->Visible)
 				{
 					UpdateTree(windowToUpdate);
 				}
