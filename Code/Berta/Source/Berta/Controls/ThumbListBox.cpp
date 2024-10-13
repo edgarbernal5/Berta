@@ -24,6 +24,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
 	{
+		BT_CORE_TRACE << "  - ThumbListBoxReactor::Update " << std::endl;
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
@@ -500,7 +501,7 @@ namespace Berta
 		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
 		bool needScrollBar = contentSize > static_cast<int>(backgroundRect.Height);
-		if (!needScrollBar && m_scrollBar)
+		if (!needScrollBar)
 		{
 			m_scrollBar.reset();
 			m_state.m_offset = 0;
