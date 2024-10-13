@@ -76,7 +76,7 @@ namespace Berta
 			auto& item = m_module.Items[i];
 
 			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-			if (cardRect.Y <= static_cast<int>(backgroundRect.Height) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
+			if (cardRect.Y <= static_cast<int>(backgroundRect.Height + innerMargin) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
 			{
 				bool isSelected = item.IsSelected;
 				//graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);

@@ -466,7 +466,7 @@ namespace Berta
 			{
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
 				
-				//BT_CORE_TRACE << "   windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
+				BT_CORE_TRACE << "  windowToUpdate - = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << std::endl;
 				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
