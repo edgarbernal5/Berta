@@ -390,6 +390,17 @@ namespace Berta
 		
 		UpdateTreeInternal(window, rootGraphics);
 
+		//TODO: separar esta llamada en otro metodo, o pasarle un parametro para omitir la llamada.
+		//window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+	}
+
+	void WindowManager::Map(Window* window)
+	{
+		Rectangle requestRectangle = window->Size.ToRectangle();
+		auto absolutePosition = GetAbsolutePosition(window);
+		requestRectangle.X = absolutePosition.X;
+		requestRectangle.Y = absolutePosition.Y;
+
 		window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 

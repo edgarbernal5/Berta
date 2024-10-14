@@ -62,6 +62,7 @@ namespace Berta
 
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);
+		void Map(Window* window);
 		void Show(Window* window, bool visible);
 
 		void Resize(Window* window, const Size& newSize, bool updateTree = true);
