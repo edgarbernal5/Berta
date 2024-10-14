@@ -141,7 +141,6 @@ namespace Berta
 			return;
 		}
 
-
 		auto absolutePosition = GetAbsolutePosition(window);
 		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
@@ -421,7 +420,7 @@ namespace Berta
 				window->Events->Visibility.Emit(argVisibility);
 
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-				if (windowToUpdate)
+				if (windowToUpdate && window->IsVisible())
 				{
 					UpdateTree(windowToUpdate);
 				}
@@ -470,7 +469,7 @@ namespace Berta
 			window->Events->Resize.Emit(argResize);
 
 			//TODO: añadir un chequeo de visibilidad, no vale la pena hacer update de un window invisible
-			if (updateTree && window->Visible)
+			if (updateTree && window->IsVisible())
 			{
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
 #if BT_DEBUG

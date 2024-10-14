@@ -49,11 +49,11 @@ namespace Berta
 			using PanelIterator = std::list<PanelItem>::iterator;
 			using ConstPanelIterator = std::list<PanelItem>::const_iterator;
 
-			void AddTab(const std::string& tabId, Panel* panel);
-			void Clear();
-			void InsertTab(size_t index, const std::string& tabId, Panel* panel);
+			bool AddTab(const std::string& tabId, Panel* panel);
+			bool Clear();
+			bool InsertTab(size_t index, const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
-			void EraseTab(size_t index);
+			bool EraseTab(size_t index);
 			int FindItem(const Point& position);
 			bool NewSelectedIndex(int newIndex) const { return SelectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }

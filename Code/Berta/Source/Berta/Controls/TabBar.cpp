@@ -16,12 +16,10 @@ namespace Berta
 		m_control = &control;
 		m_module.m_owner = control.Handle();
 
-		BT_CORE_TRACE << "TabBarReactor Init" << std::endl;
 		m_module.m_owner->Events->Resize.Connect([this](const ArgResize& args)
 			{
 				auto tabBarSize = m_module.m_owner->Size;
-				int i = 0;
-				for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++i, ++tabItem)
+				for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++tabItem)
 				{
 					auto tabItemPanelPosition = tabItem->PanelPtr->GetPosition();
 					tabItem->PanelPtr->SetSize({ tabBarSize.Width - tabItemPanelPosition.X, tabBarSize.Height - tabItemPanelPosition.Y });
@@ -102,7 +100,9 @@ namespace Berta
 	{
 		int newSelectedIndex = m_module.FindItem(args.Position);
 		if (newSelectedIndex == -1)
+		{
 			return;
+		}
 
 		if (m_module.NewSelectedIndex(newSelectedIndex))
 		{
@@ -126,22 +126,36 @@ namespace Berta
 
 	void TabBarReactor::AddTab(const std::string& tabId, Panel* panel)
 	{
-		m_module.AddTab(tabId, panel);
+		if (m_module.AddTab(tabId, panel))
+		{
+			GUI::RefreshWindow(*m_control);
+		}
 	}
 
 	void TabBarReactor::Clear()
 	{
-		m_module.Clear();
+		if (m_module.Clear())
+		{
+			Update(m_module.m_owner->Renderer.GetGraphics());
+			GUI::RefreshWindow(*m_control);
+		}
 	}
 
 	void TabBarReactor::InsertTab(size_t position, const std::string& tabId, Panel* panel)
 	{
-		m_module.InsertTab(position, tabId, panel);
+		if (m_module.InsertTab(position, tabId, panel))
+		{
+			GUI::RefreshWindow(*m_control);
+		}
 	}
 
 	void TabBarReactor::EraseTab(size_t position)
 	{
-		m_module.EraseTab(position);
+		if (m_module.EraseTab(position))
+		{
+			Update(m_module.m_owner->Renderer.GetGraphics());
+			GUI::RefreshWindow(*m_control);
+		}
 	}
 
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
@@ -174,7 +188,7 @@ namespace Berta
 		return result;
 	}
 
-	void TabBarReactor::Module::AddTab(const std::string& tabId, Panel* panel)
+	bool TabBarReactor::Module::AddTab(const std::string& tabId, Panel* panel)
 	{
 		auto startIndex = Panels.size();
 		auto& newItem = Panels.emplace_back();
@@ -194,22 +208,22 @@ namespace Berta
 		}
 		BuildItems(startIndex);
 
-		GUI::UpdateTree(m_owner);
+		return true;
 	}
 
-	void TabBarReactor::Module::Clear()
+	bool TabBarReactor::Module::Clear()
 	{
 		SelectedTabIndex = -1;
 		Panels.clear();
-		GUI::UpdateTree(m_owner);
+
+		return true;
 	}
 
-	void TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
+	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
 	{
 		if (index >= Panels.size())
 		{
-			AddTab(tabId, panel);
-			return;
+			return AddTab(tabId, panel);
 		}
 		int startIndex = static_cast<int>(index);
 
@@ -228,8 +242,7 @@ namespace Berta
 		}
 
 		BuildItems(startIndex);
-
-		GUI::UpdateTree(m_owner);
+		return true;
 	}
 
 	void TabBarReactor::Module::BuildItems(size_t startIndex)
@@ -268,11 +281,11 @@ namespace Berta
 		}
 	}
 
-	void TabBarReactor::Module::EraseTab(size_t index)
+	bool TabBarReactor::Module::EraseTab(size_t index)
 	{
 		if (index >= Panels.size())
 		{
-			return;
+			return false;
 		}
 
 		auto current = At(index);
@@ -290,7 +303,7 @@ namespace Berta
 		}
 
 		BuildItems(index);
-		GUI::UpdateTree(m_owner);
+		return true;
 	}
 
 	int TabBarReactor::Module::FindItem(const Point& position)
