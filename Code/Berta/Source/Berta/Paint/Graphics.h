@@ -68,6 +68,11 @@ namespace Berta
 
 		void Swap(Graphics& other);
 		void Release();
+
+		bool IsValid() const
+		{
+			return m_attributes != nullptr;
+		}
 	private:
 #ifdef BT_PLATFORM_WINDOWS
 		struct NativeAttributes

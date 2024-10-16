@@ -40,7 +40,7 @@ namespace Berta
 			BT_CORE_TRACE << "Renderer::Update(). it is already updating... " << std::endl;
 		}
 
-		if (m_controlReactor && !m_updating)
+		if (m_controlReactor && !m_updating && m_graphics.IsValid())
 		{
 			m_updating = true;
 			m_controlReactor->Update(m_graphics);

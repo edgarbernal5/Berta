@@ -84,10 +84,10 @@ namespace Berta
 			m_status = State::Normal;
 		}
 
+		GUI::ReleaseCapture(*m_control);
+
 		Update(graphics);
 		GUI::UpdateDeferred(*m_control);
-
-		GUI::ReleaseCapture(*m_control);
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, const std::wstring& text)

@@ -86,6 +86,7 @@ namespace Berta
 		Window* FindFirstNonPanelAncestor() const;
 		bool IsParentsVisible() const;
 		bool IsVisible() const;
+		bool IsAncestorOf(Window* window) const;
 	};
 }
 

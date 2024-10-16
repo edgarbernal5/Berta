@@ -411,6 +411,7 @@ namespace Berta
 	{
 		m_reactor.SetStepValue(stepValue);
 	}
+
 	void ScrollBar::SetPageStepValue(ScrollBarUnit pageStepValue)
 	{
 		m_reactor.SetPageStepValue(pageStepValue);

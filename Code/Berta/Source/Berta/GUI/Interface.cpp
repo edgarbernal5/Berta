@@ -302,6 +302,21 @@ namespace Berta::GUI
 				window) == window->RootWindow->DeferredRequests.end()
 			)
 			{
+				auto it = window->RootWindow->DeferredRequests.begin();
+				while (it != window->RootWindow->DeferredRequests.end())
+				{
+					if ((*it)->IsAncestorOf(window))
+					{
+						return;
+					}
+					else
+					{
+						++it;
+					}
+
+					//window->RootWindow->DeferredRequests.erase(it);
+				}
+
 				window->RootWindow->DeferredRequests.push_back(window);
 			}
 		}

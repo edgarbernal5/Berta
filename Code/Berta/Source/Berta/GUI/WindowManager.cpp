@@ -310,7 +310,7 @@ namespace Berta
 			m_capture.WindowPtr = nullptr;
 			if (!m_capture.PrevCaptured.empty())
 			{
-				auto lastCaptured = m_capture.PrevCaptured.back();
+				auto& lastCaptured = m_capture.PrevCaptured.back();
 				m_capture.PrevCaptured.pop_back();
 
 				if (Exists(lastCaptured))

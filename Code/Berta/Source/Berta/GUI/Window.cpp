@@ -48,4 +48,17 @@ namespace Berta
 	{
 		return Visible && IsParentsVisible();
 	}
+
+	bool Window::IsAncestorOf(Window* window) const
+	{
+		auto current = window;
+		while (current != nullptr)
+		{
+			if (current == this)
+				return true;
+
+			current = current->Parent;
+		}
+		return false;
+	}
 }
