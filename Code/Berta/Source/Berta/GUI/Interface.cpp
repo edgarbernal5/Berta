@@ -314,7 +314,7 @@ namespace Berta::GUI
 						++it;
 					}
 
-					//window->RootWindow->DeferredRequests.erase(it);
+					//it = window->RootWindow->DeferredRequests.erase(it);
 				}
 
 				window->RootWindow->DeferredRequests.push_back(window);

@@ -198,22 +198,11 @@ namespace Berta
 					argParam->Body();
 				}
 
+				//TODO: improve memory management here.
 				delete argParam;
 			}
 			break;
 		}
-		//case WM_SETCURSOR:
-		//	if (textBox) {
-		//		POINT pt;
-		//		GetCursorPos(&pt);
-		//		ScreenToClient(hwnd, &pt);
-		//		if (textBox->isPointInside(pt.x, pt.y)) {
-		//			SetCursor(LoadCursor(nullptr, IDC_IBEAM));
-		//			return TRUE;  // We handled the cursor change
-		//		}
-		//	}
-		//	defaultToWindowProc = false;
-		//	break;
 		case WM_ACTIVATEAPP:
 		{
 			ArgActivated argActivated;
@@ -295,8 +284,7 @@ namespace Berta
 			if (rootWindowData.Focused)
 			{
 				ArgFocus argFocus{ true };
-				rootWindowData.Focused->Renderer.Focus(argFocus);
-				rootWindowData.Focused->Events->Focus.Emit(argFocus);
+				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			defaultToWindowProc = false;
 			break;
@@ -306,8 +294,7 @@ namespace Berta
 			if (rootWindowData.Focused)
 			{
 				ArgFocus argFocus{ false };
-				rootWindowData.Focused->Renderer.Focus(argFocus);
-				rootWindowData.Focused->Events->Focus.Emit(argFocus);
+				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			defaultToWindowProc = false;
 			break;
@@ -339,22 +326,19 @@ namespace Berta
 				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				window->Renderer.MouseDown(argMouseDown);
-				window->Events->MouseDown.Emit(argMouseDown);
+				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
 				
 				if (rootWindowData.Focused != window)
 				{
 					if (rootWindowData.Focused)
 					{
 						ArgFocus argFocus{ false };
-						rootWindowData.Focused->Renderer.Focus(argFocus);
-						rootWindowData.Focused->Events->Focus.Emit(argFocus);
+						foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 					}
 					if (window)
 					{
 						ArgFocus argFocus{ true };
-						window->Renderer.Focus(argFocus);
-						window->Events->Focus.Emit(argFocus);
+						foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 					}
 				}
 				rootWindowData.Focused = window;
@@ -395,8 +379,7 @@ namespace Berta
 							argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 							//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
-							currentWindow->Renderer.MouseEnter(argMouseEnter);
-							currentWindow->Events->MouseEnter.Emit(argMouseEnter);
+							foundation.ProcessEvents(currentWindow, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
 						}
 
 						ArgMouse argMouseMove;
@@ -406,8 +389,7 @@ namespace Berta
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 						//BT_CORE_DEBUG << " - MENU / mouse move name " << currentWindow->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-						currentWindow->Renderer.MouseMove(argMouseMove);
-						currentWindow->Events->MouseMove.Emit(argMouseMove);
+						foundation.ProcessEvents(currentWindow, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
 
 						rootWindowData.Hovered = currentWindow;
 						break;
@@ -425,8 +407,7 @@ namespace Berta
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 					//BT_CORE_DEBUG << " - MENU / mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-					rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
-					rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
+					foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
 					rootWindowData.Hovered = nullptr;
 				}
@@ -446,8 +427,7 @@ namespace Berta
 						argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 						//BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-						rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
-						rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
+						foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
 						rootWindowData.Hovered = nullptr;
 					}
@@ -465,8 +445,7 @@ namespace Berta
 						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 						//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
-						window->Renderer.MouseEnter(argMouseEnter);
-						window->Events->MouseEnter.Emit(argMouseEnter);
+						foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
 
 						rootWindowData.Hovered = window;
 					}
@@ -480,8 +459,7 @@ namespace Berta
 						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 						//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
-						window->Renderer.MouseMove(argMouseMove);
-						window->Events->MouseMove.Emit(argMouseMove);
+						foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
 					}
 					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
 					{
@@ -513,12 +491,10 @@ namespace Berta
 				if (window->Size.IsInside(argMouseUp.Position))
 				{
 					ArgClick argClick;
-					window->Renderer.Click(argClick);
-					window->Events->Click.Emit(argClick);
+					foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
 				}
 
-				window->Renderer.MouseUp(argMouseUp);
-				window->Events->MouseUp.Emit(argMouseUp);
+				foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
 
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
@@ -539,8 +515,7 @@ namespace Berta
 				argClick.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argClick.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				window->Renderer.DblClick(argClick);
-				window->Events->DblClick.Emit(argClick);
+				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argClick);
 			}
 			rootWindowData.Released = nullptr;
 			defaultToWindowProc = false;
@@ -554,8 +529,7 @@ namespace Berta
 			{
 				//BT_CORE_DEBUG << " - mouse leave 2 / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << ". hwnd " << hWnd << std::endl;
 				ArgMouse argMouseLeave;
-				rootWindowData.Hovered->Renderer.MouseLeave(argMouseLeave);
-				rootWindowData.Hovered->Events->MouseLeave.Emit(argMouseLeave);
+				foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
 				rootWindowData.Hovered = nullptr;
 			}
@@ -580,8 +554,7 @@ namespace Berta
 				argWheel.WheelDelta = wheelDelta;
 				argWheel.IsVertical = message == WM_MOUSEWHEEL;
 
-				window->Renderer.MouseWheel(argWheel);
-				window->Events->MouseWheel.Emit(argWheel);
+				foundation.ProcessEvents(window, &Renderer::MouseWheel, &ControlEvents::MouseWheel, argWheel);
 			}
 			break;
 		}
@@ -600,8 +573,7 @@ namespace Berta
 				window = nativeWindow;
 			}
 
-			window->Renderer.KeyChar(argKeyboard);
-			window->Events->KeyChar.Emit(argKeyboard);
+			foundation.ProcessEvents(window, &Renderer::KeyChar, &ControlEvents::KeyChar, argKeyboard);
 
 			defaultToWindowProc = false;
 			break;
@@ -634,13 +606,11 @@ namespace Berta
 			}
 			if (isKeyReleased)
 			{
-				target->Renderer.KeyReleased(argKeyboard);
-				target->Events->KeyReleased.Emit(argKeyboard);
+				foundation.ProcessEvents(target, &Renderer::KeyReleased, &ControlEvents::KeyReleased, argKeyboard);
 			}
 			else
 			{
-				target->Renderer.KeyPressed(argKeyboard);
-				target->Events->KeyPressed.Emit(argKeyboard);
+				foundation.ProcessEvents(target, &Renderer::KeyPressed, &ControlEvents::KeyPressed, argKeyboard);
 			}
 			
 			defaultToWindowProc = false;
