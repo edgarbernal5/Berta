@@ -24,7 +24,7 @@ namespace Berta
 		m_timer.SetOwner(control.Handle());
 		m_timer.Connect([this](const ArgTimer& args)
 		{
-			DoScrollStep();
+			DoScrollStep(true);
 			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
 		});
 	}
@@ -215,7 +215,7 @@ namespace Berta
 		return true;
 	}
 
-	void ScrollBarReactor::DoScrollStep()
+	void ScrollBarReactor::DoScrollStep(bool fromTimer)
 	{
 		auto oldValue = m_value;
 		auto window = m_control->Handle();
@@ -250,7 +250,15 @@ namespace Berta
 			EmitValueChanged();
 
 			Update(window->Renderer.GetGraphics());
-			GUI::MarkAsUpdated(window);
+			if (fromTimer)
+			{
+				GUI::RefreshWindow(window);
+			}
+			else
+			{
+				GUI::MarkAsUpdated(window);
+			}
+			
 		}
 	}
 

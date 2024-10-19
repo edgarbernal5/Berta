@@ -49,7 +49,7 @@ namespace Berta
 		};
 
 		bool IsValid() const;
-		void DoScrollStep();
+		void DoScrollStep(bool fromTimer = false);
 		void EmitValueChanged();
 		inline bool isScrollable() const { return m_min != m_max; }
 		uint32_t GetButtonSize() const;
