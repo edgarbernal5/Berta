@@ -186,6 +186,8 @@ namespace Berta
 		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
 		auto& trackEvent = rootWindowData.TrackEvent;
 
+		Berta::Foundation::RootGuard rootGuard(nativeWindow);
+
 		switch (message)
 		{
 		case static_cast<uint32_t>(CustomMessageId::CustomCallback):

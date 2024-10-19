@@ -71,7 +71,9 @@ namespace Berta
 	void Timer::SetInterval(uint32_t milliseconds)
 	{
 		if (m_interval.load() == std::chrono::milliseconds(milliseconds))
+		{
 			return;
+		}
 
 		if (!m_isRunning.load())
 		{

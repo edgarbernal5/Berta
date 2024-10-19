@@ -475,7 +475,7 @@ namespace Berta
 #if BT_DEBUG
 				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
 #endif
-				if (windowToUpdate && windowToUpdate->Visible)
+				if (windowToUpdate /* && windowToUpdate->Visible*/)
 				{
 					UpdateTree(windowToUpdate);
 				}

@@ -43,8 +43,15 @@ namespace Berta
 
 		static Foundation& GetInstance();
 
-	private:
+		class RootGuard
+		{
+		public:
+			RootGuard(Window* window);
+			~RootGuard();
 
+			Window* m_window;
+		};
+	private:
 		static Foundation g_foundation;
 		std::shared_ptr<Logger> m_logger;
 		WindowManager m_windowManager;
@@ -53,11 +60,15 @@ namespace Berta
 	template<typename TArgument>
 	inline void Foundation::ProcessEvents(Window* window, void(Renderer::*rendererPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args)
 	{
-		auto& ev = *window->Events.get();
+		if (!m_windowManager.Exists(window))
+		{
+			return;
+		}
 
 		(window->Renderer.*rendererPtr)(args);
-		
-		(ev.*eventPtr).Emit(args);
+		(*window->Events.*eventPtr).Emit(args);
+
+
 	}
 }
 

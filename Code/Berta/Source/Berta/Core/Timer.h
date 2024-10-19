@@ -17,10 +17,11 @@
 
 namespace Berta
 {
+	struct Window;
+
 	struct ArgTimer
 	{
 	};
-	struct Window;
 
 	class Timer
 	{

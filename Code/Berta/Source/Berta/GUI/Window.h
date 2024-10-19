@@ -27,6 +27,12 @@ namespace Berta
 		Panel			//It has no renderer, empty Graphics. Serves as a logical container of Window.
 	};
 
+	enum class WindowStatus
+	{
+		None,
+		Updated
+	};
+
 	struct Window
 	{
 		Window() = default;
@@ -66,7 +72,10 @@ namespace Berta
 			bool IsEnabled{ true };
 			bool IsDisposed{ false };
 			bool MakeActive{ true };
+			bool Deferred{ false };
 		}Flags;
+
+		WindowStatus Status{ WindowStatus::None };
 
 		uint32_t ToScale(uint32_t units) const
 		{
