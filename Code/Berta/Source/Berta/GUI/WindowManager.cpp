@@ -79,7 +79,7 @@ namespace Berta
 		window->Flags.IsDisposed = true;
 
 		ArgDestroy argDestroy;
-		foundation.ProcessEvents(window, &ControlEvents::Destroy, argDestroy);
+		foundation.ProcessEvents(window, static_cast<void(Renderer::*)(const ArgDestroy&)>(nullptr), &ControlEvents::Destroy, argDestroy);
 
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
@@ -431,8 +431,9 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Resize(Window* window, const Size& newSize, bool updateTree)
+	void WindowManager::Resize(Window* window, const Size& newSize)
 	{
+		auto& foundation = Foundation::GetInstance();
 		if (window->Size != newSize)
 		{
 			window->Size = newSize;
@@ -449,7 +450,7 @@ namespace Berta
 					newRootGraphics.Build(newSize);
 					newRootGraphics.BuildFont(window->DPI);
 				}
-			}			
+			}
 
 			if (window->Type != WindowType::Panel)
 			{
@@ -468,21 +469,20 @@ namespace Berta
 			ArgResize argResize;
 			argResize.NewSize = newSize;
 			//BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
-			window->Renderer.Resize(argResize);
-			window->Events->Resize.Emit(argResize);
+			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 
 			//TODO: añadir un chequeo de visibilidad, no vale la pena hacer update de un window invisible
-			if (updateTree && window->IsVisible())
-			{
-				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-#if BT_DEBUG
-				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
-#endif
-				if (windowToUpdate /* && windowToUpdate->Visible*/)
-				{
-					UpdateTree(windowToUpdate);
-				}
-			}
+//			if (updateTree && window->IsVisible())
+//			{
+//				auto windowToUpdate = window->FindFirstNonPanelAncestor();
+//#if BT_DEBUG
+//				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
+//#endif
+//				if (windowToUpdate /* && windowToUpdate->Visible*/)
+//				{
+//					UpdateTree(windowToUpdate);
+//				}
+//			}
 		}
 	}
 
@@ -491,6 +491,9 @@ namespace Berta
 		Rectangle currentRect{ window->Position, window->Size };
 		if (currentRect != newRect)
 		{
+			bool sizeChanged = window->Size != newRect;
+			bool positionChanged = window->Position != newRect;
+
 			window->Position = newRect;
 			if (window->Size != newRect)
 			{

@@ -228,14 +228,18 @@ namespace Berta
 		}
 		else
 		{
-			BT_CORE_TRACE << "ctrl " << m_module.m_ctrlPressed << ". shift " << m_module.m_shiftPressed << std::endl;
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed && (!args.ButtonState.RightButton || !m_module.Items[itemAtPosition].IsSelected))
 			{
 				m_module.ClearSelection();
 			}
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
 			{
-				m_module.Items[itemAtPosition].IsSelected = true;
+				if (!m_module.Items[itemAtPosition].IsSelected)
+				{
+					m_module.Items[itemAtPosition].IsSelected = true;
+					hasChanged = true;
+				}
+				
 				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
 			}
 			else
@@ -271,8 +275,8 @@ namespace Berta
 						}
 					}
 				}
+				hasChanged = true;
 			}
-			hasChanged = true;
 		}
 
 		if (hasChanged)

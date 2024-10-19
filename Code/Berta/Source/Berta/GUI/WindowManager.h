@@ -65,7 +65,7 @@ namespace Berta
 		void Map(Window* window);
 		void Show(Window* window, bool visible);
 
-		void Resize(Window* window, const Size& newSize, bool updateTree = true);
+		void Resize(Window* window, const Size& newSize);
 		void Move(Window* window, const Rectangle& newRect);
 		void Refresh(Window* window);
 		void DeferredUpdate(Window* window);
