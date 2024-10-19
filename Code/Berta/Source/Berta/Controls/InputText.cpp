@@ -62,7 +62,7 @@ namespace Berta
 
 		m_textEditor->OnMouseDown(args);
 		m_control->Handle()->Renderer.Update();
-		GUI::UpdateDeferred(m_control->Handle());
+		GUI::MarkAsUpdated(m_control->Handle());
 	}
 
 	void InputTextReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -71,7 +71,7 @@ namespace Berta
 		
 		m_textEditor->OnMouseMove(args);
 		window->Renderer.Update();
-		GUI::UpdateDeferred(window);
+		GUI::MarkAsUpdated(window);
 	}
 
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -93,7 +93,7 @@ namespace Berta
 		{
 			GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
 			m_control->Handle()->Renderer.Update();
-			GUI::UpdateDeferred(m_control->Handle());
+			GUI::MarkAsUpdated(m_control->Handle());
 		}
 	}
 
@@ -104,7 +104,7 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			window->Renderer.Update();
-			GUI::UpdateDeferred(window);
+			GUI::MarkAsUpdated(window);
 		}
 	}
 
@@ -119,7 +119,7 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			window->Renderer.Update();
-			GUI::UpdateDeferred(window);
+			GUI::MarkAsUpdated(window);
 		}
 	}
 

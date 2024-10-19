@@ -9,6 +9,8 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/Controls/MenuBar.h"
+#include "Berta/Core/Foundation.h"
+
 #include <stack>
 
 namespace Berta
@@ -73,10 +75,11 @@ namespace Berta
 			return;
 		}
 
+		auto& foundation = Foundation::GetInstance();
 		window->Flags.IsDisposed = true;
 
 		ArgDestroy argDestroy;
-		window->Events->Destroy.Emit(argDestroy);
+		foundation.ProcessEvents(window, &ControlEvents::Destroy, argDestroy);
 
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
@@ -510,6 +513,35 @@ namespace Berta
 		window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 
+	void WindowManager::DeferredUpdate(Window* window)
+	{
+		if (std::find(
+				window->RootWindow->DeferredRequests.begin(),
+				window->RootWindow->DeferredRequests.end(),
+				window) == window->RootWindow->DeferredRequests.end()
+			)
+			{
+				auto requestIt = window->RootWindow->DeferredRequests.begin();
+				while (requestIt != window->RootWindow->DeferredRequests.end())
+				{
+					if ((*requestIt)->IsAncestorOf(window))
+					{
+						return;
+					}
+					if (window->IsAncestorOf(*requestIt))
+					{
+						requestIt = window->RootWindow->DeferredRequests.erase(requestIt);
+					}
+					else
+					{
+						++requestIt;
+					}
+				}
+
+				window->RootWindow->DeferredRequests.push_back(window);
+			}
+	}
+
 	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
 	{
 		if (rootWindow->DeferredRequests.size() == 0)
@@ -530,6 +562,8 @@ namespace Berta
 				UpdateDeferredRequestsInternal(request, rootGraphics);
 
 				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+
+				//request->Status = WindowStatus::None;
 			}
 		}
 

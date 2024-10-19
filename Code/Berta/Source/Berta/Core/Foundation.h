@@ -41,6 +41,9 @@ namespace Berta
 		template <typename TArgument>
 		void ProcessEvents(Window* window, void(Renderer::*rendererPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args);
 
+		template <typename TArgument>
+		void ProcessEvents(Window* window, Event<TArgument> ControlEvents::* eventPtr, TArgument& args);
+
 		static Foundation& GetInstance();
 
 		class RootGuard
@@ -68,7 +71,28 @@ namespace Berta
 		(window->Renderer.*rendererPtr)(args);
 		(*window->Events.*eventPtr).Emit(args);
 
+		if (m_windowManager.Exists(window) && window->Status == WindowStatus::Updated)
+		{
+			m_windowManager.DeferredUpdate(window);
+		}
+		window->Status = WindowStatus::None;
+	}
 
+	template<typename TArgument>
+	inline void Foundation::ProcessEvents(Window* window, Event<TArgument> ControlEvents::* eventPtr, TArgument& args)
+	{
+		if (!m_windowManager.Exists(window))
+		{
+			return;
+		}
+
+		(*window->Events.*eventPtr).Emit(args);
+
+		if (m_windowManager.Exists(window) && window->Status == WindowStatus::Updated)
+		{
+			m_windowManager.DeferredUpdate(window);
+		}
+		window->Status = WindowStatus::None;
 	}
 }
 

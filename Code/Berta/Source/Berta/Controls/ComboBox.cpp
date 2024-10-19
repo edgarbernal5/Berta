@@ -87,14 +87,14 @@ namespace Berta
 	{
 		m_status = State::Hovered;
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	void ComboBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Normal;
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	void ComboBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -125,7 +125,7 @@ namespace Berta
 
 					auto window = m_control->Handle();
 					window->Renderer.Update();
-					GUI::UpdateDeferred(window);
+					GUI::MarkAsUpdated(window);
 				}
 			});
 
@@ -193,7 +193,7 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			window->Renderer.Update();
-			GUI::UpdateDeferred(window);
+			GUI::MarkAsUpdated(window);
 		}
 	}
 
@@ -216,7 +216,7 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		window->Renderer.Update();
-		GUI::UpdateDeferred(window);
+		GUI::MarkAsUpdated(window);
 	}
 
 

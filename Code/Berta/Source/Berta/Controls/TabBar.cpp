@@ -115,7 +115,7 @@ namespace Berta
 			newSelectedTabItem->PanelPtr->Show();
 
 			Update(graphics);
-			GUI::UpdateDeferred(m_module.m_owner);
+			GUI::MarkAsUpdated(m_module.m_owner);
 		}
 	}
 

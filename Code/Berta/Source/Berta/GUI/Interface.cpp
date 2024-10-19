@@ -291,34 +291,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void UpdateDeferred(Window* window)
+	void MarkAsUpdated(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			if (std::find(
-				window->RootWindow->DeferredRequests.begin(),
-				window->RootWindow->DeferredRequests.end(),
-				window) == window->RootWindow->DeferredRequests.end()
-			)
-			{
-				auto requestIt = window->RootWindow->DeferredRequests.begin();
-				while (requestIt != window->RootWindow->DeferredRequests.end())
-				{
-					if ((*requestIt)->IsAncestorOf(window))
-					{
-						return;
-					}
-					else
-					{
-						++requestIt;
-					}
-
-					//requestIt = window->RootWindow->DeferredRequests.erase(requestIt);
-				}
-
-				window->RootWindow->DeferredRequests.push_back(window);
-			}
+			window->Status = WindowStatus::Updated;
 		}
 	}
 

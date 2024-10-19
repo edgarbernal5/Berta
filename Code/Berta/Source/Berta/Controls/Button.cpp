@@ -52,7 +52,7 @@ namespace Berta
 		m_status = State::Hovered;
 
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	void ButtonReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -60,7 +60,7 @@ namespace Berta
 		m_status = State::Normal;
 
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	void ButtonReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -68,7 +68,7 @@ namespace Berta
 		m_status = State::Pressed;
 
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 
 		GUI::Capture(*m_control);
 	}
@@ -87,7 +87,7 @@ namespace Berta
 		GUI::ReleaseCapture(*m_control);
 
 		Update(graphics);
-		GUI::UpdateDeferred(*m_control);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, const std::wstring& text)

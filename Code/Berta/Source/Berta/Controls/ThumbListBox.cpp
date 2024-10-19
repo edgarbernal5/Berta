@@ -278,7 +278,7 @@ namespace Berta
 		if (hasChanged)
 		{
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 
@@ -336,7 +336,7 @@ namespace Berta
 		if (hasChanged)
 		{
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 
@@ -362,7 +362,7 @@ namespace Berta
 		if (hasChanged)
 		{
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 
@@ -383,10 +383,10 @@ namespace Berta
 			m_module.m_scrollBar->SetValue(m_module.m_state.m_offset);
 
 			m_module.m_scrollBar->Handle()->Renderer.Update();
-			GUI::UpdateDeferred(m_module.m_scrollBar->Handle());
+			GUI::MarkAsUpdated(m_module.m_scrollBar->Handle());
 
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 

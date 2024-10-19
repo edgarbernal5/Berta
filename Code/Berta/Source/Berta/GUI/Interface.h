@@ -49,7 +49,7 @@ namespace Berta
 		Point GetMousePositionToWindow(Window* window);
 
 		void UpdateTree(Window* window);
-		void UpdateDeferred(Window* window);
+		void MarkAsUpdated(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height);

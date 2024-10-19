@@ -73,7 +73,7 @@ namespace Berta
 		m_module.SelectIndex(-1);
 
 		Update(graphics);
-		GUI::UpdateDeferred(m_module.m_owner);
+		GUI::MarkAsUpdated(m_module.m_owner);
 	}
 
 	void MenuBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -95,7 +95,7 @@ namespace Berta
 			}
 
 			Update(graphics);
-			GUI::UpdateDeferred(m_module.m_owner);
+			GUI::MarkAsUpdated(m_module.m_owner);
 		}
 	}
 
@@ -128,7 +128,7 @@ namespace Berta
 				m_module.SelectIndex(selectedItem);
 
 				Update(graphics);
-				GUI::UpdateDeferred(m_module.m_owner);
+				GUI::MarkAsUpdated(m_module.m_owner);
 			}
 		}
 		m_module.m_lastMousePosition = args.Position;
@@ -255,7 +255,7 @@ namespace Berta
 
 			m_rootMenuItemReactor->Clear();
 			m_control->Handle()->Renderer.Update();
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		};
 		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
 		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);

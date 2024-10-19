@@ -67,7 +67,7 @@ namespace Berta
 			m_state.m_index = m_state.m_offset + index;
 
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 
@@ -103,10 +103,10 @@ namespace Berta
 			m_scrollBar->SetValue(m_state.m_offset);
 
 			m_scrollBar->Handle()->Renderer.Update();
-			GUI::UpdateDeferred(m_scrollBar->Handle());
+			GUI::MarkAsUpdated(m_scrollBar->Handle());
 
 			Update(graphics);
-			GUI::UpdateDeferred(*m_control);
+			GUI::MarkAsUpdated(*m_control);
 		}
 	}
 

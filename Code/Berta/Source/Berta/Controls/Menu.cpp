@@ -271,7 +271,7 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			Update(graphics);
-			GUI::UpdateDeferred(window);
+			GUI::MarkAsUpdated(window);
 		}
 	}
 
@@ -302,7 +302,7 @@ namespace Berta
 		{
 			auto window = m_control->Handle();
 			Update(graphics);
-			GUI::UpdateDeferred(window);
+			GUI::MarkAsUpdated(window);
 		}
 	}
 
