@@ -18,11 +18,13 @@ namespace Berta
 
 	Foundation::RootGuard::RootGuard(Window* window) : m_window(window)
 	{
+		BT_CORE_TRACE << "ctor RootGuard" << std::endl;
 		m_window->Flags.Deferred = true;
 	}
 
 	Foundation::RootGuard::~RootGuard()
 	{
+		BT_CORE_TRACE << "dctor RootGuard" << std::endl;
 		m_window->Flags.Deferred = false;
 	}
 }

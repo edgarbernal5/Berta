@@ -518,6 +518,17 @@ namespace Berta
 
 	void WindowManager::DeferredUpdate(Window* window)
 	{
+		if (!window->Visible && !window->IsParentsVisible())
+		{
+			return;
+		}
+
+		if (!window->RootWindow->Flags.Deferred)
+		{
+			//paint and map
+			return;
+		}			
+
 		if (std::find(
 				window->RootWindow->DeferredRequests.begin(),
 				window->RootWindow->DeferredRequests.end(),

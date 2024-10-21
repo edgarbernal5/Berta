@@ -74,7 +74,7 @@ namespace Berta
 			(*window->Events.*eventPtr).Emit(args);
 		}
 
-		if (m_windowManager.Exists(window) && window->Status == WindowStatus::Updated)
+		if (m_windowManager.Exists(window) && (window->Status == WindowStatus::Updated || (std::is_same_v<TArgument, ArgResize>)))
 		{
 			m_windowManager.DeferredUpdate(window);
 		}

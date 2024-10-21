@@ -54,10 +54,10 @@ namespace Berta
 		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
 		
-		// Register class
+		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could case flicking when window is resized.
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+		wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -224,6 +224,7 @@ namespace Berta
 			nativeWindow->Events->Visibility.Emit(argVisibility);
 
 			windowManager.UpdateTree(nativeWindow);
+			//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			break;
 		}
 		case WM_PAINT:
