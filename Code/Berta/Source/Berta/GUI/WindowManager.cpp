@@ -470,19 +470,6 @@ namespace Berta
 			argResize.NewSize = newSize;
 			//BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
 			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
-
-			//TODO: añadir un chequeo de visibilidad, no vale la pena hacer update de un window invisible
-//			if (updateTree && window->IsVisible())
-//			{
-//				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-//#if BT_DEBUG
-//				BT_CORE_TRACE << "  windowToUpdate = " << (windowToUpdate ? windowToUpdate->Name : "nulo") << ". / window = " << window->Name << "." << std::endl;
-//#endif
-//				if (windowToUpdate /* && windowToUpdate->Visible*/)
-//				{
-//					UpdateTree(windowToUpdate);
-//				}
-//			}
 		}
 	}
 
@@ -516,7 +503,7 @@ namespace Berta
 		window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 
-	void WindowManager::DeferredUpdate(Window* window)
+	void WindowManager::TryDeferredUpdate(Window* window)
 	{
 		if (!window->Visible || !window->IsParentsVisible())
 		{
@@ -526,8 +513,9 @@ namespace Berta
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
 			//paint and map
+
 			return;
-		}			
+		}
 
 		if (std::find(
 			window->RootWindow->DeferredRequests.begin(),

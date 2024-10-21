@@ -68,7 +68,7 @@ namespace Berta
 		void Resize(Window* window, const Size& newSize);
 		void Move(Window* window, const Rectangle& newRect);
 		void Refresh(Window* window);
-		void DeferredUpdate(Window* window);
+		void TryDeferredUpdate(Window* window);
 		void UpdateDeferredRequests(Window* rootWindow);
 
 		void ChangeDPI(Window* window, uint32_t newDPI);

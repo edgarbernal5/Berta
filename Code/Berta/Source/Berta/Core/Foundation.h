@@ -76,7 +76,7 @@ namespace Berta
 
 		if (m_windowManager.Exists(window) && (window->Status == WindowStatus::Updated || (std::is_same_v<TArgument, ArgResize>)))
 		{
-			m_windowManager.DeferredUpdate(window);
+			m_windowManager.TryDeferredUpdate(window);
 		}
 		window->Status = WindowStatus::None;
 	}
