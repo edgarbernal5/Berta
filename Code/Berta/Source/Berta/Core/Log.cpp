@@ -28,5 +28,4 @@ namespace Berta
 	{
 		g_CoreLogger.reset();
 	}
-
 }

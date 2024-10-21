@@ -54,7 +54,7 @@ namespace Berta
 		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
 		
-		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could case flicking when window is resized.
+		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could cause flicking when window is resized.
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
 		wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages

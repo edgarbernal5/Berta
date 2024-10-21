@@ -72,7 +72,7 @@ namespace Berta
 			bool IsEnabled{ true };
 			bool IsDisposed{ false };
 			bool MakeActive{ true };
-			bool Deferred{ false };
+			int IsDeferredCount{ 0 };
 		}Flags;
 
 		WindowStatus Status{ WindowStatus::None };

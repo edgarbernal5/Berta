@@ -518,42 +518,42 @@ namespace Berta
 
 	void WindowManager::DeferredUpdate(Window* window)
 	{
-		if (!window->Visible && !window->IsParentsVisible())
+		if (!window->Visible || !window->IsParentsVisible())
 		{
 			return;
 		}
 
-		if (!window->RootWindow->Flags.Deferred)
+		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
 			//paint and map
 			return;
 		}			
 
 		if (std::find(
-				window->RootWindow->DeferredRequests.begin(),
-				window->RootWindow->DeferredRequests.end(),
-				window) == window->RootWindow->DeferredRequests.end()
+			window->RootWindow->DeferredRequests.begin(),
+			window->RootWindow->DeferredRequests.end(),
+			window) == window->RootWindow->DeferredRequests.end()
 			)
+		{
+			auto requestIt = window->RootWindow->DeferredRequests.begin();
+			while (requestIt != window->RootWindow->DeferredRequests.end())
 			{
-				auto requestIt = window->RootWindow->DeferredRequests.begin();
-				while (requestIt != window->RootWindow->DeferredRequests.end())
+				if ((*requestIt)->IsAncestorOf(window))
 				{
-					if ((*requestIt)->IsAncestorOf(window))
-					{
-						return;
-					}
-					if (window->IsAncestorOf(*requestIt))
-					{
-						requestIt = window->RootWindow->DeferredRequests.erase(requestIt);
-					}
-					else
-					{
-						++requestIt;
-					}
+					return;
 				}
-
-				window->RootWindow->DeferredRequests.push_back(window);
+				if (window->IsAncestorOf(*requestIt))
+				{
+					requestIt = window->RootWindow->DeferredRequests.erase(requestIt);
+				}
+				else
+				{
+					++requestIt;
+				}
 			}
+
+			window->RootWindow->DeferredRequests.push_back(window);
+		}
 	}
 
 	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
@@ -607,10 +607,6 @@ namespace Berta
 			{
 				ChangeDPI(child, newDPI);
 			}
-
-			/*ArgResize argResize;
-			argResize.NewSize = window->Size;
-			window->Renderer.Resize(argResize);*/
 		}
 	}
 
