@@ -64,6 +64,7 @@ namespace Berta
 		{
 			return;
 		}
+
 		if (rendererEventPtr)
 		{
 			(window->Renderer.*rendererEventPtr)(args);

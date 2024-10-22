@@ -177,7 +177,7 @@ namespace Berta
 
 		for (auto& child : request->Children)
 		{
-			if (!child->Visible || !Exists(child))
+			if (!child->Visible || !Exists(child) || child->Flags.IsDisposed)
 			{
 				continue;
 			}
@@ -554,7 +554,7 @@ namespace Berta
 		auto& rootGraphics = *(rootWindow->RootGraphics);
 		for (auto& request : rootWindow->DeferredRequests)
 		{
-			if (Exists(request))
+			if (Exists(request) && !request->Flags.IsDisposed)
 			{
 				//TODO: don't update a window twice. A child could be in the queue, add check.
 				auto absolutePosition = GetAbsolutePosition(request);
