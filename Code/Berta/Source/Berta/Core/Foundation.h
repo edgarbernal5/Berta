@@ -39,7 +39,7 @@ namespace Berta
 		void ProcessMessages();
 
 		template <typename TArgument>
-		void ProcessEvents(Window* window, void(Renderer::*rendererPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args);
+		void ProcessEvents(Window* window, void(Renderer::* rendererEventPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args);
 
 		static Foundation& GetInstance();
 
@@ -58,7 +58,7 @@ namespace Berta
 	};
 
 	template<typename TArgument>
-	inline void Foundation::ProcessEvents(Window* window, void(Renderer::*rendererPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args)
+	inline void Foundation::ProcessEvents(Window* window, void(Renderer::* rendererEventPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args)
 	{
 		if (!m_windowManager.Exists(window))
 		{
@@ -66,7 +66,7 @@ namespace Berta
 		}
 		if (rendererPtr)
 		{
-			(window->Renderer.*rendererPtr)(args);
+			(window->Renderer.*rendererEventPtr)(args);
 		}
 		
 		if (eventPtr)
@@ -78,9 +78,9 @@ namespace Berta
 		{
 			m_windowManager.TryDeferredUpdate(window);
 		}
+
 		window->Status = WindowStatus::None;
 	}
-
 }
 
 #endif

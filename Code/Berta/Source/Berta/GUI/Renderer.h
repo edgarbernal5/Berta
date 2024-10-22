@@ -39,11 +39,26 @@ namespace Berta
 		void Resize(const ArgResize& args);
 
 		Graphics& GetGraphics() { return m_graphics; }
+
 	private:
+		template <typename TArgument>
+		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&, const TArgument&), const TArgument& args);
+
 		bool m_updating{ false };
 		ControlReactor* m_controlReactor{ nullptr };
 		Graphics m_graphics;
 	};
+
+	template<typename TArgument>
+	inline void Renderer::ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&, const TArgument&), const TArgument& args)
+	{
+		if (m_controlReactor == nullptr) //Added this check due to panels that don't have either reactor or graphics.
+		{
+			return;
+		}
+
+		((*m_controlReactor).*reactorEventPtr)(m_graphics, args);
+	}
 }
 
 #endif

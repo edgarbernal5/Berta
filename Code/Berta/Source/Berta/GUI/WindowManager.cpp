@@ -513,7 +513,7 @@ namespace Berta
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
 			//TODO: paint and map
-
+			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. window = " << window->Name << ". hwnd = " << window->RootHandle.Handle << std::endl;
 			return;
 		}
 

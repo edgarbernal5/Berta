@@ -140,7 +140,7 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 		{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
 		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
 
@@ -171,6 +171,9 @@ namespace Berta
 			//BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId = message;
 		}
+		else {
+			BT_CORE_DEBUG << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
+		}
 #endif
 		auto& foundation = Foundation::GetInstance();
 
@@ -179,6 +182,7 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
+			BT_CORE_DEBUG << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -656,6 +660,10 @@ namespace Berta
 			{
 				::PostQuitMessage(0);
 			}
+			else
+			{
+				defaultToWindowProc = false;
+			}
 			break;
 		}
 		}
@@ -664,7 +672,10 @@ namespace Berta
 		//Otra cosa que hay que mejorar es no repetir dos solicitudes para la misma ventana en el mismo "tick"
 		//Otra mejora: solo actualizar el segmento (rectangulo) que necesita cambiar (por ejemplo al moverse dentro de un menu solo se deberia actualizar el rectangulo
 		//del nuevo elemento seleccionado y no todo el menu
-		windowManager.UpdateDeferredRequests(nativeWindow);
+		if (!nativeWindow->Flags.IsDisposed)
+		{
+			windowManager.UpdateDeferredRequests(nativeWindow);
+		}
 
 		if (defaultToWindowProc)
 		{

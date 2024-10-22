@@ -319,29 +319,18 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto one = window->ToScale(1);
-		float num = static_cast<float>(m_pageStep) / ((m_max - m_min) + m_pageStep);
+		float scaleFactor = static_cast<float>(m_pageStep) / ((m_max - m_min) + m_pageStep);
 
 		ScrollBarUnit newValue = m_value;
-		if (m_isVertical)
-		{
-			Rectangle scrollTrackRect{ 0, buttonSize + one, window->Size.Width, window->Size.Height - 2u * buttonSize - 2u };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
+		Rectangle scrollTrackRect = m_isVertical ?
+			Rectangle{ 0, buttonSize + one, window->Size.Width, window->Size.Height - 2u * buttonSize - 2u } :
+			Rectangle{ buttonSize + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
 
-			int newBoxPosition = position - m_dragOffset - scrollTrackRect.Y;
-			newBoxPosition = (std::max)(0, (std::min)(newBoxPosition, (int)(scrollTrackRect.Height - scrollBoxSize)));
-			
-			newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / static_cast<float>(scrollTrackRect.Height - scrollBoxSize));
-		}
-		else
-		{
-			Rectangle scrollTrackRect{ buttonSize + one, 0 , window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
-
-			int newBoxPosition = position - m_dragOffset - scrollTrackRect.X;
-			newBoxPosition = (std::max)(0, (std::min)(newBoxPosition, (int)(scrollTrackRect.Width - scrollBoxSize)));
-
-			newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / static_cast<float>(scrollTrackRect.Width - scrollBoxSize));
-		}
+		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>((m_isVertical ? scrollTrackRect.Height : scrollTrackRect.Width) * scaleFactor), window->ToScale(6u));
+		int newBoxPosition = position - m_dragOffset - (m_isVertical ? scrollTrackRect.Y : scrollTrackRect.X);
+		newBoxPosition = std::clamp(newBoxPosition, 0, static_cast<int>((m_isVertical ? scrollTrackRect.Height : scrollTrackRect.Width) - scrollBoxSize));
+		
+		newValue = m_min + static_cast<ScrollBarUnit>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? scrollTrackRect.Height - scrollBoxSize : scrollTrackRect.Width - scrollBoxSize));
 
 		newValue = std::clamp(newValue, m_min, m_max);
 
