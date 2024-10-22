@@ -512,7 +512,7 @@ namespace Berta
 
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
-			//paint and map
+			//TODO: paint and map
 
 			return;
 		}

@@ -398,6 +398,57 @@ namespace Berta
 	{
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
+
+		bool hasChanged = false;
+		if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight || args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
+		{
+			if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight)
+			{
+				auto direction = args.Key == KeyboardKey::ArrowLeft ? -1 : 1;
+				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.Items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
+				auto newItemIndex= pivot + direction;
+				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
+				{
+					m_module.ClearSelection();
+					m_module.Items[newItemIndex].IsSelected = true;
+
+					m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					hasChanged = true;
+				}
+			}
+			else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
+			{
+				Rectangle backgroundRect;
+				uint32_t totalRows;
+				uint32_t totalCardsInRow;
+				uint32_t innerMargin;
+				uint32_t cardMargin;
+				uint32_t cardMarginHalf;
+				int contentSize;
+				Size cardSize;
+				m_module.CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
+
+				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
+				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.Items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
+				auto newItemIndex = pivot + direction * totalCardsInRow;
+				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
+				{
+					m_module.ClearSelection();
+					m_module.Items[newItemIndex].IsSelected = true;
+
+					m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					hasChanged = true;
+				}
+			}
+		}
+
+		if (hasChanged)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(*m_control);
+		}
 	}
 
 	void ThumbListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
