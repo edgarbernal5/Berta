@@ -141,6 +141,7 @@ namespace Berta
 #endif
 		bool IsInside(const Point& point);
 		bool Intersect(const Rectangle& other);
+		bool Contains(const Rectangle& other);
 
 		bool operator==(const Rectangle& other) const noexcept
 		{

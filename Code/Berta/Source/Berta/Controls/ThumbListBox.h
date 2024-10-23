@@ -64,6 +64,7 @@ namespace Berta
 			int GetItemIndexAtMousePosition(const Point& position);
 			void ClearSelection();
 			std::vector<size_t> GetSelectedItems() const;
+			void EnsureVisibility(int lastSelectedIndex);
 
 			std::vector<ItemType> Items;
 			uint32_t ThumbnailSize{ 96u };

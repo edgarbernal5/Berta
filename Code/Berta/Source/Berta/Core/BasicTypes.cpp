@@ -51,6 +51,12 @@ namespace Berta
 			this->Y + (int)this->Height <= other.Y || other.Y + (int)other.Height <= this->Y);
 	}
 
+	bool Rectangle::Contains(const Rectangle& other)
+	{
+		return other.X >= this->X && other.X + (int)other.Width <= (int)this->Width &&
+			other.Y >= this->Y && other.Y + (int)other.Height <= (int)this->Height;
+	}
+
 	Rectangle::operator Size() const
 	{
 		return Size{ Width, Height };

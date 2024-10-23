@@ -189,6 +189,7 @@ namespace Berta
 				m_module.Items[itemAtPosition].IsSelected = true;
 				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
 				m_module.m_mouseSelection.m_selectedIndex = itemAtPosition;
+				m_module.EnsureVisibility(itemAtPosition);
 			}
 		}
 		else if (m_module.m_multiselection && hitOnBlank)
@@ -239,6 +240,7 @@ namespace Berta
 				{
 					m_module.Items[itemAtPosition].IsSelected = true;
 					hasChanged = true;
+					m_module.EnsureVisibility(itemAtPosition);
 				}
 				
 				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
@@ -276,6 +278,7 @@ namespace Berta
 						}
 					}
 				}
+				m_module.EnsureVisibility(itemAtPosition);
 				hasChanged = true;
 			}
 		}
@@ -410,7 +413,7 @@ namespace Berta
 				auto newItemIndex= pivot + direction;
 				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
 				{
-					if (!m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+					if (!m_module.m_multiselection || (!m_module.m_shiftPressed && !m_module.m_ctrlPressed))
 					{
 						m_module.ClearSelection();
 					}
@@ -419,11 +422,13 @@ namespace Berta
 						m_module.Items[newItemIndex].IsSelected = true;
 						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
 						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
 					else if (m_module.m_ctrlPressed)
 					{
 						m_module.m_mouseSelection.m_pressedIndex += direction;
 					}
+					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
 
 					hasChanged = true;
 				}
@@ -445,12 +450,12 @@ namespace Berta
 				auto newItemIndex = pivot + direction * totalCardsInRow;
 				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
 				{
-					if (!m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+					if (!m_module.m_multiselection || !m_module.m_shiftPressed && !m_module.m_ctrlPressed)
 					{
 						m_module.ClearSelection();
 					}
 
-					if (m_module.m_shiftPressed)
+					if (m_module.m_multiselection && m_module.m_shiftPressed)
 					{
 						int end = newItemIndex + direction;
 						int start = m_module.m_mouseSelection.m_pressedIndex;
@@ -473,8 +478,9 @@ namespace Berta
 						m_module.Items[newItemIndex].IsSelected = true;
 						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
 						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
-
+					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
 					hasChanged = true;
 				}
 			}
@@ -678,6 +684,58 @@ namespace Berta
 		return m_mouseSelection.m_selections;
 	}
 
+	void ThumbListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
+	{
+		if (!m_scrollBar)
+		{
+			return;
+		}
+
+		auto item = Items[lastSelectedIndex];
+		item.Bounds.Y -= m_state.m_offset;
+
+		Rectangle viewportRect;
+		uint32_t totalRows;
+		uint32_t totalCardsInRow;
+		uint32_t innerMargin;
+		uint32_t cardMargin;
+		uint32_t cardMarginHalf;
+		int contentSize;
+		Size cardSize;
+		CalculateViewport(viewportRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
+
+		if (viewportRect.Contains(item.Bounds))
+		{
+			return;
+		}
+
+		int itemHeight = static_cast<int>(item.Bounds.Height);
+		int viewportHeight = static_cast<int>(viewportRect.Height);
+		int innerMarginDouble = static_cast<int>(innerMargin * 2u);
+		auto offsetAdjustment = 0;
+		if (item.Bounds.Y >= viewportHeight)
+		{
+			offsetAdjustment = itemHeight + innerMarginDouble;
+		}
+		else if (item.Bounds.Y + itemHeight <= 0)
+		{
+			offsetAdjustment = -itemHeight - innerMarginDouble;
+		}
+		else if (item.Bounds.Y + itemHeight > 0 && item.Bounds.Y + itemHeight < viewportHeight)
+		{
+			offsetAdjustment = (item.Bounds.Y + itemHeight) - itemHeight - innerMarginDouble;
+		}
+		else
+		{
+			offsetAdjustment = (item.Bounds.Y + itemHeight) - viewportHeight;
+		}
+		m_state.m_offset = std::clamp(m_state.m_offset + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+		m_scrollBar->SetValue(m_state.m_offset);
+
+		m_scrollBar->Handle()->Renderer.Update();
+		GUI::RefreshWindow(m_scrollBar->Handle());
+	}
+
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
 		Rectangle backgroundRect;
@@ -690,7 +748,7 @@ namespace Berta
 		Size cardSize;
 		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
-		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin/* - m_state.m_offset*/ };
+		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin };
 		for (size_t i = 0, k = 1; i < Items.size(); i++, ++k)
 		{
 			auto& item = Items[i];
