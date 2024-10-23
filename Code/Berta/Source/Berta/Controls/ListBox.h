@@ -28,7 +28,11 @@ namespace Berta
 	class ListBox : public Control<ListBoxReactor>
 	{
 	public:
+		ListBox() = default;
 		ListBox(Window* parent, const Rectangle& rectangle);
+
+		void AppendHeader(const std::string& name, uint32_t width);
+		void Clear();
 	};
 }
 

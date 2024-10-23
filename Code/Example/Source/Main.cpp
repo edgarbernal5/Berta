@@ -14,6 +14,7 @@
 #include <Berta/Controls/Panel.h>
 #include <Berta/Controls/TabBar.h>
 #include <Berta/Controls/ThumbListBox.h>
+#include <Berta/Controls/ListBox.h>
 #include <iostream>
 
 class TabExample1 : public Berta::Panel
@@ -35,6 +36,7 @@ public:
 			std::cout << "CLICK button tab panel 1" << std::endl;
 		});
 	}
+
 	TabExample1() : Panel()
 	{
 	}
@@ -50,11 +52,24 @@ public:
 	{
 #ifdef BT_DEBUG
 		SetDebugName("Tab Player");
+
+		m_listBox.Create(*this, true, { 15, 15, 200, 200 });
+
+		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+			{
+				auto currentPosition = m_listBox.GetPosition();
+				m_listBox.SetSize({ args.NewSize.Width - currentPosition.X - 10, args.NewSize.Height - currentPosition.Y - 10 });
+			});
 #endif
 	}
+
 	TabExample2() : Panel()
 	{
 	}
+
+private:
+
+	Berta::ListBox m_listBox;
 };
 
 

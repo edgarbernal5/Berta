@@ -18,8 +18,13 @@ namespace Berta
 
 	void ListBoxReactor::Update(Graphics& graphics)
 	{
+		auto enabled = m_control->GetEnabled();
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+
+
+
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
 	}
 
 	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
