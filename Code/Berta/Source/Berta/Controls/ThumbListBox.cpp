@@ -158,13 +158,13 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		m_module.m_mouseDownPosition = args.Position;
 		auto itemAtPosition = m_module.GetItemIndexAtMousePosition(args.Position);
 		bool hitOnBlank = itemAtPosition == -1;
 
 		bool hasChanged = false;
 		auto savedLastSelectedIndex = m_module.m_mouseSelection.m_pressedIndex;
 		m_module.m_mouseSelection.m_pressedIndex = itemAtPosition;
+
 		if (!m_module.m_multiselection && hitOnBlank)
 		{
 			if (m_module.m_mouseSelection.m_selectedIndex != -1)

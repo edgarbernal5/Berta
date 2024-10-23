@@ -72,7 +72,6 @@ namespace Berta
 			ThumbListBoxAppearance* Appearance{ nullptr };
 			State m_state;
 			Window* m_window{ nullptr };
-			Point m_mouseDownPosition;
 			bool m_multiselection{ true };
 
 			struct MouseSelection
