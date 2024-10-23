@@ -239,11 +239,15 @@ namespace Berta
 				if (!m_module.Items[itemAtPosition].IsSelected)
 				{
 					m_module.Items[itemAtPosition].IsSelected = true;
-					hasChanged = true;
+					m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
 					m_module.EnsureVisibility(itemAtPosition);
+					hasChanged = true;
 				}
-				
-				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
+				else if (savedLastSelectedIndex != itemAtPosition)
+				{
+					m_module.EnsureVisibility(itemAtPosition);
+					hasChanged = true;
+				}
 			}
 			else
 			{
