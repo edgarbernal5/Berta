@@ -19,6 +19,7 @@ namespace Berta
 			Control = 0x11,
 			Alt = 0x12,
 			Escape = 0x1b,
+			Space = 0x20,
 			End = 0x23,
 			Home = 0x24,
 			ArrowLeft = 0x25,

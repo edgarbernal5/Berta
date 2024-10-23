@@ -79,12 +79,9 @@ namespace Berta
 			if (cardRect.Y <= static_cast<int>(backgroundRect.Height + innerMargin) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
 			{
 				bool isSelected = item.IsSelected;
+				bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
 				//graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
 				graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
-
-				auto lineColor = enabled ? (isSelected ? window->Appereance->BoxBorderHighlightColor : window->Appereance->BoxBorderColor) : window->Appereance->BoxBorderDisabledColor;
-				graphics.DrawRectangle(cardRect, lineColor, false);
-				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 
 				Size imageSize = window->ToScale(item.Thumbnail.GetSize());
 				Size thumbFrameSize{ thumbSize, thumbSize };
@@ -105,6 +102,10 @@ namespace Berta
 					}
 					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
 				}
+
+				auto lineColor = enabled ? (isLastSelected ? window->Appereance->Foreground : (isSelected ? window->Appereance->BoxBorderHighlightColor : window->Appereance->BoxBorderColor)) : window->Appereance->BoxBorderDisabledColor;
+				graphics.DrawRectangle(cardRect, lineColor, false);
+				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 			}
 
 			offset.X += cardMargin + cardSize.Width + innerMargin * 2u;
@@ -409,11 +410,21 @@ namespace Berta
 				auto newItemIndex= pivot + direction;
 				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
 				{
-					m_module.ClearSelection();
-					m_module.Items[newItemIndex].IsSelected = true;
+					if (!m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+					{
+						m_module.ClearSelection();
+					}
+					if (m_module.m_shiftPressed || !m_module.m_ctrlPressed)
+					{
+						m_module.Items[newItemIndex].IsSelected = true;
+						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+					}
+					else if (m_module.m_ctrlPressed)
+					{
+						m_module.m_mouseSelection.m_pressedIndex += direction;
+					}
 
-					m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
-					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
 					hasChanged = true;
 				}
 			}
@@ -434,13 +445,58 @@ namespace Berta
 				auto newItemIndex = pivot + direction * totalCardsInRow;
 				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
 				{
-					m_module.ClearSelection();
-					m_module.Items[newItemIndex].IsSelected = true;
+					if (!m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+					{
+						m_module.ClearSelection();
+					}
 
-					m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
-					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					if (m_module.m_shiftPressed)
+					{
+						int end = newItemIndex + direction;
+						int start = m_module.m_mouseSelection.m_pressedIndex;
+						int current = start + direction;
+						while (current != end)
+						{
+
+							m_module.Items[current].IsSelected = true;
+							m_module.m_mouseSelection.m_selections.push_back(current);
+							current += direction;
+						}
+						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					}
+					else if (m_module.m_ctrlPressed)
+					{
+						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					}
+					else
+					{
+						m_module.Items[newItemIndex].IsSelected = true;
+						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					}
+
 					hasChanged = true;
 				}
+			}
+		}
+		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
+		{
+			if (m_module.m_mouseSelection.m_pressedIndex != -1)
+			{
+				auto& isSelected = m_module.Items[m_module.m_mouseSelection.m_pressedIndex].IsSelected;
+				isSelected = !isSelected;
+				if (isSelected)
+				{
+					m_module.m_mouseSelection.m_selections.push_back(m_module.m_mouseSelection.m_pressedIndex);
+				}
+				else {
+					auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), m_module.m_mouseSelection.m_pressedIndex);
+					if (it != m_module.m_mouseSelection.m_selections.end())
+					{
+						m_module.m_mouseSelection.m_selections.erase(it);
+					}
+				}
+				hasChanged = true;
 			}
 		}
 

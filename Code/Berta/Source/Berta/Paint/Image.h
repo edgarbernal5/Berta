@@ -13,7 +13,6 @@
 namespace Berta
 {
 	class Graphics;
-	//TODO: refactor Image class
 
 	class AbstractImageAttributes
 	{
@@ -50,22 +49,6 @@ namespace Berta
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect);
 
 	private:
-
-		void CheckAndUpdateHdc(uint32_t currentDpi, bool enabled);
-		void OpenIcon(const std::string& filepath);
-
-//		//TODO: move this attributes to NativeAttributes
-//		unsigned char* m_imageData{ nullptr };
-//		Size m_size{};
-//		int m_channels{ 0 };
-//		bool m_hasTransparency{ false };
-//		uint32_t m_lastDpi{ 0 };
-//		bool m_enabled{ true };
-//
-//#if BT_PLATFORM_WINDOWS
-//		bool m_isIcon{ false };
-//#endif
-		//TODO: create a polymorphic classes to handle all type of images (BMP, ICO, etc)
 		std::shared_ptr<AbstractImageAttributes> m_attributes;
 	};
 }
