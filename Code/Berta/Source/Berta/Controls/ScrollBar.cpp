@@ -34,7 +34,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ScrollBarBackground, true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ScrollBarBackground, true);
 
 		if (!IsValid())
 		{
@@ -50,8 +50,8 @@ namespace Berta
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
 
-			graphics.DrawRectangle(scrollBoxRect, window->Appereance->Background, true);
-			graphics.DrawRectangle(scrollBoxRect, window->Appereance->BoxBorderColor, false);
+			graphics.DrawRectangle(scrollBoxRect, window->Appearance->Background, true);
+			graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
 		}
 
 		DrawButton(graphics, { 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Downwards, m_hoverArea == InteractionArea::Button2, enabled);
@@ -271,17 +271,17 @@ namespace Berta
 
 	uint32_t ScrollBarReactor::GetButtonSize() const
 	{
-		return m_control->Handle()->ToScale(m_control->Handle()->Appereance->ScrollBarSize);
+		return m_control->Handle()->ToScale(m_control->Handle()->Appearance->ScrollBarSize);
 	}
 
 	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled)
 	{
 		if (isHighlighted && isEnabled)
 		{
-			graphics.DrawRectangle(rect, m_control->Handle()->Appereance->ButtonHighlightBackground, true);
+			graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonHighlightBackground, true);
 		}
-		graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appereance->BoxBorderColor : m_control->Handle()->Appereance->BoxBorderDisabledColor, false);
-		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appereance->BoxBorderColor : m_control->Handle()->Appereance->BoxBorderDisabledColor, direction, true);
+		graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}
 
 	ScrollBarReactor::InteractionArea ScrollBarReactor::DetermineHoverArea(const Point& position) const

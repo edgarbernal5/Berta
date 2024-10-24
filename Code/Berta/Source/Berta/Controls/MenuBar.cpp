@@ -33,7 +33,7 @@ namespace Berta
 		auto window = m_module.m_owner;
 		bool enabled = m_module.m_control->GetEnabled();
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->ButtonBackground : window->Appereance->ButtonDisabledBackground, true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground, true);
 
 		auto& items = m_module.m_items;
 		auto itemMargin = window->ToScale(4u);
@@ -44,19 +44,19 @@ namespace Berta
 
 			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
-				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appereance->MenuBackground : window->Appereance->HighlightColor, true);
+				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
 
 				if (m_module.IsMenuOpen())
 				{
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appereance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appereance->BoxBorderColor);
+					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appearance->BoxBorderColor);
+					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
+					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
 				}
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, m_module.IsMenuOpen() ? window->Appereance->Foreground : window->Appereance->HighlightTextColor);
+				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, m_module.IsMenuOpen() ? window->Appearance->Foreground : window->Appearance->HighlightTextColor);
 			}
 			else
 			{
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 			}
 		}
 	}

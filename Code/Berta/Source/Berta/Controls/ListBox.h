@@ -12,7 +12,7 @@
 #include "Berta/Controls/Panel.h"
 
 #include <string>
-#include <list>
+#include <vector>
 
 namespace Berta
 {
@@ -22,17 +22,50 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		struct Headers
+		{
+			struct Item
+			{
+				Item() {}
+				Item(const std::string& text, uint32_t width) : Name(text), Width(width) {}
+
+				std::string Name;
+				uint32_t Width{ 120 };
+			};
+
+			void Append(const std::string& text, uint32_t width);
+
+			std::vector<Item> Items;
+		};
+
+		struct List
+		{
+			struct Item
+			{
+				std::string Text;
+			};
+		};
+
+		Headers& GetHeaders() { return m_headers; }
 	private:
+		void CalculateViewport(Rectangle& backgroundRect);
+
+		Headers m_headers;
+		Window* m_window;
+		ListBoxAppearance* m_appearance{ nullptr };
 	};
 
-	class ListBox : public Control<ListBoxReactor>
+	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>
 	{
 	public:
 		ListBox() = default;
 		ListBox(Window* parent, const Rectangle& rectangle);
 
 		void AppendHeader(const std::string& name, uint32_t width);
+		void Append(const std::string& text);
+		void Append(std::initializer_list<std::string> texts);
 		void Clear();
+		void ClearHeaders();
 	};
 }
 

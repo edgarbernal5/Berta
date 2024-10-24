@@ -51,36 +51,36 @@ namespace Berta
 		bool enabled = m_control->GetEnabled();
 		if (m_status == State::Normal)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 		}
 		else if (m_status == State::Hovered)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxHightlightBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxHightlightBackground, true);
 		}
 
 		//m_textEditor->Render();
 
 		auto textItemHeight = graphics.GetTextExtent().Height;
-		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
+		graphics.DrawString({ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 }, m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 
 		auto buttonSize = window->ToScale(20u);
 
-		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, window->Appereance->Background, true);
+		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize), 1, buttonSize, window->Size.Height - 2 }, window->Appearance->Background, true);
 
 		int arrowWidth = window->ToScale(6);
 		int arrowLength = window->ToScale(3);
 		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) , 1, buttonSize, window->Size.Height }, 
 			arrowLength, 
 			arrowWidth, 
-			enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor,
+			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
 			Graphics::ArrowDirection::Downwards, 
 			true);
 
 		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize), 1 }, 
 			{ static_cast<int>(window->Size.Width - buttonSize), (int)window->Size.Height - 1 },
-			enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor);
+			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void ComboBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -105,7 +105,7 @@ namespace Berta
 			auto pointInScreen = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_interactionData.m_items.size(), m_interactionData.m_maxItemsToDisplay));
-			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appereance->ComboBoxItemHeight);
+			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appearance->ComboBoxItemHeight);
 			m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->Size.Height, window->Size.Width, floatBoxHeight + 2u });
 			m_floatBox->Init(m_interactionData);
 

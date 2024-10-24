@@ -30,15 +30,15 @@ namespace Berta
 	void TabBarReactor::Update(Graphics& graphics)
 	{
 		auto enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(m_module.m_owner->Appereance->Background, true);
+		graphics.DrawRectangle(m_module.m_owner->Appearance->Background, true);
 
 		if (m_module.Panels.empty() || m_module.SelectedTabIndex == -1)
 		{
-			graphics.DrawRectangle(m_module.m_owner->Appereance->BoxBorderColor, false);
+			graphics.DrawRectangle(m_module.m_owner->Appearance->BoxBorderColor, false);
 			return;
 		}
 
-		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_owner->Appereance->TabBarItemHeight);
+		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_owner->Appearance->TabBarItemHeight);
 		auto tabPadding = m_module.m_owner->ToScale(10);
 		auto tabMarginUnselected = m_module.m_owner->ToScale(4);
 		auto one = m_module.m_owner->ToScale(1);
@@ -54,45 +54,45 @@ namespace Berta
 			{
 				/*if (lastPositionX == 0)
 				{
-					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem.Size.Width - 1, 0 }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem.Size.Width - 1, 1 }, { lastPositionX + (int)tabItem.Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem.Size.Width - 1, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + (int)tabItem.Size.Width - 1, 1 }, { lastPositionX + (int)tabItem.Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 				}
 				else*/
 				{
-					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem->Size.Width - 1, 0 }, m_module.m_owner->Appereance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem->Size.Width - 1, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 				}
 
-				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height }, tabItem->Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height }, tabItem->Id, enabled ? m_module.m_owner->Appearance->Foreground : m_module.m_owner->Appearance->BoxBorderDisabledColor);
 				selectedPositionX = lastPositionX;
 			}
 			else
 			{
 				//if (i == 0)
 				{
-					graphics.DrawLine({ lastPositionX, 1 + tabMarginUnselected }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+					graphics.DrawLine({ lastPositionX, 1 + tabMarginUnselected }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 				}
-				graphics.DrawLine({ lastPositionX + 1, tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected }, m_module.m_owner->Appereance->BoxBorderColor);
-				graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected + 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+				graphics.DrawLine({ lastPositionX + 1, tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected }, m_module.m_owner->Appearance->BoxBorderColor);
+				graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected + 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 
-				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height + one }, tabItem->Id, enabled ? m_module.m_owner->Appereance->Foreground : m_module.m_owner->Appereance->BoxBorderDisabledColor);
+				graphics.DrawString({ (int)tabItem->Center.Width + lastPositionX,(int)tabItem->Center.Height + one }, tabItem->Id, enabled ? m_module.m_owner->Appearance->Foreground : m_module.m_owner->Appearance->BoxBorderDisabledColor);
 			}
 			lastPositionX += (int)tabItem->Size.Width;
 		}
 		auto selectedTabItem = m_module.At(m_module.SelectedTabIndex);
 		if (selectedPositionX > 0)
 		{
-			graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+			graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 		}
-		graphics.DrawLine({ 0, tabBarItemHeight }, { 0, (int)m_module.m_owner->Size.Height }, m_module.m_owner->Appereance->BoxBorderColor);
-		graphics.DrawLine({ 0, (int)m_module.m_owner->Size.Height-1 }, { (int)m_module.m_owner->Size.Width, (int)m_module.m_owner->Size.Height-1 }, m_module.m_owner->Appereance->BoxBorderColor);
-		graphics.DrawLine({ (int)m_module.m_owner->Size.Width - 1,  tabBarItemHeight + 1 }, { (int)m_module.m_owner->Size.Width - 1, (int)m_module.m_owner->Size.Height }, m_module.m_owner->Appereance->BoxBorderColor);
+		graphics.DrawLine({ 0, tabBarItemHeight }, { 0, (int)m_module.m_owner->Size.Height }, m_module.m_owner->Appearance->BoxBorderColor);
+		graphics.DrawLine({ 0, (int)m_module.m_owner->Size.Height-1 }, { (int)m_module.m_owner->Size.Width, (int)m_module.m_owner->Size.Height-1 }, m_module.m_owner->Appearance->BoxBorderColor);
+		graphics.DrawLine({ (int)m_module.m_owner->Size.Width - 1,  tabBarItemHeight + 1 }, { (int)m_module.m_owner->Size.Width - 1, (int)m_module.m_owner->Size.Height }, m_module.m_owner->Appearance->BoxBorderColor);
 
 		if (selectedPositionX + (int)selectedTabItem->Size.Width < (int)m_module.m_owner->Size.Width)
 		{
-			graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width,tabBarItemHeight }, { (int)m_module.m_owner->Size.Width, tabBarItemHeight }, m_module.m_owner->Appereance->BoxBorderColor);
+			graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width,tabBarItemHeight }, { (int)m_module.m_owner->Size.Width, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 		}
 	}
 
@@ -252,7 +252,7 @@ namespace Berta
 			return;
 		}
 
-		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appereance->TabBarItemHeight);
+		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appearance->TabBarItemHeight);
 		auto tabPadding = m_owner->ToScale(10u);
 
 		Point offset{ 0, 0 };
@@ -322,7 +322,7 @@ namespace Berta
 
 	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel)
 	{
-		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appereance->TabBarItemHeight);
+		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appearance->TabBarItemHeight);
 		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
 		GUI::MoveWindow(panel->Handle(), rect);
 	}

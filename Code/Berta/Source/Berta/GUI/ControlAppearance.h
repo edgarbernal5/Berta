@@ -54,6 +54,11 @@ namespace Berta
 	{
 		uint32_t ThumbnailCardHeight = 45;
 	};
+
+	struct ListBoxAppearance : public ControlAppearance
+	{
+		uint32_t HeadersHeight = 24;
+	};
 }
 
 #endif

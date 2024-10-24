@@ -24,27 +24,27 @@ namespace Berta
 		
 		if (!enabled)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonDisabledBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonDisabledBackground, true);
 		}
 		else if (m_status == State::Normal)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonBackground, true);
 		}
 		else if (m_status == State::Hovered)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonHighlightBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonHighlightBackground, true);
 		}
 		else if (m_status == State::Pressed)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->ButtonPressedBackground, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonPressedBackground, true);
 		}
-		graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
-		//graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+		graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		//graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
 		auto center = window->Size - graphics.GetTextExtent(caption);
 		center = center * 0.5f;
-		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, enabled ? window->Appereance->Foreground : window->Appereance->BoxBorderDisabledColor);
+		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 	}
 
 	void ButtonReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

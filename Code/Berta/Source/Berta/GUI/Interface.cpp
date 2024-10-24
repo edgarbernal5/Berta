@@ -225,7 +225,7 @@ namespace Berta::GUI
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Build(window->Size);
 			graphics.BuildFont(window->DPI);
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->Background, true);
+			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
 			
 			window->Renderer.Init(*control, controlReactor);
 			window->Renderer.Update();
@@ -246,7 +246,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			window->Appereance = controlAppearance;
+			window->Appearance = controlAppearance;
 		}
 	}
 

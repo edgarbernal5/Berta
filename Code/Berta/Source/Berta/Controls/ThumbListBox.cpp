@@ -17,7 +17,7 @@ namespace Berta
 	void ThumbListBoxReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
-		m_module.Appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appereance.get());
+		m_module.Appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appearance.get());
 
 		m_module.m_window = control.Handle();
 	}
@@ -38,13 +38,13 @@ namespace Berta
 		Size cardSize;
 		m_module.CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appereance->BoxBackground, true);
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		if (contentSize > static_cast<int>(backgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
 			{
-				auto scrollSize = window->ToScale(window->Appereance->ScrollBarSize);
+				auto scrollSize = window->ToScale(window->Appearance->ScrollBarSize);
 				Rectangle scrollRect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
 
 				m_module.m_scrollBar = std::make_unique<ScrollBar>(window, false, scrollRect);
@@ -80,8 +80,8 @@ namespace Berta
 			{
 				bool isSelected = item.IsSelected;
 				bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
-				//graphics.DrawRectangle(cardRect, isSelected ? window->Appereance->HighlightColor : window->Appereance->Background, true);
-				graphics.DrawRectangle(cardRect, window->Appereance->Background, true);
+				//graphics.DrawRectangle(cardRect, isSelected ? window->Appearance->HighlightColor : window->Appearance->Background, true);
+				graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
 				Size imageSize = window->ToScale(item.Thumbnail.GetSize());
 				Size thumbFrameSize{ thumbSize, thumbSize };
@@ -98,12 +98,12 @@ namespace Berta
 
 					if (isSelected)
 					{
-						graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appereance->HighlightColor, true);
+						graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 					}
-					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground);
+					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground);
 				}
 
-				auto lineColor = enabled ? (isLastSelected ? window->Appereance->Foreground : (isSelected ? window->Appereance->BoxBorderHighlightColor : window->Appereance->BoxBorderColor)) : window->Appereance->BoxBorderDisabledColor;
+				auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 				graphics.DrawRectangle(cardRect, lineColor, false);
 				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 			}
@@ -130,16 +130,16 @@ namespace Berta
 			};
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
-			Color blendColor = window->Appereance->HighlightColor;
+			Color blendColor = window->Appearance->HighlightColor;
 			Graphics selectionBox(boxSize);
 			selectionBox.DrawRectangle(blendColor, true);
-			selectionBox.DrawRectangle(window->Appereance->BoxBorderColor, false);
+			selectionBox.DrawRectangle(window->Appearance->BoxBorderColor, false);
 
 			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
 		}
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appereance->BoxBorderColor : window->Appereance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -150,7 +150,7 @@ namespace Berta
 
 		if (m_module.m_scrollBar)
 		{
-			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appereance->ScrollBarSize);
+			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
 			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
 			GUI::MoveWindow(m_module.m_scrollBar->Handle(), scrollRect);
 		}
@@ -543,7 +543,7 @@ namespace Berta
 		backgroundRect.X = innerMargin;
 		backgroundRect.Y = innerMargin;
 
-		auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
+		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 		
 		auto thumbSize = m_window->ToScale(ThumbnailSize);
 		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
@@ -631,7 +631,7 @@ namespace Berta
 
 		if (!m_scrollBar)
 		{
-			auto scrollSize = m_window->ToScale(m_window->Appereance->ScrollBarSize);
+			auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
 
 			m_scrollBar = std::make_unique<ScrollBar>(m_window, false, scrollRect);

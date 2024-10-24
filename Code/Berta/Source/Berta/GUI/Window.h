@@ -56,7 +56,7 @@ namespace Berta
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
-		std::shared_ptr<ControlAppearance> Appereance{ nullptr };
+		std::shared_ptr<ControlAppearance> Appearance{ nullptr };
 		std::shared_ptr<ControlEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr }; //TODO: a lo mejor debemos usar un puntero a ControlBase y eliminamos esta interfaz
 

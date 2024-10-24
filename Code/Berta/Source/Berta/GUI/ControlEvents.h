@@ -156,6 +156,11 @@ namespace Berta
 		Event<ArgThumbListBox>	Selected;
 		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
 	};
+
+	struct ListBoxEvents : public ControlEvents
+	{
+		Event<ArgThumbListBox>	Selected;
+	};
 }
 
 #endif

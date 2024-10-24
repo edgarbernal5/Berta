@@ -130,12 +130,12 @@ namespace Berta
 			}
 		}
 
-		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appereance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = parent->ToScale(ItemTextPadding);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appereance->MenuBoxSubMenuArrowWidth) : 0;
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appearance->MenuBoxSubMenuArrowWidth) : 0;
 		auto separatorHeight = parent->ToScale(SeparatorHeight);
-		auto menuBoxItemHeight = parent->ToScale(parent->Appereance->MenuBoxItemHeight);
-		auto menuBoxShortcutWidth = parent->ToScale(parent->Appereance->MenuBoxShortcutWidth);
+		auto menuBoxItemHeight = parent->ToScale(parent->Appearance->MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(parent->Appearance->MenuBoxShortcutWidth);
 
 		return { 
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
@@ -188,12 +188,12 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 
-		graphics.DrawRectangle(window->Appereance->MenuBackground, true);
+		graphics.DrawRectangle(window->Appearance->MenuBackground, true);
 
-		auto menuBoxLeftPaneWidth = window->ToScale(window->Appereance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = window->ToScale(window->Appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = window->ToScale(ItemTextPadding);
-		auto menuBoxItemHeight = window->ToScale(window->Appereance->MenuBoxItemHeight);
-		auto menuBoxSubMenuArrowWidth = window->ToScale(window->Appereance->MenuBoxSubMenuArrowWidth);
+		auto menuBoxItemHeight = window->ToScale(window->Appearance->MenuBoxItemHeight);
+		auto menuBoxSubMenuArrowWidth = window->ToScale(window->Appearance->MenuBoxSubMenuArrowWidth);
 		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		if (m_items)
@@ -205,7 +205,7 @@ namespace Berta
 				if (item.isSpearator)
 				{
 					int separatorCenterOffset = (separatorHeight >> 1) - 1;
-					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->Size.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appereance->BoxBorderColor);
+					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->Size.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appearance->BoxBorderColor);
 					offsetY += separatorHeight;
 				}
 				else
@@ -217,7 +217,7 @@ namespace Berta
 					bool isItemSelected = m_selectedIndex == (int)i;
 					if (isItemSelected)
 					{
-						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->Size.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appereance->HighlightColor, true);
+						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->Size.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appearance->HighlightColor, true);
 					}
 					if (item.m_image)
 					{
@@ -232,7 +232,7 @@ namespace Berta
 						Rectangle destRect{ { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, scaleImageSize };
 						item.m_image.Paste(item.m_image.GetSize().ToRectangle(), graphics, destRect);
 					}
-					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor);
+					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
 					
 					if (item.m_subMenu)
 					{
@@ -241,7 +241,7 @@ namespace Berta
 						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
-							item.isEnabled ? (isItemSelected ? window->Appereance->HighlightTextColor : window->Appereance->Foreground) : window->Appereance->BoxBorderDisabledColor,
+							item.isEnabled ? (isItemSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
 							Graphics::ArrowDirection::Right,
 							true);
 					}
@@ -251,10 +251,10 @@ namespace Berta
 			}
 		}
 
-		graphics.DrawRectangle(window->Appereance->BoxBorderColor, false);
+		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 		if (m_menuBarItemRect.Width > 0)
 		{
-			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appereance->MenuBackground);
+			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appearance->MenuBackground);
 		}
 	}
 
@@ -540,9 +540,9 @@ namespace Berta
 		m_itemSizePositions.clear();
 
 		auto window = m_control->Handle();
-		auto menuBoxLeftPaneWidth = window->ToScale(window->Appereance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = window->ToScale(window->Appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = window->ToScale(ItemTextPadding);
-		auto menuBoxItemHeight = window->ToScale(window->Appereance->MenuBoxItemHeight);
+		auto menuBoxItemHeight = window->ToScale(window->Appearance->MenuBoxItemHeight);
 		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		Point position{ 1 + (int)itemTextPadding, 1 + (int)itemTextPadding };
@@ -598,12 +598,12 @@ namespace Berta
 			}
 		}
 
-		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appereance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = parent->ToScale(ItemTextPadding);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appereance->MenuBoxSubMenuArrowWidth) : 0;
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appearance->MenuBoxSubMenuArrowWidth) : 0;
 		auto separatorHeight = parent->ToScale(SeparatorHeight);
-		auto menuBoxItemHeight = parent->ToScale(parent->Appereance->MenuBoxItemHeight);
-		auto menuBoxShortcutWidth = parent->ToScale(parent->Appereance->MenuBoxShortcutWidth);
+		auto menuBoxItemHeight = parent->ToScale(parent->Appearance->MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(parent->Appearance->MenuBoxShortcutWidth);
 
 		return {
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
