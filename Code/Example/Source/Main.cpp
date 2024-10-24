@@ -55,6 +55,7 @@ public:
 
 		m_listBox.Create(*this, true, { 15, 15, 200, 200 });
 
+		m_listBox.AppendHeader("Game list");
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();

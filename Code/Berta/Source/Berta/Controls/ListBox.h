@@ -61,7 +61,7 @@ namespace Berta
 		ListBox() = default;
 		ListBox(Window* parent, const Rectangle& rectangle);
 
-		void AppendHeader(const std::string& name, uint32_t width);
+		void AppendHeader(const std::string& name, uint32_t width = 120);
 		void Append(const std::string& text);
 		void Append(std::initializer_list<std::string> texts);
 		void Clear();

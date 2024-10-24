@@ -13,7 +13,6 @@
 
 namespace Berta
 {
-
 	void ThumbListBoxReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
