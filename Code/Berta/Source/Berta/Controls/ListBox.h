@@ -38,12 +38,14 @@ namespace Berta
 			std::vector<Item> Items;
 		};
 
+		struct Cell
+		{
+			std::string Text;
+		};
+
 		struct List
 		{
-			struct Item
-			{
-				std::string Text;
-			};
+			std::vector<Cell> Cells;
 		};
 
 		Headers& GetHeaders() { return m_headers; }
