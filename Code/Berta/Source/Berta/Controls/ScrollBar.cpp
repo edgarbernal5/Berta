@@ -44,7 +44,11 @@ namespace Berta
 		int arrowWidth = window->ToScale(6);
 		int arrowLength = window->ToScale(3);
 
-		DrawButton(graphics, { 0, 0, window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Upwards, m_hoverArea == InteractionArea::Button1, enabled);
+		Rectangle button1Rect = m_isVertical ?
+			Rectangle{ 0, 0, window->Size.Width, buttonSize } :
+			Rectangle{ 0, 0, buttonSize,  window->Size.Height };
+
+		DrawButton(graphics, button1Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Left, m_hoverArea == InteractionArea::Button1, enabled);
 
 		if (isScrollable())
 		{
@@ -54,7 +58,10 @@ namespace Berta
 			graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
 		}
 
-		DrawButton(graphics, { 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }, arrowLength, arrowWidth, Graphics::ArrowDirection::Downwards, m_hoverArea == InteractionArea::Button2, enabled);
+		Rectangle button2Rect = m_isVertical ?
+			Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize } :
+			Rectangle{ (int)(window->Size.Width - buttonSize), 0, buttonSize, window->Size.Height };
+		DrawButton(graphics, button2Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right, m_hoverArea == InteractionArea::Button2, enabled);
 	}
 
 	void ScrollBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -243,6 +250,17 @@ namespace Berta
 					SetValue(m_value + m_localStep);
 				}
 			}
+			else
+			{
+				if (m_trackPageUp && mousePosition.X <= scrollBoxRect.X)
+				{
+					SetValue(m_value - m_localStep);
+				}
+				else if (!m_trackPageUp && mousePosition.X >= scrollBoxRect.X + (int)scrollBoxRect.Width)
+				{
+					SetValue(m_value + m_localStep);
+				}
+			}
 		}
 
 		if (oldValue != m_value)
@@ -311,6 +329,26 @@ namespace Berta
 
 				return InteractionArea::ScrollTrack;
 			}
+		}
+		if (Rectangle{ 0, 0, buttonSize, window->Size.Height }.IsInside(position))
+		{
+			return InteractionArea::Button1;
+		}
+		if (Rectangle{ (int)(window->Size.Width - buttonSize), 0, buttonSize, window->Size.Height }.IsInside(position))
+		{
+			return InteractionArea::Button2;
+		}
+
+		if (isScrollable())
+		{
+			auto scrollBoxRect = GetScrollBoxRect();
+
+			if (scrollBoxRect.IsInside(position))
+			{
+				return InteractionArea::Scrollbox;
+			}
+
+			return InteractionArea::ScrollTrack;
 		}
 		return InteractionArea::None;
 	}

@@ -457,7 +457,7 @@ namespace Berta
 		Size contentSize;
 		if (position == 0)
 		{
-			contentSize = { 0,m_graphics.GetTextExtent().Height };
+			contentSize = { 0, m_graphics.GetTextExtent().Height };
 		}
 		else
 		{

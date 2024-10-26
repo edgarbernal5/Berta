@@ -554,7 +554,7 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.x), static_cast<int>(screenToClientPoint.y) });
 			if (window)
 			{
-				ArgWheel argWheel;
+				ArgWheel argWheel{};
 				argWheel.WheelDelta = wheelDelta;
 				argWheel.IsVertical = message == WM_MOUSEWHEEL;
 

@@ -55,7 +55,14 @@ public:
 
 		m_listBox.Create(*this, true, { 15, 15, 200, 200 });
 
-		m_listBox.AppendHeader("Game list");
+		m_listBox.AppendHeader("Nombre completo", 500);
+		m_listBox.AppendHeader("Edad", 300);
+
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38" });
+			m_listBox.Append({ "Bruno", "3" });
+		}
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();

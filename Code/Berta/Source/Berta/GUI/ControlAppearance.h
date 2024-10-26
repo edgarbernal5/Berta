@@ -57,7 +57,8 @@ namespace Berta
 
 	struct ListBoxAppearance : public ControlAppearance
 	{
-		uint32_t HeadersHeight = 24;
+		uint32_t HeadersHeight = 26;
+		uint32_t ListItemHeight = 24;
 	};
 }
 
