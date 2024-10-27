@@ -34,10 +34,13 @@ namespace Berta
 			struct ItemData
 			{
 				ItemData() {}
-				ItemData(const std::string& text, uint32_t width) : Name(text), Width(width) {}
+				ItemData(const std::string& text, uint32_t width) : Name(text)
+				{
+					Bounds.Width = width;
+				}
 
 				std::string Name;
-				uint32_t Width{ 120 };
+				Rectangle Bounds;
 			};
 
 			std::vector<ItemData> Items;
@@ -54,10 +57,12 @@ namespace Berta
 		{
 			struct Item
 			{
-				Item(const std::string& text) {
+				Item(const std::string& text)
+				{
 					Cells.emplace_back(text);
 				}
 				std::vector<Cell> Cells;
+				Rectangle Bounds;
 			};
 
 			std::vector<Item> Items;
@@ -79,7 +84,6 @@ namespace Berta
 			bool NeedHorizontalScroll;
 			Size ContentSize;
 			uint32_t InnerMargin;
-			uint32_t TotalHeadersWidth;
 		};
 
 		struct Module
@@ -92,6 +96,10 @@ namespace Berta
 			void Append(std::initializer_list<std::string> texts);
 			
 			void Clear();
+			void CalculateViewport(ViewportData& viewportData);
+			void BuildHeaderBounds(uint32_t startIndex);
+			void BuildListItemBounds(uint32_t startIndex);
+
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
@@ -100,12 +108,12 @@ namespace Berta
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 			ViewportData m_viewport;
 			Window* m_window;
+			ListBoxAppearance* m_appearance{ nullptr };
 		};
 
 		Module& GetModule() { return m_module; }
 	private:
 
-		void CalculateViewport(ViewportData& viewportData);
 		void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
 		bool UpdateScrollBars();
 
@@ -116,7 +124,6 @@ namespace Berta
 
 		Module m_module;
 
-		ListBoxAppearance* m_appearance{ nullptr };
 	};
 
 	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>
