@@ -25,6 +25,9 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		struct Headers
 		{
@@ -60,7 +63,23 @@ namespace Berta
 			std::vector<Item> Items;
 			std::vector<std::size_t> SortedIndexes;
 		};
-		
+
+		enum class InteractionArea
+		{
+			None,
+			Header,
+			HeaderSplitter,
+			List
+		};
+
+		struct ViewportData
+		{
+			Rectangle BackgroundRect;
+			bool NeedVerticalScroll;
+			bool NeedHorizontalScroll;
+			Size ContentSize;
+		};
+
 		struct Module
 		{
 			Headers Headers;
@@ -71,21 +90,26 @@ namespace Berta
 			void Append(std::initializer_list<std::string> texts);
 			
 			void Clear();
-
+			InteractionArea m_hoverArea{ InteractionArea::None };
+			InteractionArea m_pressedArea{ InteractionArea::None };
 
 			Point ScrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
+			ViewportData m_viewport;
 		};
 
 		Module& GetModule() { return m_module; }
 	private:
-		void CalculateViewport(Rectangle& backgroundRect, bool& needVerticalScroll, bool& needHorizontalScroll, Size& contentSize);
-		void DrawStringInBox(Graphics& graphics, const std::string& str, Rectangle boxBounds);
-		bool UpdateScrollBars(const Rectangle& backgroundRect, bool needVerticalScroll, bool needHorizontalScroll, const Size& contentSize);
+
+		void CalculateViewport(ViewportData& viewportData);
+		void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
+		bool UpdateScrollBars();
 
 		void DrawHeaders(Graphics& graphics);
 		void DrawList(Graphics& graphics);
+
+		InteractionArea DetermineHoverArea(const Point& mousePosition);
 
 		Module m_module;
 

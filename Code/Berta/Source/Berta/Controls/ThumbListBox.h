@@ -52,8 +52,20 @@ namespace Berta
 				int m_offset{ 0 };
 			};
 
+			struct ViewportData
+			{
+				Rectangle BackgroundRect;
+				uint32_t TotalRows;
+				uint32_t TotalCardsInRow;
+				Size CardSize;
+				int ContentSize;
+				uint32_t InnerMargin;
+				uint32_t CardMargin;
+				uint32_t CardMarginHalf;
+			};
+
 			void AddItem(const std::wstring& text, const Image& thumbnail);
-			void CalculateViewport(Rectangle& backgroundRect, uint32_t& totalRows, uint32_t& totalCardsInRow, Size& cardSize, int& contentSize, uint32_t& innerMargin, uint32_t& cardMargin, uint32_t& cardMarginHalf) const;
+			void CalculateViewport(ViewportData& viewportData);
 			void BuildGridCards();
 			void BuildItems();
 			void Clear();
@@ -90,6 +102,7 @@ namespace Berta
 			bool m_ctrlPressed = false;
 			MouseSelection m_mouseSelection;
 			std::vector<GridCardType> m_gridCards;
+			ViewportData m_viewport;
 		private:
 
 		};

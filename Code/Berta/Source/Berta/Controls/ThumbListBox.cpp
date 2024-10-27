@@ -19,6 +19,7 @@ namespace Berta
 		m_module.Appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appearance.get());
 
 		m_module.m_window = control.Handle();
+		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
@@ -27,19 +28,9 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
-		Rectangle backgroundRect;
-		uint32_t totalRows;
-		uint32_t totalCardsInRow;
-		uint32_t innerMargin;
-		uint32_t cardMargin;
-		uint32_t cardMarginHalf;
-		int contentSize;
-		Size cardSize;
-		m_module.CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
-
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
-		if (contentSize > static_cast<int>(backgroundRect.Height))
+		if (m_module.m_viewport.ContentSize > static_cast<int>(m_module.m_viewport.BackgroundRect.Height))
 		{
 			if (!m_module.m_scrollBar)
 			{
@@ -55,9 +46,9 @@ namespace Berta
 						GUI::RefreshWindow(m_control->Handle());
 					});
 			}
-			m_module.m_scrollBar->SetMinMax(0, contentSize - static_cast<int>(backgroundRect.Height));
-			m_module.m_scrollBar->SetPageStepValue(backgroundRect.Height);
-			m_module.m_scrollBar->SetStepValue(cardSize.Height);
+			m_module.m_scrollBar->SetMinMax(0, m_module.m_viewport.ContentSize - static_cast<int>(m_module.m_viewport.BackgroundRect.Height));
+			m_module.m_scrollBar->SetPageStepValue(m_module.m_viewport.BackgroundRect.Height);
+			m_module.m_scrollBar->SetStepValue(m_module.m_viewport.CardSize.Height);
 
 			//m_module.m_state.m_offset = m_module.m_scrollBar->GetValue();
 		}
@@ -66,7 +57,7 @@ namespace Berta
 			m_module.m_state.m_offset = 0;
 			m_module.m_scrollBar.reset();
 		}
-		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin - m_module.m_state.m_offset };
+		Point offset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.InnerMargin, m_module.m_viewport.BackgroundRect.Y + (int)m_module.m_viewport.InnerMargin - m_module.m_state.m_offset };
 
 		auto thumbSize = m_module.m_window->ToScale(m_module.ThumbnailSize);
 		auto cardHeight = m_module.m_window->ToScale(m_module.Appearance->ThumbnailCardHeight);
@@ -74,8 +65,8 @@ namespace Berta
 		{
 			auto& item = m_module.Items[i];
 
-			Rectangle cardRect{ offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
-			if (cardRect.Y <= static_cast<int>(backgroundRect.Height + innerMargin) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
+			Rectangle cardRect{ offset.X + (int)m_module.m_viewport.CardMarginHalf, offset.Y, m_module.m_viewport.CardSize.Width, m_module.m_viewport.CardSize.Height };
+			if (cardRect.Y <= static_cast<int>(m_module.m_viewport.BackgroundRect.Height + m_module.m_viewport.InnerMargin) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
 			{
 				bool isSelected = item.IsSelected;
 				bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
@@ -104,15 +95,15 @@ namespace Berta
 
 				auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 				graphics.DrawRectangle(cardRect, lineColor, false);
-				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
+				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)m_module.m_viewport.CardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 			}
 
-			offset.X += cardMargin + cardSize.Width + innerMargin * 2u;
-			if (k == totalCardsInRow)
+			offset.X += m_module.m_viewport.CardMargin + m_module.m_viewport.CardSize.Width + m_module.m_viewport.InnerMargin * 2u;
+			if (k == m_module.m_viewport.TotalCardsInRow)
 			{
 				k = 0;
-				offset.X = backgroundRect.X + (int)innerMargin;
-				offset.Y += cardSize.Height + innerMargin * 2u;
+				offset.X = m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.InnerMargin;
+				offset.Y += m_module.m_viewport.CardSize.Height + m_module.m_viewport.InnerMargin * 2u;
 			}
 		}
 
@@ -143,6 +134,8 @@ namespace Berta
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
+		m_module.CalculateViewport(m_module.m_viewport);
+
 		m_module.UpdateScrollBar();
 		m_module.BuildGridCards();
 		m_module.BuildItems();
@@ -438,19 +431,9 @@ namespace Berta
 			}
 			else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
 			{
-				Rectangle backgroundRect;
-				uint32_t totalRows;
-				uint32_t totalCardsInRow;
-				uint32_t innerMargin;
-				uint32_t cardMargin;
-				uint32_t cardMarginHalf;
-				int contentSize;
-				Size cardSize;
-				m_module.CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
-
 				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
 				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.Items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
-				auto newItemIndex = pivot + direction * totalCardsInRow;
+				auto newItemIndex = pivot + direction * m_module.m_viewport.TotalCardsInRow;
 				if (newItemIndex >= 0 && newItemIndex < (int)m_module.Items.size())
 				{
 					if (!m_module.m_multiselection || !m_module.m_shiftPressed && !m_module.m_ctrlPressed)
@@ -532,54 +515,54 @@ namespace Berta
 		BuildGridCards();
 	}
 
-	void ThumbListBoxReactor::Module::CalculateViewport(Rectangle& backgroundRect, uint32_t& totalRows, uint32_t& totalCardsInRow, Size& cardSize, int& contentSize, uint32_t& innerMargin, uint32_t& cardMargin, uint32_t& cardMarginHalf) const
+	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
 	{
-		backgroundRect = m_window->Size.ToRectangle();
-		innerMargin = m_window->ToScale(3u);
+		viewportData.BackgroundRect = m_window->Size.ToRectangle();
+		viewportData.InnerMargin = m_window->ToScale(3u);
 
-		backgroundRect.Width -= innerMargin * 2u;
-		backgroundRect.Height -= innerMargin * 2u;
-		backgroundRect.X = innerMargin;
-		backgroundRect.Y = innerMargin;
+		viewportData.BackgroundRect.Width -= viewportData.InnerMargin * 2u;
+		viewportData.BackgroundRect.Height -= viewportData.InnerMargin * 2u;
+		viewportData.BackgroundRect.X = viewportData.InnerMargin;
+		viewportData.BackgroundRect.Y = viewportData.InnerMargin;
 
 		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 		
 		auto thumbSize = m_window->ToScale(ThumbnailSize);
 		auto cardHeight = m_window->ToScale(Appearance->ThumbnailCardHeight);
-		cardSize = { thumbSize, thumbSize + cardHeight };
+		viewportData.CardSize = { thumbSize, thumbSize + cardHeight };
 		
-		uint32_t cardWidthWithMargin = cardSize.Width + innerMargin * 2u;
-		totalCardsInRow = backgroundRect.Width / cardWidthWithMargin;
-		if (totalCardsInRow == 0)
+		uint32_t cardWidthWithMargin = viewportData.CardSize.Width + viewportData.InnerMargin * 2u;
+		viewportData.TotalCardsInRow = viewportData.BackgroundRect.Width / cardWidthWithMargin;
+		if (viewportData.TotalCardsInRow == 0)
 		{
-			totalCardsInRow = 1;
+			viewportData.TotalCardsInRow = 1;
 		}
-		totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
-		if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
+		viewportData.TotalRows = (uint32_t)(Items.size()) / viewportData.TotalCardsInRow;
+		if ((uint32_t)(Items.size()) % viewportData.TotalCardsInRow != 0)
 		{
-			++totalRows;
+			++viewportData.TotalRows;
 		}
-		contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin * 2u));
-		if (contentSize > static_cast<int>(backgroundRect.Height))
+		viewportData.ContentSize = static_cast<int>(viewportData.TotalRows * (viewportData.CardSize.Height + viewportData.InnerMargin * 2u));
+		if (viewportData.ContentSize > static_cast<int>(viewportData.BackgroundRect.Height))
 		{
-			backgroundRect.Width -= scrollSize;
-			totalCardsInRow = backgroundRect.Width / cardWidthWithMargin;
-			if (totalCardsInRow == 0)
+			viewportData.BackgroundRect.Width -= scrollSize;
+			viewportData.TotalCardsInRow = viewportData.BackgroundRect.Width / cardWidthWithMargin;
+			if (viewportData.TotalCardsInRow == 0)
 			{
-				totalCardsInRow = 1;
+				viewportData.TotalCardsInRow = 1;
 			}
 			
-			totalRows = (uint32_t)(Items.size()) / totalCardsInRow;
-			if ((uint32_t)(Items.size()) % totalCardsInRow != 0)
+			viewportData.TotalRows = (uint32_t)(Items.size()) / viewportData.TotalCardsInRow;
+			if ((uint32_t)(Items.size()) % viewportData.TotalCardsInRow != 0)
 			{
-				++totalRows;
+				++viewportData.TotalRows;
 			}
-			contentSize = static_cast<int>(totalRows * (cardSize.Height + innerMargin * 2u));
+			viewportData.ContentSize = static_cast<int>(viewportData.TotalCardsInRow * (viewportData.CardSize.Height + viewportData.InnerMargin * 2u));
 		}
-		auto marginRemainder = backgroundRect.Width % cardWidthWithMargin;
+		auto marginRemainder = viewportData.BackgroundRect.Width % cardWidthWithMargin;
 
-		cardMargin = marginRemainder / totalCardsInRow;
-		cardMarginHalf = cardMargin >> 1;
+		viewportData.CardMargin = marginRemainder / viewportData.TotalCardsInRow;
+		viewportData.CardMarginHalf = viewportData.CardMargin >> 1;
 	}
 
 	void ThumbListBoxReactor::Module::BuildGridCards()
@@ -610,17 +593,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::UpdateScrollBar()
 	{
-		Rectangle backgroundRect;
-		uint32_t totalRows;
-		uint32_t totalCardsInRow;
-		uint32_t innerMargin;
-		uint32_t cardMargin;
-		uint32_t cardMarginHalf;
-		int contentSize;
-		Size cardSize;
-		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
-
-		bool needScrollBar = contentSize > static_cast<int>(backgroundRect.Height);
+		bool needScrollBar = m_viewport.ContentSize > static_cast<int>(m_viewport.BackgroundRect.Height);
 		if (!needScrollBar)
 		{
 			m_scrollBar.reset();
@@ -642,9 +615,9 @@ namespace Berta
 					GUI::RefreshWindow(m_window);
 				});
 		}
-		m_scrollBar->SetMinMax(0, (int)(contentSize - backgroundRect.Height));
-		m_scrollBar->SetPageStepValue(backgroundRect.Height);
-		m_scrollBar->SetStepValue(cardSize.Height);
+		m_scrollBar->SetMinMax(0, (int)(m_viewport.ContentSize - m_viewport.BackgroundRect.Height));
+		m_scrollBar->SetPageStepValue(m_viewport.BackgroundRect.Height);
+		m_scrollBar->SetStepValue(m_viewport.CardSize.Height);
 
 		m_state.m_offset = m_scrollBar->GetValue();
 	}
@@ -697,24 +670,14 @@ namespace Berta
 		auto item = Items[lastSelectedIndex];
 		item.Bounds.Y -= m_state.m_offset;
 
-		Rectangle viewportRect;
-		uint32_t totalRows;
-		uint32_t totalCardsInRow;
-		uint32_t innerMargin;
-		uint32_t cardMargin;
-		uint32_t cardMarginHalf;
-		int contentSize;
-		Size cardSize;
-		CalculateViewport(viewportRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
-
-		if (viewportRect.Contains(item.Bounds))
+		if (m_viewport.BackgroundRect.Contains(item.Bounds))
 		{
 			return;
 		}
 
 		int itemHeight = static_cast<int>(item.Bounds.Height);
-		int viewportHeight = static_cast<int>(viewportRect.Height);
-		int innerMarginDouble = static_cast<int>(innerMargin * 2u);
+		int viewportHeight = static_cast<int>(m_viewport.BackgroundRect.Height);
+		int innerMarginDouble = static_cast<int>(m_viewport.InnerMargin * 2u);
 		auto offsetAdjustment = 0;
 		if (item.Bounds.Y >= viewportHeight)
 		{
@@ -741,29 +704,19 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
-		Rectangle backgroundRect;
-		uint32_t totalRows;
-		uint32_t totalCardsInRow;
-		uint32_t innerMargin;
-		uint32_t cardMargin;
-		uint32_t cardMarginHalf;
-		int contentSize;
-		Size cardSize;
-		CalculateViewport(backgroundRect, totalRows, totalCardsInRow, cardSize, contentSize, innerMargin, cardMargin, cardMarginHalf);
-
-		Point offset{ backgroundRect.X + (int)innerMargin, backgroundRect.Y + (int)innerMargin };
+		Point offset{ m_viewport.BackgroundRect.X + (int)m_viewport.InnerMargin, m_viewport.BackgroundRect.Y + (int)m_viewport.InnerMargin };
 		for (size_t i = 0, k = 1; i < Items.size(); i++, ++k)
 		{
 			auto& item = Items[i];
 
-			item.Bounds = { offset.X + (int)cardMarginHalf, offset.Y, cardSize.Width, cardSize.Height };
+			item.Bounds = { offset.X + (int)m_viewport.CardMarginHalf, offset.Y, m_viewport.CardSize.Width, m_viewport.CardSize.Height };
 
-			offset.X += cardMargin + cardSize.Width + innerMargin * 2u;
-			if (k == totalCardsInRow)
+			offset.X += m_viewport.CardMargin + m_viewport.CardSize.Width + m_viewport.InnerMargin * 2u;
+			if (k == m_viewport.TotalCardsInRow)
 			{
 				k = 0;
-				offset.X = backgroundRect.X + (int)innerMargin;
-				offset.Y += cardSize.Height + innerMargin * 2u;
+				offset.X = m_viewport.BackgroundRect.X + (int)m_viewport.InnerMargin;
+				offset.Y += m_viewport.CardSize.Height + m_viewport.InnerMargin * 2u;
 			}
 		}
 	}
