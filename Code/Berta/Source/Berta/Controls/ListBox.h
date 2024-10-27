@@ -78,6 +78,8 @@ namespace Berta
 			bool NeedVerticalScroll;
 			bool NeedHorizontalScroll;
 			Size ContentSize;
+			uint32_t InnerMargin;
+			uint32_t TotalHeadersWidth;
 		};
 
 		struct Module
@@ -97,6 +99,7 @@ namespace Berta
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 			ViewportData m_viewport;
+			Window* m_window;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -113,7 +116,6 @@ namespace Berta
 
 		Module m_module;
 
-		Window* m_window;
 		ListBoxAppearance* m_appearance{ nullptr };
 	};
 
