@@ -74,7 +74,8 @@ namespace Berta
 			None,
 			Header,
 			HeaderSplitter,
-			List
+			List,
+			ListBlank
 		};
 
 		struct ViewportData

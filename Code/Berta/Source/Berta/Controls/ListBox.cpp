@@ -90,10 +90,13 @@ namespace Berta
 		if (viewportData.NeedHorizontalScroll)
 		{
 			viewportData.BackgroundRect.Height -= scrollSize;
-			viewportData.NeedVerticalScroll = viewportData.ContentSize.Height > viewportData.BackgroundRect.Height;
-			if (viewportData.NeedVerticalScroll)
+			if (!viewportData.NeedVerticalScroll)
 			{
-				viewportData.BackgroundRect.Width -= scrollSize;
+				viewportData.NeedVerticalScroll = viewportData.ContentSize.Height > viewportData.BackgroundRect.Height;
+				if (viewportData.NeedVerticalScroll)
+				{
+					viewportData.BackgroundRect.Width -= scrollSize;
+				}
 			}
 		} 
 	}
@@ -240,39 +243,34 @@ namespace Berta
 	{
 		auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
 		bool needUpdate = false;
-		if (m_module.m_viewport.NeedVerticalScroll && !m_module.m_scrollBarVert)
+		if (m_module.m_viewport.NeedVerticalScroll)
 		{
 			auto listItemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight);
 			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
 			if (m_module.m_viewport.NeedHorizontalScroll)
+			{
 				scrollRect.Height -= scrollSize;
+			}
 
-			m_module.m_scrollBarVert = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect);
-			m_module.m_scrollBarVert->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
-				{
-					m_module.ScrollOffset.Y = args.Value;
+			if (!m_module.m_scrollBarVert)
+			{
+				m_module.m_scrollBarVert = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect);
+				m_module.m_scrollBarVert->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
+					{
+						m_module.ScrollOffset.Y = args.Value;
 
-					m_module.m_window->Renderer.Update();
-					GUI::RefreshWindow(m_module.m_window);
-				});
+						m_module.m_window->Renderer.Update();
+						GUI::RefreshWindow(m_module.m_window);
+					});
+			}
+			else
+			{
+				GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
+			}
 
 			m_module.m_scrollBarVert->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Height - m_module.m_viewport.BackgroundRect.Height));
 			m_module.m_scrollBarVert->SetPageStepValue(m_module.m_viewport.BackgroundRect.Height);
 			m_module.m_scrollBarVert->SetStepValue(listItemHeight);
-			needUpdate = true;
-		}
-		else if (m_module.m_viewport.NeedVerticalScroll && m_module.m_scrollBarVert)
-		{
-			auto listItemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight);
-			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
-			if (m_module.m_viewport.NeedHorizontalScroll)
-				scrollRect.Height -= scrollSize;
-
-			m_module.m_scrollBarVert->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Height - m_module.m_viewport.BackgroundRect.Height));
-			m_module.m_scrollBarVert->SetPageStepValue(m_module.m_viewport.BackgroundRect.Height);
-			m_module.m_scrollBarVert->SetStepValue(listItemHeight);
-
-			GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
 			needUpdate = true;
 		}
 		else if (!m_module.m_viewport.NeedVerticalScroll && m_module.m_scrollBarVert)
@@ -283,36 +281,33 @@ namespace Berta
 			needUpdate = true;
 		}
 
-		if (m_module.m_viewport.NeedHorizontalScroll && !m_module.m_scrollBarHoriz)
+		if (m_module.m_viewport.NeedHorizontalScroll)
 		{
 			Rectangle scrollRect{ 1, static_cast<int>(m_module.m_window->Size.Height - scrollSize) - 1, m_module.m_window->Size.Width - 2u, scrollSize };
 			if (m_module.m_viewport.NeedVerticalScroll)
+			{
 				scrollRect.Width -= scrollSize;
+			}
 
-			m_module.m_scrollBarHoriz = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect, false);
-			m_module.m_scrollBarHoriz->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
-				{
-					m_module.ScrollOffset.X = args.Value;
+			if (!m_module.m_scrollBarHoriz)
+			{
+				m_module.m_scrollBarHoriz = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect, false);
+				m_module.m_scrollBarHoriz->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
+					{
+						m_module.ScrollOffset.X = args.Value;
 
-					m_module.m_window->Renderer.Update();
-					GUI::RefreshWindow(m_module.m_window);
-				});
+						m_module.m_window->Renderer.Update();
+						GUI::RefreshWindow(m_module.m_window);
+					});
+			}
+			else
+			{
+				GUI::MoveWindow(m_module.m_scrollBarHoriz->Handle(), scrollRect);
+			}
 
 			m_module.m_scrollBarHoriz->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Width - m_module.m_viewport.BackgroundRect.Width));
 			m_module.m_scrollBarHoriz->SetPageStepValue(m_module.m_viewport.BackgroundRect.Width);
 			m_module.m_scrollBarHoriz->SetStepValue(scrollSize);
-			needUpdate = true;
-		}
-		else if (m_module.m_viewport.NeedHorizontalScroll && m_module.m_scrollBarHoriz)
-		{
-			Rectangle scrollRect{ 1, static_cast<int>(m_module.m_window->Size.Height - scrollSize) - 1, m_module.m_window->Size.Width - 2u, scrollSize };
-			if (m_module.m_viewport.NeedVerticalScroll)
-				scrollRect.Width -= scrollSize;
-
-			m_module.m_scrollBarHoriz->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Width - m_module.m_viewport.BackgroundRect.Width));
-			m_module.m_scrollBarHoriz->SetPageStepValue(m_module.m_viewport.BackgroundRect.Width);
-
-			GUI::MoveWindow(m_module.m_scrollBarHoriz->Handle(), scrollRect);
 			needUpdate = true;
 		}
 		else if (!m_module.m_viewport.NeedHorizontalScroll && m_module.m_scrollBarHoriz)
@@ -432,11 +427,19 @@ namespace Berta
 
 		auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
 
-		auto position = mousePosition.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
-		int index = position / (int)itemHeight;
+		auto positionY = mousePosition.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
+		int index = positionY / (int)itemHeight;
 
 		if (index < m_module.List.Items.size())
 		{
+			auto topBound = index * itemHeight;
+			auto bottomBound = topBound + itemHeight;
+			if ((positionY >= topBound && positionY <= topBound + m_module.m_viewport.InnerMargin) ||
+				(positionY >= bottomBound - m_module.m_viewport.InnerMargin && positionY <= topBound))
+			{
+				BT_CORE_TRACE << "  ** InteractionArea = List. blank = " << std::endl;
+				return InteractionArea::ListBlank;
+			}
 			BT_CORE_TRACE << "  ** InteractionArea = List. index = " << index << std::endl;
 			return InteractionArea::List;
 		}
