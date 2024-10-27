@@ -71,7 +71,7 @@ namespace Berta
 		viewportData.BackgroundRect.Y += headerHeight;
 		viewportData.BackgroundRect.Height -= headerHeight;
 
-		viewportData.ContentSize.Height = (uint32_t)m_module.List.Items.size() * itemHeight;
+		viewportData.ContentSize.Height = (uint32_t)m_module.List.Items.size() * (itemHeight + viewportData.InnerMargin * 2u);
 
 		viewportData.ContentSize.Width = 0u;
 		for (size_t i = 0; i < m_module.Headers.Items.size(); i++)
