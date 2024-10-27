@@ -28,6 +28,7 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 
 		struct Headers
 		{
@@ -80,11 +81,24 @@ namespace Berta
 
 		struct ViewportData
 		{
-			Rectangle BackgroundRect;
-			bool NeedVerticalScroll;
-			bool NeedHorizontalScroll;
-			Size ContentSize;
-			uint32_t InnerMargin;
+			Rectangle BackgroundRect{};
+			bool NeedVerticalScroll{ false };
+			bool NeedHorizontalScroll{ false };
+			Size ContentSize{};
+			uint32_t InnerMargin{ 0 };
+		};
+
+		struct MouseSelection
+		{
+			std::vector<size_t> m_selections;
+			std::vector<size_t> m_alreadySelected;
+			int m_pressedIndex{ -1 };
+			int m_hoveredIndex{ -1 };
+			int m_selectedIndex{ -1 };
+			Point m_startPosition;
+			Point m_endPosition;
+			bool m_started{ false };
+			bool m_inverseSelection{ false };
 		};
 
 		struct Module
@@ -107,6 +121,7 @@ namespace Berta
 			Point ScrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
+			MouseSelection m_mouseSelection;
 			ViewportData m_viewport;
 			Window* m_window;
 			ListBoxAppearance* m_appearance{ nullptr };

@@ -51,10 +51,54 @@ namespace Berta
 	void ListBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		auto hoveredArea = DetermineHoverArea(args.Position);
+		bool needUpdate = hoveredArea != m_module.m_hoverArea;
+
+		if (hoveredArea == InteractionArea::List)
+		{
+			auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
+
+			auto positionY = args.Position.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
+			m_module.m_mouseSelection.m_hoveredIndex = positionY / (int)itemHeight;
+		}
+		if (!needUpdate && hoveredArea == InteractionArea::List)
+		{
+			auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
+
+			auto positionY = args.Position.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
+			int index = positionY / (int)itemHeight;
+
+			if (m_module.m_mouseSelection.m_hoveredIndex != index)
+			{
+				m_module.m_mouseSelection.m_hoveredIndex = index;
+				needUpdate = true;
+			}
+		}
+		if (hoveredArea == InteractionArea::ListBlank)
+		{
+			if (m_module.m_mouseSelection.m_hoveredIndex != -1)
+			{
+				m_module.m_mouseSelection.m_hoveredIndex = -1;
+				needUpdate = true;
+			}
+		}
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(m_module.m_window);
+		}
 	}
 
 	void ListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+	}
+
+	void ListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		m_module.m_hoverArea = InteractionArea::None;
+		m_module.m_mouseSelection.m_hoveredIndex = -1;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(m_module.m_window);
 	}
 
 	void ListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
@@ -362,6 +406,11 @@ namespace Berta
 			const auto& item = m_module.List.Items[i];
 			listOffset.X = -m_module.ScrollOffset.X;
 
+			bool isHovered = m_module.m_mouseSelection.m_hoveredIndex == (int)i;
+			if (isHovered)
+			{
+				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin,  m_module.m_viewport.ContentSize.Width, itemHeight }, m_module.m_appearance->HighlightColor, true);
+			}
 			for (size_t j = 0; j < item.Cells.size(); j++)
 			{
 				const auto& cell = item.Cells[j];
@@ -408,20 +457,17 @@ namespace Berta
 				if (mousePosition.X >= headerOffset.X + headerWidthInt - splitterThreshold &&
 					mousePosition.X <= headerOffset.X + headerWidthInt + splitterThreshold)
 				{
-					BT_CORE_TRACE << "  ** InteractionArea = HeaderSplitter." << std::endl;
 					return InteractionArea::HeaderSplitter;
 				}
 				else if (mousePosition.X >= headerOffset.X &&
 					mousePosition.X < headerOffset.X + headerWidthInt - splitterThreshold)
 				{
-					BT_CORE_TRACE << "  ** InteractionArea = Header." << std::endl;
 					return InteractionArea::Header;
 				}
 
 				headerOffset.X += headerWidthInt;
 			}
 
-			BT_CORE_TRACE << "  ** InteractionArea = None. Header" << std::endl;
 			return InteractionArea::None;
 		}
 
@@ -432,19 +478,19 @@ namespace Berta
 
 		if (index < m_module.List.Items.size())
 		{
-			auto topBound = index * itemHeight;
-			auto bottomBound = topBound + itemHeight;
-			if ((positionY >= topBound && positionY <= topBound + m_module.m_viewport.InnerMargin) ||
-				(positionY >= bottomBound - m_module.m_viewport.InnerMargin && positionY <= topBound))
+			if (m_module.m_viewport.InnerMargin)
 			{
-				BT_CORE_TRACE << "  ** InteractionArea = List. blank = " << std::endl;
-				return InteractionArea::ListBlank;
+				auto topBound = index * itemHeight;
+				auto bottomBound = topBound + itemHeight;
+				if ((positionY >= topBound && positionY <= topBound + m_module.m_viewport.InnerMargin) ||
+					(positionY >= bottomBound - m_module.m_viewport.InnerMargin && positionY <= topBound))
+				{
+					return InteractionArea::ListBlank;
+				}
 			}
-			BT_CORE_TRACE << "  ** InteractionArea = List. index = " << index << std::endl;
 			return InteractionArea::List;
 		}
 
-		BT_CORE_TRACE << "  ** InteractionArea = None." << std::endl;
 		return InteractionArea::None;
 	}
 }
