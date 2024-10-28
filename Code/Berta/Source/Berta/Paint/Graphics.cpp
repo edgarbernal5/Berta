@@ -395,13 +395,13 @@ namespace Berta
 
 		if (solid)
 		{
-			auto prv_pen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, color.BGR));
-			auto prv_brush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(0xFFFFFF));
+			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, color.BGR));
+			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(0xFFFFFF));
 
-			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height, static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
+			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + static_cast<int>(rect.Width), rect.Y + static_cast<int>(rect.Height), static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
 
-			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_brush));
-			::DeleteObject(::SelectObject(m_attributes->m_hdc, prv_pen));
+			::DeleteObject(::SelectObject(m_attributes->m_hdc, prevBrush));
+			::DeleteObject(::SelectObject(m_attributes->m_hdc, prevPen));
 		}
 		else
 		{
@@ -414,6 +414,49 @@ namespace Berta
 			::DeleteObject(region);
 			::DeleteObject(brush);
 		}
+#endif
+	}
+
+	void Graphics::DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+		auto& hdc = m_attributes->m_hdc;
+		int x = rect.X;
+		int y = rect.Y;
+		int width = rect.Width;
+		int height = rect.Height;
+
+		TRIVERTEX vertices[] = {
+		{ x, y, GetRValue(startColor.BGR) << 8, GetGValue(startColor.BGR) << 8, GetBValue(startColor.BGR) << 8, 0xFF00 },
+		{ x + width, y + height, GetRValue(endColor.BGR) << 8, GetGValue(endColor.BGR) << 8, GetBValue(endColor.BGR) << 8, 0xFF00 }
+		};
+		GRADIENT_RECT gRect = { 0, 1 };
+		::GradientFill(hdc, vertices, 2, &gRect, 1, GRADIENT_FILL_RECT_V);
+#endif
+	}
+
+	void Graphics::DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		auto& hdc = m_attributes->m_hdc;
+		int radius = 3;
+		int x = rect.X;
+		int y = rect.Y;
+		int height = rect.Height;
+		int width = rect.Width;
+		HRGN buttonRegion = ::CreateRoundRectRgn(x, y, x + width, y + height, radius, radius);
+		::SelectClipRgn(hdc, buttonRegion);
+
+		DrawGradientFill(rect, startColor, endColor);
+		
+		::SelectClipRgn(hdc, nullptr);
+		//SetBkMode(hdc, TRANSPARENT);
+		DrawRoundRectBox(rect, radius, borderColor, false);
+		::DeleteObject(buttonRegion);
 #endif
 	}
 

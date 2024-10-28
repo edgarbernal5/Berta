@@ -23,6 +23,12 @@ namespace Berta
 
 		Color BoxBackground{ Colors::Light_BoxBackground };
 		Color BoxBorderColor{ Colors::Light_BoxBorderColor };
+		
+		//Color ButtonTest1{ 0x7D99B2 };
+		//Color ButtonTest2{ 0x3E4659 };
+		
+		Color ButtonTest1{ 0xD6DFE3 };
+		Color ButtonTest2{ 0xB7BEC2 };
 
 		Color ButtonDisabledBackground{ Colors::Light_ButtonDisabledBackground };
 		Color BoxBorderDisabledColor{ Colors::Light_BoxBorderDisabledColor };

@@ -19,26 +19,28 @@ namespace Berta
 	void ButtonReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-
 		bool enabled = m_control->GetEnabled();
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+		//if (!enabled)
+		//{
+		//	graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonDisabledBackground, true);
+		//}
+		//else if (m_status == State::Normal)
+		//{
+		//	graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonBackground, true);
+		//}
+		//else if (m_status == State::Hovered)
+		//{
+		//	graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonHighlightBackground, true);
+		//}
+		//else if (m_status == State::Pressed)
+		//{
+		//	graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonPressedBackground, true);
+		//}
+		//graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		//graphics.DrawGradientFill(window->Size.ToRectangle(), window->Appearance->BoxBorderColor, window->Appearance->BoxBorderDisabledColor);
 		
-		if (!enabled)
-		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonDisabledBackground, true);
-		}
-		else if (m_status == State::Normal)
-		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonBackground, true);
-		}
-		else if (m_status == State::Hovered)
-		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonHighlightBackground, true);
-		}
-		else if (m_status == State::Pressed)
-		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ButtonPressedBackground, true);
-		}
-		graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawButton(window->Size.ToRectangle(), window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
 		//graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
