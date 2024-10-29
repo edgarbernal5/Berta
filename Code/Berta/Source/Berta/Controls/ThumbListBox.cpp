@@ -154,7 +154,6 @@ namespace Berta
 		bool hitOnBlank = itemIndexAtPosition == -1;
 
 		bool needUpdate = false;
-		auto savedLastSelectedIndex = m_module.m_mouseSelection.m_pressedIndex;
 		m_module.m_mouseSelection.m_pressedIndex = itemIndexAtPosition;
 
 		if (!m_module.m_multiselection)
@@ -175,7 +174,8 @@ namespace Berta
 				m_module.StartSelectionRectangle(args.Position);
 				needUpdate = m_module.ClearSelectionIfNeeded();
 			}
-			else {
+			else
+			{
 				needUpdate = m_module.HandleMultiSelection(itemIndexAtPosition, args);
 			}
 		}
@@ -570,7 +570,7 @@ namespace Berta
 
 	bool ThumbListBoxReactor::Module::UpdateSingleSelection(int newItemIndex)
 	{
-		bool needUpdate = (m_mouseSelection.m_pressedIndex != newItemIndex);
+		bool needUpdate = (m_mouseSelection.m_selectedIndex != newItemIndex);
 		if (needUpdate)
 		{
 			ClearSingleSelection();
@@ -595,6 +595,18 @@ namespace Berta
 		m_mouseSelection.m_startPosition = logicalPosition;
 		m_mouseSelection.m_endPosition = logicalPosition;
 
+		m_mouseSelection.m_selections.clear();
+		m_mouseSelection.m_alreadySelected.clear();
+
+		for (size_t i = 0; i < Items.size(); i++)
+		{
+			if (Items[i].IsSelected)
+			{
+				m_mouseSelection.m_selections.push_back(i);
+				m_mouseSelection.m_alreadySelected.push_back(i);
+			}
+		}
+
 		GUI::Capture(m_window);
 	}
 
@@ -609,6 +621,7 @@ namespace Berta
 					Items[index].IsSelected = false;
 				}
 				m_mouseSelection.m_selections.clear();
+				m_mouseSelection.m_alreadySelected.clear();
 				return true;
 			}
 		}
@@ -633,8 +646,8 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
 	{
-		int minIndex = (std::min)(m_mouseSelection.m_pressedIndex, itemIndexAtPosition);
-		int maxIndex = (std::max)(m_mouseSelection.m_pressedIndex, itemIndexAtPosition);
+		int minIndex = (std::min)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
+		int maxIndex = (std::max)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
 			Items[i].IsSelected = true;
