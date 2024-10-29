@@ -17,6 +17,8 @@ namespace Berta
 		bool LeftButton : 1;
 		bool RightButton : 1;
 		bool MiddleButton : 1;
+
+		bool NoButtonsPressed() const { return !LeftButton && !RightButton && !MiddleButton; }
 	};
 
 	struct ArgMouse

@@ -75,6 +75,15 @@ namespace Berta
 			void EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
 			void ClearSelection();
+			bool ClearSingleSelection();
+			bool UpdateSingleSelection(int newItemIndex);
+			void SelectItem(int index);
+			void StartSelectionRectangle(const Point& mousePosition);
+			bool ClearSelectionIfNeeded();
+			void ToggleItemSelection(int itemIndexAtPosition);
+			void PerformRangeSelection(int itemIndexAtPosition);
+			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
+
 			std::vector<size_t> GetSelectedItems() const;
 			void EnsureVisibility(int lastSelectedIndex);
 

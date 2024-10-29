@@ -119,9 +119,12 @@ namespace Berta
 			void BuildListItemBounds(uint32_t startIndex);
 
 			void EnableMultiselection(bool enabled);
+			bool UpdateScrollBars();
+			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
+			Point m_mouseDownPosition{};
 
 			Point ScrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
@@ -139,12 +142,10 @@ namespace Berta
 	private:
 
 		void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
-		bool UpdateScrollBars();
 
 		void DrawHeaders(Graphics& graphics);
 		void DrawList(Graphics& graphics);
 
-		InteractionArea DetermineHoverArea(const Point& mousePosition);
 
 		Module m_module;
 

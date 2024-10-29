@@ -150,132 +150,33 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		auto itemAtPosition = m_module.GetItemIndexAtMousePosition(args.Position);
-		bool hitOnBlank = itemAtPosition == -1;
+		auto itemIndexAtPosition = m_module.GetItemIndexAtMousePosition(args.Position);
+		bool hitOnBlank = itemIndexAtPosition == -1;
 
 		bool needUpdate = false;
 		auto savedLastSelectedIndex = m_module.m_mouseSelection.m_pressedIndex;
-		m_module.m_mouseSelection.m_pressedIndex = itemAtPosition;
+		m_module.m_mouseSelection.m_pressedIndex = itemIndexAtPosition;
 
-		if (!m_module.m_multiselection && hitOnBlank)
+		if (!m_module.m_multiselection)
 		{
-			if (m_module.m_mouseSelection.m_selectedIndex != -1)
+			if (hitOnBlank)
 			{
-				m_module.Items[m_module.m_mouseSelection.m_selectedIndex].IsSelected = false;
-				m_module.m_mouseSelection.m_selections.clear();
-				m_module.m_mouseSelection.m_selectedIndex = -1;
-				needUpdate = true;
-			}
-		}
-		else if (!m_module.m_multiselection && !hitOnBlank)
-		{
-			needUpdate = (savedLastSelectedIndex != itemAtPosition);
-			m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
-			if (needUpdate)
-			{
-				if (m_module.m_mouseSelection.m_selectedIndex != -1)
-				{
-					m_module.Items[m_module.m_mouseSelection.m_selectedIndex].IsSelected = false;
-					m_module.m_mouseSelection.m_selections.clear();
-				}
-				m_module.Items[itemAtPosition].IsSelected = true;
-				m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
-				m_module.m_mouseSelection.m_selectedIndex = itemAtPosition;
-				m_module.EnsureVisibility(itemAtPosition);
-			}
-		}
-		else if (m_module.m_multiselection && hitOnBlank)
-		{
-			auto logicalPosition = args.Position;
-			logicalPosition.Y -= m_module.m_state.m_offset;
-			m_module.m_mouseSelection.m_started = true;
-			m_module.m_mouseSelection.m_startPosition = logicalPosition;
-			m_module.m_mouseSelection.m_endPosition = logicalPosition;
-
-			m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
-
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
-			{
-				needUpdate = !m_module.m_mouseSelection.m_selections.empty();
-				for (auto& index : m_module.m_mouseSelection.m_selections)
-				{
-					m_module.Items[index].IsSelected = false;
-				}
-				m_module.m_mouseSelection.m_selections.clear();
-				m_module.m_mouseSelection.m_alreadySelected.clear();
+				needUpdate = m_module.ClearSingleSelection();
 			}
 			else
 			{
-				m_module.m_mouseSelection.m_selections.clear();
-				for (size_t i = 0; i < m_module.Items.size(); i++)
-				{
-					if (m_module.Items[i].IsSelected)
-					{
-						m_module.m_mouseSelection.m_selections.push_back(i);
-					}
-				}
-				
-				m_module.m_mouseSelection.m_alreadySelected = m_module.m_mouseSelection.m_selections;
+				needUpdate = m_module.UpdateSingleSelection(itemIndexAtPosition);
 			}
-
-			GUI::Capture(m_module.m_window);
 		}
 		else
 		{
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed && (!args.ButtonState.RightButton || !m_module.Items[itemAtPosition].IsSelected))
+			if (hitOnBlank)
 			{
-				m_module.ClearSelection();
+				m_module.StartSelectionRectangle(args.Position);
+				needUpdate = m_module.ClearSelectionIfNeeded();
 			}
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
-			{
-				if (!m_module.Items[itemAtPosition].IsSelected)
-				{
-					m_module.Items[itemAtPosition].IsSelected = true;
-					m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
-					m_module.EnsureVisibility(itemAtPosition);
-					needUpdate = true;
-				}
-				else if (savedLastSelectedIndex != itemAtPosition)
-				{
-					m_module.EnsureVisibility(itemAtPosition);
-					needUpdate = true;
-				}
-			}
-			else
-			{
-				if (m_module.m_shiftPressed && savedLastSelectedIndex != -1)
-				{
-					int minIndex = (std::min)(savedLastSelectedIndex, itemAtPosition);
-					int maxIndex = (std::max)(savedLastSelectedIndex, itemAtPosition);
-					for (size_t i = minIndex; i <= maxIndex; i++)
-					{
-						m_module.Items[i].IsSelected = true;
-						auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), i);
-						if (it == m_module.m_mouseSelection.m_selections.end())
-						{
-							m_module.m_mouseSelection.m_selections.push_back(i);
-						}
-					}
-				}
-				else
-				{
-					m_module.Items[itemAtPosition].IsSelected = !m_module.Items[itemAtPosition].IsSelected;
-				
-					if (m_module.Items[itemAtPosition].IsSelected)
-					{
-						m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
-					}
-					else
-					{
-						auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), itemAtPosition);
-						if (it != m_module.m_mouseSelection.m_selections.end())
-						{
-							m_module.m_mouseSelection.m_selections.erase(it);
-						}
-					}
-				}
-				m_module.EnsureVisibility(itemAtPosition);
-				needUpdate = true;
+			else {
+				needUpdate = m_module.HandleMultiSelection(itemIndexAtPosition, args);
 			}
 		}
 
@@ -655,6 +556,126 @@ namespace Berta
 		m_mouseSelection.m_selections.clear();
 	}
 
+	bool ThumbListBoxReactor::Module::ClearSingleSelection()
+	{
+		if (m_mouseSelection.m_selectedIndex != -1)
+		{
+			Items[m_mouseSelection.m_selectedIndex].IsSelected = false;
+			m_mouseSelection.m_selections.clear();
+			m_mouseSelection.m_selectedIndex = -1;
+			return true;
+		}
+		return false;
+	}
+
+	bool ThumbListBoxReactor::Module::UpdateSingleSelection(int newItemIndex)
+	{
+		bool needUpdate = (m_mouseSelection.m_pressedIndex != newItemIndex);
+		if (needUpdate)
+		{
+			ClearSingleSelection();
+			SelectItem(newItemIndex);
+		}
+		return needUpdate;
+	}
+
+	void ThumbListBoxReactor::Module::SelectItem(int index)
+	{
+		Items[index].IsSelected = true;
+		m_mouseSelection.m_selections.push_back(index);
+		m_mouseSelection.m_selectedIndex = index;
+		EnsureVisibility(index);
+	}
+
+	void ThumbListBoxReactor::Module::StartSelectionRectangle(const Point& mousePosition)
+	{
+		auto logicalPosition = mousePosition;
+		logicalPosition.Y -= m_state.m_offset;
+		m_mouseSelection.m_started = true;
+		m_mouseSelection.m_startPosition = logicalPosition;
+		m_mouseSelection.m_endPosition = logicalPosition;
+
+		GUI::Capture(m_window);
+	}
+
+	bool ThumbListBoxReactor::Module::ClearSelectionIfNeeded()
+	{
+		if (!m_ctrlPressed && !m_shiftPressed)
+		{
+			if (!m_mouseSelection.m_selections.empty())
+			{
+				for (const auto& index : m_mouseSelection.m_selections)
+				{
+					Items[index].IsSelected = false;
+				}
+				m_mouseSelection.m_selections.clear();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void ThumbListBoxReactor::Module::ToggleItemSelection(int itemIndexAtPosition)
+	{
+		auto& item = Items[itemIndexAtPosition];
+		item.IsSelected = !item.IsSelected;
+
+		if (item.IsSelected)
+		{
+			m_mouseSelection.m_selections.push_back(itemIndexAtPosition);
+		}
+		else
+		{
+			auto it = std::remove(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), itemIndexAtPosition);
+			m_mouseSelection.m_selections.erase(it, m_mouseSelection.m_selections.end());
+		}
+	}
+
+	void ThumbListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
+	{
+		int minIndex = (std::min)(m_mouseSelection.m_pressedIndex, itemIndexAtPosition);
+		int maxIndex = (std::max)(m_mouseSelection.m_pressedIndex, itemIndexAtPosition);
+		for (int i = minIndex; i <= maxIndex; ++i)
+		{
+			Items[i].IsSelected = true;
+			if (std::find(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), i) == m_mouseSelection.m_selections.end())
+			{
+				m_mouseSelection.m_selections.push_back(i);
+			}
+		}
+	}
+
+	bool ThumbListBoxReactor::Module::HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args)
+	{
+		bool needUpdate = false;
+
+		if (!m_ctrlPressed && !m_shiftPressed)
+		{
+			if (!args.ButtonState.RightButton || !Items[itemIndexAtPosition].IsSelected)
+			{
+				ClearSelection();
+			}
+			if (!Items[itemIndexAtPosition].IsSelected)
+			{
+				SelectItem(itemIndexAtPosition);
+				needUpdate = true;
+			}
+		}
+		else if (m_shiftPressed && m_mouseSelection.m_pressedIndex != -1)
+		{
+			PerformRangeSelection(itemIndexAtPosition);
+			needUpdate = true;
+		}
+		else
+		{
+			ToggleItemSelection(itemIndexAtPosition);
+			needUpdate = true;
+		}
+
+		EnsureVisibility(itemIndexAtPosition);
+		return needUpdate;
+	}
+
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
 	{
 		return m_mouseSelection.m_selections;
@@ -667,33 +688,33 @@ namespace Berta
 			return;
 		}
 
-		auto item = Items[lastSelectedIndex];
-		item.Bounds.Y -= m_state.m_offset;
+		auto itemBounds = Items[lastSelectedIndex].Bounds;
+		itemBounds.Y -= m_state.m_offset;
 
-		if (m_viewport.BackgroundRect.Contains(item.Bounds))
+		if (m_viewport.BackgroundRect.Contains(itemBounds))
 		{
 			return;
 		}
 
-		int itemHeight = static_cast<int>(item.Bounds.Height);
+		int itemHeight = static_cast<int>(itemBounds.Height);
 		int viewportHeight = static_cast<int>(m_viewport.BackgroundRect.Height);
 		int innerMarginDouble = static_cast<int>(m_viewport.InnerMargin * 2u);
 		auto offsetAdjustment = 0;
-		if (item.Bounds.Y >= viewportHeight)
+		if (itemBounds.Y >= viewportHeight)
 		{
 			offsetAdjustment = itemHeight + innerMarginDouble;
 		}
-		else if (item.Bounds.Y + itemHeight <= 0)
+		else if (itemBounds.Y + itemHeight <= 0)
 		{
 			offsetAdjustment = -itemHeight - innerMarginDouble;
 		}
-		else if (item.Bounds.Y + itemHeight > 0 && item.Bounds.Y + itemHeight < viewportHeight)
+		else if (itemBounds.Y + itemHeight > 0 && itemBounds.Y + itemHeight < viewportHeight)
 		{
-			offsetAdjustment = (item.Bounds.Y + itemHeight) - itemHeight - innerMarginDouble;
+			offsetAdjustment = (itemBounds.Y + itemHeight) - itemHeight - innerMarginDouble;
 		}
 		else
 		{
-			offsetAdjustment = (item.Bounds.Y + itemHeight) - viewportHeight;
+			offsetAdjustment = (itemBounds.Y + itemHeight) - viewportHeight;
 		}
 		m_state.m_offset = std::clamp(m_state.m_offset + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
 		m_scrollBar->SetValue(m_state.m_offset);

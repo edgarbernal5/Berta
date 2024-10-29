@@ -64,13 +64,15 @@ namespace Berta
 	{
 		m_module.CalculateViewport(m_module.m_viewport);
 
-		UpdateScrollBars();
+		m_module.UpdateScrollBars();
 	}
 
 	void ListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_module.m_pressedArea = m_module.m_hoverArea;
+		m_module.m_mouseDownPosition = args.Position;
 		bool needUpdate = false;
+
 		if (m_module.m_pressedArea == InteractionArea::List)
 		{
 			m_module.m_mouseSelection.m_pressedIndex = m_module.m_mouseSelection.m_hoveredIndex;
@@ -79,7 +81,6 @@ namespace Berta
 				needUpdate = true;
 				m_module.m_mouseSelection.m_selectedIndex = m_module.m_mouseSelection.m_hoveredIndex;
 			}
-			
 		}
 		else if (m_module.m_pressedArea == InteractionArea::ListBlank)
 		{
@@ -111,7 +112,7 @@ namespace Berta
 
 	void ListBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		auto hoveredArea = DetermineHoverArea(args.Position);
+		auto hoveredArea = args.ButtonState.NoButtonsPressed() ? m_module.DetermineHoverArea(args.Position) : m_module.m_pressedArea;
 		bool needUpdate = hoveredArea != m_module.m_hoverArea;
 
 		if (hoveredArea == InteractionArea::List)
@@ -142,6 +143,7 @@ namespace Berta
 				needUpdate = true;
 			}
 		}
+
 		m_module.m_hoverArea = hoveredArea;
 		if (needUpdate)
 		{
@@ -421,84 +423,86 @@ namespace Berta
 
 	}
 
-	bool ListBoxReactor::UpdateScrollBars()
+	bool ListBoxReactor::Module::UpdateScrollBars()
 	{
-		auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
+		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 		bool needUpdate = false;
-		if (m_module.m_viewport.NeedVerticalScroll)
+
+		if (m_viewport.NeedVerticalScroll)
 		{
-			auto listItemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
-			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
-			if (m_module.m_viewport.NeedHorizontalScroll)
+			auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight) + m_viewport.InnerMargin * 2u;
+			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
+			if (m_viewport.NeedHorizontalScroll)
 			{
 				scrollRect.Height -= scrollSize;
 			}
 
-			if (!m_module.m_scrollBarVert)
+			if (!m_scrollBarVert)
 			{
-				m_module.m_scrollBarVert = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect);
-				m_module.m_scrollBarVert->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
+				m_scrollBarVert = std::make_unique<ScrollBar>(m_window, false, scrollRect);
+				m_scrollBarVert->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
-						m_module.ScrollOffset.Y = args.Value;
+						ScrollOffset.Y = args.Value;
 
-						m_module.m_window->Renderer.Update();
-						GUI::RefreshWindow(m_module.m_window);
+						m_window->Renderer.Update();
+						GUI::RefreshWindow(m_window);
 					});
 			}
 			else
 			{
-				GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
+				GUI::MoveWindow(m_scrollBarVert->Handle(), scrollRect);
 			}
 
-			m_module.m_scrollBarVert->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Height - m_module.m_viewport.BackgroundRect.Height));
-			m_module.m_scrollBarVert->SetPageStepValue(m_module.m_viewport.BackgroundRect.Height);
-			m_module.m_scrollBarVert->SetStepValue(listItemHeight);
+			m_scrollBarVert->SetMinMax(0, (int)(m_viewport.ContentSize.Height - m_viewport.BackgroundRect.Height));
+			m_scrollBarVert->SetPageStepValue(m_viewport.BackgroundRect.Height);
+			m_scrollBarVert->SetStepValue(listItemHeight);
 			needUpdate = true;
 		}
-		else if (!m_module.m_viewport.NeedVerticalScroll && m_module.m_scrollBarVert)
+		else if (!m_viewport.NeedVerticalScroll && m_scrollBarVert)
 		{
-			m_module.m_scrollBarVert.reset();
-			m_module.ScrollOffset.Y = 0;
+			m_scrollBarVert.reset();
+			ScrollOffset.Y = 0;
 
 			needUpdate = true;
 		}
 
-		if (m_module.m_viewport.NeedHorizontalScroll)
+		if (m_viewport.NeedHorizontalScroll)
 		{
-			Rectangle scrollRect{ 1, static_cast<int>(m_module.m_window->Size.Height - scrollSize) - 1, m_module.m_window->Size.Width - 2u, scrollSize };
-			if (m_module.m_viewport.NeedVerticalScroll)
+			Rectangle scrollRect{ 1, static_cast<int>(m_window->Size.Height - scrollSize) - 1, m_window->Size.Width - 2u, scrollSize };
+			if (m_viewport.NeedVerticalScroll)
 			{
 				scrollRect.Width -= scrollSize;
 			}
 
-			if (!m_module.m_scrollBarHoriz)
+			if (!m_scrollBarHoriz)
 			{
-				m_module.m_scrollBarHoriz = std::make_unique<ScrollBar>(m_module.m_window, false, scrollRect, false);
-				m_module.m_scrollBarHoriz->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
+				m_scrollBarHoriz = std::make_unique<ScrollBar>(m_window, false, scrollRect, false);
+				m_scrollBarHoriz->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 					{
-						m_module.ScrollOffset.X = args.Value;
+						ScrollOffset.X = args.Value;
 
-						m_module.m_window->Renderer.Update();
-						GUI::RefreshWindow(m_module.m_window);
+						m_window->Renderer.Update();
+						GUI::RefreshWindow(m_window);
 					});
 			}
 			else
 			{
-				GUI::MoveWindow(m_module.m_scrollBarHoriz->Handle(), scrollRect);
+				GUI::MoveWindow(m_scrollBarHoriz->Handle(), scrollRect);
 			}
 
-			m_module.m_scrollBarHoriz->SetMinMax(0, (int)(m_module.m_viewport.ContentSize.Width - m_module.m_viewport.BackgroundRect.Width));
-			m_module.m_scrollBarHoriz->SetPageStepValue(m_module.m_viewport.BackgroundRect.Width);
-			m_module.m_scrollBarHoriz->SetStepValue(scrollSize);
+			m_scrollBarHoriz->SetMinMax(0, (int)(m_viewport.ContentSize.Width - m_viewport.BackgroundRect.Width));
+			m_scrollBarHoriz->SetPageStepValue(m_viewport.BackgroundRect.Width);
+			m_scrollBarHoriz->SetStepValue(scrollSize);
 			needUpdate = true;
 		}
-		else if (!m_module.m_viewport.NeedHorizontalScroll && m_module.m_scrollBarHoriz)
+		else if (!m_viewport.NeedHorizontalScroll && m_scrollBarHoriz)
 		{
-			m_module.m_scrollBarHoriz.reset();
-			m_module.ScrollOffset.X = 0;
+			m_scrollBarHoriz.reset();
+			ScrollOffset.X = 0;
 
 			needUpdate = true;
 		}
+
 		return needUpdate;
 	}
 
@@ -575,20 +579,20 @@ namespace Berta
 		}
 	}
 
-	Berta::ListBoxReactor::InteractionArea ListBoxReactor::DetermineHoverArea(const Point& mousePosition)
+	Berta::ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
-		auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
+		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		if (mousePosition.Y <= (int)headerHeight)
 		{
-			Point headerOffset{ -m_module.ScrollOffset.X, 0 };
+			Point headerOffset{ -ScrollOffset.X, 0 };
 
-			auto splitterThreshold = m_module.m_window->ToScale(3);
-			for (size_t i = 0; i < m_module.Headers.Items.size(); i++)
+			auto splitterThreshold = m_window->ToScale(3);
+			for (size_t i = 0; i < Headers.Items.size(); i++)
 			{
-				const auto& header = m_module.Headers.Items[i];
-				auto headerWidth = m_module.m_window->ToScale(header.Bounds.Width);
+				const auto& header = Headers.Items[i];
+				auto headerWidth = m_window->ToScale(header.Bounds.Width);
 				auto headerWidthInt = (int)headerWidth;
-				if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_module.m_viewport.BackgroundRect.Width)
+				if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.BackgroundRect.Width)
 				{
 					headerOffset.X += headerWidthInt;
 					continue;
@@ -611,28 +615,28 @@ namespace Berta
 			return InteractionArea::None;
 		}
 
-		if (m_module.m_viewport.NeedVerticalScroll && m_module.m_viewport.NeedHorizontalScroll && 
-			mousePosition.X >= (int)(m_module.m_viewport.BackgroundRect.Width) &&
-			mousePosition.Y >= (int)(m_module.m_viewport.BackgroundRect.Height))
+		if (m_viewport.NeedVerticalScroll && m_viewport.NeedHorizontalScroll && 
+			mousePosition.X >= (int)(m_viewport.BackgroundRect.Width) &&
+			mousePosition.Y >= (int)(m_viewport.BackgroundRect.Height))
 		{
 			return InteractionArea::None;
 		}
 
-		auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
+		auto itemHeight = m_window->ToScale(m_appearance->ListItemHeight) + m_viewport.InnerMargin * 2u;
 		auto itemHeightInt = static_cast<int>(itemHeight);
 
-		auto positionX = mousePosition.X - m_module.m_viewport.BackgroundRect.X + m_module.ScrollOffset.X;
-		auto positionY = mousePosition.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
+		auto positionX = mousePosition.X - m_viewport.BackgroundRect.X + ScrollOffset.X;
+		auto positionY = mousePosition.Y - m_viewport.BackgroundRect.Y + ScrollOffset.Y;
 		int index = positionY / itemHeightInt;
 
-		if (index < m_module.List.Items.size())
+		if (index < List.Items.size())
 		{
-			if (m_module.m_viewport.InnerMargin)
+			if (m_viewport.InnerMargin)
 			{
 				auto topBound = index * itemHeightInt;
 				auto bottomBound = topBound + itemHeightInt;
-				if ((positionY >= topBound && positionY <= topBound + (int)m_module.m_viewport.InnerMargin) ||
-					(positionY >= bottomBound - (int)m_module.m_viewport.InnerMargin && positionY <= topBound) || positionX > (int)m_module.m_viewport.ContentSize.Width)
+				if ((positionY >= topBound && positionY <= topBound + (int)m_viewport.InnerMargin) ||
+					(positionY >= bottomBound - (int)m_viewport.InnerMargin && positionY <= topBound) || positionX > (int)m_viewport.ContentSize.Width)
 				{
 					return InteractionArea::ListBlank;
 				}

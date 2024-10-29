@@ -80,7 +80,6 @@ public:
 	}
 
 private:
-
 	Berta::ListBox m_listBox;
 };
 

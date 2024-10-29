@@ -40,18 +40,18 @@ namespace Berta
 	}
 #endif
 
-	bool Rectangle::IsInside(const Point& point)
+	bool Rectangle::IsInside(const Point& point) const
 	{
 		return (X <= point.X && point.X <= X + static_cast<int>(Width) && Y <= point.Y && point.Y <= Y + static_cast<int>(Height));
 	}
 
-	bool Rectangle::Intersect(const Rectangle& other)
+	bool Rectangle::Intersect(const Rectangle& other) const
 	{
 		return !(this->X + (int)this->Width <= other.X || other.X + (int)other.Width <= this->X ||
 			this->Y + (int)this->Height <= other.Y || other.Y + (int)other.Height <= this->Y);
 	}
 
-	bool Rectangle::Contains(const Rectangle& other)
+	bool Rectangle::Contains(const Rectangle& other) const
 	{
 		return other.X >= this->X && other.X + (int)other.Width <= (int)this->Width &&
 			other.Y >= this->Y && other.Y + (int)other.Height <= (int)this->Height;

@@ -119,7 +119,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 
-		if (!args.ButtonState.LeftButton && !args.ButtonState.RightButton && !args.ButtonState.MiddleButton)
+		if (args.ButtonState.NoButtonsPressed())
 		{
 			InteractionArea newHoverArea = DetermineHoverArea(args.Position);
 			if (m_hoverArea != newHoverArea)
