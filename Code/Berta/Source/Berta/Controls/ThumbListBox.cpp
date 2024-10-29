@@ -537,6 +537,7 @@ namespace Berta
 	{
 		auto offsetPosition = position;
 		offsetPosition.Y += m_state.m_offset;
+
 		for (size_t i = 0; i < Items.size(); i++)
 		{
 			if (Items[i].Bounds.IsInside(offsetPosition))
@@ -595,6 +596,8 @@ namespace Berta
 		m_mouseSelection.m_startPosition = logicalPosition;
 		m_mouseSelection.m_endPosition = logicalPosition;
 
+		m_mouseSelection.m_inverseSelection = (m_ctrlPressed && !m_shiftPressed);
+
 		m_mouseSelection.m_selections.clear();
 		m_mouseSelection.m_alreadySelected.clear();
 
@@ -648,6 +651,7 @@ namespace Berta
 	{
 		int minIndex = (std::min)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
 		int maxIndex = (std::max)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
+
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
 			Items[i].IsSelected = true;
@@ -674,7 +678,7 @@ namespace Berta
 				needUpdate = true;
 			}
 		}
-		else if (m_shiftPressed && m_mouseSelection.m_pressedIndex != -1)
+		else if (m_shiftPressed && m_mouseSelection.m_selectedIndex != -1)
 		{
 			PerformRangeSelection(itemIndexAtPosition);
 			needUpdate = true;
@@ -684,6 +688,7 @@ namespace Berta
 			ToggleItemSelection(itemIndexAtPosition);
 			needUpdate = true;
 		}
+		m_mouseSelection.m_selectedIndex = itemIndexAtPosition;
 
 		EnsureVisibility(itemIndexAtPosition);
 		return needUpdate;
