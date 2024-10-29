@@ -52,10 +52,11 @@ namespace Berta
 		void DrawString(const Point& position, const std::string& str, const Color& color);
 
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction = ArrowDirection::Downwards, bool solid = true);
-		void DrawRoundRectBox(const Rectangle& rect, const Color& color, bool solid);
-		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, bool solid);
+		void DrawRoundRectBox(const Rectangle& rect, const Color& color, const Color& bordercolor, bool solid);
+		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid);
 		void DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor);
 		void DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor);
+		void DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize);
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_attributes->m_size; }

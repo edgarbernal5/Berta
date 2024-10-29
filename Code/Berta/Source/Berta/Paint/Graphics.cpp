@@ -377,12 +377,12 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color, bool solid)
+	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color, const Color& bordercolor, bool solid)
 	{
-		DrawRoundRectBox(rect, 3, color, solid);
+		DrawRoundRectBox(rect, 3, color, bordercolor, solid);
 	}
 
-	void Graphics::DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, bool solid)
+	void Graphics::DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -395,8 +395,8 @@ namespace Berta
 
 		if (solid)
 		{
-			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, color.BGR));
-			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(0xFFFFFF));
+			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, bordercolor.BGR));
+			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(color.BGR));
 
 			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + static_cast<int>(rect.Width), rect.Y + static_cast<int>(rect.Height), static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
 
@@ -444,20 +444,81 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		auto& hdc = m_attributes->m_hdc;
 		int radius = 3;
+
+		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
+		auto radiusScaled = static_cast<int>(radius * scaleFactor);
+
 		int x = rect.X;
 		int y = rect.Y;
 		int height = rect.Height;
 		int width = rect.Width;
-		HRGN buttonRegion = ::CreateRoundRectRgn(x, y, x + width, y + height, radius, radius);
+		HRGN buttonRegion = ::CreateRoundRectRgn(x, y, x + width, y + height, radiusScaled, radiusScaled);
 		::SelectClipRgn(hdc, buttonRegion);
 
 		DrawGradientFill(rect, startColor, endColor);
 		
 		::SelectClipRgn(hdc, nullptr);
 		//SetBkMode(hdc, TRANSPARENT);
-		DrawRoundRectBox(rect, radius, borderColor, false);
+		DrawRoundRectBox(rect, radius, borderColor, borderColor, false);
 		::DeleteObject(buttonRegion);
 #endif
+	}
+
+	void Graphics::DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize)
+	{
+		auto& hdc = m_attributes->m_hdc;
+
+		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
+		auto radiusScaled = static_cast<int>(radius * scaleFactor);
+
+		int x = rect.X;
+		int y = rect.Y;
+		int height = rect.Height;
+		int width = rect.Width;
+
+		// Paleta de colores de sombra (de más oscuro a más claro)
+		COLORREF shadowColors[] = {
+			RGB(50, 50, 50),  // Sombra oscura
+			RGB(80, 80, 80),
+			RGB(110, 110, 110),
+			RGB(140, 140, 140),
+			RGB(170, 170, 170),  // Sombra clara
+		};
+
+		int numShadows = sizeof(shadowColors) / sizeof(shadowColors[0]);
+
+		// Dibuja sombras en capas alrededor del rectángulo central
+		for (int i = 0; i < numShadows; i++) {
+			HPEN hPen = CreatePen(PS_SOLID, 1, shadowColors[i]);
+			HBRUSH hBrush = CreateSolidBrush(shadowColors[i]);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+
+			// Ajusta el tamaño de cada capa para crear la sombra difusa
+			RoundRect(
+				hdc,
+				x - shadowSize + i,
+				y - shadowSize + i,
+				x + width + shadowSize - i,
+				y + height + shadowSize - i,
+				radiusScaled + (shadowSize - i),  // Ajusta el radio para mantener la curva
+				radiusScaled + (shadowSize - i)
+			);
+
+			DeleteObject(hPen);
+			DeleteObject(hBrush);
+		}
+
+		// Dibuja el rectángulo redondeado principal
+		HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));      // Color del borde
+		HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 255));  // Color de relleno
+		SelectObject(hdc, hPen);
+		SelectObject(hdc, hBrush);
+
+		RoundRect(hdc, x, y, x + width, y + height, radiusScaled, radiusScaled);
+
+		DeleteObject(hPen);
+		DeleteObject(hBrush);
 	}
 
 	void Graphics::Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
