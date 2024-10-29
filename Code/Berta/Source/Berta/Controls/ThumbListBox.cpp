@@ -557,7 +557,7 @@ namespace Berta
 			{
 				++viewportData.TotalRows;
 			}
-			viewportData.ContentSize = static_cast<int>(viewportData.TotalCardsInRow * (viewportData.CardSize.Height + viewportData.InnerMargin * 2u));
+			viewportData.ContentSize = static_cast<int>(viewportData.TotalRows * (viewportData.CardSize.Height + viewportData.InnerMargin * 2u));
 		}
 		auto marginRemainder = viewportData.BackgroundRect.Width % cardWidthWithMargin;
 
