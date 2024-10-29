@@ -8,6 +8,7 @@
 #include "ListBox.h"
 
 #include "Berta/GUI/Interface.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
@@ -29,6 +30,28 @@ namespace Berta
 		DrawList(graphics);
 		DrawHeaders(graphics);
 
+		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
+		{
+			Point startPoint{
+				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::min)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
+			};
+
+			Point endPoint{
+				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
+				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
+			};
+
+			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
+			Color blendColor = m_module.m_window->Appearance->HighlightColor;
+			Graphics selectionBox(boxSize);
+			selectionBox.DrawRectangle(blendColor, true);
+			selectionBox.DrawRectangle(m_module.m_window->Appearance->BoxBorderColor, false);
+
+			Rectangle blendRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y, boxSize.Width, boxSize.Height };
+			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
+		}
+
 		if (m_module.m_viewport.NeedHorizontalScroll && m_module.m_viewport.NeedVerticalScroll)
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
@@ -46,6 +69,44 @@ namespace Berta
 
 	void ListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
+		m_module.m_pressedArea = m_module.m_hoverArea;
+		bool needUpdate = false;
+		if (m_module.m_pressedArea == InteractionArea::List)
+		{
+			m_module.m_mouseSelection.m_pressedIndex = m_module.m_mouseSelection.m_hoveredIndex;
+			if (m_module.m_mouseSelection.m_selectedIndex != m_module.m_mouseSelection.m_hoveredIndex)
+			{
+				needUpdate = true;
+				m_module.m_mouseSelection.m_selectedIndex = m_module.m_mouseSelection.m_hoveredIndex;
+			}
+			
+		}
+		else if (m_module.m_pressedArea == InteractionArea::ListBlank)
+		{
+			if (m_module.m_mouseSelection.m_selectedIndex != -1)
+			{
+				needUpdate = true;
+				m_module.m_mouseSelection.m_selectedIndex = -1;
+			}
+			if (m_module.m_multiselection)
+			{
+				auto logicalPosition = args.Position;
+				logicalPosition.Y -= m_module.ScrollOffset.Y;
+				m_module.m_mouseSelection.m_started = true;
+				m_module.m_mouseSelection.m_startPosition = logicalPosition;
+				m_module.m_mouseSelection.m_endPosition = logicalPosition;
+
+				m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
+
+				GUI::Capture(m_module.m_window);
+			}
+		}
+
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(m_module.m_window);
+		}
 	}
 
 	void ListBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -81,6 +142,7 @@ namespace Berta
 				needUpdate = true;
 			}
 		}
+		m_module.m_hoverArea = hoveredArea;
 		if (needUpdate)
 		{
 			Update(graphics);
@@ -90,6 +152,21 @@ namespace Berta
 
 	void ListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		bool needUpdate = false;
+
+		if (m_module.m_mouseSelection.m_started)
+		{
+			m_module.m_mouseSelection.m_started = false;
+			needUpdate = true;
+			
+			GUI::ReleaseCapture(m_module.m_window);
+		}
+
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(*m_control);
+		}
 	}
 
 	void ListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -99,6 +176,57 @@ namespace Berta
 
 		Update(graphics);
 		GUI::MarkAsUpdated(m_module.m_window);
+	}
+
+	void ListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
+	{
+		if (!m_module.m_scrollBarVert && args.IsVertical || !m_module.m_scrollBarHoriz && !args.IsVertical)
+		{
+			return;
+		}
+
+		int direction = args.WheelDelta > 0 ? -1 : 1;
+		direction *= args.IsVertical ? m_module.m_scrollBarVert->GetStepValue() : m_module.m_scrollBarHoriz->GetStepValue();
+		auto min= args.IsVertical ? m_module.m_scrollBarVert->GetMin() : m_module.m_scrollBarHoriz->GetMin();
+		auto max= args.IsVertical ? m_module.m_scrollBarVert->GetMax() : m_module.m_scrollBarHoriz->GetMax();
+		int newOffset = std::clamp((args.IsVertical ? m_module.ScrollOffset.Y : m_module.ScrollOffset.X) + direction, (int)min, (int)max);
+
+		if (args.IsVertical && newOffset != m_module.ScrollOffset.Y ||
+			!args.IsVertical && newOffset != m_module.ScrollOffset.X)
+		{
+			if (args.IsVertical)
+			{
+				m_module.ScrollOffset.Y = newOffset;
+				m_module.m_scrollBarVert->SetValue(newOffset);
+
+				m_module.m_scrollBarVert->Handle()->Renderer.Update();
+				GUI::MarkAsUpdated(m_module.m_scrollBarVert->Handle());
+			}
+			else
+			{
+				m_module.ScrollOffset.X = newOffset;
+				m_module.m_scrollBarHoriz->SetValue(newOffset);
+
+				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
+				GUI::MarkAsUpdated(m_module.m_scrollBarHoriz->Handle());
+			}
+
+			Update(graphics);
+			GUI::MarkAsUpdated(*m_control);
+		}
+	}
+
+	void ListBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
+	{
+		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
+		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
+
+	}
+
+	void ListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
+	{
+		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
+		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
 
 	void ListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
@@ -143,6 +271,11 @@ namespace Berta
 				}
 			}
 		} 
+	}
+
+	void ListBoxReactor::Module::EnableMultiselection(bool enabled)
+	{
+		m_multiselection = enabled;
 	}
 
 	void ListBoxReactor::Module::BuildHeaderBounds(uint32_t startIndex)
@@ -206,7 +339,7 @@ namespace Berta
 
 	void ListBoxReactor::Module::AppendHeader(const std::string& text, uint32_t width)
 	{
-		auto startIndex = Headers.Items.size();
+		auto startIndex = static_cast<uint32_t>(Headers.Items.size());
 		Headers.Items.emplace_back(text, (std::max)(width, LISTBOX_MIN_HEADER_WIDTH));
 
 		BuildHeaderBounds(startIndex);
@@ -252,9 +385,14 @@ namespace Berta
 	{
 	}
 
+	void ListBox::EnableMultiselection(bool enabled)
+	{
+		m_reactor.GetModule().EnableMultiselection(enabled);
+	}
+
 	void ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
 	{
-		auto startIndex = List.Items.size();
+		auto startIndex = static_cast<uint32_t>(List.Items.size());
 
 		auto headersCount = Headers.Items.size();
 		auto& item = List.Items.emplace_back("{}");
@@ -407,9 +545,11 @@ namespace Berta
 			listOffset.X = -m_module.ScrollOffset.X;
 
 			bool isHovered = m_module.m_mouseSelection.m_hoveredIndex == (int)i;
-			if (isHovered)
+			bool isSelected = m_module.m_mouseSelection.m_selectedIndex == (int)i;
+			if (isHovered || isSelected)
 			{
-				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin,  m_module.m_viewport.ContentSize.Width, itemHeight }, m_module.m_appearance->HighlightColor, true);
+				auto color = isSelected ? m_module.m_appearance->HighlightColor : m_module.m_appearance->ItemCollectionHightlightBackground;
+				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin, m_module.m_viewport.ContentSize.Width, itemHeight }, color, true);
 			}
 			for (size_t j = 0; j < item.Cells.size(); j++)
 			{
@@ -472,18 +612,19 @@ namespace Berta
 		}
 
 		auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
+		auto itemHeightInt = static_cast<int>(itemHeight);
 
 		auto positionY = mousePosition.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
-		int index = positionY / (int)itemHeight;
+		int index = positionY / itemHeightInt;
 
 		if (index < m_module.List.Items.size())
 		{
 			if (m_module.m_viewport.InnerMargin)
 			{
-				auto topBound = index * itemHeight;
-				auto bottomBound = topBound + itemHeight;
-				if ((positionY >= topBound && positionY <= topBound + m_module.m_viewport.InnerMargin) ||
-					(positionY >= bottomBound - m_module.m_viewport.InnerMargin && positionY <= topBound))
+				auto topBound = index * itemHeightInt;
+				auto bottomBound = topBound + itemHeightInt;
+				if ((positionY >= topBound && positionY <= topBound + (int)m_module.m_viewport.InnerMargin) ||
+					(positionY >= bottomBound - (int)m_module.m_viewport.InnerMargin && positionY <= topBound))
 				{
 					return InteractionArea::ListBlank;
 				}

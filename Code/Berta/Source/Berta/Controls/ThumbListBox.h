@@ -98,8 +98,8 @@ namespace Berta
 				bool m_started{ false };
 				bool m_inverseSelection{ false };
 			};
-			bool m_shiftPressed = false;
-			bool m_ctrlPressed = false;
+			bool m_shiftPressed{ false };
+			bool m_ctrlPressed{ false };
 			MouseSelection m_mouseSelection;
 			std::vector<GridCardType> m_gridCards;
 			ViewportData m_viewport;

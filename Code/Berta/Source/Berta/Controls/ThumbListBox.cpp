@@ -153,7 +153,7 @@ namespace Berta
 		auto itemAtPosition = m_module.GetItemIndexAtMousePosition(args.Position);
 		bool hitOnBlank = itemAtPosition == -1;
 
-		bool hasChanged = false;
+		bool needUpdate = false;
 		auto savedLastSelectedIndex = m_module.m_mouseSelection.m_pressedIndex;
 		m_module.m_mouseSelection.m_pressedIndex = itemAtPosition;
 
@@ -164,14 +164,14 @@ namespace Berta
 				m_module.Items[m_module.m_mouseSelection.m_selectedIndex].IsSelected = false;
 				m_module.m_mouseSelection.m_selections.clear();
 				m_module.m_mouseSelection.m_selectedIndex = -1;
-				hasChanged = true;
+				needUpdate = true;
 			}
 		}
 		else if (!m_module.m_multiselection && !hitOnBlank)
 		{
-			hasChanged = (savedLastSelectedIndex != itemAtPosition);
+			needUpdate = (savedLastSelectedIndex != itemAtPosition);
 			m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
-			if (hasChanged)
+			if (needUpdate)
 			{
 				if (m_module.m_mouseSelection.m_selectedIndex != -1)
 				{
@@ -196,7 +196,7 @@ namespace Berta
 
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
 			{
-				hasChanged = !m_module.m_mouseSelection.m_selections.empty();
+				needUpdate = !m_module.m_mouseSelection.m_selections.empty();
 				for (auto& index : m_module.m_mouseSelection.m_selections)
 				{
 					m_module.Items[index].IsSelected = false;
@@ -233,12 +233,12 @@ namespace Berta
 					m_module.Items[itemAtPosition].IsSelected = true;
 					m_module.m_mouseSelection.m_selections.push_back(itemAtPosition);
 					m_module.EnsureVisibility(itemAtPosition);
-					hasChanged = true;
+					needUpdate = true;
 				}
 				else if (savedLastSelectedIndex != itemAtPosition)
 				{
 					m_module.EnsureVisibility(itemAtPosition);
-					hasChanged = true;
+					needUpdate = true;
 				}
 			}
 			else
@@ -275,11 +275,11 @@ namespace Berta
 					}
 				}
 				m_module.EnsureVisibility(itemAtPosition);
-				hasChanged = true;
+				needUpdate = true;
 			}
 		}
 
-		if (hasChanged)
+		if (needUpdate)
 		{
 			Update(graphics);
 			GUI::MarkAsUpdated(*m_control);
@@ -288,7 +288,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		bool hasChanged = false;
+		bool needUpdate = false;
 
 		if (m_module.m_mouseSelection.m_started)
 		{
@@ -308,7 +308,7 @@ namespace Berta
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 
-			hasChanged |= (boxSize.Width > 0 && boxSize.Height > 0);
+			needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
 			{
 				Rectangle selectionRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset * 2, boxSize.Width, boxSize.Height};
@@ -337,7 +337,7 @@ namespace Berta
 			}
 		}
 
-		if (hasChanged)
+		if (needUpdate)
 		{
 			Update(graphics);
 			GUI::MarkAsUpdated(*m_control);
@@ -346,11 +346,11 @@ namespace Berta
 
 	void ThumbListBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		bool hasChanged = false;
+		bool needUpdate = false;
 
 		if (m_module.m_mouseSelection.m_started)
 		{
-			hasChanged = true;
+			needUpdate = true;
 			m_module.m_mouseSelection.m_started = false;
 			m_module.m_mouseSelection.m_selections.clear();
 			for (size_t i = 0; i < m_module.Items.size(); i++)
@@ -363,7 +363,7 @@ namespace Berta
 			GUI::ReleaseCapture(m_module.m_window);
 		}
 
-		if (hasChanged)
+		if (needUpdate)
 		{
 			Update(graphics);
 			GUI::MarkAsUpdated(*m_control);
@@ -399,7 +399,7 @@ namespace Berta
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-		bool hasChanged = false;
+		bool needUpdate = false;
 		if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight || args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
 		{
 			if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight)
@@ -426,7 +426,7 @@ namespace Berta
 					}
 					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
 
-					hasChanged = true;
+					needUpdate = true;
 				}
 			}
 			else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
@@ -467,7 +467,7 @@ namespace Berta
 						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
 					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
-					hasChanged = true;
+					needUpdate = true;
 				}
 			}
 		}
@@ -488,11 +488,11 @@ namespace Berta
 						m_module.m_mouseSelection.m_selections.erase(it);
 					}
 				}
-				hasChanged = true;
+				needUpdate = true;
 			}
 		}
 
-		if (hasChanged)
+		if (needUpdate)
 		{
 			Update(graphics);
 			GUI::MarkAsUpdated(*m_control);

@@ -29,6 +29,9 @@ namespace Berta
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
 		struct Headers
 		{
@@ -115,6 +118,8 @@ namespace Berta
 			void BuildHeaderBounds(uint32_t startIndex);
 			void BuildListItemBounds(uint32_t startIndex);
 
+			void EnableMultiselection(bool enabled);
+
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
@@ -125,6 +130,9 @@ namespace Berta
 			ViewportData m_viewport;
 			Window* m_window;
 			ListBoxAppearance* m_appearance{ nullptr };
+			bool m_multiselection{ true };
+			bool m_shiftPressed{ false };
+			bool m_ctrlPressed{ false };
 		};
 
 		Module& GetModule() { return m_module; }
@@ -153,6 +161,8 @@ namespace Berta
 		void Append(std::initializer_list<std::string> texts);
 		void Clear();
 		void ClearHeaders();
+
+		void EnableMultiselection(bool enabled);
 	};
 }
 

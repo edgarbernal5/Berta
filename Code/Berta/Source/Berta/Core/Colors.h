@@ -36,6 +36,8 @@ namespace Berta
 
 		static Color Light_ScrollBarBackground{ 0x8E8E8F };
 		static Color Light_MenuBackground{ 0xDDE6EB };
+
+		static Color Light_ItemCollectionHightlightBackground{ 0xF5BC90 };
 	}
 }
 

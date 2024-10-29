@@ -17,6 +17,7 @@ namespace Berta
 		Color Background{ Colors::Light_Background };
 		Color Foreground{ Colors::Light_Foreground };
 
+		//Highlight = Hovered
 		Color ButtonBackground{ Colors::Light_ButtonBackground };
 		Color ButtonHighlightBackground{ Colors::Light_ButtonHightlighBackground };
 		Color ButtonPressedBackground{ Colors::Light_ButtonPressedBackground };
@@ -44,6 +45,8 @@ namespace Berta
 		Color ScrollBarBackground{ Colors::Light_ScrollBarBackground };
 		Color MenuBackground{ Colors::Light_MenuBackground };
 
+		Color ItemCollectionHightlightBackground{ Colors::Light_ItemCollectionHightlightBackground };
+
 		uint32_t ComboBoxItemHeight = 20;
 		uint32_t ScrollBarSize = 20;
 
@@ -53,7 +56,6 @@ namespace Berta
 		uint32_t MenuBoxShortcutWidth = 20;
 
 		uint32_t TabBarItemHeight = 27;
-
 	};
 
 	struct ThumbListBoxAppearance : public ControlAppearance
