@@ -58,11 +58,15 @@ public:
 		m_listBox.AppendHeader("Nombre completo", 500);
 		m_listBox.AppendHeader("Edad", 300);
 
-		for (size_t i = 0; i < 4; i++)
-		{
-			m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38" });
-			m_listBox.Append({ "Bruno", "3" });
-		}
+		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38" });
+		m_listBox.Append({ "Bruno Emmanuel Bernal", "3" });
+		m_listBox.Append({ "Adriana Desiree", "37" });
+		m_listBox.Append({ "Luna Bernal", "37" });
+		m_listBox.Append({ "Alicia Mercedes Oropeza de Bernal", "74" });
+		m_listBox.Append({ "Toyi Medina", "68" });
+		m_listBox.Append({ "Orlando Urdaneta Jimenez", "71" });
+		m_listBox.Append({ "Abraham Leonardo Urdaneta", "29" });
+		
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();

@@ -134,7 +134,7 @@ namespace Berta
 				needUpdate = true;
 			}
 		}
-		if (hoveredArea == InteractionArea::ListBlank)
+		if (hoveredArea == InteractionArea::ListBlank || hoveredArea == InteractionArea::None)
 		{
 			if (m_module.m_mouseSelection.m_hoveredIndex != -1)
 			{
@@ -427,7 +427,7 @@ namespace Berta
 		bool needUpdate = false;
 		if (m_module.m_viewport.NeedVerticalScroll)
 		{
-			auto listItemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight);
+			auto listItemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
 			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
 			if (m_module.m_viewport.NeedHorizontalScroll)
 			{
@@ -611,9 +611,17 @@ namespace Berta
 			return InteractionArea::None;
 		}
 
+		if (m_module.m_viewport.NeedVerticalScroll && m_module.m_viewport.NeedHorizontalScroll && 
+			mousePosition.X >= (int)(m_module.m_viewport.BackgroundRect.Width) &&
+			mousePosition.Y >= (int)(m_module.m_viewport.BackgroundRect.Height))
+		{
+			return InteractionArea::None;
+		}
+
 		auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
 		auto itemHeightInt = static_cast<int>(itemHeight);
 
+		auto positionX = mousePosition.X - m_module.m_viewport.BackgroundRect.X + m_module.ScrollOffset.X;
 		auto positionY = mousePosition.Y - m_module.m_viewport.BackgroundRect.Y + m_module.ScrollOffset.Y;
 		int index = positionY / itemHeightInt;
 
@@ -624,7 +632,7 @@ namespace Berta
 				auto topBound = index * itemHeightInt;
 				auto bottomBound = topBound + itemHeightInt;
 				if ((positionY >= topBound && positionY <= topBound + (int)m_module.m_viewport.InnerMargin) ||
-					(positionY >= bottomBound - (int)m_module.m_viewport.InnerMargin && positionY <= topBound))
+					(positionY >= bottomBound - (int)m_module.m_viewport.InnerMargin && positionY <= topBound) || positionX > (int)m_module.m_viewport.ContentSize.Width)
 				{
 					return InteractionArea::ListBlank;
 				}
