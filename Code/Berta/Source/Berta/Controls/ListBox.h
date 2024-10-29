@@ -67,6 +67,7 @@ namespace Berta
 				}
 				std::vector<Cell> Cells;
 				Rectangle Bounds;
+				bool IsSelected{ false };
 			};
 
 			std::vector<Item> Items;
@@ -121,6 +122,17 @@ namespace Berta
 			void EnableMultiselection(bool enabled);
 			bool UpdateScrollBars();
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
+
+			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
+			void SelectItem(int index);
+			void ClearSelection();
+			void EnsureVisibility(int lastSelectedIndex);
+			void PerformRangeSelection(int itemIndexAtPosition);
+
+			void ToggleItemSelection(int itemIndexAtPosition);
+			void StartSelectionRectangle(const Point& mousePosition);
+			bool ClearSelectionIfNeeded();
+			bool ClearSingleSelection();
 
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };

@@ -156,18 +156,7 @@ namespace Berta
 		bool needUpdate = false;
 		m_module.m_mouseSelection.m_pressedIndex = itemIndexAtPosition;
 
-		if (!m_module.m_multiselection)
-		{
-			if (hitOnBlank)
-			{
-				needUpdate = m_module.ClearSingleSelection();
-			}
-			else
-			{
-				needUpdate = m_module.UpdateSingleSelection(itemIndexAtPosition);
-			}
-		}
-		else
+		if (m_module.m_multiselection)
 		{
 			if (hitOnBlank)
 			{
@@ -177,6 +166,17 @@ namespace Berta
 			else
 			{
 				needUpdate = m_module.HandleMultiSelection(itemIndexAtPosition, args);
+			}
+		}
+		else
+		{
+			if (hitOnBlank)
+			{
+				needUpdate = m_module.ClearSingleSelection();
+			}
+			else
+			{
+				needUpdate = m_module.UpdateSingleSelection(itemIndexAtPosition);
 			}
 		}
 
