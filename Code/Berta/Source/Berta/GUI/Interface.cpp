@@ -309,6 +309,16 @@ namespace Berta::GUI
 		}
 	}
 
+	Cursor GetCursor(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.GetCursor(window);
+		}
+		return Cursor::Default;
+	}
+
 	//TODO: JustCtrl_CenterWindow
 	Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height)
 	{

@@ -87,6 +87,11 @@ namespace Berta
 			return static_cast<int>(units * DPIScaleFactor);
 		}
 
+		int ToDownScale(int units) const
+		{
+			return static_cast<int>(units / DPIScaleFactor);
+		}
+
 		Berta::Size ToScale(Berta::Size units)
 		{
 			return (units * DPIScaleFactor);

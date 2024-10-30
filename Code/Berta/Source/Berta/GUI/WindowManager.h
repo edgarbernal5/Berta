@@ -73,6 +73,7 @@ namespace Berta
 
 		void ChangeDPI(Window* window, uint32_t newDPI);
 		void ChangeCursor(Window* window, Cursor newCursor);
+		Cursor GetCursor(Window* window);
 
 		Point GetAbsolutePosition(Window* window);
 		Point GetLocalPosition(Window* window);

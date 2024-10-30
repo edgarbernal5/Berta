@@ -47,6 +47,9 @@ namespace Berta
 				Rectangle Bounds;
 			};
 
+
+			int MouseDownOffset{ 0 };
+			int SelectedIndex{ -1 };
 			std::vector<ItemData> Items;
 		};
 
@@ -139,6 +142,8 @@ namespace Berta
 			bool ClearSingleSelection();
 
 			std::vector<size_t> GetSelectedItems() const;
+
+			int GetHeaderAtMousePosition(const Point& mousePosition);
 
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };

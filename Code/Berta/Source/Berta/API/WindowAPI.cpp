@@ -202,6 +202,9 @@ namespace Berta
 
 			case Cursor::IBeam:
 				cursorName = IDC_IBEAM;	break;
+
+			case Cursor::SizeWE:
+				cursorName = IDC_SIZEWE;	break;
 			}
 
 			nativeCursor.Handle = ::LoadCursor(nullptr, cursorName);

@@ -76,13 +76,13 @@ public:
 
 		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
 
-		m_listBox.AppendHeader("Nombre completo", 200);
-		m_listBox.AppendHeader("Edad", 200);
+		m_listBox.AppendHeader("Nombre completo", 100);
+		m_listBox.AppendHeader("Edad", 60);
 
 		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38" });
 		m_listBox.Append({ "Bruno Emmanuel Bernal", "3" });
 		m_listBox.Append({ "Adriana Desiree", "37" });
-		m_listBox.Append({ "Luna Bernal", "37" });
+		m_listBox.Append({ "Luna Bernal", "0" });
 		m_listBox.Append({ "Alicia Mercedes Oropeza de Bernal", "74" });
 		m_listBox.Append({ "Toyi Medina", "68" });
 		m_listBox.Append({ "Orlando Urdaneta Jimenez", "71" });

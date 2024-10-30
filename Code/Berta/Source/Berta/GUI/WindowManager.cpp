@@ -614,6 +614,17 @@ namespace Berta
 		}
 	}
 
+	Cursor WindowManager::GetCursor(Window* window)
+	{
+		auto& rootHandle = window->RootWindow->RootHandle;
+		auto rootData = GetFormData(rootHandle);
+		if (rootData)
+		{
+			return rootData->CurrentCursor.CursorType;
+		}
+		return Cursor::Default;
+	}
+
 	Point WindowManager::GetAbsolutePosition(Window* window)
 	{
 		Point position{ window->Position };

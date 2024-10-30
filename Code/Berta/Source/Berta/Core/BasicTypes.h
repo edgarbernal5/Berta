@@ -231,7 +231,8 @@ namespace Berta
 	{
 		Default,
 		IBeam,
-		Wait
+		Wait,
+		SizeWE
 	};
 
 	using ScrollBarUnit = int;

@@ -52,6 +52,8 @@ namespace Berta
 		void MarkAsUpdated(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
+		Cursor GetCursor(Window* window);
+
 		Rectangle GetCenteredOnScreen(uint32_t width, uint32_t height);
 		Rectangle GetCenteredOnScreen(const Size& size);
 

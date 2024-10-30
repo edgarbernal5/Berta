@@ -102,24 +102,13 @@ namespace Berta
 			{
 				needUpdate = m_module.ClearSingleSelection();
 			}
+		}
 
-			//if (m_module.m_mouseSelection.m_selectedIndex != -1)
-			//{
-			//	needUpdate = true;
-			//	m_module.m_mouseSelection.m_selectedIndex = -1;
-			//}
-			//if (m_module.m_multiselection)
-			//{
-			//	auto logicalPosition = args.Position;
-			//	logicalPosition.Y -= m_module.ScrollOffset.Y;
-			//	m_module.m_mouseSelection.m_started = true;
-			//	m_module.m_mouseSelection.m_startPosition = logicalPosition;
-			//	m_module.m_mouseSelection.m_endPosition = logicalPosition;
-
-			//	m_module.m_mouseSelection.m_inverseSelection = (m_module.m_ctrlPressed && !m_module.m_shiftPressed);
-
-			//	GUI::Capture(m_module.m_window);
-			//}
+		if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
+		{
+			GUI::Capture(m_module.m_window);
+			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position);
+			m_module.Headers.MouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.X + m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.Width);
 		}
 
 		if (needUpdate)
@@ -141,6 +130,36 @@ namespace Berta
 				m_module.m_mouseSelection.m_hoveredIndex = -1;
 				needUpdate = true;
 			}
+
+			if (args.ButtonState.NoButtonsPressed() && hoveredArea == InteractionArea::HeaderSplitter)
+			{
+				BT_CORE_DEBUG << "  - mo move / cursor SizeWE" << std::endl;
+				GUI::ChangeCursor(m_module.m_window, Cursor::SizeWE);
+			}
+		}
+		if (hoveredArea == InteractionArea::HeaderSplitter && args.ButtonState.LeftButton)
+		{
+			auto& headerBounds = m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds;
+			auto newWidth = m_module.m_window->ToDownScale(args.Position.X - m_module.Headers.MouseDownOffset - m_module.m_window->ToScale(headerBounds.X));
+			
+			headerBounds.Width = (std::max)(LISTBOX_MIN_HEADER_WIDTH, static_cast<uint32_t>((std::max)(0, newWidth)));
+			m_module.CalculateViewport(m_module.m_viewport);
+			if (m_module.UpdateScrollBars())
+			{
+				if (m_module.m_scrollBarVert)
+					m_module.m_scrollBarVert->Handle()->Renderer.Update();
+
+				if (m_module.m_scrollBarHoriz)
+					m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
+			}
+			m_module.BuildHeaderBounds(m_module.Headers.SelectedIndex);
+
+			needUpdate = true;
+		}
+		if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && m_module.m_hoverArea == InteractionArea::HeaderSplitter)
+		{
+			BT_CORE_DEBUG << "  - mo move / cursor default" << std::endl;
+			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
 		}
 
 		if (hoveredArea == InteractionArea::List)
@@ -237,6 +256,12 @@ namespace Berta
 	{
 		bool needUpdate = false;
 
+		if (m_module.m_pressedArea == InteractionArea::HeaderSplitter &&
+			m_module.DetermineHoverArea(args.Position) != InteractionArea::HeaderSplitter)
+			//(!m_module.m_window->Size.IsInside(args.Position) || args.Position.Y > m_module.m_viewport.BackgroundRect.Y))
+		{
+			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
+		}
 		if (m_module.m_mouseSelection.m_started)
 		{
 			needUpdate = true;
@@ -251,6 +276,10 @@ namespace Berta
 			}
 			GUI::ReleaseCapture(m_module.m_window);
 		}
+		if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
+		{
+			GUI::ReleaseCapture(m_module.m_window);
+		}
 
 		if (needUpdate)
 		{
@@ -261,10 +290,15 @@ namespace Berta
 
 	void ListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		m_module.m_hoverArea = InteractionArea::None;
+		if (m_module.m_hoverArea == InteractionArea::HeaderSplitter)
+		{
+			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
+		}
+
 		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != -1;
 		m_module.m_mouseSelection.m_hoveredIndex = -1;
 
+		m_module.m_hoverArea = InteractionArea::None;
 		if (needUpdate)
 		{
 			Update(graphics);
@@ -702,7 +736,7 @@ namespace Berta
 				continue;
 			}
 
-			DrawStringInBox(graphics, header.Name, { headerOffset.X + (int)leftMarginTextHeader, 0, headerWidth, headerHeight });
+			DrawStringInBox(graphics, header.Name, { headerOffset.X + (int)leftMarginTextHeader, 0, headerWidth - leftMarginTextHeader, headerHeight });
 
 			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxPressedBackground);
 			graphics.DrawLine({ headerOffset.X + headerWidthInt, 0 }, { headerOffset.X + headerWidthInt, (int)headerHeight - 1 }, m_module.m_appearance->Foreground);
@@ -909,6 +943,10 @@ namespace Berta
 	Berta::ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
+		if (mousePosition.Y < 0)
+		{
+			return InteractionArea::None;
+		}
 		if (mousePosition.Y <= (int)headerHeight)
 		{
 			Point headerOffset{ -ScrollOffset.X, 0 };
@@ -987,5 +1025,32 @@ namespace Berta
 		{
 			m_selections.erase(it);
 		}
+	}
+	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition)
+	{
+		Point headerOffset{ -ScrollOffset.X, 0 };
+
+		auto splitterThreshold = m_window->ToScale(3);
+		for (size_t i = 0; i < Headers.Items.size(); i++)
+		{
+			const auto& header = Headers.Items[i];
+			auto headerWidth = m_window->ToScale(header.Bounds.Width);
+			auto headerWidthInt = (int)headerWidth;
+			if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.BackgroundRect.Width)
+			{
+				headerOffset.X += headerWidthInt;
+				continue;
+			}
+
+			if (mousePosition.X >= headerOffset.X + headerWidthInt - splitterThreshold &&
+				mousePosition.X <= headerOffset.X + headerWidthInt + splitterThreshold)
+			{
+				//return InteractionArea::HeaderSplitter;
+				return i;
+			}
+
+			headerOffset.X += headerWidthInt;
+		}
+		return -1;
 	}
 }
