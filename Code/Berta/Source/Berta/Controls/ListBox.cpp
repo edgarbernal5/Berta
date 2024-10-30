@@ -380,6 +380,7 @@ namespace Berta
 	void ListBoxReactor::Module::BuildListItemBounds(uint32_t startIndex)
 	{
 		auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight);
+		auto innerMarginInt = static_cast<int>(m_viewport.InnerMargin);
 		Point offset{ 0,0 };
 		if (startIndex > 0)
 		{
@@ -387,11 +388,11 @@ namespace Berta
 		}
 		for (size_t i = startIndex; i < List.Items.size(); i++)
 		{
-			List.Items[i].Bounds.Y = offset.Y;
+			List.Items[i].Bounds.Y = offset.Y + innerMarginInt;
 			List.Items[i].Bounds.Height = listItemHeight;
 			List.Items[i].Bounds.Width = m_viewport.ContentSize.Width;
 
-			offset.Y += List.Items[i].Bounds.Height;
+			offset.Y += List.Items[i].Bounds.Height + innerMarginInt;
 		}
 	}
 
@@ -864,7 +865,7 @@ namespace Berta
 				auto topBound = index * itemHeightInt;
 				auto bottomBound = topBound + itemHeightInt;
 				if ((positionY >= topBound && positionY <= topBound + (int)m_viewport.InnerMargin) ||
-					(positionY >= bottomBound - (int)m_viewport.InnerMargin && positionY <= topBound) || positionX > (int)m_viewport.ContentSize.Width)
+					(positionY >= bottomBound - (int)m_viewport.InnerMargin && positionY <= bottomBound) || positionX > (int)m_viewport.ContentSize.Width)
 				{
 					return InteractionArea::ListBlank;
 				}
