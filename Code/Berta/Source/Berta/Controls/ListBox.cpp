@@ -176,7 +176,7 @@ namespace Berta
 		if (m_module.m_mouseSelection.m_started)
 		{
 			auto logicalPosition = args.Position;
-			logicalPosition.Y -= m_module.ScrollOffset.Y;
+			logicalPosition -= m_module.ScrollOffset;
 			m_module.m_mouseSelection.m_endPosition = logicalPosition;
 
 			Point startPoint{
@@ -194,7 +194,8 @@ namespace Berta
 			needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
 			{
-				Rectangle selectionRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y * 2, boxSize.Width, boxSize.Height };
+				auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
+				Rectangle selectionRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y * 2 - (int)headerHeight, boxSize.Width, boxSize.Height };
 				for (size_t i = 0; i < m_module.List.Items.size(); i++)
 				{
 					auto& item = m_module.List.Items[i];
@@ -366,7 +367,7 @@ namespace Berta
 		Point offset{ 0,0 };
 		if (startIndex > 0)
 		{
-			offset.X = Headers.Items[startIndex - 1].Bounds.X + Headers.Items[startIndex - 1].Bounds.Width;
+			offset.X = Headers.Items[startIndex - 1].Bounds.X + (int)Headers.Items[startIndex - 1].Bounds.Width;
 		}
 		for (size_t i = startIndex; i < Headers.Items.size(); i++)
 		{
@@ -388,6 +389,7 @@ namespace Berta
 		{
 			List.Items[i].Bounds.Y = offset.Y;
 			List.Items[i].Bounds.Height = listItemHeight;
+			List.Items[i].Bounds.Width = m_viewport.ContentSize.Width;
 
 			offset.Y += List.Items[i].Bounds.Height;
 		}
@@ -431,7 +433,10 @@ namespace Berta
 
 	void ListBoxReactor::Module::Append(const std::string& text)
 	{
+		auto startIndex = static_cast<uint32_t>(List.Items.size());
 		List.Items.emplace_back(text);
+
+		BuildListItemBounds(startIndex);
 		CalculateViewport(m_viewport);
 	}
 
@@ -712,7 +717,7 @@ namespace Berta
 	void ListBoxReactor::Module::StartSelectionRectangle(const Point& mousePosition)
 	{
 		auto logicalPosition = mousePosition;
-		logicalPosition.Y -= ScrollOffset.Y;
+		logicalPosition -= ScrollOffset;
 		m_mouseSelection.m_started = true;
 		m_mouseSelection.m_startPosition = logicalPosition;
 		m_mouseSelection.m_endPosition = logicalPosition;
