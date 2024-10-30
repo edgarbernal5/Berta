@@ -111,7 +111,6 @@ namespace Berta
 			os << "{ X=" << point.X << "; Y=" << point.Y << "}";
 			return os;
 		}
-
 	};
 
 	using Point = BasicPoint<int>;
@@ -151,6 +150,12 @@ namespace Berta
 		bool operator!=(const Rectangle& other) const noexcept
 		{
 			return (X != other.X || Y != other.Y || Width != other.Width || Height != other.Height);
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const Rectangle& rect)
+		{
+			os << "{ X=" << rect.X << "; Y=" << rect.Y << "; Width=" << rect.Width << "; Height=" << rect.Height << " }";
+			return os;
 		}
 
 		operator Size() const;

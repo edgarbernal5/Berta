@@ -217,7 +217,7 @@ namespace Berta
 				{
 					auto& item = m_module.Items[i];
 					bool intersection = item.Bounds.Intersect(selectionRect);
-					bool alreadySelected = std::find(m_module.m_mouseSelection.m_alreadySelected.begin(), m_module.m_mouseSelection.m_alreadySelected.end(), i) != m_module.m_mouseSelection.m_alreadySelected.end();
+					bool alreadySelected = m_module.m_mouseSelection.IsAlreadySelected(i);
 
 					if (m_module.m_mouseSelection.m_inverseSelection)
 					{
@@ -380,14 +380,11 @@ namespace Berta
 				isSelected = !isSelected;
 				if (isSelected)
 				{
-					m_module.m_mouseSelection.m_selections.push_back(m_module.m_mouseSelection.m_pressedIndex);
+					m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_pressedIndex);
 				}
-				else {
-					auto it = std::find(m_module.m_mouseSelection.m_selections.begin(), m_module.m_mouseSelection.m_selections.end(), m_module.m_mouseSelection.m_pressedIndex);
-					if (it != m_module.m_mouseSelection.m_selections.end())
-					{
-						m_module.m_mouseSelection.m_selections.erase(it);
-					}
+				else
+				{
+					m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_pressedIndex);
 				}
 				needUpdate = true;
 			}
@@ -473,6 +470,50 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::Clear()
 	{
+		bool needUpdate = !Items.empty();
+		Items.clear();
+
+		if (needUpdate)
+		{
+			m_window->Renderer.Update();
+			if (m_scrollBar)
+			{
+				m_scrollBar.reset();
+				m_state.m_offset = 0;
+			}
+			GUI::RefreshWindow(m_window);
+		}
+	}
+
+	void ThumbListBoxReactor::Module::Erase(size_t index)
+	{
+		if (Items.size() <= index)
+		{
+			return;
+		}		
+		
+		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		{
+			auto& itemIndex = m_mouseSelection.m_selections[i];
+			if (itemIndex > index)
+				--itemIndex;
+		}
+
+		auto it = Items.begin() + index;
+		Items.erase(it);
+
+		CalculateViewport(m_viewport);
+		UpdateScrollBar();
+		BuildItems();
+
+		if (m_scrollBar)
+		{
+			m_scrollBar->Handle()->Renderer.Update();
+			//GUI::RefreshWindow(m_scrollBar->Handle());
+		}
+
+		m_window->Renderer.Update();
+		GUI::RefreshWindow(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::SetThumbnailSize(uint32_t size)
@@ -521,11 +562,6 @@ namespace Berta
 		m_scrollBar->SetStepValue(m_viewport.CardSize.Height);
 
 		m_state.m_offset = m_scrollBar->GetValue();
-	}
-
-	void ThumbListBoxReactor::Module::OnMouseDown(const ArgMouse& args)
-	{
-		//m_mouseDownPosition = args.Position;
 	}
 
 	void ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
@@ -655,7 +691,7 @@ namespace Berta
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
 			Items[i].IsSelected = true;
-			if (std::find(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), i) == m_mouseSelection.m_selections.end())
+			if (!m_mouseSelection.IsSelected(i))
 			{
 				m_mouseSelection.m_selections.push_back(i);
 			}
@@ -779,6 +815,11 @@ namespace Berta
 		m_reactor.GetModule().Clear();
 	}
 
+	void ThumbListBox::Erase(size_t index)
+	{
+		m_reactor.GetModule().Erase(index);
+	}
+
 	void ThumbListBox::SetThumbnailSize(uint32_t size)
 	{
 		m_reactor.GetModule().SetThumbnailSize(size);
@@ -792,5 +833,29 @@ namespace Berta
 	std::vector<size_t> ThumbListBox::GetSelected() const
 	{
 		return m_reactor.GetModule().GetSelectedItems();
+	}
+
+	bool ThumbListBoxReactor::Module::MouseSelection::IsAlreadySelected(size_t index) const
+	{
+		return std::find(m_alreadySelected.begin(), m_alreadySelected.end(), index) != m_alreadySelected.end();
+	}
+
+	bool ThumbListBoxReactor::Module::MouseSelection::IsSelected(size_t index) const
+	{
+		return std::find(m_selections.begin(), m_selections.end(), index) != m_selections.end();
+	}
+
+	void ThumbListBoxReactor::Module::MouseSelection::Select(size_t index)
+	{
+		m_selections.push_back(index);
+	}
+
+	void ThumbListBoxReactor::Module::MouseSelection::Deselect(size_t index)
+	{
+		auto it = std::find(m_selections.begin(), m_selections.end(), index);
+		if (it != m_selections.end())
+		{
+			m_selections.erase(it);
+		}
 	}
 }

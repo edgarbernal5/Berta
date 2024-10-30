@@ -287,10 +287,10 @@ namespace Berta
 			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu;
 			if (!subMenu->m_menuBox)
 			{
+				m_subMenuTimer.Stop();
 				m_selectedSubMenuIndex = m_selectedIndex;
 				m_openedSubMenuIndex = m_selectedIndex;
 				OpenSubMenu(subMenu, m_menuOwner, m_selectedIndex);
-				m_subMenuTimer.Stop();
 			}
 		}
 	}

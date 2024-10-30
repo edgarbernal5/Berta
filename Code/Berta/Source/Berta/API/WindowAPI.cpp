@@ -86,7 +86,8 @@ namespace Berta
 			::RECT client;
 			::GetClientRect(hwnd, &client);
 
-			return NativeWindowResult{
+			return NativeWindowResult
+			{
 				{ hwnd },
 				{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) },
 				GetNativeWindowDPI(parentHandle) 

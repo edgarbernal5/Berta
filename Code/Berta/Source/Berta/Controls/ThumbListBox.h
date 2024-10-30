@@ -69,9 +69,9 @@ namespace Berta
 			void BuildGridCards();
 			void BuildItems();
 			void Clear();
+			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
-			void OnMouseDown(const ArgMouse& args);
 			void EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
 			void ClearSelection();
@@ -97,6 +97,11 @@ namespace Berta
 
 			struct MouseSelection
 			{
+				bool IsAlreadySelected(size_t index) const;
+				bool IsSelected(size_t index) const;
+				void Select(size_t index);
+				void Deselect(size_t index);
+
 				std::vector<size_t> m_selections;
 				std::vector<size_t> m_alreadySelected;
 				int m_pressedIndex{ -1 };
@@ -107,6 +112,7 @@ namespace Berta
 				bool m_started{ false };
 				bool m_inverseSelection{ false };
 			};
+
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			MouseSelection m_mouseSelection;
@@ -131,6 +137,7 @@ namespace Berta
 
 		void AddItem(const std::wstring& text, const Image& thumbnail);
 		void Clear();
+		void Erase(size_t index);
 		void SetThumbnailSize(uint32_t size);
 
 		void EnableMultiselection(bool enabled);

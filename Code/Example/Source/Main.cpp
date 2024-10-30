@@ -53,10 +53,31 @@ public:
 #ifdef BT_DEBUG
 		SetDebugName("Tab Player");
 
-		m_listBox.Create(*this, true, { 15, 15, 200, 200 });
+		m_buttonClear.Create(*this, true, { 15,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonClear.SetDebugName("buttonClear");
+#endif
+		m_buttonClear.SetCaption(L"Clear");
+		m_buttonClear.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				std::cout << "BUTTON > Clear Click" << std::endl;
+				m_listBox.Clear();
+			});
 
-		m_listBox.AppendHeader("Nombre completo", 500);
-		m_listBox.AppendHeader("Edad", 300);
+		m_buttonErase.Create(*this, true, { 95,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonErase.SetDebugName("buttonErase");
+#endif
+		m_buttonErase.SetCaption(L"Erase");
+		m_buttonErase.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				m_listBox.Erase(0);
+			});
+
+		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
+
+		m_listBox.AppendHeader("Nombre completo", 200);
+		m_listBox.AppendHeader("Edad", 200);
 
 		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38" });
 		m_listBox.Append({ "Bruno Emmanuel Bernal", "3" });
@@ -80,6 +101,8 @@ public:
 	}
 
 private:
+	Berta::Button m_buttonClear;
+	Berta::Button m_buttonErase;
 	Berta::ListBox m_listBox;
 };
 
@@ -92,24 +115,29 @@ public:
 #ifdef BT_DEBUG
 		SetDebugName("Tab Input");
 #endif
-		/*m_button.Create(*this, true, { 5,35,100,40 });
-		m_button.SetCaption(L"Click me on tab 3!");
-		m_button.SetDebugName("button tab panel 3");
-		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
-		{
-			std::cout << "CLICK button tab 3" << std::endl;
-		});*/
 
-		
-		/*m_button2.Create(*this, true, { 190,65,100,40 });
-		m_button2.SetCaption(L"Click me on tab 23!");
-		m_button2.SetDebugName("button tab 2 panel 3");
-		m_button2.GetEvents().Click.Connect([](const Berta::ArgClick& args)
-		{
-			std::cout << "CLICK button tab 23" << std::endl;
-		});*/
+		m_buttonClear.Create(*this, true, { 15,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonClear.SetDebugName("buttonClear");
+#endif
+		m_buttonClear.SetCaption(L"Clear");
+		m_buttonClear.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				std::cout << "BUTTON > Clear Click" << std::endl;
+				m_thumbListBox.Clear();
+			});
 
-		m_thumbListBox.Create(*this, true, { 15, 15, 200, 200 });
+		m_buttonErase.Create(*this, true, { 95,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonErase.SetDebugName("buttonErase");
+#endif
+		m_buttonErase.SetCaption(L"Erase");
+		m_buttonErase.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				m_thumbListBox.Erase(0);
+			});
+
+		m_thumbListBox.Create(*this, true, { 15, 45, 200, 200 });
 #ifdef BT_DEBUG
 		m_thumbListBox.SetDebugName("thummb list box");
 #endif
@@ -130,8 +158,8 @@ public:
 	}
 
 private:
-	Berta::Button m_button;
-	Berta::Button m_button2;
+	Berta::Button m_buttonClear;
+	Berta::Button m_buttonErase;
 	Berta::ThumbListBox m_thumbListBox;
 };
 
@@ -234,7 +262,7 @@ int main()
 			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - 2, args.NewSize.Height - currentPosition.Y - 2 });
 		});
 
-	Berta::Button button2(form, { 5,120,100,25 }, L"Disabled");
+	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
 #ifdef BT_DEBUG
 	button2.SetDebugName("button2");
 #endif
@@ -245,7 +273,7 @@ int main()
 			tabbar.Erase(1);
 		});
 
-	Berta::Button button(form, { 5,90,100,25 }, L"Click me!");
+	Berta::Button button(form, { 5,90,75,25 }, L"Click me!");
 #ifdef BT_DEBUG
 	button.SetDebugName("button1");
 #endif
@@ -266,7 +294,7 @@ int main()
 			std::cout << "BUTTON > mouse enter" << std::endl;
 		});
 
-	Berta::Button buttonClear(form, { 125,90,100,25 }, L"Clear!");
+	Berta::Button buttonClear(form, { 95,90,75,25 }, L"Clear!");
 #ifdef BT_DEBUG
 	buttonClear.SetDebugName("buttonClear");
 #endif

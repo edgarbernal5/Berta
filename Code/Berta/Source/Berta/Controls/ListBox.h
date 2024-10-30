@@ -94,6 +94,9 @@ namespace Berta
 
 		struct MouseSelection
 		{
+			bool IsSelected(size_t index) const;
+			void Deselect(size_t index);
+
 			std::vector<size_t> m_selections;
 			std::vector<size_t> m_alreadySelected;
 			int m_pressedIndex{ -1 };
@@ -116,9 +119,10 @@ namespace Berta
 			
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
-			void BuildHeaderBounds(uint32_t startIndex);
-			void BuildListItemBounds(uint32_t startIndex);
+			void BuildHeaderBounds(size_t startIndex = 0);
+			void BuildListItemBounds(size_t startIndex = 0);
 
+			void Erase(size_t index);
 			void EnableMultiselection(bool enabled);
 			bool UpdateScrollBars();
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
@@ -133,6 +137,8 @@ namespace Berta
 			void StartSelectionRectangle(const Point& mousePosition);
 			bool ClearSelectionIfNeeded();
 			bool ClearSingleSelection();
+
+			std::vector<size_t> GetSelectedItems() const;
 
 			InteractionArea m_hoverArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
@@ -151,6 +157,7 @@ namespace Berta
 		};
 
 		Module& GetModule() { return m_module; }
+		const Module& GetModule() const { return m_module; }
 	private:
 
 		void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
@@ -158,9 +165,7 @@ namespace Berta
 		void DrawHeaders(Graphics& graphics);
 		void DrawList(Graphics& graphics);
 
-
 		Module m_module;
-
 	};
 
 	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>
@@ -174,8 +179,11 @@ namespace Berta
 		void Append(std::initializer_list<std::string> texts);
 		void Clear();
 		void ClearHeaders();
+		void Erase(uint32_t index);
 
 		void EnableMultiselection(bool enabled);
+
+		std::vector<size_t> GetSelected() const;
 	};
 }
 

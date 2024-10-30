@@ -41,6 +41,7 @@ namespace Berta
 				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
 				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
 			};
+			startPoint.Y = (std::max)(startPoint.Y, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y);
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 			Color blendColor = m_module.m_window->Appearance->HighlightColor;
@@ -65,6 +66,8 @@ namespace Berta
 		m_module.CalculateViewport(m_module.m_viewport);
 
 		m_module.UpdateScrollBars();
+		m_module.BuildHeaderBounds();
+		m_module.BuildListItemBounds();
 	}
 
 	void ListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -150,7 +153,7 @@ namespace Berta
 				m_module.m_mouseSelection.m_hoveredIndex = positionY / (int)itemHeight;
 			}
 		}
-		if (!needUpdate && hoveredArea == InteractionArea::List)
+		if (!needUpdate && hoveredArea == InteractionArea::List && !m_module.m_mouseSelection.m_started)
 		{
 			auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.InnerMargin * 2u;
 
@@ -188,14 +191,14 @@ namespace Berta
 				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
 				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
 			};
-
+			startPoint.Y = (std::max)(startPoint.Y, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y);
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 
 			needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
 			{
-				auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
-				Rectangle selectionRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y * 2 - (int)headerHeight, boxSize.Width, boxSize.Height };
+				Rectangle selectionRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y * 2 - m_module.m_viewport.BackgroundRect.Y, boxSize.Width, boxSize.Height};
+
 				for (size_t i = 0; i < m_module.List.Items.size(); i++)
 				{
 					auto& item = m_module.List.Items[i];
@@ -236,9 +239,16 @@ namespace Berta
 
 		if (m_module.m_mouseSelection.m_started)
 		{
-			m_module.m_mouseSelection.m_started = false;
 			needUpdate = true;
-			
+			m_module.m_mouseSelection.m_started = false;
+			m_module.m_mouseSelection.m_selections.clear();
+			for (size_t i = 0; i < m_module.List.Items.size(); i++)
+			{
+				if (m_module.List.Items[i].IsSelected)
+				{
+					m_module.m_mouseSelection.m_selections.push_back(i);
+				}
+			}
 			GUI::ReleaseCapture(m_module.m_window);
 		}
 
@@ -357,12 +367,60 @@ namespace Berta
 		} 
 	}
 
+	void ListBoxReactor::Module::Erase(size_t index)
+	{
+		if (List.Items.size() <= index)
+		{
+			return;
+		}
+
+		bool wasSelected = m_mouseSelection.IsSelected(index);
+		if (wasSelected)
+		{
+			m_mouseSelection.Deselect(index);
+			if (m_mouseSelection.m_selectedIndex == index || m_mouseSelection.m_selectedIndex >= List.Items.size())
+			{
+				m_mouseSelection.m_selectedIndex = -1;
+			}
+		}
+		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		{
+			auto& itemIndex = m_mouseSelection.m_selections[i];
+			if (itemIndex > index)
+				--itemIndex;
+		}
+		auto it = List.Items.begin() + index;
+		List.Items.erase(it);
+
+		CalculateViewport(m_viewport);
+		UpdateScrollBars();
+
+		if (index < List.Items.size())
+		{
+			BuildListItemBounds(index);
+		}
+
+		if (m_viewport.NeedVerticalScroll)
+		{
+			m_scrollBarVert->Handle()->Renderer.Update();
+			//GUI::RefreshWindow(m_scrollBarVert->Handle());
+		}
+		if (m_viewport.NeedHorizontalScroll)
+		{
+			m_scrollBarHoriz->Handle()->Renderer.Update();
+			//GUI::RefreshWindow(m_scrollBarHoriz->Handle());
+		}
+
+		m_window->Renderer.Update();
+		GUI::RefreshWindow(m_window);
+	}
+
 	void ListBoxReactor::Module::EnableMultiselection(bool enabled)
 	{
 		m_multiselection = enabled;
 	}
 
-	void ListBoxReactor::Module::BuildHeaderBounds(uint32_t startIndex)
+	void ListBoxReactor::Module::BuildHeaderBounds(size_t startIndex)
 	{
 		Point offset{ 0,0 };
 		if (startIndex > 0)
@@ -377,22 +435,25 @@ namespace Berta
 		}
 	}
 
-	void ListBoxReactor::Module::BuildListItemBounds(uint32_t startIndex)
+	void ListBoxReactor::Module::BuildListItemBounds(size_t startIndex)
 	{
 		auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight);
 		auto innerMarginInt = static_cast<int>(m_viewport.InnerMargin);
-		Point offset{ 0,0 };
+		Point offset{ 0,innerMarginInt };
+
 		if (startIndex > 0)
 		{
-			offset.Y = List.Items[startIndex - 1].Bounds.Y + List.Items[startIndex - 1].Bounds.Height;
+			offset.Y = List.Items[startIndex - 1].Bounds.Y + (int)List.Items[startIndex - 1].Bounds.Height + innerMarginInt;
 		}
+
 		for (size_t i = startIndex; i < List.Items.size(); i++)
 		{
-			List.Items[i].Bounds.Y = offset.Y + innerMarginInt;
+			List.Items[i].Bounds.X = offset.X;
+			List.Items[i].Bounds.Y = offset.Y;
 			List.Items[i].Bounds.Height = listItemHeight;
 			List.Items[i].Bounds.Width = m_viewport.ContentSize.Width;
 
-			offset.Y += List.Items[i].Bounds.Height + innerMarginInt;
+			offset.Y += (int)List.Items[i].Bounds.Height + innerMarginInt * 2;
 		}
 	}
 
@@ -425,20 +486,20 @@ namespace Berta
 
 	void ListBoxReactor::Module::AppendHeader(const std::string& text, uint32_t width)
 	{
-		auto startIndex = static_cast<uint32_t>(Headers.Items.size());
+		auto startIndex = Headers.Items.size();
 		Headers.Items.emplace_back(text, (std::max)(width, LISTBOX_MIN_HEADER_WIDTH));
 
-		BuildHeaderBounds(startIndex);
 		CalculateViewport(m_viewport);
+		BuildHeaderBounds(startIndex);
 	}
 
 	void ListBoxReactor::Module::Append(const std::string& text)
 	{
-		auto startIndex = static_cast<uint32_t>(List.Items.size());
+		auto startIndex = List.Items.size();
 		List.Items.emplace_back(text);
 
-		BuildListItemBounds(startIndex);
 		CalculateViewport(m_viewport);
+		BuildListItemBounds(startIndex);
 	}
 
 	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
@@ -474,14 +535,24 @@ namespace Berta
 	{
 	}
 
+	void ListBox::Erase(uint32_t index)
+	{
+		m_reactor.GetModule().Erase(index);
+	}
+
 	void ListBox::EnableMultiselection(bool enabled)
 	{
 		m_reactor.GetModule().EnableMultiselection(enabled);
 	}
 
+	std::vector<size_t> ListBox::GetSelected() const
+	{
+		return m_reactor.GetModule().GetSelectedItems();
+	}
+
 	void ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
 	{
-		auto startIndex = static_cast<uint32_t>(List.Items.size());
+		auto startIndex = List.Items.size();
 
 		auto headersCount = Headers.Items.size();
 		auto& item = List.Items.emplace_back("{}");
@@ -507,7 +578,21 @@ namespace Berta
 
 	void ListBoxReactor::Module::Clear()
 	{
+		bool needUpdate = !List.Items.empty();
+		List.Items.clear();
 
+		CalculateViewport(m_viewport);
+		UpdateScrollBars();
+
+		if (m_viewport.NeedHorizontalScroll)
+		{
+			m_scrollBarHoriz->Handle()->Renderer.Update();
+		}
+		if (needUpdate)
+		{
+			m_window->Renderer.Update();
+			GUI::RefreshWindow(m_window);
+		}
 	}
 
 	bool ListBoxReactor::Module::UpdateScrollBars()
@@ -543,6 +628,8 @@ namespace Berta
 			m_scrollBarVert->SetMinMax(0, (int)(m_viewport.ContentSize.Height - m_viewport.BackgroundRect.Height));
 			m_scrollBarVert->SetPageStepValue(m_viewport.BackgroundRect.Height);
 			m_scrollBarVert->SetStepValue(listItemHeight);
+
+			ScrollOffset.Y = m_scrollBarVert->GetValue();
 			needUpdate = true;
 		}
 		else if (!m_viewport.NeedVerticalScroll && m_scrollBarVert)
@@ -580,6 +667,8 @@ namespace Berta
 			m_scrollBarHoriz->SetMinMax(0, (int)(m_viewport.ContentSize.Width - m_viewport.BackgroundRect.Width));
 			m_scrollBarHoriz->SetPageStepValue(m_viewport.BackgroundRect.Width);
 			m_scrollBarHoriz->SetStepValue(scrollSize);
+
+			ScrollOffset.X = m_scrollBarHoriz->GetValue();
 			needUpdate = true;
 		}
 		else if (!m_viewport.NeedHorizontalScroll && m_scrollBarHoriz)
@@ -648,7 +737,7 @@ namespace Berta
 				const auto& cell = item.Cells[j];
 				const auto& header = m_module.Headers.Items[j];
 				auto headerWidth = m_module.m_window->ToScale(header.Bounds.Width);
-				auto headerWidthInt = (int)headerWidth;
+				auto headerWidthInt = static_cast<int>(headerWidth);
 				if (listOffset.X + headerWidthInt < 0)
 				{
 					listOffset.X += headerWidthInt;
@@ -772,6 +861,11 @@ namespace Berta
 		return false;
 	}
 
+	std::vector<size_t> ListBoxReactor::Module::GetSelectedItems() const
+	{
+		return m_mouseSelection.m_selections;
+	}
+
 	void ListBoxReactor::Module::ClearSelection()
 	{
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
@@ -791,6 +885,10 @@ namespace Berta
 
 	void ListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
 	{
+		if (!m_scrollBarVert)
+		{
+			return;
+		}
 	}
 
 	void ListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
@@ -875,5 +973,19 @@ namespace Berta
 		}
 
 		return InteractionArea::ListBlank;
+	}
+
+	bool ListBoxReactor::MouseSelection::IsSelected(size_t index) const
+	{
+		return std::find(m_selections.begin(), m_selections.end(), index) != m_selections.end();
+	}
+
+	void ListBoxReactor::MouseSelection::Deselect(size_t index)
+	{
+		auto it = std::find(m_selections.begin(), m_selections.end(), index);
+		if (it != m_selections.end())
+		{
+			m_selections.erase(it);
+		}
 	}
 }

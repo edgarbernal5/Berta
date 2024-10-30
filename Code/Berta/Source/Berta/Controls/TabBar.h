@@ -91,19 +91,6 @@ namespace Berta
 		void Clear();
 
 		template<typename PanelType, typename ...Args>
-		PanelType* PushBack(const std::string& tabId, Args&& ... args)
-		{
-			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
-
-			auto newPanel = reinterpret_cast<PanelType*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
-			{
-				return new PanelType(parent, std::forward<Args>(tabArgs)...);
-			}, std::placeholders::_1, args...)));
-
-			return newPanel;
-		}
-
-		template<typename PanelType, typename ...Args>
 		PanelType* Insert(size_t position, const std::string& tabId, Args&& ... args)
 		{
 			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
@@ -117,6 +104,19 @@ namespace Berta
 		}
 		
 		void Erase(size_t index);
+
+		template<typename PanelType, typename ...Args>
+		PanelType* PushBack(const std::string& tabId, Args&& ... args)
+		{
+			static_assert(std::is_base_of<Panel, PanelType>::value, "PanelType must be derived from Panel");
+
+			auto newPanel = reinterpret_cast<PanelType*>(PushBackTab(tabId, std::bind([](Window* parent, Args & ... tabArgs)
+			{
+				return new PanelType(parent, std::forward<Args>(tabArgs)...);
+			}, std::placeholders::_1, args...)));
+
+			return newPanel;
+		}
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);

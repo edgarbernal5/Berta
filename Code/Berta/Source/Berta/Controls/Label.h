@@ -9,7 +9,6 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Paint/Image.h"
 #include <string>
 
 namespace Berta
@@ -21,12 +20,12 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 
 	private:
-		Image m_image;
 	};
 
 	class Label : public Control<LabelReactor>
 	{
 	public:
+		Label() = default;
 		Label(Window* parent, const Rectangle& rectangle, const std::wstring& text);
 	};
 }
