@@ -473,6 +473,7 @@ namespace Berta
 		bool needUpdate = !Items.empty();
 		Items.clear();
 
+		CalculateViewport(m_viewport);
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();
