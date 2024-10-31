@@ -262,8 +262,8 @@ namespace Berta
 		if (newOffset != m_module.m_state.m_offset)
 		{
 			m_module.m_state.m_offset = newOffset;
-			m_module.m_scrollBar->SetValue(m_module.m_state.m_offset);
 			m_module.CalculateVisibleIndices();
+			m_module.m_scrollBar->SetValue(m_module.m_state.m_offset);
 
 			m_module.m_scrollBar->Handle()->Renderer.Update();
 			GUI::MarkAsUpdated(m_module.m_scrollBar->Handle());
@@ -453,14 +453,13 @@ namespace Berta
 		}
 
 		int viewportHeight = (int)(m_viewport.BackgroundRect.Height);
-		int scrollOffset = m_scrollBar->GetValue();
-		int startRow = scrollOffset / (int)m_viewport.CardSizeWithMargin.Height;
-		int endRow = 1 + (scrollOffset + viewportHeight) / (int)m_viewport.CardSizeWithMargin.Height;
+		int startRow = m_state.m_offset / (int)m_viewport.CardSizeWithMargin.Height;
+		int endRow = 1 + (m_state.m_offset + viewportHeight) / (int)m_viewport.CardSizeWithMargin.Height;
 
 		m_viewport.StartingVisibleIndex = startRow * m_viewport.TotalCardsInRow;
 		m_viewport.EndingVisibleIndex = (std::min)(endRow * (int)m_viewport.TotalCardsInRow, (int)Items.size());
-		//BT_CORE_TRACE << "  - starting visible index = " << m_viewport.StartingVisibleIndex << std::endl;
-		//BT_CORE_TRACE << "  - ending visible index = " << m_viewport.EndingVisibleIndex << std::endl;
+		BT_CORE_TRACE << "  - starting visible index = " << m_viewport.StartingVisibleIndex << std::endl;
+		BT_CORE_TRACE << "  - ending visible index = " << m_viewport.EndingVisibleIndex << std::endl;
 	}
 
 	void ThumbListBoxReactor::Module::Clear()
@@ -502,6 +501,7 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		UpdateScrollBar();
 		BuildItems();
+		CalculateVisibleIndices();
 
 		if (m_scrollBar)
 		{
@@ -522,9 +522,10 @@ namespace Berta
 
 		ThumbnailSize = size;
 
+		CalculateViewport(m_viewport);
 		UpdateScrollBar();
-		CalculateVisibleIndices();
 		BuildItems();
+		CalculateVisibleIndices();
 
 		m_window->Renderer.Update();
 		GUI::RefreshWindow(m_window);
@@ -769,6 +770,8 @@ namespace Berta
 			offsetAdjustment = (itemBounds.Y + itemHeight) - viewportHeight;
 		}
 		m_state.m_offset = std::clamp(m_state.m_offset + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+		CalculateVisibleIndices();
+
 		m_scrollBar->SetValue(m_state.m_offset);
 
 		m_scrollBar->Handle()->Renderer.Update();
