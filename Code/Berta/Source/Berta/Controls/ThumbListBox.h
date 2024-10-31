@@ -54,19 +54,23 @@ namespace Berta
 
 			struct ViewportData
 			{
-				Rectangle BackgroundRect;
-				uint32_t TotalRows;
-				uint32_t TotalCardsInRow;
-				Size CardSize;
-				int ContentSize;
-				uint32_t InnerMargin;
-				uint32_t CardMargin;
-				uint32_t CardMarginHalf;
+				Rectangle BackgroundRect{};
+				uint32_t TotalRows{ 0 };
+				uint32_t TotalCardsInRow{ 0 };
+				Size CardSize{};
+				Size CardSizeWithMargin{};
+				int ContentSize{ 0 };
+				uint32_t InnerMargin{ 0 };
+				uint32_t CardMargin{ 0 };
+				uint32_t CardMarginHalf{ 0 };
+
+				int StartingVisibleIndex{ -1 };
+				int EndingVisibleIndex{ -1 };
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			void CalculateViewport(ViewportData& viewportData);
-			void BuildGridCards();
+			void CalculateVisibleIndices();
 			void BuildItems();
 			void Clear();
 			void Erase(size_t index);
