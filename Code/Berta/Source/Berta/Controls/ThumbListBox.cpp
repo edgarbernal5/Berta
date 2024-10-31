@@ -453,8 +453,9 @@ namespace Berta
 		}
 
 		int viewportHeight = (int)(m_viewport.BackgroundRect.Height);
-		int startRow = m_state.m_offset / (int)m_viewport.CardSizeWithMargin.Height;
-		int endRow = 1 + (m_state.m_offset + viewportHeight) / (int)m_viewport.CardSizeWithMargin.Height;
+		int cardSizeHeightWithMargin = (int)(m_viewport.CardSizeWithMargin.Height);
+		int startRow = m_state.m_offset / cardSizeHeightWithMargin;
+		int endRow = 1 + (m_state.m_offset + viewportHeight) / cardSizeHeightWithMargin;
 
 		m_viewport.StartingVisibleIndex = startRow * m_viewport.TotalCardsInRow;
 		m_viewport.EndingVisibleIndex = (std::min)(endRow * (int)m_viewport.TotalCardsInRow, (int)Items.size());
@@ -468,6 +469,7 @@ namespace Berta
 		Items.clear();
 
 		CalculateViewport(m_viewport);
+		CalculateVisibleIndices();
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();
@@ -475,7 +477,6 @@ namespace Berta
 			{
 				m_scrollBar.reset();
 				m_state.m_offset = 0;
-				CalculateVisibleIndices();
 			}
 			GUI::RefreshWindow(m_window);
 		}
