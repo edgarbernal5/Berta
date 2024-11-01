@@ -31,57 +31,44 @@ namespace Berta
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		int startingVisibleOffset = m_module.m_viewport.StartingVisibleIndex * (int)m_module.m_viewport.CardSizeWithMargin.Height;
-		Point offset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.InnerMargin, m_module.m_viewport.BackgroundRect.Y - m_module.m_state.m_offset };
-		//Point offset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.InnerMargin, m_module.m_viewport.BackgroundRect.Y + (int)m_module.m_viewport.InnerMargin - m_module.m_state.m_offset };
-		BT_CORE_TRACE << "   * offset.y =" << offset.Y << std::endl;
+		Point offset{ 0, -m_module.m_state.m_offset };
 
 		auto thumbSize = m_module.m_window->ToScale(m_module.ThumbnailSize);
 		auto cardHeight = m_module.m_window->ToScale(m_module.Appearance->ThumbnailCardHeight);
-		for (size_t i = m_module.m_viewport.StartingVisibleIndex, k = 1; i < m_module.m_viewport.EndingVisibleIndex; i++, ++k)
+		for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
 		{
 			auto& item = m_module.Items[i];
 
-			Rectangle cardRect{ offset.X + (int)m_module.m_viewport.CardMarginHalf, item.Bounds.Y + offset.Y, m_module.m_viewport.CardSize.Width, m_module.m_viewport.CardSize.Height };
-			//Rectangle cardRect{ offset.X + (int)m_module.m_viewport.CardMarginHalf, offset.Y, m_module.m_viewport.CardSize.Width, m_module.m_viewport.CardSize.Height };
-			//if (cardRect.Y <= static_cast<int>(m_module.m_viewport.BackgroundRect.Height + m_module.m_viewport.InnerMargin) && cardRect.Y + static_cast<int>(cardRect.Height) >= 0)
-			{
-				bool isSelected = item.IsSelected;
-				bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
-				//graphics.DrawRectangle(cardRect, isSelected ? window->Appearance->HighlightColor : window->Appearance->Background, true);
-				graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
+			Rectangle cardRect{ item.Bounds.X + offset.X, item.Bounds.Y + offset.Y, m_module.m_viewport.CardSize.Width, m_module.m_viewport.CardSize.Height };
+			
+			bool isSelected = item.IsSelected;
+			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
+			//graphics.DrawRectangle(cardRect, isSelected ? window->Appearance->HighlightColor : window->Appearance->Background, true);
+			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
-				Size imageSize = window->ToScale(item.Thumbnail.GetSize());
-				Size thumbFrameSize{ thumbSize, thumbSize };
-				auto center = thumbFrameSize - imageSize;
+			Size imageSize = window->ToScale(item.Thumbnail.GetSize());
+			Size thumbFrameSize{ thumbSize, thumbSize };
+			auto center = thumbFrameSize - imageSize;
+			center *= 0.5f;
+
+			Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
+			item.Thumbnail.Paste(graphics, thumbnailRect);
+
+			{
+				Size cardTextSize{ thumbSize, cardHeight };
+				auto center = cardTextSize - graphics.GetTextExtent(item.Text);
 				center *= 0.5f;
 
-				Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
-				item.Thumbnail.Paste(graphics, thumbnailRect);
-
+				if (isSelected)
 				{
-					Size cardTextSize{ thumbSize, cardHeight };
-					auto center = cardTextSize - graphics.GetTextExtent(item.Text);
-					center *= 0.5f;
-
-					if (isSelected)
-					{
-						graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
-					}
-					graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground);
+					graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 				}
-
-				auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
-				graphics.DrawRectangle(cardRect, lineColor, false);
-				graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)m_module.m_viewport.CardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
+				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground);
 			}
 
-			offset.X += m_module.m_viewport.CardMargin + m_module.m_viewport.CardSize.Width + m_module.m_viewport.InnerMargin * 2u;
-			if (k == m_module.m_viewport.TotalCardsInRow)
-			{
-				k = 0;
-				offset.X = m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.InnerMargin;
-				//offset.Y += m_module.m_viewport.CardSize.Height + m_module.m_viewport.InnerMargin * 2u;
-			}
+			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
+			graphics.DrawRectangle(cardRect, lineColor, false);
+			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)m_module.m_viewport.CardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
 		}
 
 		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
@@ -190,7 +177,7 @@ namespace Berta
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
 			{
 				Rectangle selectionRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset * 2, boxSize.Width, boxSize.Height};
-				for (size_t i = 0; i < m_module.Items.size(); i++)
+				for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
 				{
 					auto& item = m_module.Items[i];
 					bool intersection = item.Bounds.Intersect(selectionRect);
@@ -470,6 +457,7 @@ namespace Berta
 
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
+
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();
@@ -574,7 +562,7 @@ namespace Berta
 		auto offsetPosition = position;
 		offsetPosition.Y += m_state.m_offset;
 
-		for (size_t i = 0; i < Items.size(); i++)
+		for (size_t i = m_viewport.StartingVisibleIndex; i < m_viewport.EndingVisibleIndex; i++)
 		{
 			if (Items[i].Bounds.IsInside(offsetPosition))
 			{
@@ -781,19 +769,20 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
-		Point offset{ m_viewport.BackgroundRect.X + (int)m_viewport.InnerMargin, m_viewport.BackgroundRect.Y };
+		int innerMarginInt = (int)m_viewport.InnerMargin;
+		Point offset{ m_viewport.BackgroundRect.X, m_viewport.BackgroundRect.Y };
 		for (size_t i = 0, k = 1; i < Items.size(); i++, ++k)
 		{
 			auto& item = Items[i];
 
-			item.Bounds = { offset.X + (int)m_viewport.CardMarginHalf, offset.Y, m_viewport.CardSize.Width, m_viewport.CardSize.Height };
+			item.Bounds = { offset.X + (int)m_viewport.CardMarginHalf, offset.Y + innerMarginInt, m_viewport.CardSize.Width, m_viewport.CardSize.Height };
 
 			offset.X += m_viewport.CardMargin + m_viewport.CardSize.Width + m_viewport.InnerMargin * 2u;
 			if (k == m_viewport.TotalCardsInRow)
 			{
 				k = 0;
-				offset.X = m_viewport.BackgroundRect.X + (int)m_viewport.InnerMargin;
-				offset.Y += m_viewport.CardSize.Height + m_viewport.InnerMargin * 2u;
+				offset.X = m_viewport.BackgroundRect.X;
+				offset.Y += (int)(m_viewport.CardSize.Height + m_viewport.InnerMargin * 2u);
 			}
 		}
 	}
