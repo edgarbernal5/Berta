@@ -93,6 +93,11 @@ namespace Berta
 			bool NeedHorizontalScroll{ false };
 			Size ContentSize{};
 			uint32_t InnerMargin{ 0 };
+			uint32_t ItemHeight{ 0 };
+			uint32_t ItemHeightWithMargin{ 0 };
+
+			int StartingVisibleIndex{ -1 };
+			int EndingVisibleIndex{ -1 };
 		};
 
 		struct MouseSelection
@@ -122,6 +127,7 @@ namespace Berta
 			
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
+			void CalculateVisibleIndices();
 			void BuildHeaderBounds(size_t startIndex = 0);
 			void BuildListItemBounds(size_t startIndex = 0);
 
@@ -145,7 +151,11 @@ namespace Berta
 
 			int GetHeaderAtMousePosition(const Point& mousePosition);
 
-			InteractionArea m_hoverArea{ InteractionArea::None };
+			void StartHeadersSizing(const Point& mousePosition);
+			void UpdateHeadersSizing(const Point& mousePosition);
+			void StopHeadersSizing();
+
+			InteractionArea m_hoveredArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
 			Point m_mouseDownPosition{};
 

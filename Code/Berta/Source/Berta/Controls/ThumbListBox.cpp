@@ -446,8 +446,6 @@ namespace Berta
 
 		m_viewport.StartingVisibleIndex = startRow * m_viewport.TotalCardsInRow;
 		m_viewport.EndingVisibleIndex = (std::min)(endRow * (int)m_viewport.TotalCardsInRow, (int)Items.size());
-		BT_CORE_TRACE << "  - starting visible index = " << m_viewport.StartingVisibleIndex << std::endl;
-		BT_CORE_TRACE << "  - ending visible index = " << m_viewport.EndingVisibleIndex << std::endl;
 	}
 
 	void ThumbListBoxReactor::Module::Clear()
@@ -775,7 +773,7 @@ namespace Berta
 		{
 			auto& item = Items[i];
 
-			item.Bounds = { offset.X + (int)m_viewport.CardMarginHalf, offset.Y + innerMarginInt, m_viewport.CardSize.Width, m_viewport.CardSize.Height };
+			item.Bounds = { offset.X + (int)m_viewport.CardMarginHalf + innerMarginInt, offset.Y + innerMarginInt, m_viewport.CardSize.Width, m_viewport.CardSize.Height };
 
 			offset.X += m_viewport.CardMargin + m_viewport.CardSize.Width + m_viewport.InnerMargin * 2u;
 			if (k == m_viewport.TotalCardsInRow)
