@@ -96,6 +96,8 @@ namespace Berta
 			uint32_t ItemHeight{ 0 };
 			uint32_t ItemHeightWithMargin{ 0 };
 
+			uint32_t ColumnOffsetStartOff{ 0 };
+			
 			int StartingVisibleIndex{ -1 };
 			int EndingVisibleIndex{ -1 };
 		};
@@ -152,7 +154,7 @@ namespace Berta
 			int GetHeaderAtMousePosition(const Point& mousePosition);
 
 			void StartHeadersSizing(const Point& mousePosition);
-			void UpdateHeadersSizing(const Point& mousePosition);
+			void UpdateHeadersSize(const Point& mousePosition);
 			void StopHeadersSizing();
 
 			InteractionArea m_hoveredArea{ InteractionArea::None };

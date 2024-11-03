@@ -16,6 +16,7 @@ namespace Berta
 	{
 		Color Background{ Colors::Light_Background };
 		Color Foreground{ Colors::Light_Foreground };
+		Color Foreground2nd{ Colors::Light_Foreground2nd };
 
 		//Highlight = Hovered
 		Color ButtonBackground{ Colors::Light_ButtonBackground };
@@ -46,6 +47,9 @@ namespace Berta
 		Color MenuBackground{ Colors::Light_MenuBackground };
 
 		Color ItemCollectionHightlightBackground{ Colors::Light_ItemCollectionHightlightBackground };
+
+		Color SelectionHighlightColor{ Colors::Light_SelectionHighlightColor };
+		Color SelectionBorderHighlightColor{ Colors::Light_SelectionBorderHighlightColor };
 
 		uint32_t ComboBoxItemHeight = 20;
 		uint32_t ScrollBarSize = 20;

@@ -14,7 +14,8 @@ namespace Berta
 	namespace Colors
 	{
 		static Color Light_Background{ 0xC8D0D4 }; //0xC8D0D4. //0xC6CED2
-		static Color Light_Foreground{ 0x0 };
+		static Color Light_Foreground{ 0x3C3C3C }; //Primary text
+		static Color Light_Foreground2nd{ 0x606060 }; //Primary text
 
 		static Color Light_ButtonBackground{ 0xBCC3C7 };
 		static Color Light_ButtonHightlighBackground{ 0xCBD3D6 };
@@ -24,20 +25,22 @@ namespace Berta
 		static Color Light_BoxBorderDisabledColor{ 0x92989C };
 
 		static Color Light_BoxBackground{ 0xFFFFFF };
-		static Color Light_BoxBorderColor{ 0x64667A };
+		static Color Light_BoxBorderColor{ 0x808080 };
 
-		static Color Light_HighlightColor{ 0xBE9270 };
-		static Color Light_HighlightBorderColor{ 0xBE9270 };
+		static Color Light_HighlightColor{ 0xDAC7BC }; //0xBE9270 
+		static Color Light_HighlightBorderColor{ 0xBB937F }; //0xBE9270 
 		static Color Light_HighlightTextColor{ 0xFFFFFF };
 
 		static Color Light_BoxBorderHighlightColor{ 0x7B99A8 };
-		static Color Light_BoxHightlightBackground{ 0xF6FFFC };
+		static Color Light_BoxHightlightBackground{ 0xE2E6E7 };
 		static Color Light_BoxPressedBackground{ 0xE0E8E5 };
 
-		static Color Light_ScrollBarBackground{ 0x8E8E8F };
+		static Color Light_ScrollBarBackground{ 0x808080 }; //0x8E8E8F
 		static Color Light_MenuBackground{ 0xDDE6EB };
 
-		static Color Light_ItemCollectionHightlightBackground{ 0xF5BC90 };
+		static Color Light_ItemCollectionHightlightBackground{ 0xF0E4DC };
+		static Color Light_SelectionHighlightColor{ 0x507298 };
+		static Color Light_SelectionBorderHighlightColor{ 0x233242 };
 	}
 }
 

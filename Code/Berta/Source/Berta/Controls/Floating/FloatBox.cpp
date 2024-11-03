@@ -43,15 +43,10 @@ namespace Berta
 				if (m_state.m_index == offsetIndex)
 				{
 					graphics.DrawRectangle({ 1, 1 + static_cast<int>(i * itemHeight), rect.Width - 2,itemHeight }, m_control->Handle()->Appearance->HighlightColor, true);
-					graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[offsetIndex], m_control->Handle()->Appearance->HighlightTextColor);
 				}
-				else
-				{
-					graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[offsetIndex], m_control->Handle()->Appearance->Foreground);
-				}
+				graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[offsetIndex], m_control->Handle()->Appearance->Foreground);
 			}
-		}
-		
+		}		
 
 		graphics.DrawRectangle(m_control->GetAppearance().BoxBorderColor, false);
 	}

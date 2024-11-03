@@ -424,18 +424,19 @@ namespace Berta
 		{
 			return;
 		}
-		auto& hdc = m_attributes->m_hdc;
-		int x = rect.X;
-		int y = rect.Y;
-		int width = rect.Width;
-		int height = rect.Height;
+		auto x = (LONG)rect.X;
+		auto y = (LONG)rect.Y;
+		auto width = (LONG)rect.Width;
+		auto height = (LONG)rect.Height;
 
-		TRIVERTEX vertices[] = {
-		{ x, y, GetRValue(startColor.BGR) << 8, GetGValue(startColor.BGR) << 8, GetBValue(startColor.BGR) << 8, 0xFF00 },
-		{ x + width, y + height, GetRValue(endColor.BGR) << 8, GetGValue(endColor.BGR) << 8, GetBValue(endColor.BGR) << 8, 0xFF00 }
+		TRIVERTEX vertices[] =
+		{
+			{ x, y, GetRValue(startColor.BGR) << 8, GetGValue(startColor.BGR) << 8, GetBValue(startColor.BGR) << 8, 0xFF00 },
+			{ x + width, y + height, GetRValue(endColor.BGR) << 8, GetGValue(endColor.BGR) << 8, GetBValue(endColor.BGR) << 8, 0xFF00 }
 		};
-		GRADIENT_RECT gRect = { 0, 1 };
-		::GradientFill(hdc, vertices, 2, &gRect, 1, GRADIENT_FILL_RECT_V);
+
+		GRADIENT_RECT gradientRect = { 0, 1 };
+		::GradientFill(m_attributes->m_hdc, vertices, 2, &gradientRect, 1, GRADIENT_FILL_RECT_V);
 #endif
 	}
 

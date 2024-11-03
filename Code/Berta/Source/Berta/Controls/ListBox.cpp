@@ -45,10 +45,10 @@ namespace Berta
 			startPoint.Y = (std::max)(startPoint.Y, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y);
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
-			Color blendColor = m_module.m_window->Appearance->HighlightColor;
+			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
 			Graphics selectionBox(boxSize);
 			selectionBox.DrawRectangle(blendColor, true);
-			selectionBox.DrawRectangle(m_module.m_window->Appearance->BoxBorderColor, false);
+			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
 
 			Rectangle blendRect{ startPoint.X + m_module.ScrollOffset.X, startPoint.Y + m_module.ScrollOffset.Y, boxSize.Width, boxSize.Height };
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
@@ -133,7 +133,7 @@ namespace Berta
 			}
 			else if (hoveredArea == InteractionArea::HeaderSplitter && args.ButtonState.LeftButton)
 			{
-				m_module.UpdateHeadersSizing(args.Position);
+				m_module.UpdateHeadersSize(args.Position);
 
 				needUpdate = true;
 			}
@@ -188,7 +188,7 @@ namespace Berta
 					for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
 					{
 						auto& item = m_module.List.Items[i];
-						item.Bounds.Y = m_module.m_viewport.ItemHeightWithMargin * i;
+						item.Bounds.Y = (int)(m_module.m_viewport.ItemHeightWithMargin * i);
 						item.Bounds.Width = m_module.m_viewport.ContentSize.Width;
 						bool intersection = item.Bounds.Intersect(selectionRect);
 						bool alreadySelected = std::find(m_module.m_mouseSelection.m_alreadySelected.begin(), m_module.m_mouseSelection.m_alreadySelected.end(), i) != m_module.m_mouseSelection.m_alreadySelected.end();
@@ -389,7 +389,9 @@ namespace Berta
 		viewportData.BackgroundRect.Y = viewportData.BackgroundRect.X = 1;
 		viewportData.BackgroundRect.Width -= 2u;
 		viewportData.BackgroundRect.Height -= 2u;
-		viewportData.InnerMargin = m_window->ToScale(3u);
+		viewportData.InnerMargin = m_window->ToScale(2u);
+		viewportData.ColumnOffsetStartOff = m_window->ToScale(4u);
+		viewportData.BackgroundRect.Width -= viewportData.ColumnOffsetStartOff;
 
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		viewportData.ItemHeight = m_window->ToScale(m_appearance->ListItemHeight);
@@ -433,7 +435,7 @@ namespace Berta
 		if (List.Items.empty() || !m_scrollBarVert)
 		{
 			m_viewport.StartingVisibleIndex = 0;
-			m_viewport.EndingVisibleIndex = List.Items.size();
+			m_viewport.EndingVisibleIndex = (int)List.Items.size();
 			return;
 		}
 
@@ -558,7 +560,7 @@ namespace Berta
 		{
 			auto subStr = str.substr(0, i);// +"...";
 			auto subTextExtent = graphics.GetTextExtent(subStr).Width;
-			if (boxBounds.X + (int)(subTextExtent + ellipsisTextExtent) <= (int)boxBounds.Width - 2)
+			if ((int)(subTextExtent + ellipsisTextExtent) <= (int)boxBounds.Width - 2)
 			{
 				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", m_module.m_appearance->Foreground);
 				break;
@@ -775,10 +777,13 @@ namespace Berta
 	{
 		auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
 		auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
-		graphics.DrawRectangle({ 0,0, m_module.m_window->Size.Width, headerHeight }, m_module.m_appearance->ButtonBackground, true);
-		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X, (int)headerHeight - 1 }, { (int)m_module.m_window->Size.Width - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxPressedBackground);
-		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X, (int)headerHeight }, { (int)m_module.m_window->Size.Width - 1, (int)headerHeight }, m_module.m_appearance->Foreground);
-		Point headerOffset{ -m_module.ScrollOffset.X, 0 };
+
+		//graphics.DrawRectangle({ 0,0, m_module.m_window->Size.Width, headerHeight }, m_module.m_appearance->ButtonBackground, true);
+		graphics.DrawGradientFill({ 0,0, m_module.m_window->Size.Width, headerHeight }, m_module.m_appearance->ButtonHighlightBackground, m_module.m_appearance->ButtonBackground);
+
+		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X, (int)headerHeight - 1 }, { (int)m_module.m_window->Size.Width - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
+		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, 1 }, { m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
+		Point headerOffset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, 0 };
 
 		for (size_t i = 0; i < m_module.Headers.Items.size(); i++)
 		{
@@ -793,8 +798,7 @@ namespace Berta
 
 			DrawStringInBox(graphics, header.Name, { headerOffset.X + (int)leftMarginTextHeader, 0, headerWidth - leftMarginTextHeader, headerHeight });
 
-			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxPressedBackground);
-			graphics.DrawLine({ headerOffset.X + headerWidthInt, 0 }, { headerOffset.X + headerWidthInt, (int)headerHeight - 1 }, m_module.m_appearance->Foreground);
+			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
 
 			headerOffset.X += headerWidthInt;
 		}
@@ -804,7 +808,7 @@ namespace Berta
 	{
 		auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
 
-		Point listOffset{ -m_module.ScrollOffset.X, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y };
+		Point listOffset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y };
 		auto itemHeight = m_module.m_viewport.ItemHeight;
 		auto itemHeightWithMargin = m_module.m_viewport.ItemHeightWithMargin;
 		auto leftMarginListItemText = m_module.m_window->ToScale(3u);
@@ -812,13 +816,19 @@ namespace Berta
 		for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
 		{
 			const auto& item = m_module.List.Items[i];
-			listOffset.X = -m_module.ScrollOffset.X;
+			int cellOffset = 0;
 
 			bool isHovered = m_module.m_mouseSelection.m_hoveredIndex == (int)i;
 			bool isSelected = item.IsSelected;
-			if (isHovered || isSelected)
+			if (isSelected)
 			{
-				auto color = isSelected ? m_module.m_appearance->HighlightColor : m_module.m_appearance->ItemCollectionHightlightBackground;
+				auto color = m_module.m_appearance->HighlightColor;
+				//graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, true);
+				graphics.DrawRoundRectBox({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, m_module.m_appearance->HighlightBorderColor, true);
+			}
+			else if (isHovered)
+			{
+				auto color = m_module.m_appearance->ItemCollectionHightlightBackground;
 				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, true);
 			}
 
@@ -828,21 +838,20 @@ namespace Berta
 				const auto& header = m_module.Headers.Items[j];
 				auto headerWidth = m_module.m_window->ToScale(header.Bounds.Width);
 				auto headerWidthInt = static_cast<int>(headerWidth);
-				if (listOffset.X + headerWidthInt < 0)
+				if (cellOffset + headerWidthInt < 0)
 				{
-					listOffset.X += headerWidthInt;
+					cellOffset += headerWidthInt;
 					continue;
 				}
-				else if (listOffset.X >= (int)m_module.m_viewport.BackgroundRect.Width)
+				else if (cellOffset >= (int)m_module.m_viewport.BackgroundRect.Width)
 				{
 					break;
 				}
 
-				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth, itemHeight });
+				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText, itemHeight });
 
-				listOffset.X += headerWidthInt;
+				cellOffset += headerWidthInt;
 			}
-			//listOffset.Y += (int)(itemHeight);
 		}
 	}
 
@@ -1029,7 +1038,7 @@ namespace Berta
 
 		if (mousePosition.Y <= (int)headerHeight)
 		{
-			Point headerOffset{ -ScrollOffset.X, 0 };
+			Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, 0 };
 
 			auto splitterThreshold = m_window->ToScale(3);
 			for (size_t i = 0; i < Headers.Items.size(); i++)
@@ -1108,7 +1117,7 @@ namespace Berta
 	}
 	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition)
 	{
-		Point headerOffset{ -ScrollOffset.X, 0 };
+		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, 0 };
 
 		auto splitterThreshold = m_window->ToScale(3);
 		for (size_t i = 0; i < Headers.Items.size(); i++)
@@ -1125,8 +1134,7 @@ namespace Berta
 			if (mousePosition.X >= headerOffset.X + headerWidthInt - splitterThreshold &&
 				mousePosition.X <= headerOffset.X + headerWidthInt + splitterThreshold)
 			{
-				//return InteractionArea::HeaderSplitter;
-				return i;
+				return (int)i;
 			}
 
 			headerOffset.X += headerWidthInt;
@@ -1138,10 +1146,10 @@ namespace Berta
 	{
 		GUI::Capture(m_window);
 		Headers.SelectedIndex = GetHeaderAtMousePosition(mousePosition);
-		Headers.MouseDownOffset = mousePosition.X - (int)m_window->ToScale(Headers.Items[Headers.SelectedIndex].Bounds.X + Headers.Items[Headers.SelectedIndex].Bounds.Width);
+		Headers.MouseDownOffset = ScrollOffset.X + mousePosition.X - (int)m_window->ToScale(Headers.Items[Headers.SelectedIndex].Bounds.X + Headers.Items[Headers.SelectedIndex].Bounds.Width);
 	}
 
-	void ListBoxReactor::Module::UpdateHeadersSizing(const Point& mousePosition)
+	void ListBoxReactor::Module::UpdateHeadersSize(const Point& mousePosition)
 	{
 		auto& headerBounds = Headers.Items[Headers.SelectedIndex].Bounds;
 		auto newWidth = m_window->ToDownScale(mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
@@ -1149,6 +1157,7 @@ namespace Berta
 		headerBounds.Width = (std::max)(LISTBOX_MIN_HEADER_WIDTH, static_cast<uint32_t>((std::max)(0, newWidth)));
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
+		
 		if (UpdateScrollBars())
 		{
 			if (m_scrollBarVert)

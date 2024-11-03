@@ -63,7 +63,7 @@ namespace Berta
 				{
 					graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize ,cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 				}
-				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, isSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground);
+				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.Text, window->Appearance->Foreground);
 			}
 
 			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
@@ -435,7 +435,7 @@ namespace Berta
 		if (Items.empty() || !m_scrollBar)
 		{
 			m_viewport.StartingVisibleIndex = 0;
-			m_viewport.EndingVisibleIndex = Items.size();
+			m_viewport.EndingVisibleIndex = (int)Items.size();
 			return;
 		}
 

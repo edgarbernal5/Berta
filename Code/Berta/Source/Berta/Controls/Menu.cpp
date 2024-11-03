@@ -232,7 +232,7 @@ namespace Berta
 						Rectangle destRect{ { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, scaleImageSize };
 						item.m_image.Paste(item.m_image.GetSize().ToRectangle(), graphics, destRect);
 					}
-					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? ( isItemSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
+					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
 					
 					if (item.m_subMenu)
 					{
@@ -241,7 +241,7 @@ namespace Berta
 						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
-							item.isEnabled ? (isItemSelected ? window->Appearance->HighlightTextColor : window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
+							item.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
 							Graphics::ArrowDirection::Right,
 							true);
 					}
