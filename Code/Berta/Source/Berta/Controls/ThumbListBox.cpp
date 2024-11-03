@@ -84,10 +84,10 @@ namespace Berta
 			};
 
 			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
-			Color blendColor = window->Appearance->HighlightColor;
+			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
 			Graphics selectionBox(boxSize);
 			selectionBox.DrawRectangle(blendColor, true);
-			selectionBox.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
 
 			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
