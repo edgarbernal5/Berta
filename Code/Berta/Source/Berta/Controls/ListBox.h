@@ -97,6 +97,8 @@ namespace Berta
 			uint32_t ItemHeightWithMargin{ 0 };
 
 			uint32_t ColumnOffsetStartOff{ 0 };
+			int SelectedHeader{ -1 };
+			bool DraggingHeader{ false };
 			
 			int StartingVisibleIndex{ -1 };
 			int EndingVisibleIndex{ -1 };
@@ -151,7 +153,7 @@ namespace Berta
 
 			std::vector<size_t> GetSelectedItems() const;
 
-			int GetHeaderAtMousePosition(const Point& mousePosition);
+			int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter);
 
 			void StartHeadersSizing(const Point& mousePosition);
 			void UpdateHeadersSize(const Point& mousePosition);
