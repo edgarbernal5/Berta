@@ -287,7 +287,7 @@ namespace Berta
 		return static_cast<uint32_t>(m_windowNativeRegistry.size());
 	}
 
-	void WindowManager::Capture(Window* window)
+	void WindowManager::Capture(Window* window, bool redirectToChildren)
 	{
 		//BT_CORE_TRACE << "Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr != window)
@@ -298,9 +298,10 @@ namespace Berta
 
 				if (m_capture.WindowPtr)
 				{
-					m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr);
+					m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr, m_capture.RedirectToChildren);
 				}
 				m_capture.WindowPtr = window;
+				m_capture.RedirectToChildren = redirectToChildren;
 			}
 		}
 	}
@@ -316,12 +317,13 @@ namespace Berta
 				auto& lastCaptured = m_capture.PrevCaptured.back();
 				m_capture.PrevCaptured.pop_back();
 
-				if (Exists(lastCaptured))
+				if (Exists(lastCaptured.WindowPtr))
 				{
-					m_capture.WindowPtr = lastCaptured;
+					m_capture.WindowPtr = lastCaptured.WindowPtr;
+					m_capture.RedirectToChildren = lastCaptured.RedirectToChildren;
 
 					//BT_CORE_TRACE << "   ReleaseCapture / true" << std::endl;
-					API::CaptureWindow(lastCaptured->RootHandle, true);
+					API::CaptureWindow(lastCaptured.WindowPtr->RootHandle, true);
 				}
 			}
 
@@ -333,10 +335,15 @@ namespace Berta
 		}
 		else
 		{
-			auto it = std::find(m_capture.PrevCaptured.begin(), m_capture.PrevCaptured.end(), window);
-			if (it != m_capture.PrevCaptured.end())
+			auto it = m_capture.PrevCaptured.begin();
+			while (it != m_capture.PrevCaptured.end())
 			{
-				m_capture.PrevCaptured.erase(it);
+				if (it->WindowPtr == window)
+				{
+					m_capture.PrevCaptured.erase(it);
+					break;
+				}
+				++it;
 			}
 		}
 		//BT_CORE_TRACE << "ReleaseCapture / m_capture.PrevCaptured size = " << m_capture.PrevCaptured.size() << std::endl;
@@ -359,7 +366,7 @@ namespace Berta
 			return nullptr;
 		}
 
-		if (window->Visible && IsPointOnWindow(window, point))
+		if (m_capture.RedirectToChildren && window->Visible && IsPointOnWindow(window, point))
 		{
 			auto target = FindInTree(window, point);
 

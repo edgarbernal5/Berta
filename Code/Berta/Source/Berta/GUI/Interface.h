@@ -37,7 +37,7 @@ namespace Berta
 
 		void MakeWindowActive(Window* window, bool active);
 
-		void Capture(Window* window);
+		void Capture(Window* window, bool redirectToChildren = false);
 		void ReleaseCapture(Window* window);
 
 		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);

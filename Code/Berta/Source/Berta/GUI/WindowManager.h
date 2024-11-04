@@ -57,7 +57,7 @@ namespace Berta
 		bool Exists(Window* window) const;
 		uint32_t NativeWindowCount();
 
-		void Capture(Window* window);
+		void Capture(Window* window, bool redirectToChildren);
 		void ReleaseCapture(Window* window);
 
 		Window* Find(Window* window, const Point& point);
@@ -93,10 +93,22 @@ namespace Berta
 		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
+		struct CaptureHistoryData
+		{
+			Window* WindowPtr{ nullptr };
+			bool RedirectToChildren{ false };
+
+			CaptureHistoryData() = default;
+			CaptureHistoryData(Window* windowPtr, bool redirectToChildren) : 
+				WindowPtr(windowPtr),
+				RedirectToChildren(redirectToChildren)
+			{}
+		};
 		struct CaptureData
 		{
 			Window* WindowPtr{ nullptr };
-			std::vector<Window*> PrevCaptured;
+			bool RedirectToChildren{ false };
+			std::vector<CaptureHistoryData> PrevCaptured;
 		}m_capture;
 
 		std::map<API::NativeWindowHandle, FormData> m_windowNativeRegistry;

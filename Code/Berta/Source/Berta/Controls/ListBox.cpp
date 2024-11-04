@@ -296,14 +296,14 @@ namespace Berta
 
 	void ListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		if (m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
+		if (args.ButtonState.NoButtonsPressed() && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
 		{
 			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
 		}
 
 		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != -1;
 		m_module.m_mouseSelection.m_hoveredIndex = -1;
-		if ((m_module.m_hoveredArea == InteractionArea::Header || m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
+		if (args.ButtonState.NoButtonsPressed() && (m_module.m_hoveredArea == InteractionArea::Header || m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
 			&& m_module.m_viewport.SelectedHeader != -1)
 		{
 			m_module.m_viewport.SelectedHeader = -1;
@@ -434,8 +434,6 @@ namespace Berta
 
 		m_viewport.StartingVisibleIndex = startRow;
 		m_viewport.EndingVisibleIndex = (std::min)(endRow, (int)List.Items.size());
-		BT_CORE_TRACE << "  - starting visible index = " << m_viewport.StartingVisibleIndex << std::endl;
-		BT_CORE_TRACE << "  - ending visible index = " << m_viewport.EndingVisibleIndex << std::endl;
 	}
 
 	void ListBoxReactor::Module::Erase(size_t index)
@@ -1153,6 +1151,7 @@ namespace Berta
 
 	void ListBoxReactor::Module::UpdateHeadersSize(const Point& mousePosition)
 	{
+		BT_CORE_TRACE << "  - Update headers size. index " << Headers.SelectedIndex << std::endl;
 		auto& headerBounds = Headers.Items[Headers.SelectedIndex].Bounds;
 		auto newWidth = m_window->ToDownScale(ScrollOffset.X + mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
 

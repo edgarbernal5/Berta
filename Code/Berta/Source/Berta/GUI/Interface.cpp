@@ -198,12 +198,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void Capture(Window* window)
+	void Capture(Window* window, bool redirectToChildren)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.Capture(window);
+			windowManager.Capture(window, redirectToChildren);
 		}
 	}
 
