@@ -129,7 +129,7 @@ namespace Berta
 				}
 			});
 
-			GUI::Capture(m_floatBox->Handle());
+			GUI::Capture(m_floatBox->Handle(), true);
 			m_floatBox->Show();
 		}
 	}

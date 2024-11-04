@@ -46,13 +46,13 @@ namespace Berta
 
 		Rectangle button1Rect = m_isVertical ?
 			Rectangle{ 0, 0, window->Size.Width, buttonSize } :
-			Rectangle{ 0, 0, buttonSize,  window->Size.Height };
+			Rectangle{ 0, 0, buttonSize, window->Size.Height };
 		DrawButton(graphics, button1Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Left, m_hoverArea == InteractionArea::Button1, enabled);
 
 		if (isScrollable())
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
-
+			
 			graphics.DrawRectangle(scrollBoxRect, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, true);
 			graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
 		}
@@ -295,14 +295,15 @@ namespace Berta
 	{
 		if (isHighlighted && isEnabled)
 		{
-			graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonHighlightBackground, true);
+			//graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonHighlightBackground, true);
 		}
 		else if (isEnabled)
 		{
-			graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonBackground, true);
+			//graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonBackground, true);
 		}
-		graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
-		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
+		//graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonHighlightBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
+		//graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}
 
 	ScrollBarReactor::InteractionArea ScrollBarReactor::DetermineHoverArea(const Point& position) const
@@ -390,17 +391,18 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		auto one = window->ToScale(1);
+		auto two = window->ToScale(2);
 		float num = static_cast<float>(m_pageStep) / ((m_max - m_min) + m_pageStep);
-
+		
 		if (m_isVertical)
 		{
 			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2u * buttonSize - one * 2u };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
-
+			
 			return {
-				0,
+				two,
 				static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
-				window->Size.Width,
+				window->Size.Width - two * 2,
 				scrollBoxSize
 			};
 		}
@@ -409,9 +411,9 @@ namespace Berta
 
 		return {
 			static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
-			0,
+			two,
 			scrollBoxSize,
-			window->Size.Height
+			window->Size.Height - two * 2
 		};
 	}
 
