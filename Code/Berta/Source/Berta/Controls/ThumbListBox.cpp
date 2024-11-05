@@ -43,7 +43,6 @@ namespace Berta
 			
 			bool isSelected = item.IsSelected;
 			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
-			//graphics.DrawRectangle(cardRect, isSelected ? window->Appearance->HighlightColor : window->Appearance->Background, true);
 			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
 			Size imageSize = window->ToScale(item.Thumbnail.GetSize());

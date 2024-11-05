@@ -28,8 +28,8 @@ namespace Berta
 		auto enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(m_module.m_window->Size.ToRectangle(), m_module.m_window->Appearance->BoxBackground, true);
 
-		DrawList(graphics);
-		DrawHeaders(graphics);
+		m_module.DrawList(graphics);
+		m_module.DrawHeaders(graphics);
 
 		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
 		{
@@ -105,7 +105,9 @@ namespace Berta
 		}
 		else if (m_module.m_pressedArea == InteractionArea::Header)
 		{
-			m_module.m_viewport.SelectedHeader = m_module.GetHeaderAtMousePosition(args.Position, false);
+			m_module.Headers.IsDragging = false;
+			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+			needUpdate = true;
 		}
 
 		if (needUpdate)
@@ -134,12 +136,12 @@ namespace Berta
 				{
 					GUI::ChangeCursor(m_module.m_window, Cursor::SizeWE);
 					auto headerSizeIndex = m_module.GetHeaderAtMousePosition(args.Position, true);
-					needUpdate = m_module.m_viewport.SelectedHeader != headerSizeIndex;
-					m_module.m_viewport.SelectedHeader = headerSizeIndex;
+					needUpdate = m_module.Headers.SelectedIndex != headerSizeIndex;
+					m_module.Headers.SelectedIndex = headerSizeIndex;
 				}
 				else
 				{
-					m_module.m_viewport.SelectedHeader = m_module.GetHeaderAtMousePosition(args.Position, false);
+					m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
 				}
 			}
 			if (hoveredArea == InteractionArea::HeaderSplitter && args.ButtonState.LeftButton)
@@ -148,9 +150,10 @@ namespace Berta
 
 				needUpdate = true;
 			}
-			else if (hoveredArea == InteractionArea::Header)
+			else if (hoveredArea == InteractionArea::Header && args.ButtonState.LeftButton)
 			{
-				m_module.m_viewport.DraggingHeader = true;
+				m_module.Headers.IsDragging = true;
+				needUpdate = true;
 			}
 		}
 		else if (hoveredArea == InteractionArea::List)
@@ -203,7 +206,7 @@ namespace Berta
 					for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
 					{
 						auto& item = m_module.List.Items[i];
-						item.Bounds.Y = (int)(m_module.m_viewport.ItemHeightWithMargin * i);
+						item.Bounds.Y = (int)((m_module.m_viewport.ItemHeightWithMargin * i) + m_module.m_viewport.InnerMargin);
 						item.Bounds.Width = m_module.m_viewport.ContentSize.Width;
 						bool intersection = item.Bounds.Intersect(selectionRect);
 						bool alreadySelected = std::find(m_module.m_mouseSelection.m_alreadySelected.begin(), m_module.m_mouseSelection.m_alreadySelected.end(), i) != m_module.m_mouseSelection.m_alreadySelected.end();
@@ -228,9 +231,9 @@ namespace Berta
 			}
 		}
 		if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && hoveredArea != InteractionArea::Header
-			&& m_module.m_viewport.SelectedHeader != -1)
+			&& m_module.Headers.SelectedIndex != -1)
 		{
-			m_module.m_viewport.SelectedHeader = -1;
+			m_module.Headers.SelectedIndex = -1;
 			needUpdate = true;
 		}
 		if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
@@ -278,12 +281,12 @@ namespace Berta
 		}
 		else if (m_module.m_pressedArea == InteractionArea::Header)
 		{
-			if (m_module.m_viewport.DraggingHeader)
+			if (m_module.Headers.IsDragging)
 			{
 
 			}
-			m_module.m_viewport.DraggingHeader = false;
-			m_module.m_viewport.SelectedHeader = -1;
+			m_module.Headers.IsDragging = false;
+			m_module.Headers.SelectedIndex = -1;
 			needUpdate = true;
 		}
 
@@ -304,9 +307,8 @@ namespace Berta
 		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != -1;
 		m_module.m_mouseSelection.m_hoveredIndex = -1;
 		if (args.ButtonState.NoButtonsPressed() && (m_module.m_hoveredArea == InteractionArea::Header || m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
-			&& m_module.m_viewport.SelectedHeader != -1)
+			&& m_module.Headers.SelectedIndex != -1)
 		{
-			m_module.m_viewport.SelectedHeader = -1;
 			m_module.Headers.SelectedIndex = -1;
 			needUpdate = true;
 		}
@@ -390,7 +392,7 @@ namespace Berta
 
 		viewportData.ContentSize.Height = (uint32_t)List.Items.size() * (viewportData.ItemHeightWithMargin);
 
-		viewportData.ContentSize.Width = 0u;
+		viewportData.ContentSize.Width = viewportData.ColumnOffsetStartOff;
 		for (size_t i = 0; i < Headers.Items.size(); i++)
 		{
 			auto headerWidth = m_window->ToScale(Headers.Items[i].Bounds.Width);
@@ -527,7 +529,7 @@ namespace Berta
 		}
 	}
 
-	void ListBoxReactor::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds)
+	void ListBoxReactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds)
 	{
 		auto textExtent = graphics.GetTextExtent(str);
 		if (boxBounds.X + (int)textExtent.Width < 0 /* || boxBounds.X >= */)
@@ -537,7 +539,7 @@ namespace Berta
 
 		if (textExtent.Width < boxBounds.Width)
 		{
-			graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, str, m_module.m_appearance->Foreground);
+			graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, str, m_appearance->Foreground);
 			return;
 		}
 
@@ -548,7 +550,7 @@ namespace Berta
 			auto subTextExtent = graphics.GetTextExtent(subStr).Width;
 			if ((int)(subTextExtent + ellipsisTextExtent) <= (int)boxBounds.Width - 2)
 			{
-				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", m_module.m_appearance->Foreground);
+				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", m_appearance->Foreground);
 				break;
 			}
 		}
@@ -759,91 +761,110 @@ namespace Berta
 		return needUpdate;
 	}
 
-	void ListBoxReactor::DrawHeaders(Graphics& graphics)
+	void ListBoxReactor::Module::DrawHeaders(Graphics& graphics)
 	{
-		auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
-		auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
+		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
+		auto leftMarginTextHeader = m_window->ToScale(5u);
 
-		//graphics.DrawRectangle({ 0,0, m_module.m_window->Size.Width, headerHeight }, m_module.m_appearance->ButtonBackground, true);
-		graphics.DrawGradientFill({ 0,0, m_module.m_window->Size.Width, headerHeight }, m_module.m_appearance->ButtonHighlightBackground, m_module.m_appearance->ButtonBackground);
+		//graphics.DrawRectangle({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonBackground, true);
+		graphics.DrawGradientFill({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
 
-		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X, (int)headerHeight - 1 }, { (int)m_module.m_window->Size.Width - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
-		graphics.DrawLine({ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X - 1, 1 }, { m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
+		graphics.DrawLine({ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, 1 }, { m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
-		Point headerOffset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, 0 };
+		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y };
 
-		for (size_t i = 0; i < m_module.Headers.Items.size(); i++)
+		for (size_t i = 0; i < Headers.Items.size(); i++)
 		{
-			const auto& header = m_module.Headers.Items[i];
-			auto headerWidth = m_module.m_window->ToScale(header.Bounds.Width);
+			const auto& header = Headers.Items[i];
+			auto headerWidth = m_window->ToScale(header.Bounds.Width);
 			auto headerWidthInt = (int)headerWidth;
-			bool isHovered = m_module.m_viewport.SelectedHeader == (int)i;
-			if (headerOffset.X + headerWidthInt < 0 || headerOffset.X >= (int)m_module.m_viewport.BackgroundRect.Width)
+			bool isHovered = Headers.SelectedIndex == (int)i;
+			if (headerOffset.X + headerWidthInt < 0 || headerOffset.X >= (int)m_viewport.BackgroundRect.Width)
 			{
 				headerOffset.X += headerWidthInt;
 				continue;
 			}
 
-			Rectangle columnRect{ headerOffset.X + (int)leftMarginTextHeader, 0, headerWidth - leftMarginTextHeader, headerHeight };
-			if (isHovered)
+			Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight };
+			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader);
+
+			if (Headers.IsDragging)
 			{
-				Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight - 1u };
-				graphics.DrawRectangle(columnRect, m_module.m_appearance->HighlightColor, true);
+				Graphics draggingBox({ columnRect.Width ,columnRect.Height });
+				draggingBox.BuildFont(m_window->DPI);
+				draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_appearance->Foreground, m_appearance->Foreground2nd);
+				DrawHeaderItem(draggingBox, columnRect, header.Name, false, leftMarginTextHeader);
+
+				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
+				Rectangle blendRect{ headerOffset.X, 1, columnRect.Width, columnRect.Height };
+				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
 			}
-
-			DrawStringInBox(graphics, header.Name, columnRect);
-
-			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_module.m_appearance->BoxBorderColor);
+			graphics.DrawLine({ m_viewport.BackgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->Size.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
+			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 
 			headerOffset.X += headerWidthInt;
 		}
 	}
 
-	void ListBoxReactor::DrawList(Graphics& graphics)
+	void ListBoxReactor::Module::DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin)
 	{
-		auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
-
-		Point listOffset{ m_module.m_viewport.BackgroundRect.X + (int)m_module.m_viewport.ColumnOffsetStartOff - m_module.ScrollOffset.X, m_module.m_viewport.BackgroundRect.Y - m_module.ScrollOffset.Y };
-		auto itemHeight = m_module.m_viewport.ItemHeight;
-		auto itemHeightWithMargin = m_module.m_viewport.ItemHeightWithMargin;
-		auto leftMarginListItemText = m_module.m_window->ToScale(3u);
-
-		for (size_t i = m_module.m_viewport.StartingVisibleIndex; i < m_module.m_viewport.EndingVisibleIndex; i++)
+		if (isHovered)
 		{
-			const auto& item = m_module.List.Items[i];
+			graphics.DrawRectangle(rect, m_appearance->HighlightColor, true);
+		}
+
+		Rectangle textRect = rect;
+		textRect.X += (int)leftTextMargin;
+		textRect.Width -= leftTextMargin * 2u;
+		DrawStringInBox(graphics, name, textRect);
+
+	}
+
+	void ListBoxReactor::Module::DrawList(Graphics& graphics)
+	{
+		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
+
+		Point listOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y - ScrollOffset.Y };
+		auto itemHeight = m_viewport.ItemHeight;
+		auto itemHeightWithMargin = m_viewport.ItemHeightWithMargin;
+		auto leftMarginListItemText = m_window->ToScale(3u);
+
+		for (size_t i = m_viewport.StartingVisibleIndex; i < m_viewport.EndingVisibleIndex; i++)
+		{
+			const auto& item = List.Items[i];
 			int cellOffset = 0;
 
-			bool isHovered = m_module.m_mouseSelection.m_hoveredIndex == (int)i;
+			bool isHovered = m_mouseSelection.m_hoveredIndex == (int)i;
 			bool isSelected = item.IsSelected;
 			if (isSelected)
 			{
-				auto color = m_module.m_appearance->HighlightColor;
-				//graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, true);
-				graphics.DrawRoundRectBox({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, m_module.m_appearance->HighlightBorderColor, true);
+				auto color = m_appearance->HighlightColor;
+				//graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_viewport.ContentSize.Width, itemHeight }, color, true);
+				graphics.DrawRoundRectBox({ listOffset.X, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_viewport.ContentSize.Width - m_viewport.ColumnOffsetStartOff, itemHeight }, color, m_appearance->HighlightBorderColor, true);
 			}
 			else if (isHovered)
 			{
-				auto color = m_module.m_appearance->ItemCollectionHightlightBackground;
-				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_module.m_viewport.ContentSize.Width, itemHeight }, color, true);
+				auto color = m_appearance->ItemCollectionHightlightBackground;
+				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_viewport.ContentSize.Width - m_viewport.ColumnOffsetStartOff, itemHeight }, color, true);
 			}
 
 			for (size_t j = 0; j < item.Cells.size(); j++)
 			{
 				const auto& cell = item.Cells[j];
-				const auto& header = m_module.Headers.Items[j];
-				auto headerWidth = m_module.m_window->ToScale(header.Bounds.Width);
+				const auto& header = Headers.Items[j];
+				auto headerWidth = m_window->ToScale(header.Bounds.Width);
 				auto headerWidthInt = static_cast<int>(headerWidth);
 				if (cellOffset + headerWidthInt < 0)
 				{
 					cellOffset += headerWidthInt;
 					continue;
 				}
-				else if (cellOffset - m_module.ScrollOffset.X >= (int)m_module.m_viewport.BackgroundRect.Width)
+				else if (cellOffset - ScrollOffset.X >= (int)m_viewport.BackgroundRect.Width)
 				{
 					break;
 				}
 
-				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset, listOffset.Y + (int)m_module.m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText, itemHeight });
+				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText * 2, itemHeight });
 
 				cellOffset += headerWidthInt;
 			}

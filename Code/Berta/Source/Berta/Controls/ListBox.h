@@ -50,6 +50,7 @@ namespace Berta
 
 			int MouseDownOffset{ 0 };
 			int SelectedIndex{ -1 };
+			bool IsDragging{ false };
 			std::vector<ItemData> Items;
 		};
 
@@ -97,9 +98,7 @@ namespace Berta
 			uint32_t ItemHeightWithMargin{ 0 };
 
 			uint32_t ColumnOffsetStartOff{ 0 };
-			int SelectedHeader{ -1 };
-			bool DraggingHeader{ false };
-			
+
 			int StartingVisibleIndex{ -1 };
 			int EndingVisibleIndex{ -1 };
 		};
@@ -159,6 +158,12 @@ namespace Berta
 			void UpdateHeadersSize(const Point& mousePosition);
 			void StopHeadersSizing();
 
+			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
+
+			void DrawHeaders(Graphics& graphics);
+			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin);
+			void DrawList(Graphics& graphics);
+
 			InteractionArea m_hoveredArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
 			Point m_mouseDownPosition{};
@@ -178,11 +183,6 @@ namespace Berta
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
 	private:
-
-		void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
-
-		void DrawHeaders(Graphics& graphics);
-		void DrawList(Graphics& graphics);
 
 		Module m_module;
 	};
