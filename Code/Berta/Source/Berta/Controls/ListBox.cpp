@@ -105,8 +105,10 @@ namespace Berta
 		}
 		else if (m_module.m_pressedArea == InteractionArea::Header)
 		{
+			GUI::Capture(m_module.m_window);
 			m_module.Headers.IsDragging = false;
 			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+			m_module.Headers.MouseDownOffset = m_module.ScrollOffset.X + args.Position.X;
 			needUpdate = true;
 		}
 
@@ -152,7 +154,35 @@ namespace Berta
 			}
 			else if (hoveredArea == InteractionArea::Header && args.ButtonState.LeftButton)
 			{
+				if (!m_module.Headers.IsDragging)
+				{
+					if (!m_module.Headers.DraggingBox.IsValid())
+					{
+						auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
+						auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
+
+						const auto& header = m_module.Headers.Items[m_module.Headers.SelectedIndex];
+						Graphics& draggingBox = m_module.Headers.DraggingBox;
+						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.Bounds.Width), m_module.m_window->ToScale(headerHeight) - 1 };
+						draggingBox.Build({ columnRect.Width, columnRect.Height });
+						draggingBox.BuildFont(m_module.m_window->DPI);
+
+						draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
+						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader);
+					}
+				}
+				m_module.Headers.MouseMovePos = args.Position.X;
 				m_module.Headers.IsDragging = true;
+
+				auto headerIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+				if (headerIndex != -1)
+				{
+					const auto& headerItem = m_module.Headers.Items[headerIndex];
+					auto headerPosX = m_module.m_window->ToScale(headerItem.Bounds.X);
+					auto headerWidth = m_module.m_window->ToScale(headerItem.Bounds.Width);
+
+				}
+
 				needUpdate = true;
 			}
 		}
@@ -283,13 +313,15 @@ namespace Berta
 		{
 			if (m_module.Headers.IsDragging)
 			{
-
+				m_module.Headers.DraggingBox.Release();
 			}
 			m_module.Headers.IsDragging = false;
 			m_module.Headers.SelectedIndex = -1;
+			GUI::ReleaseCapture(m_module.m_window);
 			needUpdate = true;
 		}
 
+		m_module.m_pressedArea = InteractionArea::None;
 		if (needUpdate)
 		{
 			Update(graphics);
@@ -791,13 +823,12 @@ namespace Berta
 
 			if (isDragging)
 			{
-				Graphics draggingBox({ columnRect.Width ,columnRect.Height });
-				draggingBox.BuildFont(m_window->DPI);
-				draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_appearance->Foreground, m_appearance->Foreground2nd);
-				DrawHeaderItem(draggingBox, {0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader);
-
+				Graphics& draggingBox = Headers.DraggingBox;
+				
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
-				Rectangle blendRect{ headerOffset.X, 1, columnRect.Width, columnRect.Height };
+				auto newPosition = Headers.MouseMovePos - Headers.MouseDownOffset;
+				Rectangle blendRect{ headerOffset.X + newPosition, 1, columnRect.Width, columnRect.Height - 1 };
+
 				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
 			}
 			graphics.DrawLine({ m_viewport.BackgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->Size.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);

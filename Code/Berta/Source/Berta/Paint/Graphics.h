@@ -74,7 +74,11 @@ namespace Berta
 
 		bool IsValid() const
 		{
+#ifdef BT_PLATFORM_WINDOWS
+			return m_attributes != nullptr && m_attributes->m_hdc;
+#else
 			return m_attributes != nullptr;
+#endif
 		}
 	private:
 #ifdef BT_PLATFORM_WINDOWS

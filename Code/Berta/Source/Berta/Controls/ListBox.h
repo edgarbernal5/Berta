@@ -47,8 +47,10 @@ namespace Berta
 				Rectangle Bounds;
 			};
 
-
+			Graphics DraggingBox;
 			int MouseDownOffset{ 0 };
+			int MouseMovePos{ 0 };
+			int DraggingTargetIndex{ 0 };
 			int SelectedIndex{ -1 };
 			bool IsDragging{ false };
 			std::vector<ItemData> Items;
