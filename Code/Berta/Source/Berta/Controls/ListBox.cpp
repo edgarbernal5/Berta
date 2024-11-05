@@ -779,6 +779,7 @@ namespace Berta
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
 			auto headerWidthInt = (int)headerWidth;
 			bool isHovered = Headers.SelectedIndex == (int)i;
+			bool isDragging = Headers.IsDragging && isHovered;
 			if (headerOffset.X + headerWidthInt < 0 || headerOffset.X >= (int)m_viewport.BackgroundRect.Width)
 			{
 				headerOffset.X += headerWidthInt;
@@ -788,12 +789,12 @@ namespace Berta
 			Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight };
 			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader);
 
-			if (Headers.IsDragging)
+			if (isDragging)
 			{
 				Graphics draggingBox({ columnRect.Width ,columnRect.Height });
 				draggingBox.BuildFont(m_window->DPI);
 				draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_appearance->Foreground, m_appearance->Foreground2nd);
-				DrawHeaderItem(draggingBox, columnRect, header.Name, false, leftMarginTextHeader);
+				DrawHeaderItem(draggingBox, {0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader);
 
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
 				Rectangle blendRect{ headerOffset.X, 1, columnRect.Width, columnRect.Height };
