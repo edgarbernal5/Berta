@@ -163,7 +163,7 @@ namespace Berta
 
 						const auto& header = m_module.Headers.Items[m_module.Headers.SelectedIndex];
 						Graphics& draggingBox = m_module.Headers.DraggingBox;
-						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.Bounds.Width), m_module.m_window->ToScale(headerHeight) - 1 };
+						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.Bounds.Width), m_module.m_window->ToScale(headerHeight) };
 						draggingBox.Build({ columnRect.Width, columnRect.Height });
 						draggingBox.BuildFont(m_module.m_window->DPI);
 
@@ -171,7 +171,7 @@ namespace Berta
 						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader);
 					}
 				}
-				m_module.Headers.MouseMovePos = args.Position.X;
+				m_module.Headers.MouseDraggingPosition = args.Position.X;
 				m_module.Headers.IsDragging = true;
 
 				auto mousePositionX = args.Position.X + m_module.ScrollOffset.X - (int)m_module.m_viewport.ColumnOffsetStartOff;
@@ -844,13 +844,13 @@ namespace Berta
 					targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
 				}
 				targetHeaderPosition += m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X;
-				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionBorderHighlightColor);
+				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionHighlightColor);
 
 				Graphics& draggingBox = Headers.DraggingBox;
 				
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
-				auto newPosition = Headers.MouseMovePos - Headers.MouseDownOffset;
-				Rectangle blendRect{ newPosition, 1, columnRect.Width, columnRect.Height - 1 };
+				auto newPosition = Headers.MouseDraggingPosition - Headers.MouseDownOffset;
+				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
 
 				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
 			}
