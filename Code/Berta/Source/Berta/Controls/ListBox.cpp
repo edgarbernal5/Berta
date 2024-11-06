@@ -174,15 +174,25 @@ namespace Berta
 				m_module.Headers.MouseMovePos = args.Position.X;
 				m_module.Headers.IsDragging = true;
 
-				auto headerIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-				if (headerIndex != -1)
+				auto targetHeaderIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+				auto mousePositionX = args.Position.X + m_module.ScrollOffset.X;
+				BT_CORE_TRACE << "  - targetHeaderIndex = " << targetHeaderIndex << std::endl;
+				if (targetHeaderIndex != -1)
 				{
-					const auto& headerItem = m_module.Headers.Items[headerIndex];
-					auto headerPosX = m_module.m_window->ToScale(headerItem.Bounds.X);
+					const auto& headerItem = m_module.Headers.Items[targetHeaderIndex];
+					auto headerPosX = (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.m_window->ToScale(headerItem.Bounds.X);
 					auto headerWidth = m_module.m_window->ToScale(headerItem.Bounds.Width);
-
+					auto headerHalfWidth = headerWidth >> 1;
+					if (mousePositionX >= headerPosX + headerHalfWidth && mousePositionX <= headerPosX + headerWidth)
+					{
+						targetHeaderIndex++;
+					}
 				}
-
+				else if (mousePositionX <= (int)m_module.m_viewport.ColumnOffsetStartOff)
+				{
+					targetHeaderIndex = 0;
+				}
+				m_module.Headers.DraggingTargetIndex = targetHeaderIndex;
 				needUpdate = true;
 			}
 		}
@@ -823,6 +833,18 @@ namespace Berta
 
 			if (isDragging)
 			{
+				auto targetHeaderPosition = 0;
+				if (Headers.DraggingTargetIndex < Headers.Items.size())
+				{
+					targetHeaderPosition = Headers.Items[Headers.DraggingTargetIndex].Bounds.X;
+				}
+				else
+				{
+					targetHeaderPosition = Headers.Items[Headers.Items.size()-1].Bounds.X+ Headers.Items[Headers.Items.size()-1].Bounds.Width;
+				}
+				targetHeaderPosition += m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X;
+				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionBorderHighlightColor);
+
 				Graphics& draggingBox = Headers.DraggingBox;
 				
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
@@ -849,7 +871,6 @@ namespace Berta
 		textRect.X += (int)leftTextMargin;
 		textRect.Width -= leftTextMargin * 2u;
 		DrawStringInBox(graphics, name, textRect);
-
 	}
 
 	void ListBoxReactor::Module::DrawList(Graphics& graphics)
@@ -1163,6 +1184,7 @@ namespace Berta
 			m_selections.erase(it);
 		}
 	}
+
 	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition, bool splitter)
 	{
 		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, 0 };
