@@ -808,14 +808,13 @@ namespace Berta
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		auto leftMarginTextHeader = m_window->ToScale(5u);
 
-		//graphics.DrawRectangle({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonBackground, true);
 		graphics.DrawGradientFill({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
 
 		graphics.DrawLine({ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, 1 }, { m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
 		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y };
 
-		for (size_t i = 0; i < Headers.Items.size(); i++)
+		for (size_t i = 0; i < Headers.Items.size(); ++i)
 		{
 			const auto& header = Headers.Items[i];
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
@@ -893,7 +892,6 @@ namespace Berta
 			if (isSelected)
 			{
 				auto color = m_appearance->HighlightColor;
-				//graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_viewport.ContentSize.Width, itemHeight }, color, true);
 				graphics.DrawRoundRectBox({ listOffset.X, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), m_viewport.ContentSize.Width - m_viewport.ColumnOffsetStartOff, itemHeight }, color, m_appearance->HighlightBorderColor, true);
 			}
 			else if (isHovered)
