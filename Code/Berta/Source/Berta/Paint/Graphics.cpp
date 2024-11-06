@@ -431,8 +431,8 @@ namespace Berta
 
 		TRIVERTEX vertices[] =
 		{
-			{ x, y, GetRValue(startColor.BGR) << 8, GetGValue(startColor.BGR) << 8, GetBValue(startColor.BGR) << 8, 0xFF00 },
-			{ x + width, y + height, GetRValue(endColor.BGR) << 8, GetGValue(endColor.BGR) << 8, GetBValue(endColor.BGR) << 8, 0xFF00 }
+			{ x, y, (COLOR16)(GetRValue(startColor.BGR) << 8), (COLOR16)(GetGValue(startColor.BGR) << 8), (COLOR16)(GetBValue(startColor.BGR) << 8), (COLOR16)0xFF00 },
+			{ x + width, y + height, (COLOR16)(GetRValue(endColor.BGR) << 8), (COLOR16)(GetGValue(endColor.BGR) << 8), (COLOR16)(GetBValue(endColor.BGR) << 8), (COLOR16)0xFF00 }
 		};
 
 		GRADIENT_RECT gradientRect = { 0, 1 };

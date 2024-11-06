@@ -108,7 +108,7 @@ namespace Berta
 			GUI::Capture(m_module.m_window);
 			m_module.Headers.IsDragging = false;
 			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-			m_module.Headers.MouseDownOffset = m_module.ScrollOffset.X + args.Position.X;
+			m_module.Headers.MouseDownOffset = args.Position.X - m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.X - m_module.m_viewport.BackgroundRect.X - (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.ScrollOffset.X;
 			needUpdate = true;
 		}
 
@@ -174,14 +174,14 @@ namespace Berta
 				m_module.Headers.MouseMovePos = args.Position.X;
 				m_module.Headers.IsDragging = true;
 
-				auto targetHeaderIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-				auto mousePositionX = args.Position.X + m_module.ScrollOffset.X;
-				BT_CORE_TRACE << "  - targetHeaderIndex = " << targetHeaderIndex << std::endl;
+				auto mousePositionX = args.Position.X + m_module.ScrollOffset.X - (int)m_module.m_viewport.ColumnOffsetStartOff;
+				auto targetHeaderIndex = m_module.GetHeaderAtMousePosition({mousePositionX, 0}, false);
+
 				if (targetHeaderIndex != -1)
 				{
 					const auto& headerItem = m_module.Headers.Items[targetHeaderIndex];
-					auto headerPosX = (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.m_window->ToScale(headerItem.Bounds.X);
-					auto headerWidth = m_module.m_window->ToScale(headerItem.Bounds.Width);
+					auto headerPosX = m_module.m_window->ToScale(headerItem.Bounds.X);
+					auto headerWidth = (int)m_module.m_window->ToScale(headerItem.Bounds.Width);
 					auto headerHalfWidth = headerWidth >> 1;
 					if (mousePositionX >= headerPosX + headerHalfWidth && mousePositionX <= headerPosX + headerWidth)
 					{
@@ -849,7 +849,7 @@ namespace Berta
 				
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
 				auto newPosition = Headers.MouseMovePos - Headers.MouseDownOffset;
-				Rectangle blendRect{ headerOffset.X + newPosition, 1, columnRect.Width, columnRect.Height - 1 };
+				Rectangle blendRect{ newPosition, 1, columnRect.Width, columnRect.Height - 1 };
 
 				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
 			}
