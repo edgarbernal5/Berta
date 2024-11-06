@@ -108,7 +108,7 @@ namespace Berta
 			GUI::Capture(m_module.m_window);
 			m_module.Headers.IsDragging = false;
 			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-			m_module.Headers.MouseDownOffset = args.Position.X - m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.X - m_module.m_viewport.BackgroundRect.X - (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.ScrollOffset.X;
+			m_module.Headers.MouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.X) - m_module.m_viewport.BackgroundRect.X - (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.ScrollOffset.X;
 			needUpdate = true;
 		}
 
@@ -175,7 +175,7 @@ namespace Berta
 				m_module.Headers.IsDragging = true;
 
 				auto mousePositionX = args.Position.X + m_module.ScrollOffset.X - (int)m_module.m_viewport.ColumnOffsetStartOff;
-				auto targetHeaderIndex = m_module.GetHeaderAtMousePosition({mousePositionX, 0}, false);
+				auto targetHeaderIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
 
 				if (targetHeaderIndex != -1)
 				{
@@ -836,11 +836,12 @@ namespace Berta
 				auto targetHeaderPosition = 0;
 				if (Headers.DraggingTargetIndex < Headers.Items.size())
 				{
-					targetHeaderPosition = Headers.Items[Headers.DraggingTargetIndex].Bounds.X;
+					targetHeaderPosition = m_window->ToScale(Headers.Items[Headers.DraggingTargetIndex].Bounds.X);
 				}
 				else
 				{
-					targetHeaderPosition = Headers.Items[Headers.Items.size()-1].Bounds.X+ Headers.Items[Headers.Items.size()-1].Bounds.Width;
+					const auto& lastHeaderBounds = Headers.Items[Headers.Items.size() - 1].Bounds;
+					targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
 				}
 				targetHeaderPosition += m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X;
 				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionBorderHighlightColor);
