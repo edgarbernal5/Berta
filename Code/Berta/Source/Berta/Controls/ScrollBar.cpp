@@ -302,6 +302,9 @@ namespace Berta
 			//graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonBackground, true);
 		}
 		//graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
+		if (arrowWidth % 2 == 1)
+			--arrowWidth;
+
 		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonHighlightBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 		//graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}

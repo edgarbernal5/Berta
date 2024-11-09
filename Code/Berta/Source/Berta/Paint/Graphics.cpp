@@ -277,7 +277,20 @@ namespace Berta
 		::SelectObject(m_attributes->m_hdc, oldFont);
 #endif
 	}
-
+	
+	//// Function to enable anti-aliasing for the given device context
+	//void  Graphics::EnableAntiAliasing(HDC hdc) {
+	//	auto aa=GetGraphicsMode(hdc);
+	//	auto bb=SetGraphicsMode(hdc, GM_ADVANCED);  // Set the graphics mode to advanced
+	//	SetBkMode(hdc, TRANSPARENT);         // Make sure background is transparent (optional)
+	//	
+	//	// Create a quality pen that supports anti-aliasing
+	//	SetStretchBltMode(hdc, HALFTONE);   // Enable high-quality stretching (optional)
+	//	SetTextCharacterExtra(hdc, 0);      // Prevent text distortion (optional)
+	//}
+	
+	//Version 1
+	/*
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -288,8 +301,8 @@ namespace Berta
 
 		Point arrowPoints[3];
 
-		int centerX = (rect.X * 2 + rect.Width) >> 1;
-		int centerY = (rect.Y * 2 + rect.Height) >> 1;
+		int centerX = (rect.X * 2 + (int)rect.Width) >> 1;
+		int centerY = (rect.Y * 2 + (int)rect.Height) >> 1;
 
 		if (direction == ArrowDirection::Downwards)
 		{
@@ -375,8 +388,96 @@ namespace Berta
 			::DeleteObject(brush);
 		}
 #endif
-	}
+	}*/
+	
+	//Version 2
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+		//EnableAntiAliasing(m_attributes->m_hdc);
 
+		POINT arrowPoints[3]{};
+
+		int centerX = (rect.X * 2 + (int)rect.Width) >> 1;
+		int centerY = (rect.Y * 2 + (int)rect.Height) >> 1;
+
+		if (direction == ArrowDirection::Downwards)
+		{
+			arrowPoints[0].x = centerX - arrowWidth;
+			arrowPoints[0].y = centerY - arrowLength;
+
+			arrowPoints[1].x = centerX + arrowWidth;
+			arrowPoints[1].y = centerY - arrowLength;
+
+			arrowPoints[2].x = centerX;
+			arrowPoints[2].y = centerY + arrowLength;
+		}
+		else if (direction == ArrowDirection::Upwards)
+		{
+			arrowPoints[0].x = centerX - arrowWidth;
+			arrowPoints[0].y = centerY + arrowLength;
+
+			arrowPoints[1].x = centerX + arrowWidth;
+			arrowPoints[1].y = centerY + arrowLength;
+
+			arrowPoints[2].x = centerX;
+			arrowPoints[2].y = centerY - arrowLength;
+		}
+		else if (direction == ArrowDirection::Right)
+		{
+			arrowPoints[0].x = centerX - arrowLength;
+			arrowPoints[0].y = centerY - arrowWidth;
+
+			arrowPoints[1].x = centerX - arrowLength;
+			arrowPoints[1].y = centerY + arrowWidth;
+
+			arrowPoints[2].x = centerX + arrowLength;
+			arrowPoints[2].y = centerY;
+		}
+		else if (direction == ArrowDirection::Left)
+		{
+			arrowPoints[0].x = centerX + arrowLength;
+			arrowPoints[0].y = centerY + arrowWidth;
+
+			arrowPoints[1].x = centerX + arrowLength;
+			arrowPoints[1].y = centerY - arrowWidth;
+
+			arrowPoints[2].x = centerX - arrowLength;
+			arrowPoints[2].y = centerY;
+		}
+
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+
+		HBRUSH hBrush = NULL;
+		if (solid)
+		{
+			hBrush = ::CreateSolidBrush(color.BGR);
+			::SelectObject(m_attributes->m_hdc, hBrush);
+			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
+		}
+		else
+		{
+			::Polyline(m_attributes->m_hdc, arrowPoints, 3);
+		}
+
+		if (hPen)
+		{
+			::DeleteObject(hPen);
+		}
+
+		if (hBrush)
+		{
+			::DeleteObject(hBrush);
+		}
+		::SelectObject(m_attributes->m_hdc, hOldPen);
+#endif
+	}
+	
 	void Graphics::DrawRoundRectBox(const Rectangle& rect, const Color& color, const Color& bordercolor, bool solid)
 	{
 		DrawRoundRectBox(rect, 3, color, bordercolor, solid);

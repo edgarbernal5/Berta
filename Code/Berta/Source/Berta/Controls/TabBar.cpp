@@ -243,7 +243,7 @@ namespace Berta
 		return true;
 	}
 
-	int TabBarReactor::Module::FindItem(const Point& position)
+	int TabBarReactor::Module::FindItem(const Point& position) const
 	{
 		int i = 0;
 		for (auto current = Panels.cbegin(); current != Panels.cend(); ++i, ++current)

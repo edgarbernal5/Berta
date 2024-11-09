@@ -106,6 +106,8 @@ namespace Berta
 			~NativeAttributes();
 		};
 #endif
+		//void EnableAntiAliasing(HDC hdc);
+
 		uint32_t m_dpi{ 96u };
 		std::unique_ptr<NativeAttributes> m_attributes;
 	};

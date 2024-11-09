@@ -77,6 +77,8 @@ namespace Berta
 
 		WindowStatus Status{ WindowStatus::None };
 
+		//TODO: JustCtrl_AlignToDipsReturnPixels
+
 		uint32_t ToScale(uint32_t units) const
 		{
 			return static_cast<uint32_t>(units * DPIScaleFactor);
@@ -87,12 +89,12 @@ namespace Berta
 			return static_cast<int>(units * DPIScaleFactor);
 		}
 
-		int ToDownScale(int units) const
+		int ToDownwardScale(int units) const
 		{
 			return static_cast<int>(units / DPIScaleFactor);
 		}
 
-		Berta::Size ToScale(Berta::Size units)
+		Berta::Size ToScale(Berta::Size units) const
 		{
 			return (units * DPIScaleFactor);
 		}

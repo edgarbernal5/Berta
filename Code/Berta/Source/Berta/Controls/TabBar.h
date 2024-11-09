@@ -54,7 +54,7 @@ namespace Berta
 			bool InsertTab(size_t index, const std::string& tabId, Panel* panel);
 			void BuildItems(size_t startIndex = 0);
 			bool EraseTab(size_t index);
-			int FindItem(const Point& position);
+			int FindItem(const Point& position) const;
 			bool NewSelectedIndex(int newIndex) const { return SelectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
 

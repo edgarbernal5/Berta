@@ -30,7 +30,6 @@ namespace Berta
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
-		int startingVisibleOffset = m_module.m_viewport.StartingVisibleIndex * (int)m_module.m_viewport.CardSizeWithMargin.Height;
 		Point offset{ 0, -m_module.m_state.m_offset };
 
 		auto thumbSize = m_module.m_window->ToScale(m_module.ThumbnailSize);
@@ -472,7 +471,7 @@ namespace Berta
 		if (Items.size() <= index)
 		{
 			return;
-		}		
+		}
 		
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{

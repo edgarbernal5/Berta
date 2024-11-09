@@ -11,6 +11,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/Panel.h"
 #include "Berta/Controls/ScrollBar.h"
+#include "Berta/Paint/Image.h"
 
 #include <string>
 #include <vector>
@@ -18,6 +19,8 @@
 namespace Berta
 {
 	constexpr uint32_t LISTBOX_MIN_HEADER_WIDTH = 80u;
+
+	struct ListBoxItem;
 
 	class ListBoxReactor : public ControlReactor
 	{
@@ -74,10 +77,12 @@ namespace Berta
 				std::vector<Cell> Cells;
 				Rectangle Bounds;
 				bool IsSelected{ false };
+				Image Icon;
 			};
 
 			std::vector<Item> Items;
 			std::vector<std::size_t> SortedIndexes;
+			bool DrawImages{ false };
 		};
 
 		enum class InteractionArea
@@ -129,7 +134,8 @@ namespace Berta
 			void AppendHeader(const std::string& text, uint32_t width);
 			void Append(const std::string& text);
 			void Append(std::initializer_list<std::string> texts);
-			
+			ListBoxItem At(size_t index);
+
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleIndices();
@@ -184,9 +190,22 @@ namespace Berta
 
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
-	private:
 
+	private:
 		Module m_module;
+	};
+
+	struct ListBoxItem
+	{
+		ListBoxItem(ListBoxReactor::List::Item& target, ListBoxReactor::Module& module) :
+			m_target(target), m_module(module)
+		{
+		}
+
+		void SetIcon(const Image& image);
+	private:
+		ListBoxReactor::List::Item& m_target;
+		ListBoxReactor::Module& m_module;
 	};
 
 	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>
@@ -198,6 +217,7 @@ namespace Berta
 		void AppendHeader(const std::string& name, uint32_t width = 120);
 		void Append(const std::string& text);
 		void Append(std::initializer_list<std::string> texts);
+		ListBoxItem At(size_t index);
 		void Clear();
 		void ClearHeaders();
 		void Erase(uint32_t index);

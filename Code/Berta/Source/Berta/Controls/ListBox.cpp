@@ -143,7 +143,9 @@ namespace Berta
 				}
 				else
 				{
-					m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+					auto headerSelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
+					needUpdate = m_module.Headers.SelectedIndex != headerSelectedIndex;
+					m_module.Headers.SelectedIndex = headerSelectedIndex;
 				}
 			}
 			if (hoveredArea == InteractionArea::HeaderSplitter && args.ButtonState.LeftButton)
@@ -182,6 +184,12 @@ namespace Berta
 					const auto& headerItem = m_module.Headers.Items[targetHeaderIndex];
 					auto headerPosX = m_module.m_window->ToScale(headerItem.Bounds.X);
 					auto headerWidth = (int)m_module.m_window->ToScale(headerItem.Bounds.Width);
+					if (targetHeaderIndex == 0 && m_module.List.DrawImages)
+					{
+						auto listItemIconSize = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconSize);
+						auto listItemIconMargin = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconMargin);
+						headerWidth += listItemIconSize + listItemIconMargin * 2u;
+					}
 					auto headerHalfWidth = headerWidth >> 1;
 					if (mousePositionX >= headerPosX + headerHalfWidth && mousePositionX <= headerPosX + headerWidth)
 					{
@@ -435,6 +443,12 @@ namespace Berta
 		viewportData.ContentSize.Height = (uint32_t)List.Items.size() * (viewportData.ItemHeightWithMargin);
 
 		viewportData.ContentSize.Width = viewportData.ColumnOffsetStartOff;
+		if (List.DrawImages)
+		{
+			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+			viewportData.ContentSize.Width += listItemIconSize + listItemIconMargin * 2u;
+		}
 		for (size_t i = 0; i < Headers.Items.size(); i++)
 		{
 			auto headerWidth = m_window->ToScale(Headers.Items[i].Bounds.Width);
@@ -546,6 +560,12 @@ namespace Berta
 			Headers.Items[i].Bounds.X = offset.X;
 
 			offset.X += Headers.Items[i].Bounds.Width;
+			if (i == 0 && List.DrawImages)
+			{
+				auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+				offset.X += (int)(listItemIconSize + listItemIconMargin * 2u);
+			}
 		}
 	}
 
@@ -642,6 +662,11 @@ namespace Berta
 		m_reactor.GetModule().Append(texts);
 	}
 
+	ListBoxItem ListBox::At(size_t index)
+	{
+		return m_reactor.GetModule().At(index);
+	}
+
 	void ListBox::Clear()
 	{
 		m_reactor.GetModule().Clear();
@@ -691,6 +716,12 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		BuildListItemBounds(startIndex);
+	}
+
+	ListBoxItem ListBoxReactor::Module::At(size_t index)
+	{
+		auto& wrapper = List.Items[index];
+		return ListBoxItem{ wrapper, *this };
 	}
 
 	void ListBoxReactor::Module::Clear()
@@ -807,9 +838,10 @@ namespace Berta
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		auto leftMarginTextHeader = m_window->ToScale(5u);
+		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 
 		graphics.DrawGradientFill({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
-
 		graphics.DrawLine({ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, 1 }, { m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
 		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y };
@@ -818,6 +850,10 @@ namespace Berta
 		{
 			const auto& header = Headers.Items[i];
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
+			if (i == 0 && List.DrawImages)
+			{
+				headerWidth += listItemIconSize + listItemIconMargin * 2u;
+			}
 			auto headerWidthInt = (int)headerWidth;
 			bool isHovered = Headers.SelectedIndex == (int)i;
 			bool isDragging = Headers.IsDragging && isHovered;
@@ -826,9 +862,13 @@ namespace Berta
 				headerOffset.X += headerWidthInt;
 				continue;
 			}
-
+			int textOffset = 0;
+			if (i == 0 && List.DrawImages)
+			{
+				textOffset += listItemIconSize + listItemIconMargin * 2u;
+			}
 			Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight };
-			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader);
+			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader + textOffset);
 
 			if (isDragging)
 			{
@@ -869,24 +909,27 @@ namespace Berta
 
 		Rectangle textRect = rect;
 		textRect.X += (int)leftTextMargin;
-		textRect.Width -= leftTextMargin * 2u;
+		textRect.Width -= leftTextMargin;
 		DrawStringInBox(graphics, name, textRect);
 	}
 
 	void ListBoxReactor::Module::DrawList(Graphics& graphics)
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
+		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 
 		Point listOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y - ScrollOffset.Y };
+		
 		auto itemHeight = m_viewport.ItemHeight;
 		auto itemHeightWithMargin = m_viewport.ItemHeightWithMargin;
 		auto leftMarginListItemText = m_window->ToScale(3u);
 
 		for (size_t i = m_viewport.StartingVisibleIndex; i < m_viewport.EndingVisibleIndex; i++)
 		{
-			const auto& item = List.Items[i];
+			auto& item = List.Items[i];
 			int cellOffset = 0;
-
+			
 			bool isHovered = m_mouseSelection.m_hoveredIndex == (int)i;
 			bool isSelected = item.IsSelected;
 			if (isSelected)
@@ -905,8 +948,15 @@ namespace Berta
 				const auto& cell = item.Cells[j];
 				const auto& header = Headers.Items[j];
 				auto headerWidth = m_window->ToScale(header.Bounds.Width);
+				uint32_t iconWidth = 0u;
+
+				if (j == 0 && List.DrawImages)
+				{
+					headerWidth += listItemIconSize + listItemIconMargin * 2u;
+					iconWidth += listItemIconSize + listItemIconMargin * 2u;
+				}
 				auto headerWidthInt = static_cast<int>(headerWidth);
-				if (cellOffset + headerWidthInt < 0)
+				if (listOffset.X + (int)leftMarginListItemText + cellOffset + headerWidthInt <= 0)
 				{
 					cellOffset += headerWidthInt;
 					continue;
@@ -916,7 +966,14 @@ namespace Berta
 					break;
 				}
 
-				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText * 2, itemHeight });
+				if (j == 0 && List.DrawImages && item.Icon)
+				{
+					auto iconSize = item.Icon.GetSize();
+					Rectangle destRect{ listOffset.X + (int)leftMarginListItemText + (int)listItemIconMargin, listOffset.Y + (int)(itemHeightWithMargin * i) + (int)(itemHeight- listItemIconSize) / 2 + (int)m_viewport.InnerMargin, listItemIconSize,listItemIconSize};
+					item.Icon.Paste(iconSize.ToRectangle(), graphics, destRect);
+				}
+
+				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset + (int)iconWidth, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText - iconWidth, itemHeight});
 
 				cellOffset += headerWidthInt;
 			}
@@ -1108,11 +1165,18 @@ namespace Berta
 		{
 			Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, 0 };
 
+			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+
 			auto splitterThreshold = m_window->ToScale(3);
 			for (size_t i = 0; i < Headers.Items.size(); i++)
 			{
 				const auto& header = Headers.Items[i];
 				auto headerWidth = m_window->ToScale(header.Bounds.Width);
+				if (i == 0 && List.DrawImages)
+				{
+					headerWidth += listItemIconSize + listItemIconMargin * 2u;
+				}
 				auto headerWidthInt = (int)headerWidth;
 				if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.BackgroundRect.Width)
 				{
@@ -1186,13 +1250,19 @@ namespace Berta
 
 	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition, bool splitter)
 	{
+		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 		Point headerOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, 0 };
-
+		
 		auto splitterThreshold = m_window->ToScale(3);
 		for (size_t i = 0; i < Headers.Items.size(); i++)
 		{
 			const auto& header = Headers.Items[i];
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
+			if (i == 0 && List.DrawImages)
+			{
+				headerWidth += listItemIconSize + listItemIconMargin * 2u;
+			}
 			auto headerWidthInt = (int)headerWidth;
 			if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.BackgroundRect.Width)
 			{
@@ -1227,7 +1297,7 @@ namespace Berta
 	{
 		BT_CORE_TRACE << "  - Update headers size. index " << Headers.SelectedIndex << std::endl;
 		auto& headerBounds = Headers.Items[Headers.SelectedIndex].Bounds;
-		auto newWidth = m_window->ToDownScale(ScrollOffset.X + mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
+		auto newWidth = m_window->ToDownwardScale(ScrollOffset.X + mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
 
 		headerBounds.Width = (std::max)(LISTBOX_MIN_HEADER_WIDTH, static_cast<uint32_t>((std::max)(0, newWidth)));
 		CalculateViewport(m_viewport);
@@ -1248,5 +1318,15 @@ namespace Berta
 	{
 		GUI::ReleaseCapture(m_window);
 		Headers.SelectedIndex = -1;
+	}
+
+	void ListBoxItem::SetIcon(const Image& image)
+	{
+		m_target.Icon = image;
+		if (image)
+		{
+			m_module.List.DrawImages = true;
+			m_module.BuildHeaderBounds();
+		}
 	}
 }
