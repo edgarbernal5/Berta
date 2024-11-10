@@ -108,7 +108,8 @@ namespace Berta
 			GUI::Capture(m_module.m_window);
 			m_module.Headers.IsDragging = false;
 			m_module.Headers.SelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-			m_module.Headers.MouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.Headers.Items[m_module.Headers.SelectedIndex].Bounds.X) - m_module.m_viewport.BackgroundRect.X - (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.ScrollOffset.X;
+			const auto& headerIndex = m_module.Headers.Sorted[m_module.Headers.SelectedIndex];
+			m_module.Headers.MouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.Headers.Items[headerIndex].Bounds.X) - m_module.m_viewport.BackgroundRect.X - (int)m_module.m_viewport.ColumnOffsetStartOff + m_module.ScrollOffset.X;
 			needUpdate = true;
 		}
 
@@ -165,7 +166,8 @@ namespace Berta
 						auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
 						auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
 
-						const auto& header = m_module.Headers.Items[m_module.Headers.SelectedIndex];
+						const auto& headerIndex = m_module.Headers.Sorted[m_module.Headers.SelectedIndex];
+						const auto& header = m_module.Headers.Items[headerIndex];
 						Graphics& draggingBox = m_module.Headers.DraggingBox;
 						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.Bounds.Width), m_module.m_window->ToScale(headerHeight) };
 						uint32_t textOffset = 0;
@@ -190,7 +192,8 @@ namespace Berta
 
 				if (targetHeaderIndex != -1)
 				{
-					const auto& headerItem = m_module.Headers.Items[targetHeaderIndex];
+					const auto& headerIndex = m_module.Headers.Sorted[targetHeaderIndex];
+					const auto& headerItem = m_module.Headers.Items[headerIndex];
 					auto headerPosX = m_module.m_window->ToScale(headerItem.Bounds.X);
 					auto headerWidth = (int)m_module.m_window->ToScale(headerItem.Bounds.Width);
 					if (targetHeaderIndex == 0 && m_module.List.DrawImages)
@@ -210,6 +213,10 @@ namespace Berta
 				else if (mousePositionX <= (int)m_module.m_viewport.ColumnOffsetStartOff)
 				{
 					targetHeaderIndex = 0;
+				}
+				else
+				{
+					targetHeaderIndex = m_module.Headers.Items.size();
 				}
 				m_module.Headers.DraggingTargetIndex = targetHeaderIndex;
 				needUpdate = true;
@@ -342,6 +349,19 @@ namespace Berta
 		{
 			if (m_module.Headers.IsDragging)
 			{
+				auto targetIndex = (size_t)m_module.Headers.DraggingTargetIndex;
+				auto selectedIndex = (size_t)m_module.Headers.SelectedIndex;
+				BT_CORE_TRACE << " -- selectedIndex " << selectedIndex << ". targetIndex =" << targetIndex << std::endl;
+				if (selectedIndex != targetIndex && (selectedIndex +1) != targetIndex)
+				{
+					if (targetIndex >= m_module.Headers.Items.size())
+						targetIndex--;
+
+					auto oldIndex = m_module.Headers.Sorted[selectedIndex];
+					m_module.Headers.Sorted[selectedIndex] = m_module.Headers.Sorted[targetIndex];
+					m_module.Headers.Sorted[targetIndex] = oldIndex;
+					m_module.BuildHeaderBounds();
+				}
 				m_module.Headers.DraggingBox.Release();
 			}
 			m_module.Headers.IsDragging = false;
@@ -564,13 +584,15 @@ namespace Berta
 		Point offset{ 0,0 };
 		if (startIndex > 0)
 		{
-			offset.X = Headers.Items[startIndex - 1].Bounds.X + (int)Headers.Items[startIndex - 1].Bounds.Width;
+			const auto& headerIndex = Headers.Sorted[startIndex - 1];
+			offset.X = Headers.Items[headerIndex].Bounds.X + (int)Headers.Items[headerIndex].Bounds.Width;
 		}
 		for (size_t i = startIndex; i < Headers.Items.size(); i++)
 		{
-			Headers.Items[i].Bounds.X = offset.X;
+			const auto& headerIndex = Headers.Sorted[i];
+			Headers.Items[headerIndex].Bounds.X = offset.X;
 
-			offset.X += Headers.Items[i].Bounds.Width;
+			offset.X += Headers.Items[headerIndex].Bounds.Width;
 		}
 	}
 
@@ -627,6 +649,7 @@ namespace Berta
 	{
 		auto startIndex = Headers.Items.size();
 		Headers.Items.emplace_back(text, (std::max)(width, LISTBOX_MIN_HEADER_WIDTH));
+		Headers.Sorted.emplace_back(Headers.Sorted.size());
 
 		CalculateViewport(m_viewport); 
 		CalculateVisibleIndices();
@@ -853,7 +876,8 @@ namespace Berta
 
 		for (size_t i = 0; i < Headers.Items.size(); ++i)
 		{
-			const auto& header = Headers.Items[i];
+			const auto& headerIndex = Headers.Sorted[i];
+			const auto& header = Headers.Items[headerIndex];
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
 			if (i == 0 && List.DrawImages)
 			{
@@ -880,11 +904,13 @@ namespace Berta
 				auto targetHeaderPosition = 0;
 				if (Headers.DraggingTargetIndex < Headers.Items.size())
 				{
-					targetHeaderPosition = m_window->ToScale(Headers.Items[Headers.DraggingTargetIndex].Bounds.X);
+					const auto& headerIndex = Headers.Sorted[Headers.DraggingTargetIndex];
+					targetHeaderPosition = m_window->ToScale(Headers.Items[headerIndex].Bounds.X);
 				}
 				else
 				{
-					const auto& lastHeaderBounds = Headers.Items[Headers.Items.size() - 1].Bounds;
+					const auto& headerIndex = Headers.Sorted[Headers.Items.size() - 1];
+					const auto& lastHeaderBounds = Headers.Items[headerIndex].Bounds;
 					targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
 				}
 				targetHeaderPosition += m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X;
@@ -896,7 +922,7 @@ namespace Berta
 
 				Graphics& draggingBox = Headers.DraggingBox;
 				
-				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
+				auto headerPosition = Headers.Items[headerIndex].Bounds.X;
 				auto newPosition = Headers.MouseDraggingPosition - Headers.MouseDownOffset;
 				if (Headers.SelectedIndex != 0 && List.DrawImages)
 				{
@@ -958,8 +984,9 @@ namespace Berta
 
 			for (size_t j = 0; j < item.Cells.size(); j++)
 			{
-				const auto& cell = item.Cells[j];
-				const auto& header = Headers.Items[j];
+				const auto& headerIndex = Headers.Sorted[j];
+				const auto& cell = item.Cells[headerIndex];
+				const auto& header = Headers.Items[headerIndex];
 				auto headerWidth = m_window->ToScale(header.Bounds.Width);
 				uint32_t iconWidth = 0u;
 
@@ -1184,7 +1211,8 @@ namespace Berta
 			auto splitterThreshold = m_window->ToScale(3);
 			for (size_t i = 0; i < Headers.Items.size(); i++)
 			{
-				const auto& header = Headers.Items[i];
+				const auto& headerIndex = Headers.Sorted[i];
+				const auto& header = Headers.Items[headerIndex];
 				auto headerWidth = m_window->ToScale(header.Bounds.Width);
 				if (i == 0 && List.DrawImages)
 				{
@@ -1270,7 +1298,8 @@ namespace Berta
 		auto splitterThreshold = m_window->ToScale(3);
 		for (size_t i = 0; i < Headers.Items.size(); i++)
 		{
-			const auto& header = Headers.Items[i];
+			const auto& headerIndex = Headers.Sorted[i];
+			const auto& header = Headers.Items[headerIndex];
 			auto headerWidth = m_window->ToScale(header.Bounds.Width);
 			if (i == 0 && List.DrawImages)
 			{
@@ -1304,20 +1333,21 @@ namespace Berta
 		GUI::Capture(m_window);
 		Headers.SelectedIndex = GetHeaderAtMousePosition(mousePosition, true);
 		int iconWidth = 0;
-		if (List.DrawImages && Headers.SelectedIndex==0)
+		if (List.DrawImages && Headers.SelectedIndex == 0)
 		{
 			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 			iconWidth += listItemIconSize + listItemIconMargin * 2u;
 		}
-		Headers.MouseDownOffset = ScrollOffset.X + mousePosition.X - (int)m_window->ToScale(Headers.Items[Headers.SelectedIndex].Bounds.X + Headers.Items[Headers.SelectedIndex].Bounds.Width + iconWidth);
+		const auto& headerIndex = Headers.Sorted[Headers.SelectedIndex];
+		Headers.MouseDownOffset = ScrollOffset.X + mousePosition.X - (int)m_window->ToScale(Headers.Items[headerIndex].Bounds.X + Headers.Items[headerIndex].Bounds.Width + iconWidth);
 		
 	}
 
 	void ListBoxReactor::Module::UpdateHeadersSize(const Point& mousePosition)
 	{
-		BT_CORE_TRACE << "  - Update headers size. index " << Headers.SelectedIndex << std::endl;
-		auto& headerBounds = Headers.Items[Headers.SelectedIndex].Bounds;
+		const auto& headerIndex = Headers.Sorted[Headers.SelectedIndex];
+		auto& headerBounds = Headers.Items[headerIndex].Bounds;
 		auto newWidth = m_window->ToDownwardScale(ScrollOffset.X + mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
 		int iconWidth = 0;
 		if (List.DrawImages && Headers.SelectedIndex == 0)

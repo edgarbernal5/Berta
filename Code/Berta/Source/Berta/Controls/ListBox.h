@@ -57,6 +57,8 @@ namespace Berta
 			int SelectedIndex{ -1 };
 			bool IsDragging{ false };
 			std::vector<ItemData> Items;
+
+			std::vector<size_t> Sorted;
 		};
 
 		struct Cell
