@@ -156,6 +156,8 @@ namespace Berta
 			}
 			else if (hoveredArea == InteractionArea::Header && args.ButtonState.LeftButton)
 			{
+				auto listItemIconSize = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconSize);
+				auto listItemIconMargin = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconMargin);
 				if (!m_module.Headers.IsDragging)
 				{
 					if (!m_module.Headers.DraggingBox.IsValid())
@@ -166,11 +168,18 @@ namespace Berta
 						const auto& header = m_module.Headers.Items[m_module.Headers.SelectedIndex];
 						Graphics& draggingBox = m_module.Headers.DraggingBox;
 						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.Bounds.Width), m_module.m_window->ToScale(headerHeight) };
+						uint32_t textOffset = 0;
+						if (m_module.Headers.SelectedIndex == 0 && m_module.List.DrawImages)
+						{
+							textOffset += listItemIconSize + listItemIconMargin * 2u;
+							columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
+						}
+
 						draggingBox.Build({ columnRect.Width, columnRect.Height });
 						draggingBox.BuildFont(m_module.m_window->DPI);
 
 						draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
-						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader);
+						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Name, false, leftMarginTextHeader + textOffset, m_module.m_appearance->SelectionHighlightColor);
 					}
 				}
 				m_module.Headers.MouseDraggingPosition = args.Position.X;
@@ -186,9 +195,11 @@ namespace Berta
 					auto headerWidth = (int)m_module.m_window->ToScale(headerItem.Bounds.Width);
 					if (targetHeaderIndex == 0 && m_module.List.DrawImages)
 					{
-						auto listItemIconSize = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconSize);
-						auto listItemIconMargin = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconMargin);
-						headerWidth += listItemIconSize + listItemIconMargin * 2u;
+						headerWidth += (int)(listItemIconSize + listItemIconMargin * 2u);
+					}
+					if (targetHeaderIndex > 0 && m_module.List.DrawImages)
+					{
+						headerPosX += (int)(listItemIconSize + listItemIconMargin * 2u);
 					}
 					auto headerHalfWidth = headerWidth >> 1;
 					if (mousePositionX >= headerPosX + headerHalfWidth && mousePositionX <= headerPosX + headerWidth)
@@ -560,12 +571,6 @@ namespace Berta
 			Headers.Items[i].Bounds.X = offset.X;
 
 			offset.X += Headers.Items[i].Bounds.Width;
-			if (i == 0 && List.DrawImages)
-			{
-				auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
-				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
-				offset.X += (int)(listItemIconSize + listItemIconMargin * 2u);
-			}
 		}
 	}
 
@@ -591,7 +596,7 @@ namespace Berta
 		}
 	}
 
-	void ListBoxReactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds)
+	void ListBoxReactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor)
 	{
 		auto textExtent = graphics.GetTextExtent(str);
 		if (boxBounds.X + (int)textExtent.Width < 0 /* || boxBounds.X >= */)
@@ -601,7 +606,7 @@ namespace Berta
 
 		if (textExtent.Width < boxBounds.Width)
 		{
-			graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, str, m_appearance->Foreground);
+			graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, str, textColor);
 			return;
 		}
 
@@ -612,7 +617,7 @@ namespace Berta
 			auto subTextExtent = graphics.GetTextExtent(subStr).Width;
 			if ((int)(subTextExtent + ellipsisTextExtent) <= (int)boxBounds.Width - 2)
 			{
-				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", m_appearance->Foreground);
+				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", textColor);
 				break;
 			}
 		}
@@ -868,7 +873,7 @@ namespace Berta
 				textOffset += listItemIconSize + listItemIconMargin * 2u;
 			}
 			Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight };
-			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader + textOffset);
+			DrawHeaderItem(graphics, columnRect, header.Name, isHovered, leftMarginTextHeader + textOffset, m_appearance->Foreground);
 
 			if (isDragging)
 			{
@@ -883,12 +888,20 @@ namespace Berta
 					targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
 				}
 				targetHeaderPosition += m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X;
+				if (Headers.DraggingTargetIndex != 0 && List.DrawImages)
+				{
+					targetHeaderPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
+				}
 				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionHighlightColor);
 
 				Graphics& draggingBox = Headers.DraggingBox;
 				
 				auto headerPosition = Headers.Items[Headers.SelectedIndex].Bounds.X;
 				auto newPosition = Headers.MouseDraggingPosition - Headers.MouseDownOffset;
+				if (Headers.SelectedIndex != 0 && List.DrawImages)
+				{
+					newPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
+				}
 				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
 
 				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
@@ -900,7 +913,7 @@ namespace Berta
 		}
 	}
 
-	void ListBoxReactor::Module::DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin)
+	void ListBoxReactor::Module::DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin, const Color& textColor)
 	{
 		if (isHovered)
 		{
@@ -910,7 +923,7 @@ namespace Berta
 		Rectangle textRect = rect;
 		textRect.X += (int)leftTextMargin;
 		textRect.Width -= leftTextMargin;
-		DrawStringInBox(graphics, name, textRect);
+		DrawStringInBox(graphics, name, textRect, textColor);
 	}
 
 	void ListBoxReactor::Module::DrawList(Graphics& graphics)
@@ -973,7 +986,7 @@ namespace Berta
 					item.Icon.Paste(iconSize.ToRectangle(), graphics, destRect);
 				}
 
-				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset + (int)iconWidth, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText - iconWidth, itemHeight});
+				DrawStringInBox(graphics, cell.Text, { listOffset.X + (int)leftMarginListItemText + cellOffset + (int)iconWidth, listOffset.Y + (int)m_viewport.InnerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText - iconWidth, itemHeight}, m_appearance->Foreground);
 
 				cellOffset += headerWidthInt;
 			}
@@ -1290,7 +1303,15 @@ namespace Berta
 	{
 		GUI::Capture(m_window);
 		Headers.SelectedIndex = GetHeaderAtMousePosition(mousePosition, true);
-		Headers.MouseDownOffset = ScrollOffset.X + mousePosition.X - (int)m_window->ToScale(Headers.Items[Headers.SelectedIndex].Bounds.X + Headers.Items[Headers.SelectedIndex].Bounds.Width);
+		int iconWidth = 0;
+		if (List.DrawImages && Headers.SelectedIndex==0)
+		{
+			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+			iconWidth += listItemIconSize + listItemIconMargin * 2u;
+		}
+		Headers.MouseDownOffset = ScrollOffset.X + mousePosition.X - (int)m_window->ToScale(Headers.Items[Headers.SelectedIndex].Bounds.X + Headers.Items[Headers.SelectedIndex].Bounds.Width + iconWidth);
+		
 	}
 
 	void ListBoxReactor::Module::UpdateHeadersSize(const Point& mousePosition)
@@ -1298,7 +1319,14 @@ namespace Berta
 		BT_CORE_TRACE << "  - Update headers size. index " << Headers.SelectedIndex << std::endl;
 		auto& headerBounds = Headers.Items[Headers.SelectedIndex].Bounds;
 		auto newWidth = m_window->ToDownwardScale(ScrollOffset.X + mousePosition.X - Headers.MouseDownOffset - m_window->ToScale(headerBounds.X));
-
+		int iconWidth = 0;
+		if (List.DrawImages && Headers.SelectedIndex == 0)
+		{
+			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+			iconWidth += listItemIconSize + listItemIconMargin * 2u;
+			newWidth -= iconWidth;
+		}
 		headerBounds.Width = (std::max)(LISTBOX_MIN_HEADER_WIDTH, static_cast<uint32_t>((std::max)(0, newWidth)));
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();

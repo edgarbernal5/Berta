@@ -166,10 +166,10 @@ namespace Berta
 			void UpdateHeadersSize(const Point& mousePosition);
 			void StopHeadersSizing();
 
-			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds);
+			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
 			void DrawHeaders(Graphics& graphics);
-			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin);
+			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin, const Color& textColor);
 			void DrawList(Graphics& graphics);
 
 			InteractionArea m_hoveredArea{ InteractionArea::None };
