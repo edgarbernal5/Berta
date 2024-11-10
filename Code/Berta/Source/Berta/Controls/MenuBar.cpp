@@ -283,8 +283,10 @@ namespace Berta
 			return;
 		}
 
-		auto itemMargin = m_owner->ToScale(4u);
-		Point offset{ 0, (int)itemMargin };
+		auto itemMargin = m_owner->ToScale(6u);
+		auto itemMarginInner = m_owner->ToScale(10u);
+		auto menuBarItemHeight = m_owner->ToScale(m_owner->Appearance->MenuBarItemHeight);
+		Point offset{ 0, (int)(m_owner->Size.Height - menuBarItemHeight)>>1 };
 
 		if (startIndex > 0)
 		{
@@ -295,7 +297,7 @@ namespace Berta
 		{
 			auto& itemData = *m_items[i];
 			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(itemData.text);
-			Size itemSize{ textSize.Width + itemMargin * 4, m_owner->Size.Height - itemMargin * 2 };
+			Size itemSize{ textSize.Width + itemMarginInner * 2u, menuBarItemHeight };
 
 			auto center = itemSize - textSize;
 			center = center * 0.5f;

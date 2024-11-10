@@ -341,7 +341,7 @@ namespace Berta
 			}
 			GUI::ReleaseCapture(m_module.m_window);
 		}
-		if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
+		else if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
 		{
 			m_module.StopHeadersSizing();
 		}
@@ -352,14 +352,18 @@ namespace Berta
 				auto targetIndex = (size_t)m_module.Headers.DraggingTargetIndex;
 				auto selectedIndex = (size_t)m_module.Headers.SelectedIndex;
 				BT_CORE_TRACE << " -- selectedIndex " << selectedIndex << ". targetIndex =" << targetIndex << std::endl;
-				if (selectedIndex != targetIndex && (selectedIndex +1) != targetIndex)
+				if (selectedIndex != targetIndex && (selectedIndex + 1) != targetIndex)
 				{
-					if (targetIndex >= m_module.Headers.Items.size())
-						targetIndex--;
-
 					auto oldIndex = m_module.Headers.Sorted[selectedIndex];
-					m_module.Headers.Sorted[selectedIndex] = m_module.Headers.Sorted[targetIndex];
-					m_module.Headers.Sorted[targetIndex] = oldIndex;
+					m_module.Headers.Sorted.emplace(m_module.Headers.Sorted.begin() + targetIndex, oldIndex);
+					if (selectedIndex > targetIndex)
+					{
+						m_module.Headers.Sorted.erase(m_module.Headers.Sorted.begin() + selectedIndex + 1);
+					}
+					else
+					{
+						m_module.Headers.Sorted.erase(m_module.Headers.Sorted.begin() + selectedIndex);
+					}
 					m_module.BuildHeaderBounds();
 				}
 				m_module.Headers.DraggingBox.Release();
