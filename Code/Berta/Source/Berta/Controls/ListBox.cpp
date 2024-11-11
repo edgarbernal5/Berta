@@ -216,7 +216,7 @@ namespace Berta
 				}
 				else
 				{
-					targetHeaderIndex = m_module.Headers.Items.size();
+					targetHeaderIndex = (int)m_module.Headers.Items.size();
 				}
 				m_module.Headers.DraggingTargetIndex = targetHeaderIndex;
 				needUpdate = true;

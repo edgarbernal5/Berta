@@ -25,16 +25,18 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-		void SetState(GUI::InteractionData& selection);
+		void SetState(Float::InteractionData& selection);
 
 		struct State
 		{
-			int m_index;
+			int m_hoveredIndex{ -1 };
+			int m_selectedIndex{ -1 };
 			int m_offset;
 		};
 
@@ -48,7 +50,7 @@ namespace Berta
 
 		FloatBox* m_control{ nullptr };
 
-		GUI::InteractionData* m_interactionData{ nullptr };
+		Float::InteractionData* m_interactionData{ nullptr };
 		State m_state;
 
 		bool m_ignoreFirstMouseUp{ true };
@@ -62,7 +64,7 @@ namespace Berta
 		~FloatBox();
 
 		bool OnKeyPressed(const ArgKeyboard& args);
-		void Init(GUI::InteractionData& state)
+		void Init(Float::InteractionData& state)
 		{
 			m_reactor.SetState(state);
 		}

@@ -106,7 +106,7 @@ namespace Berta
 
 	struct ArgActivated
 	{
-		bool IsActivated;
+		bool IsActivated{ false };
 	};
 
 	struct ArgDisposing

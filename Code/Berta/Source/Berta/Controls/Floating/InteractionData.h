@@ -9,16 +9,23 @@
 
 #include <string>
 #include <vector>
+#include "Berta/Paint/Image.h"
 
-namespace Berta::GUI
+namespace Berta::Float
 {
 	struct InteractionData
 	{
-		std::vector<std::wstring> m_items;
+		struct ItemType
+		{
+			std::wstring Text;
+			Image Icon;
+		};
+		std::vector<ItemType> Items;
+		bool DrawImages{ false };
+
+		size_t MaxItemsToDisplay = 5;
 		int m_selectedIndex{ -1 };
 		bool m_isSelected{ false };
-
-		size_t m_maxItemsToDisplay = 5;
 	};
 }
 

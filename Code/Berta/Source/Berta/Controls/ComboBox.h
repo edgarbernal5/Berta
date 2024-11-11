@@ -11,6 +11,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/Floating/InteractionData.h"
+#include "Berta/Paint/Image.h"
 
 namespace Berta
 {
@@ -34,10 +35,6 @@ namespace Berta
 		std::wstring GetText() const;
 		void SetText(const std::wstring& text);
 
-		GUI::InteractionData& GetInteractionData() { return m_interactionData; }
-		TextEditor* GetEditor() const { return m_textEditor; }
-
-	private:
 		enum class State
 		{
 			Normal,
@@ -45,16 +42,30 @@ namespace Berta
 			Hovered
 		};
 
-		void EmitSelectionEvent(int index);
+		struct Module
+		{
+			Float::InteractionData Data;
 
-		ComboBox* m_control{ nullptr };
-		TextEditor* m_textEditor{ nullptr };
-		std::wstring m_text;
+			Window* m_owner{ nullptr };
+			TextEditor* m_textEditor{ nullptr };
+			std::wstring m_text;
 
-		State m_status{ State::Normal };
-		GUI::InteractionData m_interactionData;
-		
-		FloatBox* m_floatBox{ nullptr };
+			State m_status{ State::Normal };
+
+			FloatBox* m_floatBox{ nullptr };
+
+			void EmitSelectionEvent(int index);
+		};
+
+		void Clear();
+		void Erase(uint32_t index);
+		void PushItem(const std::wstring& text);
+		void PushItem(const std::wstring& text, const Image& icon);
+		uint32_t GetSelectedIndex() const;
+		void SetSelectedIndex(uint32_t index);
+
+	private:
+		Module m_module;
 	};
 
 	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents>
@@ -66,7 +77,8 @@ namespace Berta
 		void Clear();
 		void Erase(uint32_t index);
 		void PushItem(const std::wstring& text);
-		int GetSelectedIndex() { m_reactor.GetInteractionData().m_selectedIndex; }
+		void PushItem(const std::wstring& text, const Image& icon);
+		int GetSelectedIndex() { m_reactor.GetSelectedIndex(); }
 		void SetSelectedIndex(uint32_t index);
 
 	protected:

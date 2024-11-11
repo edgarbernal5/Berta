@@ -31,8 +31,8 @@ namespace Berta
 		
 		if (m_interactionData)
 		{
-			auto& items = m_interactionData->m_items;
-			auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
+			auto& items = m_interactionData->Items;
+			auto visibleItemsCount = (std::min)(m_interactionData->Items.size(), m_interactionData->MaxItemsToDisplay);
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
 			auto itemHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
@@ -40,15 +40,50 @@ namespace Berta
 			for (size_t i = 0; i < visibleItemsCount; i++)
 			{
 				auto offsetIndex = m_state.m_offset + i;
-				if (m_state.m_index == offsetIndex)
+				bool isSelected = m_state.m_selectedIndex == offsetIndex;
+				bool isHovered = m_state.m_hoveredIndex == offsetIndex;
+				Rectangle itemRect{ 1, 1 + static_cast<int>(i * itemHeight), rect.Width - 2,itemHeight };
+				if (isSelected)
 				{
-					graphics.DrawRectangle({ 1, 1 + static_cast<int>(i * itemHeight), rect.Width - 2,itemHeight }, m_control->Handle()->Appearance->HighlightColor, true);
+					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightColor, true);
 				}
-				graphics.DrawString({ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) }, items[offsetIndex], m_control->Handle()->Appearance->Foreground);
+				else if (isHovered)
+				{
+					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->ItemCollectionHightlightBackground, true);
+				}
+				auto iconSize = window->ToScale(16u);
+				auto iconMargin = window->ToScale(3u);
+				Point textPosition{ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) };
+				if (m_interactionData->DrawImages)
+				{
+					textPosition.X += (int)(iconSize + iconMargin * 2u);
+
+					auto& icon = m_interactionData->Items[offsetIndex].Icon;
+					if (icon)
+					{
+						auto iconSourceSize = icon.GetSize();
+						auto positionY = ((itemHeight - iconSize) >> 1) + static_cast<int>(i * itemHeight);
+						icon.Paste(iconSourceSize.ToRectangle(), graphics, { 3, (int)positionY, iconSize , iconSize });
+					}
+				}
+
+				graphics.DrawString(textPosition, items[offsetIndex].Text, m_control->Handle()->Appearance->Foreground);
+				if (isSelected)
+				{
+					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightBorderColor, false);
+				}
 			}
 		}		
 
 		graphics.DrawRectangle(m_control->GetAppearance().BoxBorderColor, false);
+	}
+
+	void FloatBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		m_state.m_hoveredIndex = -1;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
 	}
 
 	void FloatBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -59,7 +94,7 @@ namespace Berta
 			auto itemHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
 			auto index = (args.Position.Y - 1) / itemHeight;
 			
-			m_state.m_index = m_state.m_offset + index;
+			m_state.m_hoveredIndex = m_state.m_offset + index;
 
 			Update(graphics);
 			GUI::MarkAsUpdated(*m_control);
@@ -76,6 +111,7 @@ namespace Berta
 
 		if (IsInside(args.Position))
 		{
+			m_state.m_selectedIndex = m_state.m_hoveredIndex;
 			m_interactionData->m_isSelected = true;
 		}
 
@@ -109,10 +145,10 @@ namespace Berta
 	{
 	}
 
-	void FloatBoxReactor::SetState(GUI::InteractionData& selection)
+	void FloatBoxReactor::SetState(Float::InteractionData& selection)
 	{
 		m_interactionData = &selection;
-		m_state.m_index = selection.m_selectedIndex;
+		m_state.m_selectedIndex = selection.m_selectedIndex;
 		selection.m_isSelected = false;
 
 		UpdateScrollBar();
@@ -120,13 +156,13 @@ namespace Berta
 
 	bool FloatBoxReactor::MoveSelectedItem(int direction)
 	{
-		int newIndex = (std::max)(0, (std::min)(m_state.m_index + direction, (int)(m_interactionData->m_items.size()) - 1));
-		if (m_state.m_index != newIndex && !m_interactionData->m_items.empty())
+		int newIndex = (std::max)(0, (std::min)(m_state.m_selectedIndex + direction, (int)(m_interactionData->Items.size()) - 1));
+		if (m_state.m_selectedIndex != newIndex && !m_interactionData->Items.empty())
 		{
-			m_state.m_index = newIndex;
+			m_state.m_selectedIndex = newIndex;
 			if (m_scrollBar)
 			{
-				auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
+				auto visibleItemsCount = (std::min)(m_interactionData->Items.size(), m_interactionData->MaxItemsToDisplay);
 				bool redrawScrollbar = false;
 				if (newIndex - m_state.m_offset < 0)
 				{
@@ -165,7 +201,7 @@ namespace Berta
 
 	void FloatBoxReactor::UpdateScrollBar()
 	{
-		bool needScrollBar = m_interactionData->m_items.size() > m_interactionData->m_maxItemsToDisplay;
+		bool needScrollBar = m_interactionData->Items.size() > m_interactionData->MaxItemsToDisplay;
 		if (!needScrollBar && m_scrollBar)
 		{
 			m_scrollBar.reset();
@@ -193,12 +229,12 @@ namespace Berta
 			});
 		}
 
-		auto delta = m_interactionData->m_items.size() - m_interactionData->m_maxItemsToDisplay;
+		auto delta = m_interactionData->Items.size() - m_interactionData->MaxItemsToDisplay;
 		m_scrollBar->SetMinMax(0, (int)delta);
-		if (m_state.m_index >= 0)
+		if (m_state.m_selectedIndex >= 0)
 		{
-			auto blockId = (size_t)m_state.m_index / m_interactionData->m_maxItemsToDisplay;
-			int value = static_cast<int>(blockId * m_interactionData->m_maxItemsToDisplay);
+			auto blockId = (size_t)m_state.m_selectedIndex / m_interactionData->MaxItemsToDisplay;
+			int value = static_cast<int>(blockId * m_interactionData->MaxItemsToDisplay);
 			value = std::clamp(value, 0, (int)delta);
 
 			m_scrollBar->SetValue(value);

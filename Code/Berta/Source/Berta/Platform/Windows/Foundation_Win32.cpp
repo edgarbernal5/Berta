@@ -140,7 +140,7 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 		{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
 		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
 
@@ -182,7 +182,7 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
-			BT_CORE_DEBUG << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
+			//BT_CORE_DEBUG << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -211,7 +211,7 @@ namespace Berta
 		}
 		case WM_ACTIVATEAPP:
 		{
-			ArgActivated argActivated;
+			ArgActivated argActivated{};
 			argActivated.IsActivated = wParam ? true : false;
 			//BT_CORE_TRACE << "    IsActivated = " << argActivated.IsActivated << ". " << hWnd << std::endl;
 			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
@@ -467,7 +467,7 @@ namespace Berta
 					}
 					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
 					{
-						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+						BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 						trackEvent.hwndTrack = hWnd;
 						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 						rootWindowData.IsTracking = true;
