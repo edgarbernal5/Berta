@@ -41,8 +41,8 @@ namespace Berta
 			return;
 		}
 
-		int arrowWidth = window->ToScale(6);
-		int arrowLength = window->ToScale(3);
+		int arrowWidth = window->ToScale(4);
+		int arrowLength = window->ToScale(2);
 
 		Rectangle button1Rect = m_isVertical ?
 			Rectangle{ 0, 0, window->Size.Width, buttonSize } :
@@ -53,8 +53,10 @@ namespace Berta
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
 			
-			graphics.DrawRectangle(scrollBoxRect, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, true);
-			graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
+			//graphics.DrawRectangle(scrollBoxRect, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, true);
+			//graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
+
+			graphics.DrawRoundRectBox(scrollBoxRect, 2, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
 		}
 
 		Rectangle button2Rect = m_isVertical ?
@@ -304,8 +306,8 @@ namespace Berta
 		//graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
 		if (arrowWidth % 2 == 1)
 			--arrowWidth;
-
-		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonHighlightBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
+		
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonPressedBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 		//graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}
 

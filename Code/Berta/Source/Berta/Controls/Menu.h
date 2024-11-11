@@ -17,9 +17,10 @@
 
 namespace Berta
 {
-	class MenuBox;
 	constexpr uint32_t ItemTextPadding = 2;
 	constexpr uint32_t SeparatorHeight = 3;
+
+	class MenuBox;
 
 	class MenuItemReactor
 	{
@@ -78,11 +79,11 @@ namespace Berta
 			bool isSpearator{ false };
 			bool isEnabled{ true };
 			ClickCallback onClick;
-			Menu* m_subMenu{ nullptr };
+			std::unique_ptr<Menu> m_subMenu;
 			Image m_image;
 		};
 
-		std::vector<Item*> m_items;
+		std::vector<std::unique_ptr<Item>> m_items;
 		MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
@@ -98,13 +99,13 @@ namespace Berta
 
 	struct MenuItem
 	{
-		MenuItem(Menu::Item* target) : m_target(target) {}
+		MenuItem(Menu::Item& target) : m_target(target) {}
 
 		bool GetEnabled() const;
 		void SetEnabled(bool isEnabled);
 		void SetText(const std::wstring& text);
 	private:
-		Menu::Item* m_target{ nullptr };
+		Menu::Item& m_target;
 	};
 
 	class MenuBoxReactor : public ControlReactor, public MenuItemReactor
@@ -134,7 +135,7 @@ namespace Berta
 		bool IsMenuBar() const override { return false; }
 
 		Menu* GetMenuOwner() const { return m_menuOwner; }
-		void SetItems(std::vector<Menu::Item*>& items);
+		void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
 		void SetMenuOwner(Menu* menuOwner);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 		void SetMenuBarItemRect(const Rectangle& rect) { m_menuBarItemRect = rect; }
@@ -161,7 +162,7 @@ namespace Berta
 		Menu* m_menuOwner{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
 		Rectangle m_menuBarItemRect{  };
-		std::vector<Menu::Item*>* m_items{ nullptr };
+		std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
 		std::vector<MenuBoxItem> m_itemSizePositions;
 		Timer m_subMenuTimer;
 		int m_selectedIndex{ -1 };
@@ -181,7 +182,7 @@ namespace Berta
 		MenuBox(Window* parent, const Rectangle& rectangle);
 		~MenuBox();
 
-		void Init(Menu* menuOwner, std::vector<Menu::Item*>& items, const Rectangle& rect);
+		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect);
 		void SetIgnoreFirstMouseUp(bool value);
 
 		void Popup();

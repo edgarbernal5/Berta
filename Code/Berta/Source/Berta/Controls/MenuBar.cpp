@@ -73,7 +73,9 @@ namespace Berta
 	void MenuBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		if (m_module.IsMenuOpen())
+		{
 			return;
+		}
 
 		m_module.SelectIndex(-1);
 
@@ -245,7 +247,7 @@ namespace Berta
 	void MenuBarReactor::Module::OpenMenu(bool ignoreFirstMouseUp)
 	{
 		auto window = m_owner;
-		auto itemData = m_items[m_interactionData.m_selectedItemIndex];
+		auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
 		m_interactionData.m_activeMenu = &itemData->menu;
 		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
 
@@ -286,7 +288,7 @@ namespace Berta
 		auto itemMargin = m_owner->ToScale(6u);
 		auto itemMarginInner = m_owner->ToScale(10u);
 		auto menuBarItemHeight = m_owner->ToScale(m_owner->Appearance->MenuBarItemHeight);
-		Point offset{ 0, (int)(m_owner->Size.Height - menuBarItemHeight)>>1 };
+		Point offset{ 0, (int)(m_owner->Size.Height - menuBarItemHeight) >> 1 };
 
 		if (startIndex > 0)
 		{

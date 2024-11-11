@@ -99,7 +99,8 @@ public:
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();
-				m_listBox.SetSize({ args.NewSize.Width - currentPosition.X - 10, args.NewSize.Height - currentPosition.Y - 10 });
+				auto margin = m_listBox.Handle()->ToScale(10);
+				m_listBox.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 			});
 #endif
 	}
@@ -161,7 +162,8 @@ public:
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_thumbListBox.GetPosition();
-				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - 10, args.NewSize.Height - currentPosition.Y - 10 });
+				auto margin = m_thumbListBox.Handle()->ToScale(10);
+				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 			});
 	}
 
@@ -267,7 +269,8 @@ int main()
 	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
 		{
 			auto currentPosition = tabbar.GetPosition();
-			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - 2, args.NewSize.Height - currentPosition.Y - 2 });
+			auto margin = tabbar.Handle()->ToScale(2);
+			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 		});
 
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");

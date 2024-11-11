@@ -42,7 +42,7 @@ namespace Berta
 				auto offsetIndex = m_state.m_offset + i;
 				bool isSelected = m_state.m_selectedIndex == offsetIndex;
 				bool isHovered = m_state.m_hoveredIndex == offsetIndex;
-				Rectangle itemRect{ 1, 1 + static_cast<int>(i * itemHeight), rect.Width - 2,itemHeight };
+				Rectangle itemRect{ 2, 1 + static_cast<int>(i * itemHeight), rect.Width - 4,itemHeight };
 				if (isSelected)
 				{
 					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightColor, true);
@@ -53,7 +53,7 @@ namespace Berta
 				}
 				auto iconSize = window->ToScale(16u);
 				auto iconMargin = window->ToScale(3u);
-				Point textPosition{ 3, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) };
+				Point textPosition{ itemRect.X + 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) };
 				if (m_interactionData->DrawImages)
 				{
 					textPosition.X += (int)(iconSize + iconMargin * 2u);
@@ -73,7 +73,7 @@ namespace Berta
 					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightBorderColor, false);
 				}
 			}
-		}		
+		}
 
 		graphics.DrawRectangle(m_control->GetAppearance().BoxBorderColor, false);
 	}

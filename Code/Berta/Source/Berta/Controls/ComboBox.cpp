@@ -50,13 +50,14 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
+		auto backgroundRect = window->Size.ToRectangle();
 		if (m_module.m_status == State::Normal)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
+			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
 		}
 		else if (m_module.m_status == State::Hovered)
 		{
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxHightlightBackground, true);
+			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxHightlightBackground, true);
 		}
 
 		//m_textEditor->Render();
@@ -74,7 +75,7 @@ namespace Berta
 			{
 				auto iconSourceSize = icon.GetSize();
 				auto positionY = (window->Size.Height - iconSize) >> 1;
-				icon.Paste(iconSourceSize.ToRectangle(), graphics, { 3, (int)positionY, iconSize , iconSize });
+				icon.Paste(graphics, { 3, (int)positionY, iconSize , iconSize });
 			}
 		}
 		graphics.DrawString(textPosition, m_module.m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
@@ -83,8 +84,8 @@ namespace Berta
 
 		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize - 1), 1, buttonSize, window->Size.Height - 2 }, window->Appearance->Background, true);
 
-		int arrowWidth = window->ToScale(6);
-		int arrowLength = window->ToScale(3);
+		int arrowWidth = window->ToScale(4);
+		int arrowLength = window->ToScale(2);
 		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) - 1, 1, buttonSize, window->Size.Height }, 
 			arrowLength, 
 			arrowWidth, 
@@ -96,7 +97,7 @@ namespace Berta
 			{ static_cast<int>(window->Size.Width - buttonSize) - 1, (int)window->Size.Height - 1 },
 			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void ComboBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

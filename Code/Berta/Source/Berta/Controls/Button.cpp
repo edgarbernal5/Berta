@@ -20,7 +20,8 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
+		auto backgroundRect = window->Size.ToRectangle();
+		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
 
 		auto color = window->Appearance->Background;
 		if (!enabled)
@@ -39,14 +40,14 @@ namespace Berta
 		{
 			color = window->Appearance->ButtonPressedBackground;
 		}
-		graphics.DrawRoundRectBox(window->Size.ToRectangle(), color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
-		//graphics.DrawRoundRectBox(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
+		//graphics.DrawRoundRectBox(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
-		//graphics.DrawGradientFill(window->Size.ToRectangle(), window->Appearance->BoxBorderColor, window->Appearance->BoxBorderDisabledColor);
+		//graphics.DrawGradientFill(backgroundRect, window->Appearance->BoxBorderColor, window->Appearance->BoxBorderDisabledColor);
 		
-		//graphics.DrawButton(window->Size.ToRectangle(), window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
+		//graphics.DrawButton(backgroundRect, window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
 		//graphics.DrawRoundedRectWithShadow({3,3, window->Size.Width-6, window->Size.Height-6}, 3, 3);// window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
-		//graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		//graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
 		auto center = window->Size - graphics.GetTextExtent(caption);

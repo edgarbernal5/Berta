@@ -82,10 +82,10 @@ namespace Berta
 			auto& menuItem = m_items.at(index);
 			if (!menuItem->m_subMenu)
 			{
-				menuItem->m_subMenu = new Menu();
+				menuItem->m_subMenu = std::make_unique<Menu>();
 			}
 
-			return menuItem->m_subMenu;
+			return menuItem->m_subMenu.get();
 		}
 		return nullptr;
 	}
@@ -160,12 +160,12 @@ namespace Berta
 			{
 				if (m_openedSubMenuIndex != m_selectedIndex && m_openedSubMenuIndex >= 0)
 				{
-					auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
+					auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu.get();
 
 					GUI::DisposeMenu(m_next);
 					m_next = nullptr;
 				}
-				auto subMenu = m_items->at(m_selectedSubMenuIndex)->m_subMenu;
+				auto subMenu = m_items->at(m_selectedSubMenuIndex)->m_subMenu.get();
 				if (!subMenu->m_menuBox)
 				{
 					m_openedSubMenuIndex = m_selectedSubMenuIndex;
@@ -175,7 +175,7 @@ namespace Berta
 			}
 			else if (m_selectedSubMenuIndex == -1 && m_openedSubMenuIndex >= 0)
 			{
-				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu;
+				auto subMenu = m_items->at(m_openedSubMenuIndex)->m_subMenu.get();
 				GUI::DisposeMenu(m_next);
 				m_next = nullptr;
 				m_openedSubMenuIndex = -1;
@@ -284,7 +284,7 @@ namespace Berta
 
 		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
 		{
-			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu;
+			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu.get();
 			if (!subMenu->m_menuBox)
 			{
 				m_subMenuTimer.Stop();
@@ -354,7 +354,7 @@ namespace Berta
 
 		if (!item->isSpearator && item->onClick)
 		{
-			MenuItem menuItem(item);
+			MenuItem menuItem(*item);
 			item->onClick(menuItem);
 		}
 
@@ -444,14 +444,14 @@ namespace Berta
 			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 		}
 		auto savedIndex = selectedIndex;
-		auto item = m_items->at(selectedIndex);
+		auto item = m_items->at(selectedIndex).get();
 		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
 		{
 			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 			if (selectedIndex == savedIndex)
 				break;
 
-			item = m_items->at(selectedIndex);
+			item = m_items->at(selectedIndex).get();
 		}
 
 		if (m_selectedIndex != selectedIndex)
@@ -486,7 +486,7 @@ namespace Berta
 		{
 			return false;
 		}
-		auto& item = m_items->at(m_selectedIndex);
+		auto item = m_items->at(m_selectedIndex).get();
 		if (!item->m_subMenu)
 		{
 			return false;
@@ -494,7 +494,7 @@ namespace Berta
 		m_openedSubMenuIndex = m_selectedIndex;
 		m_selectedSubMenuIndex = m_selectedIndex;
 		m_subMenuTimer.Stop();
-		OpenSubMenu(item->m_subMenu, m_menuOwner, m_openedSubMenuIndex, false);
+		OpenSubMenu(item->m_subMenu.get(), m_menuOwner, m_openedSubMenuIndex, false);
 
 		return true;
 	}
@@ -514,7 +514,7 @@ namespace Berta
 			{
 				m_selectedSubMenuIndex = m_selectedIndex;
 				m_openedSubMenuIndex = m_selectedIndex;
-				OpenSubMenu(item->m_subMenu, m_menuOwner, m_selectedIndex);
+				OpenSubMenu(item->m_subMenu.get(), m_menuOwner, m_selectedIndex);
 				m_subMenuTimer.Stop();
 			}
 			return;
@@ -522,7 +522,7 @@ namespace Berta
 
 		if (!item->isSpearator && item->onClick)
 		{
-			MenuItem menuItem(item);
+			MenuItem menuItem(*item);
 			item->onClick(menuItem);
 		}
 
@@ -534,7 +534,7 @@ namespace Berta
 		GUI::DisposeMenu(this);
 	}
 
-	void MenuBoxReactor::SetItems(std::vector<Menu::Item*>& items)
+	void MenuBoxReactor::SetItems(std::vector<std::unique_ptr<Menu::Item>>& items)
 	{
 		m_items = &items;
 		m_itemSizePositions.clear();
@@ -756,7 +756,7 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(Menu* menuOwner, std::vector<Menu::Item*>& items, const Rectangle& rect)
+	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect)
 	{
 		m_reactor.SetItems(items);
 		m_reactor.SetMenuBarItemRect(rect);
@@ -781,16 +781,16 @@ namespace Berta
 
 	bool MenuItem::GetEnabled() const
 	{
-		return m_target->isEnabled;
+		return m_target.isEnabled;
 	}
 
 	void MenuItem::SetEnabled(bool isEnabled)
 	{
-		m_target->isEnabled = isEnabled;
+		m_target.isEnabled = isEnabled;
 	}
 
 	void MenuItem::SetText(const std::wstring& text)
 	{
-		m_target->text = text;
+		m_target.text = text;
 	}
 }

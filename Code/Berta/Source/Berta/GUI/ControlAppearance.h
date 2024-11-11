@@ -54,7 +54,7 @@ namespace Berta
 		Color SelectionBorderHighlightColor{ Colors::Light_SelectionBorderHighlightColor };
 
 		uint32_t ComboBoxItemHeight = 20;
-		uint32_t ScrollBarSize = 20;
+		uint32_t ScrollBarSize = 18;
 
 		uint32_t MenuBarItemHeight = 18;
 		uint32_t MenuBoxLeftPaneWidth = 32;
