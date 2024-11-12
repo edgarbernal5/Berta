@@ -71,17 +71,10 @@ namespace Berta
 
 		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
 		{
-			Point startPoint{ 
-				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
-				(std::min)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y) 
-			};
-			
-			Point endPoint{ 
-				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
-				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y) 
-			};
+			Point startPoint, endPoint;
+			Size boxSize;
+			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
-			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
 			Graphics selectionBox(boxSize);
 			selectionBox.DrawRectangle(blendColor, true);
@@ -159,17 +152,9 @@ namespace Berta
 			logicalPosition.Y -= m_module.m_state.m_offset;
 			m_module.m_mouseSelection.m_endPosition = logicalPosition;
 
-			Point startPoint{
-				(std::min)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
-				(std::min)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
-			};
-
-			Point endPoint{
-				(std::max)(m_module.m_mouseSelection.m_startPosition.X, m_module.m_mouseSelection.m_endPosition.X),
-				(std::max)(m_module.m_mouseSelection.m_startPosition.Y, m_module.m_mouseSelection.m_endPosition.Y)
-			};
-
-			Size boxSize{ (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
+			Point startPoint, endPoint;
+			Size boxSize;
+			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
 			if ((boxSize.Width > 0 && boxSize.Height > 0))
@@ -444,6 +429,21 @@ namespace Berta
 
 		m_viewport.StartingVisibleIndex = startRow * m_viewport.TotalCardsInRow;
 		m_viewport.EndingVisibleIndex = (std::min)(endRow * (int)m_viewport.TotalCardsInRow, (int)Items.size());
+	}
+
+	void ThumbListBoxReactor::Module::CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize)
+	{
+		startPoint = {
+			(std::min)(m_mouseSelection.m_startPosition.X, m_mouseSelection.m_endPosition.X),
+			(std::min)(m_mouseSelection.m_startPosition.Y, m_mouseSelection.m_endPosition.Y)
+		};
+
+		endPoint = {
+			(std::max)(m_mouseSelection.m_startPosition.X, m_mouseSelection.m_endPosition.X),
+			(std::max)(m_mouseSelection.m_startPosition.Y, m_mouseSelection.m_endPosition.Y)
+		};
+
+		boxSize = { (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 	}
 
 	void ThumbListBoxReactor::Module::Clear()

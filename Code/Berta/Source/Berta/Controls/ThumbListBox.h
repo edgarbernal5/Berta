@@ -71,6 +71,7 @@ namespace Berta
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleIndices();
+			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
 			void BuildItems();
 			void Clear();
 			void Erase(size_t index);
