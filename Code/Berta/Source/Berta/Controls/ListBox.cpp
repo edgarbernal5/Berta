@@ -964,8 +964,8 @@ namespace Berta
 
 		Point listOffset{ m_viewport.BackgroundRect.X + (int)m_viewport.ColumnOffsetStartOff - ScrollOffset.X, m_viewport.BackgroundRect.Y - ScrollOffset.Y };
 		
-		auto itemHeight = m_viewport.ItemHeight;
-		auto itemHeightWithMargin = m_viewport.ItemHeightWithMargin;
+		auto& itemHeight = m_viewport.ItemHeight;
+		auto& itemHeightWithMargin = m_viewport.ItemHeightWithMargin;
 		auto leftMarginListItemText = m_window->ToScale(3u);
 
 		for (size_t i = m_viewport.StartingVisibleIndex; i < m_viewport.EndingVisibleIndex; i++)
@@ -1148,7 +1148,6 @@ namespace Berta
 		List.Items[index].IsSelected = true;
 		m_mouseSelection.m_selections.push_back(index);
 		m_mouseSelection.m_selectedIndex = index;
-		EnsureVisibility(index);
 	}
 
 	void ListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
@@ -1158,28 +1157,32 @@ namespace Berta
 			return;
 		}
 
+		Rectangle itemBounds{ m_viewport.BackgroundRect.X, - ScrollOffset.Y + (int)m_viewport.InnerMargin + (int)(m_viewport.ItemHeightWithMargin * lastSelectedIndex),
+			m_viewport.BackgroundRect.Width, 
+			m_viewport.ItemHeight
+		};
 
-		//Rectangle itemBounds{0, lastSelectedIndex * (int)m_viewport.ItemHeightWithMargin ,m_viewport.ContentSize.Width,  m_viewport.ItemHeightWithMargin };
-		//itemBounds.Y -= ScrollOffset.Y;
+		if (itemBounds.Y >= 0 && itemBounds.Y + (int)itemBounds.Height <= (int)m_viewport.BackgroundRect.Height)
+		{
+			return;
+		}
 
-		//if (m_viewport.BackgroundRect.Contains(itemBounds))
-		//{
-		//	return;
-		//}
+		auto offsetAdjustment = 0;
+		if (itemBounds.Y + (int)itemBounds.Height >= (int)m_viewport.BackgroundRect.Height)
+		{
+			offsetAdjustment = itemBounds.Y + (int)(itemBounds.Height - m_viewport.BackgroundRect.Height + m_viewport.InnerMargin);
+		}
+		else
+		{
+			offsetAdjustment = itemBounds.Y - (int)m_viewport.InnerMargin;
+		}
+		ScrollOffset.Y = std::clamp(ScrollOffset.Y + offsetAdjustment, m_scrollBarVert->GetMin(), m_scrollBarVert->GetMax());
+		CalculateVisibleIndices();
 
-		///*auto boundsY = lastSelectedIndex * (int)m_viewport.ItemHeightWithMargin - ScrollOffset.Y;
-		//if (boundsY >= m_viewport.BackgroundRect.Y && boundsY <= (int)m_viewport.BackgroundRect.Height)
-		//{
-		//	return;
-		//}*/
+		m_scrollBarVert->SetValue(ScrollOffset.Y);
 
-		//m_state.m_offset = std::clamp(m_state.m_offset + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
-		//CalculateVisibleIndices();
-
-		//m_scrollBarVert->SetValue(ScrollOffset.Y);
-
-		//m_scrollBarVert->Handle()->Renderer.Update();
-		//GUI::RefreshWindow(m_scrollBarVert->Handle());
+		m_scrollBarVert->Handle()->Renderer.Update();
+		GUI::RefreshWindow(m_scrollBarVert->Handle());
 	}
 
 	void ListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)

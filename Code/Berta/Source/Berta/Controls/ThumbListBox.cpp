@@ -605,7 +605,6 @@ namespace Berta
 		Items[index].IsSelected = true;
 		m_mouseSelection.m_selections.push_back(index);
 		m_mouseSelection.m_selectedIndex = index;
-		EnsureVisibility(index);
 	}
 
 	void ThumbListBoxReactor::Module::StartSelectionRectangle(const Point& mousePosition)
