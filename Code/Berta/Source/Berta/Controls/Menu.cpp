@@ -97,7 +97,7 @@ namespace Berta
 
 	void Menu::SetEnabled(size_t index, bool enabled)
 	{
-		m_items.at(index)->isEnabled = enabled;
+		m_items.at(index)->m_isEnabled = enabled;
 	}
 
 	void Menu::CloseMenuBox()
@@ -118,13 +118,13 @@ namespace Berta
 		bool hasSubmenu = false;
 		for (size_t i = 0; i < m_items.size(); i++)
 		{
-			if (m_items[i]->isSpearator)
+			if (m_items[i]->m_isSpearator)
 			{
 				++separators;
 			}
 			else
 			{
-				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items[i]->text));
+				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items[i]->m_text));
 				maxWidth = (std::max)(maxWidth, textSize.Width);
 				hasSubmenu |= m_items[i]->m_subMenu != nullptr;
 			}
@@ -202,7 +202,7 @@ namespace Berta
 			for (size_t i = 0; i < m_items->size(); i++)
 			{
 				auto& item = *(m_items->at(i));
-				if (item.isSpearator)
+				if (item.m_isSpearator)
 				{
 					int separatorCenterOffset = (separatorHeight >> 1) - 1;
 					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->Size.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appearance->BoxBorderColor);
@@ -232,7 +232,7 @@ namespace Berta
 						Rectangle destRect{ { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, scaleImageSize };
 						item.m_image.Paste(item.m_image.GetSize().ToRectangle(), graphics, destRect);
 					}
-					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.text, item.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
+					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.m_text, item.m_isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
 					
 					if (item.m_subMenu)
 					{
@@ -241,7 +241,7 @@ namespace Berta
 						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
-							item.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
+							item.m_isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
 							Graphics::ArrowDirection::Right,
 							true);
 					}
@@ -352,10 +352,10 @@ namespace Berta
 			return;
 		}
 
-		if (!item->isSpearator && item->onClick)
+		if (!item->m_isSpearator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
-			item->onClick(menuItem);
+			item->m_onClick(menuItem);
 		}
 
 		GUI::DisposeMenu();
@@ -406,7 +406,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
+			if (!m_items->at(i)->m_isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
 				selectedIndex = static_cast<int>(i);
 				break;
@@ -445,7 +445,7 @@ namespace Berta
 		}
 		auto savedIndex = selectedIndex;
 		auto item = m_items->at(selectedIndex).get();
-		while (selectedIndex >= 0 && (!item->isEnabled || item->isSpearator))
+		while (selectedIndex >= 0 && (!item->m_isEnabled || item->m_isSpearator))
 		{
 			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 			if (selectedIndex == savedIndex)
@@ -520,10 +520,10 @@ namespace Berta
 			return;
 		}
 
-		if (!item->isSpearator && item->onClick)
+		if (!item->m_isSpearator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
-			item->onClick(menuItem);
+			item->m_onClick(menuItem);
 		}
 
 		GUI::DisposeMenu();
@@ -554,7 +554,7 @@ namespace Berta
 		{
 			auto& item = m_items->at(i);
 			auto& itemSizePosition = m_itemSizePositions.emplace_back();
-			if (item->isSpearator)
+			if (item->m_isSpearator)
 			{
 				itemSizePosition.m_position = position;
 				itemSizePosition.m_size = { sizeOfNormalItem , menuBoxItemHeight };
@@ -586,13 +586,13 @@ namespace Berta
 		bool hasSubmenu = false;
 		for (size_t i = 0; i < m_items->size(); i++)
 		{
-			if (m_items->at(i)->isSpearator)
+			if (m_items->at(i)->m_isSpearator)
 			{
 				++separators;
 			}
 			else
 			{
-				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items->at(i)->text));
+				auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items->at(i)->m_text));
 				maxWidth = (std::max)(maxWidth, textSize.Width);
 				hasSubmenu |= m_items->at(i)->m_subMenu != nullptr;
 			}
@@ -646,7 +646,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
+			if (!m_items->at(i)->m_isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
 				return static_cast<int>(i);
 			}
@@ -662,7 +662,7 @@ namespace Berta
 			return false;
 		}
 
-		if (selectedIndex != -1 && !m_items->at(selectedIndex)->isEnabled)
+		if (selectedIndex != -1 && !m_items->at(selectedIndex)->m_isEnabled)
 		{
 			if (m_openedSubMenuIndex != -1)
 			{
@@ -781,16 +781,16 @@ namespace Berta
 
 	bool MenuItem::GetEnabled() const
 	{
-		return m_target.isEnabled;
+		return m_target.m_isEnabled;
 	}
 
 	void MenuItem::SetEnabled(bool isEnabled)
 	{
-		m_target.isEnabled = isEnabled;
+		m_target.m_isEnabled = isEnabled;
 	}
 
 	void MenuItem::SetText(const std::wstring& text)
 	{
-		m_target.text = text;
+		m_target.m_text = text;
 	}
 }

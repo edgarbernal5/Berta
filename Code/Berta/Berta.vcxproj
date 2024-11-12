@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Controls\Slider.h" />
     <ClInclude Include="Source\Berta\Paint\Images\BasicImageAttributes.h" />
     <ClInclude Include="Source\Berta\Controls\ListBox.h" />
     <ClInclude Include="Source\Berta\Controls\Panel.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\BasicImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Controls\ListBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Panel.cpp" />

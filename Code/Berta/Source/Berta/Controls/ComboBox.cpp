@@ -64,13 +64,13 @@ namespace Berta
 
 		auto textItemHeight = graphics.GetTextExtent().Height;
 		Point textPosition{ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 };
-		if (m_module.Data.DrawImages && m_module.Data.m_selectedIndex != -1)
+		if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
 		{
 			auto iconSize = window->ToScale(16u);
 			auto iconMargin = window->ToScale(3u);
 			textPosition.X += (int)(iconSize + iconMargin * 2u);
 
-			auto& icon = m_module.Data.Items[m_module.Data.m_selectedIndex].Icon;
+			auto& icon = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_icon;
 			if (icon)
 			{
 				auto iconSourceSize = icon.GetSize();
@@ -123,7 +123,7 @@ namespace Berta
 			auto window = m_control->Handle();
 			auto pointInScreen = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
 
-			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.Items.size(), m_module.Data.MaxItemsToDisplay));
+			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
 			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appearance->ComboBoxItemHeight);
 			m_module.m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->Size.Height, window->Size.Width, floatBoxHeight + 2u });
 			m_module.m_floatBox->Init(m_module.Data);
@@ -135,10 +135,10 @@ namespace Berta
 				delete m_module.m_floatBox;
 				m_module.m_floatBox = nullptr;
 
-				if (m_module.Data.m_isSelected && selectedIndex != m_module.Data.m_selectedIndex && !m_module.Data.Items.empty())
+				if (m_module.Data.m_isSelected && selectedIndex != m_module.Data.m_selectedIndex && !m_module.Data.m_items.empty())
 				{
 					m_module.Data.m_selectedIndex = selectedIndex;
-					m_module.m_text = m_module.Data.Items[m_module.Data.m_selectedIndex].Text;
+					m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
 
 					m_module.EmitSelectionEvent(selectedIndex);
 
@@ -175,10 +175,10 @@ namespace Berta
 			}
 			if (args.Key == KeyboardKey::Enter)
 			{
-				if (m_module.m_floatBox->GetState().m_selectedIndex >= 0 && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.Items.size())
+				if (m_module.m_floatBox->GetState().m_selectedIndex >= 0 && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.m_items.size())
 				{
 					m_module.Data.m_selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
-					m_module.m_text = m_module.Data.Items[m_module.Data.m_selectedIndex].Text;
+					m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
 					m_module.m_floatBox->Dispose();
 					m_module.EmitSelectionEvent(m_module.Data.m_selectedIndex);
 					redraw = true;
@@ -189,20 +189,20 @@ namespace Berta
 		{
 			if (args.Key == KeyboardKey::ArrowUp)
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, (int)(m_module.Data.Items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.Items.empty()) {
+				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, (int)(m_module.Data.m_items.size()) - 1));
+				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty()) {
 					m_module.Data.m_selectedIndex = newIndex;
-					m_module.m_text = m_module.Data.Items[newIndex].Text;
+					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
 					m_module.EmitSelectionEvent(newIndex);
 					redraw = true;
 				}
 			}
 			if (args.Key == KeyboardKey::ArrowDown)
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, (int)(m_module.Data.Items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.Items.empty()) {
+				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, (int)(m_module.Data.m_items.size()) - 1));
+				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty()) {
 					m_module.Data.m_selectedIndex = newIndex;
-					m_module.m_text = m_module.Data.Items[newIndex].Text;
+					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
 					m_module.EmitSelectionEvent(newIndex);
 					redraw = true;
 				}
@@ -240,35 +240,35 @@ namespace Berta
 
 	void ComboBoxReactor::Clear()
 	{
-		m_module.Data.Items.clear();
+		m_module.Data.m_items.clear();
 		m_module.Data.m_selectedIndex = -1;
 	}
 
 	void ComboBoxReactor::Erase(uint32_t index)
 	{
-		if (index < m_module.Data.Items.size())
+		if (index < m_module.Data.m_items.size())
 		{
-			auto& items = m_module.Data.Items;
+			auto& items = m_module.Data.m_items;
 			auto& selectedIndex = m_module.Data.m_selectedIndex;
 			items.erase(items.begin() + index);
 			if (selectedIndex >= static_cast<int>(items.size()))
 			{
 				selectedIndex = static_cast<int>(items.size()) - 1;
 
-				SetText(items[selectedIndex].Text);
+				SetText(items[selectedIndex].m_text);
 			}
 		}
 	}
 
 	void ComboBoxReactor::PushItem(const std::wstring& text)
 	{
-		m_module.Data.Items.push_back(Float::InteractionData::ItemType{ text });
+		m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text });
 	}
 
 	void ComboBoxReactor::PushItem(const std::wstring& text, const Image& icon)
 	{
-		m_module.Data.Items.push_back(Float::InteractionData::ItemType{ text, icon });
-		m_module.Data.DrawImages = true;
+		m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text, icon });
+		m_module.Data.m_drawImages = true;
 	}
 
 	uint32_t ComboBoxReactor::GetSelectedIndex() const
@@ -278,13 +278,13 @@ namespace Berta
 
 	void ComboBoxReactor::SetSelectedIndex(uint32_t index)
 	{
-		if (index < m_module.Data.Items.size())
+		if (index < m_module.Data.m_items.size())
 		{
-			auto& items = m_module.Data.Items;
+			auto& items = m_module.Data.m_items;
 			auto& selectedIndex = m_module.Data.m_selectedIndex;
 			selectedIndex = static_cast<int>(index);
 
-			SetText(items[selectedIndex].Text);
+			SetText(items[selectedIndex].m_text);
 		}
 	}
 

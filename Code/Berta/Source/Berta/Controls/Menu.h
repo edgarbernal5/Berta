@@ -69,16 +69,16 @@ namespace Berta
 
 		struct Item
 		{
-			Item() : isSpearator(true) {}
+			Item() : m_isSpearator(true) {}
 			Item(const std::wstring& _text, ClickCallback _onClick) : 
-				text(_text), 
-				isSpearator(false),
-				onClick(_onClick){}
+				m_text(_text), 
+				m_isSpearator(false),
+				m_onClick(_onClick){}
 
-			std::wstring text;
-			bool isSpearator{ false };
-			bool isEnabled{ true };
-			ClickCallback onClick;
+			std::wstring m_text;
+			bool m_isSpearator{ false };
+			bool m_isEnabled{ true };
+			ClickCallback m_onClick;
 			std::unique_ptr<Menu> m_subMenu;
 			Image m_image;
 		};

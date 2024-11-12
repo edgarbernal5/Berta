@@ -17,13 +17,13 @@ namespace Berta::Float
 	{
 		struct ItemType
 		{
-			std::wstring Text;
-			Image Icon;
+			std::wstring m_text;
+			Image m_icon;
 		};
-		std::vector<ItemType> Items;
-		bool DrawImages{ false };
+		std::vector<ItemType> m_items;
+		bool m_drawImages{ false };
 
-		size_t MaxItemsToDisplay = 5;
+		size_t m_maxItemsToDisplay = 5;
 		int m_selectedIndex{ -1 };
 		bool m_isSelected{ false };
 	};

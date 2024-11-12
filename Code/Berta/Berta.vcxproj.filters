@@ -183,6 +183,7 @@
     <ClInclude Include="Source\Berta\Paint\Images\IconImageAttributes.h">
       <Filter>Source\Berta\Paint\Images</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Slider.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -293,5 +294,6 @@
     <ClCompile Include="Source\Berta\Paint\Images\IconImageAttributes.cpp">
       <Filter>Source\Berta\Paint\Images</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
   </ItemGroup>
 </Project>
