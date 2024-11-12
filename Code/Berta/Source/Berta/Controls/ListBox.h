@@ -41,31 +41,31 @@ namespace Berta
 			struct ItemData
 			{
 				ItemData() {}
-				ItemData(const std::string& text, uint32_t width) : Name(text)
+				ItemData(const std::string& text, uint32_t width) : m_name(text)
 				{
-					Bounds.Width = width;
+					m_bounds.Width = width;
 				}
 
-				std::string Name;
-				Rectangle Bounds;
+				std::string m_name;
+				Rectangle m_bounds;
 			};
 
-			Graphics DraggingBox;
-			int MouseDownOffset{ 0 };
-			int MouseDraggingPosition{ 0 };
-			int DraggingTargetIndex{ 0 };
-			int SelectedIndex{ -1 };
-			bool IsDragging{ false };
-			std::vector<ItemData> Items;
+			Graphics m_draggingBox;
+			int m_mouseDownOffset{ 0 };
+			int m_mouseDraggingPosition{ 0 };
+			int m_draggingTargetIndex{ 0 };
+			int m_selectedIndex{ -1 };
+			bool m_isDragging{ false };
+			std::vector<ItemData> m_items;
 
-			std::vector<size_t> Sorted;
+			std::vector<size_t> m_sorted;
 		};
 
 		struct Cell
 		{
-			Cell(const std::string& text) : Text(text){}
+			Cell(const std::string& text) : m_text(text){}
 
-			std::string Text;
+			std::string m_text;
 		};
 
 		struct List
@@ -74,17 +74,17 @@ namespace Berta
 			{
 				Item(const std::string& text)
 				{
-					Cells.emplace_back(text);
+					m_cells.emplace_back(text);
 				}
-				std::vector<Cell> Cells;
-				Rectangle Bounds;
-				bool IsSelected{ false };
-				Image Icon;
+				std::vector<Cell> m_cells;
+				Rectangle m_bounds;
+				bool m_isSelected{ false };
+				Image m_icon;
 			};
 
-			std::vector<Item> Items;
-			std::vector<std::size_t> SortedIndexes;
-			bool DrawImages{ false };
+			std::vector<Item> m_items;
+			std::vector<std::size_t> m_sortedIndexes;
+			bool m_drawImages{ false };
 		};
 
 		enum class InteractionArea
@@ -98,18 +98,18 @@ namespace Berta
 
 		struct ViewportData
 		{
-			Rectangle BackgroundRect{};
-			bool NeedVerticalScroll{ false };
-			bool NeedHorizontalScroll{ false };
-			Size ContentSize{};
-			uint32_t InnerMargin{ 0 };
-			uint32_t ItemHeight{ 0 };
-			uint32_t ItemHeightWithMargin{ 0 };
+			Rectangle m_backgroundRect{};
+			bool m_needVerticalScroll{ false };
+			bool m_needHorizontalScroll{ false };
+			Size m_contentSize{};
+			uint32_t m_innerMargin{ 0 };
+			uint32_t m_itemHeight{ 0 };
+			uint32_t m_itemHeightWithMargin{ 0 };
 
-			uint32_t ColumnOffsetStartOff{ 0 };
+			uint32_t m_columnOffsetStartOff{ 0 };
 
-			int StartingVisibleIndex{ -1 };
-			int EndingVisibleIndex{ -1 };
+			int m_startingVisibleIndex{ -1 };
+			int m_endingVisibleIndex{ -1 };
 		};
 
 		struct MouseSelection
@@ -130,15 +130,13 @@ namespace Berta
 
 		struct Module
 		{
-			Headers Headers;
-			List List;
-
 			void AppendHeader(const std::string& text, uint32_t width);
 			void Append(const std::string& text);
 			void Append(std::initializer_list<std::string> texts);
 			ListBoxItem At(size_t index);
 
 			void Clear();
+			void ClearHeaders();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleIndices();
 			void BuildHeaderBounds(size_t startIndex = 0);
@@ -160,7 +158,7 @@ namespace Berta
 			bool ClearSelectionIfNeeded();
 			bool ClearSingleSelection();
 
-			std::vector<size_t> GetSelectedItems() const;
+			std::vector<ListBoxItem> GetSelectedItems();
 
 			int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter);
 
@@ -171,19 +169,22 @@ namespace Berta
 			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
 			void DrawHeaders(Graphics& graphics);
-			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, uint32_t leftTextMargin, const Color& textColor);
+			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
 			void DrawList(Graphics& graphics);
+
+			Headers m_headers;
+			List m_list;
 
 			InteractionArea m_hoveredArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
 			Point m_mouseDownPosition{};
 
-			Point ScrollOffset{};
+			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 			MouseSelection m_mouseSelection;
 			ViewportData m_viewport;
-			Window* m_window;
+			Window* m_window{ nullptr };
 			ListBoxAppearance* m_appearance{ nullptr };
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
@@ -226,7 +227,7 @@ namespace Berta
 
 		void EnableMultiselection(bool enabled);
 
-		std::vector<size_t> GetSelected() const;
+		std::vector<ListBoxItem> GetSelected();
 	};
 }
 
