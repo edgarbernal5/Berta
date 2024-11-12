@@ -36,15 +36,15 @@ namespace Berta
 			{
 				ItemType() = default;
 
-				std::wstring Text;
-				Image Thumbnail;
-				bool IsSelected{ false };
-				Rectangle Bounds;
+				std::wstring m_text;
+				Image m_thumbnail;
+				bool m_isSelected{ false };
+				Rectangle m_bounds;
 			};
 
 			struct GridCardType
 			{
-				Rectangle PosSize{};
+				Rectangle m_positionSize{};
 			};
 
 			struct State
@@ -54,18 +54,18 @@ namespace Berta
 
 			struct ViewportData
 			{
-				Rectangle BackgroundRect{};
-				uint32_t TotalRows{ 0 };
-				uint32_t TotalCardsInRow{ 0 };
-				Size CardSize{};
-				Size CardSizeWithMargin{};
-				int ContentSize{ 0 };
-				uint32_t InnerMargin{ 0 };
-				uint32_t CardMargin{ 0 };
-				uint32_t CardMarginHalf{ 0 };
+				Rectangle m_backgroundRect{};
+				uint32_t m_totalRows{ 0 };
+				uint32_t m_totalCardsInRow{ 0 };
+				Size m_cardSize{};
+				Size m_cardSizeWithMargin{};
+				int m_contentSize{ 0 };
+				uint32_t m_innerMargin{ 0 };
+				uint32_t m_cardMargin{ 0 };
+				uint32_t m_cardMarginHalf{ 0 };
 
-				int StartingVisibleIndex{ -1 };
-				int EndingVisibleIndex{ -1 };
+				int m_startingVisibleIndex{ -1 };
+				int m_endingVisibleIndex{ -1 };
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
@@ -92,10 +92,10 @@ namespace Berta
 			std::vector<size_t> GetSelectedItems() const;
 			void EnsureVisibility(int lastSelectedIndex);
 
-			std::vector<ItemType> Items;
-			uint32_t ThumbnailSize{ 96u };
+			std::vector<ItemType> m_items;
+			uint32_t m_thumbnailSize{ 96u };
 			std::unique_ptr<ScrollBar> m_scrollBar;
-			ThumbListBoxAppearance* Appearance{ nullptr };
+			ThumbListBoxAppearance* m_appearance{ nullptr };
 			State m_state;
 			Window* m_window{ nullptr };
 			bool m_multiselection{ true };
