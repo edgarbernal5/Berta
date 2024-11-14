@@ -242,7 +242,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		auto trackThickness = window->ToScale(m_trackThickness);
-		auto radius = trackThickness * 2u;
+		auto diameter = trackThickness * 4u;
 
 		Rectangle sliderTrackRect = GetSliderTrackRect();
 		Rectangle sliderBoxRect = GetSliderBoxRect();
@@ -250,7 +250,7 @@ namespace Berta
 		int newValue = m_value;
 		int newBoxPosition = position - m_dragOffset;
 
-		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? (sliderTrackRect.Height - radius) : (sliderTrackRect.Width - radius)));
+		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? (sliderTrackRect.Height - diameter) : (sliderTrackRect.Width - diameter)));
 		newValue = std::clamp(newValue, m_min, m_max);
 
 		if (m_value != newValue)
