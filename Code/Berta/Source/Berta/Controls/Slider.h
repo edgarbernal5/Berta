@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_SCROLL_BAR_HEADER
-#define BT_SCROLL_BAR_HEADER
+#ifndef BT_SLIDER_BAR_HEADER
+#define BT_SLIDER_BAR_HEADER
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
@@ -42,8 +42,6 @@ namespace Berta
 		enum class InteractionArea
 		{
 			None,
-			Button1,
-			Button2,
 			Scrollbox,
 			ScrollTrack
 		};
@@ -51,10 +49,12 @@ namespace Berta
 		void DoScrollStep(bool fromTimer = false);
 		void EmitValueChanged();
 		inline bool isScrollable() const { return m_min != m_max; }
-		uint32_t GetButtonSize() const;
-		void UpdateScrollBoxValue(int position, int buttonSize);
+
+		void UpdateSliderBoxValue(int position);
+		InteractionArea DetermineHoverArea(const Point& position) const;
 		
-		Rectangle GetScrollBoxRect() const;
+		Rectangle GetSliderBoxRect() const;
+		Rectangle GetSliderTrackRect() const;
 
 		bool m_isVertical{ false };
 		int m_min{ 0 };
@@ -64,6 +64,8 @@ namespace Berta
 		int m_localStep{ 1 };
 		int m_pageStep{ 2 };
 		int m_dragOffset{ 0 };
+
+		uint32_t m_trackThickness{ 3u };
 		Timer m_timer;
 
 		InteractionArea m_hoverArea{ InteractionArea::None };

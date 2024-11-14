@@ -623,6 +623,98 @@ namespace Berta
 		DeleteObject(hBrush);
 	}
 
+	void Graphics::DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+
+		HBRUSH hFillBrush = NULL;
+		if (solid)
+		{
+			hFillBrush = ::CreateSolidBrush(fillColor.BGR);
+		}
+		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor.BGR);
+		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
+
+		HBRUSH hOldBrush = NULL;
+		if (solid)
+		{
+			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hFillBrush);
+		}
+		else
+		{
+			HBRUSH hNullBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hNullBrush);
+		}
+
+		RECT destRECT{};
+		destRECT.left = static_cast<LONG>(dest.X - radius);
+		destRECT.top = static_cast<LONG>(dest.Y - radius);
+		destRECT.right = static_cast<LONG>(dest.X + radius);
+		destRECT.bottom = static_cast<LONG>(dest.Y + radius);
+
+		::Ellipse(m_attributes->m_hdc, destRECT.left, destRECT.top, destRECT.right, destRECT.bottom);
+
+		::SelectObject(m_attributes->m_hdc, hOldPen);
+		::SelectObject(m_attributes->m_hdc, hOldBrush);
+
+		if (solid)
+		{
+			::DeleteObject(hFillBrush);
+		}
+		::DeleteObject(hBorderPen);
+#endif
+	}
+
+	void Graphics::DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_hdc)
+		{
+			return;
+		}
+
+		HBRUSH hFillBrush = NULL;
+		if (solid)
+		{
+			hFillBrush = ::CreateSolidBrush(fillColor.BGR);
+		}
+		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor.BGR);
+		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
+
+		HBRUSH hOldBrush = NULL;
+		if (solid)
+		{
+			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hFillBrush);
+		}
+		else
+		{
+			HBRUSH hNullBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hNullBrush);
+		}
+
+		RECT destRECT{};
+		destRECT.left = static_cast<LONG>(dest.X);
+		destRECT.top = static_cast<LONG>(dest.Y);
+		destRECT.right = static_cast<LONG>(dest.X + dest.Width);
+		destRECT.bottom = static_cast<LONG>(dest.Y + dest.Height);
+
+		::Ellipse(m_attributes->m_hdc, destRECT.left, destRECT.top, destRECT.right, destRECT.bottom);
+		
+		::SelectObject(m_attributes->m_hdc, hOldPen);
+		::SelectObject(m_attributes->m_hdc, hOldBrush);
+
+		if (solid)
+		{
+			::DeleteObject(hFillBrush);
+		}
+		::DeleteObject(hBorderPen);
+#endif
+	}
+
 	void Graphics::Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
 	{
 		Paste(destinationHandle, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);

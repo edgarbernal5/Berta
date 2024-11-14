@@ -15,6 +15,7 @@
 #include <Berta/Controls/TabBar.h>
 #include <Berta/Controls/ThumbListBox.h>
 #include <Berta/Controls/ListBox.h>
+#include <Berta/Controls/Slider.h>
 #include <iostream>
 
 class TabExample1 : public Berta::Panel
@@ -159,6 +160,15 @@ public:
 			m_thumbListBox.AddItem(builder.str(), image1);
 		}
 
+		m_slider.Create(*this, true, { 175,10,150,25 });
+		m_slider.SetOrientation(false);
+		m_slider.SetMinMax(0, 4);
+
+		m_slider.GetEvents().ValueChanged.Connect([this](const Berta::ArgSlider& args)
+			{
+				m_thumbListBox.SetThumbnailSize(m_thumbnailSizes[args.Value]);
+			});
+
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_thumbListBox.GetPosition();
@@ -171,6 +181,8 @@ private:
 	Berta::Button m_buttonClear;
 	Berta::Button m_buttonErase;
 	Berta::ThumbListBox m_thumbListBox;
+	Berta::Slider m_slider;
+	uint32_t m_thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
 };
 
 int main()

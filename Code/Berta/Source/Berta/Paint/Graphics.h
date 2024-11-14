@@ -57,6 +57,8 @@ namespace Berta
 		void DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor);
 		void DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor);
 		void DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize);
+		void DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid);
+		void DrawEllipse(const Rectangle& rect, const Color& fillColor, const Color& borderColor, bool solid);
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_attributes->m_size; }

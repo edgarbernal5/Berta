@@ -512,6 +512,11 @@ namespace Berta
 		BuildItems();
 		CalculateVisibleIndices();
 
+		if (m_scrollBar)
+		{
+			m_scrollBar->Handle()->Renderer.Update();
+		}
+
 		m_window->Renderer.Update();
 		GUI::RefreshWindow(m_window);
 	}

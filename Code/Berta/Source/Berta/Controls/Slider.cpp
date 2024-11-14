@@ -11,11 +11,9 @@
 
 namespace Berta
 {
-	constexpr int SCROLL_TIMER_INITIAL_DELAY = 400;
-	constexpr int SCROLL_TIMER_REPEAT_DELAY = 50;
+	constexpr int SLIDER_TIMER_INITIAL_DELAY = 400;
+	constexpr int SLIDER_TIMER_REPEAT_DELAY = 50;
 	constexpr uint32_t MIN_SCROLLBOX_SIZE = 6u;
-	constexpr int ARROW_WIDTH = 6;
-	constexpr int ARROW_LENGTH = 3;
 
 	void SliderReactor::Init(ControlBase& control)
 	{
@@ -25,43 +23,28 @@ namespace Berta
 		m_timer.Connect([this](const ArgTimer& args)
 		{
 			DoScrollStep(true);
-			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
+			m_timer.SetInterval(SLIDER_TIMER_REPEAT_DELAY);
 		});
 	}
 
 	void SliderReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		auto buttonSize = GetButtonSize();
 		bool enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
 
-		/*if (!IsValid())
-		{
-			return;
-		}*/
-
-		int arrowWidth = window->ToScale(4);
-		int arrowLength = window->ToScale(2);
-
-		Rectangle button1Rect = m_isVertical ?
-			Rectangle{ 0, 0, window->Size.Width, buttonSize } :
-			Rectangle{ 0, 0, buttonSize, window->Size.Height };
-		
+		auto trackRect = GetSliderTrackRect();
+		graphics.DrawRoundRectBox(trackRect, 2, window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
 		if (isScrollable())
 		{
-			auto scrollBoxRect = GetScrollBoxRect();
+			auto sliderBoxRect = GetSliderBoxRect();
+			auto trackThickness = window->ToScale(m_trackThickness);
 			
-			//graphics.DrawRectangle(scrollBoxRect, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, true);
-			//graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
-
-			graphics.DrawRoundRectBox(scrollBoxRect, 2, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
+			Point circlePosition{ (sliderBoxRect.X + sliderBoxRect.X + (int)sliderBoxRect.Width) / 2,  (sliderBoxRect.Y + sliderBoxRect.Y + (int)sliderBoxRect.Height) / 2 };
+			auto fillColor = m_hoverArea == InteractionArea::Scrollbox ? window->Appearance->ButtonHighlightBackground : window->Appearance->ButtonBackground;
+			graphics.DrawCircle(circlePosition, (int)sliderBoxRect.Width / 2, fillColor, window->Appearance->BoxBorderColor, true);
+			//graphics.DrawEllipse(sliderBoxRect, fillColor, window->Appearance->BoxBorderColor, true);
 		}
-
-		Rectangle button2Rect = m_isVertical ?
-			Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize } :
-			Rectangle{ (int)(window->Size.Width - buttonSize), 0, buttonSize, window->Size.Height };
-		
 	}
 
 	void SliderReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -90,16 +73,16 @@ namespace Berta
 
 		m_pressedArea = m_hoverArea;
 
-		auto scrollBoxRect = GetScrollBoxRect();
+		auto sliderBoxRect = GetSliderBoxRect();
 		if (m_pressedArea == InteractionArea::Scrollbox)
 		{
-			m_dragOffset = m_isVertical ? (m_mouseDownPosition.Y - scrollBoxRect.Y) : (m_mouseDownPosition.X - scrollBoxRect.X);
+			m_dragOffset = m_isVertical ? (m_mouseDownPosition.Y - sliderBoxRect.Y) : (m_mouseDownPosition.X - sliderBoxRect.X);
 		}
 
 		if (m_pressedArea == InteractionArea::ScrollTrack)
 		{
 			m_localStep = m_pageStep;
-			m_trackPageUp = m_isVertical ? m_mouseDownPosition.Y < scrollBoxRect.Y : m_mouseDownPosition.X < scrollBoxRect.X;
+			m_trackPageUp = m_isVertical ? m_mouseDownPosition.Y < sliderBoxRect.Y : m_mouseDownPosition.X < sliderBoxRect.X;
 		}
 		else
 		{
@@ -109,7 +92,7 @@ namespace Berta
 		if (m_pressedArea != InteractionArea::Scrollbox)
 		{
 			DoScrollStep();
-			m_timer.SetInterval(SCROLL_TIMER_INITIAL_DELAY);
+			m_timer.SetInterval(SLIDER_TIMER_INITIAL_DELAY);
 			m_timer.Start();
 		}
 	}
@@ -117,21 +100,20 @@ namespace Berta
 	void SliderReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
 		auto window = m_control->Handle();
-		auto buttonSize = GetButtonSize();
 
 		if (args.ButtonState.NoButtonsPressed())
 		{
-			//InteractionArea newHoverArea = DetermineHoverArea(args.Position);
-			//if (m_hoverArea != newHoverArea)
+			InteractionArea newHoverArea = DetermineHoverArea(args.Position);
+			if (m_hoverArea != newHoverArea)
 			{
-				//m_hoverArea = newHoverArea;
-				//Update(graphics);
-				//GUI::MarkAsUpdated(window);
+				m_hoverArea = newHoverArea;
+				Update(graphics);
+				GUI::MarkAsUpdated(window);
 			}
 		}
 		else if (args.ButtonState.LeftButton && m_pressedArea == InteractionArea::Scrollbox)
 		{
-			UpdateScrollBoxValue(m_isVertical ? (args.Position.Y) : args.Position.X, buttonSize);
+			UpdateSliderBoxValue(m_isVertical ? args.Position.Y : args.Position.X);
 		}
 	}
 
@@ -156,7 +138,7 @@ namespace Berta
 		}
 		else
 		{
-			//m_hoverArea = DetermineHoverArea(args.Position);
+			m_hoverArea = DetermineHoverArea(args.Position);
 		}
 
 		Update(graphics);
@@ -172,13 +154,8 @@ namespace Berta
 	{
 		m_min = (std::min)(min, max);
 		m_max = (std::max)(min, max);
-		//auto oldValue = m_value;
-		m_value = std::clamp(m_value, m_min, m_max);
 
-		//if (oldValue != m_value)
-		//{
-		//	EmitValueChanged();
-		//}
+		m_value = std::clamp(m_value, m_min, m_max);
 	}
 
 	void SliderReactor::SetValue(int value)
@@ -209,18 +186,10 @@ namespace Berta
 		auto oldValue = m_value;
 		auto window = m_control->Handle();
 		
-		if (m_pressedArea == InteractionArea::Button1)
-		{
-			SetValue(m_value - m_localStep);
-		}
-		else if (m_pressedArea == InteractionArea::Button2)
-		{
-			SetValue(m_value + m_localStep);
-		}
-		else if (m_pressedArea == InteractionArea::ScrollTrack)
+		if (m_pressedArea == InteractionArea::ScrollTrack)
 		{
 			auto mousePosition = GUI::GetMousePositionToWindow(window);
-			auto scrollBoxRect = GetScrollBoxRect();
+			auto scrollBoxRect = GetSliderBoxRect();
 			if (m_isVertical)
 			{
 				if (m_trackPageUp && mousePosition.Y <= scrollBoxRect.Y)
@@ -264,33 +233,24 @@ namespace Berta
 
 	void SliderReactor::EmitValueChanged()
 	{
-		ArgSlider argScrollbar;
+		ArgSlider argScrollbar{};
 		argScrollbar.Value = m_value;
 		reinterpret_cast<SliderEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
 	}
 
-	uint32_t SliderReactor::GetButtonSize() const
-	{
-		return m_control->Handle()->ToScale(m_control->Handle()->Appearance->ScrollBarSize);
-	}
-
-	void SliderReactor::UpdateScrollBoxValue(int position, int buttonSize)
+	void SliderReactor::UpdateSliderBoxValue(int position)
 	{
 		auto window = m_control->Handle();
-		auto one = window->ToScale(1);
-		float scaleFactor = static_cast<float>(m_pageStep) / ((m_max - m_min) + m_pageStep);
+		auto trackThickness = window->ToScale(m_trackThickness);
+		auto radius = trackThickness * 2u;
+
+		Rectangle sliderTrackRect = GetSliderTrackRect();
+		Rectangle sliderBoxRect = GetSliderBoxRect();
 
 		int newValue = m_value;
-		Rectangle scrollTrackRect = m_isVertical ?
-			Rectangle{ 0, buttonSize + one, window->Size.Width, window->Size.Height - 2u * buttonSize - 2u } :
-			Rectangle{ buttonSize + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
+		int newBoxPosition = position - m_dragOffset;
 
-		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>((m_isVertical ? scrollTrackRect.Height : scrollTrackRect.Width) * scaleFactor), window->ToScale(6u));
-		int newBoxPosition = position - m_dragOffset - (m_isVertical ? scrollTrackRect.Y : scrollTrackRect.X);
-		newBoxPosition = std::clamp(newBoxPosition, 0, static_cast<int>((m_isVertical ? scrollTrackRect.Height : scrollTrackRect.Width) - scrollBoxSize));
-		
-		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? scrollTrackRect.Height - scrollBoxSize : scrollTrackRect.Width - scrollBoxSize));
-
+		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? (sliderTrackRect.Height - radius) : (sliderTrackRect.Width - radius)));
 		newValue = std::clamp(newValue, m_min, m_max);
 
 		if (m_value != newValue)
@@ -303,35 +263,65 @@ namespace Berta
 		}
 	}
 
-	Rectangle SliderReactor::GetScrollBoxRect() const
+	SliderReactor::InteractionArea SliderReactor::DetermineHoverArea(const Point& position) const
+	{
+		if (isScrollable())
+		{
+			auto sliderBoxRect = GetSliderBoxRect();
+
+			if (sliderBoxRect.IsInside(position))
+			{
+				return InteractionArea::Scrollbox;
+			}
+
+			auto trackRect = GetSliderTrackRect();
+			if (trackRect.IsInside(position))
+			{
+				return InteractionArea::ScrollTrack;
+			}
+		}
+		return InteractionArea::None;
+	}
+
+	Rectangle SliderReactor::GetSliderBoxRect() const
 	{
 		auto window = m_control->Handle();
-		auto buttonSize = GetButtonSize();
 		auto one = window->ToScale(1);
 		auto two = window->ToScale(2);
-		float num = static_cast<float>(m_pageStep) / ((m_max - m_min) + m_pageStep);
+		float currentValue = static_cast<float>(m_value - m_min) / static_cast<float>(m_max - m_min);
 		
+		auto trackRect = GetSliderTrackRect();
+		auto trackThickness = window->ToScale(m_trackThickness);
+		auto radius = trackThickness * 2u;
+		auto diameter = radius * 2u;
 		if (m_isVertical)
 		{
-			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2u * buttonSize - one * 2u };
-			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
-			
+			trackRect.Y += (int)(radius);
+			trackRect.Height -= diameter;
+
 			return {
-				two,
-				static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
-				window->Size.Width - two * 2,
-				scrollBoxSize
+				trackRect.X - (int)(radius - trackThickness) - ((int)trackRect.Width >> 1), static_cast<int>(currentValue * trackRect.Height), diameter, diameter
 			};
 		}
-		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
-		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
+		trackRect.X += (int)(radius);
+		trackRect.Width -= diameter;
 
 		return {
-			static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
-			two,
-			scrollBoxSize,
-			window->Size.Height - two * 2
+			static_cast<int>(currentValue * trackRect.Width), trackRect.Y - (int)(radius - trackThickness) - ((int)trackRect.Height >> 1), diameter, diameter
 		};
+	}
+
+	Rectangle SliderReactor::GetSliderTrackRect() const
+	{
+		auto window = m_control->Handle();
+		auto trackThickness = window->ToScale(m_trackThickness);
+		if (m_isVertical)
+		{
+			auto margin = (window->Size.Width - trackThickness) >> 1;
+			return Rectangle{ (int)margin, 0, trackThickness,window->Size.Height };
+		}
+		auto margin = (window->Size.Height - trackThickness) >> 1;
+		return Rectangle{ 0, (int)margin, window->Size.Width, trackThickness };
 	}
 
 	Slider::Slider(Window* parent, const Rectangle& rectangle, bool isVertical)

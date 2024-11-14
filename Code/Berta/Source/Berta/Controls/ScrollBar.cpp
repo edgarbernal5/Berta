@@ -132,7 +132,7 @@ namespace Berta
 		}
 		else if (args.ButtonState.LeftButton && m_pressedArea == InteractionArea::Scrollbox)
 		{
-			UpdateScrollBoxValue(m_isVertical ? (args.Position.Y) : args.Position.X, buttonSize);
+			UpdateScrollBoxValue(m_isVertical ? args.Position.Y : args.Position.X, buttonSize);
 		}
 	}
 
