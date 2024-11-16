@@ -173,12 +173,14 @@ namespace Berta
 			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
 			void DrawList(Graphics& graphics);
 
+			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
+			bool ClearHoveredListItem(int index = -1);
+
 			Headers m_headers;
 			List m_list;
 
 			InteractionArea m_hoveredArea{ InteractionArea::None };
 			InteractionArea m_pressedArea{ InteractionArea::None };
-			Point m_mouseDownPosition{};
 
 			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;

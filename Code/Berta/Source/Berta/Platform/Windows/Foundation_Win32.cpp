@@ -467,7 +467,7 @@ namespace Berta
 					}
 					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
 					{
-						BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 						trackEvent.hwndTrack = hWnd;
 						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
 						rootWindowData.IsTracking = true;
