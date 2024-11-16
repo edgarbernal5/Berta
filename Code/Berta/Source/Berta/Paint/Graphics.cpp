@@ -166,7 +166,7 @@ namespace Berta
 			return;
 		}
 
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 		::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
@@ -182,7 +182,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc)
 		{
-			HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+			HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
 			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 			::MoveToEx(m_attributes->m_hdc, point.X, point.Y, 0);
@@ -214,7 +214,7 @@ namespace Berta
 			return;
 		}
 
-		auto brush = ::CreateSolidBrush(color.BGR);
+		auto brush = ::CreateSolidBrush(color);
 		RECT nativeRect = rectangle.ToRECT();
 		if (solid)
 		{
@@ -248,10 +248,10 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_attributes->m_lastForegroundColor != color.BGR)
+		if (m_attributes->m_lastForegroundColor != color)
 		{
-			::SetTextColor(m_attributes->m_hdc, color.BGR);
-			m_attributes->m_lastForegroundColor = color.BGR;
+			::SetTextColor(m_attributes->m_hdc, color);
+			m_attributes->m_lastForegroundColor = color;
 		}
 		::TextOut(m_attributes->m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
 		::SelectObject(m_attributes->m_hdc, oldFont);
@@ -268,10 +268,10 @@ namespace Berta
 		auto wstr = StringUtils::Convert(str);
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_attributes->m_lastForegroundColor != color.BGR)
+		if (m_attributes->m_lastForegroundColor != color)
 		{
-			::SetTextColor(m_attributes->m_hdc, color.BGR);
-			m_attributes->m_lastForegroundColor = color.BGR;
+			::SetTextColor(m_attributes->m_hdc, color);
+			m_attributes->m_lastForegroundColor = color;
 		}
 		::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
 		::SelectObject(m_attributes->m_hdc, oldFont);
@@ -349,7 +349,7 @@ namespace Berta
 			arrowPoints[2].Y = centerY;
 		}
 
-		HBRUSH brush = ::CreateSolidBrush(color.BGR);
+		HBRUSH brush = ::CreateSolidBrush(color);
 		::SelectObject(m_attributes->m_hdc, brush);
 
 		if (solid)
@@ -358,7 +358,7 @@ namespace Berta
 		}
 
 		// Move to the first point
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 		::MoveToEx(m_attributes->m_hdc, arrowPoints[0].X, arrowPoints[0].Y, 0);
@@ -450,13 +450,13 @@ namespace Berta
 			arrowPoints[2].y = centerY;
 		}
 
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color.BGR);
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 		HBRUSH hBrush = NULL;
 		if (solid)
 		{
-			hBrush = ::CreateSolidBrush(color.BGR);
+			hBrush = ::CreateSolidBrush(color);
 			::SelectObject(m_attributes->m_hdc, hBrush);
 			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
 		}
@@ -496,8 +496,8 @@ namespace Berta
 
 		if (solid)
 		{
-			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, bordercolor.BGR));
-			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(color.BGR));
+			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, bordercolor));
+			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(color));
 
 			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + static_cast<int>(rect.Width), rect.Y + static_cast<int>(rect.Height), static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
 
@@ -506,7 +506,7 @@ namespace Berta
 		}
 		else
 		{
-			auto brush = ::CreateSolidBrush(color.BGR);
+			auto brush = ::CreateSolidBrush(color);
 
 			auto region = ::CreateRoundRectRgn(rect.X, rect.Y, rect.X + static_cast<int>(rect.Width) + 1, rect.Y + static_cast<int>(rect.Height) + 1, static_cast<int>(radiusScaled + 1), static_cast<int>(radiusScaled + 1));
 
@@ -532,8 +532,8 @@ namespace Berta
 
 		TRIVERTEX vertices[] =
 		{
-			{ x, y, (COLOR16)(GetRValue(startColor.BGR) << 8), (COLOR16)(GetGValue(startColor.BGR) << 8), (COLOR16)(GetBValue(startColor.BGR) << 8), (COLOR16)0xFF00 },
-			{ x + width, y + height, (COLOR16)(GetRValue(endColor.BGR) << 8), (COLOR16)(GetGValue(endColor.BGR) << 8), (COLOR16)(GetBValue(endColor.BGR) << 8), (COLOR16)0xFF00 }
+			{ x, y, (COLOR16)(GetRValue(startColor) << 8), (COLOR16)(GetGValue(startColor) << 8), (COLOR16)(GetBValue(startColor) << 8), (COLOR16)0xFF00 },
+			{ x + width, y + height, (COLOR16)(GetRValue(endColor) << 8), (COLOR16)(GetGValue(endColor) << 8), (COLOR16)(GetBValue(endColor) << 8), (COLOR16)0xFF00 }
 		};
 
 		GRADIENT_RECT gradientRect = { 0, 1 };
@@ -634,9 +634,9 @@ namespace Berta
 		HBRUSH hFillBrush = NULL;
 		if (solid)
 		{
-			hFillBrush = ::CreateSolidBrush(fillColor.BGR);
+			hFillBrush = ::CreateSolidBrush(fillColor);
 		}
-		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor.BGR);
+		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
 
 		HBRUSH hOldBrush = NULL;
@@ -680,9 +680,9 @@ namespace Berta
 		HBRUSH hFillBrush = NULL;
 		if (solid)
 		{
-			hFillBrush = ::CreateSolidBrush(fillColor.BGR);
+			hFillBrush = ::CreateSolidBrush(fillColor);
 		}
-		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor.BGR);
+		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
 
 		HBRUSH hOldBrush = NULL;

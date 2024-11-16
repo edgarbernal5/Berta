@@ -11,12 +11,6 @@
 
 namespace Berta
 {
-	struct PixelBuffer
-	{
-		unsigned char* m_imageData{ nullptr };
-		Size m_size{};
-	};
-
 	class BasicImageAttributes : public AbstractImageAttributes
 	{
 	public:

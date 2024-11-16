@@ -54,6 +54,7 @@ namespace Berta
 		InteractionArea DetermineHoverArea(const Point& position) const;
 		
 		Rectangle GetSliderBoxRect() const;
+		Rectangle GetSliderCircleRect() const;
 		Rectangle GetSliderTrackRect() const;
 
 		bool m_isVertical{ false };

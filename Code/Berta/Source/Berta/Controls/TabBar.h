@@ -55,25 +55,25 @@ namespace Berta
 			void BuildItems(size_t startIndex = 0);
 			bool EraseTab(size_t index);
 			int FindItem(const Point& position) const;
-			bool NewSelectedIndex(int newIndex) const { return SelectedTabIndex != newIndex; }
-			void SelectIndex(int newIndex) { SelectedTabIndex = newIndex; }
+			bool NewSelectedIndex(int newIndex) const { return m_selectedTabIndex != newIndex; }
+			void SelectIndex(int newIndex) { m_selectedTabIndex = newIndex; }
 
 			PanelIterator At(std::size_t position)
 			{
-				auto it = Panels.begin();
+				auto it = m_panels.begin();
 				std::advance(it, position);
 				return it;
 			}
 
 			ConstPanelIterator At(std::size_t position) const
 			{
-				auto it = Panels.cbegin();
+				auto it = m_panels.cbegin();
 				std::advance(it, position);
 				return it;
 			}
 
-			std::list<PanelItem> Panels;
-			int SelectedTabIndex{ -1 };
+			std::list<PanelItem> m_panels;
+			int m_selectedTabIndex{ -1 };
 			Window* m_owner{ nullptr };
 
 		private:

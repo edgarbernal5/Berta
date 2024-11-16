@@ -160,7 +160,7 @@ public:
 			m_thumbListBox.AddItem(builder.str(), image1);
 		}
 
-		m_slider.Create(*this, true, { 175,10,150,25 });
+		m_slider.Create(*this, true, { 175,10,150,18 });
 		m_slider.SetOrientation(false);
 		m_slider.SetMinMax(0, 4);
 

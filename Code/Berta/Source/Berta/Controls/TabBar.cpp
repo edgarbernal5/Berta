@@ -19,7 +19,7 @@ namespace Berta
 		m_module.m_owner->Events->Resize.Connect([this](const ArgResize& args)
 			{
 				auto tabBarSize = m_module.m_owner->Size;
-				for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++tabItem)
+				for (auto tabItem = m_module.m_panels.cbegin(); tabItem != m_module.m_panels.cend(); ++tabItem)
 				{
 					auto tabItemPanelPosition = tabItem->PanelPtr->GetPosition();
 					tabItem->PanelPtr->SetSize({ tabBarSize.Width - tabItemPanelPosition.X, tabBarSize.Height - tabItemPanelPosition.Y });
@@ -32,7 +32,7 @@ namespace Berta
 		auto enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(m_module.m_owner->Appearance->Background, true);
 
-		if (m_module.Panels.empty() || m_module.SelectedTabIndex == -1)
+		if (m_module.m_panels.empty() || m_module.m_selectedTabIndex == -1)
 		{
 			graphics.DrawRectangle(m_module.m_owner->Appearance->BoxBorderColor, false);
 			return;
@@ -48,9 +48,9 @@ namespace Berta
 		int selectedPositionX = 0;
 		int i = 0;
 		
-		for (auto tabItem = m_module.Panels.cbegin(); tabItem != m_module.Panels.cend(); ++i, ++tabItem)
+		for (auto tabItem = m_module.m_panels.cbegin(); tabItem != m_module.m_panels.cend(); ++i, ++tabItem)
 		{
-			if (m_module.SelectedTabIndex == i)
+			if (m_module.m_selectedTabIndex == i)
 			{
 				graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 				graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem->Size.Width - 1, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
@@ -70,7 +70,7 @@ namespace Berta
 			}
 			lastPositionX += (int)tabItem->Size.Width;
 		}
-		auto selectedTabItem = m_module.At(m_module.SelectedTabIndex);
+		auto selectedTabItem = m_module.At(m_module.m_selectedTabIndex);
 		if (selectedPositionX > 0)
 		{
 			graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
@@ -95,7 +95,7 @@ namespace Berta
 
 		if (m_module.NewSelectedIndex(newSelectedIndex))
 		{
-			auto selectedTabItem = m_module.At(m_module.SelectedTabIndex);
+			auto selectedTabItem = m_module.At(m_module.m_selectedTabIndex);
 
 			selectedTabItem->PanelPtr->Hide();
 			m_module.SelectIndex(newSelectedIndex);
@@ -149,30 +149,30 @@ namespace Berta
 
 	bool TabBarReactor::Module::Clear()
 	{
-		bool needUpdate = !Panels.empty();
-		SelectedTabIndex = -1;
-		Panels.clear();
+		bool needUpdate = !m_panels.empty();
+		m_selectedTabIndex = -1;
+		m_panels.clear();
 
 		return needUpdate;
 	}
 
 	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
 	{
-		if (index >= Panels.size())
+		if (index >= m_panels.size())
 		{
 			return AddTab(tabId, panel);
 		}
 		int startIndex = static_cast<int>(index);
 
-		auto newIt = Panels.emplace(At(index), std::move(tabId), std::move(panel));
+		auto newIt = m_panels.emplace(At(index), std::move(tabId), std::move(panel));
 
 		UpdatePanelMoveRect(panel);
 
-		if (SelectedTabIndex == -1)
+		if (m_selectedTabIndex == -1)
 		{
-			SelectedTabIndex = 0;
+			m_selectedTabIndex = 0;
 		}
-		else if (SelectedTabIndex == index)
+		else if (m_selectedTabIndex == index)
 		{
 			++newIt;
 			newIt->PanelPtr->Hide();
@@ -184,7 +184,7 @@ namespace Berta
 
 	void TabBarReactor::Module::BuildItems(size_t startIndex)
 	{
-		if (startIndex >= Panels.size())
+		if (startIndex >= m_panels.size())
 		{
 			return;
 		}
@@ -201,7 +201,7 @@ namespace Berta
 		}
 
 		auto current = At(startIndex);
-		for (size_t i = startIndex; i < Panels.size(); ++i, ++current)
+		for (size_t i = startIndex; i < m_panels.size(); ++i, ++current)
 		{
 			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(current->Id);
 			Size itemSize{ textSize.Width + tabPadding, tabBarItemHeight };
@@ -220,18 +220,18 @@ namespace Berta
 
 	bool TabBarReactor::Module::EraseTab(size_t index)
 	{
-		if (index >= Panels.size())
+		if (index >= m_panels.size())
 		{
 			return false;
 		}
 
 		auto current = At(index);
 
-		bool removeSelectedIndex = index == SelectedTabIndex;
-		current = Panels.erase(current);
-		if (SelectedTabIndex >= static_cast<int>(Panels.size()))
+		bool removeSelectedIndex = index == m_selectedTabIndex;
+		current = m_panels.erase(current);
+		if (m_selectedTabIndex >= static_cast<int>(m_panels.size()))
 		{
-			SelectedTabIndex = static_cast<int>(Panels.size()) - 1;
+			m_selectedTabIndex = static_cast<int>(m_panels.size()) - 1;
 			--current;
 		}
 		if (removeSelectedIndex)
@@ -246,7 +246,7 @@ namespace Berta
 	int TabBarReactor::Module::FindItem(const Point& position) const
 	{
 		int i = 0;
-		for (auto current = Panels.cbegin(); current != Panels.cend(); ++i, ++current)
+		for (auto current = m_panels.cbegin(); current != m_panels.cend(); ++i, ++current)
 		{
 			if (Rectangle{ current->Position, current->Size }.IsInside(position))
 			{
@@ -295,17 +295,17 @@ namespace Berta
 
 	bool TabBarReactor::Module::AddTab(const std::string& tabId, Panel* panel)
 	{
-		auto startIndex = Panels.size();
-		auto& newItem = Panels.emplace_back();
+		auto startIndex = m_panels.size();
+		auto& newItem = m_panels.emplace_back();
 		newItem.Id = tabId;
 		newItem.PanelPtr.reset(panel);
 
 		//TODO: maybe we need to move this after selected tab index is set.
 		UpdatePanelMoveRect(panel);
 
-		if (SelectedTabIndex == -1)
+		if (m_selectedTabIndex == -1)
 		{
-			SelectedTabIndex = 0;
+			m_selectedTabIndex = 0;
 		}
 		else
 		{

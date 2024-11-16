@@ -9,6 +9,8 @@
 
 namespace Berta
 {
+#define BT_WINDOWS_ABGR(r, g, b, a)	((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(g)<<8 | (uint32_t)(r))
+
 	const Size Size::Zero = { 0,0 };
 
 	Rectangle::Rectangle(int x, int y, uint32_t width, uint32_t height) :
@@ -112,5 +114,21 @@ namespace Berta
 	{
 		os << "{ Width=" << size.Width << "; Height=" << size.Height << "}";
 		return os;
+	}
+
+	Color::Color(uint32_t colorBGR)
+	{
+		A = (uint8_t)((colorBGR & 0xFF000000) >> 24);
+		B = (uint8_t)((colorBGR & 0x00FF0000) >> 16);
+		G = (uint8_t)((colorBGR & 0x0000FF00) >> 8);
+		R = (uint8_t)((colorBGR & 0x000000FF));
+	}
+
+	Color::operator uint32_t() const
+	{
+#if BT_PLATFORM_WINDOWS
+		return BT_WINDOWS_ABGR(R, G, B, A);
+#endif
+		return 0;
 	}
 }

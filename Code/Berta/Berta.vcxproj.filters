@@ -186,6 +186,9 @@
     <ClInclude Include="Source\Berta\Controls\Slider.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\ColorBuffer.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -298,6 +301,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Slider.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\ColorBuffer.cpp">
+      <Filter>Source\Berta\Paint</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -283,7 +283,7 @@ namespace Berta
 
 	void ScrollBarReactor::EmitValueChanged()
 	{
-		ArgScrollBar argScrollbar;
+		ArgScrollBar argScrollbar{};
 		argScrollbar.Value = m_value;
 		reinterpret_cast<ScrollBarEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
 	}

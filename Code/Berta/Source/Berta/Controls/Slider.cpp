@@ -37,13 +37,17 @@ namespace Berta
 		graphics.DrawRoundRectBox(trackRect, 2, window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
 		if (isScrollable())
 		{
-			auto sliderBoxRect = GetSliderBoxRect();
 			auto trackThickness = window->ToScale(m_trackThickness);
 			
-			Point circlePosition{ (sliderBoxRect.X + sliderBoxRect.X + (int)sliderBoxRect.Width) / 2,  (sliderBoxRect.Y + sliderBoxRect.Y + (int)sliderBoxRect.Height) / 2 };
 			auto fillColor = m_hoverArea == InteractionArea::Scrollbox ? window->Appearance->ButtonHighlightBackground : window->Appearance->ButtonBackground;
-			graphics.DrawCircle(circlePosition, (int)sliderBoxRect.Width / 2, fillColor, window->Appearance->BoxBorderColor, true);
-			//graphics.DrawEllipse(sliderBoxRect, fillColor, window->Appearance->BoxBorderColor, true);
+
+			//auto sliderCircleRect = GetSliderCircleRect();
+			//Point circlePosition{ (sliderCircleRect.X + sliderCircleRect.X + (int)sliderCircleRect.Width) / 2,  (sliderCircleRect.Y + sliderCircleRect.Y + (int)sliderCircleRect.Height) / 2 };
+			//graphics.DrawCircle(circlePosition, (int)sliderCircleRect.Width / 2, fillColor, window->Appearance->BoxBorderColor, true);
+
+			auto sliderBoxRect = GetSliderBoxRect();
+			graphics.DrawRectangle(sliderBoxRect, fillColor, true);
+			graphics.DrawRectangle(sliderBoxRect, window->Appearance->BoxBorderColor, false);
 		}
 	}
 
@@ -227,7 +231,6 @@ namespace Berta
 			{
 				GUI::MarkAsUpdated(window);
 			}
-			
 		}
 	}
 
@@ -249,8 +252,8 @@ namespace Berta
 
 		int newValue = m_value;
 		int newBoxPosition = position - m_dragOffset;
-
-		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / (m_isVertical ? (sliderTrackRect.Height - diameter) : (sliderTrackRect.Width - diameter)));
+		auto trackLength = m_isVertical ? (sliderTrackRect.Height - diameter) : (sliderTrackRect.Width - diameter);
+		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / trackLength);
 		newValue = std::clamp(newValue, m_min, m_max);
 
 		if (m_value != newValue)
@@ -286,14 +289,44 @@ namespace Berta
 	Rectangle SliderReactor::GetSliderBoxRect() const
 	{
 		auto window = m_control->Handle();
-		auto one = window->ToScale(1);
-		auto two = window->ToScale(2);
 		float currentValue = static_cast<float>(m_value - m_min) / static_cast<float>(m_max - m_min);
 		
 		auto trackRect = GetSliderTrackRect();
 		auto trackThickness = window->ToScale(m_trackThickness);
-		auto radius = trackThickness * 2u;
+		auto sliderBox = window->ToScale(15u);
+		auto boxLength = (trackThickness + 1) * 2u;
+
+		if (m_isVertical)
+		{
+			auto boxWidth = (std::max)(window->Size.Width, sliderBox);
+			trackRect.Height -= boxLength;
+
+			return {
+				((int)(boxWidth - trackThickness)) >> 1 - trackRect.X,
+				static_cast<int>(currentValue * trackRect.Height),
+				boxWidth, boxLength
+			};
+		}
+		auto boxHeight = (std::max)(window->Size.Height, sliderBox);
+		trackRect.Width -= boxLength;
+		
+		return {
+			static_cast<int>(currentValue * trackRect.Width),
+			((int)(boxHeight - trackThickness)) >> 1 - trackRect.Y,
+			boxLength, boxHeight
+		};
+	}
+
+	Rectangle SliderReactor::GetSliderCircleRect() const
+	{
+		auto window = m_control->Handle();
+		float currentValue = static_cast<float>(m_value - m_min) / static_cast<float>(m_max - m_min);
+
+		auto trackRect = GetSliderTrackRect();
+		auto trackThickness = window->ToScale(m_trackThickness);
+		auto radius = (trackThickness + 1) * 2u;
 		auto diameter = radius * 2u;
+
 		if (m_isVertical)
 		{
 			trackRect.Y += (int)(radius);
