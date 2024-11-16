@@ -31,7 +31,7 @@ namespace Berta
 		void MouseUp(const ArgMouse& args);
 		void MouseWheel(const ArgWheel& args);
 		void Click(const ArgClick& args);
-		void DblClick(const ArgClick& args);
+		void DblClick(const ArgMouse& args);
 		void Focus(const ArgFocus& args);
 		void KeyChar(const ArgKeyboard& args);
 		void KeyPressed(const ArgKeyboard& args);

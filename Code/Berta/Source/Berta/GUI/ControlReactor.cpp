@@ -51,7 +51,7 @@ namespace Berta
 	{
 	}
 
-	void ControlReactor::DblClick(Graphics& graphics, const ArgClick& args)
+	void ControlReactor::DblClick(Graphics& graphics, const ArgMouse& args)
 	{
 	}
 

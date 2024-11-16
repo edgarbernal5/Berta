@@ -84,7 +84,7 @@ namespace Berta
 		ProcessEvent(&ControlReactor::Click, args);
 	}
 
-	void Renderer::DblClick(const ArgClick& args)
+	void Renderer::DblClick(const ArgMouse& args)
 	{
 		ProcessEvent(&ControlReactor::DblClick, args);
 	}

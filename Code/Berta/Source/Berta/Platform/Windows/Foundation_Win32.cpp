@@ -514,12 +514,13 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window->Flags.IsEnabled && window == rootWindowData.Released)
 			{
-				ArgClick argClick;
-				argClick.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argClick.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argClick.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+				ArgMouse argMouse{};
+				argMouse.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouse.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouse.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouse.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argClick);
+				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
 			}
 			rootWindowData.Released = nullptr;
 			defaultToWindowProc = false;
@@ -587,7 +588,7 @@ namespace Berta
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
 		{
-			ArgKeyboard argKeyboard;
+			ArgKeyboard argKeyboard{};
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));

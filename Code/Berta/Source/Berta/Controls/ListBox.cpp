@@ -62,6 +62,58 @@ namespace Berta
 		graphics.DrawRectangle(m_module.m_window->Size.ToRectangle(), enabled ? m_module.m_window->Appearance->BoxBorderColor : m_module.m_window->Appearance->BoxBorderDisabledColor, false);
 	}
 
+	void ListBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
+	{
+		auto hoveredArea = m_module.DetermineHoverArea(args.Position);
+		if (hoveredArea != InteractionArea::HeaderSplitter)
+		{
+			return;
+		}
+
+		auto selectedHeader = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
+		auto maxCellWidth = 0u;
+		for (size_t i = 0; i < m_module.m_list.m_items.size(); i++)
+		{
+			const auto& cell = m_module.m_list.m_items[i].m_cells[selectedHeader];
+			auto cellWidth = m_module.m_window->ToDownwardScale(graphics.GetTextExtent(cell.m_text).Width);
+			if (cellWidth > maxCellWidth)
+			{
+				maxCellWidth = cellWidth;
+			}
+		}
+		auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
+		maxCellWidth += leftMarginTextHeader;
+
+		auto newWidth = (std::max)(maxCellWidth, LISTBOX_MIN_HEADER_WIDTH);
+		bool needUpdate = newWidth != m_module.m_headers.m_items[selectedHeader].m_bounds.Width;
+		if (!needUpdate)
+			return;
+
+		m_module.m_headers.m_items[selectedHeader].m_bounds.Width = newWidth;
+		m_module.CalculateViewport(m_module.m_viewport);
+		m_module.BuildHeaderBounds(selectedHeader);
+
+		if (m_module.UpdateScrollBars())
+		{
+			if (m_module.m_scrollBarVert)
+				m_module.m_scrollBarVert->Handle()->Renderer.Update();
+
+			if (m_module.m_scrollBarHoriz)
+				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
+		}
+
+		hoveredArea = m_module.DetermineHoverArea(args.Position);
+		if (hoveredArea != InteractionArea::HeaderSplitter)
+		{
+			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
+		}
+		m_module.m_pressedArea = InteractionArea::None;
+		m_module.m_hoveredArea = hoveredArea;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(m_module.m_window);
+	}
+
 	void ListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.CalculateViewport(m_module.m_viewport);
@@ -355,7 +407,7 @@ namespace Berta
 			{
 				auto targetIndex = (size_t)m_module.m_headers.m_draggingTargetIndex;
 				auto selectedIndex = (size_t)m_module.m_headers.m_selectedIndex;
-				BT_CORE_TRACE << " -- selectedIndex " << selectedIndex << ". targetIndex =" << targetIndex << std::endl;
+
 				if (selectedIndex != targetIndex && (selectedIndex + 1) != targetIndex)
 				{
 					auto oldIndex = m_module.m_headers.m_sorted[selectedIndex];
@@ -768,12 +820,14 @@ namespace Berta
 
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
-		UpdateScrollBars();
-
-		if (m_viewport.m_needHorizontalScroll)
+		if (UpdateScrollBars())
 		{
-			m_scrollBarHoriz->Handle()->Renderer.Update();
+			if (m_viewport.m_needHorizontalScroll)
+			{
+				m_scrollBarHoriz->Handle()->Renderer.Update();
+			}
 		}
+
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();

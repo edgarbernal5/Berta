@@ -79,7 +79,7 @@ namespace Berta
 		Event<ArgWheel>			MouseWheel;
 		Event<ArgMouse>			MouseUp;
 		Event<ArgClick>			Click;
-		Event<ArgClick>			DblClick;
+		Event<ArgMouse>			DblClick;
 		Event<ArgResize>		Resize;
 		Event<ArgFocus>			Focus;
 		Event<ArgKeyboard>		KeyChar;
