@@ -122,9 +122,9 @@ namespace Berta
 
 			std::vector<size_t> m_selections;
 			std::vector<size_t> m_alreadySelected;
-			int m_pressedIndex{ -1 };
-			int m_hoveredIndex{ -1 };
-			int m_selectedIndex{ -1 };
+			int m_pressedIndex{ -1 }; //logical index
+			int m_hoveredIndex{ -1 }; //logical index
+			int m_selectedIndex{ -1 }; //logical index
 			Point m_startPosition;
 			Point m_endPosition;
 			bool m_started{ false };
@@ -176,7 +176,7 @@ namespace Berta
 			void DrawList(Graphics& graphics);
 
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
-			bool ClearHoveredListItem(int index = -1);
+			bool SetHoveredListItem(int index = -1);
 
 			void SortHeader(int headerIndex, bool ascending);
 
