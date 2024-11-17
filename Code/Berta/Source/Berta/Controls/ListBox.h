@@ -56,6 +56,8 @@ namespace Berta
 			int m_mouseDraggingPosition{ 0 };
 			int m_draggingTargetIndex{ 0 };
 			int m_selectedIndex{ -1 };
+			int m_sortedHeaderIndex{ -1 };
+			bool isAscendingOrdering{ true };
 			bool m_isDragging{ false };
 			std::vector<ItemData> m_items;
 
@@ -175,6 +177,8 @@ namespace Berta
 
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
 			bool ClearHoveredListItem(int index = -1);
+
+			void SortHeader(int headerIndex, bool ascending);
 
 			Headers m_headers;
 			List m_list;
