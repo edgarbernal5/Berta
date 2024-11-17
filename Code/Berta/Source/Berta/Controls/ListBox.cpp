@@ -1181,7 +1181,7 @@ namespace Berta
 		return needUpdate;
 	}
 
-	void ListBoxReactor::Module::ToggleItemSelection(int absoluteItemIndex)
+	void ListBoxReactor::Module::ToggleItemSelection(size_t absoluteItemIndex)
 	{
 		auto& item = m_list.m_items[absoluteItemIndex];
 		item.m_isSelected = !item.m_isSelected;
@@ -1273,11 +1273,11 @@ namespace Berta
 		m_mouseSelection.m_selections.clear();
 	}
 
-	void ListBoxReactor::Module::SelectItem(int absoluteItemIndex)
+	void ListBoxReactor::Module::SelectItem(size_t absoluteItemIndex)
 	{
 		m_list.m_items[absoluteItemIndex].m_isSelected = true;
 		m_mouseSelection.m_selections.push_back(absoluteItemIndex);
-		m_mouseSelection.m_selectedIndex = absoluteItemIndex;
+		m_mouseSelection.m_selectedIndex = (int)absoluteItemIndex;
 	}
 
 	void ListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)

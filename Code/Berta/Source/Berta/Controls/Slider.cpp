@@ -302,7 +302,7 @@ namespace Berta
 			trackRect.Height -= boxLength;
 
 			return {
-				((int)(boxWidth - trackThickness)) >> 1 - trackRect.X,
+				(((int)(boxWidth - trackThickness)) >> 1) - trackRect.X,
 				static_cast<int>(currentValue * trackRect.Height),
 				boxWidth, boxLength
 			};
@@ -312,7 +312,7 @@ namespace Berta
 		
 		return {
 			static_cast<int>(currentValue * trackRect.Width),
-			((int)(boxHeight - trackThickness)) >> 1 - trackRect.Y,
+			(((int)(boxHeight - trackThickness)) >> 1) - trackRect.Y,
 			boxLength, boxHeight
 		};
 	}

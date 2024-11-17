@@ -151,12 +151,12 @@ namespace Berta
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
-			void SelectItem(int index);
+			void SelectItem(size_t index);
 			void ClearSelection();
 			void EnsureVisibility(int lastSelectedIndex);
 			void PerformRangeSelection(int itemIndexAtPosition);
 
-			void ToggleItemSelection(int itemIndexAtPosition);
+			void ToggleItemSelection(size_t itemIndexAtPosition);
 			void StartSelectionRectangle(const Point& mousePosition);
 			bool ClearSelectionIfNeeded();
 			bool ClearSingleSelection();
