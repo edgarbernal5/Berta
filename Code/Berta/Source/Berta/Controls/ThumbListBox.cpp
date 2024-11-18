@@ -157,7 +157,7 @@ namespace Berta
 			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
-			if ((boxSize.Width > 0 && boxSize.Height > 0))
+			if (boxSize.Width > 0 && boxSize.Height > 0)
 			{
 				Rectangle selectionRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset * 2, boxSize.Width, boxSize.Height};
 				for (size_t i = m_module.m_viewport.m_startingVisibleIndex; i < m_module.m_viewport.m_endingVisibleIndex; i++)

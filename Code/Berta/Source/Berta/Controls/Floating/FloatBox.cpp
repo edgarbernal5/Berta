@@ -25,7 +25,7 @@ namespace Berta
 		Rectangle rect{ 0,0,window->Size.Width,window->Size.Height };
 		if (m_scrollBar)
 		{
-			rect.Width -= m_scrollBar->Handle()->Size.Width - 1;
+			rect.Width -= m_scrollBar->Handle()->Size.Width;
 		}
 		graphics.DrawRectangle(rect, window->Appearance->BoxBackground, true);
 		

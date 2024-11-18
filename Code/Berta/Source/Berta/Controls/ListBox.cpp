@@ -156,7 +156,6 @@ namespace Berta
 			m_module.m_headers.m_selectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
 			const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
 			m_module.m_headers.m_mouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.m_headers.m_items[headerIndex].m_bounds.X) - m_module.m_viewport.m_backgroundRect.X - (int)m_module.m_viewport.m_columnOffsetStartOff + m_module.m_scrollOffset.X;
-			needUpdate = true;
 		}
 
 		if (needUpdate)
@@ -296,7 +295,7 @@ namespace Berta
 				m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 				needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
-				if ((boxSize.Width > 0 && boxSize.Height > 0))
+				if (boxSize.Width > 0 && boxSize.Height > 0)
 				{
 					Rectangle selectionRect{ startPoint.X + m_module.m_scrollOffset.X, startPoint.Y + m_module.m_scrollOffset.Y * 2 - m_module.m_viewport.m_backgroundRect.Y, boxSize.Width, boxSize.Height };
 
@@ -307,7 +306,7 @@ namespace Berta
 						item.m_bounds.Y = (int)((m_module.m_viewport.m_itemHeightWithMargin * i) + m_module.m_viewport.m_innerMargin);
 						item.m_bounds.Width = m_module.m_viewport.m_contentSize.Width;
 						bool intersection = item.m_bounds.Intersect(selectionRect);
-						bool alreadySelected = std::find(m_module.m_mouseSelection.m_alreadySelected.begin(), m_module.m_mouseSelection.m_alreadySelected.end(), absoluteIndex) != m_module.m_mouseSelection.m_alreadySelected.end();
+						bool alreadySelected = m_module.m_mouseSelection.IsAlreadySelected(absoluteIndex);
 
 						if (m_module.m_mouseSelection.m_inverseSelection)
 						{
@@ -493,6 +492,74 @@ namespace Berta
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
+		bool needUpdate = false;
+		if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
+		{
+			auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
+			auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.m_list.m_items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
+			auto newItemIndex = pivot + direction;
+			if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_list.m_items.size())
+			{
+				auto absoluteIndex = m_module.m_list.m_sortedIndexes[newItemIndex];
+				if (!m_module.m_multiselection || !m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+				{
+					m_module.ClearSelection();
+				}
+
+				if (m_module.m_multiselection && m_module.m_shiftPressed)
+				{
+					int end = newItemIndex + direction;
+					int start = m_module.m_mouseSelection.m_pressedIndex;
+					int current = start + direction;
+					while (current != end)
+					{
+						auto absoluteIndex = m_module.m_list.m_sortedIndexes[current];
+						m_module.m_list.m_items[absoluteIndex].m_isSelected = true;
+						m_module.m_mouseSelection.m_selections.push_back(absoluteIndex);
+						current += direction;
+					}
+					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+				}
+				else if (m_module.m_ctrlPressed)
+				{
+					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+				}
+				else
+				{
+					m_module.m_list.m_items[absoluteIndex].m_isSelected = true;
+					m_module.m_mouseSelection.m_selections.push_back(absoluteIndex);
+					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
+				}
+				m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
+				needUpdate = true;
+			}
+			
+		}
+		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
+		{
+			if (m_module.m_mouseSelection.m_pressedIndex != -1)
+			{
+				auto newItemIndex = m_module.m_list.m_sortedIndexes[m_module.m_mouseSelection.m_pressedIndex];
+				auto& isSelected = m_module.m_list.m_items[newItemIndex].m_isSelected;
+				isSelected = !isSelected;
+				if (isSelected)
+				{
+					m_module.m_mouseSelection.Select(newItemIndex);
+				}
+				else
+				{
+					m_module.m_mouseSelection.Deselect(newItemIndex);
+				}
+				needUpdate = true;
+			}
+		}
+
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(*m_control);
+		}
 	}
 
 	void ListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
@@ -712,60 +779,6 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		BuildListItemBounds(startIndex);
-	}
-
-	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
-	{
-		Create(parent, true, rectangle);
-
-#if BT_DEBUG
-		m_handle->Name = "ListBox";
-#endif
-	}
-
-	void ListBox::AppendHeader(const std::string& name, uint32_t width)
-	{
-		m_reactor.GetModule().AppendHeader(name, width);
-	}
-
-	void ListBox::Append(const std::string& text)
-	{
-		m_reactor.GetModule().Append(text);
-	}
-
-	void ListBox::Append(std::initializer_list<std::string> texts)
-	{
-		m_reactor.GetModule().Append(texts);
-	}
-
-	ListBoxItem ListBox::At(size_t index)
-	{
-		return m_reactor.GetModule().At(index);
-	}
-
-	void ListBox::Clear()
-	{
-		m_reactor.GetModule().Clear();
-	}
-
-	void ListBox::ClearHeaders()
-	{
-		m_reactor.GetModule().ClearHeaders();
-	}
-
-	void ListBox::Erase(uint32_t index)
-	{
-		m_reactor.GetModule().Erase(index);
-	}
-
-	void ListBox::EnableMultiselection(bool enabled)
-	{
-		m_reactor.GetModule().EnableMultiselection(enabled);
-	}
-
-	std::vector<ListBoxItem> ListBox::GetSelected()
-	{
-		return m_reactor.GetModule().GetSelectedItems();
 	}
 
 	void ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
@@ -1037,6 +1050,7 @@ namespace Berta
 
 	void ListBoxReactor::Module::DrawList(Graphics& graphics)
 	{
+		bool enabled = true;
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
@@ -1052,18 +1066,27 @@ namespace Berta
 			auto absoluteIndex = m_list.m_sortedIndexes[i];
 			auto& item = m_list.m_items[absoluteIndex];
 			int cellOffset = 0;
-			
+
+			bool isLastSelected = (int)i == m_mouseSelection.m_pressedIndex;
 			bool isHovered = m_mouseSelection.m_hoveredIndex == (int)i;
 			bool isSelected = item.m_isSelected;
+			Rectangle itemRect{ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight };
 			if (isSelected)
 			{
+				auto lineColor = enabled ? (isLastSelected ? m_appearance->Foreground : (isSelected ? m_appearance->BoxBorderHighlightColor : m_appearance->BoxBorderColor)) : m_appearance->BoxBorderDisabledColor;
+
 				auto color = m_appearance->HighlightColor;
-				graphics.DrawRoundRectBox({ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight }, color, m_appearance->HighlightBorderColor, true);
+				graphics.DrawRoundRectBox(itemRect, color, lineColor, true);
 			}
 			else if (isHovered)
 			{
 				auto color = m_appearance->ItemCollectionHightlightBackground;
-				graphics.DrawRectangle({ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight }, color, true);
+				graphics.DrawRectangle(itemRect, color, true);
+			}
+			else if (isLastSelected)
+			{
+				auto color = m_appearance->Foreground;
+				graphics.DrawRectangle(itemRect, color, false);
 			}
 
 			for (size_t j = 0; j < item.m_cells.size(); j++)
@@ -1280,14 +1303,14 @@ namespace Berta
 		m_mouseSelection.m_selectedIndex = (int)absoluteItemIndex;
 	}
 
-	void ListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
+	void ListBoxReactor::Module::EnsureVisibility(int lastLocalSelectedIndex)
 	{
 		if (!m_scrollBarVert)
 		{
 			return;
 		}
 
-		Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y + (int)m_viewport.m_innerMargin + (int)(m_viewport.m_itemHeightWithMargin * lastSelectedIndex),
+		Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y + (int)m_viewport.m_innerMargin + (int)(m_viewport.m_itemHeightWithMargin * lastLocalSelectedIndex),
 			m_viewport.m_backgroundRect.Width, 
 			m_viewport.m_itemHeight
 		};
@@ -1413,9 +1436,19 @@ namespace Berta
 		return InteractionArea::ListBlank;
 	}
 
+	bool ListBoxReactor::MouseSelection::IsAlreadySelected(size_t index) const
+	{
+		return std::find(m_alreadySelected.begin(), m_alreadySelected.end(), index) != m_alreadySelected.end();
+	}
+
 	bool ListBoxReactor::MouseSelection::IsSelected(size_t index) const
 	{
 		return std::find(m_selections.begin(), m_selections.end(), index) != m_selections.end();
+	}
+
+	void ListBoxReactor::MouseSelection::Select(size_t index)
+	{
+		m_selections.push_back(index);
 	}
 
 	void ListBoxReactor::MouseSelection::Deselect(size_t index)
@@ -1524,5 +1557,59 @@ namespace Berta
 			m_module.m_list.m_drawImages = true;
 			m_module.BuildHeaderBounds();
 		}
+	}
+
+	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
+	{
+		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "ListBox";
+#endif
+	}
+
+	void ListBox::AppendHeader(const std::string& name, uint32_t width)
+	{
+		m_reactor.GetModule().AppendHeader(name, width);
+	}
+
+	void ListBox::Append(const std::string& text)
+	{
+		m_reactor.GetModule().Append(text);
+	}
+
+	void ListBox::Append(std::initializer_list<std::string> texts)
+	{
+		m_reactor.GetModule().Append(texts);
+	}
+
+	ListBoxItem ListBox::At(size_t index)
+	{
+		return m_reactor.GetModule().At(index);
+	}
+
+	void ListBox::Clear()
+	{
+		m_reactor.GetModule().Clear();
+	}
+
+	void ListBox::ClearHeaders()
+	{
+		m_reactor.GetModule().ClearHeaders();
+	}
+
+	void ListBox::Erase(uint32_t index)
+	{
+		m_reactor.GetModule().Erase(index);
+	}
+
+	void ListBox::EnableMultiselection(bool enabled)
+	{
+		m_reactor.GetModule().EnableMultiselection(enabled);
+	}
+
+	std::vector<ListBoxItem> ListBox::GetSelected()
+	{
+		return m_reactor.GetModule().GetSelectedItems();
 	}
 }

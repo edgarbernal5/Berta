@@ -117,7 +117,10 @@ namespace Berta
 
 		struct MouseSelection
 		{
+			bool IsAlreadySelected(size_t index) const;
 			bool IsSelected(size_t index) const;
+
+			void Select(size_t index);
 			void Deselect(size_t index);
 
 			std::vector<size_t> m_selections;
