@@ -19,6 +19,7 @@ namespace Berta
 		m_module.m_appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appearance.get());
 
 		m_module.m_window = control.Handle();
+		m_module.m_control = m_control;
 		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
@@ -596,7 +597,7 @@ namespace Berta
 
 	bool ThumbListBoxReactor::Module::UpdateSingleSelection(int newItemIndex)
 	{
-		bool needUpdate = (m_mouseSelection.m_selectedIndex != newItemIndex);
+		bool needUpdate = m_mouseSelection.m_selectedIndex != newItemIndex;
 		if (needUpdate)
 		{
 			ClearSingleSelection();
@@ -765,6 +766,9 @@ namespace Berta
 
 		m_scrollBar->Handle()->Renderer.Update();
 		GUI::RefreshWindow(m_scrollBar->Handle());
+
+	void ThumbListBoxReactor::Module::UpdatedThumbnail(ItemType& item)
+	{
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()
@@ -809,6 +813,15 @@ namespace Berta
 		{
 			m_selections.erase(it);
 		}
+	}
+
+	void ThumbListBoxItem::SetIcon(const Image& image)
+	{
+		if (m_target.m_thumbnail == image)
+			return;
+
+		m_target.m_thumbnail = image;
+		m_module.UpdatedThumbnail(m_target);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)

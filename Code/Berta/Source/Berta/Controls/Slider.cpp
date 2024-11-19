@@ -45,9 +45,12 @@ namespace Berta
 			//Point circlePosition{ (sliderCircleRect.X + sliderCircleRect.X + (int)sliderCircleRect.Width) / 2,  (sliderCircleRect.Y + sliderCircleRect.Y + (int)sliderCircleRect.Height) / 2 };
 			//graphics.DrawCircle(circlePosition, (int)sliderCircleRect.Width / 2, fillColor, window->Appearance->BoxBorderColor, true);
 
-			auto sliderBoxRect = GetSliderBoxRect();
+			/*auto sliderBoxRect = GetSliderBoxRect();
 			graphics.DrawRectangle(sliderBoxRect, fillColor, true);
-			graphics.DrawRectangle(sliderBoxRect, window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(sliderBoxRect, window->Appearance->BoxBorderColor, false);*/
+
+			auto sliderBoxRect = GetSliderBoxRect();
+			graphics.DrawRoundRectBox(sliderBoxRect, fillColor, window->Appearance->BoxBorderColor, true);
 		}
 	}
 
@@ -225,7 +228,7 @@ namespace Berta
 			Update(window->Renderer.GetGraphics());
 			if (fromTimer)
 			{
-				GUI::RefreshWindow(window);
+				GUI::UpdateWindow(window);
 			}
 			else
 			{
@@ -294,7 +297,7 @@ namespace Berta
 		auto trackRect = GetSliderTrackRect();
 		auto trackThickness = window->ToScale(m_trackThickness);
 		auto sliderBox = window->ToScale(15u);
-		auto boxLength = (trackThickness + 1) * 2u;
+		auto boxLength = window->ToScale(10u);
 
 		if (m_isVertical)
 		{

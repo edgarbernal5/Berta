@@ -42,7 +42,7 @@ namespace Berta
 			struct ItemData
 			{
 				ItemData() {}
-				ItemData(const std::string& text, uint32_t width) : m_name(text)
+				ItemData(const std::string& name, uint32_t width) : m_name(name)
 				{
 					m_bounds.Width = width;
 				}
@@ -124,7 +124,7 @@ namespace Berta
 			void Deselect(size_t index);
 
 			std::vector<size_t> m_selections;
-			std::vector<size_t> m_alreadySelected;
+			std::vector<size_t> m_alreadySelected; //TODO: cambiar por un set/map
 			int m_pressedIndex{ -1 }; //logical index
 			int m_hoveredIndex{ -1 }; //logical index
 			int m_selectedIndex{ -1 }; //logical index

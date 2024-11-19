@@ -39,6 +39,7 @@ namespace Berta
 
 		Image& operator=(const Image& rhs);
 		Image& operator=(Image&&) noexcept;
+		bool operator==(const Image& other) const;
 
 		Size GetSize() const { return m_attributes->GetSize(); }
 

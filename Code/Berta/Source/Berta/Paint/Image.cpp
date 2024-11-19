@@ -61,6 +61,11 @@ namespace Berta
 		return *this;
 	}
 
+	bool Image::operator==(const Image& other) const
+	{
+		return m_attributes == other.m_attributes;
+	}
+
 	void Image::Open(const std::string& filepath)
 	{
 		std::filesystem::path path{ filepath };

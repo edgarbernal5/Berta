@@ -68,6 +68,24 @@ namespace Berta
 				int m_endingVisibleIndex{ -1 };
 			};
 
+			struct MouseSelection
+			{
+				bool IsAlreadySelected(size_t index) const;
+				bool IsSelected(size_t index) const;
+				void Select(size_t index);
+				void Deselect(size_t index);
+
+				std::vector<size_t> m_selections; //TODO: cambiar a set/map
+				std::vector<size_t> m_alreadySelected;  //TODO: cambiar a set/map
+				int m_pressedIndex{ -1 };
+				int m_selectedIndex{ -1 };
+				int m_pivotIndex{ -1 };
+				Point m_startPosition;
+				Point m_endPosition;
+				bool m_started{ false };
+				bool m_inverseSelection{ false };
+			};
+
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleIndices();
@@ -92,32 +110,16 @@ namespace Berta
 			std::vector<size_t> GetSelectedItems() const;
 			void EnsureVisibility(int lastSelectedIndex);
 
+			void UpdatedThumbnail(ItemType& item);
+
 			std::vector<ItemType> m_items;
 			uint32_t m_thumbnailSize{ 96u };
 			std::unique_ptr<ScrollBar> m_scrollBar;
 			ThumbListBoxAppearance* m_appearance{ nullptr };
 			State m_state;
 			Window* m_window{ nullptr };
+			ControlBase* m_control{ nullptr };
 			bool m_multiselection{ true };
-
-			struct MouseSelection
-			{
-				bool IsAlreadySelected(size_t index) const;
-				bool IsSelected(size_t index) const;
-				void Select(size_t index);
-				void Deselect(size_t index);
-
-				std::vector<size_t> m_selections;
-				std::vector<size_t> m_alreadySelected;
-				int m_pressedIndex{ -1 };
-				int m_selectedIndex{ -1 };
-				int m_pivotIndex{ -1 };
-				Point m_startPosition;
-				Point m_endPosition;
-				bool m_started{ false };
-				bool m_inverseSelection{ false };
-			};
-
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			MouseSelection m_mouseSelection;
@@ -132,6 +134,19 @@ namespace Berta
 
 	private:
 		Module m_module;
+	};
+
+	struct ThumbListBoxItem
+	{
+		ThumbListBoxItem(ThumbListBoxReactor::Module::ItemType& target, ThumbListBoxReactor::Module& module) :
+			m_target(target), m_module(module)
+		{
+		}
+
+		void SetIcon(const Image& image);
+	private:
+		ThumbListBoxReactor::Module::ItemType& m_target;
+		ThumbListBoxReactor::Module& m_module;
 	};
 
 	class ThumbListBox : public Control<ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>

@@ -147,7 +147,7 @@ public:
 				m_thumbListBox.Erase(0);
 			});
 
-		m_thumbListBox.Create(*this, true, { 15, 45, 200, 200 });
+		m_thumbListBox.Create(*this, true, { 40, 45, 200, 200 });
 #ifdef BT_DEBUG
 		m_thumbListBox.SetDebugName("thummb list box");
 #endif
@@ -160,8 +160,8 @@ public:
 			m_thumbListBox.AddItem(builder.str(), image1);
 		}
 
-		m_slider.Create(*this, true, { 175,10,150,18 });
-		m_slider.SetOrientation(false);
+		m_slider.Create(*this, true, { 10,45,18,150 });
+		m_slider.SetOrientation(true);
 		m_slider.SetMinMax(0, 4);
 
 		m_slider.GetEvents().ValueChanged.Connect([this](const Berta::ArgSlider& args)

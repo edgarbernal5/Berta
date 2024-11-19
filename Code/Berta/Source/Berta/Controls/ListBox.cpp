@@ -70,13 +70,14 @@ namespace Berta
 		for (size_t i = 0; i < m_module.m_list.m_items.size(); i++)
 		{
 			const auto& cell = m_module.m_list.m_items[i].m_cells[selectedHeader];
-			auto cellWidth = m_module.m_window->ToDownwardScale(graphics.GetTextExtent(cell.m_text).Width);
+			auto cellWidth = graphics.GetTextExtent(cell.m_text).Width;
 			if (cellWidth > maxCellWidth)
 			{
 				maxCellWidth = cellWidth;
 			}
 		}
-		auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
+		maxCellWidth = m_module.m_window->ToDownwardScale(maxCellWidth);
+		auto leftMarginTextHeader = 5u;
 		maxCellWidth += leftMarginTextHeader * 2u;
 
 		auto newWidth = (std::max)(maxCellWidth, LISTBOX_MIN_HEADER_WIDTH);
@@ -402,9 +403,13 @@ namespace Berta
 			{
 				bool ascending = m_module.m_headers.isAscendingOrdering;
 				if (m_module.m_headers.m_sortedHeaderIndex != -1 && m_module.m_headers.m_sortedHeaderIndex == m_module.m_headers.m_selectedIndex)
+				{
 					ascending = !ascending;
+				}
 				else
+				{
 					ascending = true;
+				}
 
 				m_module.SortHeader(m_module.m_headers.m_selectedIndex, ascending);
 				m_module.m_headers.isAscendingOrdering = ascending;
@@ -659,7 +664,9 @@ namespace Berta
 		{
 			auto& itemIndex = m_mouseSelection.m_selections[i];
 			if (itemIndex > index)
+			{
 				--itemIndex;
+			}
 		}
 		auto it = m_list.m_items.begin() + index;
 		m_list.m_items.erase(it);
@@ -676,16 +683,16 @@ namespace Berta
 		if (m_viewport.m_needVerticalScroll)
 		{
 			m_scrollBarVert->Handle()->Renderer.Update();
-			//GUI::RefreshWindow(m_scrollBarVert->Handle());
+			//GUI::UpdateWindow(m_scrollBarVert->Handle());
 		}
 		if (m_viewport.m_needHorizontalScroll)
 		{
 			m_scrollBarHoriz->Handle()->Renderer.Update();
-			//GUI::RefreshWindow(m_scrollBarHoriz->Handle());
+			//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
 		}
 
 		m_window->Renderer.Update();
-		GUI::RefreshWindow(m_window);
+		GUI::UpdateWindow(m_window);
 	}
 
 	void ListBoxReactor::Module::EnableMultiselection(bool enabled)
@@ -835,7 +842,7 @@ namespace Berta
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();
-			GUI::RefreshWindow(m_window);
+			GUI::UpdateWindow(m_window);
 		}
 	}
 
@@ -848,7 +855,7 @@ namespace Berta
 		if (needUpdate)
 		{
 			m_window->Renderer.Update();
-			GUI::RefreshWindow(m_window);
+			GUI::UpdateWindow(m_window);
 		}
 	}
 
@@ -875,7 +882,7 @@ namespace Berta
 						CalculateVisibleIndices();
 
 						m_window->Renderer.Update();
-						GUI::RefreshWindow(m_window);
+						GUI::UpdateWindow(m_window);
 					});
 			}
 			else
@@ -916,7 +923,7 @@ namespace Berta
 						m_scrollOffset.X = args.Value;
 
 						m_window->Renderer.Update();
-						GUI::RefreshWindow(m_window);
+						GUI::UpdateWindow(m_window);
 					});
 			}
 			else
@@ -1335,7 +1342,7 @@ namespace Berta
 		m_scrollBarVert->SetValue(m_scrollOffset.Y);
 
 		m_scrollBarVert->Handle()->Renderer.Update();
-		GUI::RefreshWindow(m_scrollBarVert->Handle());
+		GUI::UpdateWindow(m_scrollBarVert->Handle());
 	}
 
 	void ListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
