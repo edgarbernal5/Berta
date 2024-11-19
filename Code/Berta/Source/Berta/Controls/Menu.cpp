@@ -459,7 +459,7 @@ namespace Berta
 			m_selectedIndex = selectedIndex;
 
 			Update(m_control->Handle()->Renderer.GetGraphics());
-			GUI::RefreshWindow(m_control->Handle());
+			GUI::UpdateWindow(m_control->Handle());
 		}
 	}
 

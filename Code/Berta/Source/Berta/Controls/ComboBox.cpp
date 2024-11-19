@@ -144,7 +144,7 @@ namespace Berta
 
 					auto window = m_control->Handle();
 					window->Renderer.Update();
-					GUI::RefreshWindow(window);
+					GUI::UpdateWindow(window);
 				}
 			});
 

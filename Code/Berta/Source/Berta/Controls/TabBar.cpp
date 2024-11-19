@@ -117,7 +117,7 @@ namespace Berta
 	{
 		if (m_module.AddTab(tabId, panel))
 		{
-			GUI::RefreshWindow(*m_control);
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 
@@ -126,7 +126,7 @@ namespace Berta
 		if (m_module.Clear())
 		{
 			Update(m_module.m_owner->Renderer.GetGraphics());
-			GUI::RefreshWindow(*m_control);
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 
@@ -134,7 +134,7 @@ namespace Berta
 	{
 		if (m_module.InsertTab(position, tabId, panel))
 		{
-			GUI::RefreshWindow(*m_control);
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 
@@ -143,7 +143,7 @@ namespace Berta
 		if (m_module.EraseTab(position))
 		{
 			Update(m_module.m_owner->Renderer.GetGraphics());
-			GUI::RefreshWindow(*m_control);
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 

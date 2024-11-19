@@ -182,12 +182,12 @@ namespace Berta
 				if (redrawScrollbar)
 				{
 					m_scrollBar->Handle()->Renderer.Update();
-					GUI::RefreshWindow(m_scrollBar->Handle());
+					GUI::UpdateWindow(m_scrollBar->Handle());
 				}
 			}
 
 			m_control->Handle()->Renderer.Update();
-			GUI::RefreshWindow(m_control->Handle());
+			GUI::UpdateWindow(m_control->Handle());
 			return true;
 		}
 		return false;
@@ -225,7 +225,7 @@ namespace Berta
 				//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
 					
 				m_control->Handle()->Renderer.Update();
-				GUI::RefreshWindow(m_control->Handle());
+				GUI::UpdateWindow(m_control->Handle());
 			});
 		}
 

@@ -36,7 +36,7 @@ namespace Berta
 		m_timer.Start();
 
 		m_owner->Renderer.Update();
-		GUI::RefreshWindow(m_owner);
+		GUI::UpdateWindow(m_owner);
 	}
 
 	void Caret::Show(bool visible)
@@ -44,7 +44,7 @@ namespace Berta
 		m_visible = visible;
 
 		m_owner->Renderer.Update();
-		GUI::RefreshWindow(m_owner);
+		GUI::UpdateWindow(m_owner);
 	}
 
 	void Caret::Deactivate()
@@ -52,7 +52,7 @@ namespace Berta
 		m_visible = false;
 
 		m_owner->Renderer.Update();
-		GUI::RefreshWindow(m_owner);
+		GUI::UpdateWindow(m_owner);
 
 		m_timer.Stop();
 	}

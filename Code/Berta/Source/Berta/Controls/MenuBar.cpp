@@ -125,7 +125,7 @@ namespace Berta
 				GUI::SetMenu(this);
 
 				Update(m_module.m_owner->Renderer.GetGraphics());
-				GUI::RefreshWindow(m_module.m_owner);
+				GUI::UpdateWindow(m_module.m_owner);
 			}
 		}
 		else
@@ -202,7 +202,7 @@ namespace Berta
 		GUI::SetMenu(this);
 
 		Update(m_module.m_owner->Renderer.GetGraphics());
-		GUI::RefreshWindow(m_module.m_owner);
+		GUI::UpdateWindow(m_module.m_owner);
 	}
 
 	void MenuBarReactor::Select()
@@ -262,7 +262,7 @@ namespace Berta
 
 			m_rootMenuItemReactor->Clear();
 			m_control->Handle()->Renderer.Update();
-			GUI::RefreshWindow(*m_control);
+			GUI::UpdateWindow(*m_control);
 		};
 		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
 		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);

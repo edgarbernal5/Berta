@@ -127,12 +127,12 @@ namespace Berta::GUI
 		}
 	}
 
-	void RefreshWindow(Window* window)
+	void UpdateWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.Refresh(window);
+			windowManager.Update(window);
 		}
 	}
 
@@ -143,7 +143,7 @@ namespace Berta::GUI
 		{
 			window->Flags.IsEnabled = isEnabled;
 			window->Renderer.Update();
-			RefreshWindow(window);
+			UpdateWindow(window);
 			if (window->Type == WindowType::Form)
 			{
 				API::EnableWindow(window->RootHandle, isEnabled);

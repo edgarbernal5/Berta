@@ -86,6 +86,7 @@ namespace Berta
 		}
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		//m_module.Draw(graphics);
 	}
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -463,7 +464,7 @@ namespace Berta
 				m_scrollBar.reset();
 				m_state.m_offset = 0;
 			}
-			GUI::RefreshWindow(m_window);
+			GUI::UpdateWindow(m_window);
 		}
 	}
 
@@ -492,11 +493,11 @@ namespace Berta
 		if (m_scrollBar)
 		{
 			m_scrollBar->Handle()->Renderer.Update();
-			//GUI::RefreshWindow(m_scrollBar->Handle());
+			//GUI::UpdateWindow(m_scrollBar->Handle());
 		}
 
 		m_window->Renderer.Update();
-		GUI::RefreshWindow(m_window);
+		GUI::UpdateWindow(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::SetThumbnailSize(uint32_t size)
@@ -519,7 +520,7 @@ namespace Berta
 		}
 
 		m_window->Renderer.Update();
-		GUI::RefreshWindow(m_window);
+		GUI::UpdateWindow(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::UpdateScrollBar()
@@ -544,7 +545,7 @@ namespace Berta
 					CalculateVisibleIndices();
 
 					m_window->Renderer.Update();
-					GUI::RefreshWindow(m_window);
+					GUI::UpdateWindow(m_window);
 				});
 		}
 		m_scrollBar->SetMinMax(0, (int)(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
@@ -765,7 +766,8 @@ namespace Berta
 		m_scrollBar->SetValue(m_state.m_offset);
 
 		m_scrollBar->Handle()->Renderer.Update();
-		GUI::RefreshWindow(m_scrollBar->Handle());
+		GUI::UpdateWindow(m_scrollBar->Handle());
+	}
 
 	void ThumbListBoxReactor::Module::UpdatedThumbnail(ItemType& item)
 	{

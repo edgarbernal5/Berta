@@ -271,7 +271,7 @@ namespace Berta
 			Update(window->Renderer.GetGraphics());
 			if (fromTimer)
 			{
-				GUI::RefreshWindow(window);
+				GUI::UpdateWindow(window);
 			}
 			else
 			{

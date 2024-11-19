@@ -27,7 +27,7 @@ namespace Berta
 		std::wstring CaptionWindow(Window* window);
 		void DisposeWindow(Window* window);
 		void ShowWindow(Window* window, bool visible);
-		void RefreshWindow(Window* window);
+		void UpdateWindow(Window* window);
 		void EnableWindow(Window* window, bool isEnabled);
 		bool EnableWindow(Window* window);
 

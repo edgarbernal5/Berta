@@ -137,7 +137,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::RefreshInternal(Window* window, Graphics& rootGraphics)
+	void WindowManager::UpdateInternal(Window* window, Graphics& rootGraphics)
 	{
 		if (window == nullptr)
 		{
@@ -162,7 +162,7 @@ namespace Berta
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			RefreshInternal(child, rootGraphics);
+			UpdateInternal(child, rootGraphics);
 		}
 	}
 
@@ -496,7 +496,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Refresh(Window* window)
+	void WindowManager::Update(Window* window)
 	{
 		auto& rootGraphics = *(window->RootWindow->RootGraphics);
 
@@ -505,7 +505,7 @@ namespace Berta
 
 		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 
-		RefreshInternal(window, rootGraphics);
+		UpdateInternal(window, rootGraphics);
 
 		window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
 	}

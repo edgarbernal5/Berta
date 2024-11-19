@@ -7,7 +7,7 @@
 #ifndef BT_BASE_HEADER
 #define BT_BASE_HEADER
 
-#define BERTA_APPLICATION_DPI 96.0f
+constexpr auto BERTA_APPLICATION_DPI = 96.0f;
 
 #include <string>
 
