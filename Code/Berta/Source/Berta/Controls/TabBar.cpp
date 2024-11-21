@@ -125,7 +125,6 @@ namespace Berta
 	{
 		if (m_module.Clear())
 		{
-			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::UpdateWindow(*m_control);
 		}
 	}
@@ -142,7 +141,6 @@ namespace Berta
 	{
 		if (m_module.EraseTab(position))
 		{
-			Update(m_module.m_owner->Renderer.GetGraphics());
 			GUI::UpdateWindow(*m_control);
 		}
 	}

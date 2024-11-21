@@ -142,9 +142,7 @@ namespace Berta
 
 					m_module.EmitSelectionEvent(selectedIndex);
 
-					auto window = m_control->Handle();
-					window->Renderer.Update();
-					GUI::UpdateWindow(window);
+					GUI::UpdateWindow(*m_control);
 				}
 			});
 

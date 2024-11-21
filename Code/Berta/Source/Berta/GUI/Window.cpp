@@ -7,8 +7,20 @@
 #include "btpch.h"
 #include "Window.h"
 
+#include "Berta/GUI/Control.h"
+
 namespace Berta
 {
+	void Window::Init(ControlBase* control)
+	{
+		ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
+
+		Flags.IsEnabled = true;
+		Flags.IsDisposed = false;
+		Flags.MakeActive = true;
+		Flags.isUpdating = false;
+	}
+
 	Window::~Window()
 	{
 		DeferredRequests.clear();

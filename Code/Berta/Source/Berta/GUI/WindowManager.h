@@ -62,14 +62,15 @@ namespace Berta
 
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);
-		void Map(Window* window);
+		void Map(Window* window, const Rectangle* areaToUpdate);
 		void Show(Window* window, bool visible);
 
 		void Resize(Window* window, const Size& newSize);
 		void Move(Window* window, const Rectangle& newRect);
 		void Update(Window* window);
-		void TryDeferredUpdate(Window* window);
+		bool TryDeferredUpdate(Window* window);
 		void UpdateDeferredRequests(Window* rootWindow);
+		void Paint(Window* window, bool doUpdate);
 
 		void ChangeDPI(Window* window, uint32_t newDPI);
 		void ChangeCursor(Window* window, Cursor newCursor);
@@ -89,7 +90,7 @@ namespace Berta
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
-		void UpdateInternal(Window* window, Graphics& rootGraphics);
+		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate);
 		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 

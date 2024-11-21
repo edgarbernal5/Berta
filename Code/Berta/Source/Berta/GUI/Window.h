@@ -69,13 +69,16 @@ namespace Berta
 
 		struct Flags
 		{
-			bool IsEnabled{ true };
-			bool IsDisposed{ false };
-			bool MakeActive{ true };
+			bool IsEnabled : 1;
+			bool IsDisposed : 1;
+			bool MakeActive : 1;
 			int IsDeferredCount{ 0 };
+			bool isUpdating : 1;
 		}Flags;
 
 		WindowStatus Status{ WindowStatus::None };
+
+		void Init(ControlBase* control);
 
 		//TODO: JustCtrl_AlignToDipsReturnPixels
 

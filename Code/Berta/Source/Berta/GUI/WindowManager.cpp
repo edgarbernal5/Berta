@@ -137,7 +137,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::UpdateInternal(Window* window, Graphics& rootGraphics)
+	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate)
 	{
 		if (window == nullptr)
 		{
@@ -155,6 +155,13 @@ namespace Berta
 
 			if (child->Type != WindowType::Panel)
 			{
+				if (doUpdate && !child->Flags.isUpdating)
+				{
+					child->Flags.isUpdating = true;
+					child->Renderer.Update();
+					child->Flags.isUpdating = false;
+				}
+
 				auto childAbsolutePosition = GetAbsolutePosition(child);
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
@@ -162,7 +169,7 @@ namespace Berta
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			UpdateInternal(child, rootGraphics);
+			PaintInternal(child, rootGraphics, doUpdate);
 		}
 	}
 
@@ -215,6 +222,23 @@ namespace Berta
 		result.Height = interBottom - interTop;
 
 		return true;
+	}
+
+	void WindowManager::Paint(Window* window, bool doUpdate)
+	{
+		if (doUpdate && !window->Flags.isUpdating)
+		{
+			window->Flags.isUpdating = true;
+			window->Renderer.Update();
+			window->Flags.isUpdating = false;
+		}
+
+		auto& rootGraphics = *(window->RootWindow->RootGraphics);
+		auto absolutePosition = GetAbsolutePosition(window);
+		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+
+		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		PaintInternal(window, rootGraphics, doUpdate);
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -403,14 +427,20 @@ namespace Berta
 		//window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 
-	void WindowManager::Map(Window* window)
+	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
 	{
-		Rectangle requestRectangle = window->Size.ToRectangle();
-		auto absolutePosition = GetAbsolutePosition(window);
-		requestRectangle.X = absolutePosition.X;
-		requestRectangle.Y = absolutePosition.Y;
+		if (areaToUpdate == nullptr)
+		{
+			Rectangle requestRectangle = window->Size.ToRectangle();
+			auto absolutePosition = GetAbsolutePosition(window);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 
-		window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+			window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+			return;
+		}
+
+		window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -498,30 +528,52 @@ namespace Berta
 
 	void WindowManager::Update(Window* window)
 	{
-		auto& rootGraphics = *(window->RootWindow->RootGraphics);
+		//TODO: verificar si estamos en modo "Deferred", si es asi ....
+		//TryDeferredUpdate
+		
+		if (window->Flags.isUpdating)
+		{
+			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
+		}
 
-		auto absolutePosition = GetAbsolutePosition(window);
-		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+		if (!window->Flags.isUpdating)
+		{
+			window->Flags.isUpdating = true;
+			window->Renderer.Update();
+			window->Flags.isUpdating = false;
+		}
 
-		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		if (!TryDeferredUpdate(window))
+		{
+			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << window->Name << std::endl;
+			
+			//auto& rootGraphics = *(window->RootWindow->RootGraphics);
 
-		UpdateInternal(window, rootGraphics);
+			//auto absolutePosition = GetAbsolutePosition(window);
+			//Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
-		window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+			//rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+			//window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+
+			Paint(window, false);
+			Map(window, nullptr);
+		}
+
+		//PaintInternal(window, rootGraphics);
 	}
 
-	void WindowManager::TryDeferredUpdate(Window* window)
+	bool WindowManager::TryDeferredUpdate(Window* window)
 	{
 		if (!window->Visible || !window->IsParentsVisible())
 		{
-			return;
+			return true;
 		}
 
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
 			//TODO: paint and map
 			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. window = " << window->Name << ". hwnd = " << window->RootHandle.Handle << std::endl;
-			return;
+			return false;
 		}
 
 		if (std::find(
@@ -535,7 +587,7 @@ namespace Berta
 			{
 				if ((*requestIt)->IsAncestorOf(window))
 				{
-					return;
+					return true;
 				}
 				if (window->IsAncestorOf(*requestIt))
 				{
@@ -549,6 +601,7 @@ namespace Berta
 
 			window->RootWindow->DeferredRequests.push_back(window);
 		}
+		return true;
 	}
 
 	void WindowManager::UpdateDeferredRequests(Window* rootWindow)

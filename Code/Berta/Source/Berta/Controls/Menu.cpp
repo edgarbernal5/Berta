@@ -458,8 +458,7 @@ namespace Berta
 		{
 			m_selectedIndex = selectedIndex;
 
-			Update(m_control->Handle()->Renderer.GetGraphics());
-			GUI::UpdateWindow(m_control->Handle());
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 
@@ -733,6 +732,7 @@ namespace Berta
 		
 		bool hasChanged = selectedIndex != m_selectedIndex;
 		m_selectedIndex = selectedIndex;
+
 		return hasChanged;
 	}
 

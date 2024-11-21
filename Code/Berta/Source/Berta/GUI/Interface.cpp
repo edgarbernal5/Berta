@@ -29,12 +29,13 @@ namespace Berta::GUI
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
 			Window* window = new Window(WindowType::Form);
+			window->Init(control);
+
 			window->RootHandle = windowResult.WindowHandle;
 			window->Size = windowResult.ClientSize;
 			window->RootWindow = window;
 			window->DPI = windowResult.DPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
-			window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
 
 			windowManager.AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->Size));
 			windowManager.Add(window);
@@ -55,7 +56,7 @@ namespace Berta::GUI
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
-		window->ControlWindowPtr = std::make_unique<ControlBase::ControlWindow>(*control);
+		window->Init(control);
 		
 		Rectangle rect{ rectangle };
 		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
@@ -142,7 +143,6 @@ namespace Berta::GUI
 		if (windowManager.Exists(window) && window->Flags.IsEnabled != isEnabled)
 		{
 			window->Flags.IsEnabled = isEnabled;
-			window->Renderer.Update();
 			UpdateWindow(window);
 			if (window->Type == WindowType::Form)
 			{

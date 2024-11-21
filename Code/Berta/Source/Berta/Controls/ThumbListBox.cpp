@@ -41,7 +41,7 @@ namespace Berta
 
 			Rectangle cardRect{ item.m_bounds.X + offset.X, item.m_bounds.Y + offset.Y, m_module.m_viewport.m_cardSize.Width, m_module.m_viewport.m_cardSize.Height };
 			
-			bool isSelected = item.m_isSelected;
+			const bool& isSelected = item.m_isSelected;
 			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
 			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
@@ -458,7 +458,6 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			m_window->Renderer.Update();
 			if (m_scrollBar)
 			{
 				m_scrollBar.reset();
@@ -493,10 +492,8 @@ namespace Berta
 		if (m_scrollBar)
 		{
 			m_scrollBar->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBar->Handle());
 		}
 
-		m_window->Renderer.Update();
 		GUI::UpdateWindow(m_window);
 	}
 
@@ -519,7 +516,6 @@ namespace Berta
 			m_scrollBar->Handle()->Renderer.Update();
 		}
 
-		m_window->Renderer.Update();
 		GUI::UpdateWindow(m_window);
 	}
 
@@ -544,7 +540,6 @@ namespace Berta
 					m_state.m_offset = args.Value;
 					CalculateVisibleIndices();
 
-					m_window->Renderer.Update();
 					GUI::UpdateWindow(m_window);
 				});
 		}
@@ -765,7 +760,6 @@ namespace Berta
 
 		m_scrollBar->SetValue(m_state.m_offset);
 
-		m_scrollBar->Handle()->Renderer.Update();
 		GUI::UpdateWindow(m_scrollBar->Handle());
 	}
 

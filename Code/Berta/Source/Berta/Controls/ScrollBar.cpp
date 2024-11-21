@@ -268,16 +268,7 @@ namespace Berta
 		{
 			EmitValueChanged();
 
-			Update(window->Renderer.GetGraphics());
-			if (fromTimer)
-			{
-				GUI::UpdateWindow(window);
-			}
-			else
-			{
-				GUI::MarkAsUpdated(window);
-			}
-			
+			GUI::UpdateWindow(window);
 		}
 	}
 

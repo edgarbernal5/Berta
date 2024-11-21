@@ -691,7 +691,6 @@ namespace Berta
 			//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
 		}
 
-		m_window->Renderer.Update();
 		GUI::UpdateWindow(m_window);
 	}
 
@@ -841,7 +840,6 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			m_window->Renderer.Update();
 			GUI::UpdateWindow(m_window);
 		}
 	}
@@ -854,7 +852,6 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			m_window->Renderer.Update();
 			GUI::UpdateWindow(m_window);
 		}
 	}
@@ -881,7 +878,6 @@ namespace Berta
 						m_scrollOffset.Y = args.Value;
 						CalculateVisibleIndices();
 
-						m_window->Renderer.Update();
 						GUI::UpdateWindow(m_window);
 					});
 			}
@@ -922,7 +918,6 @@ namespace Berta
 					{
 						m_scrollOffset.X = args.Value;
 
-						m_window->Renderer.Update();
 						GUI::UpdateWindow(m_window);
 					});
 			}
@@ -1341,7 +1336,6 @@ namespace Berta
 
 		m_scrollBarVert->SetValue(m_scrollOffset.Y);
 
-		m_scrollBarVert->Handle()->Renderer.Update();
 		GUI::UpdateWindow(m_scrollBarVert->Handle());
 	}
 

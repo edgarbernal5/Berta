@@ -186,8 +186,7 @@ namespace Berta
 				}
 			}
 
-			m_control->Handle()->Renderer.Update();
-			GUI::UpdateWindow(m_control->Handle());
+			GUI::UpdateWindow(*m_control);
 			return true;
 		}
 		return false;
@@ -223,9 +222,8 @@ namespace Berta
 			{
 				m_state.m_offset = args.Value;
 				//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
-					
-				m_control->Handle()->Renderer.Update();
-				GUI::UpdateWindow(m_control->Handle());
+				
+				GUI::UpdateWindow(*m_control);
 			});
 		}
 

@@ -35,7 +35,6 @@ namespace Berta
 		m_visible = true;
 		m_timer.Start();
 
-		m_owner->Renderer.Update();
 		GUI::UpdateWindow(m_owner);
 	}
 
@@ -43,7 +42,6 @@ namespace Berta
 	{
 		m_visible = visible;
 
-		m_owner->Renderer.Update();
 		GUI::UpdateWindow(m_owner);
 	}
 
@@ -51,7 +49,6 @@ namespace Berta
 	{
 		m_visible = false;
 
-		m_owner->Renderer.Update();
 		GUI::UpdateWindow(m_owner);
 
 		m_timer.Stop();

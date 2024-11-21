@@ -49,7 +49,7 @@ namespace Berta
 		Point GetMousePositionToWindow(Window* window);
 
 		void UpdateTree(Window* window);
-		void MarkAsUpdated(Window* window);
+		void MarkAsUpdated(Window* window); //Precondition: window must have been updated.
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);
