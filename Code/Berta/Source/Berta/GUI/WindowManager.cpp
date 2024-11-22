@@ -617,13 +617,8 @@ namespace Berta
 			if (Exists(request) && !request->Flags.IsDisposed)
 			{
 				//TODO: don't update a window twice. A child could be in the queue, add check.
-				auto absolutePosition = GetAbsolutePosition(request);
-				Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, request->Size.Width, request->Size.Height };
-				rootGraphics.BitBlt(requestRectangle, request->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-
-				UpdateDeferredRequestsInternal(request, rootGraphics);
-
-				rootWindow->Renderer.Map(rootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
+				Paint(request, false);
+				Map(request, nullptr);
 
 				//request->Status = WindowStatus::None;
 			}

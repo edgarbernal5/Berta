@@ -76,7 +76,9 @@ public:
 			});
 
 		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
-
+#ifdef BT_DEBUG
+		m_listBox.SetDebugName("ListBox");
+#endif
 		m_listBox.AppendHeader("Nombre completo", 100);
 		m_listBox.AppendHeader("Edad", 60);
 		m_listBox.AppendHeader("Lugar de Nacimiento", 200);

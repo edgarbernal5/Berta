@@ -259,7 +259,7 @@ namespace Berta
 		auto oneStepLength = m_isVertical ? ((float)sliderTrackRect.Height  / (m_max - m_min)) : ((float)sliderTrackRect.Width / (m_max - m_min));
 		oneStepLength *= 0.5f;
 
-		newBoxPosition += oneStepLength;
+		newBoxPosition += static_cast<int>(oneStepLength);
 		newValue = m_min + static_cast<int>(static_cast<float>(newBoxPosition * (m_max - m_min)) / trackLength);
 		newValue = std::clamp(newValue, m_min, m_max);
 
