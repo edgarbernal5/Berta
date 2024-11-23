@@ -1200,9 +1200,10 @@ namespace Berta
 			ToggleItemSelection(absoluteIndex);
 			needUpdate = true;
 		}
+		needUpdate |= m_mouseSelection.m_selectedIndex != localItemIndex;
 		m_mouseSelection.m_selectedIndex = localItemIndex;
 
-		EnsureVisibility(localItemIndex);
+		needUpdate |= EnsureVisibility(localItemIndex);
 		return needUpdate;
 	}
 
@@ -1305,11 +1306,11 @@ namespace Berta
 		m_mouseSelection.m_selectedIndex = (int)absoluteItemIndex;
 	}
 
-	void ListBoxReactor::Module::EnsureVisibility(int lastLocalSelectedIndex)
+	bool ListBoxReactor::Module::EnsureVisibility(int lastLocalSelectedIndex)
 	{
 		if (!m_scrollBarVert)
 		{
-			return;
+			return false;
 		}
 
 		Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y + (int)m_viewport.m_innerMargin + (int)(m_viewport.m_itemHeightWithMargin * lastLocalSelectedIndex),
@@ -1319,7 +1320,7 @@ namespace Berta
 
 		if (itemBounds.Y >= 0 && itemBounds.Y + (int)itemBounds.Height <= (int)m_viewport.m_backgroundRect.Height)
 		{
-			return;
+			return false;
 		}
 
 		auto offsetAdjustment = 0;
@@ -1337,6 +1338,7 @@ namespace Berta
 		m_scrollBarVert->SetValue(m_scrollOffset.Y);
 
 		GUI::UpdateWindow(m_scrollBarVert->Handle());
+		return true;
 	}
 
 	void ListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)

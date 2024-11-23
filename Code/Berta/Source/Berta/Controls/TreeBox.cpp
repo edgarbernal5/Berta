@@ -1,0 +1,36 @@
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
+#include "btpch.h"
+#include "TreeBox.h"
+
+#include "Berta/GUI/Interface.h"
+#include "Berta/GUI/EnumTypes.h"
+
+#include <numeric>
+
+namespace Berta
+{
+	void TreeBoxReactor::Init(ControlBase& control)
+	{
+		m_control = &control;
+	}
+
+	void TreeBoxReactor::Update(Graphics& graphics)
+	{
+		BT_CORE_TRACE << " -- TreeBox Update() " << std::endl;
+		
+	}
+
+	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
+	{
+		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "TreeBox";
+#endif
+	}
+}

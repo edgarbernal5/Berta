@@ -9,7 +9,6 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Controls/Panel.h"
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 
@@ -156,7 +155,7 @@ namespace Berta
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 			void SelectItem(size_t index);
 			void ClearSelection();
-			void EnsureVisibility(int lastSelectedIndex);
+			bool EnsureVisibility(int lastSelectedIndex);
 			void PerformRangeSelection(int itemIndexAtPosition);
 
 			void ToggleItemSelection(size_t itemIndexAtPosition);

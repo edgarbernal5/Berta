@@ -709,9 +709,10 @@ namespace Berta
 			ToggleItemSelection(itemIndexAtPosition);
 			needUpdate = true;
 		}
+		needUpdate |= m_mouseSelection.m_selectedIndex != itemIndexAtPosition;
 		m_mouseSelection.m_selectedIndex = itemIndexAtPosition;
 
-		EnsureVisibility(itemIndexAtPosition);
+		needUpdate |= EnsureVisibility(itemIndexAtPosition);
 		return needUpdate;
 	}
 
@@ -720,11 +721,11 @@ namespace Berta
 		return m_mouseSelection.m_selections;
 	}
 
-	void ThumbListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
+	bool ThumbListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
 	{
 		if (!m_scrollBar)
 		{
-			return;
+			return false;
 		}
 
 		auto itemBounds = m_items[lastSelectedIndex].m_bounds;
@@ -732,7 +733,7 @@ namespace Berta
 
 		if (m_viewport.m_backgroundRect.Contains(itemBounds))
 		{
-			return;
+			return false;
 		}
 
 		int itemHeight = static_cast<int>(itemBounds.Height);
@@ -761,6 +762,7 @@ namespace Berta
 		m_scrollBar->SetValue(m_state.m_offset);
 
 		GUI::UpdateWindow(m_scrollBar->Handle());
+		return true;
 	}
 
 	void ThumbListBoxReactor::Module::UpdatedThumbnail(ItemType& item)

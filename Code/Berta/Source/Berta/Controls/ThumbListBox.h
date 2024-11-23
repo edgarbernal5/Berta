@@ -17,6 +17,8 @@
 
 namespace Berta
 {
+	struct ThumbListBoxItem;
+
 	class ThumbListBoxReactor : public ControlReactor
 	{
 	public:
@@ -108,7 +110,7 @@ namespace Berta
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 
 			std::vector<size_t> GetSelectedItems() const;
-			void EnsureVisibility(int lastSelectedIndex);
+			bool EnsureVisibility(int lastSelectedIndex);
 
 			void UpdatedThumbnail(ItemType& item);
 
