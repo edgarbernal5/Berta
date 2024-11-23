@@ -47,12 +47,21 @@ namespace Berta
 
 			Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
 			Size thumbFrameSize{ thumbSize, thumbSize };
-			auto center = thumbFrameSize - imageSize;
-			center *= 0.5f;
+			Rectangle thumbnailRect;
+			if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
+			{
+				thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
+			}
+			else
+			{
+				Point center = thumbFrameSize;
+				center -= imageSize;
+				center /= 2;
 
-			Rectangle thumbnailRect{ cardRect.X + (int)center.Width, cardRect.Y + (int)center.Height, imageSize.Width, imageSize.Height };
+				thumbnailRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
+			}
+
 			item.m_thumbnail.Paste(graphics, thumbnailRect);
-
 			{
 				Size cardTextSize{ thumbSize, cardHeight };
 				auto center = cardTextSize - graphics.GetTextExtent(item.m_text);
@@ -351,6 +360,11 @@ namespace Berta
 	{
 		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
 		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
+	}
+
+	ThumbListBoxItem ThumbListBoxReactor::Module::At(size_t index)
+	{
+		return ThumbListBoxItem{ m_items[index], *this };
 	}
 
 	void ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
@@ -767,6 +781,15 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::UpdatedThumbnail(ItemType& item)
 	{
+		auto itemBounds = item.m_bounds;
+		itemBounds.Y -= m_state.m_offset;
+
+		if (!m_viewport.m_backgroundRect.Intersect(itemBounds))
+		{
+			return;
+		}
+
+		GUI::UpdateWindow(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()
@@ -834,6 +857,11 @@ namespace Berta
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
 		m_reactor.GetModule().AddItem(text, thumbnail);
+	}
+
+	ThumbListBoxItem ThumbListBox::At(size_t index)
+	{
+		return m_reactor.GetModule().At(index);
 	}
 
 	void ThumbListBox::Clear()

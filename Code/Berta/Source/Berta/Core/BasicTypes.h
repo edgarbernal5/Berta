@@ -196,6 +196,8 @@ namespace Berta
 
 		Rectangle ToRectangle() const;
 		bool IsInside(const Point& point) const;
+		
+		operator Point() const;
 
 		friend std::ostream& operator<<(std::ostream& os, const Size& size);
 

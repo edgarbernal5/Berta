@@ -89,6 +89,7 @@ namespace Berta
 			};
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
+			ThumbListBoxItem At(size_t index);
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleIndices();
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
@@ -158,6 +159,7 @@ namespace Berta
 		ThumbListBox(Window* parent, const Rectangle& rectangle);
 
 		void AddItem(const std::wstring& text, const Image& thumbnail);
+		ThumbListBoxItem At(size_t index);
 		void Clear();
 		void Erase(size_t index);
 		void SetThumbnailSize(uint32_t size);

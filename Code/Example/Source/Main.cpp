@@ -115,6 +115,7 @@ public:
 private:
 	Berta::Button m_buttonClear;
 	Berta::Button m_buttonErase;
+	Berta::Button m_buttonIcon;
 	Berta::ListBox m_listBox;
 };
 
@@ -149,6 +150,22 @@ public:
 				m_thumbListBox.Erase(0);
 			});
 
+
+		m_buttonIcon.Create(*this, true, { 175,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonIcon.SetDebugName("buttonIcon");
+#endif
+		m_buttonIcon.SetCaption(L"Icon");
+		m_buttonIcon.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				auto selected = m_thumbListBox.GetSelected();
+				if (selected.empty())
+					return;
+
+				Berta::Image newIcon("..\\..\\Resources\\Escudo.png");
+				m_thumbListBox.At(selected[0]).SetIcon(newIcon);
+			});
+
 		m_thumbListBox.Create(*this, true, { 40, 45, 200, 200 });
 #ifdef BT_DEBUG
 		m_thumbListBox.SetDebugName("thummb list box");
@@ -168,6 +185,7 @@ public:
 
 		m_slider.GetEvents().ValueChanged.Connect([this](const Berta::ArgSlider& args)
 			{
+				BT_CORE_TRACE << " -- Slider = " << args.Value << std::endl;
 				m_thumbListBox.SetThumbnailSize(m_thumbnailSizes[args.Value]);
 			});
 
@@ -182,6 +200,7 @@ public:
 private:
 	Berta::Button m_buttonClear;
 	Berta::Button m_buttonErase;
+	Berta::Button m_buttonIcon;
 	Berta::ThumbListBox m_thumbListBox;
 	Berta::Slider m_slider;
 	uint32_t m_thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };

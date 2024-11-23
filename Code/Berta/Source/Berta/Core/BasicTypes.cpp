@@ -110,6 +110,11 @@ namespace Berta
 		return point.X >= 0 && point.X < static_cast<int>(Width) && point.Y >= 0 && point.Y < static_cast<int>(Height);
 	}
 
+	Size::operator Point() const
+	{
+		return { (int)Width, (int)Height };
+	}
+
 	std::ostream& operator<<(std::ostream& os, const Size& size)
 	{
 		os << "{ Width=" << size.Width << "; Height=" << size.Height << "}";

@@ -9,10 +9,10 @@
 
 #include "Berta/Core/Logger.h"
 
-#define BT_CORE_TRACE (*Berta::Log::GetCoreLogger())(LogLevel::Trace)
-#define BT_CORE_DEBUG (*Berta::Log::GetCoreLogger())(LogLevel::Debug)
-#define BT_CORE_WARN (*Berta::Log::GetCoreLogger())(LogLevel::Warn)
-#define BT_CORE_ERROR (*Berta::Log::GetCoreLogger())(LogLevel::Error)
+#define BT_CORE_TRACE (*Berta::Log::GetCoreLogger())(Berta::LogLevel::Trace)
+#define BT_CORE_DEBUG (*Berta::Log::GetCoreLogger())(Berta::LogLevel::Debug)
+#define BT_CORE_WARN (*Berta::Log::GetCoreLogger())(Berta::LogLevel::Warn)
+#define BT_CORE_ERROR (*Berta::Log::GetCoreLogger())(Berta::LogLevel::Error)
 
 namespace Berta
 {
