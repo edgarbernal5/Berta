@@ -68,6 +68,16 @@ namespace Berta
 		Module m_module;
 	};
 
+	struct ArgComboBox
+	{
+		int SelectedIndex;
+	};
+
+	struct ComboboxEvents : public ControlEvents
+	{
+		Event<ArgComboBox>	Selected;
+	};
+
 	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents>
 	{
 	public:

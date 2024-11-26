@@ -25,6 +25,10 @@ namespace Berta
 		
 	}
 
+	void TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
+	{
+	}
+
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
@@ -32,5 +36,15 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "TreeBox";
 #endif
+	}
+
+	void TreeBox::Clear()
+	{
+		m_reactor.GetModule().Clear();
+	}
+
+	void TreeBox::Insert(const std::string& key, const std::string& text)
+	{
+		m_reactor.GetModule().Insert(key, text);
 	}
 }

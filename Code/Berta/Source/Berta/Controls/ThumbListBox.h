@@ -152,6 +152,23 @@ namespace Berta
 		ThumbListBoxReactor::Module& m_module;
 	};
 
+	struct ArgThumbListBox
+	{
+		size_t SelectedIndex{ 0 };
+	};
+
+	struct ArgThumbListBoxItemVisibility
+	{
+		size_t SelectedIndex{ 0 };
+		bool Visible{ false };
+	};
+
+	struct ThumbListBoxEvents : public ControlEvents
+	{
+		Event<ArgThumbListBox>	Selected;
+		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
+	};
+
 	class ThumbListBox : public Control<ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>
 	{
 	public:

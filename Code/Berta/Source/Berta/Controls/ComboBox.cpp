@@ -288,7 +288,7 @@ namespace Berta
 
 	void ComboBoxReactor::Module::EmitSelectionEvent(int index)
 	{
-		ArgComboBox argComboBox;
+		ArgComboBox argComboBox{};
 		argComboBox.SelectedIndex = index;
 
 		auto events = dynamic_cast<ComboboxEvents*>(m_owner->Events.get());

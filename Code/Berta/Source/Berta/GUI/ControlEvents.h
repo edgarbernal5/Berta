@@ -89,17 +89,6 @@ namespace Berta
 		Event<ArgVisibility>	Visibility;
 	};
 
-	struct ArgTextChanged
-	{
-		//ArgTextChanged(std::wstring& value):NewValue(value){}
-		std::wstring NewValue;
-	};
-
-	struct InputTextEvents : public ControlEvents
-	{
-		Event<ArgTextChanged> ValueChanged;
-	};
-
 	struct ArgSizeMove
 	{
 	};
@@ -120,58 +109,6 @@ namespace Berta
 		Event<ArgSizeMove>	EnterSizeMove;
 		Event<ArgSizeMove>	ExitSizeMove;
 		Event<ArgDisposing>	Disposing;
-	};
-
-	struct ArgComboBox
-	{
-		int SelectedIndex;
-	};
-
-	struct ComboboxEvents : public ControlEvents
-	{
-		Event<ArgComboBox>	Selected;
-	};
-
-	struct ArgScrollBar
-	{
-		ScrollBarUnit Value;
-	};
-
-	struct ScrollBarEvents : public ControlEvents
-	{
-		Event<ArgScrollBar>	ValueChanged;
-	};
-
-	struct ArgSlider
-	{
-		int Value;
-	};
-
-	struct SliderEvents : public ControlEvents
-	{
-		Event<ArgSlider>	ValueChanged;
-	};
-
-	struct ArgThumbListBox
-	{
-		size_t SelectedIndex{ 0 };
-	};
-
-	struct ArgThumbListBoxItemVisibility
-	{
-		size_t SelectedIndex{ 0 };
-		bool Visible{ false };
-	};
-
-	struct ThumbListBoxEvents : public ControlEvents
-	{
-		Event<ArgThumbListBox>	Selected;
-		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
-	};
-
-	struct ListBoxEvents : public ControlEvents
-	{
-		Event<ArgThumbListBox>	Selected;
 	};
 }
 

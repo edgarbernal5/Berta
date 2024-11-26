@@ -76,6 +76,16 @@ namespace Berta
 		bool m_trackPageUp{ false };
 	};
 
+	struct ArgScrollBar
+	{
+		ScrollBarUnit Value;
+	};
+
+	struct ScrollBarEvents : public ControlEvents
+	{
+		Event<ArgScrollBar>	ValueChanged;
+	};
+
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
 	{
 	public:

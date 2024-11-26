@@ -76,6 +76,16 @@ namespace Berta
 		bool m_trackPageUp{ false };
 	};
 
+	struct ArgSlider
+	{
+		int Value;
+	};
+
+	struct SliderEvents : public ControlEvents
+	{
+		Event<ArgSlider>	ValueChanged;
+	};
+
 	class Slider : public Control<SliderReactor, SliderEvents>
 	{
 	public:

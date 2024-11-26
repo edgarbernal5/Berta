@@ -17,6 +17,14 @@
 
 namespace Berta
 {
+	struct NodeType
+	{
+		bool expanded{ false };
+		std::string text;
+		NodeType* parent;
+		std::vector<NodeType*> children;
+	};
+
 	class TreeBoxReactor : public ControlReactor
 	{
 	public:
@@ -25,7 +33,8 @@ namespace Berta
 
 		struct Module
 		{
-			
+			void Clear();
+			void Insert(const std::string& key, const std::string& text);
 		};
 
 		Module& GetModule() { return m_module; }
@@ -40,6 +49,9 @@ namespace Berta
 	public:
 		TreeBox() = default;
 		TreeBox(Window* parent, const Rectangle& rectangle);
+
+		void Clear();
+		void Insert(const std::string& key, const std::string& text);
 	};
 }
 

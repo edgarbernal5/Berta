@@ -220,6 +220,16 @@ namespace Berta
 		ListBoxReactor::Module& m_module;
 	};
 
+	struct ArgListBox
+	{
+		size_t SelectedIndex{ 0 };
+	};
+
+	struct ListBoxEvents : public ControlEvents
+	{
+		Event<ArgListBox> Selected;
+	};
+
 	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>
 	{
 	public:

@@ -39,9 +39,21 @@ namespace Berta
 		TextEditor* m_textEditor{ nullptr };
 	};
 
+	struct ArgTextChanged
+	{
+		//ArgTextChanged(std::wstring& value):NewValue(value){}
+		std::wstring NewValue;
+	};
+
+	struct InputTextEvents : public ControlEvents
+	{
+		Event<ArgTextChanged> ValueChanged;
+	};
+
 	class InputText : public Control<InputTextReactor, InputTextEvents>
 	{
 	public:
+		InputText() = default;
 		InputText(Window* parent, const Rectangle& rectangle);
 
 	protected:
