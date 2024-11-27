@@ -29,6 +29,15 @@ namespace Berta
 	{
 	}
 
+	TreeNodeType* TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
+	{
+		return nullptr;
+	}
+
+	void TreeBoxReactor::Module::Erase(const TreeNodeHandle& handle)
+	{
+	}
+
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);

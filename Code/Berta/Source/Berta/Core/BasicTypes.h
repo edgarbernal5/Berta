@@ -119,8 +119,8 @@ namespace Berta
 	{
 		int X{ 0 };
 		int Y{ 0 };
-		uint32_t Width{ 0 };
-		uint32_t Height{ 0 };
+		uint32_t Width{ 0u };
+		uint32_t Height{ 0u };
 
 		Rectangle() = default;
 		Rectangle(int x, int y, uint32_t width, uint32_t height);

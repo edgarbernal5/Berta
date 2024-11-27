@@ -175,7 +175,7 @@ namespace Berta
 			}
 			return ::GetDpiForWindow(nativeHandle.Handle);
 #else
-			return 96;
+			return 96u;
 #endif
 		}
 

@@ -45,11 +45,12 @@ namespace Berta
 				Rectangle itemRect{ 2, 1 + static_cast<int>(i * itemHeight), rect.Width - 4,itemHeight };
 				if (isSelected)
 				{
-					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightColor, true);
+					graphics.DrawRoundRectBox(itemRect, window->Appearance->HighlightColor, window->Appearance->HighlightBorderColor, true);
+					//graphics.DrawRectangle(itemRect, window->Appearance->HighlightColor, true);
 				}
 				else if (isHovered)
 				{
-					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->ItemCollectionHightlightBackground, true);
+					graphics.DrawRectangle(itemRect, window->Appearance->ItemCollectionHightlightBackground, true);
 				}
 				auto iconSize = window->ToScale(16u);
 				auto iconMargin = window->ToScale(3u);
@@ -67,11 +68,11 @@ namespace Berta
 					}
 				}
 
-				graphics.DrawString(textPosition, items[offsetIndex].m_text, m_control->Handle()->Appearance->Foreground);
-				if (isSelected)
+				graphics.DrawString(textPosition, items[offsetIndex].m_text, window->Appearance->Foreground);
+				/*if (isSelected)
 				{
-					graphics.DrawRectangle(itemRect, m_control->Handle()->Appearance->HighlightBorderColor, false);
-				}
+					graphics.DrawRectangle(itemRect, window->Appearance->HighlightBorderColor, false);
+				}*/
 			}
 		}
 

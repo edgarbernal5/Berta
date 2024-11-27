@@ -14,15 +14,19 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace Berta
 {
-	struct NodeType
+	using TreeNodeHandle = std::string;
+
+	struct TreeNodeType
 	{
 		bool expanded{ false };
+		bool selected{ false };
 		std::string text;
-		NodeType* parent;
-		std::vector<NodeType*> children;
+		TreeNodeType* parent;
+		std::vector<TreeNodeType*> children;
 	};
 
 	class TreeBoxReactor : public ControlReactor
@@ -35,6 +39,10 @@ namespace Berta
 		{
 			void Clear();
 			void Insert(const std::string& key, const std::string& text);
+			TreeNodeType* Find(const TreeNodeHandle& handle);
+			void Erase(const TreeNodeHandle& handle);
+
+			std::unordered_map<std::string, TreeNodeType*> nodeLookup;
 		};
 
 		Module& GetModule() { return m_module; }
