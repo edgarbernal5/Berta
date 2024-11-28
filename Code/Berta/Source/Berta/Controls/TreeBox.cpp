@@ -25,13 +25,50 @@ namespace Berta
 		
 	}
 
-	void TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
+	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
 	{
+		TreeNodeType* parentNode{ nullptr };
+
+		return {};
 	}
 
-	TreeNodeType* TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
+	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle)
 	{
-		return nullptr;
+		TreeNodeType* parentNode{ nullptr };
+		if (!parentHandle.empty()) {
+			auto it = nodeLookup.find(parentHandle);
+			if (it == nodeLookup.end()) {
+				return {};
+			}
+			parentNode = it->second;
+		}
+
+		std::string handle = GenerateUniqueHandle(key, parentNode);
+		auto node = std::make_unique<TreeNodeType>(handle, text, parentNode);
+		TreeNodeType* nodePtr = node.get();
+
+		if (parentNode) {
+			//parentNode->children.emplace_back(std::move(node));
+		}
+		//else {
+		//	rootNodes.push_back(std::move(node));
+		//}
+
+		nodeLookup[handle] = nodePtr;
+		return {};
+	}
+
+	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
+	{
+		return {};
+	}
+
+	TreeNodeHandle TreeBoxReactor::Module::GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode)
+	{
+		if (!parentNode) {
+			return key;
+		}
+		return parentNode->key + "/" + key;
 	}
 
 	void TreeBoxReactor::Module::Erase(const TreeNodeHandle& handle)
@@ -52,8 +89,8 @@ namespace Berta
 		m_reactor.GetModule().Clear();
 	}
 
-	void TreeBox::Insert(const std::string& key, const std::string& text)
+	TreeBoxItem TreeBox::Insert(const std::string& key, const std::string& text)
 	{
-		m_reactor.GetModule().Insert(key, text);
+		return m_reactor.GetModule().Insert(key, text);
 	}
 }
