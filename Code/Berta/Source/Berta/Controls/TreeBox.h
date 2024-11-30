@@ -51,7 +51,8 @@ namespace Berta
 
 			void Erase(const TreeNodeHandle& handle);
 
-			std::unordered_map<std::string, TreeNodeType*> nodeLookup;
+			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> nodeLookup;
+			std::vector<TreeNodeType*> rootNodes;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -63,6 +64,8 @@ namespace Berta
 
 	struct TreeBoxItem
 	{
+		TreeBoxItem() = default;
+		TreeBoxItem(TreeBoxReactor::TreeNodeType* node) : m_node(node) {}
 
 	private:
 		TreeBoxReactor::TreeNodeType* m_node{ nullptr };

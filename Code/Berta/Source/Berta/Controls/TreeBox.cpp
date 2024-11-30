@@ -27,48 +27,75 @@ namespace Berta
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
 	{
-		TreeNodeType* parentNode{ nullptr };
+		auto hasParentIndex = key.find_last_of('/');
+		if (hasParentIndex != std::string::npos)
+		{
+			return Insert(key.substr(hasParentIndex, key.size()), text, key.substr(0, hasParentIndex));
+		}
 
-		return {};
+		auto node = std::make_unique<TreeNodeType>(key, text);
+		TreeNodeType* nodePtr = node.get();
+
+		rootNodes.emplace_back(nodePtr);
+
+		nodeLookup[key] = std::move(node);
+		return { nodePtr };
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle)
 	{
 		TreeNodeType* parentNode{ nullptr };
-		if (!parentHandle.empty()) {
+		if (!parentHandle.empty())
+		{
 			auto it = nodeLookup.find(parentHandle);
-			if (it == nodeLookup.end()) {
+			if (it == nodeLookup.end())
+			{
 				return {};
 			}
-			parentNode = it->second;
+			parentNode = it->second.get();
 		}
 
 		std::string handle = GenerateUniqueHandle(key, parentNode);
 		auto node = std::make_unique<TreeNodeType>(handle, text, parentNode);
+		node->parent = parentNode;
 		TreeNodeType* nodePtr = node.get();
 
-		if (parentNode) {
-			//parentNode->children.emplace_back(std::move(node));
+		if (parentNode)
+		{
+			parentNode->children.emplace_back(nodePtr);
 		}
-		//else {
-		//	rootNodes.push_back(std::move(node));
-		//}
+		else
+		{
+			rootNodes.emplace_back(nodePtr);
+		}
 
-		nodeLookup[handle] = nodePtr;
-		return {};
+		nodeLookup[handle] = std::move(node);
+		return { nodePtr };
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
 	{
-		return {};
+		if (handle.empty())
+		{
+			return {};
+		}
+
+		auto it = nodeLookup.find(handle);
+		if (it == nodeLookup.end())
+		{
+			return {};
+		}
+
+		return { it->second.get() };
 	}
 
 	TreeNodeHandle TreeBoxReactor::Module::GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode)
 	{
-		if (!parentNode) {
-			return key;
+		if (parentNode)
+		{
+			return parentNode->key + "/" + key;
 		}
-		return parentNode->key + "/" + key;
+		return key;
 	}
 
 	void TreeBoxReactor::Module::Erase(const TreeNodeHandle& handle)
