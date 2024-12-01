@@ -64,19 +64,6 @@ namespace Berta
 
 		uint32_t TabBarItemHeight = 27;
 	};
-
-	struct ThumbListBoxAppearance : public ControlAppearance
-	{
-		uint32_t ThumbnailCardHeight = 45;
-	};
-
-	struct ListBoxAppearance : public ControlAppearance
-	{
-		uint32_t HeadersHeight = 26;
-		uint32_t ListItemHeight = 24;
-		uint32_t ListItemIconSize = 16;
-		uint32_t ListItemIconMargin = 4;
-	};
 }
 
 #endif

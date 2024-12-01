@@ -29,6 +29,7 @@ namespace Berta
 
 		struct TreeNodeType
 		{
+			TreeNodeType() = default;
 			TreeNodeType(const std::string& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
 				: key(key_),text(text_), parent(parent_) {}
 
@@ -37,12 +38,15 @@ namespace Berta
 			std::string text;
 			std::string key;
 
-			TreeNodeType* parent;
-			std::vector<TreeNodeType*> children;
+			TreeNodeType* parent{ nullptr };
+			TreeNodeType* firstChild{ nullptr };
+			TreeNodeType* nextSibling{ nullptr };
 		};
 
 		struct Module
 		{
+			void CalculateFirstVisible();
+			TreeNodeType* GetNextVisible(TreeNodeType* node);
 			void Clear();
 			TreeBoxItem Insert(const std::string& key, const std::string& text);
 			TreeBoxItem Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle);
@@ -52,7 +56,9 @@ namespace Berta
 			void Erase(const TreeNodeHandle& handle);
 
 			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> nodeLookup;
-			std::vector<TreeNodeType*> rootNodes;
+			
+			TreeNodeType* m_firstVisible{ nullptr };
+			TreeNodeType m_root;
 		};
 
 		Module& GetModule() { return m_module; }

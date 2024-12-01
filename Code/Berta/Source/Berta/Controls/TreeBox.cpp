@@ -23,6 +23,54 @@ namespace Berta
 	{
 		BT_CORE_TRACE << " -- TreeBox Update() " << std::endl;
 		
+		auto currentNode = m_module.m_firstVisible;
+		while (currentNode != nullptr)
+		{
+			currentNode = m_module.GetNextVisible(currentNode);
+		}
+	}
+
+	void TreeBoxReactor::Module::CalculateFirstVisible()
+	{
+		if (m_root.firstChild == nullptr)
+		{
+			m_firstVisible = nullptr;
+			return;
+		}
+
+		m_firstVisible = m_root.firstChild;
+	}
+
+	Berta::TreeBoxReactor::TreeNodeType* TreeBoxReactor::Module::GetNextVisible(TreeNodeType* node)
+	{
+		if (node == nullptr)
+			return nullptr;
+
+		if (node->expanded)
+		{
+			if (node->firstChild == nullptr)
+				return nullptr;
+
+			return node->firstChild;
+		}
+
+		if (node->nextSibling != nullptr)
+		{
+			return node->nextSibling;
+		}
+
+		auto parent = node->parent;
+		if (parent == &m_root)
+			return nullptr;
+
+		//GetNextVisible(parent);
+
+		return nullptr;
+	}
+
+	void TreeBoxReactor::Module::Clear()
+	{
+		m_firstVisible = nullptr;
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
@@ -33,11 +81,11 @@ namespace Berta
 			return Insert(key.substr(hasParentIndex, key.size()), text, key.substr(0, hasParentIndex));
 		}
 
-		auto node = std::make_unique<TreeNodeType>(key, text);
+		auto node = std::make_unique<TreeNodeType>(key, text, &m_root);
 		TreeNodeType* nodePtr = node.get();
 
-		rootNodes.emplace_back(nodePtr);
-
+		m_root.firstChild = nodePtr;
+		
 		nodeLookup[key] = std::move(node);
 		return { nodePtr };
 	}
@@ -62,11 +110,35 @@ namespace Berta
 
 		if (parentNode)
 		{
-			parentNode->children.emplace_back(nodePtr);
+			if (parentNode->firstChild == nullptr)
+			{
+				parentNode->firstChild = nodePtr;
+			}
+			else
+			{
+				auto where = parentNode->firstChild;
+				while (where->nextSibling != nullptr)
+				{
+					where = where->nextSibling;
+				}
+				where->nextSibling = nodePtr;
+			}
 		}
 		else
 		{
-			rootNodes.emplace_back(nodePtr);
+			if (m_root.firstChild == nullptr)
+			{
+				m_root.firstChild = nodePtr;
+			}
+			else
+			{
+				auto where = m_root.firstChild;
+				while (where->nextSibling != nullptr)
+				{
+					where = where->nextSibling;
+				}
+				m_root.nextSibling = nodePtr;
+			}
 		}
 
 		nodeLookup[handle] = std::move(node);

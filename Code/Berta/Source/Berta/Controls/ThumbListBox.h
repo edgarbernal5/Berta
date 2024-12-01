@@ -19,6 +19,11 @@ namespace Berta
 {
 	struct ThumbListBoxItem;
 
+	struct ThumbListBoxAppearance : public ControlAppearance
+	{
+		uint32_t ThumbnailCardHeight = 45;
+	};
+
 	class ThumbListBoxReactor : public ControlReactor
 	{
 	public:
