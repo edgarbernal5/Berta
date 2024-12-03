@@ -33,7 +33,7 @@ namespace Berta
 			TreeNodeType(const std::string& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
 				: key(key_),text(text_), parent(parent_) {}
 
-			bool expanded{ false };
+			bool isExpanded{ false };
 			bool selected{ false };
 			std::string text;
 			std::string key;
@@ -43,22 +43,40 @@ namespace Berta
 			TreeNodeType* nextSibling{ nullptr };
 		};
 
+		struct ViewportData
+		{
+			Rectangle m_backgroundRect{};
+			bool m_needVerticalScroll{ false };
+			bool m_needHorizontalScroll{ false };
+			Size m_contentSize{};
+		};
+
 		struct Module
 		{
-			void CalculateFirstVisible();
-			TreeNodeType* GetNextVisible(TreeNodeType* node);
+			void CalculateViewport(ViewportData& viewportData);
+			void CalculateVisibleNodes();
+			uint32_t CalculateTreeSize(TreeNodeType* node);
+			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
+			TreeNodeType* GetNextVisible(TreeNodeType* node);
 			TreeBoxItem Insert(const std::string& key, const std::string& text);
 			TreeBoxItem Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
-
 			void Erase(const TreeNodeHandle& handle);
+			bool UpdateScrollBars();
 
-			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> nodeLookup;
+			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			
-			TreeNodeType* m_firstVisible{ nullptr };
+			Point m_scrollOffset{};
+			std::unique_ptr<ScrollBar> m_scrollBarVert;
+			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
+
+			ViewportData m_viewport;
 			TreeNodeType m_root;
+			Window* m_window{ nullptr };
+			std::vector<TreeNodeType*> m_visibleNodes;
+			bool m_drawImages{ false };
 		};
 
 		Module& GetModule() { return m_module; }

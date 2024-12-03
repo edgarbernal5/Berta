@@ -52,7 +52,7 @@ namespace Berta
 				{
 					graphics.DrawRectangle(itemRect, window->Appearance->ItemCollectionHightlightBackground, true);
 				}
-				auto iconSize = window->ToScale(16u);
+				auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
 				auto iconMargin = window->ToScale(3u);
 				Point textPosition{ itemRect.X + 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) };
 				if (m_interactionData->m_drawImages)

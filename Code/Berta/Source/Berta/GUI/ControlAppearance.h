@@ -55,6 +55,7 @@ namespace Berta
 
 		uint32_t ComboBoxItemHeight = 20;
 		uint32_t ScrollBarSize = 18;
+		uint32_t SmallIconSize = 16;
 
 		uint32_t MenuBarItemHeight = 18;
 		uint32_t MenuBoxLeftPaneWidth = 32;

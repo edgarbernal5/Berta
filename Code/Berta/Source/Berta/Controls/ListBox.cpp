@@ -19,7 +19,7 @@ namespace Berta
 		m_control = &control;
 		m_module.m_window = control.Handle();
 
-		m_module.m_appearance = reinterpret_cast<ListBoxAppearance*>(control.Handle()->Appearance.get());
+		m_module.m_appearance = reinterpret_cast<ListBoxAppearance*>(m_module.m_window->Appearance.get());
 
 		m_module.CalculateViewport(m_module.m_viewport);
 		m_module.CalculateVisibleIndices();
@@ -863,7 +863,6 @@ namespace Berta
 
 		if (m_viewport.m_needVerticalScroll)
 		{
-			auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight) + m_viewport.m_innerMargin * 2u;
 			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
 			if (m_viewport.m_needHorizontalScroll)
 			{
@@ -886,6 +885,7 @@ namespace Berta
 				GUI::MoveWindow(m_scrollBarVert->Handle(), scrollRect);
 			}
 
+			auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight) + m_viewport.m_innerMargin * 2u;
 			m_scrollBarVert->SetMinMax(0, (int)(m_viewport.m_contentSize.Height - m_viewport.m_backgroundRect.Height));
 			m_scrollBarVert->SetPageStepValue(m_viewport.m_backgroundRect.Height);
 			m_scrollBarVert->SetStepValue(listItemHeight);

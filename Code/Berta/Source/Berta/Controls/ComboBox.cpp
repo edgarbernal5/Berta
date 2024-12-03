@@ -66,7 +66,7 @@ namespace Berta
 		Point textPosition{ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 };
 		if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
 		{
-			auto iconSize = window->ToScale(16u);
+			auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
 			auto iconMargin = window->ToScale(3u);
 			textPosition.X += (int)(iconSize + iconMargin * 2u);
 
