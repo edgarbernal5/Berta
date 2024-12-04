@@ -39,9 +39,35 @@ namespace Berta
 		for (auto& node : m_module.m_visibleNodes)
 		{
 			auto depth = m_module.CalculateNodeDepth(node);
-			Rectangle nodeRect{ offset.X, offset.Y, m_module.m_viewport.m_backgroundRect.Width,nodeHeight };
+			Rectangle nodeRect{ offset.X, offset.Y, m_module.m_viewport.m_contentSize.Width,nodeHeight };
 
 			bool& isSelected = node->selected;
+			int nodeOffset = (depth - 1) * iconSize;
+			if (node->firstChild)
+			{
+				int arrowWidth = window->ToScale(4);
+				int arrowLength = window->ToScale(2);
+				graphics.DrawArrow({ nodeRect.X + nodeOffset, nodeRect.Y + (int)(nodeHeight - iconSize) / 2, iconSize, nodeHeight},
+					arrowLength,
+					arrowWidth,
+					window->Appearance->Foreground2nd,
+					node->isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
+					node->isExpanded);
+			}
+			nodeOffset += iconSize;
+			if (m_module.m_drawImages)
+			{
+				if (node->icon)
+				{
+					auto& icon = node->icon;
+					auto iconSourceSize = icon.GetSize();
+					auto positionY = (nodeHeight - iconSize) >> 1;
+					icon.Paste(graphics, { nodeRect.X + nodeOffset, (int)positionY, iconSize , iconSize });
+				}
+
+				nodeOffset += iconSize;
+			}
+			graphics.DrawString({ nodeRect.X + nodeOffset, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height)/2}, node->text, m_module.m_window->Appearance->Foreground);
 			offset.Y += static_cast<int>(nodeHeight);
 		}
 
@@ -51,6 +77,21 @@ namespace Berta
 			graphics.DrawRectangle({ (int)(m_module.m_window->Size.Width - scrollSize) - 1, (int)(m_module.m_window->Size.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
 		}
 		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+	}
+
+	void TreeBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+		m_module.CalculateViewport(m_module.m_viewport);
+
+		m_module.UpdateScrollBars();
+		m_module.CalculateVisibleNodes();
+
+		if (m_module.m_scrollBarVert)
+		{
+			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
+			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
+			GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
+		}
 	}
 
 	void TreeBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
@@ -74,9 +115,9 @@ namespace Berta
 
 	void TreeBoxReactor::Module::CalculateVisibleNodes()
 	{
+		m_visibleNodes.clear();
 		if (m_root.firstChild == nullptr)
 		{
-			m_visibleNodes.clear();
 			return;
 		}
 
@@ -89,7 +130,7 @@ namespace Berta
 		int index = 0;
 
 		std::stack<TreeNodeType*> stack;
-		stack.push(&m_root);
+		stack.push(m_root.firstChild);
 
 		while (!stack.empty())
 		{
@@ -106,14 +147,14 @@ namespace Berta
 
 			++index;
 
-			if (node->isExpanded && node->firstChild)
-			{
-				stack.push(node->firstChild);
-			}
-
 			if (node->nextSibling)
 			{
 				stack.push(node->nextSibling);
+			}
+
+			if (node->isExpanded && node->firstChild)
+			{
+				stack.push(node->firstChild);
 			}
 		}
 	}
@@ -196,13 +237,25 @@ namespace Berta
 		auto hasParentIndex = key.find_last_of('/');
 		if (hasParentIndex != std::string::npos)
 		{
-			return Insert(key.substr(hasParentIndex, key.size()), text, key.substr(0, hasParentIndex));
+			return Insert(key.substr(hasParentIndex+1, key.size()), text, key.substr(0, hasParentIndex));
 		}
 
 		auto node = std::make_unique<TreeNodeType>(key, text, &m_root);
 		TreeNodeType* nodePtr = node.get();
 
-		m_root.firstChild = nodePtr;
+		if (m_root.firstChild)
+		{
+			auto where = m_root.firstChild;
+			while (where->nextSibling != nullptr)
+			{
+				where = where->nextSibling;
+			}
+			where->nextSibling = nodePtr;
+		}
+		else
+		{
+			m_root.firstChild = nodePtr;
+		}
 		
 		m_nodeLookup[key] = std::move(node);
 		return { nodePtr };

@@ -16,6 +16,7 @@
 #include <Berta/Controls/ThumbListBox.h>
 #include <Berta/Controls/ListBox.h>
 #include <Berta/Controls/Slider.h>
+#include <Berta/Controls/TreeBox.h>
 #include <iostream>
 
 class TabExample1 : public Berta::Panel
@@ -27,7 +28,7 @@ public:
 		SetDebugName("Tab Apariencia");
 #endif
 
-		m_button.Create(*this, true, { 5,35,100,40 });
+		m_button.Create(*this, true, { 5,15,100,25 });
 		m_button.SetCaption(L"Click me on tab!");
 #ifdef BT_DEBUG
 		m_button.SetDebugName("button tab panel 1");
@@ -36,6 +37,21 @@ public:
 		{
 			std::cout << "CLICK button tab panel 1" << std::endl;
 		});
+
+		m_treeBox.Create(*this, true, { 5,50,300,200 });
+#ifdef BT_DEBUG
+		m_treeBox.SetDebugName("Tree box");
+#endif
+		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+			{
+				auto currentPosition = m_treeBox.GetPosition();
+				auto margin = m_treeBox.Handle()->ToScale(10);
+				m_treeBox.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
+			});
+
+		m_treeBox.Insert("C:", "C:/");
+		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas");
+		m_treeBox.Insert("D:", "D:/");
 	}
 
 	TabExample1() : Panel()
@@ -44,6 +60,7 @@ public:
 
 private:
 	Berta::Button m_button;
+	Berta::TreeBox m_treeBox;
 };
 
 class TabExample2 : public Berta::Panel

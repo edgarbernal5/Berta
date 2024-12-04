@@ -26,6 +26,7 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void Resize(Graphics& graphics, const ArgResize& args) override;
 
 		struct TreeNodeType
 		{
@@ -37,6 +38,7 @@ namespace Berta
 			bool selected{ false };
 			std::string text;
 			std::string key;
+			Image icon;
 
 			TreeNodeType* parent{ nullptr };
 			TreeNodeType* firstChild{ nullptr };
