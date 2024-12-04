@@ -398,9 +398,8 @@ namespace Berta
 		{
 			return;
 		}
-		//EnableAntiAliasing(m_attributes->m_hdc);
 
-		POINT arrowPoints[3]{};
+		POINT arrowPoints[4]{};
 
 		int centerX = (rect.X * 2 + (int)rect.Width) >> 1;
 		int centerY = (rect.Y * 2 + (int)rect.Height) >> 1;
@@ -450,30 +449,24 @@ namespace Berta
 			arrowPoints[2].y = centerY;
 		}
 
+		arrowPoints[3] = arrowPoints[0];
+
 		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
-		HBRUSH hBrush = NULL;
 		if (solid)
 		{
-			hBrush = ::CreateSolidBrush(color);
+			HBRUSH hBrush = ::CreateSolidBrush(color);
 			::SelectObject(m_attributes->m_hdc, hBrush);
 			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
+			::DeleteObject(hBrush);
 		}
 		else
 		{
-			::Polyline(m_attributes->m_hdc, arrowPoints, 3);
+			::Polyline(m_attributes->m_hdc, arrowPoints, 4);
 		}
 
-		if (hPen)
-		{
-			::DeleteObject(hPen);
-		}
-
-		if (hBrush)
-		{
-			::DeleteObject(hBrush);
-		}
+		::DeleteObject(hPen);
 		::SelectObject(m_attributes->m_hdc, hOldPen);
 #endif
 	}
