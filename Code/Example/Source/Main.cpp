@@ -51,6 +51,12 @@ public:
 
 		m_treeBox.Insert("C:", "C:/");
 		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas");
+		m_treeBox.Insert("C:/Windows", "Windows");
+		m_treeBox.Insert("C:/Temp", "Temp");
+		m_treeBox.Insert("C:/Archivos de programas/Unity", "Unity");
+		m_treeBox.Insert("C:/Archivos de programas/Office 365", "Office 365");
+		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat", "Adobe Acrobat");
+		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat/Crack", "Crack");
 		m_treeBox.Insert("D:", "D:/");
 	}
 

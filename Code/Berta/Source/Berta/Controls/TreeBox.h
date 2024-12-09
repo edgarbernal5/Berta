@@ -27,6 +27,10 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		struct TreeNodeType
 		{
@@ -35,7 +39,7 @@ namespace Berta
 				: key(key_),text(text_), parent(parent_) {}
 
 			bool isExpanded{ false };
-			bool selected{ false };
+			bool isSelected{ false };
 			std::string text;
 			std::string key;
 			Image icon;
@@ -45,12 +49,37 @@ namespace Berta
 			TreeNodeType* nextSibling{ nullptr };
 		};
 
+		enum class InteractionArea
+		{
+			None,
+			Node,
+			Expander,
+			Blank
+		};
+
 		struct ViewportData
 		{
 			Rectangle m_backgroundRect{};
 			bool m_needVerticalScroll{ false };
 			bool m_needHorizontalScroll{ false };
 			Size m_contentSize{};
+
+			int m_startingVisibleIndex{ -1 };
+			int m_endingVisibleIndex{ -1 };
+		};
+
+		struct MouseSelection
+		{
+			bool IsSelected(TreeNodeType* node) const;
+
+			void Select(TreeNodeType* node);
+			void Deselect(TreeNodeType* node);
+
+			std::vector<TreeNodeType*> m_selections;
+			TreeNodeType* m_pressedIndex{ nullptr };
+			TreeNodeType* m_hoveredIndex{ nullptr };
+			TreeNodeType* m_selectedIndex{ nullptr };
+			bool m_inverseSelection{ false };
 		};
 
 		struct Module
@@ -61,12 +90,19 @@ namespace Berta
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
 			TreeNodeType* GetNextVisible(TreeNodeType* node);
+
+			InteractionArea DetermineHoverArea(const Point& mousePosition);
+
 			TreeBoxItem Insert(const std::string& key, const std::string& text);
 			TreeBoxItem Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
 			void Erase(const TreeNodeHandle& handle);
 			bool UpdateScrollBars();
+
+			bool ClearSingleSelection();
+			void SelectItem(TreeNodeType* node);
+			bool UpdateSingleSelection(TreeNodeType* node);
 
 			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			
@@ -79,6 +115,14 @@ namespace Berta
 			Window* m_window{ nullptr };
 			std::vector<TreeNodeType*> m_visibleNodes;
 			bool m_drawImages{ false };
+
+			InteractionArea m_hoveredArea{ InteractionArea::None};
+			InteractionArea m_pressedArea{ InteractionArea::None };
+
+			MouseSelection m_mouseSelection;
+			bool m_multiselection{ false };
+			bool m_shiftPressed{ false };
+			bool m_ctrlPressed{ false };
 		};
 
 		Module& GetModule() { return m_module; }

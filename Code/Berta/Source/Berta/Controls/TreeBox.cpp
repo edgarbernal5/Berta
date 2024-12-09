@@ -21,6 +21,7 @@ namespace Berta
 		m_module.m_window = control.Handle();
 
 		m_module.CalculateViewport(m_module.m_viewport);
+		m_module.m_root.isExpanded = true;
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -30,24 +31,39 @@ namespace Berta
 		bool enabled = m_control->GetEnabled();
 
 		auto nodeHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
+		auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		Point offset{ m_module.m_viewport.m_backgroundRect.X - m_module.m_scrollOffset.X, m_module.m_viewport.m_backgroundRect.Y - m_module.m_scrollOffset.Y };
 
 		auto iconSize = m_module.m_window->ToScale(m_module.m_window->Appearance->SmallIconSize);
+		int i = m_module.m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_module.m_visibleNodes)
 		{
 			auto depth = m_module.CalculateNodeDepth(node);
-			Rectangle nodeRect{ offset.X, offset.Y, m_module.m_viewport.m_contentSize.Width,nodeHeight };
+			Rectangle nodeRect{ offset.X, offset.Y + nodeHeightInt * i, m_module.m_viewport.m_contentSize.Width, nodeHeight };
 
-			bool& isSelected = node->selected;
+			bool isSelected = node->isSelected;
+			bool isHovered = node == m_module.m_mouseSelection.m_hoveredIndex;
 			int nodeOffset = (depth - 1) * iconSize;
+			if (isSelected)
+			{
+				//
+				graphics.DrawRectangle(nodeRect, window->Appearance->HighlightColor, true);
+				graphics.DrawRectangle(nodeRect, window->Appearance->BoxBorderHighlightColor, false);
+			}
+			else if (isHovered)
+			{
+				graphics.DrawRectangle(nodeRect, window->Appearance->ItemCollectionHightlightBackground, true);
+			}
+
 			if (node->firstChild)
 			{
 				int arrowWidth = window->ToScale(4);
 				int arrowLength = window->ToScale(2);
-				graphics.DrawArrow({ nodeRect.X + nodeOffset, nodeRect.Y + (int)(nodeHeight - iconSize) / 2, iconSize, nodeHeight},
+				Rectangle expanderRect{ nodeRect.X + nodeOffset, nodeRect.Y, iconSize, nodeHeight };
+				graphics.DrawArrow(expanderRect,
 					arrowLength,
 					arrowWidth,
 					window->Appearance->Foreground2nd,
@@ -68,7 +84,8 @@ namespace Berta
 				nodeOffset += iconSize;
 			}
 			graphics.DrawString({ nodeRect.X + nodeOffset, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height)/2}, node->text, m_module.m_window->Appearance->Foreground);
-			offset.Y += static_cast<int>(nodeHeight);
+			
+			++i;
 		}
 
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
@@ -94,6 +111,117 @@ namespace Berta
 		}
 	}
 
+	void TreeBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != nullptr;
+		m_module.m_mouseSelection.m_hoveredIndex = nullptr;
+
+		m_module.m_hoveredArea = InteractionArea::None;
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(m_module.m_window);
+		}
+	}
+
+	void TreeBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		m_module.m_pressedArea = m_module.m_hoveredArea;
+		bool needUpdate = false;
+
+		if (args.ButtonState.LeftButton)
+		{
+			if (m_module.m_hoveredArea == InteractionArea::Expander)
+			{
+				auto nodeHeight = m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight);
+				auto nodeHeightInt = static_cast<int>(nodeHeight);
+
+				auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
+				int index = positionY / nodeHeightInt;
+				m_module.m_visibleNodes[index]->isExpanded = !m_module.m_visibleNodes[index]->isExpanded;
+				m_module.CalculateViewport(m_module.m_viewport);
+
+				m_module.UpdateScrollBars();
+				m_module.CalculateVisibleNodes();
+
+				needUpdate = true;
+			}
+		}
+
+		if (m_module.m_pressedArea == InteractionArea::Node)
+		{
+			m_module.m_mouseSelection.m_pressedIndex = m_module.m_mouseSelection.m_hoveredIndex;
+
+			if (m_module.m_multiselection)
+			{
+				//needUpdate = m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredIndex, args);
+			}
+			else
+			{
+				needUpdate = m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedIndex);
+			}
+		}
+
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(m_module.m_window);
+		}
+	}
+
+	void TreeBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		auto hoveredArea = m_module.DetermineHoverArea(args.Position);
+		bool needUpdate = false;
+		if (hoveredArea == InteractionArea::Node || hoveredArea == InteractionArea::Expander)
+		{
+			auto nodeHeight = m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight);
+			auto nodeHeightInt = static_cast<int>(nodeHeight);
+
+			auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
+			int index = positionY / nodeHeightInt;
+			index -= m_module.m_viewport.m_startingVisibleIndex;
+			needUpdate = m_module.m_visibleNodes[index] != m_module.m_mouseSelection.m_hoveredIndex;
+			m_module.m_mouseSelection.m_hoveredIndex = m_module.m_visibleNodes[index];
+		}
+		else if (hoveredArea == InteractionArea::Blank)
+		{
+			needUpdate = m_module.m_mouseSelection.m_hoveredIndex != nullptr;
+			m_module.m_mouseSelection.m_hoveredIndex = nullptr;
+		}
+
+		m_module.m_hoveredArea = hoveredArea;
+
+		if (needUpdate)
+		{
+			Update(graphics);
+			GUI::MarkAsUpdated(m_module.m_window);
+		}
+	}
+
+	void TreeBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+	}
+
+	bool TreeBoxReactor::MouseSelection::IsSelected(TreeNodeType* node) const
+	{
+		return std::find(m_selections.begin(), m_selections.end(), node) != m_selections.end();
+	}
+
+	void TreeBoxReactor::MouseSelection::Select(TreeNodeType* node)
+	{
+		m_selections.push_back(node);
+	}
+
+	void TreeBoxReactor::MouseSelection::Deselect(TreeNodeType* node)
+	{
+		auto it = std::find(m_selections.begin(), m_selections.end(), node);
+		if (it != m_selections.end())
+		{
+			m_selections.erase(it);
+		}
+	}
+
 	void TreeBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
 	{
 		viewportData.m_backgroundRect = m_window->Size.ToRectangle();
@@ -102,8 +230,9 @@ namespace Berta
 		viewportData.m_backgroundRect.Height -= 2u;
 
 		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
-		viewportData.m_contentSize.Height = nodeHeight * CalculateTreeSize(m_root.firstChild);
-		viewportData.m_contentSize.Width = viewportData.m_backgroundRect.Width;
+		auto treeSize = CalculateTreeSize(&m_root);
+		if (treeSize > 0) --treeSize;
+		viewportData.m_contentSize.Height = nodeHeight * treeSize;
 
 		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 		viewportData.m_needVerticalScroll = viewportData.m_contentSize.Height > viewportData.m_backgroundRect.Height;
@@ -111,6 +240,7 @@ namespace Berta
 		{
 			viewportData.m_backgroundRect.Width -= scrollSize;
 		}
+		viewportData.m_contentSize.Width = viewportData.m_backgroundRect.Width;
 	}
 
 	void TreeBoxReactor::Module::CalculateVisibleNodes()
@@ -118,14 +248,15 @@ namespace Berta
 		m_visibleNodes.clear();
 		if (m_root.firstChild == nullptr)
 		{
+			m_viewport.m_startingVisibleIndex = m_viewport.m_endingVisibleIndex = 0;
 			return;
 		}
 
 		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
 		auto visibleHeight = m_viewport.m_backgroundRect.Height;
 		
-		int firstVisibleNode = m_scrollOffset.Y / nodeHeight;
-		int lastVisibleNode = (m_scrollOffset.Y + visibleHeight) / nodeHeight;
+		m_viewport.m_startingVisibleIndex = m_scrollOffset.Y / nodeHeight;
+		m_viewport.m_endingVisibleIndex = (m_scrollOffset.Y + visibleHeight) / nodeHeight;
 
 		int index = 0;
 
@@ -137,12 +268,12 @@ namespace Berta
 			TreeNodeType* node = stack.top();
 			stack.pop();
 
-			if (index >= firstVisibleNode && index <= lastVisibleNode)
+			if (index >= m_viewport.m_startingVisibleIndex && index <= m_viewport.m_endingVisibleIndex)
 			{
 				m_visibleNodes.emplace_back(node);
 			}
 
-			if (index > lastVisibleNode)
+			if (index > m_viewport.m_endingVisibleIndex)
 				break;
 
 			++index;
@@ -174,6 +305,7 @@ namespace Berta
 				size += CalculateTreeSize(child);
 			}
 		}
+
 		return size;
 	}
 
@@ -232,12 +364,45 @@ namespace Berta
 		return nullptr;
 	}
 
+
+	TreeBoxReactor::InteractionArea TreeBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
+	{
+		if (!m_window->Size.IsInside(mousePosition))
+		{
+			return InteractionArea::None;
+		}
+
+		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeightInt = static_cast<int>(nodeHeight);
+
+		auto positionY = mousePosition.Y - m_viewport.m_backgroundRect.Y + m_scrollOffset.Y;
+		int index = positionY / nodeHeightInt;
+
+		index -= m_viewport.m_startingVisibleIndex;
+		if (index >= m_visibleNodes.size())
+		{
+			return InteractionArea::Blank;
+		}
+
+		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
+		auto nodeDepth = CalculateNodeDepth(m_visibleNodes[index]);
+		int nodeOffset = (nodeDepth - 1) * iconSize;
+		
+		Rectangle expanderRect{ m_viewport.m_backgroundRect.X + m_scrollOffset.X + nodeOffset, index * nodeHeightInt, iconSize, nodeHeight };
+		if (m_visibleNodes[index]->firstChild && expanderRect.IsInside(mousePosition))
+		{
+			return InteractionArea::Expander;
+		}
+
+		return InteractionArea::Node;
+	}
+
 	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text)
 	{
 		auto hasParentIndex = key.find_last_of('/');
 		if (hasParentIndex != std::string::npos)
 		{
-			return Insert(key.substr(hasParentIndex+1, key.size()), text, key.substr(0, hasParentIndex));
+			return Insert(key.substr(hasParentIndex + 1, key.size()), text, key.substr(0, hasParentIndex));
 		}
 
 		auto node = std::make_unique<TreeNodeType>(key, text, &m_root);
@@ -382,6 +547,44 @@ namespace Berta
 			m_scrollOffset.Y = m_scrollBarVert->GetValue();
 			CalculateVisibleNodes();
 			needUpdate = true;
+		}
+		else if (m_scrollBarVert)
+		{
+			m_scrollBarVert.reset();
+			m_scrollOffset.Y = 0;
+			CalculateVisibleNodes();
+
+			needUpdate = true;
+		}
+		return needUpdate;
+	}
+
+	bool TreeBoxReactor::Module::ClearSingleSelection()
+	{
+		if (m_mouseSelection.m_selectedIndex != nullptr)
+		{
+			m_mouseSelection.m_selectedIndex->isSelected = false;
+			m_mouseSelection.m_selections.clear();
+			m_mouseSelection.m_selectedIndex = nullptr;
+			return true;
+		}
+		return false;
+	}
+
+	void TreeBoxReactor::Module::SelectItem(TreeNodeType* node)
+	{
+		node->isSelected = true;
+		m_mouseSelection.m_selections.push_back(node);
+		m_mouseSelection.m_selectedIndex = node;
+	}
+
+	bool TreeBoxReactor::Module::UpdateSingleSelection(TreeNodeType* node)
+	{
+		bool needUpdate = m_mouseSelection.m_selectedIndex != node;
+		if (needUpdate)
+		{
+			ClearSingleSelection();
+			SelectItem(node);
 		}
 		return needUpdate;
 	}
