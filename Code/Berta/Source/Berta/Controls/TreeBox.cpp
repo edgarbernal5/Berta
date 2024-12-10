@@ -31,6 +31,7 @@ namespace Berta
 		bool enabled = m_control->GetEnabled();
 
 		auto nodeHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
+		auto nodeTextMargin = window->ToScale(8u);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
@@ -83,7 +84,14 @@ namespace Berta
 
 				nodeOffset += iconSize;
 			}
-			graphics.DrawString({ nodeRect.X + nodeOffset, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height)/2}, node->text, m_module.m_window->Appearance->Foreground);
+			auto yPos = (int)(nodeRect.Y + nodeHeight/2);
+			graphics.DrawLine({ nodeRect.X + nodeOffset , yPos }, { nodeRect.X + nodeOffset +(int)nodeTextMargin, yPos}, m_module.m_window->Appearance->Foreground2nd, Graphics::LineStyle::Dotted);
+			if (!node->firstChild)
+			{
+				graphics.DrawLine({ nodeRect.X + nodeOffset , nodeRect.Y }, { nodeRect.X + nodeOffset, yPos }, m_module.m_window->Appearance->Foreground2nd, Graphics::LineStyle::Dotted);
+
+			}
+			graphics.DrawString({ nodeRect.X + nodeOffset + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_module.m_window->Appearance->Foreground);
 			
 			++i;
 		}

@@ -158,7 +158,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color)
+	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -166,7 +166,7 @@ namespace Berta
 			return;
 		}
 
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
+		HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), 1, color);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 		::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
@@ -177,12 +177,12 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawBeginLine(const Point& point, const Color& color)
+	void Graphics::DrawBeginLine(const Point& point, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_attributes->m_hdc)
 		{
-			HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
+			HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), 1, color);
 			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 			::MoveToEx(m_attributes->m_hdc, point.X, point.Y, 0);
