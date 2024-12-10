@@ -39,7 +39,8 @@ namespace Berta
 		Point offset{ m_module.m_viewport.m_backgroundRect.X - m_module.m_scrollOffset.X, m_module.m_viewport.m_backgroundRect.Y - m_module.m_scrollOffset.Y };
 
 		auto iconSize = m_module.m_window->ToScale(m_module.m_window->Appearance->SmallIconSize);
-		int i = m_module.m_viewport.m_startingVisibleIndex;
+		
+		int i = 0;
 		for (auto& node : m_module.m_visibleNodes)
 		{
 			auto depth = m_module.CalculateNodeDepth(node);
@@ -59,18 +60,8 @@ namespace Berta
 				graphics.DrawRectangle(nodeRect, window->Appearance->ItemCollectionHightlightBackground, true);
 			}
 
-			if (node->firstChild)
-			{
-				int arrowWidth = window->ToScale(4);
-				int arrowLength = window->ToScale(2);
-				Rectangle expanderRect{ nodeRect.X + nodeOffset, nodeRect.Y, iconSize, nodeHeight };
-				graphics.DrawArrow(expanderRect,
-					arrowLength,
-					arrowWidth,
-					window->Appearance->Foreground2nd,
-					node->isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
-					node->isExpanded);
-			}
+			Rectangle expanderRect{ nodeRect.X + nodeOffset, nodeRect.Y, iconSize, nodeHeight };
+			
 			nodeOffset += iconSize;
 			if (m_module.m_drawImages)
 			{
@@ -84,15 +75,28 @@ namespace Berta
 
 				nodeOffset += iconSize;
 			}
-			auto yPos = (int)(nodeRect.Y + nodeHeight/2);
-			graphics.DrawLine({ nodeRect.X + nodeOffset , yPos }, { nodeRect.X + nodeOffset +(int)nodeTextMargin, yPos}, m_module.m_window->Appearance->Foreground2nd, Graphics::LineStyle::Dotted);
-			if (!node->firstChild)
-			{
-				graphics.DrawLine({ nodeRect.X + nodeOffset , nodeRect.Y }, { nodeRect.X + nodeOffset, yPos }, m_module.m_window->Appearance->Foreground2nd, Graphics::LineStyle::Dotted);
 
+			Point startLine{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, static_cast<int>(expanderRect.Y * 2 + expanderRect.Height) / 2 };
+			if (node->firstChild)
+			{
+				graphics.DrawLine(startLine, { startLine.X + (int)(expanderRect.Width / 2 + nodeTextMargin), startLine.Y}, m_module.m_window->Appearance->Foreground2nd, Graphics::LineStyle::Dotted);
 			}
+
+			if (node->firstChild)
+			{
+				int arrowWidth = window->ToScale(4);
+				int arrowLength = window->ToScale(2);
+				graphics.DrawArrow(expanderRect,
+					arrowLength,
+					arrowWidth,
+					node->isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
+					window->Appearance->Foreground2nd,
+					node->isExpanded,
+					node->isExpanded ? window->Appearance->Foreground2nd : window->Appearance->BoxBackground
+				);
+			}
+
 			graphics.DrawString({ nodeRect.X + nodeOffset + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_module.m_window->Appearance->Foreground);
-			
 			++i;
 		}
 
@@ -238,8 +242,7 @@ namespace Berta
 		viewportData.m_backgroundRect.Height -= 2u;
 
 		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
-		auto treeSize = CalculateTreeSize(&m_root);
-		if (treeSize > 0) --treeSize;
+		auto treeSize = CalculateTreeSize(&m_root) - 1;
 		viewportData.m_contentSize.Height = nodeHeight * treeSize;
 
 		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
@@ -418,12 +421,13 @@ namespace Berta
 
 		if (m_root.firstChild)
 		{
-			auto where = m_root.firstChild;
-			while (where->nextSibling != nullptr)
+			auto lastNode = m_root.firstChild;
+			while (lastNode->nextSibling != nullptr)
 			{
-				where = where->nextSibling;
+				lastNode = lastNode->nextSibling;
 			}
-			where->nextSibling = nodePtr;
+			lastNode->nextSibling = nodePtr;
+			nodePtr->prevSibling = lastNode;
 		}
 		else
 		{
@@ -460,12 +464,13 @@ namespace Berta
 			}
 			else
 			{
-				auto where = parentNode->firstChild;
-				while (where->nextSibling != nullptr)
+				auto lastNode = parentNode->firstChild;
+				while (lastNode->nextSibling != nullptr)
 				{
-					where = where->nextSibling;
+					lastNode = lastNode->nextSibling;
 				}
-				where->nextSibling = nodePtr;
+				lastNode->nextSibling = nodePtr;
+				nodePtr->prevSibling = lastNode;
 			}
 		}
 		else
@@ -476,12 +481,13 @@ namespace Berta
 			}
 			else
 			{
-				auto where = m_root.firstChild;
-				while (where->nextSibling != nullptr)
+				auto lastNode = m_root.firstChild;
+				while (lastNode->nextSibling != nullptr)
 				{
-					where = where->nextSibling;
+					lastNode = lastNode->nextSibling;
 				}
 				m_root.nextSibling = nodePtr;
+				nodePtr->prevSibling = lastNode;
 			}
 		}
 
@@ -595,6 +601,11 @@ namespace Berta
 			SelectItem(node);
 		}
 		return needUpdate;
+	}
+
+	bool TreeBoxReactor::Module::IsVisibleNode(TreeNodeType* node) const
+	{
+		return std::find(m_visibleNodes.begin(), m_visibleNodes.end(), node) != m_visibleNodes.end();
 	}
 
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)

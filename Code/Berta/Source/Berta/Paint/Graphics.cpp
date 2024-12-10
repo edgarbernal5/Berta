@@ -390,8 +390,13 @@ namespace Berta
 #endif
 	}*/
 	
-	//Version 2
-	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor)
+	{
+		DrawArrow(rect, arrowLength, arrowWidth, direction, borderColor, false, borderColor);
+	}
+
+//Version 2
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
@@ -451,12 +456,12 @@ namespace Berta
 
 		arrowPoints[3] = arrowPoints[0];
 
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
+		HPEN hPen = ::CreatePen(PS_SOLID, 1, borderColor);
 		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
 
 		if (solid)
 		{
-			HBRUSH hBrush = ::CreateSolidBrush(color);
+			HBRUSH hBrush = ::CreateSolidBrush(solidColor);
 			::SelectObject(m_attributes->m_hdc, hBrush);
 			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
 			::DeleteObject(hBrush);

@@ -47,6 +47,7 @@ namespace Berta
 			TreeNodeType* parent{ nullptr };
 			TreeNodeType* firstChild{ nullptr };
 			TreeNodeType* nextSibling{ nullptr };
+			TreeNodeType* prevSibling{ nullptr };
 		};
 
 		enum class InteractionArea
@@ -103,6 +104,7 @@ namespace Berta
 			bool ClearSingleSelection();
 			void SelectItem(TreeNodeType* node);
 			bool UpdateSingleSelection(TreeNodeType* node);
+			bool IsVisibleNode(TreeNodeType* node) const;
 
 			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			

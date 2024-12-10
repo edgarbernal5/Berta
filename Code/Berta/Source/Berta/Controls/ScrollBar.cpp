@@ -298,7 +298,9 @@ namespace Berta
 		if (arrowWidth % 2 == 1)
 			--arrowWidth;
 		
-		graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonPressedBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
+		auto color = isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonPressedBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor;
+		graphics.DrawArrow(rect, arrowLength, arrowWidth, direction,
+			color, true, color);
 		//graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}
 

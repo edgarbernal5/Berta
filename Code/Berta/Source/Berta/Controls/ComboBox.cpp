@@ -89,9 +89,10 @@ namespace Berta
 		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) - 1, 1, buttonSize, window->Size.Height }, 
 			arrowLength, 
 			arrowWidth, 
+			Graphics::ArrowDirection::Downwards,
 			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
-			Graphics::ArrowDirection::Downwards, 
-			true);
+			true,
+			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
 		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize) - 1, 1 }, 
 			{ static_cast<int>(window->Size.Width - buttonSize) - 1, (int)window->Size.Height - 1 },

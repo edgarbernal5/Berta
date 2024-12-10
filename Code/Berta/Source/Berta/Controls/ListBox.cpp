@@ -133,6 +133,10 @@ namespace Berta
 			{
 				needUpdate = m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredIndex, args);
 			}
+			else
+			{
+				needUpdate = m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedIndex);
+			}
 		}
 		else if (m_module.m_pressedArea == InteractionArea::ListBlank)
 		{
@@ -894,7 +898,7 @@ namespace Berta
 			CalculateVisibleIndices();
 			needUpdate = true;
 		}
-		else if (!m_viewport.m_needVerticalScroll && m_scrollBarVert)
+		else if (m_scrollBarVert)
 		{
 			m_scrollBarVert.reset();
 			m_scrollOffset.Y = 0;
@@ -1034,7 +1038,9 @@ namespace Berta
 				Rectangle arrowRect = columnRect;
 				arrowRect.X += headerWidthInt - ten - sortedHeaderMargin;
 				arrowRect.Width = ten;
-				graphics.DrawArrow(arrowRect, arrowLength, arrowWidth, m_appearance->Foreground2nd, m_headers.isAscendingOrdering ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Downwards, false);
+				graphics.DrawArrow(arrowRect, arrowLength, arrowWidth, 
+					m_headers.isAscendingOrdering ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Downwards,
+					m_appearance->Foreground2nd);
 			}
 			headerOffset.X += headerWidthInt;
 		}
@@ -1207,6 +1213,19 @@ namespace Berta
 		return needUpdate;
 	}
 
+	bool ListBoxReactor::Module::UpdateSingleSelection(int localItemIndex)
+	{
+		auto absoluteIndex = m_list.m_sortedIndexes[localItemIndex];
+		auto prevAbsoluteIndex = m_mouseSelection.m_selections.empty() ? -1 : m_mouseSelection.m_selections[0];
+		bool needUpdate = prevAbsoluteIndex != absoluteIndex;
+		if (needUpdate)
+		{
+			ClearSingleSelection();
+			SelectItem(absoluteIndex);
+		}
+		return needUpdate;
+	}
+
 	void ListBoxReactor::Module::ToggleItemSelection(size_t absoluteItemIndex)
 	{
 		auto& item = m_list.m_items[absoluteItemIndex];
@@ -1272,7 +1291,8 @@ namespace Berta
 	{
 		if (m_mouseSelection.m_selectedIndex != -1)
 		{
-			m_list.m_items[m_mouseSelection.m_selectedIndex].m_isSelected = false;
+			auto absoluteIndex = m_list.m_sortedIndexes[m_mouseSelection.m_selectedIndex];
+			m_list.m_items[absoluteIndex].m_isSelected = false;
 			m_mouseSelection.m_selections.clear();
 			m_mouseSelection.m_selectedIndex = -1;
 			return true;

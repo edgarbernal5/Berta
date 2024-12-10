@@ -132,7 +132,7 @@ namespace Berta
 
 			std::vector<size_t> m_selections;
 			std::vector<size_t> m_alreadySelected; //TODO: cambiar por un set/map
-			int m_pressedIndex{ -1 }; //logical index
+			int m_pressedIndex{ -1 }; //logical index. TODO: makes this indices a pointer of List::Item
 			int m_hoveredIndex{ -1 }; //logical index
 			int m_selectedIndex{ -1 }; //logical index
 			Point m_startPosition;
@@ -160,12 +160,13 @@ namespace Berta
 			bool UpdateScrollBars();
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
-			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
+			bool HandleMultiSelection(int localItemIndex, const ArgMouse& args);
 			void SelectItem(size_t index);
 			void ClearSelection();
 			bool EnsureVisibility(int lastSelectedIndex);
 			void PerformRangeSelection(int itemIndexAtPosition);
 
+			bool UpdateSingleSelection(int localItemIndex);
 			void ToggleItemSelection(size_t itemIndexAtPosition);
 			void StartSelectionRectangle(const Point& mousePosition);
 			bool ClearSelectionIfNeeded();
@@ -203,7 +204,7 @@ namespace Berta
 			ViewportData m_viewport;
 			Window* m_window{ nullptr };
 			ListBoxAppearance* m_appearance{ nullptr };
-			bool m_multiselection{ true };
+			bool m_multiselection{ false };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 		};
