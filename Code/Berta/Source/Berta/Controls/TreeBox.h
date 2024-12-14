@@ -31,6 +31,7 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 
 		struct TreeNodeType
 		{
@@ -94,6 +95,7 @@ namespace Berta
 
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
+			void Init();
 			TreeBoxItem Insert(const std::string& key, const std::string& text);
 			TreeBoxItem Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
@@ -105,6 +107,9 @@ namespace Berta
 			void SelectItem(TreeNodeType* node);
 			bool UpdateSingleSelection(TreeNodeType* node);
 			bool IsVisibleNode(TreeNodeType* node) const;
+			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
+			bool IsAnyChildrenVisible(TreeNodeType* parentNode) const;
+			void EmitSelectionEvent();
 
 			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			
@@ -143,7 +148,17 @@ namespace Berta
 		TreeBoxReactor::TreeNodeType* m_node{ nullptr };
 	};
 
-	class TreeBox : public Control<TreeBoxReactor>
+	struct ArgTreeBox
+	{
+		std::vector<TreeBoxItem> Items;
+	};
+
+	struct TreeBoxEvents : public ControlEvents
+	{
+		Event<ArgTreeBox> Selected;
+	};
+
+	class TreeBox : public Control<TreeBoxReactor, TreeBoxEvents>
 	{
 	public:
 		TreeBox() = default;

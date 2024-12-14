@@ -58,6 +58,9 @@ public:
 		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat", "Adobe Acrobat");
 		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat/Crack", "Crack");
 		m_treeBox.Insert("D:", "D:/");
+		m_treeBox.Insert("D:/Juegos", "Juegos");
+		m_treeBox.Insert("D:/Juegos/AoE", "AoE");
+		m_treeBox.Insert("D:/Juegos/Never alone", "Never alone");
 	}
 
 	TabExample1() : Panel()
