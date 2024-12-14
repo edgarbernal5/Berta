@@ -28,15 +28,19 @@ public:
 		SetDebugName("Tab Apariencia");
 #endif
 
-		m_button.Create(*this, true, { 5,15,100,25 });
-		m_button.SetCaption(L"Click me on tab!");
+		m_eraseSelectedbutton.Create(*this, true, { 5,15,100,25 });
+		m_eraseSelectedbutton.SetCaption(L"Erase");
 #ifdef BT_DEBUG
-		m_button.SetDebugName("button tab panel 1");
+		m_eraseSelectedbutton.SetDebugName("Erase Tree Button");
 #endif
-		m_button.GetEvents().Click.Connect([](const Berta::ArgClick& args)
+		m_eraseSelectedbutton.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
 		{
-			std::cout << "CLICK button tab panel 1" << std::endl;
-		});
+			auto selected = m_treeBox.GetSelected();
+			if (selected.empty())
+				return;
+
+			m_treeBox.Erase(selected);
+;		});
 
 		m_treeBox.Create(*this, true, { 5,50,300,200 });
 #ifdef BT_DEBUG
@@ -68,7 +72,7 @@ public:
 	}
 
 private:
-	Berta::Button m_button;
+	Berta::Button m_eraseSelectedbutton;
 	Berta::TreeBox m_treeBox;
 };
 

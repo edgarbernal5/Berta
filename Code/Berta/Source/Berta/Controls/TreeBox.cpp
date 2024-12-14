@@ -583,7 +583,7 @@ namespace Berta
 		}
 		
 		m_nodeLookup[key] = std::move(node);
-		return { nodePtr };
+		return { nodePtr, this };
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle)
@@ -640,7 +640,7 @@ namespace Berta
 		}
 
 		m_nodeLookup[handle] = std::move(node);
-		return { nodePtr };
+		return { nodePtr, this };
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
@@ -656,7 +656,7 @@ namespace Berta
 			return {};
 		}
 
-		return { it->second.get() };
+		return { it->second.get(), this };
 	}
 
 	TreeNodeHandle TreeBoxReactor::Module::GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode)
@@ -670,6 +670,33 @@ namespace Berta
 
 	void TreeBoxReactor::Module::Erase(const TreeNodeHandle& handle)
 	{
+		auto item = Find(handle);
+		if (!item)
+		{
+			return;
+		}
+
+		EraseNode(item.m_node);
+	}
+
+	void TreeBoxReactor::Module::Erase(TreeBoxItem item)
+	{
+	}
+
+	void TreeBoxReactor::Module::EraseNode(TreeNodeType* node)
+	{
+		if (node == nullptr)
+			return;
+
+		auto current = node->firstChild;
+		while (current)
+		{
+			EraseNode(current);
+
+			current = current->nextSibling;
+		}
+
+		auto rr=m_nodeLookup.erase(current->key);
 	}
 
 	bool TreeBoxReactor::Module::UpdateScrollBars()
@@ -791,9 +818,19 @@ namespace Berta
 		argTreeBox.Items.resize(m_mouseSelection.m_selections.size());
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
-			argTreeBox.Items[i] = m_mouseSelection.m_selections[i];
+			argTreeBox.Items[i] = { m_mouseSelection.m_selections[i], this };
 		}
 		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Selected.Emit(argTreeBox);
+	}
+
+	std::vector<TreeBoxItem> TreeBoxReactor::Module::GetSelected()
+	{
+		std::vector<TreeBoxItem> selections;
+		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		{
+			selections.emplace_back(TreeBoxItem{ m_mouseSelection.m_selections[i], this });
+		}
+		return selections;
 	}
 
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
@@ -810,8 +847,25 @@ namespace Berta
 		m_reactor.GetModule().Clear();
 	}
 
+	void TreeBox::Erase(const std::string& key)
+	{
+		m_reactor.GetModule().Erase(key);
+	}
+
+	void TreeBox::Erase(TreeBoxItem item)
+	{
+		m_reactor.GetModule().Erase(item);
+	}
+
 	TreeBoxItem TreeBox::Insert(const std::string& key, const std::string& text)
 	{
 		return m_reactor.GetModule().Insert(key, text);
 	}
+
+	std::vector<TreeBoxItem> TreeBox::GetSelected()
+	{
+		return m_reactor.GetModule().GetSelected();
+	}
+
+
 }

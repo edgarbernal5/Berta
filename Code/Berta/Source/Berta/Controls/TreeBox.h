@@ -101,6 +101,8 @@ namespace Berta
 			TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
 			void Erase(const TreeNodeHandle& handle);
+			void Erase(TreeBoxItem item);
+			void EraseNode(TreeNodeType* node);
 			bool UpdateScrollBars();
 
 			bool ClearSingleSelection();
@@ -111,6 +113,7 @@ namespace Berta
 			bool IsAnyChildrenVisible(TreeNodeType* parentNode) const;
 			void EmitSelectionEvent();
 
+			std::vector<TreeBoxItem> GetSelected();
 			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			
 			Point m_scrollOffset{};
@@ -142,10 +145,17 @@ namespace Berta
 	struct TreeBoxItem
 	{
 		TreeBoxItem() = default;
-		TreeBoxItem(TreeBoxReactor::TreeNodeType* node) : m_node(node) {}
+		TreeBoxItem(TreeBoxReactor::TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
+		
+		operator bool() const
+		{
+			return m_node;
+		}
 
+		friend struct TreeBoxReactor::Module;
 	private:
 		TreeBoxReactor::TreeNodeType* m_node{ nullptr };
+		TreeBoxReactor::Module* m_module{ nullptr };
 	};
 
 	struct ArgTreeBox
@@ -165,7 +175,11 @@ namespace Berta
 		TreeBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
+		void Erase(const std::string& key);
+		void Erase(TreeBoxItem item);
 		TreeBoxItem Insert(const std::string& key, const std::string& text);
+
+		std::vector<TreeBoxItem> GetSelected();
 	};
 }
 
