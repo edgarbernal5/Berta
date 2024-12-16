@@ -39,7 +39,7 @@ public:
 			if (selected.empty())
 				return;
 
-			m_treeBox.Erase(selected);
+			m_treeBox.Erase(selected[0]);
 ;		});
 
 		m_treeBox.Create(*this, true, { 5,50,300,200 });

@@ -103,8 +103,8 @@ namespace Berta
 			void Erase(const TreeNodeHandle& handle);
 			void Erase(TreeBoxItem item);
 			void EraseNode(TreeNodeType* node);
+			void Unlink(TreeNodeType* node);
 			bool UpdateScrollBars();
-
 			bool ClearSingleSelection();
 			void SelectItem(TreeNodeType* node);
 			bool UpdateSingleSelection(TreeNodeType* node);

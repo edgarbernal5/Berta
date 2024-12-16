@@ -114,7 +114,7 @@ namespace Berta
 					vEndPos.Y = m_module.m_viewport.m_backgroundRect.Height;
 				}
 			}
-			else if (node->nextSibling == nullptr)
+			else if (node->nextSibling == nullptr && node->prevSibling)
 			{
 				vEndPos.Y = vStartPos.Y + nodeHeightHalfInt;
 			}
@@ -676,11 +676,40 @@ namespace Berta
 			return;
 		}
 
+		Unlink(item.m_node);
 		EraseNode(item.m_node);
+
+		CalculateViewport(m_viewport);
+		if (UpdateScrollBars())
+		{
+			if (m_scrollBarVert)
+				m_scrollBarVert->Handle()->Renderer.Update();
+
+			if (m_scrollBarHoriz)
+				m_scrollBarHoriz->Handle()->Renderer.Update();
+		}
+		CalculateVisibleNodes();
+
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::Erase(TreeBoxItem item)
 	{
+		Unlink(item.m_node);
+		EraseNode(item.m_node);
+
+		CalculateViewport(m_viewport);
+		if (UpdateScrollBars())
+		{
+			if (m_scrollBarVert)
+				m_scrollBarVert->Handle()->Renderer.Update();
+
+			if (m_scrollBarHoriz)
+				m_scrollBarHoriz->Handle()->Renderer.Update();
+		}
+		CalculateVisibleNodes();
+
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::EraseNode(TreeNodeType* node)
@@ -691,12 +720,35 @@ namespace Berta
 		auto current = node->firstChild;
 		while (current)
 		{
+			auto temp = current->nextSibling;
 			EraseNode(current);
+			current = temp;
+		}
+
+		auto rr=m_nodeLookup.erase(node->key);
+	}
+
+	void TreeBoxReactor::Module::Unlink(TreeNodeType* node)
+	{
+		auto current = node->parent->firstChild;
+		while (current)
+		{
+			if (current == node)
+			{
+				if (current->prevSibling == nullptr)
+				{
+					node->parent->firstChild = current->nextSibling;
+				}
+				else
+				{
+
+					current->prevSibling->nextSibling = current->nextSibling;
+				}
+				break;
+			}
 
 			current = current->nextSibling;
 		}
-
-		auto rr=m_nodeLookup.erase(current->key);
 	}
 
 	bool TreeBoxReactor::Module::UpdateScrollBars()
