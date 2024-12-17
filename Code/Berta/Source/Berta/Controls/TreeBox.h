@@ -94,7 +94,8 @@ namespace Berta
 			TreeNodeType* GetNextVisible(TreeNodeType* node);
 
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
-
+			void DrawTreeNodes(Graphics& graphics);
+			void DrawNavigationLines(Graphics& graphics);
 			void Init();
 			
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
