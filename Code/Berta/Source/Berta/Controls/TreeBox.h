@@ -36,13 +36,13 @@ namespace Berta
 		struct TreeNodeType
 		{
 			TreeNodeType() = default;
-			TreeNodeType(const std::string& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
+			TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
 				: key(key_),text(text_), parent(parent_) {}
 
 			bool isExpanded{ false };
 			bool isSelected{ false };
 			std::string text;
-			std::string key;
+			TreeNodeHandle key;
 			Image icon;
 
 			TreeNodeType* parent{ nullptr };
@@ -96,8 +96,9 @@ namespace Berta
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
 			void Init();
-			TreeBoxItem Insert(const std::string& key, const std::string& text);
-			TreeBoxItem Insert(const std::string& key, const std::string& text, const TreeNodeHandle& parentHandle);
+			
+			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
+			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
 			void Erase(const TreeNodeHandle& handle);
@@ -113,8 +114,10 @@ namespace Berta
 			bool IsAnyChildrenVisible(TreeNodeType* parentNode) const;
 			void EmitSelectionEvent();
 
+			void SetText(TreeNodeType* node, const std::string& newText) const;
+
 			std::vector<TreeBoxItem> GetSelected();
-			std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_nodeLookup;
+			std::unordered_map<TreeNodeHandle, std::unique_ptr<TreeNodeType>> m_nodeLookup;
 			
 			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
@@ -147,6 +150,16 @@ namespace Berta
 		TreeBoxItem() = default;
 		TreeBoxItem(TreeBoxReactor::TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
 		
+		void SetText(const std::string& text)
+		{
+			m_module->SetText(m_node, text);
+		}
+
+		TreeNodeHandle& GetHandle()
+		{
+			return m_node->key;
+		}
+
 		operator bool() const
 		{
 			return m_node;
@@ -175,9 +188,11 @@ namespace Berta
 		TreeBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
-		void Erase(const std::string& key);
+		void Erase(const TreeNodeHandle& key);
 		void Erase(TreeBoxItem item);
-		TreeBoxItem Insert(const std::string& key, const std::string& text);
+		TreeBoxItem Find(const TreeNodeHandle& key);
+		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
+		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
 
 		std::vector<TreeBoxItem> GetSelected();
 	};
