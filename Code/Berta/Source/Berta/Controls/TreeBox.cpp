@@ -49,6 +49,7 @@ namespace Berta
 
 		m_module.UpdateScrollBars();
 		m_module.CalculateVisibleNodes();
+		m_module.GenerateNavigationLines();
 
 		if (m_module.m_scrollBarVert)
 		{
@@ -100,6 +101,7 @@ namespace Berta
 						m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
 				}
 				m_module.CalculateVisibleNodes();
+				m_module.GenerateNavigationLines();
 
 				needUpdate = true;
 			}
@@ -190,6 +192,7 @@ namespace Berta
 			{
 				m_module.m_scrollOffset.Y = newOffset;
 				m_module.CalculateVisibleNodes();
+				m_module.GenerateNavigationLines();
 				m_module.m_scrollBarVert->SetValue(newOffset);
 
 				m_module.m_scrollBarVert->Handle()->Renderer.Update();
@@ -411,28 +414,17 @@ namespace Berta
 		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
+		auto expanderSize = iconSize;
 
-		struct NodeAndDepth
-		{
-			TreeNodeType* node{ nullptr };
-			uint32_t depth{ 0 };
-		};
-		std::stack<NodeAndDepth> navigationLines;
-
-		TreeNodeType* currentParent{ nullptr };
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
 		{
 			auto depth = CalculateNodeDepth(node);
-			if (currentParent != node->parent)
-			{
-				navigationLines.push(NodeAndDepth{ node , depth });
-			}
 			Rectangle nodeRect{ offset.X, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
 
 			bool isSelected = node->isSelected;
 			bool isHovered = node == m_mouseSelection.m_hoveredIndex;
-			int nodeOffset = (depth - 1) * iconSize;
+			int nodeOffsetX = (depth - 1) * expanderSize;
 			if (isSelected)
 			{
 				//
@@ -444,9 +436,9 @@ namespace Berta
 				graphics.DrawRectangle(nodeRect, m_window->Appearance->ItemCollectionHightlightBackground, true);
 			}
 
-			Rectangle expanderRect{ nodeRect.X + nodeOffset, nodeRect.Y, iconSize, nodeHeight };
+			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y, expanderSize, nodeHeight };
 
-			nodeOffset += iconSize;
+			nodeOffsetX += iconSize;
 			if (m_drawImages)
 			{
 				if (node->icon)
@@ -454,116 +446,119 @@ namespace Berta
 					auto& icon = node->icon;
 					auto iconSourceSize = icon.GetSize();
 					auto positionY = (nodeHeight - iconSize) >> 1;
-					icon.Paste(graphics, { nodeRect.X + nodeOffset, (int)positionY, iconSize , iconSize });
+					icon.Paste(graphics, { nodeRect.X + nodeOffsetX, (int)positionY, iconSize , iconSize });
 				}
 
-				nodeOffset += iconSize;
-			}
-
-			Point startLine{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, static_cast<int>(expanderRect.Y * 2 + expanderRect.Height) / 2 };
-			if (node->firstChild && IsAnyChildrenVisible(node))
-			{
-				graphics.DrawLine(startLine, { startLine.X + (int)(expanderRect.Width / 2 + nodeTextMargin), startLine.Y }, m_window->Appearance->Foreground2nd, Graphics::LineStyle::Solid);
-			}
-
-			Point vStartPos{ expanderRect.X + (int)(expanderRect.Width / 2), nodeRect.Y };
-			Point vEndPos{ vStartPos.X, vStartPos.Y + nodeHeightInt };
-
-			if (i == 0)
-			{
-				vStartPos.Y += nodeHeightHalfInt;
-			}
-
-			if (node->nextSibling != nullptr && node->firstChild && node->isExpanded)
-			{
-				int nextSiblingIndex = -1;
-				if (IsVisibleNode(node->nextSibling, nextSiblingIndex))
-				{
-					vEndPos.Y = nodeHeightInt * (nextSiblingIndex + m_viewport.m_startingVisibleIndex) + offset.Y;
-				}
-				else {
-					vEndPos.Y = m_viewport.m_backgroundRect.Height;
-				}
-			}
-			else if (node->nextSibling == nullptr && node->prevSibling)
-			{
-				vEndPos.Y = vStartPos.Y + nodeHeightHalfInt;
-			}
-
-			if (depth > 0)
-			{
-				auto parent = node->parent;
-				while (parent && IsVisibleNode(parent))
-				{
-					parent = parent->parent;
-				}
-				if (parent && parent != &m_root)
-				{
-					auto parentDepth = CalculateNodeDepth(parent);
-					while (parentDepth > 0)
-					{
-						int nodeOffset = (parentDepth - 1) * iconSize;
-						int nextSiblingIndex = -1;
-						if (IsVisibleNode(parent->nextSibling, nextSiblingIndex))
-						{
-							Point vStartPos{ offset.X + nodeOffset + (int)(expanderRect.Width / 2), 0 };
-							Point vEndPos{ vStartPos.X, 1 + offset.Y + nodeHeightInt * (nextSiblingIndex + m_viewport.m_startingVisibleIndex) };
-							graphics.DrawLine(vStartPos, vEndPos, m_window->Appearance->Foreground2nd, Graphics::LineStyle::Solid);
-						}
-						else if (parent->nextSibling)
-						{
-							Point vStartPos{ offset.X + nodeOffset + (int)(expanderRect.Width / 2), 0 };
-							Point vEndPos{ vStartPos.X, (int)m_viewport.m_backgroundRect.Height };
-							graphics.DrawLine(vStartPos, vEndPos, m_window->Appearance->Foreground2nd, Graphics::LineStyle::Solid);
-						}
-						parent = parent->parent;
-						--parentDepth;
-					}
-				}
-			}
-
-			graphics.DrawLine(vStartPos, vEndPos, m_window->Appearance->Foreground2nd, Graphics::LineStyle::Solid);
-			{
-				Point hStartPos{ vStartPos.X, nodeRect.Y + nodeHeightHalfInt };
-				Point hEndPos{ hStartPos.X + (int)iconSize, hStartPos.Y };
-				graphics.DrawLine(hStartPos, hEndPos, m_window->Appearance->Foreground2nd, Graphics::LineStyle::Solid);
+				nodeOffsetX += iconSize;
 			}
 
 			if (node->firstChild)
 			{
 				int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
-				graphics.DrawArrow(expanderRect,
-					arrowLength,
-					arrowWidth,
-					node->isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
-					m_window->Appearance->Foreground2nd,
-					true,
-					node->isExpanded ? m_window->Appearance->Foreground2nd : m_window->Appearance->BoxBackground
-				);
+				graphics.DrawRectangle(expanderRect, m_window->Appearance->Background, true);
+				if (node->isExpanded)
+				{
+					graphics.DrawArrow(expanderRect,
+						arrowLength,
+						arrowWidth,
+						Graphics::ArrowDirection::Downwards,
+						m_window->Appearance->Foreground2nd,
+						true,
+						m_window->Appearance->Foreground2nd
+					);
+				}
+				else
+				{
+					expanderRect.X += m_window->ToScale(1);
+					graphics.DrawArrow(expanderRect,
+						arrowLength,
+						arrowWidth,
+						Graphics::ArrowDirection::Right,
+						m_window->Appearance->Foreground2nd,
+						true,
+						m_window->Appearance->BoxBackground
+					);
+				}
 			}
 
-			graphics.DrawString({ nodeRect.X + nodeOffset + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
+			graphics.DrawString({ nodeRect.X + nodeOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
 			++i;
-
-			currentParent = node->parent;
-		}
-
-		while (!navigationLines.empty())
-		{
-			auto& top = navigationLines.top();
-			navigationLines.pop();
 		}
 	}
 
 	void TreeBoxReactor::Module::DrawNavigationLines(Graphics& graphics)
 	{
+		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeTextMargin = m_window->ToScale(8u);
+		auto nodeHeightInt = static_cast<int>(nodeHeight);
+		auto nodeHeightHalfInt = nodeHeightInt >> 1;
+		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
+		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
+		auto expanderSize = iconSize;
+
+		int lastDepth = (std::numeric_limits<int>::max)();
+		int i = m_viewport.m_startingVisibleIndex;
+		for (auto& node : m_visibleNodes)
+		{
+			auto depth = CalculateNodeDepth(node);
+			Rectangle nodeRect{ offset.X, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
+
+			int nodeOffsetX = (depth - 1) * expanderSize;
+			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y, expanderSize, nodeHeight };
+
+			Point startPointV{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y };
+			Point endPointV{ startPointV.X, nodeRect.Y + nodeHeightInt };
+
+			if (i == 0)
+			{
+				startPointV.Y += nodeHeightHalfInt;
+			}
+
+			if (node->prevSibling && !IsVisibleNode(node->prevSibling))
+			{
+				startPointV.Y = 0;
+			}
+
+			if (!node->nextSibling /* || !IsAnySiblingVisible(node->nextSibling)*/)
+			{
+				endPointV.Y -= nodeHeightHalfInt;
+			}
+			else if (node->nextSibling)
+			{
+				int nextSiblingIndex = -1;
+				if (IsVisibleNode(node->nextSibling, nextSiblingIndex))
+				{
+					endPointV.Y = offset.Y + nodeHeightInt * (nextSiblingIndex + m_viewport.m_startingVisibleIndex);
+				}
+				else
+				{
+					endPointV.Y = m_viewport.m_backgroundRect.Height;
+				}
+			}
+			graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
+			
+			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
+			Point endPointH{ startPointH.X + (int)(nodeTextMargin + expanderRect.Width / 2), startPointH.Y };
+			graphics.DrawLine(startPointH, endPointH, m_window->Appearance->Foreground2nd);
+
+			lastDepth = depth;
+			++i;
+		}
 	}
 
 	void TreeBoxReactor::Module::Init()
 	{
 		m_root.isExpanded = true;
+	}
+
+	void TreeBoxReactor::Module::GenerateNavigationLines()
+	{
+		if (m_root.firstChild == nullptr)
+		{
+			return;
+		}
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text)
@@ -689,7 +684,8 @@ namespace Berta
 		Unlink(item.m_node);
 		EraseNode(item.m_node);
 
-		CalculateViewport(m_viewport);
+		CalculateViewport(m_viewport); 
+		GenerateNavigationLines();
 		if (UpdateScrollBars())
 		{
 			if (m_scrollBarVert)
@@ -699,6 +695,7 @@ namespace Berta
 				m_scrollBarHoriz->Handle()->Renderer.Update();
 		}
 		CalculateVisibleNodes();
+		m_mouseSelection.Deselect(item.m_node);
 
 		GUI::UpdateWindow(m_window);
 	}
@@ -709,6 +706,7 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
+		GenerateNavigationLines();
 		if (UpdateScrollBars())
 		{
 			if (m_scrollBarVert)
@@ -718,6 +716,7 @@ namespace Berta
 				m_scrollBarHoriz->Handle()->Renderer.Update();
 		}
 		CalculateVisibleNodes();
+		m_mouseSelection.Deselect(item.m_node);
 
 		GUI::UpdateWindow(m_window);
 	}
@@ -745,6 +744,11 @@ namespace Berta
 		{
 			if (current == node)
 			{
+				auto prevSibling = current->prevSibling;
+				if (current->nextSibling)
+				{
+					current->nextSibling->prevSibling = prevSibling;
+				}
 				if (current->prevSibling == nullptr)
 				{
 					node->parent->firstChild = current->nextSibling;
@@ -781,6 +785,7 @@ namespace Berta
 					{
 						m_scrollOffset.Y = args.Value;
 						CalculateVisibleNodes();
+						GenerateNavigationLines();
 
 						GUI::UpdateWindow(m_window);
 					});
@@ -797,6 +802,8 @@ namespace Berta
 
 			m_scrollOffset.Y = m_scrollBarVert->GetValue();
 			CalculateVisibleNodes();
+			GenerateNavigationLines();
+
 			needUpdate = true;
 		}
 		else if (m_scrollBarVert)
@@ -804,6 +811,7 @@ namespace Berta
 			m_scrollBarVert.reset();
 			m_scrollOffset.Y = 0;
 			CalculateVisibleNodes();
+			GenerateNavigationLines();
 
 			needUpdate = true;
 		}
@@ -856,9 +864,9 @@ namespace Berta
 		return false;
 	}
 
-	bool TreeBoxReactor::Module::IsAnyChildrenVisible(TreeNodeType* parentNode) const
+	bool TreeBoxReactor::Module::IsAnySiblingVisible(TreeNodeType* node) const
 	{
-		auto current = parentNode->firstChild;
+		auto current = node;
 		if (!current)
 		{
 			return false;

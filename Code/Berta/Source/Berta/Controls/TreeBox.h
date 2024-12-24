@@ -97,6 +97,7 @@ namespace Berta
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
 			void Init();
+			void GenerateNavigationLines();
 			
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle);
@@ -112,7 +113,7 @@ namespace Berta
 			bool UpdateSingleSelection(TreeNodeType* node);
 			bool IsVisibleNode(TreeNodeType* node) const;
 			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
-			bool IsAnyChildrenVisible(TreeNodeType* parentNode) const;
+			bool IsAnySiblingVisible(TreeNodeType* node) const;
 			void EmitSelectionEvent();
 
 			void SetText(TreeNodeType* node, const std::string& newText) const;
