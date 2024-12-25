@@ -22,6 +22,8 @@ namespace Berta
 
 		m_module.Init();
 		m_module.CalculateViewport(m_module.m_viewport);
+
+		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -141,6 +143,7 @@ namespace Berta
 	{
 		auto hoveredArea = m_module.DetermineHoverArea(args.Position);
 		bool needUpdate = false;
+		
 		if (hoveredArea == InteractionArea::Node || hoveredArea == InteractionArea::Expander)
 		{
 			auto nodeHeight = m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight);
@@ -392,12 +395,20 @@ namespace Berta
 			return InteractionArea::Blank;
 		}
 
-		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
 		auto nodeDepth = CalculateNodeDepth(m_visibleNodes[index]);
-		int nodeOffset = (nodeDepth - 1) * iconSize;
+		int nodeOffset = (nodeDepth - 1) * expanderSize;
 		
-		Rectangle expanderRect{ m_viewport.m_backgroundRect.X + m_scrollOffset.X + nodeOffset, index * nodeHeightInt, iconSize, nodeHeight };
-		if (m_visibleNodes[index]->firstChild && expanderRect.IsInside(mousePosition))
+		Rectangle expanderRect
+		{ 
+			m_viewport.m_backgroundRect.X + m_scrollOffset.X + nodeOffset,
+			(index + m_viewport.m_startingVisibleIndex) * nodeHeightInt + (int)(nodeHeightInt - expanderSize) / 2,
+			expanderSize, expanderSize
+		};
+		
+		Point absolutePosition = mousePosition;
+		absolutePosition.Y += m_scrollOffset.Y;
+		if (m_visibleNodes[index]->firstChild && expanderRect.IsInside(absolutePosition))
 		{
 			return InteractionArea::Expander;
 		}
@@ -414,7 +425,7 @@ namespace Berta
 		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto expanderSize = iconSize;
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
 
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
@@ -427,18 +438,21 @@ namespace Berta
 			int nodeOffsetX = (depth - 1) * expanderSize;
 			if (isSelected)
 			{
-				//
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->HighlightColor, true);
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->BoxBorderHighlightColor, false);
+				Rectangle nodeRectInner = nodeRect;
+				nodeRectInner.X = offset.X + expanderSize + nodeOffsetX + (int)nodeTextMargin / 2;
+				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->HighlightColor, true);
+				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->BoxBorderHighlightColor, false);
 			}
 			else if (isHovered)
 			{
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->ItemCollectionHightlightBackground, true);
+				Rectangle nodeRectInner = nodeRect;
+				nodeRectInner.X = offset.X + expanderSize + nodeOffsetX + (int)nodeTextMargin / 2;
+				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->ItemCollectionHightlightBackground, true);
 			}
 
-			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y, expanderSize, nodeHeight };
+			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y + (int)(nodeHeightInt - expanderSize) / 2, expanderSize, expanderSize };
 
-			nodeOffsetX += iconSize;
+			nodeOffsetX += expanderSize;
 			if (m_drawImages)
 			{
 				if (node->icon)
@@ -456,7 +470,8 @@ namespace Berta
 			{
 				int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
-				graphics.DrawRectangle(expanderRect, m_window->Appearance->Background, true);
+				//graphics.DrawRectangle(expanderRect, m_window->Appearance->Background, true);
+				graphics.DrawRoundRectBox(expanderRect, m_window->Appearance->Background, m_window->Appearance->BoxBorderColor, true);
 				if (node->isExpanded)
 				{
 					graphics.DrawArrow(expanderRect,
@@ -496,9 +511,9 @@ namespace Berta
 		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto expanderSize = iconSize;
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
 
-		int lastDepth = (std::numeric_limits<int>::max)();
+		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
 		{
@@ -521,7 +536,7 @@ namespace Berta
 				startPointV.Y = 0;
 			}
 
-			if (!node->nextSibling /* || !IsAnySiblingVisible(node->nextSibling)*/)
+			if (!node->nextSibling)
 			{
 				endPointV.Y -= nodeHeightHalfInt;
 			}
@@ -534,17 +549,32 @@ namespace Berta
 				}
 				else
 				{
-					endPointV.Y = m_viewport.m_backgroundRect.Height;
+					endPointV.Y = static_cast<int>(m_viewport.m_backgroundRect.Height) + m_viewport.m_backgroundRect.Y;
 				}
 			}
 			graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
 			
 			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
-			Point endPointH{ startPointH.X + (int)(nodeTextMargin + expanderRect.Width / 2), startPointH.Y };
+			Point endPointH{ startPointH.X + (int)(expanderRect.Width), startPointH.Y };
 			graphics.DrawLine(startPointH, endPointH, m_window->Appearance->Foreground2nd);
 
-			lastDepth = depth;
+			minDepth = (std::min)(minDepth, depth);
 			++i;
+		}
+		if (minDepth > 1 && minDepth < (std::numeric_limits<uint32_t>::max)())
+		{
+			auto currentDepth = minDepth-1;
+			while (currentDepth > 0)
+			{
+				int nodeOffsetX = (currentDepth - 1) * expanderSize;
+
+				Point startPointV{ offset.X + nodeOffsetX + static_cast<int>(expanderSize) / 2, m_viewport.m_backgroundRect.Y };
+				Point endPointV{ startPointV.X, static_cast<int>(m_viewport.m_backgroundRect.Height) + m_viewport.m_backgroundRect.Y };
+
+				graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
+
+				--currentDepth;
+			}
 		}
 	}
 

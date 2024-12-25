@@ -21,6 +21,11 @@ namespace Berta
 	using TreeNodeHandle = std::string;
 	struct TreeBoxItem;
 
+	struct TreeBoxAppearance : public ControlAppearance
+	{
+		uint32_t ExpanderSize = 12u;
+	};
+
 	class TreeBoxReactor : public ControlReactor
 	{
 	public:
@@ -128,6 +133,7 @@ namespace Berta
 			ViewportData m_viewport;
 			TreeNodeType m_root;
 			Window* m_window{ nullptr };
+			TreeBoxAppearance* m_appearance{ nullptr };
 			std::vector<TreeNodeType*> m_visibleNodes;
 			bool m_drawImages{ false };
 
@@ -183,7 +189,7 @@ namespace Berta
 		Event<ArgTreeBox> Selected;
 	};
 
-	class TreeBox : public Control<TreeBoxReactor, TreeBoxEvents>
+	class TreeBox : public Control<TreeBoxReactor, TreeBoxEvents, TreeBoxAppearance>
 	{
 	public:
 		TreeBox() = default;
