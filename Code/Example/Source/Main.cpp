@@ -53,19 +53,22 @@ public:
 				m_treeBox.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 			});
 
-		m_treeBox.Insert("C:", "C:/");
-		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas");
-		m_treeBox.Insert("C:/Windows", "Windows");
-		m_treeBox.Insert("C:/Windows/addins", "addins");
-		m_treeBox.Insert("C:/Windows/appcompat", "appcompat");
-		m_treeBox.Insert("C:/Windows/Performance", "Performance");
+		Berta::Image image1("..\\..\\Resources\\Icons\\Icono5_2_16.png");
+		Berta::Image image2("..\\..\\Resources\\Icons\\Icono2_16.png");
+		Berta::Image image3("..\\..\\Resources\\Icons\\Icono4_16.png");
+		m_treeBox.Insert("C:", "C:/").SetIcon(image1);
+		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas").SetIcon(image3);
+		m_treeBox.Insert("C:/Windows", "Windows").SetIcon(image2);
+		m_treeBox.Insert("C:/Windows/addins", "addins").SetIcon(image2);;
+		m_treeBox.Insert("C:/Windows/appcompat", "appcompat").SetIcon(image3);
+		m_treeBox.Insert("C:/Windows/Performance", "Performance").SetIcon(image1);
 		m_treeBox.Insert("C:/Windows/Performance/Fast", "Fast");
 		m_treeBox.Insert("C:/Windows/Performance/Slow", "Slow");
 		m_treeBox.Insert("C:/Windows/Performance/Slow/Records", "Records");
 		m_treeBox.Insert("C:/Windows/Performance/Slow/Records/x64", "x64");
 		m_treeBox.Insert("C:/Windows/System32", "System32");
-		m_treeBox.Insert("C:/Temp", "Temp");
-		m_treeBox.Insert("C:/Temp/x64", "x64");
+		m_treeBox.Insert("C:/Temp", "Temp").SetIcon(image2);
+		m_treeBox.Insert("C:/Temp/x64", "x64").SetIcon(image3);
 		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat", "Adobe Acrobat");
 		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat/Crack", "Crack");
 		m_treeBox.Insert("C:/Archivos de programas/Adobe Acrobat/Temp", "Temp");
@@ -90,6 +93,8 @@ public:
 		m_treeBox.Insert("D:/Juegos/Control", "Control");
 		m_treeBox.Insert("D:/Juegos/Cuphead", "Cuphead");
 		m_treeBox.Insert("D:/Juegos/Never alone", "Never alone");
+
+		m_treeBox.ExpandAll();
 	}
 
 	TabExample1() : Panel()

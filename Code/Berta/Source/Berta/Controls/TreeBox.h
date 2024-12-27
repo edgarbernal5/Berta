@@ -37,6 +37,8 @@ namespace Berta
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
+		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
 		struct TreeNodeType
 		{
@@ -83,9 +85,9 @@ namespace Berta
 			void Deselect(TreeNodeType* node);
 
 			std::vector<TreeNodeType*> m_selections;
-			TreeNodeType* m_pressedIndex{ nullptr };
-			TreeNodeType* m_hoveredIndex{ nullptr };
-			TreeNodeType* m_selectedIndex{ nullptr };
+			TreeNodeType* m_pressedNode{ nullptr };
+			TreeNodeType* m_hoveredNode{ nullptr };
+			TreeNodeType* m_selectedNode{ nullptr };
 			bool m_inverseSelection{ false };
 		};
 
@@ -97,7 +99,8 @@ namespace Berta
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
 			TreeNodeType* GetNextVisible(TreeNodeType* node);
-
+			int LocateNodeIndexInTree(TreeNodeType* node);
+			TreeNodeType* LocateNodeIndexInTree(int nodeIndex);
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
@@ -120,7 +123,12 @@ namespace Berta
 			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
 			bool IsAnySiblingVisible(TreeNodeType* node) const;
 			void EmitSelectionEvent();
+			void EmitExpansionEvent(TreeNodeType* node);
 
+			bool ExpandAll();
+			bool ExpandAll(TreeBoxItem item);
+
+			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText) const;
 
 			std::vector<TreeBoxItem> GetSelected();
@@ -163,6 +171,11 @@ namespace Berta
 			m_module->SetText(m_node, text);
 		}
 
+		void SetIcon(const Image& icon)
+		{
+			m_module->SetIcon(m_node, icon);
+		}
+
 		TreeNodeHandle& GetHandle()
 		{
 			return m_node->key;
@@ -181,12 +194,21 @@ namespace Berta
 
 	struct ArgTreeBox
 	{
+		TreeBoxItem &Item;
+		bool Expanded{ false };
+
+		ArgTreeBox(TreeBoxItem item, bool expanded) : Item(item), Expanded(expanded){}
+	};
+
+	struct ArgTreeBoxSelection
+	{
 		std::vector<TreeBoxItem> Items;
 	};
 
 	struct TreeBoxEvents : public ControlEvents
 	{
-		Event<ArgTreeBox> Selected;
+		Event<ArgTreeBox> Expanded;
+		Event<ArgTreeBoxSelection> Selected;
 	};
 
 	class TreeBox : public Control<TreeBoxReactor, TreeBoxEvents, TreeBoxAppearance>
@@ -201,6 +223,8 @@ namespace Berta
 		TreeBoxItem Find(const TreeNodeHandle& key);
 		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
+		void ExpandAll();
+		void ExpandAll(TreeBoxItem item);
 
 		std::vector<TreeBoxItem> GetSelected();
 	};
