@@ -75,6 +75,7 @@ namespace Berta
 
 			int m_startingVisibleIndex{ -1 };
 			int m_endingVisibleIndex{ -1 };
+			uint32_t m_treeSize{ 0 };
 		};
 
 		struct MouseSelection

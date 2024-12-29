@@ -124,6 +124,27 @@ namespace Berta
 				{
 					needUpdate = true;
 					emitSelectionEvent = true;
+
+					if (m_module.m_viewport.m_needVerticalScroll)
+					{
+						auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight));
+						auto selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
+						auto positionY = selectedIndex * nodeHeightInt - m_module.m_scrollOffset.Y;
+						auto newValue = m_module.m_scrollOffset.Y;
+						if (positionY < 0)
+						{
+							newValue = positionY + m_module.m_scrollOffset.Y;
+						}
+						else if (positionY + nodeHeightInt > static_cast<int>(m_module.m_viewport.m_backgroundRect.Height))
+						{
+							newValue = positionY + m_module.m_scrollOffset.Y - static_cast<int>(m_module.m_viewport.m_backgroundRect.Height) + nodeHeightInt;
+						}
+						if (m_module.m_scrollOffset.Y != newValue)
+						{
+							m_module.m_scrollOffset.Y = newValue;
+							m_module.m_scrollBarVert->SetValue(newValue);
+						}
+					}
 				}
 			}
 		}
@@ -226,61 +247,81 @@ namespace Berta
 		bool needUpdate = false;
 		bool recalculateVisibleNodes = false;
 		bool emitSelectionEvent = false;
+		bool emitCollaspedEvent = false;
 		auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight));
 
 		if (args.Key == KeyboardKey::ArrowLeft)
 		{
-			int selectedIndex;
-			if (m_module.IsVisibleNode(m_module.m_mouseSelection.m_pressedNode, selectedIndex))
+			if (m_module.m_mouseSelection.m_pressedNode->isExpanded)
 			{
-				if (m_module.m_visibleNodes[selectedIndex]->isExpanded)
-				{
-					m_module.m_visibleNodes[selectedIndex]->isExpanded = false;
+				m_module.m_mouseSelection.m_pressedNode->isExpanded = false;
 
-					recalculateVisibleNodes = true;
+				recalculateVisibleNodes = true;
+				needUpdate = true;
+				emitCollaspedEvent = true;
+			}
+			else if (m_module.m_mouseSelection.m_pressedNode->parent != &m_module.m_root)
+			{
+				if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedNode->parent))
+				{
+					m_module.m_mouseSelection.m_pressedNode = m_module.m_mouseSelection.m_pressedNode->parent;
 					needUpdate = true;
+					emitSelectionEvent = true;
 				}
-				else if (m_module.m_mouseSelection.m_pressedNode->parent != &m_module.m_root)
-				{
-					if (m_module.IsVisibleNode(m_module.m_mouseSelection.m_pressedNode->parent, selectedIndex))
-					{
-						if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedNode->parent))
-						{
-							m_module.m_mouseSelection.m_pressedNode = m_module.m_mouseSelection.m_pressedNode->parent;
-							needUpdate = true;
-							emitSelectionEvent = true;
-						}
-						recalculateVisibleNodes = true;
-
-						needUpdate = true;
-					}
-					else
-					{
-						if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedNode->parent))
-						{
-							m_module.m_mouseSelection.m_pressedNode = m_module.m_mouseSelection.m_pressedNode->parent;
-							needUpdate = true;
-							emitSelectionEvent = true;
-						}
-						recalculateVisibleNodes = true;
-					}
-				}
+				recalculateVisibleNodes = true;
 			}
 		}
 		else if (args.Key == KeyboardKey::ArrowRight)
 		{
+			if (!m_module.m_mouseSelection.m_pressedNode->isExpanded)
+			{
+				m_module.m_mouseSelection.m_pressedNode->isExpanded = true;
 
+				recalculateVisibleNodes = true;
+				needUpdate = true;
+				emitCollaspedEvent = true;
+			}
+			else if (m_module.m_mouseSelection.m_pressedNode->firstChild)
+			{
+				if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_pressedNode->firstChild))
+				{
+					m_module.m_mouseSelection.m_pressedNode = m_module.m_mouseSelection.m_pressedNode->firstChild;
+					needUpdate = true;
+					emitSelectionEvent = true;
+					recalculateVisibleNodes = true;
+				}
+			}
 		}
-		else if (args.Key == KeyboardKey::ArrowUp)
+		else if (args.Key == KeyboardKey::Home || args.Key == KeyboardKey::End)
 		{
+			int newIndex = args.Key == KeyboardKey::Home ? 0 : ((int)m_module.m_viewport.m_treeSize - 1);
+
+			auto newNode = m_module.LocateNodeIndexInTree(newIndex);
+			if (newNode && m_module.UpdateSingleSelection(newNode))
+			{
+				m_module.m_mouseSelection.m_pressedNode = newNode;
+				needUpdate = true;
+				emitSelectionEvent = true;
+				recalculateVisibleNodes = true;
+			}
+		}
+		else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown ||
+			args.Key == KeyboardKey::PageUp || args.Key == KeyboardKey::PageDown)
+		{
+			int pageAmount = static_cast<int>(m_module.m_viewport.m_backgroundRect.Height / nodeHeightInt);
+			int direction = (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::PageUp) ? -1 : 1;
+			int amount = direction * ((args.Key == KeyboardKey::PageDown || args.Key == KeyboardKey::PageUp) ? pageAmount : 1);
 			int selectedIndex;
 			if (m_module.IsVisibleNode(m_module.m_mouseSelection.m_pressedNode, selectedIndex))
 			{
-				if (selectedIndex > 0)
+				int newIndex = selectedIndex + amount;
+				if (newIndex >= 0 && newIndex < m_module.m_visibleNodes.size())
 				{
-					if (m_module.UpdateSingleSelection(m_module.m_visibleNodes[selectedIndex - 1]))
+					newIndex = std::clamp(newIndex, 0, (int)m_module.m_visibleNodes.size() - 1);
+
+					if (m_module.UpdateSingleSelection(m_module.m_visibleNodes[newIndex]))
 					{
-						m_module.m_mouseSelection.m_pressedNode = m_module.m_visibleNodes[selectedIndex - 1];
+						m_module.m_mouseSelection.m_pressedNode = m_module.m_visibleNodes[newIndex];
 						needUpdate = true;
 						emitSelectionEvent = true;
 					}
@@ -288,10 +329,11 @@ namespace Berta
 				else
 				{
 					selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
-					if (selectedIndex > 0)
+					int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
+					if (newIndex >= 0 && newIndex < m_module.m_viewport.m_treeSize)
 					{
-						auto newNode = m_module.LocateNodeIndexInTree(selectedIndex - 1);
-						if (m_module.UpdateSingleSelection(newNode))
+						auto newNode = m_module.LocateNodeIndexInTree(newIndex);
+						if (newNode && m_module.UpdateSingleSelection(newNode))
 						{
 							m_module.m_mouseSelection.m_pressedNode = newNode;
 							needUpdate = true;
@@ -304,24 +346,24 @@ namespace Berta
 			else
 			{
 				selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
-				if (selectedIndex > 0)
+				
+				int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
+				auto newNode = m_module.LocateNodeIndexInTree(newIndex);
+				if (newNode && m_module.UpdateSingleSelection(newNode))
 				{
-					auto newNode = m_module.LocateNodeIndexInTree(selectedIndex - 1);
-					if (m_module.UpdateSingleSelection(newNode))
-					{
-						m_module.m_mouseSelection.m_pressedNode = newNode;
-						needUpdate = true;
-						emitSelectionEvent = true;
-						recalculateVisibleNodes = true;
-					}
+					m_module.m_mouseSelection.m_pressedNode = newNode;
+					needUpdate = true;
+					emitSelectionEvent = true;
+					recalculateVisibleNodes = true;
 				}
+				
 			}
 		}
 
 		if (m_module.m_viewport.m_needVerticalScroll)
 		{
 			auto selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
-			auto positionY = (selectedIndex) * nodeHeightInt - m_module.m_scrollOffset.Y;
+			auto positionY = selectedIndex * nodeHeightInt - m_module.m_scrollOffset.Y;
 			auto newValue = m_module.m_scrollOffset.Y;
 			if (positionY < 0)
 			{
@@ -330,7 +372,7 @@ namespace Berta
 			}
 			else if (positionY + nodeHeightInt > static_cast<int>(m_module.m_viewport.m_backgroundRect.Height))
 			{
-				newValue = positionY + m_module.m_scrollOffset.Y;
+				newValue = positionY + m_module.m_scrollOffset.Y - static_cast<int>(m_module.m_viewport.m_backgroundRect.Height) + nodeHeightInt;
 				needUpdate = true;
 			}
 			m_module.m_scrollOffset.Y = newValue;
@@ -357,6 +399,11 @@ namespace Berta
 		if (emitSelectionEvent)
 		{
 			m_module.EmitSelectionEvent();
+		}
+
+		if (emitCollaspedEvent)
+		{
+			m_module.EmitExpansionEvent(m_module.m_mouseSelection.m_pressedNode);
 		}
 
 		if (needUpdate)
@@ -397,8 +444,8 @@ namespace Berta
 		viewportData.m_backgroundRect.Height -= 2u;
 
 		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
-		auto treeSize = CalculateTreeSize(&m_root) - 1;
-		viewportData.m_contentSize.Height = nodeHeight * treeSize;
+		viewportData.m_treeSize = CalculateTreeSize(&m_root) - 1;
+		viewportData.m_contentSize.Height = nodeHeight * viewportData.m_treeSize;
 
 		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
 		viewportData.m_needVerticalScroll = viewportData.m_contentSize.Height > viewportData.m_backgroundRect.Height;

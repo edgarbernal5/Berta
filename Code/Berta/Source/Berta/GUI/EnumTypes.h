@@ -20,6 +20,7 @@ namespace Berta
 			Alt = 0x12,
 			Escape = 0x1b,
 			Space = 0x20,
+			PageUp = 0x21, PageDown,
 			End = 0x23,
 			Home = 0x24,
 			ArrowLeft = 0x25,
