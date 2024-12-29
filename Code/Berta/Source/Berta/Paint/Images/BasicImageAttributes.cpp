@@ -101,9 +101,20 @@ namespace Berta
 		HDC& destDC = destination.m_attributes->m_hdc;
 
 		HDC hdc = ::GetDC(NULL);
+		if (!hdc)
+		{
+			BT_CORE_ERROR << "Failed to GetDC. ::GetLastError() = " << GetLastError() << std::endl;
+			return;
+		}
 		// Create compatible DC
 		HDC hdcMem = ::CreateCompatibleDC(hdc);
+		if (!hdcMem)
+		{
+			::ReleaseDC(nullptr, hdc);
 
+			BT_CORE_ERROR << "Failed to CreateCompatibleDC. ::GetLastError() = " << GetLastError() << std::endl;
+			return;
+		}
 		::BITMAPINFO bmpInfo;
 		ZeroMemory(&bmpInfo, sizeof(BITMAPINFO));
 		bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -118,7 +129,10 @@ namespace Berta
 		HBITMAP hBitmap = ::CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, &pBits, NULL, 0);
 		if (!hBitmap)
 		{
-			BT_CORE_ERROR << "Failed to create DIB section." << std::endl;
+			::DeleteDC(hdcMem);
+			::ReleaseDC(nullptr, hdc);
+
+			BT_CORE_ERROR << "Failed to create DIB section. ::GetLastError() = " << GetLastError() << std::endl;
 			return;
 		}
 
@@ -196,6 +210,7 @@ namespace Berta
 				BT_CORE_ERROR << " - BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
 			}
 		}
+		::SelectObject(m_hdc, hOldBitmap);
 
 		::ReleaseDC(0, hdc);
 #endif

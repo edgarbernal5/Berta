@@ -252,7 +252,7 @@ namespace Berta
 
 		if (args.Key == KeyboardKey::ArrowLeft)
 		{
-			if (m_module.m_mouseSelection.m_pressedNode->isExpanded)
+			if (m_module.m_mouseSelection.m_pressedNode->firstChild && m_module.m_mouseSelection.m_pressedNode->isExpanded)
 			{
 				m_module.m_mouseSelection.m_pressedNode->isExpanded = false;
 
@@ -330,23 +330,21 @@ namespace Berta
 				{
 					selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
 					int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
-					if (newIndex >= 0 && newIndex < m_module.m_viewport.m_treeSize)
+					
+					auto newNode = m_module.LocateNodeIndexInTree(newIndex);
+					if (newNode && m_module.UpdateSingleSelection(newNode))
 					{
-						auto newNode = m_module.LocateNodeIndexInTree(newIndex);
-						if (newNode && m_module.UpdateSingleSelection(newNode))
-						{
-							m_module.m_mouseSelection.m_pressedNode = newNode;
-							needUpdate = true;
-							emitSelectionEvent = true;
-							recalculateVisibleNodes = true;
-						}
+						m_module.m_mouseSelection.m_pressedNode = newNode;
+						needUpdate = true;
+						emitSelectionEvent = true;
+						recalculateVisibleNodes = true;
 					}
 				}
 			}
 			else
 			{
 				selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pressedNode);
-				
+
 				int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
 				auto newNode = m_module.LocateNodeIndexInTree(newIndex);
 				if (newNode && m_module.UpdateSingleSelection(newNode))
@@ -356,7 +354,6 @@ namespace Berta
 					emitSelectionEvent = true;
 					recalculateVisibleNodes = true;
 				}
-				
 			}
 		}
 
@@ -375,14 +372,17 @@ namespace Berta
 				newValue = positionY + m_module.m_scrollOffset.Y - static_cast<int>(m_module.m_viewport.m_backgroundRect.Height) + nodeHeightInt;
 				needUpdate = true;
 			}
-			m_module.m_scrollOffset.Y = newValue;
-			m_module.m_scrollBarVert->SetValue(newValue);
+			if (m_module.m_scrollOffset.Y != newValue)
+			{
+				m_module.m_scrollOffset.Y = newValue;
+				m_module.m_scrollBarVert->SetValue(newValue);
+			}
 		}
 
 		if (recalculateVisibleNodes)
 		{
 			m_module.CalculateViewport(m_module.m_viewport);
-			
+
 			m_module.CalculateVisibleNodes();
 		}
 
@@ -730,10 +730,8 @@ namespace Berta
 			{
 				if (node->icon)
 				{
-					auto& icon = node->icon;
-					auto iconSourceSize = icon.GetSize();
 					auto positionY = (nodeHeight - iconSize) >> 1;
-					icon.Paste(graphics, { nodeRect.X + nodeOffsetX + static_cast<int>(expanderSize / 2), nodeRect.Y + (int)positionY, iconSize , iconSize });
+					node->icon.Paste(graphics, { nodeRect.X + nodeOffsetX + static_cast<int>(expanderSize / 2), nodeRect.Y + (int)positionY, iconSize , iconSize });
 				}
 
 				nodeOffsetX += iconSize;
@@ -741,7 +739,7 @@ namespace Berta
 
 			if (node->firstChild)
 			{
-				int arrowWidth = m_window->ToScale(4);
+				/*int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
 				graphics.DrawRoundRectBox(expanderRect, m_window->Appearance->Background, m_window->Appearance->BoxBorderColor, true);
 			
@@ -752,7 +750,7 @@ namespace Berta
 					m_window->Appearance->Foreground2nd,
 					true,
 					node->isExpanded ? m_window->Appearance->Foreground2nd : m_window->Appearance->BoxBackground
-				);
+				);*/
 			}
 
 			graphics.DrawString({ nodeRect.X + nodeOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
