@@ -308,7 +308,6 @@ namespace Berta
 						int current = start + direction;
 						while (current != end)
 						{
-
 							m_module.m_items[current].m_isSelected = true;
 							m_module.m_mouseSelection.m_selections.push_back(current);
 							current += direction;

@@ -102,6 +102,7 @@ namespace Berta
 			int LocateNodeIndexInTree(TreeNodeType* node);
 			TreeNodeType* LocateNodeIndexInTree(int nodeIndex);
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
+			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
 			void Init();
@@ -125,8 +126,12 @@ namespace Berta
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
 
+			bool Collapse(TreeBoxItem item);
+			bool CollapseAll();
+			bool CollapseAll(TreeBoxItem item);
 			bool ExpandAll();
 			bool ExpandAll(TreeBoxItem item);
+			bool Expand(TreeBoxItem item);
 
 			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText) const;
@@ -152,6 +157,7 @@ namespace Berta
 			bool m_multiselection{ false };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
+			Graphics* m_graphics{ nullptr };
 		};
 
 		Module& GetModule() { return m_module; }
@@ -175,6 +181,9 @@ namespace Berta
 		{
 			m_module->SetIcon(m_node, icon);
 		}
+
+		void Collapse();
+		void Expand();
 
 		TreeNodeHandle& GetHandle()
 		{
@@ -218,6 +227,9 @@ namespace Berta
 		TreeBox(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
+		void CollapseAll();
+		void CollapseAll(TreeBoxItem item);
+
 		void Erase(const TreeNodeHandle& key);
 		void Erase(TreeBoxItem item);
 		TreeBoxItem Find(const TreeNodeHandle& key);
