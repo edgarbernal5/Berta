@@ -739,7 +739,7 @@ namespace Berta
 
 			if (node->firstChild)
 			{
-				/*int arrowWidth = m_window->ToScale(4);
+				int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
 				graphics.DrawRoundRectBox(expanderRect, m_window->Appearance->Background, m_window->Appearance->BoxBorderColor, true);
 			
@@ -750,7 +750,7 @@ namespace Berta
 					m_window->Appearance->Foreground2nd,
 					true,
 					node->isExpanded ? m_window->Appearance->Foreground2nd : m_window->Appearance->BoxBackground
-				);*/
+				);
 			}
 
 			graphics.DrawString({ nodeRect.X + nodeOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);

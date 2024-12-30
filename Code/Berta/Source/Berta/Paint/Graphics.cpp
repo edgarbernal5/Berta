@@ -462,9 +462,10 @@ namespace Berta
 		if (solid)
 		{
 			HBRUSH hBrush = ::CreateSolidBrush(solidColor);
-			::SelectObject(m_attributes->m_hdc, hBrush);
+			HBRUSH oldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hBrush);
 			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
 			::DeleteObject(hBrush);
+			::SelectObject(m_attributes->m_hdc, oldBrush);
 		}
 		else
 		{
