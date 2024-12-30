@@ -205,34 +205,32 @@ namespace Berta
 			{
 				auto listItemIconSize = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconSize);
 				auto listItemIconMargin = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconMargin);
-				if (!m_module.m_headers.m_isDragging)
+
+				if (!m_module.m_headers.m_isDragging && !m_module.m_headers.m_draggingBox.IsValid())
 				{
-					if (!m_module.m_headers.m_draggingBox.IsValid())
+					auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
+					auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
+
+					const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
+					const auto& header = m_module.m_headers.m_items[headerIndex];
+					Graphics& draggingBox = m_module.m_headers.m_draggingBox;
+					Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.m_bounds.Width), headerHeight };
+					uint32_t textOffset = 0;
+					if (m_module.m_headers.m_selectedIndex == 0 && m_module.m_list.m_drawImages)
 					{
-						auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
-						auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
-
-						const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
-						const auto& header = m_module.m_headers.m_items[headerIndex];
-						Graphics& draggingBox = m_module.m_headers.m_draggingBox;
-						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.m_bounds.Width), headerHeight };
-						uint32_t textOffset = 0;
-						if (m_module.m_headers.m_selectedIndex == 0 && m_module.m_list.m_drawImages)
-						{
-							textOffset += listItemIconSize + listItemIconMargin * 2u;
-							columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
-						}
-
-						draggingBox.Build({ columnRect.Width, columnRect.Height });
-						draggingBox.BuildFont(m_module.m_window->DPI);
-
-						draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
-
-						Rectangle textRect = columnRect;
-						textRect.X += (int)leftMarginTextHeader + textOffset;
-						textRect.Width -= leftMarginTextHeader * 2 + textOffset;
-						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.m_name, false, textRect, m_module.m_appearance->SelectionHighlightColor);
+						textOffset += listItemIconSize + listItemIconMargin * 2u;
+						columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
 					}
+
+					draggingBox.Build({ columnRect.Width, columnRect.Height });
+					draggingBox.BuildFont(m_module.m_window->DPI);
+
+					draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
+
+					Rectangle textRect = columnRect;
+					textRect.X += (int)leftMarginTextHeader + textOffset;
+					textRect.Width -= leftMarginTextHeader * 2 + textOffset;
+					m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.m_name, false, textRect, m_module.m_appearance->SelectionHighlightColor);
 				}
 				m_module.m_headers.m_mouseDraggingPosition = args.Position.X;
 				m_module.m_headers.m_isDragging = true;
@@ -282,7 +280,7 @@ namespace Berta
 				int newIndex = positionY / (int)itemHeight;
 				auto absIndex = m_module.m_list.m_sortedIndexes[newIndex];
 
-				needUpdate |= m_module.SetHoveredListItem(newIndex) && !m_module.m_list.m_items[absIndex].m_isSelected;
+				needUpdate |= m_module.SetHoveredListItem(&m_module.m_list.m_items[absIndex]) && !m_module.m_list.m_items[absIndex].m_isSelected;
 			}
 		}
 		else if (hoveredArea == InteractionArea::ListBlank || hoveredArea == InteractionArea::None)
@@ -311,7 +309,7 @@ namespace Berta
 						item.m_bounds.Y = (int)((m_module.m_viewport.m_itemHeightWithMargin * i) + m_module.m_viewport.m_innerMargin);
 						item.m_bounds.Width = m_module.m_viewport.m_contentSize.Width;
 						bool intersection = item.m_bounds.Intersect(selectionRect);
-						bool alreadySelected = m_module.m_mouseSelection.IsAlreadySelected(absoluteIndex);
+						bool alreadySelected = m_module.m_mouseSelection.IsAlreadySelected(&item);
 
 						if (m_module.m_mouseSelection.m_inverseSelection)
 						{
@@ -340,7 +338,6 @@ namespace Berta
 		}
 		if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
 		{
-			BT_CORE_DEBUG << "  - mo move / cursor default" << std::endl;
 			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
 		}
 
@@ -371,7 +368,7 @@ namespace Berta
 			{
 				if (m_module.m_list.m_items[i].m_isSelected)
 				{
-					m_module.m_mouseSelection.m_selections.push_back(i);
+					m_module.m_mouseSelection.m_selections.push_back(&m_module.m_list.m_items[i]);
 				}
 			}
 			GUI::ReleaseCapture(m_module.m_window);
@@ -406,7 +403,7 @@ namespace Berta
 			else
 			{
 				bool ascending = m_module.m_headers.isAscendingOrdering;
-				if (m_module.m_headers.m_sortedHeaderIndex != -1 && m_module.m_headers.m_sortedHeaderIndex == m_module.m_headers.m_selectedIndex)
+				if (m_module.m_headers.m_sortedHeaderIndex != -1 && m_module.m_headers.m_sortedHeaderIndex == m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex])
 				{
 					ascending = !ascending;
 				}
@@ -415,9 +412,9 @@ namespace Berta
 					ascending = true;
 				}
 
-				m_module.SortHeader(m_module.m_headers.m_selectedIndex, ascending);
+				m_module.SortHeader(m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex], ascending);
 				m_module.m_headers.isAscendingOrdering = ascending;
-				m_module.m_headers.m_sortedHeaderIndex = m_module.m_headers.m_selectedIndex;
+				m_module.m_headers.m_sortedHeaderIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
 			}
 			m_module.m_headers.m_isDragging = false;
 			m_module.m_headers.m_selectedIndex = -1;
@@ -440,8 +437,8 @@ namespace Berta
 			GUI::ChangeCursor(m_module.m_window, Cursor::Default);
 		}
 
-		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != -1;
-		m_module.m_mouseSelection.m_hoveredIndex = -1;
+		bool needUpdate = m_module.m_mouseSelection.m_hoveredIndex != nullptr;
+		m_module.m_mouseSelection.m_hoveredIndex = nullptr;
 		if (args.ButtonState.NoButtonsPressed() && (m_module.m_hoveredArea == InteractionArea::Header || m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
 			&& m_module.m_headers.m_selectedIndex != -1)
 		{
@@ -505,11 +502,20 @@ namespace Berta
 		if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
 		{
 			auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
-			auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.m_list.m_items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
-			auto newItemIndex = pivot + direction;
+			int pivotIndex = -1;
+			if (m_module.m_mouseSelection.m_pressedIndex)
+			{
+				pivotIndex = m_module.GetListItemIndex(m_module.m_mouseSelection.m_pressedIndex);
+			}
+			else
+			{
+				pivotIndex = (direction == -1 ? (int)m_module.m_list.m_items.size() : -1);
+			}
+			auto newItemIndex = pivotIndex + direction;
 			if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_list.m_items.size())
 			{
 				auto absoluteIndex = m_module.m_list.m_sortedIndexes[newItemIndex];
+				auto newItemPtr = &m_module.m_list.m_items[m_module.m_list.m_sortedIndexes[newItemIndex]];
 				if (!m_module.m_multiselection || !m_module.m_shiftPressed && !m_module.m_ctrlPressed)
 				{
 					m_module.ClearSelection();
@@ -518,47 +524,45 @@ namespace Berta
 				if (m_module.m_multiselection && m_module.m_shiftPressed)
 				{
 					int end = newItemIndex + direction;
-					int start = m_module.m_mouseSelection.m_pressedIndex;
+					int start = pivotIndex;
 					int current = start + direction;
 					while (current != end)
 					{
 						auto absoluteIndex = m_module.m_list.m_sortedIndexes[current];
 						m_module.m_list.m_items[absoluteIndex].m_isSelected = true;
-						m_module.m_mouseSelection.m_selections.push_back(absoluteIndex);
+						m_module.m_mouseSelection.m_selections.push_back(&m_module.m_list.m_items[absoluteIndex]);
 						current += direction;
 					}
-					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					m_module.m_mouseSelection.m_pressedIndex = newItemPtr;
 				}
 				else if (m_module.m_ctrlPressed)
 				{
-					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+					m_module.m_mouseSelection.m_pressedIndex = newItemPtr;
 				}
 				else
 				{
-					m_module.m_list.m_items[absoluteIndex].m_isSelected = true;
-					m_module.m_mouseSelection.m_selections.push_back(absoluteIndex);
-					m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
-					m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
+					newItemPtr->m_isSelected = true;
+					m_module.m_mouseSelection.m_selections.push_back(newItemPtr);
+					m_module.m_mouseSelection.m_pressedIndex = newItemPtr;
+					m_module.m_mouseSelection.m_selectedIndex = newItemPtr;
 				}
-				m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
+				m_module.EnsureVisibility(newItemIndex);
 				needUpdate = true;
 			}
-			
 		}
 		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
 		{
-			if (m_module.m_mouseSelection.m_pressedIndex != -1)
+			if (m_module.m_mouseSelection.m_pressedIndex)
 			{
-				auto newItemIndex = m_module.m_list.m_sortedIndexes[m_module.m_mouseSelection.m_pressedIndex];
-				auto& isSelected = m_module.m_list.m_items[newItemIndex].m_isSelected;
+				auto& isSelected = m_module.m_mouseSelection.m_pressedIndex->m_isSelected;
 				isSelected = !isSelected;
 				if (isSelected)
 				{
-					m_module.m_mouseSelection.Select(newItemIndex);
+					m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_pressedIndex);
 				}
 				else
 				{
-					m_module.m_mouseSelection.Deselect(newItemIndex);
+					m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_pressedIndex);
 				}
 				needUpdate = true;
 			}
@@ -655,47 +659,47 @@ namespace Berta
 			return;
 		}
 
-		bool wasSelected = m_mouseSelection.IsSelected(index);
-		if (wasSelected)
-		{
-			m_mouseSelection.Deselect(index);
-			if (m_mouseSelection.m_selectedIndex == index || m_mouseSelection.m_selectedIndex >= m_list.m_items.size())
-			{
-				m_mouseSelection.m_selectedIndex = -1;
-			}
-		}
-		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
-		{
-			auto& itemIndex = m_mouseSelection.m_selections[i];
-			if (itemIndex > index)
-			{
-				--itemIndex;
-			}
-		}
-		auto it = m_list.m_items.begin() + index;
-		m_list.m_items.erase(it);
+		//bool wasSelected = m_mouseSelection.IsSelected(index);
+		//if (wasSelected)
+		//{
+		//	m_mouseSelection.Deselect(index);
+		//	if (m_mouseSelection.m_selectedIndex == index || m_mouseSelection.m_selectedIndex >= m_list.m_items.size())
+		//	{
+		//		m_mouseSelection.m_selectedIndex = -1;
+		//	}
+		//}
+		//for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		//{
+		//	auto& itemIndex = m_mouseSelection.m_selections[i];
+		//	if (itemIndex > index)
+		//	{
+		//		--itemIndex;
+		//	}
+		//}
+		//auto it = m_list.m_items.begin() + index;
+		//m_list.m_items.erase(it);
 
-		CalculateViewport(m_viewport);
-		CalculateVisibleIndices();
-		UpdateScrollBars();
+		//CalculateViewport(m_viewport);
+		//CalculateVisibleIndices();
+		//UpdateScrollBars();
 
-		if (index < m_list.m_items.size())
-		{
-			BuildListItemBounds(index);
-		}
+		//if (index < m_list.m_items.size())
+		//{
+		//	BuildListItemBounds(index);
+		//}
 
-		if (m_viewport.m_needVerticalScroll)
-		{
-			m_scrollBarVert->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarVert->Handle());
-		}
-		if (m_viewport.m_needHorizontalScroll)
-		{
-			m_scrollBarHoriz->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
-		}
+		//if (m_viewport.m_needVerticalScroll)
+		//{
+		//	m_scrollBarVert->Handle()->Renderer.Update();
+		//	//GUI::UpdateWindow(m_scrollBarVert->Handle());
+		//}
+		//if (m_viewport.m_needHorizontalScroll)
+		//{
+		//	m_scrollBarHoriz->Handle()->Renderer.Update();
+		//	//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
+		//}
 
-		GUI::UpdateWindow(m_window);
+		//GUI::UpdateWindow(m_window);
 	}
 
 	void ListBoxReactor::Module::EnableMultiselection(bool enabled)
@@ -1075,8 +1079,8 @@ namespace Berta
 			auto& item = m_list.m_items[absoluteIndex];
 			int cellOffset = 0;
 
-			bool isLastSelected = (int)i == m_mouseSelection.m_pressedIndex;
-			bool isHovered = m_mouseSelection.m_hoveredIndex == (int)i;
+			bool isLastSelected = &item == m_mouseSelection.m_pressedIndex;
+			bool isHovered = m_mouseSelection.m_hoveredIndex == &item;
 			bool isSelected = item.m_isSelected;
 			Rectangle itemRect{ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight };
 			if (isSelected)
@@ -1150,7 +1154,7 @@ namespace Berta
 		boxSize = { (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 	}
 
-	bool ListBoxReactor::Module::SetHoveredListItem(int index)
+	bool ListBoxReactor::Module::SetHoveredListItem(List::Item* index)
 	{
 		if (m_mouseSelection.m_hoveredIndex != index)
 		{
@@ -1179,59 +1183,72 @@ namespace Berta
 		std::sort(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), compare);
 	}
 
-	bool ListBoxReactor::Module::HandleMultiSelection(int localItemIndex, const ArgMouse& args)
+	int ListBoxReactor::Module::GetListItemIndex(List::Item* item)
+	{
+		for (size_t i = 0; i < m_list.m_items.size(); i++)
+		{
+			if (item == &m_list.m_items[m_list.m_sortedIndexes[i]])
+			{
+				return static_cast<int>(i);
+			}
+		}
+		return -1;
+	}
+
+	bool ListBoxReactor::Module::HandleMultiSelection(List::Item* localItemIndex, const ArgMouse& args)
 	{
 		bool needUpdate = false;
 
-		auto absoluteIndex = m_list.m_sortedIndexes[localItemIndex];
+		//auto absoluteIndex = m_list.m_sortedIndexes[localItemIndex];
 		if (!m_ctrlPressed && !m_shiftPressed)
 		{
-			if (!args.ButtonState.RightButton || !m_list.m_items[absoluteIndex].m_isSelected)
+			if (!args.ButtonState.RightButton || !localItemIndex->m_isSelected)
 			{
 				ClearSelection();
 			}
-			if (!m_list.m_items[absoluteIndex].m_isSelected)
+			if (!localItemIndex->m_isSelected)
 			{
-				SelectItem(absoluteIndex);
+				SelectItem(localItemIndex);
 				needUpdate = true;
 			}
 		}
-		else if (m_shiftPressed && m_mouseSelection.m_selectedIndex != -1)
+		else if (m_shiftPressed && m_mouseSelection.m_selectedIndex)
 		{
 			PerformRangeSelection(localItemIndex);
 			needUpdate = true;
 		}
 		else
 		{
-			ToggleItemSelection(absoluteIndex);
+			ToggleItemSelection(localItemIndex);
 			needUpdate = true;
 		}
 		needUpdate |= m_mouseSelection.m_selectedIndex != localItemIndex;
 		m_mouseSelection.m_selectedIndex = localItemIndex;
 
-		needUpdate |= EnsureVisibility(localItemIndex);
+		needUpdate |= EnsureVisibility(GetListItemIndex(localItemIndex));
 		return needUpdate;
 	}
 
-	bool ListBoxReactor::Module::UpdateSingleSelection(int localItemIndex)
+	bool ListBoxReactor::Module::UpdateSingleSelection(List::Item* localItemIndex)
 	{
-		auto absoluteIndex = m_list.m_sortedIndexes[localItemIndex];
-		auto prevAbsoluteIndex = m_mouseSelection.m_selections.empty() ? -1 : m_mouseSelection.m_selections[0];
-		bool needUpdate = prevAbsoluteIndex != absoluteIndex;
+		//auto absoluteIndex = m_list.m_sortedIndexes[localItemIndex];
+		//auto prevAbsoluteIndex = m_mouseSelection.m_selections.empty() ? -1 : m_mouseSelection.m_selections[0];
+		//bool needUpdate = prevAbsoluteIndex != absoluteIndex;
+		bool needUpdate = m_mouseSelection.m_selectedIndex != localItemIndex;
 		if (needUpdate)
 		{
 			ClearSingleSelection();
-			SelectItem(absoluteIndex);
+			SelectItem(localItemIndex);
 		}
 		return needUpdate;
 	}
 
-	void ListBoxReactor::Module::ToggleItemSelection(size_t absoluteItemIndex)
+	void ListBoxReactor::Module::ToggleItemSelection(List::Item* absoluteItemIndex)
 	{
-		auto& item = m_list.m_items[absoluteItemIndex];
-		item.m_isSelected = !item.m_isSelected;
+		//auto& item = m_list.m_items[absoluteItemIndex];
+		absoluteItemIndex->m_isSelected = !absoluteItemIndex->m_isSelected;
 
-		if (item.m_isSelected)
+		if (absoluteItemIndex->m_isSelected)
 		{
 			m_mouseSelection.m_selections.push_back(absoluteItemIndex);
 		}
@@ -1259,8 +1276,8 @@ namespace Berta
 		{
 			if (m_list.m_items[i].m_isSelected)
 			{
-				m_mouseSelection.m_selections.push_back(i);
-				m_mouseSelection.m_alreadySelected.push_back(i);
+				m_mouseSelection.m_selections.push_back(&m_list.m_items[i]);
+				m_mouseSelection.m_alreadySelected.push_back(&m_list.m_items[i]);
 			}
 		}
 
@@ -1273,14 +1290,14 @@ namespace Berta
 		{
 			if (!m_mouseSelection.m_selections.empty())
 			{
-				for (const auto& index : m_mouseSelection.m_selections)
+				for (const auto& item : m_mouseSelection.m_selections)
 				{
-					m_list.m_items[index].m_isSelected = false;
+					item->m_isSelected = false;
 				}
 				m_mouseSelection.m_selections.clear();
 				m_mouseSelection.m_alreadySelected.clear();
 
-				m_mouseSelection.m_selectedIndex = -1;
+				m_mouseSelection.m_selectedIndex = nullptr;
 				return true;
 			}
 		}
@@ -1289,12 +1306,12 @@ namespace Berta
 
 	bool ListBoxReactor::Module::ClearSingleSelection()
 	{
-		if (m_mouseSelection.m_selectedIndex != -1)
+		if (m_mouseSelection.m_selectedIndex)
 		{
-			auto absoluteIndex = m_list.m_sortedIndexes[m_mouseSelection.m_selectedIndex];
-			m_list.m_items[absoluteIndex].m_isSelected = false;
+			//auto absoluteIndex = m_list.m_sortedIndexes[m_mouseSelection.m_selectedIndex];
+			m_mouseSelection.m_selectedIndex->m_isSelected = false;
 			m_mouseSelection.m_selections.clear();
-			m_mouseSelection.m_selectedIndex = -1;
+			m_mouseSelection.m_selectedIndex = nullptr;
 			return true;
 		}
 		return false;
@@ -1305,7 +1322,7 @@ namespace Berta
 		std::vector<ListBoxItem> selections;
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
-			selections.emplace_back(ListBoxItem{ m_list.m_items[m_mouseSelection.m_selections[i]], *this });
+			selections.emplace_back(ListBoxItem{ *m_mouseSelection.m_selections[i], *this });
 		}
 		return selections;
 	}
@@ -1314,16 +1331,16 @@ namespace Berta
 	{
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
-			m_list.m_items[m_mouseSelection.m_selections[i]].m_isSelected = false;
+			m_mouseSelection.m_selections[i]->m_isSelected = false;
 		}
 		m_mouseSelection.m_selections.clear();
 	}
 
-	void ListBoxReactor::Module::SelectItem(size_t absoluteItemIndex)
+	void ListBoxReactor::Module::SelectItem(List::Item* absoluteItemIndex)
 	{
-		m_list.m_items[absoluteItemIndex].m_isSelected = true;
+		absoluteItemIndex->m_isSelected = true;
 		m_mouseSelection.m_selections.push_back(absoluteItemIndex);
-		m_mouseSelection.m_selectedIndex = (int)absoluteItemIndex;
+		m_mouseSelection.m_selectedIndex = absoluteItemIndex;
 	}
 
 	bool ListBoxReactor::Module::EnsureVisibility(int lastLocalSelectedIndex)
@@ -1361,18 +1378,20 @@ namespace Berta
 		return true;
 	}
 
-	void ListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
+	void ListBoxReactor::Module::PerformRangeSelection(List::Item* pressedItem)
 	{
-		int minIndex = (std::min)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
-		int maxIndex = (std::max)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
+		auto itemIndexAtPosition = GetListItemIndex(pressedItem);
+		auto m_selectedIndex = GetListItemIndex(m_mouseSelection.m_selectedIndex);
+		int minIndex = (std::min)(m_selectedIndex, itemIndexAtPosition);
+		int maxIndex = (std::max)(m_selectedIndex, itemIndexAtPosition);
 
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
-			auto index = m_list.m_sortedIndexes[i];
-			m_list.m_items[index].m_isSelected = true;
-			if (std::find(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), index) == m_mouseSelection.m_selections.end())
+			auto currentItem = &m_list.m_items[m_list.m_sortedIndexes[i]];
+			currentItem->m_isSelected = true;
+			if (std::find(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), currentItem) == m_mouseSelection.m_selections.end())
 			{
-				m_mouseSelection.m_selections.push_back(index);
+				m_mouseSelection.m_selections.push_back(currentItem);
 			}
 		}
 	}
@@ -1459,22 +1478,22 @@ namespace Berta
 		return InteractionArea::ListBlank;
 	}
 
-	bool ListBoxReactor::MouseSelection::IsAlreadySelected(size_t index) const
+	bool ListBoxReactor::MouseSelection::IsAlreadySelected(List::Item* index) const
 	{
 		return std::find(m_alreadySelected.begin(), m_alreadySelected.end(), index) != m_alreadySelected.end();
 	}
 
-	bool ListBoxReactor::MouseSelection::IsSelected(size_t index) const
+	bool ListBoxReactor::MouseSelection::IsSelected(List::Item* index) const
 	{
 		return std::find(m_selections.begin(), m_selections.end(), index) != m_selections.end();
 	}
 
-	void ListBoxReactor::MouseSelection::Select(size_t index)
+	void ListBoxReactor::MouseSelection::Select(List::Item* index)
 	{
 		m_selections.push_back(index);
 	}
 
-	void ListBoxReactor::MouseSelection::Deselect(size_t index)
+	void ListBoxReactor::MouseSelection::Deselect(List::Item* index)
 	{
 		auto it = std::find(m_selections.begin(), m_selections.end(), index);
 		if (it != m_selections.end())

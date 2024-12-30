@@ -267,7 +267,7 @@ namespace Berta
 				auto direction = args.Key == KeyboardKey::ArrowLeft ? -1 : 1;
 				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
 				auto newItemIndex= pivot + direction;
-				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size())
+				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()))
 				{
 					if (!m_module.m_multiselection || (!m_module.m_shiftPressed && !m_module.m_ctrlPressed))
 					{

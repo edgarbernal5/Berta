@@ -124,17 +124,18 @@ namespace Berta
 
 		struct MouseSelection
 		{
-			bool IsAlreadySelected(size_t index) const;
-			bool IsSelected(size_t index) const;
+			bool IsAlreadySelected(List::Item* index) const;
+			bool IsSelected(List::Item* index) const;
 
-			void Select(size_t index);
-			void Deselect(size_t index);
+			void Select(List::Item* index);
+			void Deselect(List::Item* index);
 
-			std::vector<size_t> m_selections;
-			std::vector<size_t> m_alreadySelected; //TODO: cambiar por un set/map
-			int m_pressedIndex{ -1 }; //logical index. TODO: makes this indices a pointer of List::Item
-			int m_hoveredIndex{ -1 }; //logical index
-			int m_selectedIndex{ -1 }; //logical index
+			std::vector<List::Item*> m_selections;
+			std::vector<List::Item*> m_alreadySelected; //TODO: cambiar por un set/map
+			List::Item* m_pressedIndex{ nullptr }; //logical index. TODO: makes this indices a pointer of List::Item
+			List::Item* m_hoveredIndex{ nullptr };
+			List::Item* m_selectedIndex{ nullptr };
+
 			Point m_startPosition;
 			Point m_endPosition;
 			bool m_started{ false };
@@ -160,14 +161,14 @@ namespace Berta
 			bool UpdateScrollBars();
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
-			bool HandleMultiSelection(int localItemIndex, const ArgMouse& args);
-			void SelectItem(size_t index);
+			bool HandleMultiSelection(List::Item* localItemIndex, const ArgMouse& args);
+			void SelectItem(List::Item* index);
 			void ClearSelection();
 			bool EnsureVisibility(int lastSelectedIndex);
-			void PerformRangeSelection(int itemIndexAtPosition);
+			void PerformRangeSelection(List::Item* itemIndexAtPosition);
 
-			bool UpdateSingleSelection(int localItemIndex);
-			void ToggleItemSelection(size_t itemIndexAtPosition);
+			bool UpdateSingleSelection(List::Item* localItemIndex);
+			void ToggleItemSelection(List::Item* itemIndexAtPosition);
 			void StartSelectionRectangle(const Point& mousePosition);
 			bool ClearSelectionIfNeeded();
 			bool ClearSingleSelection();
@@ -187,9 +188,11 @@ namespace Berta
 			void DrawList(Graphics& graphics);
 
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
-			bool SetHoveredListItem(int index = -1);
+			bool SetHoveredListItem(List::Item* index = nullptr);
 
 			void SortHeader(int headerIndex, bool ascending);
+
+			int GetListItemIndex(List::Item* item);
 
 			Headers m_headers;
 			List m_list;
@@ -204,7 +207,7 @@ namespace Berta
 			ViewportData m_viewport;
 			Window* m_window{ nullptr };
 			ListBoxAppearance* m_appearance{ nullptr };
-			bool m_multiselection{ false };
+			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 		};
