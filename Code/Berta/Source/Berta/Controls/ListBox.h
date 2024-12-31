@@ -124,17 +124,17 @@ namespace Berta
 
 		struct MouseSelection
 		{
-			bool IsAlreadySelected(List::Item* index) const;
-			bool IsSelected(List::Item* index) const;
+			bool IsAlreadySelected(List::Item* item) const;
+			bool IsSelected(List::Item* item) const;
 
-			void Select(List::Item* index);
-			void Deselect(List::Item* index);
+			void Select(List::Item* item);
+			void Deselect(List::Item* item);
 
 			std::vector<List::Item*> m_selections;
 			std::vector<List::Item*> m_alreadySelected; //TODO: cambiar por un set/map
-			List::Item* m_pressedIndex{ nullptr }; //logical index. TODO: makes this indices a pointer of List::Item
-			List::Item* m_hoveredIndex{ nullptr };
-			List::Item* m_selectedIndex{ nullptr };
+			List::Item* m_pressedItem{ nullptr };
+			List::Item* m_hoveredItem{ nullptr };
+			List::Item* m_selectedItem{ nullptr };
 
 			Point m_startPosition;
 			Point m_endPosition;
@@ -156,19 +156,20 @@ namespace Berta
 			void BuildHeaderBounds(size_t startIndex = 0);
 			void BuildListItemBounds(size_t startIndex = 0);
 
-			void Erase(size_t index);
+			void Erase(ListBoxItem item);
+			void Erase(std::vector<ListBoxItem>& items);
 			void EnableMultiselection(bool enabled);
 			bool UpdateScrollBars();
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 
-			bool HandleMultiSelection(List::Item* localItemIndex, const ArgMouse& args);
+			bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
 			void SelectItem(List::Item* index);
 			void ClearSelection();
 			bool EnsureVisibility(int lastSelectedIndex);
 			void PerformRangeSelection(List::Item* itemIndexAtPosition);
 
-			bool UpdateSingleSelection(List::Item* localItemIndex);
-			void ToggleItemSelection(List::Item* itemIndexAtPosition);
+			bool UpdateSingleSelection(List::Item* item);
+			void ToggleItemSelection(List::Item* item);
 			void StartSelectionRectangle(const Point& mousePosition);
 			bool ClearSelectionIfNeeded();
 			bool ClearSingleSelection();
@@ -221,14 +222,16 @@ namespace Berta
 
 	struct ListBoxItem
 	{
-		ListBoxItem(ListBoxReactor::List::Item& target, ListBoxReactor::Module& module) :
+		ListBoxItem(ListBoxReactor::List::Item* target, ListBoxReactor::Module& module) :
 			m_target(target), m_module(module)
 		{
 		}
 
 		void SetIcon(const Image& image);
+
+		friend class ListBoxReactor::Module;
 	private:
-		ListBoxReactor::List::Item& m_target;
+		ListBoxReactor::List::Item* m_target;
 		ListBoxReactor::Module& m_module;
 	};
 
@@ -254,7 +257,8 @@ namespace Berta
 		ListBoxItem At(size_t index);
 		void Clear();
 		void ClearHeaders();
-		void Erase(uint32_t index);
+		void Erase(ListBoxItem item);
+		void Erase(std::vector<ListBoxItem>& items);
 
 		void EnableMultiselection(bool enabled);
 

@@ -132,7 +132,12 @@ public:
 		m_buttonErase.SetCaption(L"Erase");
 		m_buttonErase.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
 			{
-				m_listBox.Erase(0);
+				auto selected = m_listBox.GetSelected();
+				if (selected.empty())
+					return;
+
+				m_listBox.Erase(selected[0]);
+				//m_listBox.Erase(selected);
 			});
 
 		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
