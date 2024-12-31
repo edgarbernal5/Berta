@@ -411,10 +411,11 @@ namespace Berta
 				{
 					ascending = true;
 				}
+				size_t selectedHeaderIndex = static_cast<size_t>(m_module.m_headers.m_selectedIndex);
 
-				m_module.SortHeader(m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex], ascending);
+				m_module.SortHeader(m_module.m_headers.m_sorted[selectedHeaderIndex], ascending);
 				m_module.m_headers.isAscendingOrdering = ascending;
-				m_module.m_headers.m_sortedHeaderIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
+				m_module.m_headers.m_sortedHeaderIndex = m_module.m_headers.m_sorted[selectedHeaderIndex];
 			}
 			m_module.m_headers.m_isDragging = false;
 			m_module.m_headers.m_selectedIndex = -1;
@@ -1275,7 +1276,7 @@ namespace Berta
 		return false;
 	}
 
-	void ListBoxReactor::Module::SortHeader(int headerIndex, bool ascending)
+	void ListBoxReactor::Module::SortHeader(size_t headerIndex, bool ascending)
 	{
 		if (m_list.m_items.empty() || headerIndex >= m_headers.m_items.size())
 		{
@@ -1487,9 +1488,9 @@ namespace Berta
 	void ListBoxReactor::Module::PerformRangeSelection(List::Item* pressedItem)
 	{
 		auto itemIndexAtPosition = GetListItemIndex(pressedItem);
-		auto m_selectedIndex = GetListItemIndex(m_mouseSelection.m_selectedItem);
-		int minIndex = (std::min)(m_selectedIndex, itemIndexAtPosition);
-		int maxIndex = (std::max)(m_selectedIndex, itemIndexAtPosition);
+		auto selectedIndex = GetListItemIndex(m_mouseSelection.m_selectedItem);
+		int minIndex = (std::min)(selectedIndex, itemIndexAtPosition);
+		int maxIndex = (std::max)(selectedIndex, itemIndexAtPosition);
 
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{

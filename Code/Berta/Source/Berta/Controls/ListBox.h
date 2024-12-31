@@ -191,7 +191,7 @@ namespace Berta
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
 			bool SetHoveredListItem(List::Item* index = nullptr);
 
-			void SortHeader(int headerIndex, bool ascending);
+			void SortHeader(size_t headerIndex, bool ascending);
 
 			int GetListItemIndex(List::Item* item);
 
@@ -229,7 +229,7 @@ namespace Berta
 
 		void SetIcon(const Image& image);
 
-		friend class ListBoxReactor::Module;
+		friend struct ListBoxReactor::Module;
 	private:
 		ListBoxReactor::List::Item* m_target;
 		ListBoxReactor::Module& m_module;
