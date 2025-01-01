@@ -940,7 +940,7 @@ namespace Berta
 	ListBoxItem ListBoxReactor::Module::At(size_t index)
 	{
 		auto wrapper = &m_list.m_items[index];
-		return ListBoxItem{ wrapper, *this };
+		return ListBoxItem{ wrapper, this };
 	}
 
 	void ListBoxReactor::Module::Clear()
@@ -1286,10 +1286,11 @@ namespace Berta
 		m_list.m_sortedIndexes.resize(m_list.m_items.size());
 		std::iota(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), 0);
 
-		auto compare = [this, headerIndex, ascending](std::size_t idxA, std::size_t idxB) {
-			const auto& textA = m_list.m_items[idxA].m_cells[headerIndex].m_text;
-			const auto& textB = m_list.m_items[idxB].m_cells[headerIndex].m_text;
-			return ascending ? textA < textB : textA > textB;
+		auto compare = [this, headerIndex, ascending](std::size_t idxA, std::size_t idxB)
+			{
+				const auto& textA = m_list.m_items[idxA].m_cells[headerIndex].m_text;
+				const auto& textB = m_list.m_items[idxB].m_cells[headerIndex].m_text;
+				return ascending ? textA < textB : textA > textB;
 			};
 
 		std::sort(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), compare);
@@ -1427,9 +1428,20 @@ namespace Berta
 	std::vector<ListBoxItem> ListBoxReactor::Module::GetSelectedItems()
 	{
 		std::vector<ListBoxItem> selections;
+		std::vector<size_t> indexes;
+
+		selections.reserve(m_mouseSelection.m_selections.size());
+		indexes.reserve(m_mouseSelection.m_selections.size());
+
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
-			selections.emplace_back(ListBoxItem{ m_mouseSelection.m_selections[i], *this });
+			auto index = GetListItemIndex(m_mouseSelection.m_selections[i]);
+			indexes.emplace_back(index);
+		}
+		std::sort(indexes.begin(), indexes.end());
+		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		{
+			selections.emplace_back(&m_list.m_items[m_list.m_sortedIndexes[indexes[i]]], this);
 		}
 		return selections;
 	}
@@ -1487,10 +1499,10 @@ namespace Berta
 
 	void ListBoxReactor::Module::PerformRangeSelection(List::Item* pressedItem)
 	{
-		auto itemIndexAtPosition = GetListItemIndex(pressedItem);
+		auto pressedItemIndex = GetListItemIndex(pressedItem);
 		auto selectedIndex = GetListItemIndex(m_mouseSelection.m_selectedItem);
-		int minIndex = (std::min)(selectedIndex, itemIndexAtPosition);
-		int maxIndex = (std::max)(selectedIndex, itemIndexAtPosition);
+		int minIndex = (std::min)(selectedIndex, pressedItemIndex);
+		int maxIndex = (std::max)(selectedIndex, pressedItemIndex);
 
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
@@ -1703,8 +1715,8 @@ namespace Berta
 		m_target->m_icon = image;
 		if (image)
 		{
-			m_module.m_list.m_drawImages = true;
-			m_module.BuildHeaderBounds();
+			m_module->m_list.m_drawImages = true;
+			m_module->BuildHeaderBounds();
 		}
 	}
 

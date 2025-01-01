@@ -222,17 +222,22 @@ namespace Berta
 
 	struct ListBoxItem
 	{
-		ListBoxItem(ListBoxReactor::List::Item* target, ListBoxReactor::Module& module) :
+		ListBoxItem(ListBoxReactor::List::Item* target, ListBoxReactor::Module* module) :
 			m_target(target), m_module(module)
 		{
 		}
 
 		void SetIcon(const Image& image);
 
+		operator bool() const
+		{
+			return m_target;
+		}
+
 		friend struct ListBoxReactor::Module;
 	private:
-		ListBoxReactor::List::Item* m_target;
-		ListBoxReactor::Module& m_module;
+		ListBoxReactor::List::Item* m_target{ nullptr };
+		ListBoxReactor::Module* m_module{ nullptr };
 	};
 
 	struct ArgListBox
