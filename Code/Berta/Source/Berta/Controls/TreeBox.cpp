@@ -35,7 +35,8 @@ namespace Berta
 
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
 
-		m_module.Draw();
+		m_module.DrawNavigationLines(graphics);
+		m_module.DrawTreeNodes(graphics);
 
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
 		{
@@ -382,7 +383,6 @@ namespace Berta
 		if (recalculateVisibleNodes)
 		{
 			m_module.CalculateViewport(m_module.m_viewport);
-
 			m_module.CalculateVisibleNodes();
 		}
 
@@ -679,10 +679,25 @@ namespace Berta
 		return InteractionArea::Node;
 	}
 
+	void TreeBoxReactor::Module::Update()
+	{
+		CalculateViewport(m_viewport);
+		CalculateVisibleNodes();
+
+		bool updateScrollBars = UpdateScrollBars();
+		if (updateScrollBars)
+		{
+			if (m_scrollBarVert)
+				m_scrollBarVert->Handle()->Renderer.Update();
+
+			if (m_scrollBarHoriz)
+				m_scrollBarHoriz->Handle()->Renderer.Update();
+		}
+	}
+
 	void TreeBoxReactor::Module::Draw()
 	{
-		DrawNavigationLines(*m_graphics);
-		DrawTreeNodes(*m_graphics);
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::DrawTreeNodes(Graphics& graphics)
@@ -711,6 +726,7 @@ namespace Berta
 				Rectangle nodeRectInner = nodeRect;
 				nodeRectInner.X = startX;
 				nodeRectInner.Width -= startX;
+
 				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->HighlightColor, true);
 				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->BoxBorderHighlightColor, false);
 			}
@@ -1209,8 +1225,10 @@ namespace Berta
 		{
 			return false;
 		}
-		bool needUpdate = item.m_node->isExpanded;
-		item.m_node->isExpanded = false;
+		bool needUpdate = item.m_node != &m_root && item.m_node->isExpanded;
+		if (item.m_node != &m_root)
+			item.m_node->isExpanded = false;
+
 		auto current = item.m_node->firstChild;
 
 		while (current)
@@ -1232,8 +1250,10 @@ namespace Berta
 		{
 			return false;
 		}
-		bool needUpdate = !item.m_node->isExpanded;
-		item.m_node->isExpanded = true;
+		bool needUpdate = item.m_node != &m_root && !item.m_node->isExpanded;
+		if (item.m_node != &m_root) 
+			item.m_node->isExpanded = true;
+		
 		auto current = item.m_node->firstChild;
 
 		while (current)
@@ -1320,7 +1340,8 @@ namespace Berta
 	{
 		if (m_reactor.GetModule().CollapseAll())
 		{
-
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
 		}
 	}
 
@@ -1328,7 +1349,8 @@ namespace Berta
 	{
 		if (m_reactor.GetModule().CollapseAll(item))
 		{
-
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
 		}
 	}
 
@@ -1361,7 +1383,8 @@ namespace Berta
 	{
 		if (m_reactor.GetModule().ExpandAll())
 		{
-
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
 		}
 	}
 
@@ -1369,6 +1392,7 @@ namespace Berta
 	{
 		if (m_reactor.GetModule().ExpandAll(item))
 		{
+			m_reactor.GetModule().Update();
 			m_reactor.GetModule().Draw();
 		}
 	}

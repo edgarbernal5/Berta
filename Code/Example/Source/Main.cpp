@@ -28,7 +28,7 @@ public:
 		SetDebugName("Tab Apariencia");
 #endif
 
-		m_eraseSelectedbutton.Create(*this, true, { 5,15,100,25 });
+		m_eraseSelectedbutton.Create(*this, true, { 5,15,50,25 });
 		m_eraseSelectedbutton.SetCaption(L"Erase");
 #ifdef BT_DEBUG
 		m_eraseSelectedbutton.SetDebugName("Erase Tree Button");
@@ -40,7 +40,27 @@ public:
 				return;
 
 			m_treeBox.Erase(selected[0]);
-;		});
+		});
+
+		m_collapseAll.Create(*this, true, { 60,15,80,25 });
+		m_collapseAll.SetCaption(L"Collapse all");
+#ifdef BT_DEBUG
+		m_collapseAll.SetDebugName("Collapse all");
+#endif
+		m_collapseAll.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+		{
+			m_treeBox.CollapseAll();
+		});
+
+		m_expandAll.Create(*this, true, { 145,15,80,25 });
+		m_expandAll.SetCaption(L"Expand all");
+#ifdef BT_DEBUG
+		m_expandAll.SetDebugName("Expand all");
+#endif
+		m_expandAll.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				m_treeBox.ExpandAll();
+			});
 
 		m_treeBox.Create(*this, true, { 5,50,300,200 });
 #ifdef BT_DEBUG
@@ -103,6 +123,8 @@ public:
 
 private:
 	Berta::Button m_eraseSelectedbutton;
+	Berta::Button m_collapseAll;
+	Berta::Button m_expandAll;
 	Berta::TreeBox m_treeBox;
 };
 

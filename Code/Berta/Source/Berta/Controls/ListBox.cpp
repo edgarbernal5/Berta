@@ -415,7 +415,7 @@ namespace Berta
 
 				m_module.SortHeader(m_module.m_headers.m_sorted[selectedHeaderIndex], ascending);
 				m_module.m_headers.isAscendingOrdering = ascending;
-				m_module.m_headers.m_sortedHeaderIndex = m_module.m_headers.m_sorted[selectedHeaderIndex];
+				m_module.m_headers.m_sortedHeaderIndex = static_cast<int>(m_module.m_headers.m_sorted[selectedHeaderIndex]);
 			}
 			m_module.m_headers.m_isDragging = false;
 			m_module.m_headers.m_selectedIndex = -1;
@@ -1251,7 +1251,7 @@ namespace Berta
 		}
 	}
 
-	void ListBoxReactor::Module::CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize)
+	void ListBoxReactor::Module::CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const
 	{
 		startPoint = {
 			(std::min)(m_mouseSelection.m_startPosition.X, m_mouseSelection.m_endPosition.X),
@@ -1262,6 +1262,15 @@ namespace Berta
 			(std::max)(m_mouseSelection.m_startPosition.X, m_mouseSelection.m_endPosition.X),
 			(std::max)(m_mouseSelection.m_startPosition.Y, m_mouseSelection.m_endPosition.Y)
 		};
+
+		if (startPoint.Y < m_viewport.m_backgroundRect.Y - m_scrollOffset.Y)
+		{
+			startPoint.Y = m_viewport.m_backgroundRect.Y - m_scrollOffset.Y;
+		}
+		if (startPoint.X < m_viewport.m_backgroundRect.X - m_scrollOffset.X)
+		{
+			startPoint.X = m_viewport.m_backgroundRect.X - m_scrollOffset.X;
+		}
 
 		boxSize = { (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 	}
@@ -1717,6 +1726,25 @@ namespace Berta
 		{
 			m_module->m_list.m_drawImages = true;
 			m_module->BuildHeaderBounds();
+		}
+	}
+
+	void ListBoxItem::SetText(size_t columnIndex, const std::string& text)
+	{
+		if (columnIndex >= m_module->m_headers.m_items.size())
+			return;
+
+		bool needUpdate = m_target->m_cells[columnIndex].m_text != text;
+
+		m_target->m_cells[columnIndex].m_text = text;
+		if (m_module->m_headers.m_sortedHeaderIndex == columnIndex)
+		{
+			m_module->SortHeader(m_module->m_headers.m_sorted[m_module->m_headers.m_sortedHeaderIndex], m_module->m_headers.isAscendingOrdering);
+		}
+
+		if (needUpdate)
+		{
+			GUI::UpdateWindow(m_module->m_window);
 		}
 	}
 

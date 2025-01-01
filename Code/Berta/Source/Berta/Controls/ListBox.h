@@ -188,7 +188,7 @@ namespace Berta
 			void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
 			void DrawList(Graphics& graphics);
 
-			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
+			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const;
 			bool SetHoveredListItem(List::Item* index = nullptr);
 
 			void SortHeader(size_t headerIndex, bool ascending);
@@ -228,6 +228,7 @@ namespace Berta
 		}
 
 		void SetIcon(const Image& image);
+		void SetText(size_t columnIndex, const std::string& text);
 
 		operator bool() const
 		{

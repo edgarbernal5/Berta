@@ -51,6 +51,7 @@ namespace Berta
 			std::string text;
 			TreeNodeHandle key;
 			Image icon;
+			Size m_textExtents;
 
 			TreeNodeType* parent{ nullptr };
 			TreeNodeType* firstChild{ nullptr };
@@ -103,6 +104,7 @@ namespace Berta
 			int LocateNodeIndexInTree(TreeNodeType* node);
 			TreeNodeType* LocateNodeIndexInTree(int nodeIndex);
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
+			void Update();
 			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
