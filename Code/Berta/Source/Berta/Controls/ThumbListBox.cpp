@@ -207,7 +207,11 @@ namespace Berta
 
 		if (m_module.m_mouseSelection.m_started)
 		{
-			needUpdate = true;
+			Point startPoint, endPoint;
+			Size boxSize;
+			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
+			needUpdate = (boxSize.Width > 0 && boxSize.Height > 0);
+
 			m_module.m_mouseSelection.m_started = false;
 			m_module.m_mouseSelection.m_selections.clear();
 			for (size_t i = 0; i < m_module.m_items.size(); i++)
@@ -711,8 +715,8 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::PerformRangeSelection(int itemIndexAtPosition)
 	{
-		int minIndex = (std::min)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
-		int maxIndex = (std::max)(m_mouseSelection.m_selectedIndex, itemIndexAtPosition);
+		int minIndex = (std::min)(m_mouseSelection.m_pivotIndex, itemIndexAtPosition);
+		int maxIndex = (std::max)(m_mouseSelection.m_pivotIndex, itemIndexAtPosition);
 
 		for (int i = minIndex; i <= maxIndex; ++i)
 		{
