@@ -130,11 +130,13 @@ namespace Berta
 			void Select(List::Item* item);
 			void Deselect(List::Item* item);
 
+			void ClearReferences(List::Item* item);
+
 			std::vector<List::Item*> m_selections;
 			std::vector<List::Item*> m_alreadySelected; //TODO: cambiar por un set/map
-			List::Item* m_pressedItem{ nullptr };
 			List::Item* m_hoveredItem{ nullptr };
 			List::Item* m_selectedItem{ nullptr };
+			List::Item* m_pivotItem{ nullptr };
 
 			Point m_startPosition;
 			Point m_endPosition;

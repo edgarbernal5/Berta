@@ -84,7 +84,7 @@ namespace Berta
 
 				std::vector<size_t> m_selections; //TODO: cambiar a set/map
 				std::vector<size_t> m_alreadySelected;  //TODO: cambiar a set/map
-				int m_pressedIndex{ -1 };
+				
 				int m_selectedIndex{ -1 };
 				int m_pivotIndex{ -1 };
 				Point m_startPosition;

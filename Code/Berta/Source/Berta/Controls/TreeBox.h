@@ -87,9 +87,9 @@ namespace Berta
 			void Deselect(TreeNodeType* node);
 
 			std::vector<TreeNodeType*> m_selections;
-			TreeNodeType* m_pressedNode{ nullptr };
 			TreeNodeType* m_hoveredNode{ nullptr };
 			TreeNodeType* m_selectedNode{ nullptr };
+			TreeNodeType* m_pivotNode{ nullptr };
 			bool m_inverseSelection{ false };
 		};
 
@@ -97,6 +97,7 @@ namespace Berta
 		{
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleNodes();
+			void GetNodesBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes);
 			uint32_t CalculateTreeSize(TreeNodeType* node);
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
@@ -120,8 +121,11 @@ namespace Berta
 			void EraseNode(TreeNodeType* node);
 			void Unlink(TreeNodeType* node);
 			bool UpdateScrollBars();
+			void ClearSelection();
 			bool ClearSingleSelection();
 			void SelectItem(TreeNodeType* node);
+
+			bool HandleMultiSelection(TreeNodeType* node, const ArgMouse& args);
 			bool UpdateSingleSelection(TreeNodeType* node);
 			bool IsVisibleNode(TreeNodeType* node) const;
 			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
@@ -157,7 +161,7 @@ namespace Berta
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
 			MouseSelection m_mouseSelection;
-			bool m_multiselection{ false };
+			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			Graphics* m_graphics{ nullptr };
@@ -207,9 +211,9 @@ namespace Berta
 	struct ArgTreeBox
 	{
 		TreeBoxItem &Item;
-		bool Expanded{ false };
+		bool IsExpanded{ false };
 
-		ArgTreeBox(TreeBoxItem item, bool expanded) : Item(item), Expanded(expanded){}
+		ArgTreeBox(TreeBoxItem item, bool isExpanded) : Item(item), IsExpanded(isExpanded){}
 	};
 
 	struct ArgTreeBoxSelection

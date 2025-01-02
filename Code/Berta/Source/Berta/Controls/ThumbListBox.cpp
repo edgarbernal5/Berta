@@ -42,7 +42,7 @@ namespace Berta
 			Rectangle cardRect{ item.m_bounds.X + offset.X, item.m_bounds.Y + offset.Y, m_module.m_viewport.m_cardSize.Width, m_module.m_viewport.m_cardSize.Height };
 			
 			const bool& isSelected = item.m_isSelected;
-			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_pressedIndex;
+			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_selectedIndex;
 			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
 			Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
@@ -120,8 +120,6 @@ namespace Berta
 		bool hitOnBlank = itemIndexAtPosition == -1;
 
 		bool needUpdate = false;
-		m_module.m_mouseSelection.m_pressedIndex = itemIndexAtPosition;
-
 		if (m_module.m_multiselection)
 		{
 			if (hitOnBlank)
@@ -265,26 +263,41 @@ namespace Berta
 			if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight)
 			{
 				auto direction = args.Key == KeyboardKey::ArrowLeft ? -1 : 1;
-				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
-				auto newItemIndex= pivot + direction;
-				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()))
+				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
+				auto newItemIndex = pivot + direction;
+				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()) && m_module.m_mouseSelection.m_pivotIndex != -1)
 				{
-					if (!m_module.m_multiselection || (!m_module.m_shiftPressed && !m_module.m_ctrlPressed))
+					if (!m_module.m_ctrlPressed)
 					{
 						m_module.ClearSelection();
 					}
-					if (m_module.m_shiftPressed || !m_module.m_ctrlPressed)
+
+					if (m_module.m_multiselection && m_module.m_shiftPressed)
 					{
-						m_module.m_items[newItemIndex].m_isSelected = true;
-						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
-						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+						int endIndex = newItemIndex;
+						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
+						int minIndex = (std::min)(startIndex, endIndex);
+						int maxIndex = (std::max)(startIndex, endIndex);
+
+						for (int current = minIndex; current <= maxIndex; ++current)
+						{
+							m_module.m_items[current].m_isSelected = true;
+							m_module.m_mouseSelection.m_selections.push_back(current);
+						}
 						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
 					else if (m_module.m_ctrlPressed)
 					{
-						m_module.m_mouseSelection.m_pressedIndex += direction;
+						m_module.m_mouseSelection.m_selectedIndex += direction;
 					}
-					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
+					else
+					{
+						m_module.m_items[newItemIndex].m_isSelected = true;
+						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
+						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_pivotIndex = newItemIndex;
+					}
+					m_module.EnsureVisibility(m_module.m_mouseSelection.m_selectedIndex);
 
 					needUpdate = true;
 				}
@@ -292,57 +305,69 @@ namespace Berta
 			else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
 			{
 				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
-				auto pivot = (m_module.m_mouseSelection.m_pressedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_pressedIndex);
+				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
 				auto newItemIndex = pivot + direction * m_module.m_viewport.m_totalCardsInRow;
-				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size())
+				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size() && m_module.m_mouseSelection.m_pivotIndex != -1)
 				{
-					if (!m_module.m_multiselection || !m_module.m_shiftPressed && !m_module.m_ctrlPressed)
+					if (!m_module.m_ctrlPressed)
 					{
 						m_module.ClearSelection();
 					}
 
 					if (m_module.m_multiselection && m_module.m_shiftPressed)
 					{
-						int end = newItemIndex + direction;
-						int start = m_module.m_mouseSelection.m_pressedIndex;
-						int current = start + direction;
-						while (current != end)
+						int endIndex = newItemIndex;
+						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
+						int minIndex = (std::min)(startIndex, endIndex);
+						int maxIndex = (std::max)(startIndex, endIndex);
+
+						for (int current = minIndex; current <= maxIndex; ++current)
 						{
 							m_module.m_items[current].m_isSelected = true;
 							m_module.m_mouseSelection.m_selections.push_back(current);
-							current += direction;
 						}
-						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
 					else if (m_module.m_ctrlPressed)
 					{
-						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
 					}
 					else
 					{
 						m_module.m_items[newItemIndex].m_isSelected = true;
 						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
-						m_module.m_mouseSelection.m_pressedIndex = newItemIndex;
 						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
+						m_module.m_mouseSelection.m_pivotIndex = newItemIndex;
 					}
-					m_module.EnsureVisibility(m_module.m_mouseSelection.m_pressedIndex);
+					m_module.EnsureVisibility(m_module.m_mouseSelection.m_selectedIndex);
 					needUpdate = true;
 				}
 			}
 		}
 		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
 		{
-			if (m_module.m_mouseSelection.m_pressedIndex != -1)
+			if (m_module.m_mouseSelection.m_selectedIndex != -1)
 			{
-				auto& isSelected = m_module.m_items[m_module.m_mouseSelection.m_pressedIndex].m_isSelected;
+				if (!m_module.m_multiselection && !m_module.m_mouseSelection.m_selections.empty())
+				{
+					m_module.m_items[m_module.m_mouseSelection.m_selections[0]].m_isSelected = false;
+					m_module.m_mouseSelection.m_selections.clear();
+				}
+
+				auto& isSelected = m_module.m_items[m_module.m_mouseSelection.m_selectedIndex].m_isSelected;
 				isSelected = !isSelected;
 				if (isSelected)
 				{
-					m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_pressedIndex);
+					m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_selectedIndex);
 				}
 				else
 				{
-					m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_pressedIndex);
+					m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_selectedIndex);
+				}
+
+				if (m_module.m_multiselection)
+				{
+					m_module.m_mouseSelection.m_pivotIndex = m_module.m_mouseSelection.m_selectedIndex;
 				}
 				needUpdate = true;
 			}
@@ -659,6 +684,9 @@ namespace Berta
 				}
 				m_mouseSelection.m_selections.clear();
 				m_mouseSelection.m_alreadySelected.clear();
+
+				m_mouseSelection.m_selectedIndex = -1;
+				m_mouseSelection.m_pivotIndex = -1;
 				return true;
 			}
 		}
@@ -699,6 +727,10 @@ namespace Berta
 	bool ThumbListBoxReactor::Module::HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args)
 	{
 		bool needUpdate = false;
+		if (m_mouseSelection.m_pivotIndex == -1)
+		{
+			m_mouseSelection.m_pivotIndex = itemIndexAtPosition;
+		}
 
 		if (!m_ctrlPressed && !m_shiftPressed)
 		{
