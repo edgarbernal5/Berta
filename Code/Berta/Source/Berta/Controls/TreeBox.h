@@ -97,7 +97,7 @@ namespace Berta
 		{
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleNodes();
-			void GetNodesBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes);
+			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes);
 			uint32_t CalculateTreeSize(TreeNodeType* node);
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
@@ -161,7 +161,7 @@ namespace Berta
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
 			MouseSelection m_mouseSelection;
-			bool m_multiselection{ true };
+			bool m_multiselection{ false };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			Graphics* m_graphics{ nullptr };

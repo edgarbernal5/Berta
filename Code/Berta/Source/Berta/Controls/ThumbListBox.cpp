@@ -628,6 +628,7 @@ namespace Berta
 			m_items[m_mouseSelection.m_selectedIndex].m_isSelected = false;
 			m_mouseSelection.m_selections.clear();
 			m_mouseSelection.m_selectedIndex = -1;
+			m_mouseSelection.m_pivotIndex = -1;
 			return true;
 		}
 		return false;
@@ -640,6 +641,7 @@ namespace Berta
 		{
 			ClearSingleSelection();
 			SelectItem(newItemIndex);
+			m_mouseSelection.m_pivotIndex = newItemIndex;
 		}
 		return needUpdate;
 	}

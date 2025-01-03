@@ -154,11 +154,7 @@ namespace Berta
 		}
 		else if (m_module.m_pressedArea == InteractionArea::Header)
 		{
-			GUI::Capture(m_module.m_window);
-			m_module.m_headers.m_isDragging = false;
-			m_module.m_headers.m_selectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-			const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
-			m_module.m_headers.m_mouseDownOffset = args.Position.X - m_module.m_window->ToScale(m_module.m_headers.m_items[headerIndex].m_bounds.X) - m_module.m_viewport.m_backgroundRect.X - (int)m_module.m_viewport.m_columnOffsetStartOff + m_module.m_scrollOffset.X;
+			m_module.StartSelectingHeader(args.Position);
 		}
 
 		if (needUpdate)
@@ -359,7 +355,11 @@ namespace Berta
 
 		if (m_module.m_mouseSelection.m_started)
 		{
-			needUpdate = true;
+			Point startPoint, endPoint;
+			Size boxSize;
+			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
+			needUpdate = (boxSize.Width > 0 && boxSize.Height > 0);
+
 			m_module.m_mouseSelection.m_started = false;
 			m_module.m_mouseSelection.m_selections.clear();
 			for (size_t i = 0; i < m_module.m_list.m_items.size(); i++)
@@ -377,47 +377,7 @@ namespace Berta
 		}
 		else if (m_module.m_pressedArea == InteractionArea::Header)
 		{
-			if (m_module.m_headers.m_isDragging)
-			{
-				auto targetIndex = (size_t)m_module.m_headers.m_draggingTargetIndex;
-				auto selectedIndex = (size_t)m_module.m_headers.m_selectedIndex;
-
-				if (selectedIndex != targetIndex && (selectedIndex + 1) != targetIndex)
-				{
-					auto oldIndex = m_module.m_headers.m_sorted[selectedIndex];
-					m_module.m_headers.m_sorted.emplace(m_module.m_headers.m_sorted.begin() + targetIndex, oldIndex);
-					if (selectedIndex > targetIndex)
-					{
-						m_module.m_headers.m_sorted.erase(m_module.m_headers.m_sorted.begin() + selectedIndex + 1);
-					}
-					else
-					{
-						m_module.m_headers.m_sorted.erase(m_module.m_headers.m_sorted.begin() + selectedIndex);
-					}
-					m_module.BuildHeaderBounds();
-				}
-				m_module.m_headers.m_draggingBox.Release();
-			}
-			else
-			{
-				bool ascending = m_module.m_headers.isAscendingOrdering;
-				if (m_module.m_headers.m_sortedHeaderIndex != -1 && m_module.m_headers.m_sortedHeaderIndex == m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex])
-				{
-					ascending = !ascending;
-				}
-				else
-				{
-					ascending = true;
-				}
-				size_t selectedHeaderIndex = static_cast<size_t>(m_module.m_headers.m_selectedIndex);
-
-				m_module.SortHeader(m_module.m_headers.m_sorted[selectedHeaderIndex], ascending);
-				m_module.m_headers.isAscendingOrdering = ascending;
-				m_module.m_headers.m_sortedHeaderIndex = static_cast<int>(m_module.m_headers.m_sorted[selectedHeaderIndex]);
-			}
-			m_module.m_headers.m_isDragging = false;
-			m_module.m_headers.m_selectedIndex = -1;
-			GUI::ReleaseCapture(m_module.m_window);
+			m_module.StopDragOrSortHeader();
 			needUpdate = true;
 		}
 
@@ -1282,6 +1242,51 @@ namespace Berta
 		return false;
 	}
 
+	void ListBoxReactor::Module::StopDragOrSortHeader()
+	{
+		if (m_headers.m_isDragging)
+		{
+			auto targetIndex = static_cast<size_t>(m_headers.m_draggingTargetIndex);
+			auto selectedIndex = static_cast<size_t>(m_headers.m_selectedIndex);
+
+			if (selectedIndex != targetIndex && (selectedIndex + 1) != targetIndex)
+			{
+				auto oldIndex = m_headers.m_sorted[selectedIndex];
+				m_headers.m_sorted.emplace(m_headers.m_sorted.begin() + targetIndex, oldIndex);
+				if (selectedIndex > targetIndex)
+				{
+					m_headers.m_sorted.erase(m_headers.m_sorted.begin() + selectedIndex + 1);
+				}
+				else
+				{
+					m_headers.m_sorted.erase(m_headers.m_sorted.begin() + selectedIndex);
+				}
+				BuildHeaderBounds();
+			}
+			m_headers.m_draggingBox.Release();
+			m_headers.m_isDragging = false;
+			m_headers.m_selectedIndex = -1;
+		}
+		else
+		{
+			bool ascending = m_headers.isAscendingOrdering;
+			if (m_headers.m_sortedHeaderIndex != -1 && m_headers.m_sortedHeaderIndex == m_headers.m_sorted[m_headers.m_selectedIndex])
+			{
+				ascending = !ascending;
+			}
+			else
+			{
+				ascending = true;
+			}
+			size_t selectedHeaderIndex = static_cast<size_t>(m_headers.m_selectedIndex);
+
+			SortHeader(m_headers.m_sorted[selectedHeaderIndex], ascending);
+			m_headers.isAscendingOrdering = ascending;
+			m_headers.m_sortedHeaderIndex = static_cast<int>(m_headers.m_sorted[selectedHeaderIndex]);
+		}
+		GUI::ReleaseCapture(m_window);
+	}
+
 	void ListBoxReactor::Module::SortHeader(size_t headerIndex, bool ascending)
 	{
 		if (m_list.m_items.empty() || headerIndex >= m_headers.m_items.size())
@@ -1733,6 +1738,15 @@ namespace Berta
 	{
 		GUI::ReleaseCapture(m_window);
 		m_headers.m_selectedIndex = -1;
+	}
+
+	void ListBoxReactor::Module::StartSelectingHeader(const Point& mousePosition)
+	{
+		GUI::Capture(m_window);
+		m_headers.m_isDragging = false;
+		m_headers.m_selectedIndex = GetHeaderAtMousePosition(mousePosition, false);
+		const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
+		m_headers.m_mouseDownOffset = mousePosition.X - m_window->ToScale(m_headers.m_items[headerIndex].m_bounds.X) - m_viewport.m_backgroundRect.X - (int)m_viewport.m_columnOffsetStartOff + m_scrollOffset.X;
 	}
 
 	void ListBoxItem::SetIcon(const Image& image)

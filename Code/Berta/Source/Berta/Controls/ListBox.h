@@ -183,6 +183,7 @@ namespace Berta
 			void StartHeadersSizing(const Point& mousePosition);
 			void UpdateHeadersSize(const Point& mousePosition);
 			void StopHeadersSizing();
+			void StartSelectingHeader(const Point& mousePosition);
 
 			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
@@ -193,6 +194,7 @@ namespace Berta
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const;
 			bool SetHoveredListItem(List::Item* index = nullptr);
 
+			void StopDragOrSortHeader();
 			void SortHeader(size_t headerIndex, bool ascending);
 
 			int GetListItemIndex(List::Item* item);
