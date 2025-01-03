@@ -161,7 +161,7 @@ namespace Berta
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
 			MouseSelection m_mouseSelection;
-			bool m_multiselection{ false };
+			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			Graphics* m_graphics{ nullptr };

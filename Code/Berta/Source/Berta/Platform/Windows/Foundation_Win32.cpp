@@ -332,20 +332,24 @@ namespace Berta
 
 				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
 				
-				if (rootWindowData.Focused != window)
+				auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
+				if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
 				{
-					if (rootWindowData.Focused)
+					if (rootWindowData.Focused != focusWindow)
 					{
-						ArgFocus argFocus{ false };
-						foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+						if (rootWindowData.Focused)
+						{
+							ArgFocus argFocus{ false };
+							foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+						}
+						if (focusWindow)
+						{
+							ArgFocus argFocus{ true };
+							foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+						}
 					}
-					if (window)
-					{
-						ArgFocus argFocus{ true };
-						foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
-					}
+					rootWindowData.Focused = focusWindow;
 				}
-				rootWindowData.Focused = window;
 			}
 			
 			break;

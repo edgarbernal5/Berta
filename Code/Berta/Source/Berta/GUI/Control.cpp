@@ -32,6 +32,11 @@ namespace Berta
 		DoOnEnabled(enabled);
 	}
 
+	Window* ControlBase::GetParent() const
+	{
+		return GUI::GetParentWindow(m_handle);
+	}
+
 	Point ControlBase::GetPosition() const
 	{
 		return GUI::GetLocalPosition(m_handle);

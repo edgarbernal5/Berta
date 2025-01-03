@@ -19,6 +19,7 @@ namespace Berta
 		Flags.IsDisposed = false;
 		Flags.MakeActive = true;
 		Flags.isUpdating = false;
+		Flags.IgnoreMouseFocus = false;
 	}
 
 	Window::~Window()

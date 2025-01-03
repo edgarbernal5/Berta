@@ -115,6 +115,11 @@ public:
 		m_treeBox.Insert("D:/Juegos/Never alone", "Never alone");
 
 		m_treeBox.ExpandAll();
+
+		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
+			{
+				BT_CORE_TRACE << " - tree box selected event: " << args.Items.size() << std::endl;
+			});
 	}
 
 	TabExample1() : Panel()

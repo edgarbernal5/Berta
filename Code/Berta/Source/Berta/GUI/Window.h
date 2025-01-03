@@ -74,7 +74,10 @@ namespace Berta
 			bool MakeActive : 1;
 			int IsDeferredCount{ 0 };
 			bool isUpdating : 1;
+			bool IgnoreMouseFocus : 1;
 		}Flags;
+
+		Window* MakeTargetWhenInactive{ nullptr };
 
 		WindowStatus Status{ WindowStatus::None };
 

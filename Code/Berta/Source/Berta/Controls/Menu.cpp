@@ -740,7 +740,7 @@ namespace Berta
 	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, rectangle, { false, false, false, false, true, false });
-		GUI::MakeWindowActive(m_handle, false);
+		GUI::MakeWindowActive(m_handle, false, nullptr);
 
 #if BT_DEBUG
 		std::ostringstream builder;

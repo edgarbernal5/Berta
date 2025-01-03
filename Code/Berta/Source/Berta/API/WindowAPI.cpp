@@ -187,6 +187,15 @@ namespace Berta
 #endif
 		}
 
+		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			return { ::GetAncestor(reinterpret_cast<HWND>(nativeHandle.Handle), GA_PARENT) };
+#else
+			return {};
+#endif
+		}
+
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS

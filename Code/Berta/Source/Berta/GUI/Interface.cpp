@@ -189,13 +189,33 @@ namespace Berta::GUI
 		}
 	}
 
-	void MakeWindowActive(Window* window, bool active)
+	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
+			if (active)
+			{
+				makeTargetWhenInactive = nullptr;
+			}
 			window->Flags.MakeActive = active;
+			window->MakeTargetWhenInactive = makeTargetWhenInactive;
 		}
+	}
+
+	Window* GetParentWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			if (window->Type == WindowType::Form)
+			{
+				auto rootWindow = windowManager.Get(API::GetParentWindow(window->RootHandle));
+				return rootWindow;
+			}
+			return window->Parent;
+		}
+		return nullptr;
 	}
 
 	void Capture(Window* window, bool redirectToChildren)

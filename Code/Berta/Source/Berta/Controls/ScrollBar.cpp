@@ -27,6 +27,8 @@ namespace Berta
 			DoScrollStep(true);
 			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
 		});
+
+		GUI::MakeWindowActive(control, false, control.GetParent());
 	}
 
 	void ScrollBarReactor::Update(Graphics& graphics)

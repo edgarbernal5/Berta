@@ -269,14 +269,14 @@ namespace Berta
 				auto direction = args.Key == KeyboardKey::ArrowLeft ? -1 : 1;
 				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
 				auto newItemIndex = pivot + direction;
-				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()) && m_module.m_mouseSelection.m_pivotIndex != -1)
+				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()))
 				{
 					if (!m_module.m_ctrlPressed)
 					{
 						m_module.ClearSelection();
 					}
 
-					if (m_module.m_multiselection && m_module.m_shiftPressed)
+					if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotIndex != -1)
 					{
 						int endIndex = newItemIndex;
 						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
@@ -311,14 +311,14 @@ namespace Berta
 				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
 				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
 				auto newItemIndex = pivot + direction * m_module.m_viewport.m_totalCardsInRow;
-				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size() && m_module.m_mouseSelection.m_pivotIndex != -1)
+				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size())
 				{
 					if (!m_module.m_ctrlPressed)
 					{
 						m_module.ClearSelection();
 					}
 
-					if (m_module.m_multiselection && m_module.m_shiftPressed)
+					if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotIndex != -1)
 					{
 						int endIndex = newItemIndex;
 						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
@@ -691,7 +691,7 @@ namespace Berta
 				m_mouseSelection.m_selections.clear();
 				m_mouseSelection.m_alreadySelected.clear();
 
-				m_mouseSelection.m_selectedIndex = -1;
+				//m_mouseSelection.m_selectedIndex = -1;
 				m_mouseSelection.m_pivotIndex = -1;
 				return true;
 			}

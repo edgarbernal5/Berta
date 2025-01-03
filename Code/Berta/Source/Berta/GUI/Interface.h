@@ -35,7 +35,9 @@ namespace Berta
 		Size SizeWindow(Window* window);
 		void MoveWindow(Window* window, const Rectangle& newRect);
 
-		void MakeWindowActive(Window* window, bool active);
+		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
+
+		Window* GetParentWindow(Window* window);
 
 		void Capture(Window* window, bool redirectToChildren = false);
 		void ReleaseCapture(Window* window);

@@ -324,14 +324,14 @@ namespace Berta
 			
 			auto selectedIndex = (m_module.m_mouseSelection.m_selectedNode == nullptr? (direction == -1 ? (int)m_module.m_viewport.m_treeSize : -1) : m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_selectedNode));
 			auto newItemIndex = selectedIndex + amount;
-			if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_viewport.m_treeSize) && m_module.m_mouseSelection.m_pivotNode != nullptr)
+			if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_viewport.m_treeSize))
 			{
 				if (!m_module.m_ctrlPressed)
 				{
 					m_module.ClearSelection();
 				}
 
-				if (m_module.m_multiselection && m_module.m_shiftPressed)
+				if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotNode != nullptr)
 				{
 					auto startIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_pivotNode);
 					auto endIndex = newItemIndex;

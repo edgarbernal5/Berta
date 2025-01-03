@@ -473,7 +473,7 @@ namespace Berta
 			}
 
 			auto newItemIndex = selectedIndex + direction;
-			if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_list.m_items.size() && m_module.m_mouseSelection.m_pivotItem)
+			if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_list.m_items.size())
 			{
 				auto absoluteIndex = m_module.m_list.m_sortedIndexes[newItemIndex];
 				auto newItemPtr = &m_module.m_list.m_items[m_module.m_list.m_sortedIndexes[newItemIndex]];
@@ -482,7 +482,7 @@ namespace Berta
 					m_module.ClearSelection();
 				}
 
-				if (m_module.m_multiselection && m_module.m_shiftPressed)
+				if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotItem)
 				{
 					int pivotIndex = m_module.GetListItemIndex(m_module.m_mouseSelection.m_pivotItem);
 
@@ -1422,7 +1422,7 @@ namespace Berta
 				m_mouseSelection.m_selections.clear();
 				m_mouseSelection.m_alreadySelected.clear();
 
-				m_mouseSelection.m_selectedItem = nullptr;
+				//m_mouseSelection.m_selectedItem = nullptr;
 				m_mouseSelection.m_pivotItem = nullptr;
 				return true;
 			}

@@ -34,7 +34,8 @@ namespace Berta
 
 		bool GetEnabled() const;
 		void SetEnabled(bool enabled);
-		
+
+		Window* GetParent() const;
 		Point GetPosition() const;
 		
 		Size GetSize() const;
