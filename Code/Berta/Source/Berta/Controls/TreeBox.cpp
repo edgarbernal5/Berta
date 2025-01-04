@@ -268,7 +268,6 @@ namespace Berta
 					m_module.ClearSelection();
 					if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_selectedNode->parent))
 					{
-						m_module.m_mouseSelection.m_selectedNode = m_module.m_mouseSelection.m_selectedNode->parent;
 						needUpdate = true;
 						emitSelectionEvent = true;
 					}
@@ -764,25 +763,33 @@ namespace Berta
 			return InteractionArea::Blank;
 		}
 
-		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderButtonSize);
+		auto depthWidthMultiplier = m_window->ToScale(m_appearance->DepthWidthMultiplier);
 		auto nodeDepth = CalculateNodeDepth(m_visibleNodes[index]);
-		int nodeOffset = (nodeDepth - 1) * expanderSize;
+		int nodeOffset = (nodeDepth - 1) * depthWidthMultiplier;
+		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
 		
 		Rectangle expanderRect
 		{ 
-			m_viewport.m_backgroundRect.X + m_scrollOffset.X + nodeOffset,
+			m_viewport.m_backgroundRect.X + m_scrollOffset.X + nodeOffset + expanderMarginX,
 			(index + m_viewport.m_startingVisibleIndex) * nodeHeightInt + (int)(nodeHeightInt - expanderSize) / 2,
 			expanderSize, expanderSize
 		};
 		
 		Point absolutePosition = mousePosition;
 		absolutePosition.Y += m_scrollOffset.Y;
+		absolutePosition.X += m_scrollOffset.X;
 		if (m_visibleNodes[index]->firstChild && expanderRect.IsInside(absolutePosition))
 		{
 			return InteractionArea::Expander;
 		}
 
-		return InteractionArea::Node;
+		if (absolutePosition.X >= expanderRect.X + expanderRect.Width)
+		{
+			return InteractionArea::Node;
+		}
+
+		return InteractionArea::Blank;
 	}
 
 	void TreeBoxReactor::Module::Update()
@@ -810,65 +817,58 @@ namespace Berta
 	{
 		bool enabled = true;
 		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
-		auto nodeTextMargin = m_window->ToScale(8u);
+		auto nodeTextMargin = m_window->ToScale(4u);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 		auto nodeHeightHalfInt = nodeHeightInt >> 1;
 		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
+		auto iconMargin = m_window->ToScale(2);
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderButtonSize);
+		auto depthWidthMultiplier = m_window->ToScale(m_appearance->DepthWidthMultiplier);
+
+		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
+		int expanderMarginY = (nodeHeightInt - static_cast<int>(expanderSize)) >> 1;
 
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
 		{
 			auto depth = CalculateNodeDepth(node);
-			Rectangle nodeRect{ offset.X, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
+			int depthOffsetX = static_cast<int>((depth - 1) * depthWidthMultiplier);
+
+			Rectangle expanderRect{ offset.X + depthOffsetX + expanderMarginX, offset.Y + nodeHeightInt * i + expanderMarginY, expanderSize, expanderSize };
+			Rectangle nodeRect{ offset.X + depthOffsetX + (int)depthWidthMultiplier, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
+			nodeRect.Width -= nodeRect.X;
 
 			bool isLastSelected = node == m_mouseSelection.m_selectedNode;
 			bool isSelected = node->isSelected;
 			bool isHovered = node == m_mouseSelection.m_hoveredNode;
-			int nodeOffsetX = (depth - 1) * expanderSize;
+
 			if (isSelected)
 			{
-				auto startX = offset.X + expanderSize + nodeOffsetX + (int)nodeTextMargin / 2;
-				Rectangle nodeRectInner = nodeRect;
-				nodeRectInner.X = startX;
-				nodeRectInner.Width -= startX;
-
 				auto lineColor = enabled ? (isLastSelected ? m_appearance->Foreground2nd : (isSelected ? m_appearance->BoxBorderHighlightColor : m_appearance->BoxBorderColor)) : m_appearance->BoxBorderDisabledColor;
 
-				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->HighlightColor, true);
-				graphics.DrawRectangle(nodeRectInner, lineColor, false);
+				graphics.DrawRectangle(nodeRect, m_window->Appearance->HighlightColor, true);
+				graphics.DrawRectangle(nodeRect, lineColor, false);
 			}
 			else if (isHovered)
 			{
-				auto startX = offset.X + expanderSize + nodeOffsetX + (int)nodeTextMargin / 2;
-				Rectangle nodeRectInner = nodeRect;
-				nodeRectInner.X = startX;
-				nodeRectInner.Width -= startX;
-				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->ItemCollectionHightlightBackground, true);
+				graphics.DrawRectangle(nodeRect, m_window->Appearance->ItemCollectionHightlightBackground, true);
 			}
 			else if (isLastSelected)
 			{
-				auto startX = offset.X + expanderSize + nodeOffsetX + (int)nodeTextMargin / 2;
-				Rectangle nodeRectInner = nodeRect;
-				nodeRectInner.X = startX;
-				nodeRectInner.Width -= startX;
-				graphics.DrawRectangle(nodeRectInner, m_window->Appearance->Foreground2nd, false);
+				graphics.DrawRectangle(nodeRect, m_window->Appearance->Foreground2nd, false);
 			}
 
-			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y + (int)(nodeHeightInt - expanderSize) / 2, expanderSize, expanderSize };
-
-			nodeOffsetX += expanderSize;
-			if (m_drawImages)
+			int contentOffsetX = 0;
+			if (false)
 			{
 				if (node->icon)
 				{
 					auto positionY = (nodeHeight - iconSize) >> 1;
-					node->icon.Paste(graphics, { nodeRect.X + nodeOffsetX + static_cast<int>(expanderSize / 2), nodeRect.Y + (int)positionY, iconSize , iconSize });
+					node->icon.Paste(graphics, { nodeRect.X + iconMargin, nodeRect.Y + (int)positionY, iconSize , iconSize });
 				}
-
-				nodeOffsetX += iconSize;
+				contentOffsetX += iconSize + iconMargin * 2;
 			}
 
 			if (node->firstChild)
@@ -887,7 +887,7 @@ namespace Berta
 				);
 			}
 
-			graphics.DrawString({ nodeRect.X + nodeOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
+			graphics.DrawString({ nodeRect.X + contentOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
 			++i;
 		}
 	}
@@ -901,17 +901,22 @@ namespace Berta
 		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
 
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto expanderSize = m_window->ToScale(m_appearance->ExpanderSize);
+		auto expanderSize = m_window->ToScale(m_appearance->ExpanderButtonSize);
+		auto depthWidthMultiplier = m_window->ToScale(m_appearance->DepthWidthMultiplier);
+
+		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
+		int expanderMarginY = (nodeHeightInt - static_cast<int>(expanderSize)) >> 1;
 
 		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
 		{
 			auto depth = CalculateNodeDepth(node);
-			Rectangle nodeRect{ offset.X, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
+			int depthOffsetX = static_cast<int>((depth - 1) * depthWidthMultiplier);
 
-			int nodeOffsetX = (depth - 1) * expanderSize;
-			Rectangle expanderRect{ nodeRect.X + nodeOffsetX, nodeRect.Y, expanderSize, nodeHeight };
+			Rectangle expanderRect{ offset.X + depthOffsetX + expanderMarginX, offset.Y + nodeHeightInt * i + expanderMarginY, expanderSize, expanderSize };
+			Rectangle nodeRect{ offset.X + depthOffsetX + (int)depthWidthMultiplier, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
+			nodeRect.Width -= nodeRect.X;
 
 			Point startPointV{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y };
 			Point endPointV{ startPointV.X, nodeRect.Y + nodeHeightInt };
@@ -945,7 +950,7 @@ namespace Berta
 			graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
 			
 			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
-			Point endPointH{ startPointH.X + (int)(expanderRect.Width) + 1, startPointH.Y };
+			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2) /*-(int)expanderSize / 2*/, startPointH.Y};
 			graphics.DrawLine(startPointH, endPointH, m_window->Appearance->Foreground2nd);
 
 			minDepth = (std::min)(minDepth, depth);
@@ -957,9 +962,9 @@ namespace Berta
 			auto currentDepth = minDepth - 1;
 			while (currentDepth > 0)
 			{
-				int nodeOffsetX = (currentDepth - 1) * expanderSize;
+				int nodeOffsetX = (currentDepth - 1) * depthWidthMultiplier;
 
-				Point startPointV{ offset.X + nodeOffsetX + static_cast<int>(expanderSize) / 2, m_viewport.m_backgroundRect.Y };
+				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, m_viewport.m_backgroundRect.Y };
 				Point endPointV{ startPointV.X, static_cast<int>(m_viewport.m_backgroundRect.Height) + m_viewport.m_backgroundRect.Y };
 
 				graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);

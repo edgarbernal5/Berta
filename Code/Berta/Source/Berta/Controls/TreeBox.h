@@ -23,7 +23,8 @@ namespace Berta
 
 	struct TreeBoxAppearance : public ControlAppearance
 	{
-		uint32_t ExpanderSize = 12u;
+		uint32_t ExpanderButtonSize = 12u;
+		uint32_t DepthWidthMultiplier = 20u;
 	};
 
 	class TreeBoxReactor : public ControlReactor

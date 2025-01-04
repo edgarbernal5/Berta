@@ -76,10 +76,11 @@ public:
 		Berta::Image image1("..\\..\\Resources\\Icons\\Icono5_2_16.png");
 		Berta::Image image2("..\\..\\Resources\\Icons\\Icono2_16.png");
 		Berta::Image image3("..\\..\\Resources\\Icons\\Icono4_16.png");
-		m_treeBox.Insert("C:", "C:/").SetIcon(image1);
-		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas").SetIcon(image3);
-		m_treeBox.Insert("C:/Windows", "Windows").SetIcon(image2);
-		m_treeBox.Insert("C:/Windows/addins", "addins").SetIcon(image2);;
+		Berta::Image imageRed("..\\..\\Resources\\Icons\\Red_16.png");
+		m_treeBox.Insert("C:", "C:/").SetIcon(imageRed);
+		m_treeBox.Insert("C:/Archivos de programas", "Archivos de programas").SetIcon(imageRed);
+		m_treeBox.Insert("C:/Windows", "Windows").SetIcon(imageRed);
+		m_treeBox.Insert("C:/Windows/addins", "addins").SetIcon(imageRed);
 		m_treeBox.Insert("C:/Windows/appcompat", "appcompat").SetIcon(image3);
 		m_treeBox.Insert("C:/Windows/Performance", "Performance").SetIcon(image1);
 		m_treeBox.Insert("C:/Windows/Performance/Fast", "Fast");
