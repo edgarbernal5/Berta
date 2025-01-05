@@ -160,20 +160,64 @@ namespace Berta
 
 	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style)
 	{
+		DrawLine(point1, point2, 1, color, style);
+	}
+
+	void Graphics::DrawLine(const Point& point1, const Point& point2, int lineWidth, const Color& color, LineStyle style)
+	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_hdc)
 		{
 			return;
 		}
 
-		HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), 1, color);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+		if (style == LineStyle::Dotted)
+		{
+			int dx = point2.X - point1.X;
+			int dy = point2.Y - point1.Y;
 
-		::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
-		::LineTo(m_attributes->m_hdc, point2.X, point2.Y);
+			int absDx = abs(dx);
+			int absDy = abs(dy);
 
-		::SelectObject(m_attributes->m_hdc, hOldPen);
-		::DeleteObject(hPen);
+			int steps = max(absDx, absDy);
+
+			float xInc = dx / static_cast<float>(steps);
+			float yInc = dy / static_cast<float>(steps);
+
+			float x = static_cast<float>(point1.X);
+			float y = static_cast<float>(point1.Y);
+
+			auto stepsWidth = steps / lineWidth;
+			for (int i = 0; i <= stepsWidth; ++i)
+			{
+				if (i % 2 == 0)
+				{
+					int xx = static_cast<int>(x + 0.5f);
+					int yy = static_cast<int>(y + 0.5f);
+					for (int ii = 0; ii < lineWidth; ii++)
+					{
+						for (int jj = 0; jj < lineWidth; jj++)
+						{
+							::SetPixel(m_attributes->m_hdc, xx + jj, yy + ii, color);
+						}
+					}
+				}
+				x += xInc * lineWidth;
+				y += yInc * lineWidth;
+			}
+		}
+		else
+		{
+			HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), lineWidth, color);
+
+			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
+
+			::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
+			::LineTo(m_attributes->m_hdc, point2.X, point2.Y);
+
+			::SelectObject(m_attributes->m_hdc, hOldPen);
+			::DeleteObject(hPen);
+		}
 #endif
 	}
 

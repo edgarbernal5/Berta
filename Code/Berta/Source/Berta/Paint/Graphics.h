@@ -50,6 +50,7 @@ namespace Berta
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style = LineStyle::Solid);
+		void DrawLine(const Point& point1, const Point& point2, int lineWidth, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawBeginLine(const Point& point, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawLineTo(const Point& point, const Color& color);
 

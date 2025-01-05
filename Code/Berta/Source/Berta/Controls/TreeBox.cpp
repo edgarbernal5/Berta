@@ -784,7 +784,7 @@ namespace Berta
 			return InteractionArea::Expander;
 		}
 
-		if (absolutePosition.X >= expanderRect.X + expanderRect.Width)
+		if (absolutePosition.X >= expanderRect.X + static_cast<int>(expanderRect.Width))
 		{
 			return InteractionArea::Node;
 		}
@@ -907,6 +907,7 @@ namespace Berta
 		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
 		int expanderMarginY = (nodeHeightInt - static_cast<int>(expanderSize)) >> 1;
 
+		Graphics::LineStyle lineStyle = Graphics::LineStyle::Dotted;
 		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
 		int i = m_viewport.m_startingVisibleIndex;
 		for (auto& node : m_visibleNodes)
@@ -928,7 +929,7 @@ namespace Berta
 
 			if (node->prevSibling && !IsVisibleNode(node->prevSibling))
 			{
-				startPointV.Y = m_viewport.m_backgroundRect.Y;
+				startPointV.Y = offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex;
 			}
 
 			if (!node->nextSibling)
@@ -944,14 +945,14 @@ namespace Berta
 				}
 				else
 				{
-					endPointV.Y = m_viewport.m_backgroundRect.Y + static_cast<int>(m_viewport.m_backgroundRect.Height);
+					endPointV.Y = offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1);
 				}
 			}
-			graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
+			graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd, lineStyle);
 			
 			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
-			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2) /*-(int)expanderSize / 2*/, startPointH.Y};
-			graphics.DrawLine(startPointH, endPointH, m_window->Appearance->Foreground2nd);
+			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2), startPointH.Y};
+			graphics.DrawLine(startPointH, endPointH, m_window->Appearance->Foreground2nd, lineStyle);
 
 			minDepth = (std::min)(minDepth, depth);
 			++i;
@@ -964,10 +965,10 @@ namespace Berta
 			{
 				int nodeOffsetX = (currentDepth - 1) * depthWidthMultiplier;
 
-				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, m_viewport.m_backgroundRect.Y };
-				Point endPointV{ startPointV.X, static_cast<int>(m_viewport.m_backgroundRect.Height) + m_viewport.m_backgroundRect.Y };
+				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex };
+				Point endPointV{ startPointV.X, offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1) };
 
-				graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd);
+				graphics.DrawLine(startPointV, endPointV, m_window->Appearance->Foreground2nd, lineStyle);
 
 				--currentDepth;
 			}
