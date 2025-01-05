@@ -861,7 +861,7 @@ namespace Berta
 			}
 
 			int contentOffsetX = 0;
-			if (false)
+			if (m_drawImages)
 			{
 				if (node->icon)
 				{
