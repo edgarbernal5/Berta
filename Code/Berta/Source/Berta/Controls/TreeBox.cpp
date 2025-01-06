@@ -905,6 +905,7 @@ namespace Berta
 
 		auto lineColor = m_window->Appearance->BoxBorderColor;
 		Graphics::LineStyle lineStyle = Graphics::LineStyle::Dotted;
+		int lineWidth = 1; //m_window->ToScale(1);
 
 		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
 		int i = m_viewport.m_startingVisibleIndex;
@@ -946,11 +947,11 @@ namespace Berta
 					endPointV.Y = offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1);
 				}
 			}
-			graphics.DrawLine(startPointV, endPointV, lineColor, lineStyle);
+			graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
 			
 			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
 			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2), startPointH.Y};
-			graphics.DrawLine(startPointH, endPointH, lineColor, lineStyle);
+			graphics.DrawLine(startPointH, endPointH, lineWidth, lineColor, lineStyle);
 
 			minDepth = (std::min)(minDepth, depth);
 			++i;
@@ -966,7 +967,7 @@ namespace Berta
 				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex };
 				Point endPointV{ startPointV.X, offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1) };
 
-				graphics.DrawLine(startPointV, endPointV, lineColor, lineStyle);
+				graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
 
 				--currentDepth;
 			}

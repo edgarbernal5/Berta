@@ -34,12 +34,17 @@ namespace Berta
 
 		if (m_module.m_isChecked)
 		{
-			graphics.DrawLine({ checkBoxRect.X + 1, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 6 },
-				{ checkBoxRect.X + 5, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 2 }, 2,
-				window->Appearance->Foreground);
-			graphics.DrawLine({ checkBoxRect.X + 5, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 2 },
-				{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width)-2, checkBoxRect.Y + 1 }, 2,
-				window->Appearance->Foreground);
+			auto one = window->ToScale(1);
+			auto two = window->ToScale(2);
+			auto five = window->ToScale(5);
+			auto six = window->ToScale(6);
+			auto lineWidth = window->ToScale(2);
+			graphics.DrawLine({ checkBoxRect.X + one, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - six },
+				{ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - two }, lineWidth,
+				window->Appearance->Foreground2nd);
+			graphics.DrawLine({ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - two },
+				{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) - two, checkBoxRect.Y + one }, lineWidth,
+				window->Appearance->Foreground2nd);
 		}
 
 		int positionY = (window->Size.Height - graphics.GetTextExtent().Height) >> 1;

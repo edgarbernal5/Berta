@@ -111,7 +111,7 @@ namespace Berta
 		}
 
 		Window* FindFirstNonPanelAncestor() const;
-		bool IsParentsVisible() const;
+		bool AreParentsVisible() const;
 		bool IsVisible() const;
 		bool IsAncestorOf(Window* window) const;
 	};

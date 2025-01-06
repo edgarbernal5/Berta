@@ -564,7 +564,7 @@ namespace Berta
 
 	bool WindowManager::TryDeferredUpdate(Window* window)
 	{
-		if (!window->Visible || !window->IsParentsVisible())
+		if (!window->Visible || !window->AreParentsVisible())
 		{
 			return true;
 		}

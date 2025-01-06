@@ -597,9 +597,11 @@ namespace Berta
 		return m_multiselection;
 	}
 
-	void ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
+	bool ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
 	{
+		bool needUpdate = m_multiselection != enabled;
 		m_multiselection = enabled;
+		return needUpdate;
 	}
 
 	int ThumbListBoxReactor::Module::GetItemIndexAtMousePosition(const Point& position)
@@ -772,6 +774,11 @@ namespace Berta
 		return needUpdate;
 	}
 
+	void ThumbListBoxReactor::Module::Draw()
+	{
+		GUI::UpdateWindow(m_window);
+	}
+
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
 	{
 		return m_mouseSelection.m_selections;
@@ -928,7 +935,11 @@ namespace Berta
 
 	void ThumbListBox::EnableMultiselection(bool enabled)
 	{
-		m_reactor.GetModule().EnableMultiselection(enabled);
+		if (m_reactor.GetModule().EnableMultiselection(enabled))
+		{
+			m_reactor.GetModule().ClearSelection();
+			m_reactor.GetModule().Draw();
+		}
 	}
 
 	std::vector<size_t> ThumbListBox::GetSelected() const

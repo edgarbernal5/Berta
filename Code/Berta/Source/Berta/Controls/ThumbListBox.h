@@ -104,7 +104,7 @@ namespace Berta
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
 			bool IsEnabledMultiselection() const;
-			void EnableMultiselection(bool enabled);
+			bool EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
 			void ClearSelection();
 			bool ClearSingleSelection();
@@ -115,6 +115,8 @@ namespace Berta
 			void ToggleItemSelection(int itemIndexAtPosition);
 			void PerformRangeSelection(int itemIndexAtPosition);
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
+
+			void Draw();
 
 			std::vector<size_t> GetSelectedItems() const;
 			bool EnsureVisibility(int lastSelectedIndex);

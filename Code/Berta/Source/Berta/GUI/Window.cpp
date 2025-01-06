@@ -43,10 +43,10 @@ namespace Berta
 		return windowToUpdate;
 	}
 
-	bool Window::IsParentsVisible() const
+	bool Window::AreParentsVisible() const
 	{
 		auto current = Parent;
-		while (current != nullptr)
+		while (current)
 		{
 			if (!current->Visible)
 			{
@@ -59,13 +59,13 @@ namespace Berta
 
 	bool Window::IsVisible() const
 	{
-		return Visible && IsParentsVisible();
+		return Visible && AreParentsVisible();
 	}
 
 	bool Window::IsAncestorOf(Window* window) const
 	{
 		auto current = window;
-		while (current != nullptr)
+		while (current)
 		{
 			if (current == this)
 				return true;

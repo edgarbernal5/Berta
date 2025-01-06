@@ -818,7 +818,7 @@ namespace Berta
 	void ListBoxReactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor)
 	{
 		auto textExtent = graphics.GetTextExtent(str);
-		if (boxBounds.X + (int)textExtent.Width < 0 /* || boxBounds.X >= */)
+		if (boxBounds.X + (int)textExtent.Width < 0)
 		{
 			return;
 		}
@@ -1028,7 +1028,8 @@ namespace Berta
 		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 
-		int sortedHeaderMargin = m_window->ToScale(3u);
+		int sortedHeaderMargin = m_window->ToScale(4);
+		int arrowSortedHeaderSize = m_window->ToScale(6);
 		graphics.DrawGradientFill({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
 		graphics.DrawLine({ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, 1 }, { m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
@@ -1063,12 +1064,13 @@ namespace Berta
 			textRect.Width -= leftMarginTextHeader * 2 + textOffset;
 			if (isSortedHeader)
 			{
-				textRect.Width -= sortedHeaderMargin;
+				textRect.Width -= sortedHeaderMargin + arrowSortedHeaderSize;
 			}
 			DrawHeaderItem(graphics, columnRect, header.m_name, isHovered, textRect, m_appearance->Foreground);
 
 			if (isDragging)
 			{
+				int lineWidth = m_window->ToScale(2);
 				auto targetHeaderPosition = 0;
 				if (m_headers.m_draggingTargetIndex < m_headers.m_items.size())
 				{
@@ -1086,7 +1088,7 @@ namespace Berta
 				{
 					targetHeaderPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
 				}
-				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - 1 }, m_appearance->SelectionHighlightColor);
+				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, lineWidth, m_appearance->SelectionHighlightColor);
 
 				Graphics& draggingBox = m_headers.m_draggingBox;
 				
@@ -1103,14 +1105,13 @@ namespace Berta
 			graphics.DrawLine({ m_viewport.m_backgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->Size.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 
-			if (headerIndex == m_headers.m_sortedHeaderIndex)
+			if (isSortedHeader)
 			{
 				int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
-				int ten = m_window->ToScale(10);
 				Rectangle arrowRect = columnRect;
-				arrowRect.X += headerWidthInt - ten - sortedHeaderMargin;
-				arrowRect.Width = ten;
+				arrowRect.X += headerWidthInt - arrowSortedHeaderSize - sortedHeaderMargin;
+				arrowRect.Width = arrowSortedHeaderSize;
 				graphics.DrawArrow(arrowRect, arrowLength, arrowWidth, 
 					m_headers.isAscendingOrdering ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Downwards,
 					m_appearance->Foreground2nd);
