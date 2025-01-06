@@ -296,6 +296,8 @@ public:
 			{
 				m_thumbListBox.EnableMultiselection(args.IsChecked);
 			});
+
+		m_checkBox.SetChecked(m_thumbListBox.IsEnabledMultiselection());
 	}
 
 private:

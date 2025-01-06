@@ -103,6 +103,7 @@ namespace Berta
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();
+			bool IsEnabledMultiselection() const;
 			void EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
 			void ClearSelection();
@@ -186,6 +187,7 @@ namespace Berta
 		void Erase(size_t index);
 		void SetThumbnailSize(uint32_t size);
 
+		bool IsEnabledMultiselection() const;
 		void EnableMultiselection(bool enabled);
 
 		std::vector<size_t> GetSelected() const;

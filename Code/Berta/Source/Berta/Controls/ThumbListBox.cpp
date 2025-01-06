@@ -592,6 +592,11 @@ namespace Berta
 		m_state.m_offset = m_scrollBar->GetValue();
 	}
 
+	bool ThumbListBoxReactor::Module::IsEnabledMultiselection() const
+	{
+		return m_multiselection;
+	}
+
 	void ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
 	{
 		m_multiselection = enabled;
@@ -914,6 +919,11 @@ namespace Berta
 	void ThumbListBox::SetThumbnailSize(uint32_t size)
 	{
 		m_reactor.GetModule().SetThumbnailSize(size);
+	}
+
+	bool ThumbListBox::IsEnabledMultiselection() const
+	{
+		return m_reactor.GetModule().IsEnabledMultiselection();
 	}
 
 	void ThumbListBox::EnableMultiselection(bool enabled)
