@@ -17,6 +17,7 @@
 #include <Berta/Controls/ListBox.h>
 #include <Berta/Controls/Slider.h>
 #include <Berta/Controls/TreeBox.h>
+#include <Berta/Controls/CheckBox.h>
 #include <iostream>
 
 class TabExample1 : public Berta::Panel
@@ -165,7 +166,6 @@ public:
 					return;
 
 				m_listBox.Erase(selected[0]);
-				//m_listBox.Erase(selected);
 			});
 
 		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
@@ -288,6 +288,14 @@ public:
 				auto margin = m_thumbListBox.Handle()->ToScale(10);
 				m_thumbListBox.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 			});
+
+		m_checkBox.Create(*this, true, { 260,10,100,30 });
+		m_checkBox.SetCaption(L"Multiselection");
+
+		m_checkBox.GetEvents().CheckedChanged.Connect([this](const Berta::ArgCheckBox& args)
+			{
+				m_thumbListBox.EnableMultiselection(args.IsChecked);
+			});
 	}
 
 private:
@@ -296,6 +304,7 @@ private:
 	Berta::Button m_buttonIcon;
 	Berta::ThumbListBox m_thumbListBox;
 	Berta::Slider m_slider;
+	Berta::CheckBox m_checkBox;
 	uint32_t m_thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
 };
 

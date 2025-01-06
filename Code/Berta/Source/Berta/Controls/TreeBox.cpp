@@ -24,7 +24,6 @@ namespace Berta
 		m_module.CalculateViewport(m_module.m_viewport);
 
 		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
-		m_module.m_graphics = &m_module.m_window->Renderer.GetGraphics();
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -52,7 +51,6 @@ namespace Berta
 
 		m_module.UpdateScrollBars();
 		m_module.CalculateVisibleNodes();
-		m_module.GenerateNavigationLines();
 
 		if (m_module.m_scrollBarVert)
 		{
@@ -104,7 +102,6 @@ namespace Berta
 						m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
 				}
 				m_module.CalculateVisibleNodes();
-				m_module.GenerateNavigationLines();
 
 				needUpdate = true;
 				m_module.EmitExpansionEvent(m_module.m_visibleNodes[index]);
@@ -220,7 +217,6 @@ namespace Berta
 			{
 				m_module.m_scrollOffset.Y = newOffset;
 				m_module.CalculateVisibleNodes();
-				m_module.GenerateNavigationLines();
 				m_module.m_scrollBarVert->SetValue(newOffset);
 
 				m_module.m_scrollBarVert->Handle()->Renderer.Update();
@@ -574,7 +570,7 @@ namespace Berta
 		GetNodesInBetween(m_viewport.m_startingVisibleIndex, m_viewport.m_endingVisibleIndex, m_visibleNodes);
 	}
 
-	void TreeBoxReactor::Module::GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes)
+	void TreeBoxReactor::Module::GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const
 	{
 		int index = 0;
 
@@ -682,7 +678,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	int TreeBoxReactor::Module::LocateNodeIndexInTree(TreeNodeType* node)
+	int TreeBoxReactor::Module::LocateNodeIndexInTree(TreeNodeType* node) const
 	{
 		int index = 0;
 
@@ -713,7 +709,7 @@ namespace Berta
 		return -1;
 	}
 
-	TreeBoxReactor::TreeNodeType* TreeBoxReactor::Module::LocateNodeIndexInTree(int nodeIndex)
+	TreeBoxReactor::TreeNodeType* TreeBoxReactor::Module::LocateNodeIndexInTree(int nodeIndex) const
 	{
 		int index = 0;
 
@@ -982,14 +978,6 @@ namespace Berta
 		m_root.isExpanded = true;
 	}
 
-	void TreeBoxReactor::Module::GenerateNavigationLines()
-	{
-		if (m_root.firstChild == nullptr)
-		{
-			return;
-		}
-	}
-
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
 		auto hasParentIndex = key.find_last_of('/');
@@ -1113,8 +1101,7 @@ namespace Berta
 		Unlink(item.m_node);
 		EraseNode(item.m_node);
 
-		CalculateViewport(m_viewport); 
-		GenerateNavigationLines();
+		CalculateViewport(m_viewport);
 		if (UpdateScrollBars())
 		{
 			if (m_scrollBarVert)
@@ -1135,7 +1122,6 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
-		GenerateNavigationLines();
 		if (UpdateScrollBars())
 		{
 			if (m_scrollBarVert)
@@ -1214,7 +1200,6 @@ namespace Berta
 					{
 						m_scrollOffset.Y = args.Value;
 						CalculateVisibleNodes();
-						GenerateNavigationLines();
 
 						GUI::UpdateWindow(m_window);
 					});
@@ -1231,7 +1216,6 @@ namespace Berta
 
 			m_scrollOffset.Y = m_scrollBarVert->GetValue();
 			CalculateVisibleNodes();
-			GenerateNavigationLines();
 
 			needUpdate = true;
 		}
@@ -1240,7 +1224,6 @@ namespace Berta
 			m_scrollBarVert.reset();
 			m_scrollOffset.Y = 0;
 			CalculateVisibleNodes();
-			GenerateNavigationLines();
 
 			needUpdate = true;
 		}

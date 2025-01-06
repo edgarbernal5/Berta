@@ -98,20 +98,19 @@ namespace Berta
 		{
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleNodes();
-			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes);
+			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const;
 			uint32_t CalculateTreeSize(TreeNodeType* node);
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
 			void Clear();
 			TreeNodeType* GetNextVisible(TreeNodeType* node);
-			int LocateNodeIndexInTree(TreeNodeType* node);
-			TreeNodeType* LocateNodeIndexInTree(int nodeIndex);
+			int LocateNodeIndexInTree(TreeNodeType* node) const;
+			TreeNodeType* LocateNodeIndexInTree(int nodeIndex) const;
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
 			void Update();
 			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
 			void Init();
-			void GenerateNavigationLines();
 			
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle);
@@ -165,7 +164,6 @@ namespace Berta
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
-			Graphics* m_graphics{ nullptr };
 		};
 
 		Module& GetModule() { return m_module; }

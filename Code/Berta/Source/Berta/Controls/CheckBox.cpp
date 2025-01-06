@@ -1,0 +1,128 @@
+/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
+#include "btpch.h"
+#include "CheckBox.h"
+
+#include "Berta/GUI/Interface.h"
+
+namespace Berta
+{
+	void CheckBoxReactor::Init(ControlBase& control)
+	{
+		m_control = &control;
+
+		m_module.m_window = m_control->Handle();
+		m_module.m_events = reinterpret_cast<CheckBoxEvents*>(m_control->Handle()->Events.get());
+	}
+
+	void CheckBoxReactor::Update(Graphics& graphics)
+	{
+		auto window = m_control->Handle();
+		bool enabled = m_control->GetEnabled();
+		auto backgroundRect = window->Size.ToRectangle();
+		auto leftTextMargin = window->ToScale(3);
+		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
+
+		auto checkboxHeight = window->ToScale(window->Appearance->CheckboxHeight);
+		Rectangle checkBoxRect{ 0, static_cast<int>((window->Size.Height - checkboxHeight) >> 1),checkboxHeight, checkboxHeight };
+		graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBackground, true);
+		graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBorderColor, false);
+
+		if (m_module.m_isChecked)
+		{
+			graphics.DrawLine({ checkBoxRect.X + 1, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 6 },
+				{ checkBoxRect.X + 5, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 2 }, 2,
+				window->Appearance->Foreground);
+			graphics.DrawLine({ checkBoxRect.X + 5, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - 2 },
+				{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width)-2, checkBoxRect.Y + 1 }, 2,
+				window->Appearance->Foreground);
+		}
+
+		int positionY = (window->Size.Height - graphics.GetTextExtent().Height) >> 1;
+		graphics.DrawString({ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) + leftTextMargin, positionY }, m_control->GetCaption(), window->Appearance->Foreground);
+	}
+
+	void CheckBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
+	{
+		m_status = State::Hovered;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void CheckBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		m_status = State::Normal;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void CheckBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		m_status = State::Pressed;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+
+		GUI::Capture(*m_control);
+	}
+
+	void CheckBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_control->Handle()->Size.IsInside(args.Position))
+		{
+			m_status = State::Hovered;
+			m_module.m_isChecked = !m_module.m_isChecked;
+			m_module.EmitCheckedChangedEvent();
+		}
+		else
+		{
+			m_status = State::Normal;
+		}
+
+		GUI::ReleaseCapture(*m_control);
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void CheckBoxReactor::Module::EmitCheckedChangedEvent()
+	{
+		ArgCheckBox argCheckBox{ m_isChecked };
+		m_events->CheckedChanged.Emit(argCheckBox);
+	}
+
+	CheckBox::CheckBox(Window* parent, const Rectangle& rectangle)
+	{
+		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "CheckBox";
+#endif
+	}
+
+	CheckBox::CheckBox(Window* parent, const Rectangle& rectangle, const std::wstring& text)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+
+#if BT_DEBUG
+		m_handle->Name = "CheckBox";
+#endif
+	}
+
+	bool CheckBox::IsChecked() const
+	{
+		return m_reactor.GetModule().m_isChecked;
+	}
+
+	void CheckBox::SetChecked(bool isChecked)
+	{
+		m_reactor.GetModule().m_isChecked = isChecked;
+	}
+}
