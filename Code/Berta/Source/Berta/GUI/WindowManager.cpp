@@ -547,14 +547,6 @@ namespace Berta
 		{
 			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << window->Name << std::endl;
 			
-			//auto& rootGraphics = *(window->RootWindow->RootGraphics);
-
-			//auto absolutePosition = GetAbsolutePosition(window);
-			//Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
-
-			//rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-			//window->RootWindow->Renderer.Map(window->RootWindow, requestRectangle); // Copy from root graphics to native hwnd window.
-
 			Paint(window, false);
 			Map(window, nullptr);
 		}

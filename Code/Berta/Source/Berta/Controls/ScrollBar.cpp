@@ -55,9 +55,6 @@ namespace Berta
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
 			
-			//graphics.DrawRectangle(scrollBoxRect, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, true);
-			//graphics.DrawRectangle(scrollBoxRect, window->Appearance->BoxBorderColor, false);
-
 			graphics.DrawRoundRectBox(scrollBoxRect, 2, m_hoverArea == InteractionArea::Scrollbox ? (window->Appearance->ButtonHighlightBackground) : window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
 		}
 
@@ -288,22 +285,12 @@ namespace Berta
 
 	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled)
 	{
-		if (isHighlighted && isEnabled)
-		{
-			//graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonHighlightBackground, true);
-		}
-		else if (isEnabled)
-		{
-			//graphics.DrawRectangle(rect, m_control->Handle()->Appearance->ButtonBackground, true);
-		}
-		//graphics.DrawRectangle(rect, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, false);
 		if (arrowWidth % 2 == 1)
 			--arrowWidth;
 		
 		auto color = isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonPressedBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor;
 		graphics.DrawArrow(rect, arrowLength, arrowWidth, direction,
 			color, true, color);
-		//graphics.DrawArrow(rect, arrowLength, arrowWidth, isEnabled ? m_control->Handle()->Appearance->BoxBorderColor : m_control->Handle()->Appearance->BoxBorderDisabledColor, direction, true);
 	}
 
 	ScrollBarReactor::InteractionArea ScrollBarReactor::DetermineHoverArea(const Point& position) const

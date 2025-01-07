@@ -243,7 +243,7 @@ namespace Berta
 
 	FloatBox::FloatBox(Window* parent, const Rectangle& rectangle)
 	{
-		Create(parent, rectangle, { false, false, false, false, true, false }, false);
+		Create(parent, false, rectangle, { false, false, false, false, true, false }, false);
 		GUI::MakeWindowActive(m_handle, false, this->GetParent());
 
 #if BT_DEBUG

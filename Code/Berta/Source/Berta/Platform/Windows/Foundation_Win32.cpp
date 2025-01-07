@@ -220,7 +220,7 @@ namespace Berta
 		}
 		case WM_SHOWWINDOW:
 		{
-			bool isVisible = wParam == TRUE;
+			bool isVisible = (wParam == TRUE);
 			nativeWindow->Visible = isVisible;
 
 			ArgVisibility argVisibility;

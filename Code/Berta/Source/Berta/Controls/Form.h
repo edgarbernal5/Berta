@@ -30,8 +30,8 @@ namespace Berta
 	class FormBase : public Control<FormReactor, FormEvents>
 	{
 	public:
-		FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
-		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
+		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
+		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
 
 	private:
 	};

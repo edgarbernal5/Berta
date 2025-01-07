@@ -16,7 +16,7 @@
 
 namespace Berta::GUI
 {
-	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
+	Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
 	{
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
@@ -24,7 +24,17 @@ namespace Berta::GUI
 			parentHandle = parent->RootWindow->RootHandle;
 		}
 
-		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle, isNested);
+		Rectangle finalRect{ rectangle };
+		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
+		{
+			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
+			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
+			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
+			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
+			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
+		}
+
+		auto windowResult = API::CreateNativeWindow(parentHandle, finalRect, formStyle, isNested);
 		if (windowResult.WindowHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -58,18 +68,18 @@ namespace Berta::GUI
 		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
 		window->Init(control);
 		
-		Rectangle rect{ rectangle };
+		Rectangle finalRect{ rectangle };
 		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
 		{
 			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
-			rect.X = static_cast<int>(rect.X * scalingFactor);
-			rect.Y = static_cast<int>(rect.Y * scalingFactor);
-			rect.Width = static_cast<uint32_t>(rect.Width * scalingFactor);
-			rect.Height = static_cast<uint32_t>(rect.Height * scalingFactor);
+			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
+			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
+			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
+			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
 		}
-		window->Size = rect;
+		window->Size = finalRect;
 		window->Parent = parent;
-		window->Position = rect;
+		window->Position = finalRect;
 
 		if (parent)
 		{

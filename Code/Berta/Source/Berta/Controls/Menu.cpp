@@ -739,7 +739,7 @@ namespace Berta
 
 	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
 	{
-		Create(parent, rectangle, { false, false, false, false, true, false }, false);
+		Create(parent, false, rectangle, { false, false, false, false, true, false }, false);
 		GUI::MakeWindowActive(m_handle, false, nullptr);
 
 #if BT_DEBUG

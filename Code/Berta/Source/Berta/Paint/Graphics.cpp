@@ -640,7 +640,7 @@ namespace Berta
 			SelectObject(hdc, hBrush);
 
 			// Ajusta el tamaño de cada capa para crear la sombra difusa
-			RoundRect(
+			::RoundRect(
 				hdc,
 				x - shadowSize + i,
 				y - shadowSize + i,

@@ -905,7 +905,7 @@ namespace Berta
 
 		auto lineColor = m_window->Appearance->BoxBorderColor;
 		Graphics::LineStyle lineStyle = Graphics::LineStyle::Dotted;
-		int lineWidth = 1; //m_window->ToScale(1);
+		int lineWidth = m_window->ToScale(1);
 
 		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
 		int i = m_viewport.m_startingVisibleIndex;

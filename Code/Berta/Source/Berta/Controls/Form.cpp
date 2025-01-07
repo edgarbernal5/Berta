@@ -23,16 +23,16 @@ namespace Berta
 
 	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested)
 	{
-		Create(owner, GUI::GetCenteredOnScreen(size), windowStyle, isNested);
+		Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
 #endif
 	}
 
-	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
+	FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
 	{
-		Create(owner, rectangle, windowStyle, isNested);
+		Create(owner, isUnscaleRect, rectangle, windowStyle, isNested);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
@@ -55,7 +55,7 @@ namespace Berta
 	}
 
 	NestedForm::NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle) : 
-		FormBase(owner.Handle(), rectangle, windowStyle, true)
+		FormBase(owner.Handle(), true, rectangle, windowStyle, true)
 	{
 #if BT_DEBUG
 		m_handle->Name = "NestedForm";

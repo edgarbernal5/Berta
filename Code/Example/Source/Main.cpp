@@ -495,7 +495,7 @@ int main()
 	auto margin = tabbar.Handle()->ToScale(2);
 	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
 
-	Berta::NestedForm nestedForm(form, {320,35, 200, 200});
+	Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
 	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
 	nestedForm.Show();
 
