@@ -21,26 +21,44 @@ namespace Berta
 		graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
 	}
 
-	Form::Form(const Size& size, const FormStyle& windowStyle)
+	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested)
 	{
-		Create(nullptr, GUI::GetCenteredOnScreen(size), windowStyle);
+		Create(owner, GUI::GetCenteredOnScreen(size), windowStyle, isNested);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
 #endif
 	}
 
-	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle)
+	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
 	{
-		Create(nullptr, rectangle, windowStyle);
+		Create(owner, rectangle, windowStyle, isNested);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
 #endif
+	}
+
+	Form::Form(const Size& size, const FormStyle& windowStyle) : 
+		FormBase(nullptr, size, windowStyle, false)
+	{
+	}
+
+	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle) : 
+		FormBase(nullptr, rectangle, windowStyle, false)
+	{
 	}
 
 	void Form::Exec()
 	{
 		Foundation::GetInstance().ProcessMessages();
+	}
+
+	NestedForm::NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle) : 
+		FormBase(owner.Handle(), rectangle, windowStyle, true)
+	{
+#if BT_DEBUG
+		m_handle->Name = "NestedForm";
+#endif
 	}
 }

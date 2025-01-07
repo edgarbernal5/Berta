@@ -130,9 +130,9 @@ namespace Berta
 		AppearanceType& GetAppearance() const { return *m_appearance; }
 		EventsType& GetEvents() const { return *m_events; }
 
-		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle)
+		void Create(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested)
 		{
-			m_handle = GUI::CreateForm(parent, rectangle, formStyle, this);
+			m_handle = GUI::CreateForm(parent, rectangle, formStyle, isNested, this);
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);

@@ -16,7 +16,7 @@
 
 namespace Berta::GUI
 {
-	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle, ControlBase* control)
+	Window* CreateForm(Window* parent, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
 	{
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
@@ -24,7 +24,7 @@ namespace Berta::GUI
 			parentHandle = parent->RootWindow->RootHandle;
 		}
 
-		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle);
+		auto windowResult = API::CreateNativeWindow(parentHandle, rectangle, formStyle, isNested);
 		if (windowResult.WindowHandle.Handle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();

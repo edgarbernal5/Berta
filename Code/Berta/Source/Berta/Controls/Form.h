@@ -27,13 +27,30 @@ namespace Berta
 	private:
 	};
 
-	class Form : public Control<FormReactor, FormEvents>
+	class FormBase : public Control<FormReactor, FormEvents>
 	{
 	public:
-		explicit Form(const Size& size, const FormStyle& windowStyle = {true, true, true});
-		Form(const Rectangle& rectangle, const FormStyle& windowStyle = {true, true, true});
+		FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
+		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
+
+	private:
+	};
+
+	class Form : public FormBase
+	{
+	public:
+		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true });
+		Form(const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
 
 		void Exec();
+	private:
+	};
+
+	class NestedForm : public FormBase
+	{
+	public:
+		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false });
+
 	private:
 	};
 }

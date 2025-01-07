@@ -32,30 +32,44 @@ namespace Berta
 		}
 #endif
 
-		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle)
+		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
 			DWORD styleEx = WS_EX_NOPARENTNOTIFY;
 
 			if (formStyle.Minimize)
+			{
 				style |= WS_MINIMIZEBOX;
+			}
 			if (formStyle.Maximize)
+			{
 				style |= WS_MAXIMIZEBOX;
+			}
 			if (formStyle.Sizable)
+			{
 				style |= WS_THICKFRAME;
+			}
 
 			if (formStyle.TitleBarAndCaption)
+			{
 				style |= WS_OVERLAPPED | WS_CAPTION;
+			}
 
-			style |= WS_POPUP;
+			style |= (isNested ? WS_CHILD : WS_POPUP);
 			if (formStyle.AppWindow)
+			{
 				styleEx |= WS_EX_APPWINDOW;
+			}
 			else
+			{
 				styleEx |= WS_EX_TOOLWINDOW;
+			}
 
 			if (formStyle.Floating)
+			{
 				styleEx |= WS_EX_TOPMOST;
+			}
 
 			RECT rect = rectangle.ToRECT();
 

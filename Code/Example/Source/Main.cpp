@@ -212,7 +212,6 @@ private:
 	Berta::ListBox m_listBox;
 };
 
-
 class TabExample3 : public Berta::Panel
 {
 public:
@@ -312,7 +311,7 @@ private:
 
 int main()
 {
-	Berta::Form form(Berta::Size(500u, 450u), { true, true, true });
+	Berta::Form form(Berta::Size(700u, 550u), { true, true, true });
 	form.SetCaption(L"Window");
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
@@ -356,7 +355,7 @@ int main()
 		});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
-	Berta::Label label(form, { 50,35,105,45 }, L"Hello world!");
+	Berta::Label label(form, { 10,28,75,35 }, L"Hello world!");
 	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
 
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
@@ -364,14 +363,14 @@ int main()
 			//std::cout << "LABEL>mouse move" << std::endl;
 		});
 
-	Berta::InputText inputText(form, { 190,35,200,25 });
+	Berta::InputText inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
 		{
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
 		});
 
-	Berta::ComboBox comboBox(form, { 190,65,200,25 });
+	Berta::ComboBox comboBox(form, { 110,55,200,25 });
 	for (size_t i = 0; i < 2; i++)
 	{
 		comboBox.PushItem(L"Ejemplo 1", image1);
@@ -397,7 +396,7 @@ int main()
 	scrollbar2.SetMinMax(0, 0);
 	scrollbar2.SetEnabled(false);
 
-	Berta::TabBar tabbar(form, { 70, 150, 400, 285 });
+	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
 
 	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
@@ -491,6 +490,14 @@ int main()
 		{
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
+
+	auto currentPosition = tabbar.GetPosition();
+	auto margin = tabbar.Handle()->ToScale(2);
+	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
+
+	Berta::NestedForm nestedForm(form, {320,35, 200, 200});
+	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
+	nestedForm.Show();
 
 	form.Show();
 	form.Exec();
