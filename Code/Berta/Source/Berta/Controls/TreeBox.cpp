@@ -918,7 +918,8 @@ namespace Berta
 			Rectangle nodeRect{ offset.X + depthOffsetX + (int)depthWidthMultiplier, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
 			nodeRect.Width -= nodeRect.X;
 
-			Point startPointV{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y };
+			auto expanderRectMidX = static_cast<int>((expanderRect.X * 2 + expanderRect.Width)) >> 1;
+			Point startPointV{ expanderRectMidX, nodeRect.Y };
 			Point endPointV{ startPointV.X, nodeRect.Y + nodeHeightInt };
 
 			if (i == 0)
@@ -949,8 +950,8 @@ namespace Berta
 			}
 			graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
 			
-			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2 + lineWidth * 2, nodeRect.Y + nodeHeightHalfInt };
-			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2), startPointH.Y};
+			Point startPointH{ expanderRectMidX + lineWidth * 2, nodeRect.Y + nodeHeightHalfInt };
+			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2) - lineWidth * 2, startPointH.Y};
 			graphics.DrawLine(startPointH, endPointH, lineWidth, lineColor, lineStyle);
 
 			minDepth = (std::min)(minDepth, depth);
