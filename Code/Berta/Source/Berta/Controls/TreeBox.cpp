@@ -949,7 +949,7 @@ namespace Berta
 			}
 			graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
 			
-			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2, nodeRect.Y + nodeHeightHalfInt };
+			Point startPointH{ static_cast<int>(expanderRect.X * 2 + expanderRect.Width) / 2 + lineWidth * 2, nodeRect.Y + nodeHeightHalfInt };
 			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2), startPointH.Y};
 			graphics.DrawLine(startPointH, endPointH, lineWidth, lineColor, lineStyle);
 

@@ -113,7 +113,7 @@ namespace Berta
 		m_textEditor->OnKeyReleased(args);
 	}
 
-	void InputTextReactor::DblClick(Graphics& graphics, const ArgClick& args)
+	void InputTextReactor::DblClick(Graphics& graphics, const ArgMouse& args)
 	{
 		if (m_textEditor->OnDblClick(args))
 		{

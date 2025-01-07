@@ -182,7 +182,7 @@ namespace Berta
 		return false;
 	}
 
-	bool TextEditor::OnDblClick(const ArgClick& args)
+	bool TextEditor::OnDblClick(const ArgMouse& args)
 	{
 		m_wasDblClick = true;
 		if (m_content.empty())

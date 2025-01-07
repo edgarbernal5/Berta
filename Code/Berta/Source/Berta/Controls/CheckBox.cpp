@@ -36,14 +36,15 @@ namespace Berta
 		{
 			auto one = window->ToScale(1);
 			auto two = window->ToScale(2);
+			auto three = window->ToScale(3);
 			auto five = window->ToScale(5);
 			auto six = window->ToScale(6);
 			auto lineWidth = window->ToScale(2);
-			graphics.DrawLine({ checkBoxRect.X + one, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - six },
-				{ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - two }, lineWidth,
+			graphics.DrawLine({ checkBoxRect.X + one*2, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - six },
+				{ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - three }, lineWidth,
 				window->Appearance->Foreground2nd);
-			graphics.DrawLine({ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - two },
-				{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) - two, checkBoxRect.Y + one }, lineWidth,
+			graphics.DrawLine({ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - three },
+				{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) - three, checkBoxRect.Y + one * 2 }, lineWidth,
 				window->Appearance->Foreground2nd);
 		}
 

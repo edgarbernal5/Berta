@@ -32,7 +32,7 @@ namespace Berta
 		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
-		void DblClick(Graphics& graphics, const ArgClick& args);
+		void DblClick(Graphics& graphics, const ArgMouse& args) override;;
 
 		TextEditor* GetEditor() const { return m_textEditor; }
 	private:
