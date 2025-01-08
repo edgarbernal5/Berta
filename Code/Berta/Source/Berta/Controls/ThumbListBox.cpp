@@ -495,6 +495,7 @@ namespace Berta
 		bool needUpdate = !m_items.empty();
 		m_items.clear();
 
+		m_mouseSelection.Clear();
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 
@@ -883,6 +884,14 @@ namespace Berta
 		{
 			m_selections.erase(it);
 		}
+	}
+
+	void ThumbListBoxReactor::Module::MouseSelection::Clear()
+	{
+		m_selectedIndex = -1;
+		m_pivotIndex = -1;
+		m_selections.clear();
+		m_alreadySelected.clear();
 	}
 
 	void ThumbListBoxItem::SetIcon(const Image& image)

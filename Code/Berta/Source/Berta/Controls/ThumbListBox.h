@@ -81,6 +81,7 @@ namespace Berta
 				bool IsSelected(size_t index) const;
 				void Select(size_t index);
 				void Deselect(size_t index);
+				void Clear();
 
 				std::vector<size_t> m_selections; //TODO: cambiar a set/map
 				std::vector<size_t> m_alreadySelected;  //TODO: cambiar a set/map

@@ -905,6 +905,7 @@ namespace Berta
 		bool needUpdate = !m_list.m_items.empty();
 		m_list.m_items.clear();
 
+		m_mouseSelection.Clear();
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		if (UpdateScrollBars())
@@ -925,7 +926,11 @@ namespace Berta
 	{
 		bool needUpdate = !m_headers.m_items.empty();
 		m_headers.m_items.clear();
+		m_headers.m_sorted.clear();
 		m_list.m_items.clear();
+
+		m_headers.m_selectedIndex = -1;
+		m_headers.m_draggingTargetIndex = -1;
 
 		if (needUpdate)
 		{
@@ -1634,6 +1639,16 @@ namespace Berta
 		{
 			m_selections.erase(it);
 		}
+	}
+
+	void ListBoxReactor::MouseSelection::Clear()
+	{
+		m_selections.clear();
+		m_alreadySelected.clear();
+
+		m_selectedItem = nullptr;
+		m_pivotItem = nullptr;
+		m_hoveredItem = nullptr;
 	}
 
 	void ListBoxReactor::MouseSelection::ClearReferences(List::Item* item)

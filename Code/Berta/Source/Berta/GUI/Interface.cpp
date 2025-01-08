@@ -47,14 +47,22 @@ namespace Berta::GUI
 			window->DPI = windowResult.DPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 
+			if (isNested)
+			{
+				window->Parent = parent;
+				window->Owner = nullptr;
+			}
+			else
+			{
+				window->Owner = parent;
+				window->Parent = nullptr;
+			}
+
 			windowManager.AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->Size));
 			windowManager.Add(window);
 
 			auto& rootGraphics = windowManager.GetFormData(windowResult.WindowHandle)->RootGraphics;
 			window->RootGraphics = &rootGraphics;
-
-			window->Owner = parent;
-			window->Parent = nullptr;
 
 			return window;
 		}

@@ -61,7 +61,7 @@ namespace Berta
 			Graphics m_draggingBox;
 			int m_mouseDownOffset{ 0 };
 			int m_mouseDraggingPosition{ 0 };
-			int m_draggingTargetIndex{ 0 };
+			int m_draggingTargetIndex{ -1 };
 			int m_selectedIndex{ -1 };
 			int m_sortedHeaderIndex{ -1 };
 			bool isAscendingOrdering{ true };
@@ -130,6 +130,7 @@ namespace Berta
 			void Select(List::Item* item);
 			void Deselect(List::Item* item);
 
+			void Clear();
 			void ClearReferences(List::Item* item);
 
 			std::vector<List::Item*> m_selections;
