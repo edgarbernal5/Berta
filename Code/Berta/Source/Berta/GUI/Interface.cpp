@@ -50,7 +50,13 @@ namespace Berta::GUI
 			if (isNested)
 			{
 				window->Parent = parent;
+				window->Position = finalRect;
 				window->Owner = nullptr;
+
+				if (parent)
+				{
+					parent->Children.emplace_back(window);
+				}
 			}
 			else
 			{

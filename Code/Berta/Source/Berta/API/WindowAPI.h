@@ -54,6 +54,7 @@ namespace Berta
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled);
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newMove);
 
 		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture);
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);

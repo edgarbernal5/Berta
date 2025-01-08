@@ -210,6 +210,11 @@ namespace Berta
 #endif
 		}
 
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newMove)
+		{
+			::MoveWindow(nativeHandle.Handle, newMove.X, newMove.Y, newMove.Width, newMove.Height, true);
+		}
+
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS

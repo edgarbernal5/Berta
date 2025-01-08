@@ -102,7 +102,7 @@ namespace Berta
 	{
 		{WM_CREATE,			"WM_CREATE"},
 		{WM_NCCREATE,		"WM_NCCREATE"},
-		{WM_MOVE,			"WM_MOVE"},
+		//{WM_MOVE,			"WM_MOVE"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
 		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},

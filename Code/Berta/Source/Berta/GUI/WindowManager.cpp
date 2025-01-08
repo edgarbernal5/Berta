@@ -627,11 +627,22 @@ namespace Berta
 			window->DPI = newDPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-			float scalingFactor = (float)newDPI / oldDPI;
-			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
-			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
-			window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
-			window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+			if (oldDPI != newDPI)
+			{
+				float scalingFactor = (float)newDPI / oldDPI;
+				window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
+				window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+				window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
+				window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+
+				if (window->Type == WindowType::Form)
+				{
+					if (window->Parent && window != window->Parent->RootWindow)
+					{
+						API::MoveWindow(window->RootHandle, { window->Position.X , window->Position.Y, window->Size.Width, window->Size.Height });
+					}
+				}
+			}
 
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
