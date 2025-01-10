@@ -124,6 +124,12 @@ namespace Berta
 
 			if (child->Type != WindowType::Panel)
 			{
+				if (child->Type == WindowType::Form)
+				{
+					Paint(child, true);
+					continue;
+				}
+
 				child->Renderer.Update();
 				auto absolutePositionChild = GetAbsolutePosition(child);
 
@@ -234,6 +240,8 @@ namespace Berta
 		}
 
 		auto& rootGraphics = *(window->RootWindow->RootGraphics);
+		//auto absolutePosition = Point{};
+		//TODO: aca esta el problema.
 		auto absolutePosition = GetAbsolutePosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
@@ -411,6 +419,9 @@ namespace Berta
 
 	void WindowManager::UpdateTree(Window* window)
 	{
+		if (!window->IsVisible())
+			return;
+
 		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
 
@@ -603,7 +614,7 @@ namespace Berta
 			return;
 		}
 
-		auto& rootGraphics = *(rootWindow->RootGraphics);
+		//auto& rootGraphics = *(rootWindow->RootGraphics);
 		for (auto& request : rootWindow->DeferredRequests)
 		{
 			if (Exists(request) && !request->Flags.IsDisposed)
@@ -627,21 +638,27 @@ namespace Berta
 			window->DPI = newDPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-			if (oldDPI != newDPI)
+			if (window->Type == WindowType::Form)
+			{
+				if (window->Parent && window != window->Parent->RootWindow)
+				{
+					float scalingFactor = (float)newDPI / oldDPI;
+					//auto nativePosition=API::po
+					window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
+					window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+					window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
+					window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+
+					API::MoveWindow(window->RootHandle, { window->Position.X , window->Position.Y, window->Size.Width, window->Size.Height });
+				}
+			}
+			else
 			{
 				float scalingFactor = (float)newDPI / oldDPI;
 				window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
 				window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
 				window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
 				window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
-
-				if (window->Type == WindowType::Form)
-				{
-					if (window->Parent && window != window->Parent->RootWindow)
-					{
-						API::MoveWindow(window->RootHandle, { window->Position.X , window->Position.Y, window->Size.Width, window->Size.Height });
-					}
-				}
 			}
 
 			auto& graphics = window->Renderer.GetGraphics();

@@ -215,6 +215,15 @@ namespace Berta
 			::MoveWindow(nativeHandle.Handle, newMove.X, newMove.Y, newMove.Width, newMove.Height, true);
 		}
 
+		Point GetWindowPosition(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			return {};
+#else
+			return {};
+#endif
+		}
+
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS
