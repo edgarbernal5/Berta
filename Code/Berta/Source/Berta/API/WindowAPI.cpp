@@ -305,6 +305,14 @@ namespace Berta
 #endif
 		}
 
+		void DPIChanged(NativeWindowHandle nativeHandle, uint32_t newDPI)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::SendMessage(nativeHandle.Handle, WM_DPICHANGED, MAKELPARAM(newDPI, newDPI), 0);
+#else
+#endif
+		}
+
 		Point GetScreenMousePosition()
 		{
 #ifdef BT_PLATFORM_WINDOWS

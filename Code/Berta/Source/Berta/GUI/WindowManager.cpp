@@ -433,9 +433,6 @@ namespace Berta
 		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		
 		UpdateTreeInternal(window, rootGraphics);
-
-		//TODO: separar esta llamada en otro metodo, o pasarle un parametro para omitir la llamada.
-		//window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -510,10 +507,6 @@ namespace Berta
 				}
 			}
 
-			//TODO: emit Resize event? and before o after UpdateTree call?
-			//TODO: Perform a profiling and see if we can get an improvement on drawing/mapping
-			//more efficient (avoid drawing an window twice), draw every window when all is set then.
-			//(after every window is resized)
 			ArgResize argResize;
 			argResize.NewSize = newSize;
 			//BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
@@ -614,7 +607,6 @@ namespace Berta
 			return;
 		}
 
-		//auto& rootGraphics = *(rootWindow->RootGraphics);
 		for (auto& request : rootWindow->DeferredRequests)
 		{
 			if (Exists(request) && !request->Flags.IsDisposed)
@@ -630,36 +622,25 @@ namespace Berta
 		rootWindow->DeferredRequests.clear();
 	}
 
-	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI)
+	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
 	{
 		if (window->DPI != newDPI)
 		{
+			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
+			{
+				API::DPIChanged(window->RootHandle, newDPI);
+				return;
+			}
+
 			auto oldDPI = window->DPI;
 			window->DPI = newDPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-			if (window->Type == WindowType::Form)
-			{
-				if (window->Parent && window != window->Parent->RootWindow)
-				{
-					float scalingFactor = (float)newDPI / oldDPI;
-					//auto nativePosition=API::po
-					window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
-					window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
-					window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
-					window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
-
-					API::MoveWindow(window->RootHandle, { window->Position.X , window->Position.Y, window->Size.Width, window->Size.Height });
-				}
-			}
-			else
-			{
-				float scalingFactor = (float)newDPI / oldDPI;
-				window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
-				window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
-				window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
-				window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
-			}
+			float scalingFactor = (float)newDPI / oldDPI;
+			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
+			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+			window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
+			window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
 
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
@@ -668,7 +649,7 @@ namespace Berta
 
 			for (auto& child : window->Children)
 			{
-				ChangeDPI(child, newDPI);
+				ChangeDPI(child, newDPI, nativeWindowHandle);
 			}
 		}
 	}

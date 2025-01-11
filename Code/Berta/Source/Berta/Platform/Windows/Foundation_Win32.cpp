@@ -229,7 +229,7 @@ namespace Berta
 			nativeWindow->Events->Visibility.Emit(argVisibility);
 
 			windowManager.UpdateTree(nativeWindow);
-			//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+			nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			break;
 		}
 		case WM_PAINT:
@@ -267,7 +267,7 @@ namespace Berta
 		case WM_DPICHANGED:
 		{
 			uint32_t newDPI = (uint32_t)HIWORD(wParam);
-			windowManager.ChangeDPI(nativeWindow, newDPI);
+			windowManager.ChangeDPI(nativeWindow, newDPI, nativeWindow->RootHandle);
 
 			auto rect = reinterpret_cast<const RECT*>(lParam);
 

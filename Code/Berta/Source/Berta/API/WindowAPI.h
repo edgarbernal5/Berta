@@ -26,6 +26,16 @@ namespace Berta
 			{
 				return Handle < other.Handle;
 			}
+
+			constexpr bool operator==(const NativeWindowHandle& other) const
+			{
+				return Handle == other.Handle;
+			}
+
+			constexpr bool operator!=(const NativeWindowHandle& other) const
+			{
+				return Handle != other.Handle;
+			}
 #endif
 			NativeWindowHandle(const NativeWindowHandle&) = default;
 			NativeWindowHandle& operator=(const NativeWindowHandle&) = default;
@@ -67,6 +77,7 @@ namespace Berta
 		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point);
 		void SendCustomMessage(API::NativeWindowHandle nativeHandle, std::function<void()> body);
 
+		void DPIChanged(NativeWindowHandle nativeHandle, uint32_t newDPI);
 		Point GetScreenMousePosition();
 	}
 }

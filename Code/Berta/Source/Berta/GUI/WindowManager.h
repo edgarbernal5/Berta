@@ -72,7 +72,7 @@ namespace Berta
 		void UpdateDeferredRequests(Window* rootWindow);
 		void Paint(Window* window, bool doUpdate);
 
-		void ChangeDPI(Window* window, uint32_t newDPI);
+		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);
 
