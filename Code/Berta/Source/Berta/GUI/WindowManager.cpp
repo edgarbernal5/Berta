@@ -482,7 +482,7 @@ namespace Berta
 
 					if (resizeForm)
 					{
-						API::ResizeWindow(window->RootHandle, newSize);
+						API::ResizeChildWindow(window->RootHandle, 0, 0);
 					}
 				}
 			}
@@ -606,12 +606,6 @@ namespace Berta
 	{
 		if (window->DPI != newDPI)
 		{
-			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
-			{
-				API::DPIChanged(window->RootHandle, newDPI);
-				return;
-			}
-
 			auto oldDPI = window->DPI;
 			window->DPI = newDPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
@@ -626,6 +620,11 @@ namespace Berta
 			graphics.Release();
 			graphics.Build(window->Size);
 			graphics.BuildFont(newDPI);
+
+			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
+			{
+				API::ResizeChildWindow(window->RootHandle, oldDPI, newDPI);
+			}
 
 			for (auto& child : window->Children)
 			{

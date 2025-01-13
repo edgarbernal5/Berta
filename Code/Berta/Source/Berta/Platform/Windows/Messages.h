@@ -19,7 +19,8 @@ namespace Berta
 
 	enum class CustomMessageId : uint32_t
 	{
-		CustomCallback = WM_USER + 1
+		CustomCallback = WM_USER + 1,
+		CustomChildResize
 	};
 }
 

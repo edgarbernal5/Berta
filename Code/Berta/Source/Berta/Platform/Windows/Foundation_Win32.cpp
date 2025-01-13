@@ -284,6 +284,27 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		case static_cast<uint32_t>(CustomMessageId::CustomChildResize):
+		{
+			// The window is already have updated its position and size.
+			Rectangle newRect
+			{
+				nativeWindow->Position.X, nativeWindow->Position.Y,
+				nativeWindow->Size.Width, nativeWindow->Size.Height 
+			};
+			auto rect = newRect.ToRECT();
+			
+			::SetWindowPos(hWnd, 
+				NULL, 
+				rect.left, 
+				rect.top, 
+				rect.right - rect.left,
+				rect.bottom - rect.top, 
+				SWP_NOZORDER | SWP_NOACTIVATE);
+
+			defaultToWindowProc = false;
+			break;
+		}
 		case WM_SETFOCUS:
 		{
 			if (rootWindowData.Focused)

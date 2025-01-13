@@ -316,10 +316,10 @@ namespace Berta
 #endif
 		}
 
-		void DPIChanged(NativeWindowHandle nativeHandle, uint32_t newDPI)
+		void ResizeChildWindow(NativeWindowHandle nativeHandle, uint32_t oldDPI, uint32_t newDPI)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::SendMessage(nativeHandle.Handle, WM_DPICHANGED, MAKELPARAM(newDPI, newDPI), 0);
+			::SendMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomChildResize), MAKELPARAM(newDPI, newDPI), oldDPI);
 #else
 #endif
 		}
