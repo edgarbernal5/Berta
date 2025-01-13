@@ -148,6 +148,8 @@ namespace Berta
 	};
 #endif
 
+	bool IsTrivialMessage(HWND wd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& ret);
+
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 #ifdef BT_PRINT_WND_MESSAGES
@@ -176,6 +178,14 @@ namespace Berta
 			//BT_CORE_DEBUG << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
 		}
 #endif
+		LRESULT trivialRet = 0;
+		auto retTrivial = IsTrivialMessage(hWnd, message, wParam, lParam, trivialRet);
+		//BT_CORE_DEBUG << "*** IsTrivialMsg: " << retTrivial << ". hWnd = " << hWnd << ". msg " << message << std::endl;
+		if (retTrivial)
+		{
+			return trivialRet;
+		}
+
 		auto& foundation = Foundation::GetInstance();
 
 		API::NativeWindowHandle nativeWindowHandle{ hWnd };
@@ -710,6 +720,82 @@ namespace Berta
 		}
 
 		return 0;
+	}
+
+	bool IsTrivialMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT& ret)
+	{
+		switch (message)
+		{
+		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
+		{
+			if (wParam)
+			{
+				auto argParam = reinterpret_cast<CustomCallbackMessage*>(wParam);
+				if (argParam->Body)
+				{
+					argParam->Body();
+				}
+
+				//TODO: improve memory management here.
+				delete argParam;
+			}
+			break;
+		}
+		case static_cast<uint32_t>(CustomMessageId::CustomChildResize):
+		{
+			// The window is already have updated its position and size.
+			auto rect = reinterpret_cast<const RECT*>(lParam);
+
+			::SetWindowPos(hWnd,
+				NULL,
+				rect->left,
+				rect->top,
+				rect->right - rect->left,
+				rect->bottom - rect->top,
+				SWP_NOZORDER | SWP_NOACTIVATE);
+
+			break;
+		}
+		}
+
+		switch (message)
+		{
+		case WM_ACTIVATEAPP:
+		case WM_SHOWWINDOW:
+		case WM_PAINT:
+		case WM_SIZE:
+		case WM_DPICHANGED:
+		case WM_SETFOCUS:
+		case WM_KILLFOCUS:
+		case WM_MOUSEACTIVATE:
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MOUSEMOVE:
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_LBUTTONDBLCLK:
+		case WM_MOUSELEAVE:
+		case WM_MOUSEHWHEEL:
+		case WM_MOUSEWHEEL:
+		case WM_CHAR:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_ENTERSIZEMOVE:
+		case WM_EXITSIZEMOVE:
+		case WM_CLOSE:
+		case WM_DESTROY:
+		case WM_NCDESTROY:
+			return false;
+		default:
+			break;
+		}
+
+		ret = ::DefWindowProc(hWnd, message, wParam, lParam);
+		return true;
 	}
 }
 #endif

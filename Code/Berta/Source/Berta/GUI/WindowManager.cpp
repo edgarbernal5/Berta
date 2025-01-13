@@ -482,7 +482,7 @@ namespace Berta
 
 					if (resizeForm)
 					{
-						API::ResizeChildWindow(window->RootHandle, 0, 0);
+						API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
 					}
 				}
 			}
@@ -623,7 +623,7 @@ namespace Berta
 
 			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
 			{
-				API::ResizeChildWindow(window->RootHandle, oldDPI, newDPI);
+				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
 			}
 
 			for (auto& child : window->Children)
