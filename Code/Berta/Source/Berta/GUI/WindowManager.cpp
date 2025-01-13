@@ -113,7 +113,7 @@ namespace Berta
 			return;
 		}
 
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
@@ -131,7 +131,7 @@ namespace Berta
 				}
 
 				child->Renderer.Update();
-				auto absolutePositionChild = GetAbsolutePosition(child);
+				auto absolutePositionChild = GetAbsoluteRootPosition(child);
 
 				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
@@ -150,7 +150,7 @@ namespace Berta
 			return;
 		}
 
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
@@ -172,39 +172,14 @@ namespace Berta
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
+					auto childRect = childRectangle;
+					childRect.X -= childAbsolutePosition.X;
+					childRect.Y -= childAbsolutePosition.Y;
+
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
 			PaintInternal(child, rootGraphics, doUpdate);
-		}
-	}
-
-	void WindowManager::UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics)
-	{
-		if (request == nullptr)
-		{
-			return;
-		}
-		auto absolutePosition = GetAbsolutePosition(request);
-		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, request->Size.Width, request->Size.Height };
-
-		for (auto& child : request->Children)
-		{
-			if (!child->Visible || !Exists(child) || child->Flags.IsDisposed)
-			{
-				continue;
-			}
-
-			if (child->Type != WindowType::Panel)
-			{
-				auto absolutePositionChild = GetAbsolutePosition(child);
-				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
-				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
-				{
-					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-				}
-			}
-			UpdateDeferredRequestsInternal(child, rootGraphics);
 		}
 	}
 
@@ -240,9 +215,7 @@ namespace Berta
 		}
 
 		auto& rootGraphics = *(window->RootWindow->RootGraphics);
-		//auto absolutePosition = Point{};
-		//TODO: aca esta el problema.
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
 		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
@@ -420,7 +393,9 @@ namespace Berta
 	void WindowManager::UpdateTree(Window* window)
 	{
 		if (!window->IsVisible())
+		{
 			return;
+		}
 
 		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
@@ -440,7 +415,7 @@ namespace Berta
 		if (areaToUpdate == nullptr)
 		{
 			Rectangle requestRectangle = window->Size.ToRectangle();
-			auto absolutePosition = GetAbsolutePosition(window);
+			auto absolutePosition = GetAbsoluteRootPosition(window);
 			requestRectangle.X = absolutePosition.X;
 			requestRectangle.Y = absolutePosition.Y;
 
@@ -686,6 +661,17 @@ namespace Berta
 		Point position{ window->Position };
 		window = window->Parent;
 		while (window)
+		{
+			position += window->Position;
+			window = window->Parent;
+		}
+		return position;
+	}
+
+	Point WindowManager::GetAbsoluteRootPosition(Window* window)
+	{
+		Point position{};
+		while (window && window->Type != WindowType::Form)
 		{
 			position += window->Position;
 			window = window->Parent;

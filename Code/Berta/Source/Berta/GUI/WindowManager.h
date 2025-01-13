@@ -77,6 +77,7 @@ namespace Berta
 		Cursor GetCursor(Window* window);
 
 		Point GetAbsolutePosition(Window* window);
+		Point GetAbsoluteRootPosition(Window* window);
 		Point GetLocalPosition(Window* window);
 
 		void SetMenu(MenuItemReactor* rootMenuItemWindow);
@@ -91,7 +92,6 @@ namespace Berta
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
 		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate);
-		void UpdateDeferredRequestsInternal(Window* request, Graphics& rootGraphics);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
 		struct CaptureHistoryData
