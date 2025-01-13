@@ -402,12 +402,6 @@ int main()
 	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
 	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
 
-	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
-		{
-			auto currentPosition = tabbar.GetPosition();
-			auto margin = tabbar.Handle()->ToScale(2);
-			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
-		});
 
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
 #ifdef BT_DEBUG
@@ -497,9 +491,23 @@ int main()
 
 	Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
 	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
-	nestedForm.Show();
+
+
+	form.GetEvents().Resize.Connect([&tabbar, &nestedForm](const Berta::ArgResize& args)
+		{
+			auto currentPosition = tabbar.GetPosition();
+			auto margin = tabbar.Handle()->ToScale(2);
+			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
+
+			currentPosition = nestedForm.GetPosition();
+			auto currentSize = nestedForm.GetSize();
+			Berta::Size newSize = { args.NewSize.Width - currentPosition.X - margin, currentSize.Height };
+			std::cout << " - newSize " << newSize << std::endl;
+			nestedForm.SetSize(newSize);
+		});
 
 	form.Show();
+	nestedForm.Show();
 	form.Exec();
 
 	return 0;

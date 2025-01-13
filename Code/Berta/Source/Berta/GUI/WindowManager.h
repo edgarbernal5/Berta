@@ -65,7 +65,7 @@ namespace Berta
 		void Map(Window* window, const Rectangle* areaToUpdate);
 		void Show(Window* window, bool visible);
 
-		void Resize(Window* window, const Size& newSize);
+		void Resize(Window* window, const Size& newSize, bool resizeForm = true);
 		void Move(Window* window, const Rectangle& newRect);
 		void Update(Window* window);
 		bool TryDeferredUpdate(Window* window);

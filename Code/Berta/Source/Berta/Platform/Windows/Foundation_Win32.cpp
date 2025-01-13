@@ -256,10 +256,10 @@ namespace Berta
 				ArgResize argResize;
 				argResize.NewSize.Width = newWidth;
 				argResize.NewSize.Height = newHeight;
-				//BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
+				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
 
 				//TODO: esto es un hack!
-				windowManager.Resize(nativeWindow, argResize.NewSize);
+				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 			}
 			break;

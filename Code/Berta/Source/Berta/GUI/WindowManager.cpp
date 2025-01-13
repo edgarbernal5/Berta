@@ -401,7 +401,7 @@ namespace Berta
 		auto& rootGraphics = *(window->RootGraphics);
 
 		Rectangle requestRectangle = window->Size.ToRectangle();
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
@@ -451,7 +451,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Resize(Window* window, const Size& newSize)
+	void WindowManager::Resize(Window* window, const Size& newSize, bool resizeForm)
 	{
 		auto& foundation = Foundation::GetInstance();
 		if (window->Size != newSize)
@@ -479,6 +479,11 @@ namespace Berta
 				if (window->Type == WindowType::Form)
 				{
 					window->RootGraphics->Swap(newRootGraphics);
+
+					if (resizeForm)
+					{
+						API::ResizeWindow(window->RootHandle, newSize);
+					}
 				}
 			}
 

@@ -215,6 +215,17 @@ namespace Berta
 			::MoveWindow(nativeHandle.Handle, newMove.X, newMove.Y, newMove.Width, newMove.Height, true);
 		}
 
+		void ResizeWindow(NativeWindowHandle nativeHandle, const Size& newSize)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::RECT r;
+			::GetWindowRect(nativeHandle.Handle, &r);
+			::MoveWindow(nativeHandle.Handle, r.left, r.top, static_cast<int>(newSize.Width), static_cast<int>(newSize.Height), true);
+#else
+
+#endif
+		}
+
 		Point GetWindowPosition(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
