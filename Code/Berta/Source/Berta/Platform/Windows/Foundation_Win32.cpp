@@ -238,8 +238,21 @@ namespace Berta
 			argVisibility.IsVisible = isVisible;
 			nativeWindow->Events->Visibility.Emit(argVisibility);
 
-			windowManager.UpdateTree(nativeWindow);
-			nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+			if (!isVisible) 
+			{
+				//TODO: HACK! Fix me!
+				if (nativeWindow->Parent && nativeWindow->Parent->RootHandle != nativeWindow->RootHandle)
+				{
+					windowManager.UpdateTree(nativeWindow->Parent);
+					nativeWindow->Parent->Renderer.Map(nativeWindow->Parent, nativeWindow->Parent->Size.ToRectangle());
+				}
+			}
+			else
+			{
+				windowManager.UpdateTree(nativeWindow);
+				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+			}
+			
 			break;
 		}
 		case WM_PAINT:

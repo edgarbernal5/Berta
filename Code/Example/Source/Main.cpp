@@ -506,6 +506,25 @@ int main()
 			nestedForm.SetSize(newSize);
 		});
 
+
+	Berta::Button buttonShowNested(form, { 90,125,75,25 }, L"Show");
+#ifdef BT_DEBUG
+	buttonShowNested.SetDebugName("buttonShowNested");
+#endif
+	buttonShowNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
+		{
+			nestedForm.Show();
+		});
+
+	Berta::Button buttonHideNested(form, { 185,125,75,25 }, L"Hide");
+#ifdef BT_DEBUG
+	buttonHideNested.SetDebugName("buttonHideNested");
+#endif
+	buttonHideNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
+		{
+			nestedForm.Hide();
+		});
+
 	form.Show();
 	nestedForm.Show();
 	form.Exec();
