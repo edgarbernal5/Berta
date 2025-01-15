@@ -319,11 +319,9 @@ namespace Berta
 		void ResizeChildWindow(NativeWindowHandle nativeHandle, Point position, Size size)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			/*Rectangle newRect{ position ,size };
+			Rectangle newRect{ position ,size };
 			auto rect = newRect.ToRECT();
-			::SendMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomChildResize), 0, (LPARAM)&rect);*/
-
-			::MoveWindow(nativeHandle.Handle, position.X, position.Y, size.Width, size.Height, true);
+			::SendMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomChildResize), 0, (LPARAM)&rect);
 #else
 #endif
 		}

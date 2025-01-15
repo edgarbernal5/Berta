@@ -152,6 +152,16 @@ namespace Berta::GUI
 		}
 	}
 
+	bool IsWindowVisible(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->IsVisible();
+		}
+		return false;
+	}
+
 	void UpdateWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

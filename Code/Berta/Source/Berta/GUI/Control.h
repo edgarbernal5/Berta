@@ -41,6 +41,8 @@ namespace Berta
 		Size GetSize() const;
 		void SetSize(const Size& newSize);
 		
+		bool IsVisible() const;
+
 		void Show();
 		void Hide();
 		void Dispose();

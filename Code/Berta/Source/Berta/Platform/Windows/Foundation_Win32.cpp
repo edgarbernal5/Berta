@@ -148,8 +148,6 @@ namespace Berta
 	};
 #endif
 
-	bool IsTrivialMessage(HWND wd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& ret);
-
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 #ifdef BT_PRINT_WND_MESSAGES
@@ -178,14 +176,6 @@ namespace Berta
 			//BT_CORE_DEBUG << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
 		}
 #endif
-		LRESULT trivialRet = 0;
-		auto retTrivial = IsTrivialMessage(hWnd, message, wParam, lParam, trivialRet);
-		//BT_CORE_DEBUG << "*** IsTrivialMsg: " << retTrivial << ". hWnd = " << hWnd << ". msg " << message << std::endl;
-		if (retTrivial)
-		{
-			return trivialRet;
-		}
-
 		auto& foundation = Foundation::GetInstance();
 
 		API::NativeWindowHandle nativeWindowHandle{ hWnd };
@@ -232,27 +222,21 @@ namespace Berta
 		case WM_SHOWWINDOW:
 		{
 			bool isVisible = (wParam == TRUE);
-			nativeWindow->Visible = isVisible;
-
-			ArgVisibility argVisibility;
-			argVisibility.IsVisible = isVisible;
-			nativeWindow->Events->Visibility.Emit(argVisibility);
-
-			if (!isVisible) 
+			if (nativeWindow->Visible != isVisible)
 			{
-				//TODO: HACK! Fix me!
-				if (nativeWindow->Parent && nativeWindow->Parent->RootHandle != nativeWindow->RootHandle)
+				nativeWindow->Visible = isVisible;
+
+				ArgVisibility argVisibility;
+				argVisibility.IsVisible = isVisible;
+				nativeWindow->Events->Visibility.Emit(argVisibility);
+
+				auto targetWindow = isVisible ? nativeWindow : (nativeWindow->Parent && !nativeWindow->Parent->Flags.IsDisposed && nativeWindow->Parent->RootHandle != nativeWindow->RootHandle ? nativeWindow->Parent : nullptr); //TODO: HACK! Fix me!
+				if (targetWindow)
 				{
-					windowManager.UpdateTree(nativeWindow->Parent);
-					nativeWindow->Parent->Renderer.Map(nativeWindow->Parent, nativeWindow->Parent->Size.ToRectangle());
+					windowManager.UpdateTree(targetWindow);
+					targetWindow->Renderer.Map(targetWindow, targetWindow->Size.ToRectangle());
 				}
 			}
-			else
-			{
-				windowManager.UpdateTree(nativeWindow);
-				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
-			}
-			
 			break;
 		}
 		case WM_PAINT:
@@ -370,7 +354,7 @@ namespace Berta
 				rootWindowData.Pressed = window;
 
 				ArgMouse argMouseDown;
-				argMouseDown.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseDown.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
 				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -420,7 +404,7 @@ namespace Berta
 
 					::ScreenToClient(currentWindow->RootHandle.Handle, &screenToClientPoint);
 
-					auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsolutePosition(currentWindow);
+					auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsoluteRootPosition(currentWindow);
 					if (currentWindow->Size.IsInside(localPosition))
 					{
 						if (rootWindowData.Hovered == nullptr)
@@ -454,7 +438,7 @@ namespace Berta
 				if (currentItemReactor == nullptr && rootWindowData.Hovered)
 				{
 					ArgMouse argMouseLeave;
-					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
+					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(rootWindowData.Hovered);
 					argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -474,7 +458,7 @@ namespace Berta
 					if (rootWindowData.Hovered)
 					{
 						ArgMouse argMouseLeave;
-						argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsolutePosition(rootWindowData.Hovered);
+						argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(rootWindowData.Hovered);
 						argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 						argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 						argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -488,7 +472,7 @@ namespace Berta
 
 				if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
 				{
-					Point position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+					Point position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
 					if (window != rootWindowData.Hovered && window->Size.IsInside(position))
 					{
 						ArgMouse argMouseEnter;
@@ -536,7 +520,7 @@ namespace Berta
 			if (window && window->Flags.IsEnabled)
 			{
 				ArgMouse argMouseUp;
-				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
 				argMouseUp.ButtonState.LeftButton = message == WM_LBUTTONUP;
 				argMouseUp.ButtonState.RightButton = message == WM_RBUTTONUP;
 				argMouseUp.ButtonState.MiddleButton = message == WM_MBUTTONUP;
@@ -564,7 +548,7 @@ namespace Berta
 			if (window && window->Flags.IsEnabled && window == rootWindowData.Released)
 			{
 				ArgMouse argMouse{};
-				argMouse.Position = Point{ x, y } - windowManager.GetAbsolutePosition(window);
+				argMouse.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
 				argMouse.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouse.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouse.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -726,6 +710,7 @@ namespace Berta
 		{
 			windowManager.UpdateDeferredRequests(nativeWindow);
 		}
+		nativeWindow->DeferredRequests.clear();
 
 		if (defaultToWindowProc)
 		{
@@ -733,82 +718,6 @@ namespace Berta
 		}
 
 		return 0;
-	}
-
-	bool IsTrivialMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT& ret)
-	{
-		switch (message)
-		{
-		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
-		{
-			if (wParam)
-			{
-				auto argParam = reinterpret_cast<CustomCallbackMessage*>(wParam);
-				if (argParam->Body)
-				{
-					argParam->Body();
-				}
-
-				//TODO: improve memory management here.
-				delete argParam;
-			}
-			break;
-		}
-		case static_cast<uint32_t>(CustomMessageId::CustomChildResize):
-		{
-			// The window is already have updated its position and size.
-			auto rect = reinterpret_cast<const RECT*>(lParam);
-
-			::SetWindowPos(hWnd,
-				NULL,
-				rect->left,
-				rect->top,
-				rect->right - rect->left,
-				rect->bottom - rect->top,
-				SWP_NOZORDER | SWP_NOACTIVATE);
-
-			break;
-		}
-		}
-
-		switch (message)
-		{
-		case WM_ACTIVATEAPP:
-		case WM_SHOWWINDOW:
-		case WM_PAINT:
-		case WM_SIZE:
-		case WM_DPICHANGED:
-		case WM_SETFOCUS:
-		case WM_KILLFOCUS:
-		case WM_MOUSEACTIVATE:
-		case WM_LBUTTONDOWN:
-		case WM_MBUTTONDOWN:
-		case WM_RBUTTONDOWN:
-		case WM_MOUSEMOVE:
-		case WM_LBUTTONUP:
-		case WM_MBUTTONUP:
-		case WM_RBUTTONUP:
-		case WM_LBUTTONDBLCLK:
-		case WM_MOUSELEAVE:
-		case WM_MOUSEHWHEEL:
-		case WM_MOUSEWHEEL:
-		case WM_CHAR:
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
-		case WM_ENTERSIZEMOVE:
-		case WM_EXITSIZEMOVE:
-		case WM_CLOSE:
-		case WM_DESTROY:
-		case WM_NCDESTROY:
-			return false;
-		default:
-			break;
-		}
-
-		ret = ::DefWindowProc(hWnd, message, wParam, lParam);
-		return true;
 	}
 }
 #endif

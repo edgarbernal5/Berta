@@ -81,14 +81,19 @@ namespace Berta
 		ArgDestroy argDestroy;
 		foundation.ProcessEvents(window, static_cast<void(Renderer::*)(const ArgDestroy&)>(nullptr), &ControlEvents::Destroy, argDestroy);
 
-		for (size_t i = 0; i < window->Children.size(); i++)
+		while (!window->Children.empty())
 		{
-			auto child = window->Children[i];
+			auto child = window->Children.back();
+			if (child->Type == WindowType::Form)
+			{
+				API::DestroyNativeWindow(child->RootHandle); //TODO: don't know if this makes sense here.
+				continue;
+			}
 			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
 			DestroyInternal(child);
+			window->Children.pop_back();
 			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
 		}
-		window->Children.clear();
 
 		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
@@ -106,15 +111,14 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 	}
 
-	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics)
+	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, Point parentPosition)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		auto absolutePosition = GetAbsoluteRootPosition(window);
-		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -122,6 +126,8 @@ namespace Berta
 				continue;
 			}
 
+			auto absolutePositionChild = GetLocalPosition(child);
+			absolutePositionChild += parentPosition;
 			if (child->Type != WindowType::Panel)
 			{
 				if (child->Type == WindowType::Form)
@@ -131,7 +137,6 @@ namespace Berta
 				}
 
 				child->Renderer.Update();
-				auto absolutePositionChild = GetAbsoluteRootPosition(child);
 
 				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
@@ -139,19 +144,18 @@ namespace Berta
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			UpdateTreeInternal(child, rootGraphics);
+			UpdateTreeInternal(child, rootGraphics, absolutePositionChild);
 		}
 	}
 
-	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate)
+	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, Point parentPosition)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		auto absolutePosition = GetAbsoluteRootPosition(window);
-		Rectangle parentRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, window->Size.Width, window->Size.Height };
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -159,6 +163,8 @@ namespace Berta
 				continue;
 			}
 
+			auto childAbsolutePosition = GetLocalPosition(child);
+			childAbsolutePosition += parentPosition;
 			if (child->Type != WindowType::Panel)
 			{
 				if (doUpdate && !child->Flags.isUpdating)
@@ -168,18 +174,18 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-				auto childAbsolutePosition = GetAbsolutePosition(child);
+
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
-					auto childRect = childRectangle;
-					childRect.X -= childAbsolutePosition.X;
-					childRect.Y -= childAbsolutePosition.Y;
+					//auto childRect = childRectangle;
+					//childRect.X -= childAbsolutePosition.X;
+					//childRect.Y -= childAbsolutePosition.Y;
 
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			PaintInternal(child, rootGraphics, doUpdate);
+			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition);
 		}
 	}
 
@@ -219,7 +225,7 @@ namespace Berta
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
 		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-		PaintInternal(window, rootGraphics, doUpdate);
+		PaintInternal(window, rootGraphics, doUpdate, absolutePosition);
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -407,7 +413,7 @@ namespace Berta
 
 		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		
-		UpdateTreeInternal(window, rootGraphics);
+		UpdateTreeInternal(window, rootGraphics, absolutePosition);
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -443,9 +449,12 @@ namespace Berta
 				window->Events->Visibility.Emit(argVisibility);
 
 				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-				if (windowToUpdate && window->IsVisible())
+				if (windowToUpdate)
 				{
 					UpdateTree(windowToUpdate);
+					auto position = GetAbsoluteRootPosition(windowToUpdate);
+					Rectangle areaToUpdate{ position.X,position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
+					Map(windowToUpdate, &areaToUpdate);
 				}
 			}
 		}
@@ -502,6 +511,7 @@ namespace Berta
 			bool sizeChanged = window->Size != newRect;
 			bool positionChanged = window->Position != newRect;
 
+			//TODO: missing move event triggering
 			window->Position = newRect;
 			if (window->Size != newRect)
 			{
@@ -511,10 +521,7 @@ namespace Berta
 	}
 
 	void WindowManager::Update(Window* window)
-	{
-		//TODO: verificar si estamos en modo "Deferred", si es asi ....
-		//TryDeferredUpdate
-		
+	{		
 		if (window->Flags.isUpdating)
 		{
 			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
@@ -598,8 +605,6 @@ namespace Berta
 				//request->Status = WindowStatus::None;
 			}
 		}
-
-		rootWindow->DeferredRequests.clear();
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
@@ -624,6 +629,7 @@ namespace Berta
 			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
 			{
 				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+				API::RefreshWindow(window->RootHandle);
 			}
 
 			for (auto& child : window->Children)
@@ -657,6 +663,7 @@ namespace Berta
 		{
 			return rootData->CurrentCursor.CursorType;
 		}
+
 		return Cursor::Default;
 	}
 
@@ -739,7 +746,7 @@ namespace Berta
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 
 		Rectangle rect
 		{

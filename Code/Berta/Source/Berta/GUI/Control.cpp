@@ -52,6 +52,11 @@ namespace Berta
 		DoOnSize(newSize);
 	}
 
+	bool ControlBase::IsVisible() const
+	{
+		return GUI::IsWindowVisible(m_handle);
+	}
+
 	void ControlBase::Show()
 	{
 		GUI::ShowWindow(m_handle, true);

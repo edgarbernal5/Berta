@@ -90,8 +90,8 @@ namespace Berta
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
-		void UpdateTreeInternal(Window* window, Graphics& rootGraphics);
-		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate);
+		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, Point parentPosition = {});
+		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, Point parentPosition = {});
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
 		struct CaptureHistoryData

@@ -492,7 +492,6 @@ int main()
 	Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
 	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
 
-
 	form.GetEvents().Resize.Connect([&tabbar, &nestedForm](const Berta::ArgResize& args)
 		{
 			auto currentPosition = tabbar.GetPosition();
@@ -507,7 +506,7 @@ int main()
 		});
 
 
-	Berta::Button buttonShowNested(form, { 90,125,75,25 }, L"Show");
+	Berta::Button buttonShowNested(form, { 90,120,75,25 }, L"Show");
 #ifdef BT_DEBUG
 	buttonShowNested.SetDebugName("buttonShowNested");
 #endif
@@ -516,13 +515,34 @@ int main()
 			nestedForm.Show();
 		});
 
-	Berta::Button buttonHideNested(form, { 185,125,75,25 }, L"Hide");
+	Berta::Button buttonHideNested(form, { 185,120,75,25 }, L"Hide");
 #ifdef BT_DEBUG
 	buttonHideNested.SetDebugName("buttonHideNested");
 #endif
 	buttonHideNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
 		{
 			nestedForm.Hide();
+		});
+
+	Berta::Button buttonInnerNested(nestedForm, { 10,15,75,25 }, L"Hello");
+#ifdef BT_DEBUG
+	buttonInnerNested.SetDebugName("buttonInnerNested");
+#endif
+	buttonInnerNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
+		{
+			std::cout << " -- inner nested button!" << std::endl;
+		});
+
+	Berta::Button buttonHideScrollbar(form, { 15,150,75,25 }, L"Show or Hide");
+#ifdef BT_DEBUG
+	buttonHideScrollbar.SetDebugName("buttonHideScrollbar");
+#endif
+	buttonHideScrollbar.GetEvents().Click.Connect([&scrollbar](const Berta::ArgClick& args)
+		{
+			if (scrollbar.IsVisible())
+				scrollbar.Hide();
+			else
+				scrollbar.Show();
 		});
 
 	form.Show();
