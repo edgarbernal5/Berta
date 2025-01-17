@@ -146,6 +146,7 @@
     <ClInclude Include="Source\Berta\Controls\CheckBox.h" />
     <ClInclude Include="Source\Berta\Controls\Slider.h" />
     <ClInclude Include="Source\Berta\Controls\TreeBox.h" />
+    <ClInclude Include="Source\Berta\GUI\Layout.h" />
     <ClInclude Include="Source\Berta\Paint\Images\BasicImageAttributes.h" />
     <ClInclude Include="Source\Berta\Controls\ListBox.h" />
     <ClInclude Include="Source\Berta\Controls\Panel.h" />
@@ -200,6 +201,7 @@
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Layout.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\BasicImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Controls\ListBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Panel.cpp" />

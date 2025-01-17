@@ -178,10 +178,6 @@ namespace Berta
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
-					//auto childRect = childRectangle;
-					//childRect.X -= childAbsolutePosition.X;
-					//childRect.Y -= childAbsolutePosition.Y;
-
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}

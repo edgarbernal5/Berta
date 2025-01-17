@@ -1364,7 +1364,7 @@ namespace Berta
 
 	bool TreeBoxReactor::Module::UpdateSingleSelection(TreeNodeType* node)
 	{
-		bool needUpdate = m_mouseSelection.m_selectedNode != node;
+		bool needUpdate = m_mouseSelection.m_selectedNode != node || !node->isSelected;
 		if (needUpdate)
 		{
 			ClearSingleSelection();

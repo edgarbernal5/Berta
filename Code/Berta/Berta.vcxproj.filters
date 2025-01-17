@@ -195,6 +195,9 @@
     <ClInclude Include="Source\Berta\Controls\CheckBox.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layout.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -316,6 +319,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Layout.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

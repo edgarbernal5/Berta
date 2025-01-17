@@ -644,7 +644,7 @@ namespace Berta
 
 	bool ThumbListBoxReactor::Module::UpdateSingleSelection(int newItemIndex)
 	{
-		bool needUpdate = m_mouseSelection.m_selectedIndex != newItemIndex;
+		bool needUpdate = m_mouseSelection.m_selectedIndex != newItemIndex || !m_items[newItemIndex].m_isSelected;
 		if (needUpdate)
 		{
 			ClearSingleSelection();

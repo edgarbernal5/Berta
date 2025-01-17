@@ -1366,7 +1366,7 @@ namespace Berta
 
 	bool ListBoxReactor::Module::UpdateSingleSelection(List::Item* item)
 	{
-		bool needUpdate = m_mouseSelection.m_selectedItem != item;
+		bool needUpdate = m_mouseSelection.m_selectedItem != item || !item->m_isSelected;
 		if (needUpdate)
 		{
 			ClearSingleSelection();
