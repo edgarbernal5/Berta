@@ -8,6 +8,8 @@
 #define BT_LAYOUT_HEADER
 
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/GUI/LayoutNodes.h"
+#include <memory>
 
 namespace Berta
 {
@@ -31,12 +33,9 @@ namespace Berta
         size_t column;
     };
 
-    class LayoutNode;
-
     class Layout
     {
     public:
-
         void Parse(const std::string& text);
 
     private:

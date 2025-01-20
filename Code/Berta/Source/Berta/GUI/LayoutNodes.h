@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_LAYOUT_NDODES_HEADER
-#define BT_LAYOUT_NDODES_HEADER
+#ifndef BT_LAYOUT_NODES_HEADER
+#define BT_LAYOUT_NODES_HEADER
 
 #include "Berta/Core/BasicTypes.h"
 
@@ -20,7 +20,9 @@ namespace Berta
     public:
         using PropertyValue = std::variant<int, float, std::string, bool>;
 
-        void SetProperty(const std::string& key, const PropertyValue& value)
+        LayoutNode() = default;
+
+       /* void SetProperty(const std::string& key, const PropertyValue& value)
         {
             m_properties[key] = value;
         }
@@ -34,7 +36,7 @@ namespace Berta
                 return std::get<T>(it->second);
             }
             return defaultValue;
-        }
+        }*/
 
     private:
         std::unordered_map<std::string, PropertyValue> m_properties;
