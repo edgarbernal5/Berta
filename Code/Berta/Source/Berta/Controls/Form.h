@@ -13,6 +13,7 @@
 #include "Berta/EntryPoint.h"
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/GUI/Layout.h"
 
 namespace Berta
 {
@@ -34,6 +35,7 @@ namespace Berta
 		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
 
 	private:
+		Layout m_layout;
 	};
 
 	class Form : public FormBase
