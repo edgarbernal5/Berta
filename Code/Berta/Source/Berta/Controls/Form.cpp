@@ -40,6 +40,11 @@ namespace Berta
 #endif
 	}
 
+	void FormBase::SetLayout(const std::string& layoutText)
+	{
+		m_layout.Parse(layoutText);
+	}
+
 	Form::Form(const Size& size, const FormStyle& windowStyle) : 
 		FormBase(nullptr, size, windowStyle, false)
 	{

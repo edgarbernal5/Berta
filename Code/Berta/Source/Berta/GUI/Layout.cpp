@@ -23,7 +23,6 @@ namespace Berta
 	Tokenizer::Tokenizer(const std::string& source) : 
 		m_source(source)
 	{
-
 	}
 
 	std::vector<Token> Tokenizer::Tokenize()
@@ -31,7 +30,9 @@ namespace Berta
 		std::vector<Token> tokens;
 
 		if (m_source.empty())
+		{
 			return tokens;
+		}
 
 		size_t line = 1, column = 1;
 
@@ -117,10 +118,97 @@ namespace Berta
 	Layout::Parser::Parser(const std::vector<Token>& tokens) :
 		m_tokens(tokens)
 	{
+
 	}
 
 	std::unique_ptr<LayoutNode> Layout::Parser::Parse()
 	{
-		return std::unique_ptr<LayoutNode>();
+		if (m_tokens.empty() || m_currentTokenIndex >= m_tokens.size())
+		{
+			return nullptr;
+		}
+
+		/*
+		{ VerticalLayout a }
+		{ HorizontalLayout a }
+
+		{ { ee height =30% } {} }
+		{ VerticalLayout { aa } {bb} }
+
+		{ VerticalLayout {menuBar height=25} {dock}}
+		*/
+		std::unique_ptr<LayoutNode> node;
+
+		bool isRunning = true;
+		Token& token = GetNext();
+		while (isRunning && token.type != Token::Type::EndOfFile)
+		{
+			switch (token.type)
+			{
+			case Token::Type::OpenBrace:
+			{
+				bool isVertical = false;
+				auto container = std::make_unique<ContainerLayout>(isVertical);
+
+				auto child = Parse();
+				container->AddChild(std::move(child));
+
+				if (token.type == Token::Type::CloseBrace)
+				{
+					node = std::move(container);
+					token = GetNext();
+				}
+				else
+				{
+					BT_CORE_ERROR << "error. expected close brace }" << std::endl;
+				}
+
+				break;
+			}
+			case Token::Type::CloseBrace:
+			{
+				bool isVertical = false;
+				auto container = std::make_unique<ContainerLayout>(isVertical);
+
+				node = std::move(container);
+				token = GetNext();
+				isRunning = false;
+				break;
+			}
+			case Token::Type::Identifier:
+			{
+				if (token.value == "VerticalLayout" || token.value == "HorizontalLayout")
+				{
+					bool isVertical = token.value == "VerticalLayout";
+					auto container = std::make_unique<ContainerLayout>(isVertical);
+
+					Token innerToken = GetNext();
+					if (innerToken.type == Token::Type::Identifier)
+					{
+						container->SetId(innerToken.value);
+					}
+					else
+					{
+					}
+
+					node = std::move(container);
+				}
+				break;
+			}
+			default:
+				break;
+			}
+			//token = GetNext();
+		}
+		return node;
+	}
+
+	Token& Layout::Parser::GetNext()
+	{
+		if (m_currentTokenIndex < m_tokens.size())
+		{
+			return m_tokens[m_currentTokenIndex++];
+		}
+		return m_tokenEndOfFile;
 	}
 }

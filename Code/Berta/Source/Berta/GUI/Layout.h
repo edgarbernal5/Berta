@@ -46,8 +46,16 @@ namespace Berta
 
             std::unique_ptr<LayoutNode> Parse();
             std::vector<Token> m_tokens;
+
+            Token m_tokenEndOfFile{ Token::Type::EndOfFile };
+
+        private:
+            Token& GetNext();
+
+            size_t m_currentTokenIndex{ 0 };
         };
         std::unique_ptr<LayoutNode> m_rootNode;
+
     };
 
     class Tokenizer

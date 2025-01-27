@@ -34,6 +34,7 @@ namespace Berta
 		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
 		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
 
+		void SetLayout(const std::string& layoutText);
 	private:
 		Layout m_layout;
 	};

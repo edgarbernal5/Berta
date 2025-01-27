@@ -21,6 +21,7 @@ namespace Berta
         using PropertyValue = std::variant<int, float, std::string, bool>;
 
         LayoutNode() = default;
+        LayoutNode(const std::string& id);
 
        /* void SetProperty(const std::string& key, const PropertyValue& value)
         {
@@ -37,9 +38,25 @@ namespace Berta
             }
             return defaultValue;
         }*/
+        void SetId(const std::string& id)
+        {
+            m_id = id;
+        }
 
     private:
+        std::string m_id;
         std::unordered_map<std::string, PropertyValue> m_properties;
+    };
+
+    class ContainerLayout : public LayoutNode
+    {
+    public:
+        ContainerLayout(bool isVertical);
+
+        void AddChild(std::unique_ptr<LayoutNode>&& child);
+    private:
+        bool m_isVertical{ false };
+        std::vector<std::unique_ptr<LayoutNode>> m_children;
     };
 }
 
