@@ -153,7 +153,7 @@ namespace Berta
 				auto child = Parse();
 				container->AddChild(std::move(child));
 
-				if (token.type == Token::Type::CloseBrace)
+				/*if (token.type == Token::Type::CloseBrace)
 				{
 					node = std::move(container);
 					token = GetNext();
@@ -161,7 +161,7 @@ namespace Berta
 				else
 				{
 					BT_CORE_ERROR << "error. expected close brace }" << std::endl;
-				}
+				}*/
 
 				break;
 			}
@@ -203,12 +203,32 @@ namespace Berta
 		return node;
 	}
 
-	Token& Layout::Parser::GetNext()
+	Token Layout::Parser::GetNext()
 	{
 		if (m_currentTokenIndex < m_tokens.size())
 		{
 			return m_tokens[m_currentTokenIndex++];
 		}
-		return m_tokenEndOfFile;
+		return { Token::Type::EndOfFile };
+	}
+
+	bool Layout::Parser::Accept(int tokenId)
+	{
+		if ((int)m_tokens[m_currentTokenIndex].type == tokenId)
+		{
+			GetNext();
+			return true;
+		}
+		return false;
+	}
+
+	bool Layout::Parser::Expect(int tokenId)
+	{
+		if (!Accept(tokenId))
+		{
+			BT_CORE_ERROR << "error. expected token= " << tokenId << std::endl;
+			return false;
+		}
+		return true;
 	}
 }

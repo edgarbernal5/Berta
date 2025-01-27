@@ -50,7 +50,9 @@ namespace Berta
             Token m_tokenEndOfFile{ Token::Type::EndOfFile };
 
         private:
-            Token& GetNext();
+            Token GetNext();
+            bool Accept(int tokenId);
+            bool Expect(int tokenId);
 
             size_t m_currentTokenIndex{ 0 };
         };
