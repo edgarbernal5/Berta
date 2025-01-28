@@ -54,6 +54,10 @@ namespace Berta
         ContainerLayout(bool isVertical);
 
         void AddChild(std::unique_ptr<LayoutNode>&& child);
+        void SetOrientation(bool isVertical)
+        {
+            m_isVertical = isVertical;
+        }
     private:
         bool m_isVertical{ false };
         std::vector<std::unique_ptr<LayoutNode>> m_children;

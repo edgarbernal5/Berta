@@ -12,9 +12,8 @@ namespace Berta
 	void Layout::Parse(const std::string& text)
 	{
 		Layout::Parser parser(text);
-		auto rootLayout = parser.Parse();
 
-		m_rootNode = std::move(rootLayout);
+		bool result = parser.Parse(std::move(m_rootNode));
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 
@@ -53,6 +52,11 @@ namespace Berta
 			return;
 		}
 
+		if (ScanNumber())
+		{
+			return;
+		}
+
 		const char* start = m_buffer;
 		while (m_buffer < m_bufferEnd && m_buffer[0] != 0 && !IsSymbol(m_buffer[0]) && !std::isspace(m_buffer[0]))
 		{
@@ -74,86 +78,6 @@ namespace Berta
 		}
 
 		m_token = Token::Type::Identifier;
-
-		//size_t line = 1, column = 1;
-
-		//for (size_t i = 0; i < m_source.size();)
-		//{
-		//	char ch = m_source[i];
-
-		//	if (std::isspace(ch))
-		//	{
-		//		if (ch == '\n')
-		//		{
-		//			++line;
-		//			column = 1;
-		//		}
-		//		else
-		//		{
-		//			++column;
-		//		}
-		//		++i;
-		//	}
-		//	else if (std::isalpha(ch) || ch == '_')
-		//	{
-		//		// Parse identifiers (e.g., "VerticalLayout")
-		//		size_t start = i;
-		//		while (std::isalnum(m_source[i]) || m_source[i] == '_')
-		//			++i;
-		//		
-		//		tokens.push_back({ Token::Type::Identifier, m_source.substr(start, i - start), line, column });
-		//		column += (i - start);
-		//	}
-		//	else if (std::isdigit(ch) || (ch == '-' && i + 1 < m_source.size() && std::isdigit(m_source[i + 1])))
-		//	{
-		//		// Parse numbers (e.g., "42" or "-3.14")
-		//		size_t start = i;
-		//		while (std::isdigit(m_source[i]) || m_source[i] == '.')
-		//			++i;
-
-		//		tokens.push_back({ Token::Type::Number, m_source.substr(start, i - start), line, column });
-		//		column += (i - start);
-		//	}
-		//	else if (ch == '{')
-		//	{
-		//		tokens.push_back({ Token::Type::OpenBrace, "{", line, column++ });
-		//		++i;
-		//	}
-		//	else if (ch == '}')
-		//	{
-		//		tokens.push_back({ Token::Type::CloseBrace, "}", line, column++ });
-		//		++i;
-		//	}
-		//	else if (ch == ':')
-		//	{
-		//		tokens.push_back({ Token::Type::Colon, ":", line, column++ });
-		//		++i;
-		//	}
-		//	else if (ch == ',')
-		//	{
-		//		tokens.push_back({ Token::Type::Comma, ",", line, column++ });
-		//		++i;
-		//	}
-		//	else if (ch == '"')
-		//	{
-		//		// Parse strings (e.g., `"Hello"`)
-		//		size_t start = ++i;
-		//		while (i < m_source.size() && m_source[i] != '"') 
-		//			++i;
-		//		
-		//		tokens.push_back({ Token::Type::String, m_source.substr(start, i - start), line, column });
-		//		column += (i - start + 2); // Include quotes
-		//		++i;
-		//	}
-		//	else
-		//	{
-		//		throw std::runtime_error("Unexpected character in layout file.");
-		//	}
-
-		//}
-
-		//tokens.push_back({ Token::Type::EndOfStream, "", line, column });
-		//return tokens;
 	}
 
 	void Tokenizer::GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength])
@@ -187,19 +111,52 @@ namespace Berta
 		return false;
 	}
 
+	bool Tokenizer::ScanNumber()
+	{
+		char* fEnd = nullptr;
+		double dValue = std::strtod(m_buffer, &fEnd);
+
+		if (fEnd == m_buffer)
+		{
+			return false;
+		}
+		if (fEnd < m_bufferEnd && fEnd[0] == '%')
+		{
+			// no sabemos si es un entero o double.
+			m_token = Token::Type::Number; // it is a double.
+			return true;
+		}
+
+		char* iEnd = nullptr;
+		long lValue = std::strtol(m_buffer, &iEnd, 10);
+
+		if (fEnd > iEnd && (fEnd[0] == 0))
+		{
+			m_buffer = fEnd;
+			m_token = Token::Type::Number; // it is a double.
+			return true;
+		}
+		else if (iEnd > m_buffer && (iEnd[0] == 0))
+		{
+			m_buffer = iEnd;
+			m_token = Token::Type::Number; // it is a integer.
+			return true;
+		}
+		if (iEnd < m_bufferEnd && iEnd[0] == '%')
+		{
+			return true;
+		}
+		return false;
+	}
+
 	Layout::Parser::Parser(const std::string& text) :
 		m_text(text),
 		m_tokenizer(text)
 	{
 	}
 
-	std::unique_ptr<LayoutNode> Layout::Parser::Parse()
+	bool Layout::Parser::Parse(std::unique_ptr<LayoutNode> && newNode)
 	{
-		/*if (m_tokens.empty() || m_currentTokenIndex >= m_tokens.size())
-		{
-			return nullptr;
-		}*/
-
 		/*
 		{ VerticalLayout a }
 		{ HorizontalLayout a }
@@ -209,7 +166,6 @@ namespace Berta
 
 		{ VerticalLayout {menuBar height=25} {dock}}
 		*/
-		std::unique_ptr<LayoutNode> node;
 
 		while (!Accept(Token::Type::EndOfStream))
 		{
@@ -218,73 +174,58 @@ namespace Berta
 				bool isVertical = false;
 				auto container = std::make_unique<ContainerLayout>(isVertical);
 
-				auto child = Parse();
-				container->AddChild(std::move(child));
+				std::unique_ptr<LayoutNode> childNode;
+				if (!ParseAttributesOrNewBrace(std::move(childNode)))
+				{
+					return false;
+				}
+				container->AddChild(std::move(childNode));
+				newNode = std::move(container);
+			}
+		}
+		return true;
+	}
+
+	bool Layout::Parser::ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode)
+	{
+		
+		bool isVertical = false;
+		std::string identifier;
+
+		auto node = std::make_unique<ContainerLayout>(isVertical);
+		while (!Accept(Token::Type::CloseBrace))
+		{
+			if (Accept(Token::Type::OpenBrace))
+			{
+				std::unique_ptr<LayoutNode> childNode;
+				if (!ParseAttributesOrNewBrace(std::move(childNode)))
+				{
+					return false;
+				}
+				node->AddChild(std::move(childNode));
+			}
+
+			if (Accept(Token::Type::VerticalLayout) || Accept(Token::Type::HorizontalLayout))
+			{
+				isVertical = true;
+				node->SetOrientation(isVertical);
+			}
+			else if (AcceptIdentifier(identifier))
+			{
+				node->SetId(identifier);
+			}
+			else if (Accept(Token::Type::Width))
+			{
+
+			}
+			else if (Accept(Token::Type::Height))
+			{
 
 			}
 		}
-		//bool isRunning = true;
-		//Token& token = GetNext();
-		//while (isRunning && token.type != Token::Type::EndOfStream)
-		//{
-		//	switch (token.type)
-		//	{
-		//	case Token::Type::OpenBrace:
-		//	{
-		//		bool isVertical = false;
-		//		auto container = std::make_unique<ContainerLayout>(isVertical);
 
-		//		auto child = Parse();
-		//		container->AddChild(std::move(child));
-
-		//		/*if (token.type == Token::Type::CloseBrace)
-		//		{
-		//			node = std::move(container);
-		//			token = GetNext();
-		//		}
-		//		else
-		//		{
-		//			BT_CORE_ERROR << "error. expected close brace }" << std::endl;
-		//		}*/
-
-		//		break;
-		//	}
-		//	case Token::Type::CloseBrace:
-		//	{
-		//		bool isVertical = false;
-		//		auto container = std::make_unique<ContainerLayout>(isVertical);
-
-		//		node = std::move(container);
-		//		token = GetNext();
-		//		isRunning = false;
-		//		break;
-		//	}
-		//	case Token::Type::Identifier:
-		//	{
-		//		if (token.value == "VerticalLayout" || token.value == "HorizontalLayout")
-		//		{
-		//			bool isVertical = token.value == "VerticalLayout";
-		//			auto container = std::make_unique<ContainerLayout>(isVertical);
-
-		//			Token innerToken = GetNext();
-		//			if (innerToken.type == Token::Type::Identifier)
-		//			{
-		//				container->SetId(innerToken.value);
-		//			}
-		//			else
-		//			{
-		//			}
-
-		//			node = std::move(container);
-		//		}
-		//		break;
-		//	}
-		//	default:
-		//		break;
-		//	}
-		//	//token = GetNext();
-		//}
-		return node;
+		newNode = std::move(node);
+		return true;
 	}
 
 	Token Layout::Parser::GetNext()
@@ -300,6 +241,17 @@ namespace Berta
 	{
 		if (m_tokenizer.GetToken() == tokenId)
 		{
+			m_tokenizer.Next();
+			return true;
+		}
+		return false;
+	}
+
+	bool Layout::Parser::AcceptIdentifier(std::string& identifier)
+	{
+		if (m_tokenizer.GetToken() == Token::Type::Identifier)
+		{
+			identifier = m_tokenizer.GetIdentifier();
 			m_tokenizer.Next();
 			return true;
 		}

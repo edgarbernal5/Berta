@@ -27,7 +27,9 @@ namespace Berta
             EndOfStream,
 
             VerticalLayout = 256,
-            HorizontalLayout
+            HorizontalLayout,
+            Width,
+            Height
         };
 
         Type type;
@@ -40,8 +42,9 @@ namespace Berta
     static const char* g_reservedWords[] =
     {
         "VerticalLayout",
-        "HorizontalLayout"
-        "Width"
+        "HorizontalLayout",
+        "Width",
+        "Height"
     };
     class Tokenizer
     {
@@ -54,10 +57,16 @@ namespace Berta
         {
             return m_token;
         }
+        const char* GetIdentifier() const
+        {
+            return m_identifier;
+        }
+
         void GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength]);
     private:
         bool SkipWhitespace();
         bool IsSymbol(char ch);
+        bool ScanNumber();
 
         const char* m_buffer{ nullptr };
         const char* m_bufferEnd{ nullptr };
@@ -79,13 +88,15 @@ namespace Berta
         public:
             Parser(const std::string& text);
 
-            std::unique_ptr<LayoutNode> Parse();
+            bool Parse(std::unique_ptr<LayoutNode> && newNode);
+            bool ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode);
 
             Token m_tokenEndOfFile{ Token::Type::EndOfStream };
 
         private:
             Token GetNext();
             bool Accept(Token::Type tokenId);
+            bool AcceptIdentifier(std::string& identifier);
             bool Expect(Token::Type tokenId);
 
             Tokenizer m_tokenizer;
