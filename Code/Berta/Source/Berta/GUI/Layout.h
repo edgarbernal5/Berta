@@ -24,13 +24,48 @@ namespace Berta
             CloseBrace,  // '}'
             Colon,       // ':'
             Comma,       // ','
-            EndOfFile
+            EndOfStream,
+
+            VerticalLayout = 256,
+            HorizontalLayout
         };
 
         Type type;
         std::string value;
         size_t line;
         size_t column;
+    };
+
+    static const int g_maxIdentifierLength = 255 + 1;
+    static const char* g_reservedWords[] =
+    {
+        "VerticalLayout",
+        "HorizontalLayout"
+        "Width"
+    };
+    class Tokenizer
+    {
+    public:
+        Tokenizer(const std::string& source);
+
+        void Next();
+
+        Token::Type GetToken() const
+        {
+            return m_token;
+        }
+        void GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength]);
+    private:
+        bool SkipWhitespace();
+        bool IsSymbol(char ch);
+
+        const char* m_buffer{ nullptr };
+        const char* m_bufferEnd{ nullptr };
+        int m_lineNumber{ 0 };
+        bool m_error{ false };
+        char m_identifier[g_maxIdentifierLength];
+
+        Token::Type m_token{ Token::Type::EndOfStream };
     };
 
     class Layout
@@ -42,33 +77,22 @@ namespace Berta
         class Parser
         {
         public:
-            Parser(const std::vector<Token>& tokens);
+            Parser(const std::string& text);
 
             std::unique_ptr<LayoutNode> Parse();
-            std::vector<Token> m_tokens;
 
-            Token m_tokenEndOfFile{ Token::Type::EndOfFile };
+            Token m_tokenEndOfFile{ Token::Type::EndOfStream };
 
         private:
             Token GetNext();
-            bool Accept(int tokenId);
-            bool Expect(int tokenId);
+            bool Accept(Token::Type tokenId);
+            bool Expect(Token::Type tokenId);
 
-            size_t m_currentTokenIndex{ 0 };
+            Tokenizer m_tokenizer;
+            std::string m_text;
         };
         std::unique_ptr<LayoutNode> m_rootNode;
 
-    };
-
-    class Tokenizer
-    {
-    public:
-        Tokenizer(const std::string& source);
-
-        std::vector<Token> Tokenize();
-
-    private:
-        std::string m_source;
     };
 }
 
