@@ -38,13 +38,22 @@ namespace Berta
             }
             return defaultValue;
         }*/
+
         void SetId(const std::string& id)
         {
             m_id = id;
         }
 
+        void SetArea(const Size& newSize)
+        {
+            m_area = newSize;
+        }
+
+        virtual void Apply() = 0;
     private:
         std::string m_id;
+        Size m_area;
+
         std::unordered_map<std::string, PropertyValue> m_properties;
     };
 
@@ -58,6 +67,8 @@ namespace Berta
         {
             m_isVertical = isVertical;
         }
+
+        void Apply() override;
     private:
         bool m_isVertical{ false };
         std::vector<std::unique_ptr<LayoutNode>> m_children;

@@ -23,4 +23,12 @@ namespace Berta
 	{
 		m_children.push_back(std::move(child));
 	}
+
+	void ContainerLayout::Apply()
+	{
+		for (auto& childNode : m_children)
+		{
+
+		}
+	}
 }

@@ -10,9 +10,12 @@
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/LayoutNodes.h"
 #include <memory>
+#include <functional>
 
 namespace Berta
 {
+    struct Window;
+
     struct Token
     {
         enum class Type
@@ -20,10 +23,10 @@ namespace Berta
             Identifier,
             Number,
             String,
-            OpenBrace,   // '{'
-            CloseBrace,  // '}'
-            Colon,       // ':'
-            Comma,       // ','
+            OpenBrace,
+            CloseBrace,
+            Equal,
+            Comma,
             EndOfStream,
 
             VerticalLayout = 256,
@@ -80,18 +83,21 @@ namespace Berta
     class Layout
     {
     public:
-        void Parse(const std::string& text);
+        Layout();
+        Layout(Window* window);
+
+        void Create(Window* window);
+        void Parse(const std::string& source);
 
     private:
         class Parser
         {
         public:
-            Parser(const std::string& text);
+            Parser(const std::string& source);
 
             bool Parse(std::unique_ptr<LayoutNode> && newNode);
             bool ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode);
 
-            Token m_tokenEndOfFile{ Token::Type::EndOfStream };
 
         private:
             Token GetNext();
@@ -100,10 +106,10 @@ namespace Berta
             bool Expect(Token::Type tokenId);
 
             Tokenizer m_tokenizer;
-            std::string m_text;
+            std::string m_source;
         };
         std::unique_ptr<LayoutNode> m_rootNode;
-
+        Window* m_parent{ nullptr };
     };
 }
 

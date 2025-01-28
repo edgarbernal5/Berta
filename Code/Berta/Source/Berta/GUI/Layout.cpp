@@ -7,13 +7,53 @@
 #include "btpch.h"
 #include "Layout.h"
 
+#include "Berta/GUI/Window.h"
+
 namespace Berta
 {
-	void Layout::Parse(const std::string& text)
+	Layout::Layout()
 	{
-		Layout::Parser parser(text);
+	}
+
+	Layout::Layout(Window* window)
+	{
+		Create(window);
+	}
+
+	void Layout::Create(Window* window)
+	{
+		m_parent = window;
+		if (!m_parent)
+		{
+			return;
+		}
+
+		m_parent->Events->Resize.Connect([this](const ArgResize& args)
+		{
+			if (m_rootNode)
+			{
+				m_rootNode->SetArea(args.NewSize);
+				m_rootNode->Apply();
+			}
+		});
+
+		m_parent->Events->Destroy.Connect([](const ArgDestroy& args)
+		{
+
+		});
+	}
+
+	void Layout::Parse(const std::string& source)
+	{
+		Layout::Parser parser(source);
 
 		bool result = parser.Parse(std::move(m_rootNode));
+		if (!result)
+		{
+			return;
+		}
+
+
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 
@@ -48,6 +88,12 @@ namespace Berta
 		if (m_buffer[0] == '}')
 		{
 			m_token = Token::Type::CloseBrace;
+			++m_buffer;
+			return;
+		}
+		if (m_buffer[0] == '=')
+		{
+			m_token = Token::Type::Equal;
 			++m_buffer;
 			return;
 		}
@@ -106,6 +152,7 @@ namespace Berta
 		case '{':
 		case '}':
 		case '-':
+		case '=':
 			return true;
 		}
 		return false;
@@ -123,7 +170,7 @@ namespace Berta
 		if (fEnd < m_bufferEnd && fEnd[0] == '%')
 		{
 			// no sabemos si es un entero o double.
-			m_token = Token::Type::Number; // it is a double.
+			m_token = Token::Type::Number;
 			return true;
 		}
 
@@ -149,9 +196,9 @@ namespace Berta
 		return false;
 	}
 
-	Layout::Parser::Parser(const std::string& text) :
-		m_text(text),
-		m_tokenizer(text)
+	Layout::Parser::Parser(const std::string& source) :
+		m_source(source),
+		m_tokenizer(source)
 	{
 	}
 
@@ -188,7 +235,6 @@ namespace Berta
 
 	bool Layout::Parser::ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode)
 	{
-		
 		bool isVertical = false;
 		std::string identifier;
 
@@ -205,9 +251,14 @@ namespace Berta
 				node->AddChild(std::move(childNode));
 			}
 
-			if (Accept(Token::Type::VerticalLayout) || Accept(Token::Type::HorizontalLayout))
+			if (Accept(Token::Type::VerticalLayout))
 			{
 				isVertical = true;
+				node->SetOrientation(isVertical);
+			}
+			else if (Accept(Token::Type::HorizontalLayout))
+			{
+				isVertical = false;
 				node->SetOrientation(isVertical);
 			}
 			else if (AcceptIdentifier(identifier))

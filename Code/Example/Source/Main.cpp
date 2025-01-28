@@ -545,7 +545,7 @@ int main()
 				scrollbar.Show();
 		});
 
-	form.SetLayout("{{}{}}");
+	form.SetLayout("{{a}{b}}");
 
 	form.Show();
 	nestedForm.Show();
