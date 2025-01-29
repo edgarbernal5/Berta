@@ -18,12 +18,12 @@ namespace Berta
     class LayoutNode
     {
     public:
-        using PropertyValue = std::variant<int, float, std::string, bool>;
+        using PropertyValue = std::variant<int, double, std::string, bool>;
 
         LayoutNode() = default;
         LayoutNode(const std::string& id);
 
-       /* void SetProperty(const std::string& key, const PropertyValue& value)
+        void SetProperty(const std::string& key, const PropertyValue& value)
         {
             m_properties[key] = value;
         }
@@ -37,22 +37,29 @@ namespace Berta
                 return std::get<T>(it->second);
             }
             return defaultValue;
-        }*/
+        }
 
         void SetId(const std::string& id)
         {
             m_id = id;
         }
 
-        void SetArea(const Size& newSize)
+        Rectangle GetArea() const
+        {
+            return m_area;
+        }
+
+        void SetArea(const Rectangle& newSize)
         {
             m_area = newSize;
         }
 
         virtual void Apply() = 0;
-    private:
+        virtual void CalculateAreas() = 0;
+
+    protected:
         std::string m_id;
-        Size m_area;
+        Rectangle m_area;
 
         std::unordered_map<std::string, PropertyValue> m_properties;
     };
@@ -69,6 +76,7 @@ namespace Berta
         }
 
         void Apply() override;
+        void CalculateAreas() override;
     private:
         bool m_isVertical{ false };
         std::vector<std::unique_ptr<LayoutNode>> m_children;

@@ -42,6 +42,7 @@ namespace Berta
 
 	void FormBase::SetLayout(const std::string& layoutText)
 	{
+		m_layout.Create(*this);
 		m_layout.Parse(layoutText);
 	}
 

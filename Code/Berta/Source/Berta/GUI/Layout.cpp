@@ -32,7 +32,8 @@ namespace Berta
 		{
 			if (m_rootNode)
 			{
-				m_rootNode->SetArea(args.NewSize);
+				m_rootNode->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+				m_rootNode->CalculateAreas();
 				m_rootNode->Apply();
 			}
 		});
