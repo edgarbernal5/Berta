@@ -80,12 +80,22 @@ namespace Berta
         Token::Type m_token{ Token::Type::EndOfStream };
     };
 
+    class LayoutFieldContainer
+    {
+    public:
+        LayoutFieldContainer() = default;
+
+    private:
+        std::vector<Window*> m_windows;
+    };
+
     class Layout
     {
     public:
         Layout();
         Layout(Window* window);
 
+        void Attach(const std::string& fieldId, Window* window);
         void Create(Window* window);
         void Parse(const std::string& source);
 
@@ -108,6 +118,8 @@ namespace Berta
             Tokenizer m_tokenizer;
             std::string m_source;
         };
+
+
         std::unique_ptr<LayoutNode> m_rootNode;
         Window* m_parent{ nullptr };
     };

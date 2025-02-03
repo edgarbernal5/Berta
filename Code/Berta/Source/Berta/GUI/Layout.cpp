@@ -20,6 +20,11 @@ namespace Berta
 		Create(window);
 	}
 
+	void Layout::Attach(const std::string& fieldId, Window* window)
+	{
+
+	}
+
 	void Layout::Create(Window* window)
 	{
 		m_parent = window;
