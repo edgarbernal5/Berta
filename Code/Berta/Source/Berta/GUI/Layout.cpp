@@ -220,22 +220,20 @@ namespace Berta
 		{ VerticalLayout {menuBar height=25} {dock}}
 		*/
 
-		while (!Accept(Token::Type::EndOfStream))
+		if (Accept(Token::Type::OpenBrace))
 		{
-			if (Accept(Token::Type::OpenBrace))
-			{
-				bool isVertical = false;
-				auto container = std::make_unique<ContainerLayout>(isVertical);
+			bool isVertical = false;
+			auto container = std::make_unique<ContainerLayout>(isVertical);
 
-				std::unique_ptr<LayoutNode> childNode;
-				if (!ParseAttributesOrNewBrace(std::move(childNode)))
-				{
-					return false;
-				}
-				container->AddChild(std::move(childNode));
-				newNode = std::move(container);
+			std::unique_ptr<LayoutNode> childNode;
+			if (!ParseAttributesOrNewBrace(std::move(childNode)))
+			{
+				return false;
 			}
+			container->AddChild(std::move(childNode));
+			newNode = std::move(container);
 		}
+		
 		return true;
 	}
 
@@ -247,6 +245,9 @@ namespace Berta
 		auto node = std::make_unique<ContainerLayout>(isVertical);
 		while (!Accept(Token::Type::CloseBrace))
 		{
+			if (Accept(Token::Type::EndOfStream))
+				break;
+
 			if (Accept(Token::Type::OpenBrace))
 			{
 				std::unique_ptr<LayoutNode> childNode;
@@ -283,15 +284,6 @@ namespace Berta
 
 		newNode = std::move(node);
 		return true;
-	}
-
-	Token Layout::Parser::GetNext()
-	{
-		/*if (m_currentTokenIndex < m_tokens.size())
-		{
-			return m_tokens[m_currentTokenIndex++];
-		}*/
-		return { Token::Type::EndOfStream };
 	}
 
 	bool Layout::Parser::Accept(Token::Type tokenId)

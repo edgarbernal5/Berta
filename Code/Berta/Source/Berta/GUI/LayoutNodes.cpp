@@ -34,13 +34,15 @@ namespace Berta
 
 	void ContainerLayout::CalculateAreas()
 	{
-		auto parentArea = m_area;
+		auto parentArea = GetArea();
 
 		int count = m_children.size();
 		Point offset{};
 		for (auto& childNode : m_children)
 		{
 			auto childArea = childNode->GetArea();
+			childArea.Height = parentArea.Height;
+			childArea.Width = parentArea.Width;
 			if (m_isVertical)
 			{
 				auto part = parentArea.Height / count;
@@ -56,6 +58,8 @@ namespace Berta
 				offset.X += part + 1;
 			}
 			childNode->SetArea(childArea);
+
+			childNode->CalculateAreas();
 		}
 	}
 }

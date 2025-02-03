@@ -15,6 +15,17 @@
 
 namespace Berta
 {
+    struct Window;
+
+    class NodeControlContainer
+    {
+    public:
+        NodeControlContainer() = default;
+
+    private:
+        std::vector<Window*> m_fields;
+    };
+
     class LayoutNode
     {
     public:
@@ -62,6 +73,7 @@ namespace Berta
         Rectangle m_area;
 
         std::unordered_map<std::string, PropertyValue> m_properties;
+        NodeControlContainer m_controlContainer;
     };
 
     class ContainerLayout : public LayoutNode
@@ -78,6 +90,7 @@ namespace Berta
         void Apply() override;
         void CalculateAreas() override;
     private:
+
         bool m_isVertical{ false };
         std::vector<std::unique_ptr<LayoutNode>> m_children;
     };

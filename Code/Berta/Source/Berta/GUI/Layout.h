@@ -11,6 +11,7 @@
 #include "Berta/GUI/LayoutNodes.h"
 #include <memory>
 #include <functional>
+#include <map>
 
 namespace Berta
 {
@@ -49,6 +50,7 @@ namespace Berta
         "Width",
         "Height"
     };
+
     class Tokenizer
     {
     public:
@@ -110,7 +112,6 @@ namespace Berta
 
 
         private:
-            Token GetNext();
             bool Accept(Token::Type tokenId);
             bool AcceptIdentifier(std::string& identifier);
             bool Expect(Token::Type tokenId);
@@ -119,9 +120,9 @@ namespace Berta
             std::string m_source;
         };
 
-
         std::unique_ptr<LayoutNode> m_rootNode;
         Window* m_parent{ nullptr };
+        std::map<std::string, LayoutFieldContainer> m_fields;
     };
 }
 
