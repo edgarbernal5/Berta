@@ -87,6 +87,7 @@ namespace Berta
     public:
         LayoutFieldContainer() = default;
 
+        void AddWindow(Window* window);
     private:
         std::vector<Window*> m_windows;
     };
