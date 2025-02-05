@@ -14,6 +14,11 @@ namespace Berta
 	{
 	}
 
+	void LayoutNode::AddWindow(Window* window)
+	{
+		m_controlContainer.AddWindow(window);
+	}
+
 	ContainerLayout::ContainerLayout(bool isVertical) :
 		m_isVertical(isVertical)
 	{
@@ -60,6 +65,11 @@ namespace Berta
 			childNode->SetArea(childArea);
 
 			childNode->CalculateAreas();
+		}
+
+		for (auto& childNode : m_children)
+		{
+
 		}
 	}
 }

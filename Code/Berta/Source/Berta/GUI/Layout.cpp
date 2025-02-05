@@ -20,11 +20,16 @@ namespace Berta
 		Create(window);
 	}
 
+	Layout::~Layout()
+	{
+		m_fields.clear();
+	}
+
 	void Layout::Attach(const std::string& fieldId, Window* window)
 	{
 		auto& pair = m_fields[fieldId];
 
-		pair.AddWindow(window);
+		pair->AddWindow(window);
 	}
 
 	void Layout::Create(Window* window)
@@ -323,7 +328,7 @@ namespace Berta
 		return true;
 	}
 
-	void LayoutFieldContainer::AddWindow(Window* window)
+	void LayoutControlContainer::AddWindow(Window* window)
 	{
 		m_windows.push_back(window);
 	}

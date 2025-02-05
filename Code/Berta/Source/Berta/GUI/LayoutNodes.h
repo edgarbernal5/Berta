@@ -17,13 +17,14 @@ namespace Berta
 {
     struct Window;
 
-    class NodeControlContainer
+    class LayoutControlContainer
     {
     public:
-        NodeControlContainer() = default;
+        LayoutControlContainer() = default;
 
+        void AddWindow(Window* window);
     private:
-        std::vector<Window*> m_fields;
+        std::vector<Window*> m_windows;
     };
 
     class LayoutNode
@@ -34,6 +35,7 @@ namespace Berta
         LayoutNode() = default;
         LayoutNode(const std::string& id);
 
+        void AddWindow(Window* window);
         void SetProperty(const std::string& key, const PropertyValue& value)
         {
             m_properties[key] = value;
@@ -73,7 +75,7 @@ namespace Berta
         Rectangle m_area;
 
         std::unordered_map<std::string, PropertyValue> m_properties;
-        NodeControlContainer m_controlContainer;
+        LayoutControlContainer m_controlContainer;
     };
 
     class ContainerLayout : public LayoutNode
