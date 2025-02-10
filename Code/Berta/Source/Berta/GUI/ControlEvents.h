@@ -37,6 +37,11 @@ namespace Berta
 		Size NewSize;
 	};
 
+	struct ArgMove
+	{
+		Point NewPosition;
+	};
+
 	struct ArgFocus
 	{
 		bool Focused;
@@ -81,6 +86,7 @@ namespace Berta
 		Event<ArgClick>			Click;
 		Event<ArgMouse>			DblClick;
 		Event<ArgResize>		Resize;
+		Event<ArgMove>			Move;
 		Event<ArgFocus>			Focus;
 		Event<ArgKeyboard>		KeyChar;
 		Event<ArgKeyboard>		KeyPressed;

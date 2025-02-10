@@ -78,7 +78,7 @@ namespace Berta
 		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point);
 		void SendCustomMessage(API::NativeWindowHandle nativeHandle, std::function<void()> body);
 
-		void ResizeChildWindow(NativeWindowHandle nativeHandle, Point position, Size size);
+		void ResizeChildWindow(NativeWindowHandle nativeHandle, const Point& position, const Size& size);
 		Point GetScreenMousePosition();
 	}
 }

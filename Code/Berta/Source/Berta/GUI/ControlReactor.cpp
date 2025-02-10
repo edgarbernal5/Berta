@@ -74,4 +74,8 @@ namespace Berta
 	void ControlReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 	}
+
+	void ControlReactor::Move(Graphics& graphics, const ArgMove& args)
+	{
+	}
 }

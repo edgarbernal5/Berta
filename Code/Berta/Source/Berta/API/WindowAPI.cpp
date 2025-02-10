@@ -316,7 +316,7 @@ namespace Berta
 #endif
 		}
 
-		void ResizeChildWindow(NativeWindowHandle nativeHandle, Point position, Size size)
+		void ResizeChildWindow(NativeWindowHandle nativeHandle, const Point& position, const Size& size)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			Rectangle newRect{ position ,size };

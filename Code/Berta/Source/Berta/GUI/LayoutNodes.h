@@ -20,11 +20,21 @@ namespace Berta
     class LayoutControlContainer
     {
     public:
+        struct WindowArea
+        {
+            Window* window{ nullptr };
+            Rectangle area{ };
+        };
+
         LayoutControlContainer() = default;
 
         void AddWindow(Window* window);
+        std::vector<WindowArea>& GetWindowsAreas()
+        {
+            return m_windows;
+        }
     private:
-        std::vector<Window*> m_windows;
+        std::vector<WindowArea> m_windows;
     };
 
     class LayoutNode
@@ -34,6 +44,7 @@ namespace Berta
 
         LayoutNode() = default;
         LayoutNode(const std::string& id);
+        LayoutNode(bool isVertical);
 
         void AddWindow(Window* window);
         void SetProperty(const std::string& key, const PropertyValue& value)
@@ -52,6 +63,11 @@ namespace Berta
             return defaultValue;
         }
 
+        std::string GetId()
+        {
+            return m_id;
+        }
+
         void SetId(const std::string& id)
         {
             m_id = id;
@@ -67,30 +83,30 @@ namespace Berta
             m_area = newSize;
         }
 
-        virtual void Apply() = 0;
-        virtual void CalculateAreas() = 0;
-
-    protected:
-        std::string m_id;
-        Rectangle m_area;
-
-        std::unordered_map<std::string, PropertyValue> m_properties;
-        LayoutControlContainer m_controlContainer;
-    };
-
-    class ContainerLayout : public LayoutNode
-    {
-    public:
-        ContainerLayout(bool isVertical);
-
+        virtual void Apply();
+        virtual void CalculateAreas();
         void AddChild(std::unique_ptr<LayoutNode>&& child);
+
+        LayoutNode* Find(const std::string& id);
         void SetOrientation(bool isVertical)
         {
             m_isVertical = isVertical;
         }
 
-        void Apply() override;
-        void CalculateAreas() override;
+        std::vector<LayoutControlContainer::WindowArea>& GetWindowsAreas()
+        {
+            return m_controlContainer.GetWindowsAreas();
+        }
+
+    protected:
+        LayoutNode* Find(const std::string& id, LayoutNode* node);
+
+        std::string m_id;
+        Rectangle m_area;
+
+        std::unordered_map<std::string, PropertyValue> m_properties;
+        LayoutControlContainer m_controlContainer;
+
     private:
 
         bool m_isVertical{ false };

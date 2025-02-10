@@ -501,18 +501,48 @@ namespace Berta
 
 	void WindowManager::Move(Window* window, const Rectangle& newRect)
 	{
+		auto& foundation = Foundation::GetInstance();
 		Rectangle currentRect{ window->Position, window->Size };
 		if (currentRect != newRect)
 		{
 			bool sizeChanged = window->Size != newRect;
 			bool positionChanged = window->Position != newRect;
 
-			//TODO: missing move event triggering
-			window->Position = newRect;
-			if (window->Size != newRect)
+			if (positionChanged)
+			{
+				window->Position = newRect;
+			}
+
+			if (sizeChanged)
 			{
 				Resize(window, newRect);
 			}
+
+			if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
+			{
+				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+
+				ArgMove argMove;
+				argMove.NewPosition = newRect;
+				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+			}
+		}
+	}
+
+	void WindowManager::Move(Window* window, const Point& newPosition)
+	{
+		auto& foundation = Foundation::GetInstance();
+		if (window->Position != newPosition)
+		{
+			window->Position = newPosition;
+			if (window->Type == WindowType::Form)
+			{
+				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+			}
+
+			ArgMove argMove;
+			argMove.NewPosition = newPosition;
+			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
 		}
 	}
 

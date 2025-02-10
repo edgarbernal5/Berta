@@ -7,10 +7,16 @@
 #include "btpch.h"
 #include "LayoutNodes.h"
 
+#include "Berta/GUI/Interface.h"
+
 namespace Berta
 {
 	LayoutNode::LayoutNode(const std::string& id) : 
 		m_id(id)
+	{
+	}
+
+	LayoutNode::LayoutNode(bool isVertical) : m_isVertical(isVertical)
 	{
 	}
 
@@ -19,25 +25,46 @@ namespace Berta
 		m_controlContainer.AddWindow(window);
 	}
 
-	ContainerLayout::ContainerLayout(bool isVertical) :
-		m_isVertical(isVertical)
-	{
-	}
-
-	void ContainerLayout::AddChild(std::unique_ptr<LayoutNode>&& child)
+	void LayoutNode::AddChild(std::unique_ptr<LayoutNode>&& child)
 	{
 		m_children.push_back(std::move(child));
 	}
 
-	void ContainerLayout::Apply()
+	LayoutNode* LayoutNode::Find(const std::string& id)
+	{
+		return Find(id, this);
+	}
+
+	LayoutNode* LayoutNode::Find(const std::string& id, LayoutNode* node)
+	{
+		if (node->GetId() == id)
+			return node;
+
+		for (auto& childPtr : node->m_children)
+		{
+			auto child = Find(id, childPtr.get());
+			if (child)
+			{
+				return child;
+			}
+		}
+
+		return nullptr;
+	}
+
+	void LayoutNode::Apply()
 	{
 		for (auto& childNode : m_children)
 		{
-
+			childNode->Apply();
+			for (auto& windowArea : childNode->GetWindowsAreas())
+			{
+				GUI::MoveWindow(windowArea.window, windowArea.area);
+			}
 		}
 	}
 
-	void ContainerLayout::CalculateAreas()
+	void LayoutNode::CalculateAreas()
 	{
 		auto parentArea = GetArea();
 
@@ -69,7 +96,11 @@ namespace Berta
 
 		for (auto& childNode : m_children)
 		{
-
+			auto area = childNode->GetArea();
+			for (auto& windowArea : childNode->GetWindowsAreas())
+			{
+				windowArea.area = area;
+			}
 		}
 	}
 }

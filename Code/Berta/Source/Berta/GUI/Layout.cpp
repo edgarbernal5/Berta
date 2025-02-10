@@ -29,6 +29,11 @@ namespace Berta
 	{
 		auto& pair = m_fields[fieldId];
 
+		if (pair == nullptr)
+		{
+			auto newNode = m_rootNode->Find(fieldId);
+			pair = newNode;
+		}
 		pair->AddWindow(window);
 	}
 
@@ -66,7 +71,7 @@ namespace Berta
 			return;
 		}
 
-
+		BT_CORE_TRACE << "Parse completed." << std::endl;
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 
@@ -230,7 +235,7 @@ namespace Berta
 		if (Accept(Token::Type::OpenBrace))
 		{
 			bool isVertical = false;
-			auto container = std::make_unique<ContainerLayout>(isVertical);
+			auto container = std::make_unique<LayoutNode>(isVertical);
 
 			std::unique_ptr<LayoutNode> childNode;
 			if (!ParseAttributesOrNewBrace(std::move(childNode)))
@@ -249,7 +254,7 @@ namespace Berta
 		bool isVertical = false;
 		std::string identifier;
 
-		auto node = std::make_unique<ContainerLayout>(isVertical);
+		auto node = std::make_unique<LayoutNode>(isVertical);
 		while (!Accept(Token::Type::CloseBrace))
 		{
 			if (Accept(Token::Type::EndOfStream))
@@ -330,6 +335,6 @@ namespace Berta
 
 	void LayoutControlContainer::AddWindow(Window* window)
 	{
-		m_windows.push_back(window);
+		m_windows.push_back({ window });
 	}
 }

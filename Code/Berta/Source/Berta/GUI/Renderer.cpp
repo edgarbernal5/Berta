@@ -113,4 +113,9 @@ namespace Berta
 	{
 		ProcessEvent(&ControlReactor::Resize, args);
 	}
+
+	void Renderer::Move(const ArgMove& args)
+	{
+		ProcessEvent(&ControlReactor::Move, args);
+	}
 }
