@@ -80,14 +80,14 @@ namespace Berta
 				auto part = parentArea.Height / count;
 				childArea.Height = part;
 				childArea.Y = offset.Y;
-				offset.Y += part + 1;
+				offset.Y += parentArea.Height;
 			}
 			else
 			{
 				auto part = parentArea.Width / count;
 				childArea.Width = part;
 				childArea.X = offset.X;
-				offset.X += part + 1;
+				offset.X += parentArea.Width;
 			}
 			childNode->SetArea(childArea);
 
@@ -96,10 +96,32 @@ namespace Berta
 
 		for (auto& childNode : m_children)
 		{
-			auto area = childNode->GetArea();
+			auto containerArea = childNode->GetArea();
+			auto count = (uint32_t)childNode->GetWindowsAreas().size();
+			Point offset{ containerArea.X, containerArea.Y };
 			for (auto& windowArea : childNode->GetWindowsAreas())
 			{
-				windowArea.area = area;
+				Rectangle childArea{};
+				childArea.X = offset.X;
+				childArea.Y = offset.Y;
+				childArea.Height = containerArea.Height;
+				childArea.Width = containerArea.Width;
+				Point offset2{};
+				if (m_isVertical)
+				{
+					auto part = containerArea.Height / count;
+					childArea.Height = part;
+					offset2.Y = (int)part;
+				}
+				else
+				{
+					auto part = containerArea.Width / count;
+					childArea.Width = part;
+					offset2.X = (int)part;
+				}
+				windowArea.area = childArea;
+				offset.X += offset2.X;
+				offset.Y += offset2.Y;
 			}
 		}
 	}
