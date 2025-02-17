@@ -35,7 +35,12 @@ namespace Berta
             VerticalLayout = 256,
             HorizontalLayout,
             Width,
-            Height
+            Height,
+
+            MinHeight,
+            MaxHeight,
+            MinWidth,
+            MaxWidth
         };
 
         Type type;
@@ -50,7 +55,12 @@ namespace Berta
         "VerticalLayout",
         "HorizontalLayout",
         "Width",
-        "Height"
+        "Height",
+
+        "MinHeight",
+        "MaxHeight",
+        "MinWidth",
+        "MaxWidth"
     };
 
     class Tokenizer
@@ -81,6 +91,7 @@ namespace Berta
     private:
         bool SkipWhitespace();
         bool IsSymbol(char ch);
+        bool IsNumberSeparator(char ch);
         bool ScanNumber();
 
         const char* m_buffer{ nullptr };

@@ -562,8 +562,11 @@ namespace Berta
 
 		if (!TryDeferredUpdate(window))
 		{
+#if BT_DEBUG
 			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << window->Name << std::endl;
-			
+#else
+			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << std::endl;
+#endif
 			Paint(window, false);
 			Map(window, nullptr);
 		}
@@ -581,7 +584,11 @@ namespace Berta
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
 			//TODO: paint and map
+#if BT_DEBUG
 			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. window = " << window->Name << ". hwnd = " << window->RootHandle.Handle << std::endl;
+#else
+			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. hwnd = " << window->RootHandle.Handle << std::endl;
+#endif
 			return false;
 		}
 

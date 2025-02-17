@@ -547,7 +547,7 @@ int main()
 				scrollbar.Show();
 		});*/
 
-	form.SetLayout("{{a}{b}}");
+	form.SetLayout("{{c Width=10%}{a}{b Width=30%}}");
 	//form.SetLayout("{{a}{b}}");
 	form.GetLayout().Attach("a", nestedForm);
 	form.GetLayout().Attach("b", buttonLayout);

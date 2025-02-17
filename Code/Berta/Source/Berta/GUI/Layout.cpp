@@ -183,9 +183,15 @@ namespace Berta
 		case '}':
 		case '-':
 		case '=':
+		case '%':
 			return true;
 		}
 		return false;
+	}
+
+	bool Tokenizer::IsNumberSeparator(char ch)
+	{
+		return ch == 0 || std::isspace(ch) || IsSymbol(ch);
 	}
 
 	bool Tokenizer::ScanNumber()
@@ -201,14 +207,14 @@ namespace Berta
 		char* iEnd = nullptr;
 		long lValue = std::strtol(m_buffer, &iEnd, 10);
 
-		if (fEnd > iEnd && (fEnd[0] == 0))
+		if (fEnd > iEnd && IsNumberSeparator(fEnd[0]))
 		{
 			m_buffer = fEnd;
 			m_token = Token::Type::NumberDouble; // it is a double.
 			m_dValue = dValue;
 			return true;
 		}
-		else if (iEnd > m_buffer && (iEnd[0] == 0))
+		else if (iEnd > m_buffer && IsNumberSeparator(iEnd[0]))
 		{
 			m_buffer = iEnd;
 			m_token = Token::Type::NumberInt; // it is a integer.
@@ -226,16 +232,6 @@ namespace Berta
 
 	bool Layout::Parser::Parse(std::unique_ptr<LayoutNode> && newNode)
 	{
-		/*
-		{ VerticalLayout a }
-		{ HorizontalLayout a }
-
-		{ { ee height =30% } {} }
-		{ VerticalLayout { aa } {bb} }
-
-		{ VerticalLayout {menuBar height=25} {dock}}
-		*/
-
 		if (Accept(Token::Type::OpenBrace))
 		{
 			bool isVertical = false;
@@ -298,7 +294,7 @@ namespace Berta
 				bool isNumberDouble = false;
 				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
 				{
-					/*Number number;
+					Number number;
 					if (isNumberInt)
 					{
 						number.scalar = m_tokenizer.GetInt();
@@ -312,16 +308,106 @@ namespace Berta
 					{
 						number.isPercentage = true;
 					}
-					node->SetProperty("Width", number);*/
+					node->SetProperty("Width", number);
 				}
-				else {
+				else
+				{
 					return false;
 				}
 			}
 			else if (Accept(Token::Type::Height))
 			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					Number number;
+					if (isNumberInt)
+					{
+						number.scalar = m_tokenizer.GetInt();
+					}
+					else
+					{
+						number.scalar = m_tokenizer.GetDouble();
+					}
 
+					if (Accept(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					node->SetProperty("Height", number);
+				}
+				else
+				{
+					return false;
+				}
 			}
+			else if (Accept(Token::Type::MinWidth))
+			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					Number number;
+					if (isNumberInt)
+					{
+						number.scalar = m_tokenizer.GetInt();
+					}
+					else
+					{
+						number.scalar = m_tokenizer.GetDouble();
+					}
+
+					if (Accept(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					node->SetProperty("MinWidth", number);
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (Accept(Token::Type::MaxWidth))
+			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					Number number;
+					if (isNumberInt)
+					{
+						number.scalar = m_tokenizer.GetInt();
+					}
+					else
+					{
+						number.scalar = m_tokenizer.GetDouble();
+					}
+
+					if (Accept(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					node->SetProperty("MaxWidth", number);
+				}
+				else
+				{
+					return false;
+				}
+				}
 		}
 
 		newNode = std::move(node);

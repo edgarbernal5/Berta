@@ -79,7 +79,6 @@ namespace Berta
 		
 		int count = (int)m_children.size();
 		
-		Point offset{ 0, 0 };
 		std::vector<bool> mark(m_children.size(), false);
 		std::vector<Rectangle> areas(m_children.size());
 
@@ -95,12 +94,12 @@ namespace Berta
 			if (m_isVertical)
 			{
 				childArea.Width = parentArea.Width;
-				if (HasProperty<Number>("Height"))
+				if (childNode->HasProperty<Number>("Height"))
 				{
-					auto heightNum = GetProperty<Number>("Height");
+					auto heightNum = childNode->GetProperty<Number>("Height");
 					if (heightNum.isPercentage)
 					{
-						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<double>(dpi) * parentArea.Height);
+						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<double>() * parentArea.Height / 100.0);
 						remainArea.Height -= fixedHeight;
 						childArea.Height = static_cast<uint32_t>(fixedHeight);
 					}
@@ -118,12 +117,12 @@ namespace Berta
 			else
 			{
 				childArea.Height = parentArea.Height;
-				if (HasProperty<Number>("Width"))
+				if (childNode->HasProperty<Number>("Width"))
 				{
-					auto widthNum = GetProperty<Number>("Width");
+					auto widthNum = childNode->GetProperty<Number>("Width");
 					if (widthNum.isPercentage)
 					{
-						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<double>(dpi) * parentArea.Width);
+						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<double>() * parentArea.Width / 100.0);
 						remainArea.Width -= fixedWidth;
 						childArea.Width = static_cast<uint32_t>(fixedWidth);
 					}
@@ -139,6 +138,7 @@ namespace Berta
 				}
 			}
 		}
+		Point offset{ 0, 0 };
 		int totalCount = count - fixedNodesCount;
 		
 		for (size_t i = 0; i < m_children.size(); ++i)
@@ -157,7 +157,6 @@ namespace Berta
 				childArea.Width = parentArea.Width;
 				childArea.Height = parentArea.Height;
 			}
-			//Rectangle childArea{ marginLeft, marginTop, parentArea.Width, parentArea.Height };
 
 			childArea.Width -= marginLeft;
 			childArea.Height -= marginTop;
@@ -180,6 +179,18 @@ namespace Berta
 				}
 				childArea.Width -= marginRight;
 				childArea.Height -= marginBottom;
+			}
+			else {
+				if (m_isVertical)
+				{
+					childArea.Y += offset.Y;
+					offset.Y += areas[i].Height;
+				}
+				else
+				{
+					childArea.X += offset.X;
+					offset.X += areas[i].Width;
+				}
 			}
 
 			childNode->SetArea(childArea);

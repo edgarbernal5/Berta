@@ -146,7 +146,6 @@ namespace Berta
         LayoutControlContainer m_controlContainer;
 
     private:
-
         void SetParentWindow(LayoutNode* node, Window* window)
         {
             if (node == nullptr)
@@ -173,12 +172,21 @@ namespace Berta
             return static_cast<T>(static_cast<double>(std::get<T>(scalar) * dpiFactor));
         }
 
-        return T(0);
+        return T{ 0 };
     }
+
     template<class T>
     inline T Number::GetValue()
     {
-        return static_cast<T>(std::get<T>(scalar));
+        if (std::holds_alternative<int>(scalar))
+        {
+            return static_cast<T>(std::get<int>(scalar));
+        }
+        if (std::holds_alternative<double>(scalar))
+        {
+            return static_cast<T>(std::get<double>(scalar));
+        }
+        return T{ 0 };
     }
 }
 
