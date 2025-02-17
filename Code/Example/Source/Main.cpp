@@ -547,10 +547,10 @@ int main()
 				scrollbar.Show();
 		});*/
 
-	form.SetLayout("{{a}}");
+	form.SetLayout("{{a}{b}}");
 	//form.SetLayout("{{a}{b}}");
 	form.GetLayout().Attach("a", nestedForm);
-	form.GetLayout().Attach("a", buttonLayout);
+	form.GetLayout().Attach("b", buttonLayout);
 	//form.GetLayout().Attach("b", nestedForm);
 	form.Show();
 	nestedForm.Show();

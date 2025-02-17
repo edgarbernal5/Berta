@@ -22,7 +22,9 @@ namespace Berta
         enum class Type
         {
             Identifier,
-            Number,
+            NumberInt,
+            NumberDouble,
+            Percentage,
             String,
             OpenBrace,
             CloseBrace,
@@ -66,6 +68,14 @@ namespace Berta
         {
             return m_identifier;
         }
+        int GetInt() const
+        {
+            return m_iValue;
+        }
+        double GetDouble() const
+        {
+            return m_dValue;
+        }
 
         void GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength]);
     private:
@@ -78,6 +88,8 @@ namespace Berta
         int m_lineNumber{ 0 };
         bool m_error{ false };
         char m_identifier[g_maxIdentifierLength];
+        int m_iValue{ 0 };
+        double m_dValue{ 0.0 };
 
         Token::Type m_token{ Token::Type::EndOfStream };
     };

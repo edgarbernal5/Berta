@@ -37,10 +37,32 @@ namespace Berta
         std::vector<WindowArea> m_windows;
     };
 
+    struct Margin
+    {
+
+    };
+
+    struct Number
+    {
+        using NumberValue = std::variant<int, double>;
+
+        Number() = default;
+        Number(NumberValue value, bool percentage) : scalar(value), isPercentage(percentage) {}
+
+        template<class T>
+        T GetValue(float dpiFactor);
+
+        template<class T>
+        T GetValue();
+
+        NumberValue scalar{ 0 };
+        bool isPercentage{ false };
+    };
+
     class LayoutNode
     {
     public:
-        using PropertyValue = std::variant<int, double, std::string, bool>;
+        using PropertyValue = std::variant<Number, std::string, bool>;
 
         LayoutNode() = default;
         LayoutNode(const std::string& id);
@@ -61,6 +83,17 @@ namespace Berta
                 return std::get<T>(it->second);
             }
             return defaultValue;
+        }
+
+        template <typename T>
+        bool HasProperty(const std::string& key) const
+        {
+            auto it = m_properties.find(key);
+            if (it != m_properties.end() && std::holds_alternative<T>(it->second))
+            {
+                return true;
+            }
+            return false;
         }
 
         std::string GetId()
@@ -98,6 +131,11 @@ namespace Berta
             return m_controlContainer.GetWindowsAreas();
         }
 
+        void SetParentWindow(Window* window)
+        {
+            SetParentWindow(this, window);
+        }
+
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
 
@@ -109,9 +147,39 @@ namespace Berta
 
     private:
 
+        void SetParentWindow(LayoutNode* node, Window* window)
+        {
+            if (node == nullptr)
+                return;
+
+            node->m_parentWindow = window;
+
+            for (auto& childNode : node->m_children)
+            {
+                SetParentWindow(childNode.get(), window);
+            }
+        }
+
+        Window* m_parentWindow{ nullptr };
         bool m_isVertical{ false };
         std::vector<std::unique_ptr<LayoutNode>> m_children;
     };
+
+    template<class T>
+    inline T Number::GetValue(float dpiFactor)
+    {
+        if (std::holds_alternative<T>(scalar))
+        {
+            return static_cast<T>(static_cast<double>(std::get<T>(scalar) * dpiFactor));
+        }
+
+        return T(0);
+    }
+    template<class T>
+    inline T Number::GetValue()
+    {
+        return static_cast<T>(std::get<T>(scalar));
+    }
 }
 
 #endif

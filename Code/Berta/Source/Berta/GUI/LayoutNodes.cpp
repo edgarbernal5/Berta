@@ -66,29 +66,122 @@ namespace Berta
 
 	void LayoutNode::CalculateAreas()
 	{
-		auto parentArea = GetArea();
+		const auto& dpi = m_parentWindow->DPIScaleFactor;
+		Number marginLeftNum = GetProperty<Number>("margin-left", {});
+		Number marginRightNum = GetProperty<Number>("margin-right", {});
+		Number marginTopNum = GetProperty<Number>("margin-top", {});
+		Number marginBottomNum = GetProperty<Number>("margin-bottom", {});
+		
+		auto marginLeft = marginLeftNum.GetValue<int>(dpi);
+		auto marginRight = marginRightNum.GetValue<int>(dpi);
+		auto marginTop = marginTopNum.GetValue<int>(dpi);
+		auto marginBottom = marginBottomNum.GetValue<int>(dpi);
+		
+		int count = (int)m_children.size();
+		
+		Point offset{ 0, 0 };
+		std::vector<bool> mark(m_children.size(), false);
+		std::vector<Rectangle> areas(m_children.size());
 
-		int count = m_children.size();
-		Point offset{};
-		for (auto& childNode : m_children)
+		auto parentArea = GetArea();
+		auto remainArea = parentArea;
+		auto fixedNodesCount = 0;
+
+		for (size_t i = 0; i < m_children.size(); ++i)
 		{
-			auto childArea = childNode->GetArea();
-			childArea.Height = parentArea.Height;
-			childArea.Width = parentArea.Width;
+			auto& childNode = m_children[i];
+			Rectangle childArea;
+
 			if (m_isVertical)
 			{
-				auto part = parentArea.Height / count;
-				childArea.Height = part;
-				childArea.Y = offset.Y;
-				offset.Y += parentArea.Height;
+				childArea.Width = parentArea.Width;
+				if (HasProperty<Number>("Height"))
+				{
+					auto heightNum = GetProperty<Number>("Height");
+					if (heightNum.isPercentage)
+					{
+						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<double>(dpi) * parentArea.Height);
+						remainArea.Height -= fixedHeight;
+						childArea.Height = static_cast<uint32_t>(fixedHeight);
+					}
+					else
+					{
+						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<int>(dpi));
+						remainArea.Height -= fixedHeight;
+						childArea.Height = fixedHeight;
+					}
+					mark[i] = true;
+					areas[i] = childArea;
+					++fixedNodesCount;
+				}
 			}
 			else
 			{
-				auto part = parentArea.Width / count;
-				childArea.Width = part;
-				childArea.X = offset.X;
-				offset.X += parentArea.Width;
+				childArea.Height = parentArea.Height;
+				if (HasProperty<Number>("Width"))
+				{
+					auto widthNum = GetProperty<Number>("Width");
+					if (widthNum.isPercentage)
+					{
+						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<double>(dpi) * parentArea.Width);
+						remainArea.Width -= fixedWidth;
+						childArea.Width = static_cast<uint32_t>(fixedWidth);
+					}
+					else
+					{
+						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<int>(dpi));
+						remainArea.Width -= fixedWidth;
+						childArea.Width = fixedWidth;
+					}
+					mark[i] = true;
+					areas[i] = childArea;
+					++fixedNodesCount;
+				}
 			}
+		}
+		int totalCount = count - fixedNodesCount;
+		
+		for (size_t i = 0; i < m_children.size(); ++i)
+		{
+			auto& childNode = m_children[i];
+			Rectangle childArea{ };
+			childArea.X = marginLeft;
+			childArea.Y = marginTop;
+			if (mark[i])
+			{
+				childArea.Width = areas[i].Width;
+				childArea.Height = areas[i].Height;
+			}
+			else
+			{
+				childArea.Width = parentArea.Width;
+				childArea.Height = parentArea.Height;
+			}
+			//Rectangle childArea{ marginLeft, marginTop, parentArea.Width, parentArea.Height };
+
+			childArea.Width -= marginLeft;
+			childArea.Height -= marginTop;
+
+			if (!mark[i])
+			{
+				if (m_isVertical)
+				{
+					auto part = remainArea.Height / totalCount;
+					childArea.Height = part;
+					childArea.Y += offset.Y;
+					offset.Y += part;
+				}
+				else
+				{
+					auto part = remainArea.Width / totalCount;
+					childArea.Width = part;
+					childArea.X += offset.X;
+					offset.X += part;
+				}
+				childArea.Width -= marginRight;
+				childArea.Height -= marginBottom;
+			}
+
 			childNode->SetArea(childArea);
 
 			childNode->CalculateAreas();

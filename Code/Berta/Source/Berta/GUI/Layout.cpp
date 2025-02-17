@@ -11,7 +11,8 @@
 
 namespace Berta
 {
-	Layout::Layout()
+	Layout::Layout() :
+		m_parent(nullptr)
 	{
 	}
 
@@ -39,11 +40,15 @@ namespace Berta
 
 	void Layout::Create(Window* window)
 	{
-		m_parent = window;
-		if (!m_parent)
+		if (!window)
 		{
 			return;
 		}
+		if (m_parent)
+		{
+
+		}
+		m_parent = window;
 
 		m_parent->Events->Resize.Connect([this](const ArgResize& args)
 		{
@@ -57,7 +62,7 @@ namespace Berta
 
 		m_parent->Events->Destroy.Connect([](const ArgDestroy& args)
 		{
-
+			//
 		});
 	}
 
@@ -71,6 +76,7 @@ namespace Berta
 			return;
 		}
 
+		m_rootNode->SetParentWindow(m_parent);
 		BT_CORE_TRACE << "Parse completed." << std::endl;
 	}
 
@@ -112,6 +118,12 @@ namespace Berta
 		if (m_buffer[0] == '=')
 		{
 			m_token = Token::Type::Equal;
+			++m_buffer;
+			return;
+		}
+		if (m_buffer[0] == '%')
+		{
+			m_token = Token::Type::Percentage;
 			++m_buffer;
 			return;
 		}
@@ -185,12 +197,6 @@ namespace Berta
 		{
 			return false;
 		}
-		if (fEnd < m_bufferEnd && fEnd[0] == '%')
-		{
-			// no sabemos si es un entero o double.
-			m_token = Token::Type::Number;
-			return true;
-		}
 
 		char* iEnd = nullptr;
 		long lValue = std::strtol(m_buffer, &iEnd, 10);
@@ -198,17 +204,15 @@ namespace Berta
 		if (fEnd > iEnd && (fEnd[0] == 0))
 		{
 			m_buffer = fEnd;
-			m_token = Token::Type::Number; // it is a double.
+			m_token = Token::Type::NumberDouble; // it is a double.
+			m_dValue = dValue;
 			return true;
 		}
 		else if (iEnd > m_buffer && (iEnd[0] == 0))
 		{
 			m_buffer = iEnd;
-			m_token = Token::Type::Number; // it is a integer.
-			return true;
-		}
-		if (iEnd < m_bufferEnd && iEnd[0] == '%')
-		{
+			m_token = Token::Type::NumberInt; // it is a integer.
+			m_iValue = static_cast<int>(lValue);
 			return true;
 		}
 		return false;
@@ -286,7 +290,33 @@ namespace Berta
 			}
 			else if (Accept(Token::Type::Width))
 			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					/*Number number;
+					if (isNumberInt)
+					{
+						number.scalar = m_tokenizer.GetInt();
+					}
+					else
+					{
+						number.scalar = m_tokenizer.GetDouble();
+					}
 
+					if (Accept(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					node->SetProperty("Width", number);*/
+				}
+				else {
+					return false;
+				}
 			}
 			else if (Accept(Token::Type::Height))
 			{

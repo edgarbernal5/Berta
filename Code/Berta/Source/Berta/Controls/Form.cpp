@@ -18,7 +18,7 @@ namespace Berta
 
 	void FormReactor::Update(Graphics& graphics)
 	{
-		BT_CORE_TRACE << "  - Form::Update " << std::endl;
+		BT_CORE_TRACE << "  - Form::Update | " << m_control->Handle()->Name << std::endl;
 		graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
 	}
 
