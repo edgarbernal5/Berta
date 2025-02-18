@@ -127,20 +127,20 @@ namespace Berta
 
 				if (m_isVertical)
 				{
-					remainArea.Height -= fixedSize;
-				}
-				else
-				{
-					remainArea.Width -= fixedSize;
-				}
-
-				if (m_isVertical)
-				{
 					childArea.Height = fixedSize;
 				}
 				else
 				{
 					childArea.Width = fixedSize;
+				}
+
+				if (m_isVertical)
+				{
+					remainArea.Height -= fixedSize;
+				}
+				else
+				{
+					remainArea.Width -= fixedSize;
 				}
 
 				markedChildren[i] = true;
@@ -149,6 +149,7 @@ namespace Berta
 				++fixedNodesCount;
 			}
 		}
+
 		Point offset{ 0, 0 };
 		int totalFreeCount = totalChildren - fixedNodesCount;
 		

@@ -13,12 +13,7 @@
 #include <fstream>
 #include <filesystem>
 #include <mutex>
-
-//#include <dbghelp.h>
-
-//#pragma comment(lib, "dbghelp.lib")
-//TODO: implementar esto
-//https://chatgpt.com/c/32bf08ae-2615-477e-9352-879b12a59718
+#include "Berta/Core/StackTracer.h"
 
 namespace Berta
 {
@@ -124,7 +119,9 @@ namespace Berta
 
 			if (manip == static_cast<ManipFn>(std::flush)
 				|| manip == static_cast<ManipFn>(std::endl))
+			{
 				Flush();
+			}
 
 			return *this;
 		}
@@ -166,11 +163,14 @@ namespace Berta
 			std::ostringstream builder;
 			builder << "[" << timeBuffer << "] [" << GetLogLevelName(m_logLevel) << "] " << logContent;
 			
-			std::string ouputMessage = builder.str();
+			std::string outputMessage = builder.str();
+			
+			static StackTracer tracer;
+			outputMessage += tracer.GetStackTrace(3, 8);
 
-			for (auto sink : m_sinks)
+			for (auto& sink : m_sinks)
 			{
-				sink->Commit(ouputMessage);
+				sink->Commit(outputMessage);
 			}
 
 			m_stream.str({});

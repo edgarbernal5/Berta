@@ -201,6 +201,9 @@
     <ClInclude Include="Source\Berta\GUI\LayoutNodes.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Core\StackTracer.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -328,6 +331,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\LayoutNodes.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Core\StackTracer.cpp">
+      <Filter>Source\Berta\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
