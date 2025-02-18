@@ -34,7 +34,7 @@ namespace Berta
             return m_windows;
         }
     private:
-        std::vector<WindowArea> m_windows;
+        std::vector<WindowArea> m_windows; //TODO: quitar el vector y hacer una sola instancia por nodo.
     };
 
     struct Margin

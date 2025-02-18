@@ -352,24 +352,11 @@ namespace Berta
 				{
 					return false;
 				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				if (Accept(Token::Type::NumberInt))
 				{
 					Number number;
-					if (isNumberInt)
-					{
-						number.scalar = m_tokenizer.GetInt();
-					}
-					else
-					{
-						number.scalar = m_tokenizer.GetDouble();
-					}
+					number.scalar = m_tokenizer.GetInt();
 
-					if (Accept(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
 					node->SetProperty("MinWidth", number);
 				}
 				else
@@ -383,31 +370,54 @@ namespace Berta
 				{
 					return false;
 				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				if (Accept(Token::Type::NumberInt))
 				{
 					Number number;
-					if (isNumberInt)
-					{
-						number.scalar = m_tokenizer.GetInt();
-					}
-					else
-					{
-						number.scalar = m_tokenizer.GetDouble();
-					}
+					number.scalar = m_tokenizer.GetInt();
 
-					if (Accept(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
 					node->SetProperty("MaxWidth", number);
 				}
 				else
 				{
 					return false;
 				}
+			}
+			else if (Accept(Token::Type::MinHeight))
+			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
 				}
+				if (Accept(Token::Type::NumberInt))
+				{
+					Number number;
+					number.scalar = m_tokenizer.GetInt();
+
+					node->SetProperty("MinHeight", number);
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (Accept(Token::Type::MaxHeight))
+			{
+				if (!Expect(Token::Type::Equal))
+				{
+					return false;
+				}
+				if (Accept(Token::Type::NumberInt))
+				{
+					Number number;
+					number.scalar = m_tokenizer.GetInt();
+
+					node->SetProperty("MaxHeight", number);
+				}
+				else
+				{
+					return false;
+				}
+			}
 		}
 
 		newNode = std::move(node);

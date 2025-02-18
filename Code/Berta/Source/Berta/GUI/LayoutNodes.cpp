@@ -77,13 +77,13 @@ namespace Berta
 		auto marginTop = marginTopNum.GetValue<int>(dpi);
 		auto marginBottom = marginBottomNum.GetValue<int>(dpi);
 		
-		int count = (int)m_children.size();
-		
-		std::vector<bool> mark(m_children.size(), false);
+		std::vector<bool> markedChildren(m_children.size(), false);
 		std::vector<Rectangle> areas(m_children.size());
 
 		auto parentArea = GetArea();
 		auto remainArea = parentArea;
+
+		int totalChildren = (int)m_children.size();
 		auto fixedNodesCount = 0;
 
 		for (size_t i = 0; i < m_children.size(); ++i)
@@ -92,54 +92,65 @@ namespace Berta
 			Rectangle childArea;
 
 			if (m_isVertical)
-			{
 				childArea.Width = parentArea.Width;
-				if (childNode->HasProperty<Number>("Height"))
-				{
-					auto heightNum = childNode->GetProperty<Number>("Height");
-					if (heightNum.isPercentage)
-					{
-						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<double>() * parentArea.Height / 100.0);
-						remainArea.Height -= fixedHeight;
-						childArea.Height = static_cast<uint32_t>(fixedHeight);
-					}
-					else
-					{
-						auto fixedHeight = static_cast<uint32_t>(heightNum.GetValue<int>(dpi));
-						remainArea.Height -= fixedHeight;
-						childArea.Height = fixedHeight;
-					}
-					mark[i] = true;
-					areas[i] = childArea;
-					++fixedNodesCount;
-				}
-			}
 			else
-			{
 				childArea.Height = parentArea.Height;
-				if (childNode->HasProperty<Number>("Width"))
+
+			auto dimensionType = m_isVertical ? "Height" : "Width";
+			if (childNode->HasProperty<Number>(dimensionType))
+			{
+				auto dimensionNum = childNode->GetProperty<Number>(dimensionType);
+				bool isPercentage = dimensionNum.isPercentage;
+				uint32_t fixedSize = isPercentage ?
+					static_cast<uint32_t>(dimensionNum.GetValue<double>() * (m_isVertical ? parentArea.Height : parentArea.Width) / 100.0) :
+					static_cast<uint32_t>(dimensionNum.GetValue<int>(dpi));
+
+				auto minDimensionType = m_isVertical ? "MinHeight" : "MinWidth";
+				auto maxDimensionType = m_isVertical ? "MaxHeight" : "MaxWidth";
+
+				if (childNode->HasProperty<Number>(minDimensionType))
 				{
-					auto widthNum = childNode->GetProperty<Number>("Width");
-					if (widthNum.isPercentage)
+					auto dimensionNum = (uint32_t)childNode->GetProperty<Number>(minDimensionType).GetValue<int>(dpi);
+					if (fixedSize < dimensionNum)
 					{
-						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<double>() * parentArea.Width / 100.0);
-						remainArea.Width -= fixedWidth;
-						childArea.Width = static_cast<uint32_t>(fixedWidth);
+						fixedSize = dimensionNum;
 					}
-					else
-					{
-						auto fixedWidth = static_cast<uint32_t>(widthNum.GetValue<int>(dpi));
-						remainArea.Width -= fixedWidth;
-						childArea.Width = fixedWidth;
-					}
-					mark[i] = true;
-					areas[i] = childArea;
-					++fixedNodesCount;
 				}
+				if (childNode->HasProperty<Number>(maxDimensionType))
+				{
+					auto dimensionNum = (uint32_t)childNode->GetProperty<Number>(maxDimensionType).GetValue<int>(dpi);
+					if (fixedSize > dimensionNum)
+					{
+						fixedSize = dimensionNum;
+					}
+				}
+
+				if (m_isVertical)
+				{
+					remainArea.Height -= fixedSize;
+				}
+				else
+				{
+					remainArea.Width -= fixedSize;
+				}
+
+				if (m_isVertical)
+				{
+					childArea.Height = fixedSize;
+				}
+				else
+				{
+					childArea.Width = fixedSize;
+				}
+
+				markedChildren[i] = true;
+				areas[i] = childArea;
+
+				++fixedNodesCount;
 			}
 		}
 		Point offset{ 0, 0 };
-		int totalCount = count - fixedNodesCount;
+		int totalFreeCount = totalChildren - fixedNodesCount;
 		
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
@@ -147,7 +158,7 @@ namespace Berta
 			Rectangle childArea{ };
 			childArea.X = marginLeft;
 			childArea.Y = marginTop;
-			if (mark[i])
+			if (markedChildren[i])
 			{
 				childArea.Width = areas[i].Width;
 				childArea.Height = areas[i].Height;
@@ -161,18 +172,18 @@ namespace Berta
 			childArea.Width -= marginLeft;
 			childArea.Height -= marginTop;
 
-			if (!mark[i])
+			if (!markedChildren[i])
 			{
 				if (m_isVertical)
 				{
-					auto part = remainArea.Height / totalCount;
+					auto part = remainArea.Height / totalFreeCount;
 					childArea.Height = part;
 					childArea.Y += offset.Y;
 					offset.Y += part;
 				}
 				else
 				{
-					auto part = remainArea.Width / totalCount;
+					auto part = remainArea.Width / totalFreeCount;
 					childArea.Width = part;
 					childArea.X += offset.X;
 					offset.X += part;
@@ -201,7 +212,7 @@ namespace Berta
 		for (auto& childNode : m_children)
 		{
 			auto containerArea = childNode->GetArea();
-			auto count = (uint32_t)childNode->GetWindowsAreas().size();
+			auto count = static_cast<uint32_t>(childNode->GetWindowsAreas().size());
 			Point offset{ containerArea.X, containerArea.Y };
 			for (auto& windowArea : childNode->GetWindowsAreas())
 			{
@@ -213,15 +224,15 @@ namespace Berta
 				Point offset2{};
 				if (m_isVertical)
 				{
-					auto part = containerArea.Height / count;
-					childArea.Height = part;
-					offset2.Y = (int)part;
+					auto partHeight = containerArea.Height / count;
+					childArea.Height = partHeight;
+					offset2.Y = (int)partHeight;
 				}
 				else
 				{
-					auto part = containerArea.Width / count;
-					childArea.Width = part;
-					offset2.X = (int)part;
+					auto partWidth = containerArea.Width / count;
+					childArea.Width = partWidth;
+					offset2.X = (int)partWidth;
 				}
 				windowArea.area = childArea;
 				offset.X += offset2.X;
