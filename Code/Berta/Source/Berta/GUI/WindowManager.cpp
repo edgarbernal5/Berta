@@ -502,6 +502,7 @@ namespace Berta
 	void WindowManager::Move(Window* window, const Rectangle& newRect)
 	{
 		auto& foundation = Foundation::GetInstance();
+
 		Rectangle currentRect{ window->Position, window->Size };
 		if (currentRect != newRect)
 		{

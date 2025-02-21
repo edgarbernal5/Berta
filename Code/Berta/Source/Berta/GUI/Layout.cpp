@@ -28,14 +28,14 @@ namespace Berta
 
 	void Layout::Attach(const std::string& fieldId, Window* window)
 	{
-		auto& pair = m_fields[fieldId];
+		//auto& pair = m_fields[fieldId];
 
-		if (pair == nullptr)
-		{
-			auto newNode = m_rootNode->Find(fieldId);
-			pair = newNode;
-		}
-		pair->AddWindow(window);
+		//if (pair == nullptr)
+		//{
+		//	auto newNode = m_rootNode->Find(fieldId);
+		//	pair = newNode;
+		//}
+		//pair->AddWindow(window);
 	}
 
 	void Layout::Create(Window* window)
@@ -70,13 +70,13 @@ namespace Berta
 	{
 		Layout::Parser parser(source);
 
-		bool result = parser.Parse(std::move(m_rootNode));
-		if (!result)
+		auto rootNode = parser.Parse();
+		if (!rootNode)
 		{
 			return;
 		}
-
-		m_rootNode->SetParentWindow(m_parent);
+		m_rootNode = std::move(rootNode);
+		//m_rootNode->SetParentWindow(m_parent);
 		BT_CORE_TRACE << "Parse completed." << std::endl;
 	}
 
@@ -124,6 +124,12 @@ namespace Berta
 		if (m_buffer[0] == '%')
 		{
 			m_token = Token::Type::Percentage;
+			++m_buffer;
+			return;
+		}
+		if (m_buffer[0] == '|')
+		{
+			m_token = Token::Type::Splitter;
 			++m_buffer;
 			return;
 		}
@@ -184,6 +190,7 @@ namespace Berta
 		case '-':
 		case '=':
 		case '%':
+		case '|':
 			return true;
 		}
 		return false;
@@ -230,28 +237,84 @@ namespace Berta
 	{
 	}
 
-	bool Layout::Parser::Parse(std::unique_ptr<LayoutNode> && newNode)
+	std::unique_ptr<LayoutNode> Layout::Parser::Parse()
 	{
+
 		if (Accept(Token::Type::OpenBrace))
 		{
-			bool isVertical = false;
-			auto container = std::make_unique<LayoutNode>(isVertical);
-
-			std::unique_ptr<LayoutNode> childNode;
-			if (!ParseAttributesOrNewBrace(std::move(childNode)))
+			std::string identifier;
+			if (AcceptIdentifier(identifier))
 			{
-				return false;
+				//attributes, store it locally.
+				if (Accept(Token::Type::Width))
+				{
+					if (!Expect(Token::Type::Equal))
+					{
+						return nullptr;
+					}
+					bool isNumberInt = false;
+					bool isNumberDouble = false;
+					if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+					{
+						Number number;
+						if (isNumberInt)
+						{
+							number.scalar = m_tokenizer.GetInt();
+						}
+						else
+						{
+							number.scalar = m_tokenizer.GetDouble();
+						}
+
+						if (Accept(Token::Type::Percentage))
+						{
+							number.isPercentage = true;
+						}
+						//node->SetProperty("Width", number);
+					}
+					else
+					{
+						return nullptr;
+					}
+				}
+				if (Accept(Token::Type::CloseBrace))
+				{
+					//
+					return std::make_unique<LeafLayoutNode>();
+				}
+				else
+				{
+					throw std::runtime_error("Expected closing brace after identifier.");
+				}
 			}
-			container->AddChild(std::move(childNode));
-			newNode = std::move(container);
+			else
+			{
+				auto container = std::make_unique<ContainerLayoutNode>(false);
+				while (true)
+				{
+					auto child = Parse();
+					if (child)
+					{
+						container->AddChild(std::move(child));
+					}
+					else
+					{
+						break; // No more children in this container
+					}
+				}
+				if (!Accept(Token::Type::CloseBrace))
+				{
+					throw std::runtime_error("Expected closing brace for container.");
+				}
+				return container;
+			}
 		}
-		
-		return true;
+		return nullptr;
 	}
 
 	bool Layout::Parser::ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode)
 	{
-		bool isVertical = false;
+		/*bool isVertical = false;
 		std::string identifier;
 
 		auto node = std::make_unique<LayoutNode>(isVertical);
@@ -418,9 +481,16 @@ namespace Berta
 					return false;
 				}
 			}
+			else if (Accept(Token::Type::Splitter))
+			{
+				auto splitterNode = std::make_unique<LayoutNode>(isVertical);
+				splitterNode->SetProperty("Width", Number{ 4 });
+
+				node->AddChild(std::move(splitterNode));
+			}
 		}
 
-		newNode = std::move(node);
+		newNode = std::move(node);*/
 		return true;
 	}
 
@@ -457,6 +527,11 @@ namespace Berta
 			return false;
 		}
 		return true;
+	}
+
+	bool Layout::Parser::IsEqualTo(Token::Type tokenId)
+	{
+		return m_tokenizer.GetToken() == tokenId;
 	}
 
 	void LayoutControlContainer::AddWindow(Window* window)

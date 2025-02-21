@@ -47,6 +47,7 @@ namespace Berta
         using NumberValue = std::variant<int, double>;
 
         Number() = default;
+        Number(NumberValue value) : scalar(value), isPercentage(false) {}
         Number(NumberValue value, bool percentage) : scalar(value), isPercentage(percentage) {}
 
         template<class T>
@@ -64,9 +65,14 @@ namespace Berta
     public:
         using PropertyValue = std::variant<Number, std::string, bool>;
 
-        LayoutNode() = default;
-        LayoutNode(const std::string& id);
-        LayoutNode(bool isVertical);
+        enum class Type
+        {
+            Container,
+            Leaf,
+            Splitter
+        };
+
+        LayoutNode(Type type);
 
         void AddWindow(Window* window);
         void SetProperty(const std::string& key, const PropertyValue& value)
@@ -111,30 +117,30 @@ namespace Berta
             return m_area;
         }
 
+        Type GetType() const
+        {
+            return m_type;
+        }
+
         void SetArea(const Rectangle& newSize)
         {
             m_area = newSize;
         }
 
-        virtual void Apply();
-        virtual void CalculateAreas();
-        void AddChild(std::unique_ptr<LayoutNode>&& child);
+        virtual void Apply() = 0;
+        virtual void CalculateAreas() = 0;
 
         LayoutNode* Find(const std::string& id);
-        void SetOrientation(bool isVertical)
-        {
-            m_isVertical = isVertical;
-        }
 
         std::vector<LayoutControlContainer::WindowArea>& GetWindowsAreas()
         {
             return m_controlContainer.GetWindowsAreas();
         }
 
-        void SetParentWindow(Window* window)
-        {
-            SetParentWindow(this, window);
-        }
+        //void SetParentWindow(Window* window)
+        //{
+        //    SetParentWindow(this, window);
+        //}
 
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
@@ -144,24 +150,52 @@ namespace Berta
 
         std::unordered_map<std::string, PropertyValue> m_properties;
         LayoutControlContainer m_controlContainer;
+        std::vector<std::unique_ptr<LayoutNode>> m_children;
 
     private:
-        void SetParentWindow(LayoutNode* node, Window* window)
+        //void SetParentWindow(LayoutNode* node, Window* window)
+        //{
+        //    if (node == nullptr)
+        //        return;
+
+        //    node->m_parentWindow = window;
+
+        //    for (auto& childNode : node->m_children)
+        //    {
+        //        SetParentWindow(childNode.get(), window);
+        //    }
+        //}
+
+        Type m_type{ Type::Container };
+        Window* m_parentWindow{ nullptr };
+    };
+
+    class ContainerLayoutNode : public LayoutNode
+    {
+    public:
+        ContainerLayoutNode(bool isVertical);
+
+        void SetOrientation(bool isVertical)
         {
-            if (node == nullptr)
-                return;
-
-            node->m_parentWindow = window;
-
-            for (auto& childNode : node->m_children)
-            {
-                SetParentWindow(childNode.get(), window);
-            }
+            m_isVertical = isVertical;
         }
 
-        Window* m_parentWindow{ nullptr };
+        void AddChild(std::unique_ptr<LayoutNode>&& child);
+
+        void Apply() override;
+        void CalculateAreas() override;
+
+    private:
         bool m_isVertical{ false };
-        std::vector<std::unique_ptr<LayoutNode>> m_children;
+    };
+
+    class LeafLayoutNode : public LayoutNode
+    {
+    public:
+        LeafLayoutNode();
+
+        void Apply() override;
+        void CalculateAreas() override;
     };
 
     template<class T>

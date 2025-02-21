@@ -11,23 +11,14 @@
 
 namespace Berta
 {
-	LayoutNode::LayoutNode(const std::string& id) : 
-		m_id(id)
-	{
-	}
-
-	LayoutNode::LayoutNode(bool isVertical) : m_isVertical(isVertical)
+	LayoutNode::LayoutNode(Type type) :
+		m_type(type)
 	{
 	}
 
 	void LayoutNode::AddWindow(Window* window)
 	{
 		m_controlContainer.AddWindow(window);
-	}
-
-	void LayoutNode::AddChild(std::unique_ptr<LayoutNode>&& child)
-	{
-		m_children.push_back(std::move(child));
 	}
 
 	LayoutNode* LayoutNode::Find(const std::string& id)
@@ -52,7 +43,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	void LayoutNode::Apply()
+	void ContainerLayoutNode::Apply()
 	{
 		for (auto& childNode : m_children)
 		{
@@ -64,9 +55,10 @@ namespace Berta
 		}
 	}
 
-	void LayoutNode::CalculateAreas()
+	void ContainerLayoutNode::CalculateAreas()
 	{
-		const auto& dpi = m_parentWindow->DPIScaleFactor;
+		//const auto& dpi = m_parentWindow->DPIScaleFactor;
+		auto dpi = 1.0f;
 		Number marginLeftNum = GetProperty<Number>("margin-left", {});
 		Number marginRightNum = GetProperty<Number>("margin-right", {});
 		Number marginTopNum = GetProperty<Number>("margin-top", {});
@@ -240,5 +232,27 @@ namespace Berta
 				offset.Y += offset2.Y;
 			}
 		}
+	}
+
+	ContainerLayoutNode::ContainerLayoutNode(bool isVertical) : 
+		LayoutNode(Type::Container),
+		m_isVertical(isVertical)
+	{
+	}
+
+	void ContainerLayoutNode::AddChild(std::unique_ptr<LayoutNode>&& child)
+	{
+		m_children.push_back(std::move(child));
+	}
+
+	LeafLayoutNode::LeafLayoutNode() : 
+		LayoutNode(Type::Leaf)
+	{
+	}
+	void LeafLayoutNode::Apply()
+	{
+	}
+	void LeafLayoutNode::CalculateAreas()
+	{
 	}
 }

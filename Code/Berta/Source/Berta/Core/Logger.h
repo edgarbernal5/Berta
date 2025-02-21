@@ -13,7 +13,10 @@
 #include <fstream>
 #include <filesystem>
 #include <mutex>
+
+#if BT_STACK_TRACER
 #include "Berta/Core/StackTracer.h"
+#endif
 
 namespace Berta
 {
@@ -165,8 +168,10 @@ namespace Berta
 			
 			std::string outputMessage = builder.str();
 			
+#if BT_STACK_TRACER
 			static StackTracer tracer;
 			outputMessage += tracer.GetStackTrace(3, 8);
+#endif
 
 			for (auto& sink : m_sinks)
 			{

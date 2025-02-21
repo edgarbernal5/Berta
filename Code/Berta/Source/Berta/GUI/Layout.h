@@ -30,6 +30,7 @@ namespace Berta
             CloseBrace,
             Equal,
             Comma,
+            Splitter,
             EndOfStream,
 
             VerticalLayout = 256,
@@ -74,14 +75,17 @@ namespace Berta
         {
             return m_token;
         }
+
         const char* GetIdentifier() const
         {
             return m_identifier;
         }
+
         int GetInt() const
         {
             return m_iValue;
         }
+
         double GetDouble() const
         {
             return m_dValue;
@@ -122,7 +126,7 @@ namespace Berta
         public:
             Parser(const std::string& source);
 
-            bool Parse(std::unique_ptr<LayoutNode> && newNode);
+            std::unique_ptr<LayoutNode> Parse();
             bool ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode);
 
 
@@ -130,6 +134,7 @@ namespace Berta
             bool Accept(Token::Type tokenId);
             bool AcceptIdentifier(std::string& identifier);
             bool Expect(Token::Type tokenId);
+            bool IsEqualTo(Token::Type tokenId);
 
             Tokenizer m_tokenizer;
             std::string m_source;
