@@ -255,4 +255,14 @@ namespace Berta
 	void LeafLayoutNode::CalculateAreas()
 	{
 	}
+	SplitterLayoutNode::SplitterLayoutNode() :
+		LayoutNode(Type::Splitter)
+	{
+	}
+	void SplitterLayoutNode::Apply()
+	{
+	}
+	void SplitterLayoutNode::CalculateAreas()
+	{
+	}
 }

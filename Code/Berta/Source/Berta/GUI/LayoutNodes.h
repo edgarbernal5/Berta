@@ -141,6 +141,8 @@ namespace Berta
         //{
         //    SetParentWindow(this, window);
         //}
+        std::unordered_map<std::string, PropertyValue> m_properties;
+        std::vector<std::unique_ptr<LayoutNode>> m_children;
 
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
@@ -148,9 +150,7 @@ namespace Berta
         std::string m_id;
         Rectangle m_area;
 
-        std::unordered_map<std::string, PropertyValue> m_properties;
         LayoutControlContainer m_controlContainer;
-        std::vector<std::unique_ptr<LayoutNode>> m_children;
 
     private:
         //void SetParentWindow(LayoutNode* node, Window* window)
@@ -193,6 +193,15 @@ namespace Berta
     {
     public:
         LeafLayoutNode();
+
+        void Apply() override;
+        void CalculateAreas() override;
+    };
+
+    class SplitterLayoutNode : public LayoutNode
+    {
+    public:
+        SplitterLayoutNode();
 
         void Apply() override;
         void CalculateAreas() override;

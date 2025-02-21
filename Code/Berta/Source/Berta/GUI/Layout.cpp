@@ -84,7 +84,6 @@ namespace Berta
 		m_buffer(source.c_str()),
 		m_bufferEnd(source.c_str() + source.size())
 	{
-		Next();
 	}
 
 	void Tokenizer::Next()
@@ -239,77 +238,187 @@ namespace Berta
 
 	std::unique_ptr<LayoutNode> Layout::Parser::Parse()
 	{
+		std::string identifier;
+		std::vector<std::unique_ptr<LayoutNode>> children;
+		std::unique_ptr<LayoutNode> node;
+		bool isVertical = false;
+		std::unordered_map<std::string, LayoutNode::PropertyValue> properties;
 
-		if (Accept(Token::Type::OpenBrace))
+		m_tokenizer.Next();
+		Token::Type currentToken = m_tokenizer.GetToken();
+		while (currentToken != Token::Type::EndOfStream && currentToken != Token::Type::CloseBrace)
 		{
-			std::string identifier;
-			if (AcceptIdentifier(identifier))
+			switch (currentToken)
 			{
-				//attributes, store it locally.
-				if (Accept(Token::Type::Width))
-				{
-					if (!Expect(Token::Type::Equal))
-					{
-						return nullptr;
-					}
-					bool isNumberInt = false;
-					bool isNumberDouble = false;
-					if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-					{
-						Number number;
-						if (isNumberInt)
-						{
-							number.scalar = m_tokenizer.GetInt();
-						}
-						else
-						{
-							number.scalar = m_tokenizer.GetDouble();
-						}
+			case Berta::Token::Type::Identifier:
+				identifier = m_tokenizer.GetIdentifier();
+				break;
+			case Berta::Token::Type::NumberInt:
+				break;
+			case Berta::Token::Type::NumberDouble:
+				break;
+			case Berta::Token::Type::Percentage:
+				break;
+			case Berta::Token::Type::String:
+				break;
+			case Berta::Token::Type::OpenBrace:
+			{
+				auto child = Parse();
+				children.push_back(std::move(child));
+				break;
+			}
+			case Berta::Token::Type::Splitter:
+			{
+				auto splitterNode = std::make_unique<SplitterLayoutNode>();
+				splitterNode->SetProperty("Width", Number{ 4 });
 
-						if (Accept(Token::Type::Percentage))
-						{
-							number.isPercentage = true;
-						}
-						//node->SetProperty("Width", number);
+				children.emplace_back(std::move(splitterNode));
+				break;
+			}
+				
+			case Berta::Token::Type::VerticalLayout:
+				break;
+			case Berta::Token::Type::HorizontalLayout:
+				break;
+			case Berta::Token::Type::Width:
+			{
+				m_tokenizer.Next();
+				currentToken = m_tokenizer.GetToken();
+				if (!Expect(Token::Type::Equal))
+				{
+					return nullptr;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					Number number;
+					if (isNumberInt)
+					{
+						number.scalar = m_tokenizer.GetInt();
 					}
 					else
 					{
-						return nullptr;
+						number.scalar = m_tokenizer.GetDouble();
 					}
+
+					if (Accept(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					//node->SetProperty("Width", number);
+					properties["Width"] = number;
 				}
-				if (Accept(Token::Type::CloseBrace))
-				{
-					//
-					return std::make_unique<LeafLayoutNode>();
-				}
-				else
-				{
-					throw std::runtime_error("Expected closing brace after identifier.");
-				}
+				break;
+			}
+			case Berta::Token::Type::Height:
+				break;
+			case Berta::Token::Type::MinHeight:
+				break;
+			case Berta::Token::Type::MaxHeight:
+				break;
+			case Berta::Token::Type::MinWidth:
+				break;
+			case Berta::Token::Type::MaxWidth:
+				break;
+			default:
+				break;
+			}
+			m_tokenizer.Next();
+			currentToken = m_tokenizer.GetToken();
+		}
+
+		switch (currentToken)
+		{
+		case Token::Type::CloseBrace:
+		case Token::Type::EndOfStream:
+		{
+			if (children.empty())
+			{
+				node = std::make_unique<LeafLayoutNode>();
 			}
 			else
 			{
-				auto container = std::make_unique<ContainerLayoutNode>(false);
-				while (true)
-				{
-					auto child = Parse();
-					if (child)
-					{
-						container->AddChild(std::move(child));
-					}
-					else
-					{
-						break; // No more children in this container
-					}
-				}
-				if (!Accept(Token::Type::CloseBrace))
-				{
-					throw std::runtime_error("Expected closing brace for container.");
-				}
-				return container;
+				node = std::make_unique<ContainerLayoutNode>(isVertical);
 			}
 		}
-		return nullptr;
+			break;
+		}
+
+		node->SetId(identifier);
+		node->m_properties.swap(properties);
+		node->m_children.swap(children);
+		return node;
+
+		//if (Accept(Token::Type::OpenBrace))
+		//{
+		//	if (AcceptIdentifier(identifier))
+		//	{
+		//		//attributes, store it locally.
+		//		if (Accept(Token::Type::Width))
+		//		{
+		//			if (!Expect(Token::Type::Equal))
+		//			{
+		//				return nullptr;
+		//			}
+		//			bool isNumberInt = false;
+		//			bool isNumberDouble = false;
+		//			if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+		//			{
+		//				Number number;
+		//				if (isNumberInt)
+		//				{
+		//					number.scalar = m_tokenizer.GetInt();
+		//				}
+		//				else
+		//				{
+		//					number.scalar = m_tokenizer.GetDouble();
+		//				}
+
+		//				if (Accept(Token::Type::Percentage))
+		//				{
+		//					number.isPercentage = true;
+		//				}
+		//				//node->SetProperty("Width", number);
+		//			}
+		//			else
+		//			{
+		//				return nullptr;
+		//			}
+		//		}
+		//		if (Accept(Token::Type::CloseBrace))
+		//		{
+		//			//
+		//			return std::make_unique<LeafLayoutNode>();
+		//		}
+		//		else
+		//		{
+		//			throw std::runtime_error("Expected closing brace after identifier.");
+		//		}
+		//	}
+		//	else
+		//	{
+		//		auto container = std::make_unique<ContainerLayoutNode>(false);
+		//		while (true)
+		//		{
+		//			auto child = Parse();
+		//			if (child)
+		//			{
+		//				container->AddChild(std::move(child));
+		//			}
+		//			else
+		//			{
+		//				break; // No more children in this container
+		//			}
+		//		}
+		//		if (!Accept(Token::Type::CloseBrace))
+		//		{
+		//			throw std::runtime_error("Expected closing brace for container.");
+		//		}
+		//		return container;
+		//	}
+		//}
+		//return nullptr;
 	}
 
 	bool Layout::Parser::ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode)

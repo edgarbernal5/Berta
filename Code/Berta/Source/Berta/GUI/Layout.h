@@ -29,7 +29,6 @@ namespace Berta
             OpenBrace,
             CloseBrace,
             Equal,
-            Comma,
             Splitter,
             EndOfStream,
 
