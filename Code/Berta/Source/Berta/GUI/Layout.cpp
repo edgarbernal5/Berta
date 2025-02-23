@@ -28,14 +28,14 @@ namespace Berta
 
 	void Layout::Attach(const std::string& fieldId, Window* window)
 	{
-		//auto& pair = m_fields[fieldId];
+		auto& pair = m_fields[fieldId];
 
-		//if (pair == nullptr)
-		//{
-		//	auto newNode = m_rootNode->Find(fieldId);
-		//	pair = newNode;
-		//}
-		//pair->AddWindow(window);
+		if (pair == nullptr)
+		{
+			auto newNode = m_rootNode->Find(fieldId);
+			pair = newNode;
+		}
+		pair->AddWindow(window);
 	}
 
 	void Layout::Create(Window* window)
@@ -75,9 +75,10 @@ namespace Berta
 		{
 			return;
 		}
-		m_rootNode = std::move(rootNode);
-		//m_rootNode->SetParentWindow(m_parent);
 		BT_CORE_TRACE << "Parse completed." << std::endl;
+
+		m_rootNode = std::move(rootNode);
+		m_rootNode->SetParentWindow(m_parent);
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 
@@ -264,7 +265,7 @@ namespace Berta
 			case Berta::Token::Type::OpenBrace:
 			{
 				auto child = Parse();
-				children.push_back(std::move(child));
+				children.emplace_back(std::move(child));
 				break;
 			}
 			case Berta::Token::Type::Splitter:
@@ -302,7 +303,7 @@ namespace Berta
 						number.scalar = m_tokenizer.GetDouble();
 					}
 
-					if (Accept(Token::Type::Percentage))
+					if (IsEqualTo(Token::Type::Percentage))
 					{
 						number.isPercentage = true;
 					}
@@ -333,7 +334,7 @@ namespace Berta
 		case Token::Type::CloseBrace:
 		case Token::Type::EndOfStream:
 		{
-			if (children.empty())
+			if (children.empty() || !identifier.empty())
 			{
 				node = std::make_unique<LeafLayoutNode>();
 			}
@@ -348,259 +349,8 @@ namespace Berta
 		node->SetId(identifier);
 		node->m_properties.swap(properties);
 		node->m_children.swap(children);
+
 		return node;
-
-		//if (Accept(Token::Type::OpenBrace))
-		//{
-		//	if (AcceptIdentifier(identifier))
-		//	{
-		//		//attributes, store it locally.
-		//		if (Accept(Token::Type::Width))
-		//		{
-		//			if (!Expect(Token::Type::Equal))
-		//			{
-		//				return nullptr;
-		//			}
-		//			bool isNumberInt = false;
-		//			bool isNumberDouble = false;
-		//			if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-		//			{
-		//				Number number;
-		//				if (isNumberInt)
-		//				{
-		//					number.scalar = m_tokenizer.GetInt();
-		//				}
-		//				else
-		//				{
-		//					number.scalar = m_tokenizer.GetDouble();
-		//				}
-
-		//				if (Accept(Token::Type::Percentage))
-		//				{
-		//					number.isPercentage = true;
-		//				}
-		//				//node->SetProperty("Width", number);
-		//			}
-		//			else
-		//			{
-		//				return nullptr;
-		//			}
-		//		}
-		//		if (Accept(Token::Type::CloseBrace))
-		//		{
-		//			//
-		//			return std::make_unique<LeafLayoutNode>();
-		//		}
-		//		else
-		//		{
-		//			throw std::runtime_error("Expected closing brace after identifier.");
-		//		}
-		//	}
-		//	else
-		//	{
-		//		auto container = std::make_unique<ContainerLayoutNode>(false);
-		//		while (true)
-		//		{
-		//			auto child = Parse();
-		//			if (child)
-		//			{
-		//				container->AddChild(std::move(child));
-		//			}
-		//			else
-		//			{
-		//				break; // No more children in this container
-		//			}
-		//		}
-		//		if (!Accept(Token::Type::CloseBrace))
-		//		{
-		//			throw std::runtime_error("Expected closing brace for container.");
-		//		}
-		//		return container;
-		//	}
-		//}
-		//return nullptr;
-	}
-
-	bool Layout::Parser::ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode)
-	{
-		/*bool isVertical = false;
-		std::string identifier;
-
-		auto node = std::make_unique<LayoutNode>(isVertical);
-		while (!Accept(Token::Type::CloseBrace))
-		{
-			if (Accept(Token::Type::EndOfStream))
-				break;
-
-			if (Accept(Token::Type::OpenBrace))
-			{
-				std::unique_ptr<LayoutNode> childNode;
-				if (!ParseAttributesOrNewBrace(std::move(childNode)))
-				{
-					return false;
-				}
-				node->AddChild(std::move(childNode));
-			}
-
-			if (Accept(Token::Type::VerticalLayout))
-			{
-				isVertical = true;
-				node->SetOrientation(isVertical);
-			}
-			else if (Accept(Token::Type::HorizontalLayout))
-			{
-				isVertical = false;
-				node->SetOrientation(isVertical);
-			}
-			else if (AcceptIdentifier(identifier))
-			{
-				node->SetId(identifier);
-			}
-			else if (Accept(Token::Type::Width))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-				{
-					Number number;
-					if (isNumberInt)
-					{
-						number.scalar = m_tokenizer.GetInt();
-					}
-					else
-					{
-						number.scalar = m_tokenizer.GetDouble();
-					}
-
-					if (Accept(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
-					node->SetProperty("Width", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::Height))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-				{
-					Number number;
-					if (isNumberInt)
-					{
-						number.scalar = m_tokenizer.GetInt();
-					}
-					else
-					{
-						number.scalar = m_tokenizer.GetDouble();
-					}
-
-					if (Accept(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
-					node->SetProperty("Height", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::MinWidth))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				if (Accept(Token::Type::NumberInt))
-				{
-					Number number;
-					number.scalar = m_tokenizer.GetInt();
-
-					node->SetProperty("MinWidth", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::MaxWidth))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				if (Accept(Token::Type::NumberInt))
-				{
-					Number number;
-					number.scalar = m_tokenizer.GetInt();
-
-					node->SetProperty("MaxWidth", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::MinHeight))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				if (Accept(Token::Type::NumberInt))
-				{
-					Number number;
-					number.scalar = m_tokenizer.GetInt();
-
-					node->SetProperty("MinHeight", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::MaxHeight))
-			{
-				if (!Expect(Token::Type::Equal))
-				{
-					return false;
-				}
-				if (Accept(Token::Type::NumberInt))
-				{
-					Number number;
-					number.scalar = m_tokenizer.GetInt();
-
-					node->SetProperty("MaxHeight", number);
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (Accept(Token::Type::Splitter))
-			{
-				auto splitterNode = std::make_unique<LayoutNode>(isVertical);
-				splitterNode->SetProperty("Width", Number{ 4 });
-
-				node->AddChild(std::move(splitterNode));
-			}
-		}
-
-		newNode = std::move(node);*/
-		return true;
 	}
 
 	bool Layout::Parser::Accept(Token::Type tokenId)

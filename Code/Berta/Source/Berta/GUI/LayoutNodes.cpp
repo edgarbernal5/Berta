@@ -57,8 +57,7 @@ namespace Berta
 
 	void ContainerLayoutNode::CalculateAreas()
 	{
-		//const auto& dpi = m_parentWindow->DPIScaleFactor;
-		auto dpi = 1.0f;
+		const auto& dpi = m_parentWindow->DPIScaleFactor;
 		Number marginLeftNum = GetProperty<Number>("margin-left", {});
 		Number marginRightNum = GetProperty<Number>("margin-right", {});
 		Number marginTopNum = GetProperty<Number>("margin-top", {});

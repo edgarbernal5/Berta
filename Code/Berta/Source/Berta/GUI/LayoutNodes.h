@@ -137,10 +137,10 @@ namespace Berta
             return m_controlContainer.GetWindowsAreas();
         }
 
-        //void SetParentWindow(Window* window)
-        //{
-        //    SetParentWindow(this, window);
-        //}
+        void SetParentWindow(Window* window)
+        {
+            SetParentWindow(this, window);
+        }
         std::unordered_map<std::string, PropertyValue> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
 
@@ -151,23 +151,23 @@ namespace Berta
         Rectangle m_area;
 
         LayoutControlContainer m_controlContainer;
+        Window* m_parentWindow{ nullptr };
 
     private:
-        //void SetParentWindow(LayoutNode* node, Window* window)
-        //{
-        //    if (node == nullptr)
-        //        return;
+        void SetParentWindow(LayoutNode* node, Window* window)
+        {
+            if (node == nullptr)
+                return;
 
-        //    node->m_parentWindow = window;
+            node->m_parentWindow = window;
 
-        //    for (auto& childNode : node->m_children)
-        //    {
-        //        SetParentWindow(childNode.get(), window);
-        //    }
-        //}
-
+            for (auto& childNode : node->m_children)
+            {
+                SetParentWindow(childNode.get(), window);
+            }
+        }
         Type m_type{ Type::Container };
-        Window* m_parentWindow{ nullptr };
+
     };
 
     class ContainerLayoutNode : public LayoutNode

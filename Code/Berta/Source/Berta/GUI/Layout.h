@@ -101,7 +101,7 @@ namespace Berta
         const char* m_bufferEnd{ nullptr };
         int m_lineNumber{ 0 };
         bool m_error{ false };
-        char m_identifier[g_maxIdentifierLength];
+        char m_identifier[g_maxIdentifierLength]{};
         int m_iValue{ 0 };
         double m_dValue{ 0.0 };
 
@@ -126,8 +126,6 @@ namespace Berta
             Parser(const std::string& source);
 
             std::unique_ptr<LayoutNode> Parse();
-            bool ParseAttributesOrNewBrace(std::unique_ptr<LayoutNode>&& newNode);
-
 
         private:
             bool Accept(Token::Type tokenId);
