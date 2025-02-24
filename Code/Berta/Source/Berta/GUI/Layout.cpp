@@ -276,10 +276,11 @@ namespace Berta
 				children.emplace_back(std::move(splitterNode));
 				break;
 			}
-				
 			case Berta::Token::Type::VerticalLayout:
+				isVertical = true;
 				break;
 			case Berta::Token::Type::HorizontalLayout:
+				isVertical = false;
 				break;
 			case Berta::Token::Type::Width:
 			{
@@ -307,7 +308,6 @@ namespace Berta
 					{
 						number.isPercentage = true;
 					}
-					//node->SetProperty("Width", number);
 					properties["Width"] = number;
 				}
 				break;
@@ -315,13 +315,34 @@ namespace Berta
 			case Berta::Token::Type::Height:
 				break;
 			case Berta::Token::Type::MinHeight:
-				break;
 			case Berta::Token::Type::MaxHeight:
-				break;
 			case Berta::Token::Type::MinWidth:
-				break;
 			case Berta::Token::Type::MaxWidth:
+			{
+				m_tokenizer.Next();
+				currentToken = m_tokenizer.GetToken();
+				if (!Expect(Token::Type::Equal))
+				{
+					return nullptr;
+				}
+
+				if (IsEqualTo(Token::Type::NumberInt))
+				{
+					Number number;
+					number.scalar = m_tokenizer.GetInt();
+
+					auto propertyName = currentToken == Berta::Token::Type::MinHeight ? "MinHeight" : 
+						(currentToken == Berta::Token::Type::MaxHeight ? "MaxHeight" : 
+							(currentToken == Berta::Token::Type::MinWidth ? "MinWidth" : "MaxWidth"));
+
+					properties[propertyName] = number;
+				}
+				else
+				{
+					return nullptr;
+				}
 				break;
+			}
 			default:
 				break;
 			}
@@ -344,6 +365,11 @@ namespace Berta
 			}
 		}
 			break;
+		}
+
+		for (size_t i = 0; i < children.size(); i++)
+		{
+			children[i]->SetParentNode(node.get());
 		}
 
 		node->SetId(identifier);

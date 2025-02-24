@@ -127,7 +127,7 @@ namespace Berta
             m_area = newSize;
         }
 
-        virtual void Apply() = 0;
+        void Apply();
         virtual void CalculateAreas() = 0;
 
         LayoutNode* Find(const std::string& id);
@@ -141,6 +141,14 @@ namespace Berta
         {
             SetParentWindow(this, window);
         }
+        LayoutNode* GetParentNode() const
+        {
+            return m_parentNode;
+        }
+        void SetParentNode(LayoutNode* node)
+        {
+            m_parentNode = node;
+        }
         std::unordered_map<std::string, PropertyValue> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
 
@@ -152,6 +160,7 @@ namespace Berta
 
         LayoutControlContainer m_controlContainer;
         Window* m_parentWindow{ nullptr };
+        LayoutNode* m_parentNode{ nullptr };
 
     private:
         void SetParentWindow(LayoutNode* node, Window* window)
@@ -182,7 +191,6 @@ namespace Berta
 
         void AddChild(std::unique_ptr<LayoutNode>&& child);
 
-        void Apply() override;
         void CalculateAreas() override;
 
     private:
@@ -194,7 +202,6 @@ namespace Berta
     public:
         LeafLayoutNode();
 
-        void Apply() override;
         void CalculateAreas() override;
     };
 
@@ -202,8 +209,7 @@ namespace Berta
     {
     public:
         SplitterLayoutNode();
-
-        void Apply() override;
+        
         void CalculateAreas() override;
     };
 

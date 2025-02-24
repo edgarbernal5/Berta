@@ -43,7 +43,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	void ContainerLayoutNode::Apply()
+	void LayoutNode::Apply()
 	{
 		for (auto& childNode : m_children)
 		{
@@ -248,19 +248,18 @@ namespace Berta
 		LayoutNode(Type::Leaf)
 	{
 	}
-	void LeafLayoutNode::Apply()
-	{
-	}
+
 	void LeafLayoutNode::CalculateAreas()
 	{
+		//auto parentArea = GetParentNode()->GetArea();
+
 	}
+
 	SplitterLayoutNode::SplitterLayoutNode() :
 		LayoutNode(Type::Splitter)
 	{
 	}
-	void SplitterLayoutNode::Apply()
-	{
-	}
+
 	void SplitterLayoutNode::CalculateAreas()
 	{
 	}
