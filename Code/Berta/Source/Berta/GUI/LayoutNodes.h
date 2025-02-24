@@ -8,6 +8,7 @@
 #define BT_LAYOUT_NODES_HEADER
 
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Controls/Panel.h"
 
 #include <unordered_map>
 #include <string>
@@ -58,6 +59,13 @@ namespace Berta
 
         NumberValue scalar{ 0 };
         bool isPercentage{ false };
+    };
+
+    class SplitterLayoutControl : public Panel
+    {
+    public:
+        SplitterLayoutControl() = default;
+        SplitterLayoutControl(Window* parent, const Rectangle& rectangle = {}, bool visible = true);
     };
 
     class LayoutNode
@@ -211,6 +219,11 @@ namespace Berta
         SplitterLayoutNode();
         
         void CalculateAreas() override;
+
+    private:
+        Point m_mousePositionDown{};
+        bool m_isSplitterMoving{ false };
+        std::unique_ptr<SplitterLayoutControl> m_splitter;
     };
 
     template<class T>

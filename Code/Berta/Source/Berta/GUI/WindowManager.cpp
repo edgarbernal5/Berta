@@ -174,7 +174,6 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{

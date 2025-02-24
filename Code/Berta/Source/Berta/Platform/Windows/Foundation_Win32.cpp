@@ -107,6 +107,7 @@ namespace Berta
 		{WM_SIZING,			"WM_SIZING"},
 		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
 		{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
+		{WM_ERASEBKGND,	"WM_ERASEBKGND"},
 
 		{WM_DESTROY,		"WM_DESTROY"},
 		{WM_NCDESTROY,		"WM_NCDESTROY"},
@@ -246,7 +247,11 @@ namespace Berta
 
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
-			BT_CORE_DEBUG << "   areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "}" << std::endl;
+#if BT_DEBUG
+			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "} window = "<<nativeWindow->Name << std::endl;
+#else
+			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "}" << std::endl;
+#endif
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
@@ -262,12 +267,18 @@ namespace Berta
 			{
 				ArgResize argResize;
 				argResize.NewSize.Width = newWidth;
-				argResize.NewSize.Height = newHeight;
+				argResize.NewSize.Height = newHeight; 
+#if BT_DEBUG
+				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << ". window = " << nativeWindow->Name << std::endl;
+#else
 				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
+#endif
 
 				//TODO: esto es un hack!
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
+
+				//::InvalidateRect(hWnd, NULL, TRUE);
 			}
 			break;
 		}

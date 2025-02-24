@@ -241,7 +241,7 @@ namespace Berta
 
 	void ContainerLayoutNode::AddChild(std::unique_ptr<LayoutNode>&& child)
 	{
-		m_children.push_back(std::move(child));
+		m_children.emplace_back(std::move(child));
 	}
 
 	LeafLayoutNode::LeafLayoutNode() : 
@@ -262,5 +262,35 @@ namespace Berta
 
 	void SplitterLayoutNode::CalculateAreas()
 	{
+		auto area = GetArea();
+		if (!m_splitter)
+		{
+			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, area);
+			m_splitter->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
+			{
+				m_mousePositionDown = args.Position;
+				m_isSplitterMoving = true;
+			});
+			m_splitter->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
+			{
+
+			});
+			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
+			{
+				m_isSplitterMoving = false;
+			});
+		}
+		else
+		{
+			GUI::MoveWindow(m_splitter->Handle(), area);
+		}
+	}
+
+	SplitterLayoutControl::SplitterLayoutControl(Window* parent, const Rectangle& rectangle, bool visible) :
+		Panel(parent, rectangle, visible)
+	{
+#if BT_DEBUG
+		m_handle->Name = "SplitterLayoutControl";
+#endif
 	}
 }
