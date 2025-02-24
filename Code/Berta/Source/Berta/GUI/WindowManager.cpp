@@ -468,11 +468,13 @@ namespace Berta
 			{
 				newGraphics.Build(newSize);
 				newGraphics.BuildFont(window->DPI);
+				//newGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
 
 				if (window->Type == WindowType::Form)
 				{
 					newRootGraphics.Build(newSize);
 					newRootGraphics.BuildFont(window->DPI);
+					newRootGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
 				}
 			}
 
@@ -615,7 +617,7 @@ namespace Berta
 				}
 			}
 
-			window->RootWindow->DeferredRequests.push_back(window);
+			window->RootWindow->DeferredRequests.emplace_back(window);
 		}
 		return true;
 	}

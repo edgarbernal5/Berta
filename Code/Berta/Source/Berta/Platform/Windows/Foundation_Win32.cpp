@@ -62,7 +62,7 @@ namespace Berta
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1); //TODO: probar con poner esto en NULL y manejar el mensaje de WM_ERASEBKGND
 		wcex.lpszClassName = L"BertaInternalClass";
 		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
 		if (!RegisterClassExW(&wcex))
@@ -211,6 +211,9 @@ namespace Berta
 			}
 			break;
 		}
+		case WM_ERASEBKGND:
+			return TRUE;
+
 		case WM_ACTIVATEAPP:
 		{
 			ArgActivated argActivated{};
@@ -278,7 +281,7 @@ namespace Berta
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 
-				//::InvalidateRect(hWnd, NULL, TRUE);
+				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
 			break;
 		}
