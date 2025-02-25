@@ -268,12 +268,33 @@ namespace Berta
 			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, area);
 			m_splitter->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
 			{
+				if (!args.ButtonState.LeftButton)
+					return;
+
 				m_mousePositionDown = args.Position;
 				m_isSplitterMoving = true;
+				auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
+				
+				m_isVertical = containerNode->GetOrientation();
 			});
 			m_splitter->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
 			{
+				if (!m_isSplitterMoving)
+					return;
 
+				auto leftArea = m_prevNode->GetArea();
+				auto rightArea = m_nextNode->GetArea();
+
+				auto offset = args.Position - m_mousePositionDown;
+				auto diff = args.Position - GUI::GetAbsolutePosition(m_splitter->Handle());
+				if (m_isVertical)
+				{
+
+				}
+				else
+				{
+					//m_prevNode->SetArea();
+				}
 			});
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
 			{

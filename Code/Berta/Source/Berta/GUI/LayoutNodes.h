@@ -110,7 +110,7 @@ namespace Berta
             return false;
         }
 
-        std::string GetId()
+        std::string GetId() const
         {
             return m_id;
         }
@@ -149,14 +149,27 @@ namespace Berta
         {
             SetParentWindow(this, window);
         }
+
         LayoutNode* GetParentNode() const
         {
             return m_parentNode;
         }
+
+        void SetPrev(LayoutNode* node)
+        {
+            m_prevNode = node;
+        }
+
+        void SetNext(LayoutNode* node)
+        {
+            m_nextNode = node;
+        }
+
         void SetParentNode(LayoutNode* node)
         {
             m_parentNode = node;
         }
+
         std::unordered_map<std::string, PropertyValue> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
 
@@ -168,6 +181,8 @@ namespace Berta
 
         LayoutControlContainer m_controlContainer;
         Window* m_parentWindow{ nullptr };
+        LayoutNode* m_prevNode{ nullptr };
+        LayoutNode* m_nextNode{ nullptr };
         LayoutNode* m_parentNode{ nullptr };
 
     private:
@@ -183,14 +198,19 @@ namespace Berta
                 SetParentWindow(childNode.get(), window);
             }
         }
-        Type m_type{ Type::Container };
 
+        Type m_type{ Type::Container };
     };
 
     class ContainerLayoutNode : public LayoutNode
     {
     public:
         ContainerLayoutNode(bool isVertical);
+
+        bool GetOrientation() const
+        {
+            return m_isVertical;
+        }
 
         void SetOrientation(bool isVertical)
         {
@@ -223,6 +243,7 @@ namespace Berta
     private:
         Point m_mousePositionDown{};
         bool m_isSplitterMoving{ false };
+        bool m_isVertical{ false };
         std::unique_ptr<SplitterLayoutControl> m_splitter;
     };
 

@@ -572,8 +572,6 @@ namespace Berta
 			Paint(window, false);
 			Map(window, nullptr);
 		}
-
-		//PaintInternal(window, rootGraphics);
 	}
 
 	bool WindowManager::TryDeferredUpdate(Window* window)

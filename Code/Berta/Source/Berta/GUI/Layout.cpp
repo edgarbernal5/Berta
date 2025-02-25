@@ -370,6 +370,14 @@ namespace Berta
 		for (size_t i = 0; i < children.size(); i++)
 		{
 			children[i]->SetParentNode(node.get());
+			if (i < children.size() - 1)
+			{
+				children[i]->SetNext(children[i + 1].get());
+			}
+			if (i > 0)
+			{
+				children[i]->SetPrev(children[i- 1].get());
+			}
 		}
 
 		node->SetId(identifier);
