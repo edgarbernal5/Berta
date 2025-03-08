@@ -37,7 +37,8 @@ namespace Berta
 
 		Window* GetParent() const;
 		Point GetPosition() const;
-		
+		Rectangle GetArea() const;
+
 		Size GetSize() const;
 		void SetSize(const Size& newSize);
 		

@@ -48,8 +48,25 @@ namespace Berta
         using NumberValue = std::variant<int, double>;
 
         Number() = default;
-        Number(NumberValue value) : scalar(value), isPercentage(false) {}
-        Number(NumberValue value, bool percentage) : scalar(value), isPercentage(percentage) {}
+        Number(NumberValue value) : scalar(value), isPercentage(false), hasValue(true) {}
+        Number(NumberValue value, bool percentage) : scalar(value), isPercentage(percentage), hasValue(true) {}
+
+        bool HasValue() const
+        {
+            return hasValue;
+        }
+
+        void SetValue(double newValue)
+        {
+            scalar = newValue;
+            hasValue = true;
+        }
+
+        void SetValue(int newValue)
+        {
+            scalar = newValue;
+            hasValue = true;
+        }
 
         template<class T>
         T GetValue(float dpiFactor);
@@ -57,8 +74,11 @@ namespace Berta
         template<class T>
         T GetValue();
 
-        NumberValue scalar{ 0 };
         bool isPercentage{ false };
+    private:
+
+        NumberValue scalar{ 0 };
+        bool hasValue{ false };
     };
 
     class SplitterLayoutControl : public Panel
@@ -103,11 +123,8 @@ namespace Berta
         bool HasProperty(const std::string& key) const
         {
             auto it = m_properties.find(key);
-            if (it != m_properties.end() && std::holds_alternative<T>(it->second))
-            {
-                return true;
-            }
-            return false;
+
+            return (it != m_properties.end() && std::holds_alternative<T>(it->second));
         }
 
         std::string GetId() const
@@ -132,6 +149,19 @@ namespace Berta
 
         void SetArea(const Rectangle& newSize)
         {
+            m_area = newSize;
+        }
+
+        void SetArea2(const Rectangle& newSize)
+        {
+            if (m_fixedWidth.HasValue())
+            {
+                auto fixedWidth = m_fixedWidth.GetValue<double>();
+                auto realSize = m_area.Width / fixedWidth;
+
+                auto newScalar = (double)newSize.Width / realSize;
+            }
+
             m_area = newSize;
         }
 
@@ -172,6 +202,9 @@ namespace Berta
 
         std::unordered_map<std::string, PropertyValue> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
+
+        Number m_fixedWidth;
+        Number m_fixedHeight;
 
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
@@ -242,6 +275,9 @@ namespace Berta
 
     private:
         Point m_mousePositionDown{};
+        Rectangle m_splitterBeginRect{};
+        Rectangle m_leftArea{};
+        Rectangle m_rightArea{};
         bool m_isSplitterMoving{ false };
         bool m_isVertical{ false };
         std::unique_ptr<SplitterLayoutControl> m_splitter;

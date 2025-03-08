@@ -52,6 +52,7 @@ namespace Berta
 
 		m_parent->Events->Resize.Connect([this](const ArgResize& args)
 		{
+			//TODO: add this same logic to visibility event?!
 			if (m_rootNode)
 			{
 				m_rootNode->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
@@ -297,11 +298,11 @@ namespace Berta
 					Number number;
 					if (isNumberInt)
 					{
-						number.scalar = m_tokenizer.GetInt();
+						number.SetValue(m_tokenizer.GetInt());
 					}
 					else
 					{
-						number.scalar = m_tokenizer.GetDouble();
+						number.SetValue(m_tokenizer.GetDouble());
 					}
 
 					if (IsEqualTo(Token::Type::Percentage))
@@ -329,7 +330,7 @@ namespace Berta
 				if (IsEqualTo(Token::Type::NumberInt))
 				{
 					Number number;
-					number.scalar = m_tokenizer.GetInt();
+					number.SetValue(m_tokenizer.GetInt());
 
 					auto propertyName = currentToken == Berta::Token::Type::MinHeight ? "MinHeight" : 
 						(currentToken == Berta::Token::Type::MaxHeight ? "MaxHeight" : 

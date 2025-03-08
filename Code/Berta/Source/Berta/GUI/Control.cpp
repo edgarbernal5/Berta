@@ -42,6 +42,13 @@ namespace Berta
 		return GUI::GetLocalPosition(m_handle);
 	}
 
+	Rectangle ControlBase::GetArea() const
+	{
+		auto position = GUI::GetAbsolutePosition(m_handle);
+		auto size = GetSize();
+		return { position.X, position.Y, size.Width, size.Height };
+	}
+
 	Size ControlBase::GetSize() const
 	{
 		return DoOnSize();

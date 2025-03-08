@@ -169,6 +169,7 @@ namespace Berta
 				if (m_isVertical)
 				{
 					auto part = remainArea.Height / totalFreeCount;
+					childNode->m_fixedHeight.SetValue((double)remainArea.Height / parentArea.Height);
 					childArea.Height = part;
 					childArea.Y += offset.Y;
 					offset.Y += part;
@@ -176,6 +177,14 @@ namespace Berta
 				else
 				{
 					auto part = remainArea.Width / totalFreeCount;
+					if (childNode->m_fixedWidth.HasValue())
+					{
+						childNode->m_fixedWidth.SetValue((double)remainArea.Width / parentArea.Width);
+					}
+					else
+					{
+						childNode->m_fixedWidth.SetValue((double)part / parentArea.Width);
+					}
 					childArea.Width = part;
 					childArea.X += offset.X;
 					offset.X += part;
@@ -183,7 +192,8 @@ namespace Berta
 				childArea.Width -= marginRight;
 				childArea.Height -= marginBottom;
 			}
-			else {
+			else
+			{
 				if (m_isVertical)
 				{
 					childArea.Y += offset.Y;
@@ -216,13 +226,15 @@ namespace Berta
 				Point offset2{};
 				if (m_isVertical)
 				{
-					auto partHeight = containerArea.Height / count;
+					//auto partHeight = containerArea.Height / count;
+					auto partHeight = (containerArea.Height * childNode->m_fixedHeight.GetValue<double>());
 					childArea.Height = partHeight;
 					offset2.Y = (int)partHeight;
 				}
 				else
 				{
-					auto partWidth = containerArea.Width / count;
+					//auto partWidth = containerArea.Width / count;
+					auto partWidth = (containerArea.Width * childNode->m_fixedWidth.GetValue<double>());
 					childArea.Width = partWidth;
 					offset2.X = (int)partWidth;
 				}
@@ -262,29 +274,36 @@ namespace Berta
 
 	void SplitterLayoutNode::CalculateAreas()
 	{
-		auto area = GetArea();
+		auto splitterArea = GetArea();
 		if (!m_splitter)
 		{
-			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, area);
+			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, splitterArea);
 			m_splitter->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
 			{
 				if (!args.ButtonState.LeftButton)
 					return;
 
+				GUI::Capture(m_splitter->Handle());
+
 				m_mousePositionDown = args.Position;
+				m_splitterBeginRect = m_splitter->GetArea();
+
+				m_leftArea = m_prevNode->GetArea();
+				m_rightArea = m_nextNode->GetArea();
+
+				BT_CORE_TRACE << " * begin left area = " << m_leftArea << std::endl;
+				BT_CORE_TRACE << " * begin right area = " << m_rightArea << std::endl;
+				BT_CORE_TRACE << " * m_splitterBeginRect = " << m_splitterBeginRect << std::endl;
 				m_isSplitterMoving = true;
 				auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 				
 				m_isVertical = containerNode->GetOrientation();
 			});
-			m_splitter->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
+			m_splitter->GetEvents().MouseMove.Connect([this, splitterArea](const ArgMouse& args)
 			{
 				if (!m_isSplitterMoving)
 					return;
-
-				auto leftArea = m_prevNode->GetArea();
-				auto rightArea = m_nextNode->GetArea();
-
+				
 				auto offset = args.Position - m_mousePositionDown;
 				auto diff = args.Position - GUI::GetAbsolutePosition(m_splitter->Handle());
 				if (m_isVertical)
@@ -293,17 +312,43 @@ namespace Berta
 				}
 				else
 				{
-					//m_prevNode->SetArea();
+					auto deltaX = GUI::GetAbsolutePosition(m_splitter->Handle()).X+ args.Position.X - m_splitterBeginRect.X;
+					auto newLeftArea = m_leftArea;
+					auto newRightArea = m_rightArea;
+
+					newLeftArea.Width += deltaX;
+					newRightArea.X += deltaX;
+					newRightArea.Width += deltaX;
+
+					BT_CORE_TRACE << " * deltaX = " << deltaX << std::endl;
+
+					BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
+					BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
+					m_prevNode->SetArea2(newLeftArea);
+					m_nextNode->SetArea2(newRightArea);
+
+					auto newSplitterArea = splitterArea;
+					newSplitterArea.X += deltaX;
+					SetArea(newSplitterArea);
+					GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
+
+					auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
+					containerNode->CalculateAreas();
+					containerNode->Apply();
 				}
 			});
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
 			{
+				if (!m_isSplitterMoving)
+					return;
+
 				m_isSplitterMoving = false;
+				GUI::ReleaseCapture(m_splitter->Handle());
 			});
 		}
 		else
 		{
-			GUI::MoveWindow(m_splitter->Handle(), area);
+			GUI::MoveWindow(m_splitter->Handle(), splitterArea);
 		}
 	}
 
