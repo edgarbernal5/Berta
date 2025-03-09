@@ -56,6 +56,12 @@ namespace Berta
             return hasValue;
         }
 
+        template<class T>
+        T GetValue(float dpiFactor);
+
+        template<class T>
+        T GetValue();
+
         void SetValue(double newValue)
         {
             scalar = newValue;
@@ -68,11 +74,11 @@ namespace Berta
             hasValue = true;
         }
 
-        template<class T>
-        T GetValue(float dpiFactor);
-
-        template<class T>
-        T GetValue();
+        void Reset()
+        {
+            scalar = 0;
+            hasValue = false;
+        }
 
         bool isPercentage{ false };
     private:
@@ -146,6 +152,10 @@ namespace Berta
         {
             return m_type;
         }
+        Window* GetParentWindow() const
+        {
+            return m_parentWindow;
+        }
 
         void SetArea(const Rectangle& newSize)
         {
@@ -157,9 +167,11 @@ namespace Berta
             if (m_fixedWidth.HasValue())
             {
                 auto fixedWidth = m_fixedWidth.GetValue<double>();
-                auto realSize = m_area.Width / fixedWidth;
+                auto realSize = 100.0 * m_area.Width / fixedWidth;
 
-                auto newScalar = (double)newSize.Width / realSize;
+                auto newScalar = (double)newSize.Width / realSize * 100.0;
+                m_fixedWidth.isPercentage = true;
+                m_fixedWidth.SetValue(newScalar);
             }
 
             m_area = newSize;

@@ -553,7 +553,6 @@ int main()
 	
 	form.GetLayout().Attach("a", nestedForm);
 	form.GetLayout().Attach("b", buttonLayout);
-	//form.GetLayout().Attach("b", nestedForm);
 
 	form.Show();
 	nestedForm.Show();

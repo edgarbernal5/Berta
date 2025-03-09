@@ -80,6 +80,7 @@ namespace Berta
 
 		m_rootNode = std::move(rootNode);
 		m_rootNode->SetParentWindow(m_parent);
+		//m_rootNode->CalculateAreas();
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 

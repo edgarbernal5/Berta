@@ -50,9 +50,11 @@ namespace Berta
 		//graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
-		auto center = window->Size - graphics.GetTextExtent(caption);
-		center = center * 0.5f;
-		graphics.DrawString({ (int)center.Width,(int)center.Height }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
+		Point textExtent = graphics.GetTextExtent(caption);
+		Point windowSize = window->Size;
+		auto center = windowSize - textExtent;
+		center /= 2;
+		graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 	}
 
 	void ButtonReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

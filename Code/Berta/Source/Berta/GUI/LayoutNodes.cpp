@@ -83,9 +83,15 @@ namespace Berta
 			Rectangle childArea;
 
 			if (m_isVertical)
+			{
 				childArea.Width = parentArea.Width;
+				childNode->m_fixedWidth.Reset();
+			}
 			else
+			{
 				childArea.Height = parentArea.Height;
+				childNode->m_fixedHeight.Reset();
+			}
 
 			auto dimensionType = m_isVertical ? "Height" : "Width";
 			if (childNode->HasProperty<Number>(dimensionType))
@@ -119,18 +125,13 @@ namespace Berta
 				if (m_isVertical)
 				{
 					childArea.Height = fixedSize;
-				}
-				else
-				{
-					childArea.Width = fixedSize;
-				}
-
-				if (m_isVertical)
-				{
+					childNode->m_fixedHeight.SetValue((int)fixedSize);
 					remainArea.Height -= fixedSize;
 				}
 				else
 				{
+					childArea.Width = fixedSize;
+					childNode->m_fixedWidth.SetValue((int)fixedSize);
 					remainArea.Width -= fixedSize;
 				}
 
@@ -143,7 +144,7 @@ namespace Berta
 
 		Point offset{ 0, 0 };
 		int totalFreeCount = totalChildren - fixedNodesCount;
-		
+
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
 			auto& childNode = m_children[i];
@@ -168,22 +169,47 @@ namespace Berta
 			{
 				if (m_isVertical)
 				{
-					auto part = remainArea.Height / totalFreeCount;
-					childNode->m_fixedHeight.SetValue((double)remainArea.Height / parentArea.Height);
+					uint32_t part = 0u;
+					if (!childNode->m_fixedHeight.HasValue())
+					{
+						childNode->m_fixedHeight.isPercentage = true;
+						childNode->m_fixedHeight.SetValue(((double)remainArea.Height / totalFreeCount) / parentArea.Height * 100.0);
+						part = remainArea.Height / totalFreeCount;
+					}
+					else
+					{
+						if (childNode->m_fixedHeight.isPercentage)
+						{
+							part = (uint32_t)(childNode->m_fixedHeight.GetValue<double>() * parentArea.Height / 100.0);
+						}
+						else
+						{
+							part = childNode->m_fixedHeight.GetValue<uint32_t>();
+						}
+					}
 					childArea.Height = part;
 					childArea.Y += offset.Y;
 					offset.Y += part;
 				}
 				else
 				{
-					auto part = remainArea.Width / totalFreeCount;
-					if (childNode->m_fixedWidth.HasValue())
+					uint32_t part = 0u;
+					if (!childNode->m_fixedWidth.HasValue())
 					{
-						childNode->m_fixedWidth.SetValue((double)remainArea.Width / parentArea.Width);
+						childNode->m_fixedWidth.isPercentage = true;
+						childNode->m_fixedWidth.SetValue(((double)remainArea.Width / totalFreeCount) / parentArea.Width * 100.0);
+						part = remainArea.Width / totalFreeCount;
 					}
 					else
 					{
-						childNode->m_fixedWidth.SetValue((double)part / parentArea.Width);
+						if (childNode->m_fixedWidth.isPercentage)
+						{
+							part = (uint32_t)(childNode->m_fixedWidth.GetValue<double>() * parentArea.Width / 100.0);
+						}
+						else
+						{
+							part = childNode->m_fixedWidth.GetValue<uint32_t>();
+						}
 					}
 					childArea.Width = part;
 					childArea.X += offset.X;
@@ -223,24 +249,25 @@ namespace Berta
 				childArea.Y = offset.Y;
 				childArea.Height = containerArea.Height;
 				childArea.Width = containerArea.Width;
-				Point offset2{};
-				if (m_isVertical)
-				{
-					//auto partHeight = containerArea.Height / count;
-					auto partHeight = (containerArea.Height * childNode->m_fixedHeight.GetValue<double>());
-					childArea.Height = partHeight;
-					offset2.Y = (int)partHeight;
-				}
-				else
-				{
-					//auto partWidth = containerArea.Width / count;
-					auto partWidth = (containerArea.Width * childNode->m_fixedWidth.GetValue<double>());
-					childArea.Width = partWidth;
-					offset2.X = (int)partWidth;
-				}
+				//Point offset2{};
+				//if (m_isVertical)
+				//{
+				//	//auto partHeight = containerArea.Height / count;
+				//	//auto partHeight = (containerArea.Height * childNode->m_fixedHeight.GetValue<double>());
+				//	//childArea.Height = partHeight;
+				//	//offset2.Y = (int)partHeight;
+				//}
+				//else
+				//{
+				//	//auto partWidth = containerArea.Width / count;
+				//	//auto partWidth = (containerArea.Width * childNode->m_fixedWidth.GetValue<double>());
+				//	//childArea.Width = partWidth;
+				//	//offset2.X = (int)partWidth;
+				//}
 				windowArea.area = childArea;
-				offset.X += offset2.X;
-				offset.Y += offset2.Y;
+
+				//offset.X += offset2.X;
+				//offset.Y += offset2.Y;
 			}
 		}
 	}
@@ -299,28 +326,29 @@ namespace Berta
 				
 				m_isVertical = containerNode->GetOrientation();
 			});
+
 			m_splitter->GetEvents().MouseMove.Connect([this, splitterArea](const ArgMouse& args)
 			{
 				if (!m_isSplitterMoving)
 					return;
 				
 				auto offset = args.Position - m_mousePositionDown;
-				auto diff = args.Position - GUI::GetAbsolutePosition(m_splitter->Handle());
+				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect;
 				if (m_isVertical)
 				{
 
 				}
 				else
 				{
-					auto deltaX = GUI::GetAbsolutePosition(m_splitter->Handle()).X+ args.Position.X - m_splitterBeginRect.X;
+					auto deltaX = delta.X;
 					auto newLeftArea = m_leftArea;
 					auto newRightArea = m_rightArea;
 
 					newLeftArea.Width += deltaX;
 					newRightArea.X += deltaX;
-					newRightArea.Width += deltaX;
+					newRightArea.Width -= deltaX;
 
-					BT_CORE_TRACE << " * deltaX = " << deltaX << std::endl;
+					BT_CORE_TRACE << " * deltaX = " << deltaX << ". offset.X = " << offset.X << std::endl;
 
 					BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
 					BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
@@ -329,14 +357,18 @@ namespace Berta
 
 					auto newSplitterArea = splitterArea;
 					newSplitterArea.X += deltaX;
+					BT_CORE_TRACE << " - * newSplitterArea = " << newSplitterArea << std::endl;
 					SetArea(newSplitterArea);
 					GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
 
 					auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 					containerNode->CalculateAreas();
 					containerNode->Apply();
+
+					GUI::UpdateTree(containerNode->GetParentWindow());
 				}
 			});
+
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
 			{
 				if (!m_isSplitterMoving)
