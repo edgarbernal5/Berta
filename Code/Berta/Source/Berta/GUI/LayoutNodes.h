@@ -179,6 +179,7 @@ namespace Berta
                     auto widthProp = GetProperty<Number>("Width");
 
                     auto newScalar = static_cast<double>(newSize.Width) / parentSize.Width;
+                    widthProp.isPercentage = true;
                     widthProp.SetValue(newScalar * 100.0);
                     SetProperty("Width", widthProp);
                 }
