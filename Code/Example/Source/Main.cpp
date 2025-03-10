@@ -549,7 +549,7 @@ int main()
 		});*/
 
 	//form.SetLayout("{{c Width=10% MaxWidth=25}{a}|{b Width=30%}}");
-	form.SetLayout("{{a}|{b}}");
+	form.SetLayout("{{a Width=30%}|{b}}");
 	
 	form.GetLayout().Attach("a", nestedForm);
 	form.GetLayout().Attach("b", buttonLayout);

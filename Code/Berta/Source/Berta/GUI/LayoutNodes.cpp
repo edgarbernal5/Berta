@@ -99,7 +99,7 @@ namespace Berta
 				auto dimensionNum = childNode->GetProperty<Number>(dimensionType);
 				bool isPercentage = dimensionNum.isPercentage;
 				uint32_t fixedSize = isPercentage ?
-					static_cast<uint32_t>(dimensionNum.GetValue<double>() * (m_isVertical ? parentArea.Height : parentArea.Width)) :
+					static_cast<uint32_t>(dimensionNum.GetValue<double>() * (m_isVertical ? parentArea.Height : parentArea.Width) / 100.0) :
 					static_cast<uint32_t>(dimensionNum.GetValue<int>(dpi));
 
 				auto minDimensionType = m_isVertical ? "MinHeight" : "MinWidth";
@@ -327,13 +327,32 @@ namespace Berta
 				m_isVertical = containerNode->GetOrientation();
 			});
 
+			m_splitter->GetEvents().MouseEnter.Connect([this](const ArgMouse& args)
+			{
+				if (!m_isSplitterMoving)
+					return;
+
+				GUI::ChangeCursor(*m_splitter, Cursor::Default);
+			});
+
+			m_splitter->GetEvents().MouseLeave.Connect([this](const ArgMouse& args)
+			{
+				if (m_isSplitterMoving)
+					return;
+
+				GUI::ChangeCursor(*m_splitter, Cursor::Default);
+			});
+
 			m_splitter->GetEvents().MouseMove.Connect([this, splitterArea](const ArgMouse& args)
 			{
 				GUI::ChangeCursor(*m_splitter, m_isVertical ? Cursor::SizeNS : Cursor::SizeWE);
 				if (!m_isSplitterMoving)
 					return;
 				
+				auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
+				auto newSplitterArea = splitterArea;
+
 				if (m_isVertical)
 				{
 
@@ -351,35 +370,25 @@ namespace Berta
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Width) - deltaX);
 					newRightArea.Width = static_cast<uint32_t>(rightLimit);
 
-					auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
-
 					//BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
 					//BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
 					auto containerArea = containerNode->GetArea();
 					m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
 					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
 
-					auto newSplitterArea = splitterArea;
 					newSplitterArea.X += deltaX;
-
-					//BT_CORE_TRACE << " - * newSplitterArea = " << newSplitterArea << std::endl;
-					SetArea(newSplitterArea);
-					GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
-
-					containerNode->CalculateAreas();
-					containerNode->Apply();
-
-					auto windowToUpdate = containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
-					GUI::UpdateTree(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
-					GUI::UpdateWindow(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
 				}
-			});
-			m_splitter->GetEvents().MouseLeave.Connect([this](const ArgMouse& args)
-			{
-				if (m_isSplitterMoving)
-					return;
 
-				GUI::ChangeCursor(*m_splitter, Cursor::Default);
+				//BT_CORE_TRACE << " - * newSplitterArea = " << newSplitterArea << std::endl;
+				SetArea(newSplitterArea);
+				GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
+
+				containerNode->CalculateAreas();
+				containerNode->Apply();
+
+				auto windowToUpdate = containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
+				GUI::UpdateTree(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
+				GUI::UpdateWindow(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
 			});
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
