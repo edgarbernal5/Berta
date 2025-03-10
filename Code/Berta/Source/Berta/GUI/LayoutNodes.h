@@ -174,6 +174,14 @@ namespace Berta
                 m_fixedWidth.SetValue(newScalar);
 
                 newArea.Width = static_cast<uint32_t>(newScalar * remainSize.Width);
+                if (HasProperty<Number>("Width"))
+                {
+                    auto widthProp = GetProperty<Number>("Width");
+
+                    auto newScalar = static_cast<double>(newSize.Width) / parentSize.Width;
+                    widthProp.SetValue(newScalar * 100.0);
+                    SetProperty("Width", widthProp);
+                }
             }
 
             m_area = newArea;
