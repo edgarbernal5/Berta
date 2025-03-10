@@ -169,11 +169,11 @@ namespace Berta
             {
                 auto remainSize = parentSize - fixedSize;
 
-                auto newScalar = (double)newSize.Width / remainSize.Width;
+                auto newScalar = static_cast<double>(newSize.Width) / remainSize.Width;
                 m_fixedWidth.isPercentage = true;
                 m_fixedWidth.SetValue(newScalar);
 
-                newArea.Width = (uint32_t)(newScalar * remainSize.Width);
+                newArea.Width = static_cast<uint32_t>(newScalar * remainSize.Width);
             }
 
             m_area = newArea;

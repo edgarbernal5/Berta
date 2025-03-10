@@ -243,16 +243,24 @@ namespace Berta
 			switch (newCursor)
 			{
 			case Cursor::Default:
-				cursorName = IDC_ARROW;	break;
+				cursorName = IDC_ARROW;
+				break;
 
 			case Cursor::Wait:
-				cursorName = IDC_WAIT;	break;
+				cursorName = IDC_WAIT;
+				break;
 
 			case Cursor::IBeam:
-				cursorName = IDC_IBEAM;	break;
+				cursorName = IDC_IBEAM;
+				break;
 
 			case Cursor::SizeWE:
-				cursorName = IDC_SIZEWE;	break;
+				cursorName = IDC_SIZEWE;
+				break;
+
+			case Cursor::SizeNS:
+				cursorName = IDC_SIZENS;
+				break;
 			}
 
 			nativeCursor.Handle = ::LoadCursor(nullptr, cursorName);
