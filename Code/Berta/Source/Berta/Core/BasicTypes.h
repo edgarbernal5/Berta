@@ -106,6 +106,14 @@ namespace Berta
 			return ret;
 		}
 
+		BasicPoint operator-() const
+		{
+			auto ret = *this;
+			ret.X = -ret.X;
+			ret.Y = -ret.Y;
+			return ret;
+		}
+
 		friend std::ostream& operator<<(std::ostream& os, const BasicPoint& point)
 		{
 			os << "{ X=" << point.X << "; Y=" << point.Y << "}";

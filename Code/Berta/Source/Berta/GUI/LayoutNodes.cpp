@@ -99,7 +99,7 @@ namespace Berta
 				auto dimensionNum = childNode->GetProperty<Number>(dimensionType);
 				bool isPercentage = dimensionNum.isPercentage;
 				uint32_t fixedSize = isPercentage ?
-					static_cast<uint32_t>(dimensionNum.GetValue<double>() * (m_isVertical ? parentArea.Height : parentArea.Width) / 100.0) :
+					static_cast<uint32_t>(dimensionNum.GetValue<double>() * (m_isVertical ? parentArea.Height : parentArea.Width)) :
 					static_cast<uint32_t>(dimensionNum.GetValue<int>(dpi));
 
 				auto minDimensionType = m_isVertical ? "MinHeight" : "MinWidth";
@@ -144,7 +144,7 @@ namespace Berta
 
 		Point offset{ 0, 0 };
 		int totalFreeCount = totalChildren - fixedNodesCount;
-
+		uint32_t appliedPixels = 0;
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
 			auto& childNode = m_children[i];
@@ -173,20 +173,23 @@ namespace Berta
 					if (!childNode->m_fixedHeight.HasValue())
 					{
 						childNode->m_fixedHeight.isPercentage = true;
-						childNode->m_fixedHeight.SetValue(((double)remainArea.Height / totalFreeCount) / parentArea.Height * 100.0);
+						childNode->m_fixedHeight.SetValue(1.0 / totalFreeCount);
 						part = remainArea.Height / totalFreeCount;
 					}
 					else
 					{
 						if (childNode->m_fixedHeight.isPercentage)
 						{
-							part = (uint32_t)(childNode->m_fixedHeight.GetValue<double>() * parentArea.Height / 100.0);
+							auto partDouble = childNode->m_fixedHeight.GetValue<double>() * remainArea.Height;
+							part = (uint32_t)(partDouble);
 						}
 						else
 						{
 							part = childNode->m_fixedHeight.GetValue<uint32_t>();
 						}
 					}
+					appliedPixels += part;
+
 					childArea.Height = part;
 					childArea.Y += offset.Y;
 					offset.Y += part;
@@ -197,20 +200,23 @@ namespace Berta
 					if (!childNode->m_fixedWidth.HasValue())
 					{
 						childNode->m_fixedWidth.isPercentage = true;
-						childNode->m_fixedWidth.SetValue(((double)remainArea.Width / totalFreeCount) / parentArea.Width * 100.0);
+						childNode->m_fixedWidth.SetValue(1.0 / totalFreeCount);
 						part = remainArea.Width / totalFreeCount;
 					}
 					else
 					{
 						if (childNode->m_fixedWidth.isPercentage)
 						{
-							part = (uint32_t)(childNode->m_fixedWidth.GetValue<double>() * parentArea.Width / 100.0);
+							auto partDouble = childNode->m_fixedWidth.GetValue<double>() * remainArea.Width;
+							part = (uint32_t)(partDouble);
 						}
 						else
 						{
 							part = childNode->m_fixedWidth.GetValue<uint32_t>();
 						}
 					}
+					appliedPixels += part;
+
 					childArea.Width = part;
 					childArea.X += offset.X;
 					offset.X += part;
@@ -232,6 +238,17 @@ namespace Berta
 				}
 			}
 
+			if (i == m_children.size() - 1)
+			{
+				if (m_isVertical && remainArea.Height > appliedPixels)
+				{
+					childArea.Height += remainArea.Height - appliedPixels;
+				}
+				else if (!m_isVertical && remainArea.Width > appliedPixels)
+				{
+					childArea.Width += remainArea.Width - appliedPixels;
+				}
+			}
 			childNode->SetArea(childArea);
 
 			childNode->CalculateAreas();
@@ -249,25 +266,8 @@ namespace Berta
 				childArea.Y = offset.Y;
 				childArea.Height = containerArea.Height;
 				childArea.Width = containerArea.Width;
-				//Point offset2{};
-				//if (m_isVertical)
-				//{
-				//	//auto partHeight = containerArea.Height / count;
-				//	//auto partHeight = (containerArea.Height * childNode->m_fixedHeight.GetValue<double>());
-				//	//childArea.Height = partHeight;
-				//	//offset2.Y = (int)partHeight;
-				//}
-				//else
-				//{
-				//	//auto partWidth = containerArea.Width / count;
-				//	//auto partWidth = (containerArea.Width * childNode->m_fixedWidth.GetValue<double>());
-				//	//childArea.Width = partWidth;
-				//	//offset2.X = (int)partWidth;
-				//}
+				
 				windowArea.area = childArea;
-
-				//offset.X += offset2.X;
-				//offset.Y += offset2.Y;
 			}
 		}
 	}
@@ -312,8 +312,8 @@ namespace Berta
 
 				GUI::Capture(m_splitter->Handle());
 
-				m_mousePositionDown = args.Position;
 				m_splitterBeginRect = m_splitter->GetArea();
+				m_mousePositionOffset = -args.Position;
 
 				m_leftArea = m_prevNode->GetArea();
 				m_rightArea = m_nextNode->GetArea();
@@ -332,8 +332,7 @@ namespace Berta
 				if (!m_isSplitterMoving)
 					return;
 				
-				auto offset = args.Position - m_mousePositionDown;
-				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect;
+				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
 				if (m_isVertical)
 				{
 
@@ -344,28 +343,33 @@ namespace Berta
 					auto newLeftArea = m_leftArea;
 					auto newRightArea = m_rightArea;
 
-					newLeftArea.Width += deltaX;
-					newRightArea.X += deltaX;
-					newRightArea.Width -= deltaX;
+					int leftLimit = (std::max)(0, (int)newLeftArea.Width + deltaX);
+					newLeftArea.Width = (uint32_t)leftLimit;
 
-					BT_CORE_TRACE << " * deltaX = " << deltaX << ". offset.X = " << offset.X << std::endl;
+					newRightArea.X = (std::max)(newLeftArea.X, newRightArea.X + deltaX);
+					int rightLimit = (std::max)(0, (int)newRightArea.Width - deltaX);
+					newRightArea.Width = (uint32_t)rightLimit;
+
+					auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 
 					BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
 					BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
-					m_prevNode->SetArea2(newLeftArea);
-					m_nextNode->SetArea2(newRightArea);
+					auto parentArea = containerNode->GetArea();
+					m_prevNode->SetAreaWithPercentage(newLeftArea, parentArea, splitterArea);
+					m_nextNode->SetAreaWithPercentage(newRightArea, parentArea, splitterArea);
 
 					auto newSplitterArea = splitterArea;
 					newSplitterArea.X += deltaX;
+
 					BT_CORE_TRACE << " - * newSplitterArea = " << newSplitterArea << std::endl;
 					SetArea(newSplitterArea);
 					GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
 
-					auto containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 					containerNode->CalculateAreas();
 					containerNode->Apply();
 
-					GUI::UpdateTree(containerNode->GetParentWindow());
+					GUI::UpdateTree(containerNode->GetParentWindow());//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
+					GUI::UpdateWindow(containerNode->GetParentWindow());//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
 				}
 			});
 

@@ -162,19 +162,21 @@ namespace Berta
             m_area = newSize;
         }
 
-        void SetArea2(const Rectangle& newSize)
+        void SetAreaWithPercentage(const Rectangle& newSize, const Size& parentSize, Size fixedSize)
         {
+            auto newArea = newSize;
             if (m_fixedWidth.HasValue())
             {
-                auto fixedWidth = m_fixedWidth.GetValue<double>();
-                auto realSize = 100.0 * m_area.Width / fixedWidth;
+                auto remainSize = parentSize - fixedSize;
 
-                auto newScalar = (double)newSize.Width / realSize * 100.0;
+                auto newScalar = (double)newSize.Width / remainSize.Width;
                 m_fixedWidth.isPercentage = true;
                 m_fixedWidth.SetValue(newScalar);
+
+                newArea.Width = (uint32_t)(newScalar * remainSize.Width);
             }
 
-            m_area = newSize;
+            m_area = newArea;
         }
 
         void Apply();
@@ -286,7 +288,7 @@ namespace Berta
         void CalculateAreas() override;
 
     private:
-        Point m_mousePositionDown{};
+        Point m_mousePositionOffset{};
         Rectangle m_splitterBeginRect{};
         Rectangle m_leftArea{};
         Rectangle m_rightArea{};
