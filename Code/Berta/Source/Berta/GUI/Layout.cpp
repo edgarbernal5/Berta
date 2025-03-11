@@ -267,13 +267,14 @@ namespace Berta
 			case Berta::Token::Type::OpenBrace:
 			{
 				auto child = Parse();
+
 				children.emplace_back(std::move(child));
 				break;
 			}
 			case Berta::Token::Type::Splitter:
 			{
 				auto splitterNode = std::make_unique<SplitterLayoutNode>();
-				splitterNode->SetProperty("Width", Number{ 4 });
+				splitterNode->SetProperty("Dimension", Number{ 4 });
 
 				children.emplace_back(std::move(splitterNode));
 				break;
@@ -315,7 +316,35 @@ namespace Berta
 				break;
 			}
 			case Berta::Token::Type::Height:
+			{
+				m_tokenizer.Next();
+				currentToken = m_tokenizer.GetToken();
+				if (!Expect(Token::Type::Equal))
+				{
+					return nullptr;
+				}
+				bool isNumberInt = false;
+				bool isNumberDouble = false;
+				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
+				{
+					Number number;
+					if (isNumberInt)
+					{
+						number.SetValue(m_tokenizer.GetInt());
+					}
+					else
+					{
+						number.SetValue(m_tokenizer.GetDouble());
+					}
+
+					if (IsEqualTo(Token::Type::Percentage))
+					{
+						number.isPercentage = true;
+					}
+					properties["Height"] = number;
+				}
 				break;
+			}
 			case Berta::Token::Type::MinHeight:
 			case Berta::Token::Type::MaxHeight:
 			case Berta::Token::Type::MinWidth:
@@ -379,6 +408,13 @@ namespace Berta
 			if (i > 0)
 			{
 				children[i]->SetPrev(children[i- 1].get());
+			}
+
+
+			if (children[i]->GetType() == LayoutNode::Type::Splitter)
+			{
+				auto dimension = children[i]->GetProperty<Number>("Dimension");
+				children[i]->SetProperty(isVertical ? "Height" : "Width", dimension);
 			}
 		}
 

@@ -184,7 +184,25 @@ namespace Berta
                     SetProperty("Width", widthProp);
                 }
             }
+            if (m_fixedHeight.HasValue())
+            {
+                auto remainSize = parentSize - fixedSize;
 
+                auto newScalar = static_cast<double>(newSize.Height) / remainSize.Height;
+                m_fixedHeight.isPercentage = true;
+                m_fixedHeight.SetValue(newScalar);
+
+                newArea.Height = static_cast<uint32_t>(newScalar * remainSize.Height);
+                if (HasProperty<Number>("Height"))
+                {
+                    auto widthProp = GetProperty<Number>("Height");
+
+                    auto newScalar = static_cast<double>(newSize.Height) / parentSize.Height;
+                    widthProp.isPercentage = true;
+                    widthProp.SetValue(newScalar * 100.0);
+                    SetProperty("Height", widthProp);
+                }
+            }
             m_area = newArea;
         }
 
@@ -303,6 +321,7 @@ namespace Berta
         Rectangle m_rightArea{};
         bool m_isSplitterMoving{ false };
         bool m_isVertical{ false };
+        ContainerLayoutNode* m_containerNode{ nullptr };
         std::unique_ptr<SplitterLayoutControl> m_splitter;
     };
 
