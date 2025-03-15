@@ -40,7 +40,10 @@ namespace Berta
             MinHeight,
             MaxHeight,
             MinWidth,
-            MaxWidth
+            MaxWidth,
+
+            Dock,
+            DockPane
         };
 
         Type type;
@@ -60,7 +63,9 @@ namespace Berta
         "MinHeight",
         "MaxHeight",
         "MinWidth",
-        "MaxWidth"
+        "MaxWidth",
+        "Dock",
+        "DockPane"
     };
 
     class Tokenizer
@@ -115,6 +120,11 @@ namespace Berta
         Layout(Window* window);
         ~Layout();
 
+        //template<typename ...Args>
+        //void AddPane(const std::string& paneId, Args & ... args);
+
+        void AddPane(const std::string& paneId, ControlBase* pane);
+
         void Attach(const std::string& fieldId, Window* window);
         void Create(Window* window);
         void Parse(const std::string& source);
@@ -141,6 +151,12 @@ namespace Berta
         Window* m_parent{ nullptr };
         std::map<std::string, LayoutNode*> m_fields;
     };
+
+    //template<typename ...Args>
+    //inline void Layout::AddPane(const std::string& paneId, Args & ...args)
+    //{
+
+    //}
 }
 
 #endif

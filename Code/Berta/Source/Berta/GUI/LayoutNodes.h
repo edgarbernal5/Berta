@@ -103,7 +103,9 @@ namespace Berta
         {
             Container,
             Leaf,
-            Splitter
+            Splitter,
+            Dock,
+            DockPane,
         };
 
         LayoutNode(Type type);
@@ -131,6 +133,15 @@ namespace Berta
             auto it = m_properties.find(key);
 
             return (it != m_properties.end() && std::holds_alternative<T>(it->second));
+        }
+        
+        void RemoveProperty(const std::string& key)
+        {
+            auto it = m_properties.find(key);
+            if (it != m_properties.end())
+            {
+                m_properties.erase(it);
+            }
         }
 
         std::string GetId() const
@@ -210,6 +221,7 @@ namespace Berta
         virtual void CalculateAreas() = 0;
 
         LayoutNode* Find(const std::string& id);
+        LayoutNode* FindFirst(LayoutNode::Type nodeType);
 
         std::vector<LayoutControlContainer::WindowArea>& GetWindowsAreas()
         {
@@ -249,6 +261,7 @@ namespace Berta
 
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
+        LayoutNode* FindFirst(LayoutNode::Type nodeType, LayoutNode* node);
 
         std::string m_id;
         Rectangle m_area;
@@ -323,6 +336,22 @@ namespace Berta
         bool m_isVertical{ false };
         ContainerLayoutNode* m_containerNode{ nullptr };
         std::unique_ptr<SplitterLayoutControl> m_splitter;
+    };
+
+    class DockLayoutNode : public LayoutNode
+    {
+    public:
+        DockLayoutNode();
+
+        void CalculateAreas() override;
+    };
+
+    class DockPaneLayoutNode : public LayoutNode
+    {
+    public:
+        DockPaneLayoutNode();
+
+        void CalculateAreas() override;
     };
 
     template<class T>

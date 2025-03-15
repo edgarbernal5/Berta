@@ -20,6 +20,15 @@
 #include <Berta/Controls/CheckBox.h>
 #include <iostream>
 
+class ButtonPane : public Berta::Panel
+{
+public:
+	ButtonPane()
+	{
+
+	}
+};
+
 class TabExample1 : public Berta::Panel
 {
 public:
@@ -314,39 +323,39 @@ int main()
 	Berta::Form form(Berta::Size(700u, 550u), { true, true, true });
 	form.SetCaption(L"Main Window - Example");
 
-//	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
-//	auto& menuFile = menuBar.PushBack(L"File");
-//	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
-//	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
-//	menuFile.AppendSeparator();
-//	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
-//		{
-//			std::cout << "EXITO" << std::endl;
-//		});
-//	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
-//	menuFile.SetEnabled(1, false);
-//	menuFile.SetImage(0, image1);
-//
-//	Berta::Image image2("..\\..\\Resources\\Icons\\Icono5_2_16.png");
-//	menuFile.SetImage(1, image2);
-//	menuFile.SetEnabled(1, false);
-//
-//	Berta::Image image3("..\\..\\Resources\\Icons\\Icono5_2_16.png");
-//	menuFile.SetImage(3, image3);
-//
-//	auto newSubmenu = menuFile.CreateSubMenu(0);
-//	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
-//	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});
-//	newSubmenu->Append(L"Complex", [](Berta::MenuItem& item) {});
-//	auto complexSubMenu = newSubmenu->CreateSubMenu(2);
-//	newSubmenu->CreateSubMenu(1);
-//	//newSubmenu->SetEnabled(1, false);
-//	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
-//
-//	auto& menuEdit = menuBar.PushBack(L"Edit");
-//	menuEdit.Append(L"Undo", [](Berta::MenuItem& item) {});
-//
-//	menuBar.PushBack(L"Help");
+	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
+	auto& menuFile = menuBar.PushBack(L"File");
+	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
+	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
+	menuFile.AppendSeparator();
+	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
+		{
+			std::cout << "EXITO" << std::endl;
+		});
+	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
+	menuFile.SetEnabled(1, false);
+	menuFile.SetImage(0, image1);
+
+	Berta::Image image2("..\\..\\Resources\\Icons\\Icono5_2_16.png");
+	menuFile.SetImage(1, image2);
+	menuFile.SetEnabled(1, false);
+
+	Berta::Image image3("..\\..\\Resources\\Icons\\Icono5_2_16.png");
+	menuFile.SetImage(3, image3);
+
+	auto newSubmenu = menuFile.CreateSubMenu(0);
+	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
+	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});
+	newSubmenu->Append(L"Complex", [](Berta::MenuItem& item) {});
+	auto complexSubMenu = newSubmenu->CreateSubMenu(2);
+	newSubmenu->CreateSubMenu(1);
+	//newSubmenu->SetEnabled(1, false);
+	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
+
+	auto& menuEdit = menuBar.PushBack(L"Edit");
+	menuEdit.Append(L"Undo", [](Berta::MenuItem& item) {});
+
+	menuBar.PushBack(L"Help");
 //
 //	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
 //		{
@@ -548,11 +557,16 @@ int main()
 				scrollbar.Show();
 		});*/
 
-	//form.SetLayout("{{c Width=10% MaxWidth=25}{a}|{b Width=30%}}");
-	form.SetLayout("{VerticalLayout {a Height=30%}|{b}}");
+	//form.SetLayout("{{menuBar Height=25}{b}}");
+	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 	
-	form.GetLayout().Attach("a", nestedForm);
-	form.GetLayout().Attach("b", buttonLayout);
+	form.GetLayout().Attach("menuBar", menuBar);
+
+	auto buttonPane = std::make_shared<ButtonPane>();
+
+	form.GetLayout().AddPane("dockPane", buttonPane.get());
+
+	//form.GetLayout().Attach("b", nestedForm);
 
 	form.Show();
 	nestedForm.Show();

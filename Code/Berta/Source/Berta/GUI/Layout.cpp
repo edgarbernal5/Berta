@@ -26,6 +26,20 @@ namespace Berta
 		m_fields.clear();
 	}
 
+
+	void Layout::AddPane(const std::string& paneId, ControlBase* pane)
+	{
+		if (!m_rootNode)
+			return;
+
+		auto paneNode = m_rootNode->Find(paneId);
+		if (!paneNode)
+		{
+			auto dockRoot = m_rootNode->FindFirst(LayoutNode::Type::Dock);
+			//create a new layout node (DockPaneLayoutNode)
+		}
+	}
+
 	void Layout::Attach(const std::string& fieldId, Window* window)
 	{
 		auto& pair = m_fields[fieldId];
@@ -245,24 +259,18 @@ namespace Berta
 		std::vector<std::unique_ptr<LayoutNode>> children;
 		std::unique_ptr<LayoutNode> node;
 		bool isVertical = false;
+		bool isDock = false;
 		std::unordered_map<std::string, LayoutNode::PropertyValue> properties;
 
 		m_tokenizer.Next();
 		Token::Type currentToken = m_tokenizer.GetToken();
 		while (currentToken != Token::Type::EndOfStream && currentToken != Token::Type::CloseBrace)
 		{
+			bool moveToNextToken = true;
 			switch (currentToken)
 			{
 			case Berta::Token::Type::Identifier:
 				identifier = m_tokenizer.GetIdentifier();
-				break;
-			case Berta::Token::Type::NumberInt:
-				break;
-			case Berta::Token::Type::NumberDouble:
-				break;
-			case Berta::Token::Type::Percentage:
-				break;
-			case Berta::Token::Type::String:
 				break;
 			case Berta::Token::Type::OpenBrace:
 			{
@@ -285,38 +293,14 @@ namespace Berta
 			case Berta::Token::Type::HorizontalLayout:
 				isVertical = false;
 				break;
-			case Berta::Token::Type::Width:
-			{
-				m_tokenizer.Next();
-				currentToken = m_tokenizer.GetToken();
-				if (!Expect(Token::Type::Equal))
-				{
-					return nullptr;
-				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-				{
-					Number number;
-					if (isNumberInt)
-					{
-						number.SetValue(m_tokenizer.GetInt());
-					}
-					else
-					{
-						number.SetValue(m_tokenizer.GetDouble());
-					}
-
-					if (IsEqualTo(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
-					properties["Width"] = number;
-				}
+			case Berta::Token::Type::Dock:
+				isDock = true;
 				break;
-			}
+			case Berta::Token::Type::Width:
 			case Berta::Token::Type::Height:
 			{
+				auto propertyName = currentToken == Berta::Token::Type::Width ? "Width" : "Height";
+				
 				m_tokenizer.Next();
 				currentToken = m_tokenizer.GetToken();
 				if (!Expect(Token::Type::Equal))
@@ -337,11 +321,13 @@ namespace Berta
 						number.SetValue(m_tokenizer.GetDouble());
 					}
 
-					if (IsEqualTo(Token::Type::Percentage))
+					if (Accept(Token::Type::Percentage))
 					{
 						number.isPercentage = true;
 					}
-					properties["Height"] = number;
+					
+					properties[propertyName] = number;
+					moveToNextToken = !IsEqualTo(Token::Type::CloseBrace);
 				}
 				break;
 			}
@@ -374,10 +360,11 @@ namespace Berta
 				}
 				break;
 			}
-			default:
-				break;
 			}
-			m_tokenizer.Next();
+			if (moveToNextToken)
+			{
+				m_tokenizer.Next();
+			}
 			currentToken = m_tokenizer.GetToken();
 		}
 
@@ -386,7 +373,11 @@ namespace Berta
 		case Token::Type::CloseBrace:
 		case Token::Type::EndOfStream:
 		{
-			if (children.empty() || !identifier.empty())
+			if (isDock)
+			{
+				node = std::make_unique<DockLayoutNode>();
+			}
+			else if (children.empty() || !identifier.empty())
 			{
 				node = std::make_unique<LeafLayoutNode>();
 			}
@@ -400,21 +391,22 @@ namespace Berta
 
 		for (size_t i = 0; i < children.size(); i++)
 		{
-			children[i]->SetParentNode(node.get());
+			auto child = children[i].get();
+			child->SetParentNode(node.get());
 			if (i < children.size() - 1)
 			{
-				children[i]->SetNext(children[i + 1].get());
+				child->SetNext(children[i + 1].get());
 			}
 			if (i > 0)
 			{
-				children[i]->SetPrev(children[i- 1].get());
+				child->SetPrev(children[i- 1].get());
 			}
 
-
-			if (children[i]->GetType() == LayoutNode::Type::Splitter)
+			if (child->GetType() == LayoutNode::Type::Splitter)
 			{
-				auto dimension = children[i]->GetProperty<Number>("Dimension");
-				children[i]->SetProperty(isVertical ? "Height" : "Width", dimension);
+				auto dimension = child->GetProperty<Number>("Dimension");
+				child->SetProperty(isVertical ? "Height" : "Width", dimension);
+				child->RemoveProperty("Dimension");
 			}
 		}
 

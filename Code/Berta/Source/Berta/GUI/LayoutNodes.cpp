@@ -26,6 +26,11 @@ namespace Berta
 		return Find(id, this);
 	}
 
+	LayoutNode* LayoutNode::FindFirst(LayoutNode::Type nodeType)
+	{
+		return FindFirst(nodeType, this);
+	}
+
 	LayoutNode* LayoutNode::Find(const std::string& id, LayoutNode* node)
 	{
 		if (node->GetId() == id)
@@ -34,6 +39,23 @@ namespace Berta
 		for (auto& childPtr : node->m_children)
 		{
 			auto child = Find(id, childPtr.get());
+			if (child)
+			{
+				return child;
+			}
+		}
+
+		return nullptr;
+	}
+
+	LayoutNode* LayoutNode::FindFirst(LayoutNode::Type nodeType, LayoutNode* node)
+	{
+		if (node->GetType() == nodeType)
+			return node;
+
+		for (auto& childPtr : node->m_children)
+		{
+			auto child = FindFirst(nodeType, childPtr.get());
 			if (child)
 			{
 				return child;
@@ -240,11 +262,11 @@ namespace Berta
 
 			if (i == m_children.size() - 1)
 			{
-				if (m_isVertical && remainArea.Height > appliedPixels)
+				if (m_isVertical && appliedPixels > 0 && remainArea.Height > appliedPixels)
 				{
 					childArea.Height += remainArea.Height - appliedPixels;
 				}
-				else if (!m_isVertical && remainArea.Width > appliedPixels)
+				else if (!m_isVertical && appliedPixels > 0 && remainArea.Width > appliedPixels)
 				{
 					childArea.Width += remainArea.Width - appliedPixels;
 				}
@@ -290,8 +312,6 @@ namespace Berta
 
 	void LeafLayoutNode::CalculateAreas()
 	{
-		//auto parentArea = GetParentNode()->GetArea();
-
 	}
 
 	SplitterLayoutNode::SplitterLayoutNode() :
@@ -322,18 +342,11 @@ namespace Berta
 				m_leftArea = m_prevNode->GetArea();
 				m_rightArea = m_nextNode->GetArea();
 
-				//BT_CORE_TRACE << " * begin left area = " << m_leftArea << std::endl;
-				//BT_CORE_TRACE << " * begin right area = " << m_rightArea << std::endl;
-				//BT_CORE_TRACE << " * m_splitterBeginRect = " << m_splitterBeginRect << std::endl;
 				m_isSplitterMoving = true;
-				
 			});
 
 			m_splitter->GetEvents().MouseEnter.Connect([this](const ArgMouse& args)
 			{
-				if (m_isSplitterMoving)
-					return;
-
 				GUI::ChangeCursor(*m_splitter, m_isVertical ? Cursor::SizeNS : Cursor::SizeWE);
 			});
 
@@ -366,8 +379,6 @@ namespace Berta
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Height) - deltaY);
 					newRightArea.Height = static_cast<uint32_t>(rightLimit);
 
-					//BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
-					//BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
 					auto containerArea = m_containerNode->GetArea();
 					m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
 					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
@@ -387,8 +398,6 @@ namespace Berta
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Width) - deltaX);
 					newRightArea.Width = static_cast<uint32_t>(rightLimit);
 
-					//BT_CORE_TRACE << " * left area = " << newLeftArea << std::endl;
-					//BT_CORE_TRACE << " * right area = " << newRightArea << std::endl;
 					auto containerArea = m_containerNode->GetArea();
 					m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
 					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
@@ -396,7 +405,6 @@ namespace Berta
 					newSplitterArea.X += deltaX;
 				}
 
-				//BT_CORE_TRACE << " - * newSplitterArea = " << newSplitterArea << std::endl;
 				SetArea(newSplitterArea);
 				GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
 
@@ -410,7 +418,6 @@ namespace Berta
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
 			{
-				//GUI::ChangeCursor(*m_splitter, Cursor::Default);
 				if (!m_isSplitterMoving)
 					return;
 
@@ -430,5 +437,23 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "SplitterLayoutControl";
 #endif
+	}
+
+	DockLayoutNode::DockLayoutNode() :
+		LayoutNode(Type::Dock)
+	{
+	}
+
+	void DockLayoutNode::CalculateAreas()
+	{
+	}
+
+	DockPaneLayoutNode::DockPaneLayoutNode() :
+		LayoutNode(Type::DockPane)
+	{
+	}
+
+	void DockPaneLayoutNode::CalculateAreas()
+	{
 	}
 }
