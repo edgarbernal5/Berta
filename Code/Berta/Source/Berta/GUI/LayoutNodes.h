@@ -364,6 +364,8 @@ namespace Berta
     public:
         void Init(ControlBase& control) override;
         void Update(Graphics& graphics) override;
+
+        PaneInfo* m_paneInfo;
     };
 
     class DockAreaCaption : public Control<DockAreaCaptionReactor>
@@ -371,7 +373,7 @@ namespace Berta
     public:
         DockAreaCaption() = default;
 
-        void SetPaneInfo(const PaneInfo* paneInfo);
+        void SetPaneInfo(PaneInfo* paneInfo);
     };
 
     class DockArea : public Control<ControlReactor>
@@ -382,10 +384,11 @@ namespace Berta
         void Create(Window* parent, PaneInfo* paneInfo);
 
         //void AddPane();
-
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
+
+        PaneInfo* m_paneInfo;
     };
 
     class DockPaneLayoutNode : public LayoutNode

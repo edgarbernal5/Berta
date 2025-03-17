@@ -37,11 +37,13 @@ namespace Berta
 
 		Window* GetParent() const;
 		Point GetPosition() const;
+
 		Rectangle GetArea() const;
+		void SetArea(const Rectangle& area);
 
 		Size GetSize() const;
 		void SetSize(const Size& newSize);
-		
+
 		bool IsVisible() const;
 
 		void Show();
@@ -93,6 +95,8 @@ namespace Berta
 		virtual void DoOnSize(const Size& newSize);
 		virtual Size DoOnSize() const;
 
+		virtual void DoOnMove(const Rectangle& newArea);
+
 		void NotifyDestroy()
 		{
 			m_handle = nullptr;
@@ -143,14 +147,17 @@ namespace Berta
 			GUI::InitRendererReactor(this, m_reactor);
 		}
 
-		virtual void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true)
+		virtual void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)
 		{
-			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, false);
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			GUI::InitRendererReactor(this, m_reactor);
+			if (!isPanel)
+			{
+				GUI::InitRendererReactor(this, m_reactor);
+			}
 
 			if (visible)
 			{

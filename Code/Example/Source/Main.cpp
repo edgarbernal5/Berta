@@ -501,8 +501,8 @@ int main()
 	//Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
 	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
 
-	Berta::Button nestedForm(form, { 320,35, 200, 200 }, L"Button");
-	Berta::Button buttonLayout(form, { 320,250, 200, 200 }, L"Nested");
+	//Berta::Button nestedForm(form, { 320,35, 200, 200 }, L"Button");
+	//Berta::Button buttonLayout(form, { 320,250, 200, 200 }, L"Nested");
 
 	/*form.GetEvents().Resize.Connect([&tabbar, &nestedForm](const Berta::ArgResize& args)
 		{
@@ -569,7 +569,7 @@ int main()
 	//form.GetLayout().Attach("b", nestedForm);
 
 	form.Show();
-	nestedForm.Show();
+	//nestedForm.Show();
 	form.Exec();
 
 	return 0;

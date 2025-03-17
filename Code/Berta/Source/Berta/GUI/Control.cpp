@@ -49,6 +49,11 @@ namespace Berta
 		return { position.X, position.Y, size.Width, size.Height };
 	}
 
+	void ControlBase::SetArea(const Rectangle& area)
+	{
+		DoOnMove(area);
+	}
+
 	Size ControlBase::GetSize() const
 	{
 		return DoOnSize();
@@ -107,5 +112,10 @@ namespace Berta
 	Size ControlBase::DoOnSize() const
 	{
 		return GUI::SizeWindow(m_handle);
+	}
+
+	void ControlBase::DoOnMove(const Rectangle& newArea)
+	{
+		GUI::MoveWindow(m_handle, newArea);
 	}
 }
