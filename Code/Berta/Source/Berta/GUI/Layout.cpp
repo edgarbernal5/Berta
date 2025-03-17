@@ -7,7 +7,9 @@
 #include "btpch.h"
 #include "Layout.h"
 
+#include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
+#include "Berta/GUI/LayoutNodes.h"
 
 namespace Berta
 {
@@ -27,7 +29,7 @@ namespace Berta
 	}
 
 
-	void Layout::AddPane(const std::string& paneId, ControlBase* pane)
+	void Layout::AddPane(const std::string& paneId)
 	{
 		if (!m_rootNode)
 			return;
@@ -36,7 +38,27 @@ namespace Berta
 		if (!paneNode)
 		{
 			auto dockRoot = m_rootNode->FindFirst(LayoutNode::Type::Dock);
+			if (!dockRoot || !dockRoot->m_children.empty())
+			{
+				return;
+			}
+
 			//create a new layout node (DockPaneLayoutNode)
+			auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
+
+			m_dockPaneFields[paneId] = newPaneNode.get();
+			auto& paneInfo = m_dockPaneInfoFields[paneId];
+			paneInfo.id = paneId;
+
+			newPaneNode->m_dockArea = std::make_unique<DockArea>();
+			newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+
+			dockRoot->m_children.emplace_back(std::move(newPaneNode));
+		}
+		else if (paneNode->GetType() == LayoutNode::Type::DockPane)
+		{
+			auto newPaneNode = reinterpret_cast<DockPaneLayoutNode*>(paneNode);
+
 		}
 	}
 
@@ -259,7 +281,7 @@ namespace Berta
 		std::vector<std::unique_ptr<LayoutNode>> children;
 		std::unique_ptr<LayoutNode> node;
 		bool isVertical = false;
-		bool isDock = false;
+		Token::Type dockType = Token::Type::None;
 		std::unordered_map<std::string, LayoutNode::PropertyValue> properties;
 
 		m_tokenizer.Next();
@@ -294,7 +316,10 @@ namespace Berta
 				isVertical = false;
 				break;
 			case Berta::Token::Type::Dock:
-				isDock = true;
+				dockType = Berta::Token::Type::Dock;
+				break;
+			case Berta::Token::Type::DockPane:
+				dockType = Berta::Token::Type::DockPane;
 				break;
 			case Berta::Token::Type::Width:
 			case Berta::Token::Type::Height:
@@ -372,12 +397,15 @@ namespace Berta
 		{
 		case Token::Type::CloseBrace:
 		case Token::Type::EndOfStream:
-		{
-			if (isDock)
+			if (dockType == Berta::Token::Type::Dock)
 			{
 				node = std::make_unique<DockLayoutNode>();
 			}
-			else if (children.empty() || !identifier.empty())
+			else if (dockType == Berta::Token::Type::DockPane)
+			{
+				node = std::make_unique<DockPaneLayoutNode>();
+			}
+			else if (children.empty())
 			{
 				node = std::make_unique<LeafLayoutNode>();
 			}
@@ -385,7 +413,6 @@ namespace Berta
 			{
 				node = std::make_unique<ContainerLayoutNode>(isVertical);
 			}
-		}
 			break;
 		}
 

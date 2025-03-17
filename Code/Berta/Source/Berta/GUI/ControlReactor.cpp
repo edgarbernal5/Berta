@@ -13,6 +13,7 @@ namespace Berta
 {
 	void ControlReactor::Init(ControlBase& control)
 	{
+		m_control = &control;
 	}
 
 	void ControlReactor::Shutdown()

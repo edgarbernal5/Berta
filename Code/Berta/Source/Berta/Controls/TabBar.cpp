@@ -254,7 +254,7 @@ namespace Berta
 		return -1;
 	}
 
-	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel)
+	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel) const
 	{
 		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appearance->TabBarItemHeight);
 		Rectangle rect{ 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };

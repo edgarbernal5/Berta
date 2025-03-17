@@ -8,7 +8,7 @@
 #define BT_LAYOUT_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/GUI/LayoutNodes.h"
+
 #include <memory>
 #include <functional>
 #include <map>
@@ -16,11 +16,18 @@
 namespace Berta
 {
     struct Window;
+    class LayoutNode;
+    class DockPaneLayoutNode;
+    class ControlBase;
+
+    struct PaneInfo;
 
     struct Token
     {
         enum class Type
         {
+            None,
+
             Identifier,
             NumberInt,
             NumberDouble,
@@ -123,7 +130,7 @@ namespace Berta
         //template<typename ...Args>
         //void AddPane(const std::string& paneId, Args & ... args);
 
-        void AddPane(const std::string& paneId, ControlBase* pane);
+        void AddPane(const std::string& paneId);
 
         void Attach(const std::string& fieldId, Window* window);
         void Create(Window* window);
@@ -147,9 +154,11 @@ namespace Berta
             std::string m_source;
         };
 
-        std::unique_ptr<LayoutNode> m_rootNode;
         Window* m_parent{ nullptr };
+        std::unique_ptr<LayoutNode> m_rootNode;
         std::map<std::string, LayoutNode*> m_fields;
+        std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
+        std::map<std::string, PaneInfo> m_dockPaneInfoFields;
     };
 
     //template<typename ...Args>

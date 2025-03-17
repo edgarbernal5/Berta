@@ -411,7 +411,7 @@ namespace Berta
 				{
 					auto currentWindow = currentItemReactor->Owner();
 
-					POINT screenToClientPoint;
+					POINT screenToClientPoint{};
 					screenToClientPoint.x = x;
 					screenToClientPoint.y = y;
 					::ClientToScreen(hWnd, &screenToClientPoint);
@@ -594,7 +594,7 @@ namespace Berta
 			int wheelDelta = ((int)(short)HIWORD(wParam));
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
-			POINT screenToClientPoint;
+			POINT screenToClientPoint{};
 			screenToClientPoint.x = x;
 			screenToClientPoint.y = y;
 			::ScreenToClient(hWnd, &screenToClientPoint);
@@ -612,7 +612,7 @@ namespace Berta
 		}
 		case WM_CHAR:
 		{
-			ArgKeyboard argKeyboard;
+			ArgKeyboard argKeyboard{};
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));

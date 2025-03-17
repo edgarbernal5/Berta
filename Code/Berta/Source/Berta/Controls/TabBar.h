@@ -77,7 +77,7 @@ namespace Berta
 			Window* m_owner{ nullptr };
 
 		private:
-			void UpdatePanelMoveRect(Panel* panel);
+			void UpdatePanelMoveRect(Panel* panel) const;
 		};
 		Module m_module;
 	};

@@ -121,7 +121,7 @@ namespace Berta
 		if (m_attributes->m_hdc && graphicsSource.m_attributes->m_hdc)
 		{
 			// Set up alpha blending
-			BLENDFUNCTION blendFunc;
+			BLENDFUNCTION blendFunc{};
 			blendFunc.BlendOp = AC_SRC_OVER;
 			blendFunc.BlendFlags = 0;
 			blendFunc.SourceConstantAlpha = static_cast<BYTE>(alpha * 255);

@@ -455,5 +455,65 @@ namespace Berta
 
 	void DockPaneLayoutNode::CalculateAreas()
 	{
+		if (!m_dockArea)
+			return;
+
+		
+	}
+
+	void DockAreaCaptionReactor::Init(ControlBase& control)
+	{
+		m_control = &control;
+	}
+
+	void DockAreaCaptionReactor::Update(Graphics& graphics)
+	{
+		auto window = m_control->Handle();
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->MenuBackground, true);
+		
+		Point textPos{ 5, 0 };
+		textPos.Y = (int)window->Size.Height - (int)graphics.GetTextExtent().Height;
+		graphics.DrawString(textPos, m_control->GetCaption(), window->Appearance->Foreground);
+	}
+
+	void DockArea::Create(Window* parent, PaneInfo* paneInfo)
+	{
+		Control<ControlReactor>::Create(parent, false, { 0,0,1,1 });
+#if BT_DEBUG
+		m_handle->Name = "DockArea";
+#endif
+		m_caption = std::make_unique<DockAreaCaption>();
+		m_caption->Create(*this, false, {0,0,1,1});
+		m_caption->SetCaption(L"caption 1");
+		m_caption->SetPaneInfo(paneInfo);
+
+		this->GetEvents().Resize.Connect([this](const ArgResize& args)
+		{
+		});
+
+		m_caption->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
+		{
+		});
+
+		m_caption->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
+		{
+		});
+
+		m_caption->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
+		{
+		});
+	}
+
+	void DockAreaCaption::SetPaneInfo(const PaneInfo* paneInfo)
+	{
+	}
+
+	DockPaneTabLayoutNode::DockPaneTabLayoutNode() :
+		LayoutNode(LayoutNode::Type::DockPaneTab)
+	{
+	}
+
+	void DockPaneTabLayoutNode::CalculateAreas()
+	{
 	}
 }

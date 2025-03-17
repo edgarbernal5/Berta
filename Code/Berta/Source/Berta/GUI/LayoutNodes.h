@@ -9,6 +9,8 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Controls/Panel.h"
+#include "Berta/Controls/Form.h"
+#include "Berta/Controls/TabBar.h"
 
 #include <unordered_map>
 #include <string>
@@ -17,6 +19,8 @@
 namespace Berta
 {
     struct Window;
+    class TabBar;
+    class Form;
 
     class LayoutControlContainer
     {
@@ -35,7 +39,7 @@ namespace Berta
             return m_windows;
         }
     private:
-        std::vector<WindowArea> m_windows; //TODO: quitar el vector y hacer una sola instancia por nodo.
+        std::vector<WindowArea> m_windows; //TODO: quitar el vector y hacer una sola instancia por nodo. No se si aplica al Grid Layout (no se ha implementado por el momento)
     };
 
     struct Margin
@@ -106,6 +110,7 @@ namespace Berta
             Splitter,
             Dock,
             DockPane,
+            DockPaneTab,
         };
 
         LayoutNode(Type type);
@@ -163,6 +168,7 @@ namespace Berta
         {
             return m_type;
         }
+
         Window* GetParentWindow() const
         {
             return m_parentWindow;
@@ -338,6 +344,13 @@ namespace Berta
         std::unique_ptr<SplitterLayoutControl> m_splitter;
     };
 
+    struct PaneInfo
+    {
+        std::string id;
+        bool showCaption{ true };
+        bool showCloseButton{ true };
+    };
+
     class DockLayoutNode : public LayoutNode
     {
     public:
@@ -346,10 +359,49 @@ namespace Berta
         void CalculateAreas() override;
     };
 
+    class DockAreaCaptionReactor : public ControlReactor
+    {
+    public:
+        void Init(ControlBase& control) override;
+        void Update(Graphics& graphics) override;
+    };
+
+    class DockAreaCaption : public Control<DockAreaCaptionReactor>
+    {
+    public:
+        DockAreaCaption() = default;
+
+        void SetPaneInfo(const PaneInfo* paneInfo);
+    };
+
+    class DockArea : public Control<ControlReactor>
+    {
+    public:
+        DockArea() = default;
+
+        void Create(Window* parent, PaneInfo* paneInfo);
+
+        //void AddPane();
+
+        std::unique_ptr<Form> m_nativeContainer;
+        std::unique_ptr<DockAreaCaption> m_caption;
+        std::unique_ptr<TabBar> m_tabBar;
+    };
+
     class DockPaneLayoutNode : public LayoutNode
     {
     public:
         DockPaneLayoutNode();
+
+        void CalculateAreas() override;
+
+        std::unique_ptr<DockArea> m_dockArea;
+    };
+
+    class DockPaneTabLayoutNode : public LayoutNode
+    {
+    public:
+        DockPaneTabLayoutNode();
 
         void CalculateAreas() override;
     };

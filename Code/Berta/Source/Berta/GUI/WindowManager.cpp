@@ -495,7 +495,11 @@ namespace Berta
 
 			ArgResize argResize;
 			argResize.NewSize = newSize;
-			//BT_CORE_TRACE << "Resize() - window = " << window->Name << std::endl;
+#if BT_DEBUG
+			//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
+#else
+			//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
+#endif
 			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 		}
 	}
