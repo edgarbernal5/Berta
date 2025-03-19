@@ -242,6 +242,29 @@ namespace Berta
 		case WM_ERASEBKGND:
 			return TRUE;
 
+		//case WM_NCCALCSIZE: {
+		//	if (wParam == TRUE) {
+		//		NCCALCSIZE_PARAMS* params = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+
+		//		UINT dpi = ::GetDpiForWindow(hWnd);
+		//		float scaleFactor = dpi / 96.0f;
+
+		//		// Example: Scaling frame thickness
+		//		int baseFrameThickness = 2; // Base frame thickness at 96 DPI
+		//		int scaledFrameThickness = static_cast<int>(baseFrameThickness * scaleFactor);
+
+		//		// Adjusting the client area rectangles
+		//		params->rgrc[0].left += scaledFrameThickness;
+		//		params->rgrc[0].top += scaledFrameThickness;
+		//		params->rgrc[0].right -= scaledFrameThickness;
+		//		params->rgrc[0].bottom -= scaledFrameThickness;
+
+		//		//return 0;
+		//		defaultToWindowProc = false;
+		//	}
+		//	break;
+		//}
+
 		case WM_ACTIVATEAPP:
 		{
 			ArgActivated argActivated{};
@@ -322,6 +345,7 @@ namespace Berta
 
 				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
+			defaultToWindowProc = false;
 			break;
 		}
 		case WM_DPICHANGED:
@@ -379,6 +403,7 @@ namespace Berta
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
+			defaultToWindowProc = false;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -541,6 +566,7 @@ namespace Berta
 					}
 				}
 			}
+			defaultToWindowProc = false;
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -570,6 +596,7 @@ namespace Berta
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
 			rootWindowData.Pressed = nullptr;
+			defaultToWindowProc = false;
 
 			break;
 		}
