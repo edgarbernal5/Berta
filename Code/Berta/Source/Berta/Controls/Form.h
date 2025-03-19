@@ -32,6 +32,7 @@ namespace Berta
 	{
 	public:
 		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
+		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
 		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
 
 		Layout& GetLayout()
@@ -48,6 +49,8 @@ namespace Berta
 	public:
 		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true });
 		Form(const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
+		explicit Form(Window* owner, const Size& size, const FormStyle& windowStyle = { true, true, true });
+		Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
 
 		void Exec();
 	private:

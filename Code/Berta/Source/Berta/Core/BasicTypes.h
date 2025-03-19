@@ -214,6 +214,8 @@ namespace Berta
 
 	struct FormStyle
 	{
+		static FormStyle Float();
+
 		bool Minimize{ true };
 		bool Maximize{ true };
 		bool Sizable{ true };

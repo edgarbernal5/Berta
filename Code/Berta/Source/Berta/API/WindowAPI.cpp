@@ -50,13 +50,12 @@ namespace Berta
 			{
 				style |= WS_THICKFRAME;
 			}
-
 			if (formStyle.TitleBarAndCaption)
 			{
 				style |= WS_OVERLAPPED | WS_CAPTION;
 			}
-
 			style |= (isNested ? WS_CHILD : WS_POPUP);
+
 			if (formStyle.AppWindow)
 			{
 				styleEx |= WS_EX_APPWINDOW;
@@ -128,6 +127,7 @@ namespace Berta
 				std::wstring result(length + 1, L'\0');
 				::GetWindowText(nativeHandle.Handle, result.data(), length + 1);
 				result.resize(length);
+				
 				return result;
 			}
 #else
@@ -170,12 +170,9 @@ namespace Berta
 			{
 				::SetCapture(nativeHandle.Handle);
 			}
-			else
+			else if (!::ReleaseCapture())
 			{
-				if (!::ReleaseCapture())
-				{
-					BT_CORE_ERROR << "ReleaseCapture ::GetLastError() = " << ::GetLastError() << std::endl;
-				}
+				BT_CORE_ERROR << "ReleaseCapture ::GetLastError() = " << ::GetLastError() << std::endl;
 			}
 #endif
 		}
@@ -204,23 +201,46 @@ namespace Berta
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return { ::GetAncestor(reinterpret_cast<HWND>(nativeHandle.Handle), GA_PARENT) };
+			return { ::GetAncestor(nativeHandle.Handle, GA_PARENT) };
 #else
 			return {};
 #endif
 		}
 
-		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newMove)
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea)
 		{
-			::MoveWindow(nativeHandle.Handle, newMove.X, newMove.Y, newMove.Width, newMove.Height, true);
+#ifdef BT_PLATFORM_WINDOWS
+			::MoveWindow(nativeHandle.Handle, newArea.X, newArea.Y, newArea.Width, newArea.Height, true);
+#endif
+		}
+
+		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::RECT nativeRECT;
+			::GetWindowRect(nativeHandle.Handle, &nativeRECT);
+			HWND owner = ::GetWindow(nativeHandle.Handle, GW_OWNER);
+
+			auto adjustedPosition = newPosition;
+			if (owner)
+			{
+				::RECT ownerRECT;
+				::GetWindowRect(owner, &ownerRECT);
+				::POINT ownerPosition = { ownerRECT.left, ownerRECT.top };
+				::ScreenToClient(owner, &ownerPosition);
+				adjustedPosition.X += (ownerRECT.left - ownerPosition.x);
+				adjustedPosition.Y += (ownerRECT.top - ownerPosition.y);
+			}
+			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, true);
+#endif
 		}
 
 		void ResizeWindow(NativeWindowHandle nativeHandle, const Size& newSize)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::RECT r;
-			::GetWindowRect(nativeHandle.Handle, &r);
-			::MoveWindow(nativeHandle.Handle, r.left, r.top, static_cast<int>(newSize.Width), static_cast<int>(newSize.Height), true);
+			::RECT nativeRECT;
+			::GetWindowRect(nativeHandle.Handle, &nativeRECT);
+			::MoveWindow(nativeHandle.Handle, nativeRECT.left, nativeRECT.top, static_cast<int>(newSize.Width), static_cast<int>(newSize.Height), true);
 #else
 
 #endif
@@ -229,7 +249,22 @@ namespace Berta
 		Point GetWindowPosition(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return {};
+			::RECT nativeRECT;
+			::GetWindowRect(nativeHandle.Handle, &nativeRECT);
+			HWND ownerOrParentHwnd = ::GetWindow(nativeHandle.Handle, GW_OWNER);
+
+			if (!ownerOrParentHwnd)
+			{
+				ownerOrParentHwnd = ::GetParent(nativeHandle.Handle);
+			}
+
+			if (ownerOrParentHwnd)
+			{
+				::POINT position = { nativeRECT.left, nativeRECT.top };
+				::ScreenToClient(ownerOrParentHwnd, &position);
+				return { position.x, position.y };
+			}
+			return { nativeRECT.left, nativeRECT.top };
 #else
 			return {};
 #endif
@@ -264,11 +299,10 @@ namespace Berta
 			}
 
 			nativeCursor.Handle = ::LoadCursor(nullptr, cursorName);
-			auto thisCursor = reinterpret_cast<HCURSOR>(::GetClassLongPtr(reinterpret_cast<HWND>(nativeHandle.Handle), GCLP_HCURSOR));
+			auto thisCursor = reinterpret_cast<HCURSOR>(::GetClassLongPtr(nativeHandle.Handle, GCLP_HCURSOR));
 			if (thisCursor != nativeCursor.Handle)
 			{
-				::SetClassLongPtr(reinterpret_cast<HWND>(nativeHandle.Handle), GCLP_HCURSOR,
-					reinterpret_cast<LONG_PTR>(nativeCursor.Handle));
+				::SetClassLongPtr(nativeHandle.Handle, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(nativeCursor.Handle));
 			}
 #endif
 			return true;
@@ -290,7 +324,7 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			::POINT pointNative = { point.X, point.Y };
-			if (::ClientToScreen(reinterpret_cast<HWND>(nativeHandle.Handle), &pointNative))
+			if (::ClientToScreen(nativeHandle.Handle, &pointNative))
 			{
 				return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
 			}
@@ -304,7 +338,7 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			::POINT pointNative = { point.X, point.Y };
-			if (::ScreenToClient(reinterpret_cast<HWND>(nativeHandle.Handle), &pointNative))
+			if (::ScreenToClient(nativeHandle.Handle, &pointNative))
 			{
 				return { static_cast<int>(pointNative.x), static_cast<int>(pointNative.y) };
 			}
@@ -321,16 +355,6 @@ namespace Berta
 			auto param = new CustomCallbackMessage();
 			param->Body = body;
 			::PostMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomCallback), reinterpret_cast<WPARAM>(param), 0);
-#endif
-		}
-
-		void ResizeChildWindow(NativeWindowHandle nativeHandle, const Point& position, const Size& size)
-		{
-#ifdef BT_PLATFORM_WINDOWS
-			Rectangle newRect{ position ,size };
-			auto rect = newRect.ToRECT();
-			::SendMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomChildResize), 0, (LPARAM)&rect);
-#else
 #endif
 		}
 

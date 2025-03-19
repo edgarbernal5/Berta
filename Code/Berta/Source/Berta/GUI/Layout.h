@@ -120,7 +120,15 @@ namespace Berta
         Token::Type m_token{ Token::Type::EndOfStream };
     };
 
-    class Layout
+    class LayoutDockPaneEventsNotifier
+    {
+    public:
+        virtual ~LayoutDockPaneEventsNotifier() = default;
+
+        virtual void NotifyFloat(LayoutNode* node) = 0;
+    };
+
+    class Layout : public LayoutDockPaneEventsNotifier
     {
     public:
         Layout();
@@ -136,6 +144,7 @@ namespace Berta
         void Create(Window* window);
         void Parse(const std::string& source);
 
+        void NotifyFloat(LayoutNode* node) override;
     private:
         class Parser
         {
@@ -158,6 +167,7 @@ namespace Berta
         std::unique_ptr<LayoutNode> m_rootNode;
         std::map<std::string, LayoutNode*> m_fields;
         std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
+        std::vector<LayoutNode*> m_floatingDockFields;
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
     };
 

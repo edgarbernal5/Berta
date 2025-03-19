@@ -52,7 +52,10 @@ namespace Berta
 
 			newPaneNode->m_dockArea = std::make_unique<DockArea>();
 			newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+			newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
 
+			newPaneNode->SetParentNode(dockRoot);
+			newPaneNode->m_dockLayoutEvents = this;
 			dockRoot->m_children.emplace_back(std::move(newPaneNode));
 		}
 		else if (paneNode->GetType() == LayoutNode::Type::DockPane)
@@ -117,6 +120,29 @@ namespace Berta
 		m_rootNode = std::move(rootNode);
 		m_rootNode->SetParentWindow(m_parent);
 		//m_rootNode->CalculateAreas();
+	}
+
+	void Layout::NotifyFloat(LayoutNode* node)
+	{
+		auto parent = node->GetParentNode();
+		if (!parent)
+			return;
+
+		for (size_t i = 0; i < parent->m_children.size(); ++i)
+		{
+			if (parent->m_children[i].get() == node)
+			{
+				m_floatingDockFields.emplace_back(parent->m_children[i].release());
+				m_floatingDockFields.back()->SetParentNode(nullptr);
+				m_floatingDockFields.back()->SetPrev(nullptr);
+				m_floatingDockFields.back()->SetNext(nullptr);
+
+				parent->m_children.erase(parent->m_children.begin() + i);
+				break;
+			}
+		}
+
+		//node->CalculateAreas();
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 
@@ -426,7 +452,7 @@ namespace Berta
 			}
 			if (i > 0)
 			{
-				child->SetPrev(children[i- 1].get());
+				child->SetPrev(children[i - 1].get());
 			}
 
 			if (child->GetType() == LayoutNode::Type::Splitter)

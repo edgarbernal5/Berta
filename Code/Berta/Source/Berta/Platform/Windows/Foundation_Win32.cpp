@@ -28,6 +28,7 @@
 namespace Berta
 {
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
+	bool ProcessMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
 
 	HINSTANCE g_hModuleInstance;
 	HINSTANCE GetModuleInstance()
@@ -102,7 +103,8 @@ namespace Berta
 	{
 		{WM_CREATE,			"WM_CREATE"},
 		{WM_NCCREATE,		"WM_NCCREATE"},
-		//{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
 		{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
@@ -125,6 +127,7 @@ namespace Berta
 		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
+		{WM_NCCALCSIZE,		"WM_NCCALCSIZE"},
 		//{WM_SETCURSOR,		"WM_SETCURSOR"},
 
 		{WM_ACTIVATE,		"WM_ACTIVATE"},
@@ -152,6 +155,7 @@ namespace Berta
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 #ifdef BT_PRINT_WND_MESSAGES
+		bool printedMessage = false;
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
@@ -165,7 +169,8 @@ namespace Berta
 			}
 			if (g_debugLastMessageCount == 1)
 			{
-				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
+				printedMessage = true;
+				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
 			if (g_debugLastMessageCount > 0)
 				g_debugLastMessageCount = 0;
@@ -177,6 +182,15 @@ namespace Berta
 			//BT_CORE_DEBUG << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
 		}
 #endif
+		LRESULT innerResult;
+		if (ProcessMessage(hWnd, message, wParam, lParam, innerResult))
+		{
+#ifdef BT_PRINT_WND_MESSAGES
+			if (printedMessage)
+				BT_CORE_DEBUG << std::endl;
+#endif
+			return innerResult;
+		}
 		auto& foundation = Foundation::GetInstance();
 
 		API::NativeWindowHandle nativeWindowHandle{ hWnd };
@@ -184,9 +198,23 @@ namespace Berta
 		auto nativeWindow = windowManager.Get(nativeWindowHandle);
 		if (nativeWindow == nullptr)
 		{
+#ifdef BT_PRINT_WND_MESSAGES
+			if (printedMessage)
+				BT_CORE_DEBUG << std::endl;
+#endif
 			//BT_CORE_DEBUG << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
+
+#ifdef BT_PRINT_WND_MESSAGES
+		if (printedMessage)
+		{
+#if BT_DEBUG
+			BT_CORE_DEBUG << ". window = " << nativeWindow->Name;
+#endif
+			BT_CORE_DEBUG << std::endl;
+		}
+#endif
 
 		bool defaultToWindowProc = true;
 		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
@@ -223,6 +251,17 @@ namespace Berta
 			events->Activated.Emit(argActivated);
 			break;
 		}
+		case WM_ACTIVATE:
+			BT_CORE_DEBUG << " wParam = " << wParam << ". window = " << nativeWindow->Name << std::endl;
+			BT_CORE_DEBUG << " lParam = " << lParam << ". window = " << nativeWindow->Name << std::endl;
+			//if (wParam == WA_INACTIVE)
+			{
+				//Added these calls for float window that rendered a thick frame when loses/gains focus.
+				::InvalidateRect(hWnd, NULL, TRUE);
+				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+			}
+			defaultToWindowProc = false;
+			break;
 		case WM_SHOWWINDOW:
 		{
 			bool isVisible = (wParam == TRUE);
@@ -251,7 +290,7 @@ namespace Berta
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "} window = "<<nativeWindow->Name << std::endl;
+			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "} window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "}" << std::endl;
 #endif
@@ -305,27 +344,6 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
-		case static_cast<uint32_t>(CustomMessageId::CustomChildResize):
-		{
-			// The window is already have updated its position and size.
-			Rectangle newRect
-			{
-				nativeWindow->Position.X, nativeWindow->Position.Y,
-				nativeWindow->Size.Width, nativeWindow->Size.Height 
-			};
-			auto rect = newRect.ToRECT();
-			
-			::SetWindowPos(hWnd, 
-				NULL, 
-				rect.left, 
-				rect.top, 
-				rect.right - rect.left,
-				rect.bottom - rect.top, 
-				SWP_NOZORDER | SWP_NOACTIVATE);
-
-			defaultToWindowProc = false;
-			break;
-		}
 		case WM_SETFOCUS:
 		{
 			if (rootWindowData.Focused)
@@ -333,7 +351,8 @@ namespace Berta
 				ArgFocus argFocus{ true };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
-			defaultToWindowProc = false;
+			//Added this call for float window that rendered a thick frame when loses/gains focus.
+			::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_KILLFOCUS:
@@ -343,7 +362,8 @@ namespace Berta
 				ArgFocus argFocus{ false };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
-			defaultToWindowProc = false;
+			//Added this call for float window that rendered a thick frame when loses/gains focus.
+			::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured
@@ -732,6 +752,51 @@ namespace Berta
 		}
 
 		return 0;
+	}
+
+	bool ProcessMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result)
+	{
+		result = 0;
+
+		switch (message)
+		{
+		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
+		case WM_ERASEBKGND:
+		case WM_ACTIVATEAPP:
+		case WM_ACTIVATE:
+		case WM_SHOWWINDOW:
+		case WM_PAINT:
+		case WM_SIZE:
+		case WM_DPICHANGED:
+		case WM_SETFOCUS:
+		case WM_KILLFOCUS:
+		case WM_MOUSEACTIVATE:
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MOUSEMOVE:
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_LBUTTONDBLCLK:
+		case WM_MOUSELEAVE:
+		case WM_MOUSEHWHEEL:
+		case WM_MOUSEWHEEL:
+		case WM_CHAR:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_ENTERSIZEMOVE:
+		case WM_EXITSIZEMOVE:
+		case WM_CLOSE:
+		case WM_DESTROY:
+		case WM_NCDESTROY:
+			return false;
+		}
+
+		result = ::DefWindowProc(hWnd, message, wParam, lParam);
+		return true;
 	}
 }
 #endif

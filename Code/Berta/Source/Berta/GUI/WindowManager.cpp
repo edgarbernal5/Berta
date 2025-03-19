@@ -206,6 +206,20 @@ namespace Berta
 		return true;
 	}
 
+	void WindowManager::SetParentInternal(Window* window, Window* newParent)
+	{
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			auto child = window->Children[i];
+
+			child->RootHandle = window->RootHandle;
+			child->RootWindow = window->RootWindow;
+			child->RootGraphics = window->RootGraphics;
+
+			SetParentInternal(child, newParent);
+		}
+	}
+
 	void WindowManager::Paint(Window* window, bool doUpdate)
 	{
 		if (doUpdate && !window->Flags.isUpdating)
@@ -488,7 +502,8 @@ namespace Berta
 
 					if (resizeForm)
 					{
-						API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+						Rectangle newArea{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+						API::MoveWindow(window->RootHandle, newArea);
 					}
 				}
 			}
@@ -514,7 +529,7 @@ namespace Berta
 			bool sizeChanged = window->Size != newRect;
 			bool positionChanged = window->Position != newRect;
 
-			if (positionChanged)
+			if (positionChanged && window->Type != WindowType::Form)
 			{
 				window->Position = newRect;
 			}
@@ -526,7 +541,7 @@ namespace Berta
 
 			if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
 			{
-				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+				API::MoveWindow(window->RootHandle, newRect);
 
 				ArgMove argMove;
 				argMove.NewPosition = newRect;
@@ -538,22 +553,23 @@ namespace Berta
 	void WindowManager::Move(Window* window, const Point& newPosition)
 	{
 		auto& foundation = Foundation::GetInstance();
-		if (window->Position != newPosition)
+		
+		if (window->Type == WindowType::Form)
+		{
+			API::MoveWindow(window->RootHandle, newPosition);
+		}
+		else if (window->Position != newPosition)
 		{
 			window->Position = newPosition;
-			if (window->Type == WindowType::Form)
-			{
-				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
-			}
-
-			ArgMove argMove;
-			argMove.NewPosition = newPosition;
-			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
 		}
+
+		ArgMove argMove;
+		argMove.NewPosition = newPosition;
+		foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
 	}
 
 	void WindowManager::Update(Window* window)
-	{		
+	{
 		if (window->Flags.isUpdating)
 		{
 			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
@@ -569,9 +585,9 @@ namespace Berta
 		if (!TryDeferredUpdate(window))
 		{
 #if BT_DEBUG
-			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << window->Name << std::endl;
+			BT_CORE_TRACE << " - WindowManager.Update() / paint and map... " << window->Name << ". Hwnd = " << window->RootHandle.Handle << std::endl;
 #else
-			BT_CORE_TRACE << " - WindowManager.Update() / paint and map..." << std::endl;
+			BT_CORE_TRACE << " - WindowManager.Update() / paint and map... Hwnd = " << window->RootHandle.Handle << std::endl;
 #endif
 			Paint(window, false);
 			Map(window, nullptr);
@@ -665,7 +681,8 @@ namespace Berta
 
 			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
 			{
-				API::ResizeChildWindow(window->RootHandle, window->Position, window->Size);
+				Rectangle newArea{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+				API::MoveWindow(window->RootHandle, newArea);
 				API::RefreshWindow(window->RootHandle);
 			}
 
@@ -730,6 +747,32 @@ namespace Berta
 	Point WindowManager::GetLocalPosition(Window* window)
 	{
 		return window->Position;
+	}
+
+	void WindowManager::SetParent(Window* window, Window* newParent)
+	{
+		if (window->Parent)
+		{
+			for (size_t i = 0; i < window->Parent->Children.size(); i++)
+			{
+				if (window->Parent->Children[i] == window)
+				{
+					window->Parent->Children.erase(window->Parent->Children.begin() + i);
+					break;
+				}
+			}
+		}
+		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
+
+		window->Parent = newParent;
+		window->RootHandle = newParent->RootHandle;
+		window->RootWindow = newParent->RootWindow;
+		window->RootGraphics = newParent->RootGraphics;
+		window->Position -= deltaPosition;
+
+		newParent->Children.emplace_back(window);
+
+		SetParentInternal(window, newParent);
 	}
 
 	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)

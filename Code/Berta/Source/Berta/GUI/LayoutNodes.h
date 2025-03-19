@@ -359,13 +359,21 @@ namespace Berta
         void CalculateAreas() override;
     };
 
+    class DockEventsNotifier
+    {
+    public:
+        virtual ~DockEventsNotifier() = default;
+
+        virtual void NotifyFloat() = 0;
+    };
+
     class DockAreaCaptionReactor : public ControlReactor
     {
     public:
         void Init(ControlBase& control) override;
         void Update(Graphics& graphics) override;
 
-        PaneInfo* m_paneInfo;
+        PaneInfo* m_paneInfo{ nullptr };
     };
 
     class DockAreaCaption : public Control<DockAreaCaptionReactor>
@@ -384,20 +392,39 @@ namespace Berta
         void Create(Window* parent, PaneInfo* paneInfo);
 
         //void AddPane();
+
+        struct MouseInteraction
+        {
+            bool m_dragStarted{ false };
+            Point m_dragStartPos{ };
+            Point m_dragStartLocalPos{ };
+        };
+
+        bool IsFloating() const
+        {
+            return m_nativeContainer != nullptr;
+        }
+
+        MouseInteraction m_mouseInteraction;
+        Window* m_hostWindow;
+        DockEventsNotifier* m_eventsNotifier{ nullptr };
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
 
-        PaneInfo* m_paneInfo;
+        PaneInfo* m_paneInfo{ nullptr };
     };
 
-    class DockPaneLayoutNode : public LayoutNode
+    class DockPaneLayoutNode : public LayoutNode, public DockEventsNotifier
     {
     public:
         DockPaneLayoutNode();
 
         void CalculateAreas() override;
 
+        void NotifyFloat() override;
+
+        LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };
         std::unique_ptr<DockArea> m_dockArea;
     };
 

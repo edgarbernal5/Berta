@@ -25,7 +25,7 @@ namespace Berta::GUI
 		}
 
 		Rectangle finalRect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
+		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
 		{
 			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
 			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
@@ -83,7 +83,7 @@ namespace Berta::GUI
 		window->Init(control);
 		
 		Rectangle finalRect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != BERTA_APPLICATION_DPI)
+		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
 		{
 			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
 			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
@@ -223,6 +223,15 @@ namespace Berta::GUI
 		}
 	}
 
+	void MoveWindow(Window* window, const Point& newPosition)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			windowManager.Move(window, newPosition);
+		}
+	}
+
 	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -314,6 +323,16 @@ namespace Berta::GUI
 		return {};
 	}
 
+	Point GetAbsoluteRootPosition(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return windowManager.GetAbsoluteRootPosition(window);
+		}
+		return {};
+	}
+
 	Point GetLocalPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -334,6 +353,20 @@ namespace Berta::GUI
 			return mousePosition - windowManager.GetAbsolutePosition(window);
 		}
 		return {};
+	}
+
+	Point GetScreenMousePosition()
+	{
+		return API::GetScreenMousePosition();
+	}
+
+	void SetParentWindow(Window* window, Window* newParent)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window) && windowManager.Exists(newParent))
+		{
+			windowManager.SetParent(window, newParent);
+		}
 	}
 
 	void UpdateTree(Window* window)
@@ -368,7 +401,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.GetCursor(window);
+			return windowManager.GetCursor(window);
 		}
 		return Cursor::Default;
 	}

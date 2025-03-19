@@ -35,6 +35,7 @@ namespace Berta
 		void ResizeWindow(Window* window, const Size& newSize);
 		Size SizeWindow(Window* window);
 		void MoveWindow(Window* window, const Rectangle& newRect);
+		void MoveWindow(Window* window, const Point& newPosition);
 
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
 
@@ -48,8 +49,12 @@ namespace Berta
 		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
 		Point GetAbsolutePosition(Window* window);
+		Point GetAbsoluteRootPosition(Window* window);
 		Point GetLocalPosition(Window* window);
 		Point GetMousePositionToWindow(Window* window);
+		Point GetScreenMousePosition();
+
+		void SetParentWindow(Window* window, Window* newParent);
 
 		void UpdateTree(Window* window);
 		void MarkAsUpdated(Window* window); //Precondition: window must have been updated.

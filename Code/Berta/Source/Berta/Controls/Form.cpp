@@ -35,6 +35,15 @@ namespace Berta
 #endif
 	}
 
+	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
+	{
+		Create(owner, false, rectangle, windowStyle, isNested);
+
+#if BT_DEBUG
+		m_handle->Name = "Form";
+#endif
+	}
+
 	FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
 	{
 		Create(owner, isUnscaleRect, rectangle, windowStyle, isNested);
@@ -57,6 +66,16 @@ namespace Berta
 
 	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle) : 
 		FormBase(nullptr, rectangle, windowStyle, false)
+	{
+	}
+
+	Form::Form(Window* owner, const Size& size, const FormStyle& windowStyle) :
+		FormBase(owner, size, windowStyle, false)
+	{
+	}
+
+	Form::Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle) :
+		FormBase(owner, rectangle, windowStyle, false)
 	{
 	}
 

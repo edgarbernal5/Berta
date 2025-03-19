@@ -467,6 +467,11 @@ namespace Berta
 		m_dockArea->SetArea(GetArea());
 	}
 
+	void DockPaneLayoutNode::NotifyFloat()
+	{
+		m_dockLayoutEvents->NotifyFloat(this);
+	}
+
 	void DockAreaCaptionReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
@@ -485,14 +490,15 @@ namespace Berta
 
 	void DockArea::Create(Window* parent, PaneInfo* paneInfo)
 	{
+		m_hostWindow = parent;
 		Control<ControlReactor>::Create(parent, false, { 0,0,1,1 }, true, true);
 #if BT_DEBUG
-		m_handle->Name = "DockArea";
+		m_handle->Name = "DockArea-" + paneInfo->id;
 #endif
 		m_caption = std::make_unique<DockAreaCaption>();
-		m_caption->Create(*this, false, {0,0,1,1});
+		m_caption->Create(*this, false, {0,0,1,1}, paneInfo->showCaption);
 #if BT_DEBUG
-		m_caption->Handle()->Name = "DockAreaCaption";
+		m_caption->Handle()->Name = "DockAreaCaption-" + paneInfo->id;
 #endif
 		m_caption->SetCaption(L"caption 1");
 		m_caption->SetPaneInfo(paneInfo);
@@ -503,20 +509,79 @@ namespace Berta
 		{
 			if (m_paneInfo->showCaption)
 			{
-				m_caption->SetArea({ 0,0,args.NewSize.Width, Handle()->ToScale(25u) });
+				m_caption->SetArea({ 0,0,args.NewSize.Width, Handle()->ToScale(18u) });
 			}
 		});
 
 		m_caption->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
 		{
+			m_mouseInteraction.m_dragStarted = true;
+			GUI::Capture(*m_caption);
+
+			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
+			//BT_CORE_TRACE << " - DOWN: args:position = " << args.Position << std::endl;
+			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) : this->GetPosition();
 		});
 
 		m_caption->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
 		{
+			if (!m_mouseInteraction.m_dragStarted)
+				return;
+
+			auto dockAreaWindow = this->Handle();
+			auto screenMousePos = GUI::GetScreenMousePosition();
+			if (!IsFloating())
+			{
+				auto floatingThreshold = dockAreaWindow->ToScale(4);
+				if (std::abs(m_mouseInteraction.m_dragStartPos.X - screenMousePos.X) > floatingThreshold ||
+					std::abs(m_mouseInteraction.m_dragStartPos.Y - screenMousePos.Y) > floatingThreshold)
+				{
+					auto pointInScreen = GUI::GetPointClientToScreen(dockAreaWindow, dockAreaWindow->Position);
+					auto dockAreaSize = this->GetSize();
+
+					Rectangle formRect;
+					formRect.X = pointInScreen.X;
+					formRect.Y = pointInScreen.Y;
+					formRect.Width = dockAreaSize.Width;
+					formRect.Height = dockAreaSize.Height;
+
+					m_nativeContainer = std::make_unique<Form>(m_hostWindow, formRect, FormStyle::Float());
+					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
+					{
+						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
+					});
+
+#if BT_DEBUG
+					m_nativeContainer->Handle()->Name = "DockFloat-" + m_paneInfo->id;
+#endif
+
+					auto prevHostWindow = dockAreaWindow->RootWindow;
+					GUI::SetParentWindow(dockAreaWindow, m_nativeContainer->Handle());
+
+					m_nativeContainer->Show();
+
+					GUI::UpdateTree(prevHostWindow);
+					GUI::UpdateWindow(prevHostWindow);
+
+					m_eventsNotifier->NotifyFloat();
+				}
+			}
+			else
+			{
+				auto newPosition = screenMousePos - m_mouseInteraction.m_dragStartPos;
+				newPosition += m_mouseInteraction.m_dragStartLocalPos;
+
+				//BT_CORE_TRACE << " - args:position = " << args.Position << std::endl;
+				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
+				
+				GUI::MoveWindow(*m_nativeContainer, newPosition);
+			}
 		});
 
 		m_caption->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
 		{
+			m_mouseInteraction.m_dragStarted = false;
+			GUI::ReleaseCapture(*m_caption);
 		});
 	}
 

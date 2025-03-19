@@ -136,4 +136,9 @@ namespace Berta
 #endif
 		return 0;
 	}
+
+	FormStyle FormStyle::Float()
+	{
+		return FormStyle{ false, false, true, false, false, false };
+	}
 }
