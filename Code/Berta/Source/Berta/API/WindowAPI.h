@@ -36,6 +36,11 @@ namespace Berta
 			{
 				return Handle != other.Handle;
 			}
+
+			operator bool () const { return Handle != nullptr; }
+#else
+
+			operator bool() const { return false; }
 #endif
 			NativeWindowHandle(const NativeWindowHandle&) = default;
 			NativeWindowHandle& operator=(const NativeWindowHandle&) = default;
@@ -45,6 +50,7 @@ namespace Berta
 		{
 			NativeWindowHandle WindowHandle;
 			Size ClientSize;
+			Size BorderSize;
 			uint32_t DPI;
 		};
 

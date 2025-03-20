@@ -57,7 +57,7 @@ namespace Berta
 		{
 			return;
 		}
-		auto screenPosition = GUI::GetPointClientToScreen(owner, args.Position);
+		auto screenPosition = args.Position;
 		ShowPopup(owner, screenPosition);
 		//m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		//{
@@ -616,7 +616,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		int two = window->ToScale(2);
 		int four = window->ToScale(4);
-		auto pointInScreen = GUI::GetPointClientToScreen(window, window->Position);
+		auto pointInScreen = window->Position;
 
 		subMenu->m_parentMenu = parentMenu;
 

@@ -136,7 +136,7 @@ namespace Berta
 		explicit Rectangle(const Point& p, const Size& s);
 
 #ifdef BT_PLATFORM_WINDOWS
-		void FromRECT(const RECT& rect)
+		void FromRECT(const ::RECT& rect)
 		{
 			X = rect.left;
 			Y = rect.top;
@@ -144,7 +144,7 @@ namespace Berta
 			Height = rect.bottom - rect.top;
 		}
 
-		RECT ToRECT() const;
+		::RECT ToRECT() const;
 #endif
 		bool IsInside(const Point& point) const;
 		bool Intersect(const Rectangle& other) const;

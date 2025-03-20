@@ -70,7 +70,13 @@ namespace Berta
 				styleEx |= WS_EX_TOPMOST;
 			}
 
-			RECT rect = rectangle.ToRECT();
+			::POINT windowPosition = { rectangle.X, rectangle.Y };
+			if (parentHandle && !isNested)
+			{
+				::ClientToScreen(parentHandle.Handle, &windowPosition);
+			}
+
+			::RECT rect = rectangle.ToRECT();
 
 			HINSTANCE hInstance = GetModuleInstance();
 			HWND hwnd = ::CreateWindowEx
@@ -79,10 +85,10 @@ namespace Berta
 				L"BertaInternalClass",
 				DefaultWindowTitle.data(),
 				style,
-				rect.left,
-				rect.top,
-				rect.right - rect.left,
-				rect.bottom - rect.top,
+				windowPosition.x,
+				windowPosition.y,
+				50,
+				50,
 				parentHandle.Handle,	// Parent
 				nullptr,				// We aren't using menus.
 				hInstance,
@@ -96,14 +102,40 @@ namespace Berta
 				return {};
 			}
 
-			::RECT client;
-			::GetClientRect(hwnd, &client);
+			::RECT clientRect;
+			::GetClientRect(hwnd, &clientRect);
+			::RECT areaWithNonClientRect;
+			::GetWindowRect(hwnd, &areaWithNonClientRect);
+
+			areaWithNonClientRect.right -= areaWithNonClientRect.left;	// width
+			areaWithNonClientRect.bottom -= areaWithNonClientRect.top;	// height
+
+			if (isNested)
+			{
+				areaWithNonClientRect.left = windowPosition.x;
+				areaWithNonClientRect.top = windowPosition.y;
+			}
+
+			int deltaWidth = static_cast<int>(rectangle.Width) - clientRect.right;
+			int deltaHeight = static_cast<int>(rectangle.Height) - clientRect.bottom;
+
+			::MoveWindow(hwnd, areaWithNonClientRect.left, areaWithNonClientRect.top, areaWithNonClientRect.right + deltaWidth, areaWithNonClientRect.bottom + deltaHeight, true);
+
+			::GetClientRect(hwnd, &clientRect);
+			::GetWindowRect(hwnd, &areaWithNonClientRect);
+
+			areaWithNonClientRect.right -= areaWithNonClientRect.left;
+			areaWithNonClientRect.bottom -= areaWithNonClientRect.top;
+
+			auto extraWidth = static_cast<uint32_t>(areaWithNonClientRect.right - clientRect.right);
+			auto extraHeight = static_cast<uint32_t>(areaWithNonClientRect.bottom - clientRect.bottom);
 
 			return NativeWindowResult
 			{
 				{ hwnd },
-				{static_cast<uint32_t>(client.right - client.left), static_cast<uint32_t>(client.bottom - client.top) },
-				GetNativeWindowDPI(parentHandle) 
+				{ static_cast<uint32_t>(clientRect.right), static_cast<uint32_t>(clientRect.bottom) },
+				{ extraWidth, extraHeight},
+				GetNativeWindowDPI(parentHandle)
 			};
 #else
 			return {};

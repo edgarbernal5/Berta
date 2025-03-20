@@ -35,7 +35,7 @@ namespace Berta::GUI
 		}
 
 		auto windowResult = API::CreateNativeWindow(parentHandle, finalRect, formStyle, isNested);
-		if (windowResult.WindowHandle.Handle)
+		if (windowResult.WindowHandle)
 		{
 			auto& windowManager = Foundation::GetInstance().GetWindowManager();
 			Window* window = new Window(WindowType::Form);

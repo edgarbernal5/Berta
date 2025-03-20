@@ -36,7 +36,7 @@ namespace Berta
 	}
 
 #ifdef BT_PLATFORM_WINDOWS
-	RECT Rectangle::ToRECT() const
+	::RECT Rectangle::ToRECT() const
 	{
 		return RECT{ static_cast<LONG>(X), static_cast<LONG>(Y), static_cast<LONG>(X + Width), static_cast<LONG>(Y + Height) };
 	}
