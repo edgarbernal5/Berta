@@ -371,6 +371,9 @@ namespace Berta
         virtual ~DockEventsNotifier() = default;
 
         virtual void NotifyFloat() = 0;
+        virtual void NotifyMoveStarted() = 0;
+        virtual void NotifyMove() = 0;
+        virtual void NotifyMoveStopped() = 0;
         virtual void RequestClose() = 0;
     };
 
@@ -450,6 +453,9 @@ namespace Berta
         void CalculateAreas() override;
 
         void NotifyFloat() override;
+        void NotifyMoveStarted() override;
+        void NotifyMove() override;
+        void NotifyMoveStopped() override;
         void RequestClose() override;
 
         LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };

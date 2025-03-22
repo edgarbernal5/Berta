@@ -179,6 +179,19 @@ namespace Berta
 		//node->CalculateAreas();
 	}
 
+	void Layout::NotifyMoveStarted()
+	{
+
+	}
+
+	void Layout::NotifyMove()
+	{
+	}
+
+	void Layout::NotifyMoveStopped()
+	{
+	}
+
 	void Layout::RequestClose(LayoutNode* node)
 	{
 		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);

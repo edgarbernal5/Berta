@@ -309,7 +309,7 @@ namespace Berta
 
 	void MenuBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
+		//BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
 		if (m_ignoreFirstMouseUp)
 		{
 			m_ignoreFirstMouseUp = false;

@@ -477,6 +477,21 @@ namespace Berta
 		m_dockLayoutEvents->NotifyFloat(this);
 	}
 
+	void DockPaneLayoutNode::NotifyMoveStarted()
+	{
+		m_dockLayoutEvents->NotifyMoveStarted();
+	}
+
+	void DockPaneLayoutNode::NotifyMove()
+	{
+		m_dockLayoutEvents->NotifyMove();
+	}
+
+	void DockPaneLayoutNode::NotifyMoveStopped()
+	{
+		m_dockLayoutEvents->NotifyMoveStopped();
+	}
+
 	void DockPaneLayoutNode::RequestClose()
 	{
 		m_dockLayoutEvents->RequestClose(this);
@@ -675,6 +690,7 @@ namespace Berta
 					GUI::UpdateWindow(prevHostWindow);
 
 					m_eventsNotifier->NotifyFloat();
+					m_eventsNotifier->NotifyMoveStarted();
 				}
 			}
 			else
@@ -686,6 +702,8 @@ namespace Berta
 				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
 				
 				GUI::MoveWindow(*m_nativeContainer, newPosition);
+
+				m_eventsNotifier->NotifyMove();
 			}
 		});
 
@@ -697,7 +715,10 @@ namespace Berta
 			if (m_caption->HaveClickedCloseButton())
 			{
 				m_eventsNotifier->RequestClose();
+				return;
 			}
+
+			m_eventsNotifier->NotifyMoveStopped();
 		});
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});

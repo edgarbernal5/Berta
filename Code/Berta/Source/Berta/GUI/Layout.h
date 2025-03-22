@@ -127,6 +127,9 @@ namespace Berta
         virtual ~LayoutDockPaneEventsNotifier() = default;
 
         virtual void NotifyFloat(LayoutNode* node) = 0;
+        virtual void NotifyMoveStarted() = 0;
+        virtual void NotifyMove() = 0;
+        virtual void NotifyMoveStopped() = 0;
         virtual void RequestClose(LayoutNode* node) = 0;
     };
 
@@ -149,6 +152,9 @@ namespace Berta
         void Parse(const std::string& source);
 
         void NotifyFloat(LayoutNode* node) override;
+        void NotifyMoveStarted() override;
+        void NotifyMove() override;
+        void NotifyMoveStopped() override;
         void RequestClose(LayoutNode* node) override;
     private:
         class Parser
