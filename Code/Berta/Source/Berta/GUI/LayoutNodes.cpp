@@ -704,6 +704,11 @@ namespace Berta
 		m_tabBar->SetTabPosition(TabBarPosition::Bottom);
 	}
 
+	int DockArea::GetTabSelectedIndex() const
+	{
+		return m_tabBar->GetSelectedIndex();
+	}
+
 	void DockAreaCaption::SetPaneInfo(PaneInfo* paneInfo)
 	{
 		m_reactor.m_paneInfo = paneInfo;

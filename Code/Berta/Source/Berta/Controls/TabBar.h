@@ -35,6 +35,7 @@ namespace Berta
 		void Clear();
 		void InsertTab(size_t position, const std::string& tabId, Panel* panel);
 		void EraseTab(size_t position);
+		int GetSelectedIndex() const;
 
 		void SetTabPosition(TabBarPosition position);
 	private:
@@ -66,6 +67,7 @@ namespace Berta
 			int FindItem(const Point& position) const;
 			bool NewSelectedIndex(int newIndex) const { return m_selectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { m_selectedTabIndex = newIndex; }
+			int GetSelectedIndex() const;
 
 			PanelIterator At(std::size_t position)
 			{
@@ -114,6 +116,7 @@ namespace Berta
 		}
 		
 		void Erase(size_t index);
+		int GetSelectedIndex() const;
 
 		template<typename PanelType, typename ...Args>
 		PanelType* PushBack(const std::string& tabId, Args&& ... args)

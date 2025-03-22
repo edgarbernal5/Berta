@@ -183,6 +183,11 @@ namespace Berta
 		}
 	}
 
+	int TabBarReactor::GetSelectedIndex() const
+	{
+		return m_module.GetSelectedIndex();
+	}
+
 	void TabBarReactor::SetTabPosition(TabBarPosition position)
 	{
 		if (m_module.m_tabPosition == position)
@@ -295,9 +300,10 @@ namespace Berta
 		if (m_selectedTabIndex >= static_cast<int>(m_panels.size()))
 		{
 			m_selectedTabIndex = static_cast<int>(m_panels.size()) - 1;
-			--current;
+			if (m_selectedTabIndex >= 0)
+				--current;
 		}
-		if (removeSelectedIndex)
+		if (removeSelectedIndex && m_selectedTabIndex >= 0)
 		{
 			current->PanelPtr->Show();
 		}
@@ -317,6 +323,14 @@ namespace Berta
 			}
 		}
 		return -1;
+	}
+
+	int TabBarReactor::Module::GetSelectedIndex() const
+	{
+		if (m_panels.empty())
+			return -1;
+
+		return m_selectedTabIndex;
 	}
 
 	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel) const
@@ -413,6 +427,11 @@ namespace Berta
 	void TabBar::Erase(size_t index)
 	{
 		m_reactor.EraseTab(index);
+	}
+
+	int TabBar::GetSelectedIndex() const
+	{
+		return m_reactor.GetSelectedIndex();
 	}
 
 	TabBarReactor::PanelItem::~PanelItem()

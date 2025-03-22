@@ -114,6 +114,7 @@ namespace Berta
         };
 
         LayoutNode(Type type);
+        virtual ~LayoutNode() = default;
 
         void AddWindow(Window* window);
         void SetProperty(const std::string& key, const PropertyValue& value)
@@ -416,6 +417,7 @@ namespace Berta
 
         void AddTab(const std::string& id, ControlBase* control);
         void Create(Window* parent, PaneInfo* paneInfo);
+        int GetTabSelectedIndex() const;
 
         struct MouseInteraction
         {
@@ -452,6 +454,7 @@ namespace Berta
 
         LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };
         std::unique_ptr<DockArea> m_dockArea;
+        std::string m_paneId;
     };
 
     class DockPaneTabLayoutNode : public LayoutNode
@@ -460,6 +463,8 @@ namespace Berta
         DockPaneTabLayoutNode();
 
         void CalculateAreas() override;
+
+        std::string m_tabId;
     };
 
     template<class T>
