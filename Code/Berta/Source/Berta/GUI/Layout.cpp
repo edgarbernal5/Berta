@@ -80,13 +80,22 @@ namespace Berta
 			return;
 		}
 
-		paneNode->AddTab(tabId, control);
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
-		paneTabNode->SetParentNode(paneNode);
 		paneTabNode->m_tabId = paneTabId;
+		paneTabNode->SetParentNode(paneNode);
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
+		paneNode->AddTab(tabId, control);
 		paneNode->m_children.emplace_back(std::move(paneTabNode));
+	}
+
+	void Layout::Apply()
+	{
+		if (!m_rootNode || !m_parent)
+			return;
+
+		m_rootNode->CalculateAreas();
+		m_rootNode->Apply();
 	}
 
 	void Layout::Attach(const std::string& fieldId, Window* window)
@@ -180,6 +189,7 @@ namespace Berta
 		paneNode->m_dockArea->m_tabBar->Erase(index);
 		paneNode->m_children.erase(paneNode->m_children.begin() + index);
 
+		bool needUpdate = false;
 		m_dockPaneFields.erase(paneNode->m_paneId);
 		if (paneNode->m_children.empty())
 		{
@@ -206,7 +216,13 @@ namespace Berta
 						break;
 					}
 				}
+				needUpdate = true;
 			}
+		}
+		if (needUpdate)
+		{
+			GUI::UpdateWindow(m_parent);
+			Apply();
 		}
 	}
 

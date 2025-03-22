@@ -143,6 +143,7 @@ namespace Berta
         void AddPane(const std::string& paneId);
         void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control);
 
+        void Apply();
         void Attach(const std::string& fieldId, Window* window);
         void Create(Window* window);
         void Parse(const std::string& source);
