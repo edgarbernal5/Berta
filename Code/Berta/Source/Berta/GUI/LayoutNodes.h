@@ -22,6 +22,16 @@ namespace Berta
     class TabBar;
     class Form;
 
+    enum class LayoutNodeType
+    {
+        Container,
+        Leaf,
+        Splitter,
+        Dock,
+        DockPane,
+        DockPaneTab,
+    };
+
     class LayoutControlContainer
     {
     public:
@@ -103,17 +113,7 @@ namespace Berta
     public:
         using PropertyValue = std::variant<Number, std::string, bool>;
 
-        enum class Type
-        {
-            Container,
-            Leaf,
-            Splitter,
-            Dock,
-            DockPane,
-            DockPaneTab,
-        };
-
-        LayoutNode(Type type);
+        LayoutNode(LayoutNodeType type);
         virtual ~LayoutNode() = default;
 
         void AddWindow(Window* window);
@@ -165,7 +165,7 @@ namespace Berta
             return m_area;
         }
 
-        Type GetType() const
+        LayoutNodeType GetType() const
         {
             return m_type;
         }
@@ -228,7 +228,7 @@ namespace Berta
         virtual void CalculateAreas() = 0;
 
         LayoutNode* Find(const std::string& id);
-        LayoutNode* FindFirst(LayoutNode::Type nodeType);
+        LayoutNode* FindFirst(LayoutNodeType nodeType);
 
         std::vector<LayoutControlContainer::WindowArea>& GetWindowsAreas()
         {
@@ -268,7 +268,7 @@ namespace Berta
 
     protected:
         LayoutNode* Find(const std::string& id, LayoutNode* node);
-        LayoutNode* FindFirst(LayoutNode::Type nodeType, LayoutNode* node);
+        LayoutNode* FindFirst(LayoutNodeType nodeType, LayoutNode* node);
 
         std::string m_id;
         Rectangle m_area;
@@ -293,7 +293,7 @@ namespace Berta
             }
         }
 
-        Type m_type{ Type::Container };
+        LayoutNodeType m_type{ LayoutNodeType::Container };
     };
 
     class ContainerLayoutNode : public LayoutNode

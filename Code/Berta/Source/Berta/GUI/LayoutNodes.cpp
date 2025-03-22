@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	LayoutNode::LayoutNode(Type type) :
+	LayoutNode::LayoutNode(LayoutNodeType type) :
 		m_type(type)
 	{
 	}
@@ -26,7 +26,7 @@ namespace Berta
 		return Find(id, this);
 	}
 
-	LayoutNode* LayoutNode::FindFirst(LayoutNode::Type nodeType)
+	LayoutNode* LayoutNode::FindFirst(LayoutNodeType nodeType)
 	{
 		return FindFirst(nodeType, this);
 	}
@@ -48,7 +48,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	LayoutNode* LayoutNode::FindFirst(LayoutNode::Type nodeType, LayoutNode* node)
+	LayoutNode* LayoutNode::FindFirst(LayoutNodeType nodeType, LayoutNode* node)
 	{
 		if (node->GetType() == nodeType)
 			return node;
@@ -295,7 +295,7 @@ namespace Berta
 	}
 
 	ContainerLayoutNode::ContainerLayoutNode(bool isVertical) : 
-		LayoutNode(Type::Container),
+		LayoutNode(LayoutNodeType::Container),
 		m_isVertical(isVertical)
 	{
 	}
@@ -306,7 +306,7 @@ namespace Berta
 	}
 
 	LeafLayoutNode::LeafLayoutNode() : 
-		LayoutNode(Type::Leaf)
+		LayoutNode(LayoutNodeType::Leaf)
 	{
 	}
 
@@ -315,7 +315,7 @@ namespace Berta
 	}
 
 	SplitterLayoutNode::SplitterLayoutNode() :
-		LayoutNode(Type::Splitter)
+		LayoutNode(LayoutNodeType::Splitter)
 	{
 	}
 
@@ -440,7 +440,7 @@ namespace Berta
 	}
 
 	DockLayoutNode::DockLayoutNode() :
-		LayoutNode(Type::Dock)
+		LayoutNode(LayoutNodeType::Dock)
 	{
 	}
 
@@ -455,7 +455,7 @@ namespace Berta
 	}
 
 	DockPaneLayoutNode::DockPaneLayoutNode() :
-		LayoutNode(Type::DockPane)
+		LayoutNode(LayoutNodeType::DockPane)
 	{
 	}
 
@@ -746,7 +746,7 @@ namespace Berta
 	}
 
 	DockPaneTabLayoutNode::DockPaneTabLayoutNode() :
-		LayoutNode(LayoutNode::Type::DockPaneTab)
+		LayoutNode(LayoutNodeType::DockPaneTab)
 	{
 	}
 

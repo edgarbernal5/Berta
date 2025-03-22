@@ -20,6 +20,8 @@ namespace Berta
     class DockPaneLayoutNode;
     class DockPaneTabLayoutNode;
     class ControlBase;
+    class Form;
+    enum class LayoutNodeType;
 
     struct PaneInfo;
 
@@ -121,6 +123,15 @@ namespace Berta
         Token::Type m_token{ Token::Type::EndOfStream };
     };
 
+    enum class DockPosition
+    {
+        Up,
+        Down,
+        Left,
+        Right,
+        Tab
+    };
+
     class LayoutDockPaneEventsNotifier
     {
     public:
@@ -131,6 +142,12 @@ namespace Berta
         virtual void NotifyMove() = 0;
         virtual void NotifyMoveStopped() = 0;
         virtual void RequestClose(LayoutNode* node) = 0;
+    };
+
+    struct DockIndicator
+    {
+        DockPosition Position{ DockPosition::Tab };
+        std::unique_ptr<Form> Docker;
     };
 
     class Layout : public LayoutDockPaneEventsNotifier
@@ -176,6 +193,12 @@ namespace Berta
 
         DockPaneLayoutNode* GetPane(const std::string& paneId);
         DockPaneTabLayoutNode* GetPaneTab(const std::string& paneId, const std::string& tabId);
+        void InitPaneIndicators();
+        void HidePaneDockIndicators();
+        void ShowPaneDockIndicators(LayoutNode* node);
+        bool IsMouseInsideWindow() const;
+        LayoutNode* GetPaneOrDockOnMousePosition() const;
+        LayoutNode* GetPaneOrDockOnMousePositionInternal(LayoutNode* node, LayoutNodeType nodeType) const;
 
         Window* m_parent{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
@@ -184,6 +207,8 @@ namespace Berta
         std::map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
         std::vector<LayoutNode*> m_floatingDockFields;
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
+
+        std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;
     };
 
     //template<typename ...Args>

@@ -10,16 +10,19 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/LayoutNodes.h"
+#include "Berta/Controls/Form.h"
 
 namespace Berta
 {
 	Layout::Layout() :
 		m_parent(nullptr)
 	{
+		InitPaneIndicators();
 	}
 
 	Layout::Layout(Window* window)
 	{
+		InitPaneIndicators();
 		Create(window);
 	}
 
@@ -27,7 +30,6 @@ namespace Berta
 	{
 		m_fields.clear();
 	}
-
 
 	void Layout::AddPane(const std::string& paneId)
 	{
@@ -39,7 +41,7 @@ namespace Berta
 		{
 			return;
 		}
-		auto dockRoot = m_rootNode->FindFirst(LayoutNode::Type::Dock);
+		auto dockRoot = m_rootNode->FindFirst(LayoutNodeType::Dock);
 		if (!dockRoot || !dockRoot->m_children.empty())
 		{
 			return;
@@ -186,10 +188,26 @@ namespace Berta
 
 	void Layout::NotifyMove()
 	{
+		if (!IsMouseInsideWindow())
+		{
+			HidePaneDockIndicators();
+			return;
+		}
+
+		auto paneOrDock = GetPaneOrDockOnMousePosition();
+		if (paneOrDock)
+		{
+			ShowPaneDockIndicators(paneOrDock);
+		}
+		else
+		{
+			HidePaneDockIndicators();
+		}
 	}
 
 	void Layout::NotifyMoveStopped()
 	{
+		HidePaneDockIndicators();
 	}
 
 	void Layout::RequestClose(LayoutNode* node)
@@ -243,7 +261,9 @@ namespace Berta
 	{
 		auto it = m_dockPaneFields.find(paneId);
 		if (it != m_dockPaneFields.end())
+		{
 			return it->second;
+		}
 
 		return nullptr;
 	}
@@ -253,8 +273,119 @@ namespace Berta
 		auto paneTabId = paneId + "/" + tabId;
 		auto it = m_dockPaneTabFields.find(paneTabId);
 		if (it != m_dockPaneTabFields.end())
+		{
 			return it->second;
+		}
 
+		return nullptr;
+	}
+
+	void Layout::InitPaneIndicators()
+	{
+		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Up });
+		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Down });
+		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Left });
+		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Right });
+		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Tab });
+	}
+
+	void Layout::HidePaneDockIndicators()
+	{
+		for (auto& indicator : m_paneIndicators)
+		{
+			indicator->Docker.reset();
+		}
+	}
+
+	void Layout::ShowPaneDockIndicators(LayoutNode* node)
+	{
+		auto indicatoorSize = m_parent->ToScale(16);
+		auto indicatoorSizeHalf = indicatoorSize >> 1;
+
+		for (auto& indicator : m_paneIndicators)
+		{
+			if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
+			{
+				if (indicator->Docker)
+				{
+					indicator->Docker.reset();
+				}
+				continue;
+			}
+			auto nodeArea = node->GetArea();
+			auto x = nodeArea.X + static_cast<int>(nodeArea.Width) / 2;
+			auto y = nodeArea.Y + static_cast<int>(nodeArea.Height) / 2;
+
+			if (!indicator->Docker)
+			{
+				if (indicator->Position == DockPosition::Tab)
+				{
+					Point position{ x - indicatoorSizeHalf , y - indicatoorSizeHalf };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{position.X, position.Y, (uint32_t)indicatoorSize, (uint32_t)indicatoorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = 0;
+				}
+				if (indicator->Docker)
+				indicator->Docker->Show();
+			}
+		}
+	}
+
+	bool Layout::IsMouseInsideWindow() const
+	{
+		if (!m_parent)
+			return false;
+
+		auto mousePosition = GUI::GetScreenMousePosition();
+		auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetAbsoluteRootPosition(m_parent));
+		Rectangle rect{ windowPosition.X, windowPosition.Y, m_parent->Size.Width, m_parent->Size.Height };
+
+		return rect.IsInside(mousePosition);
+	}
+
+	LayoutNode* Layout::GetPaneOrDockOnMousePosition() const
+	{
+		if (!m_parent || !m_rootNode)
+			return nullptr;
+
+		auto getPane = GetPaneOrDockOnMousePositionInternal(m_rootNode.get(), LayoutNodeType::DockPane);
+		if (getPane)
+		{
+			return getPane;
+		}
+		return GetPaneOrDockOnMousePositionInternal(m_rootNode.get(), LayoutNodeType::Dock);
+	}
+
+	LayoutNode* Layout::GetPaneOrDockOnMousePositionInternal(LayoutNode* node, LayoutNodeType nodeType) const
+	{
+		if (node->GetType() == nodeType)
+		{
+			if (nodeType == LayoutNodeType::Dock && node->m_children.empty() ||
+				nodeType == LayoutNodeType::DockPane)
+			{
+				auto mousePosition = GUI::GetScreenMousePosition();
+				auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetAbsoluteRootPosition(m_parent));
+				auto nodeArea = node->GetArea();
+				Rectangle rect
+				{
+					windowPosition.X + nodeArea.X, windowPosition.Y + nodeArea.Y,
+					nodeArea.Width, nodeArea.Height
+				};
+
+				if (rect.IsInside(mousePosition))
+				{
+					return node;
+				}
+			}
+		}
+
+		for (size_t i = 0; i < node->m_children.size(); i++)
+		{
+			auto child = GetPaneOrDockOnMousePositionInternal(node->m_children[i].get(), nodeType);
+			if (child)
+			{
+				return child;
+			}
+		}
 		return nullptr;
 	}
 
@@ -568,7 +699,7 @@ namespace Berta
 				child->SetPrev(children[i - 1].get());
 			}
 
-			if (child->GetType() == LayoutNode::Type::Splitter)
+			if (child->GetType() == LayoutNodeType::Splitter)
 			{
 				auto dimension = child->GetProperty<Number>("Dimension");
 				child->SetProperty(isVertical ? "Height" : "Width", dimension);

@@ -141,4 +141,9 @@ namespace Berta
 	{
 		return FormStyle{ false, false, true, false, false, false };
 	}
+
+	FormStyle FormStyle::Flat()
+	{
+		return FormStyle{ false, false, false, false, false, false };
+	}
 }
