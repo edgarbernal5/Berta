@@ -471,28 +471,28 @@ int main()
 //			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
 //		});
 //
-//	Berta::Menu popupMenu;
-//	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
-//		{
-//			std::cout << "Context menu click > Example" << std::endl;
-//		});
-//	popupMenu.Append(L"Example Submenu");
-//	auto subMenuContext = popupMenu.CreateSubMenu(1);
-//	subMenuContext->Append(L"hola", [](Berta::MenuItem& item)
-//		{
-//			std::cout << "Context sub menu click > hola" << std::endl;
-//		});
-//	subMenuContext->Append(L"hola 2");
-//	auto subsubMenu = subMenuContext->CreateSubMenu(1);
-//	subsubMenu->Append(L"hola 3", [](Berta::MenuItem& item)
-//		{
-//			std::cout << "Context sub menu click > hola 3" << std::endl;
-//		});
-//	
-//	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
-//		{
-//			popupMenu.ShowPopup(form.Handle(), args);
-//		});
+	Berta::Menu popupMenu;
+	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > Example" << std::endl;
+		});
+	popupMenu.Append(L"Example Submenu");
+	auto subMenuContext = popupMenu.CreateSubMenu(1);
+	subMenuContext->Append(L"hola", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context sub menu click > hola" << std::endl;
+		});
+	subMenuContext->Append(L"hola 2");
+	auto subsubMenu = subMenuContext->CreateSubMenu(1);
+	subsubMenu->Append(L"hola 3", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context sub menu click > hola 3" << std::endl;
+		});
+	
+	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
+		{
+			popupMenu.ShowPopup(form.Handle(), args);
+		});
 //
 //	auto currentPosition = tabbar.GetPosition();
 //	auto margin = tabbar.Handle()->ToScale(2);
@@ -562,9 +562,14 @@ int main()
 	
 	form.GetLayout().Attach("menuBar", menuBar);
 
+	Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Nested");
+	Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Nested 2");
 	auto buttonPane = std::make_shared<ButtonPane>();
-
+	buttonPaneTab.Hide();
+	buttonPaneTab2.Hide();
 	form.GetLayout().AddPane("dockPane");
+	form.GetLayout().AddPaneTab("dockPane", "tab1", &buttonPaneTab);
+	form.GetLayout().AddPaneTab("dockPane", "tab2", &buttonPaneTab2);
 
 	//form.GetLayout().Attach("b", nestedForm);
 

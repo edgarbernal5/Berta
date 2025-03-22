@@ -561,11 +561,11 @@ namespace Berta
 		else if (window->Position != newPosition)
 		{
 			window->Position = newPosition;
-		}
 
-		ArgMove argMove;
-		argMove.NewPosition = newPosition;
-		foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+			ArgMove argMove;
+			argMove.NewPosition = newPosition;
+			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+		}
 	}
 
 	void WindowManager::Update(Window* window)
@@ -852,10 +852,10 @@ namespace Berta
 				auto child = window->Children[--index];
 				if (child->Type != WindowType::Form && IsPointOnWindow(child, point))
 				{
-					child = FindInTree(child, point);
-					if (child)
+					auto innerChild = FindInTree(child, point);
+					if (innerChild)
 					{
-						return child;
+						return innerChild;
 					}
 				}
 			} while (index != 0);

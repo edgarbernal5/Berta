@@ -242,24 +242,55 @@ namespace Berta
 		case WM_ERASEBKGND:
 			return TRUE;
 
-		//case WM_NCCALCSIZE: {
-		//	if (wParam == TRUE) {
+		//case WM_NCCALCSIZE:
+		//{
+		//	if (wParam == TRUE && !nativeWindow->isThickFrame)
+		//	{
 		//		NCCALCSIZE_PARAMS* params = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
 
 		//		UINT dpi = ::GetDpiForWindow(hWnd);
-		//		float scaleFactor = dpi / 96.0f;
+		//		float scaleFactor = dpi / BT_APPLICATION_DPI;
 
-		//		// Example: Scaling frame thickness
-		//		int baseFrameThickness = 2; // Base frame thickness at 96 DPI
-		//		int scaledFrameThickness = static_cast<int>(baseFrameThickness * scaleFactor);
+		//		int baseFrameThickness = 1;
+		//		int scaledFrameThickness = static_cast<int>(std::round(baseFrameThickness * scaleFactor));
 
-		//		// Adjusting the client area rectangles
 		//		params->rgrc[0].left += scaledFrameThickness;
 		//		params->rgrc[0].top += scaledFrameThickness;
 		//		params->rgrc[0].right -= scaledFrameThickness;
 		//		params->rgrc[0].bottom -= scaledFrameThickness;
 
-		//		//return 0;
+		//		defaultToWindowProc = false;
+		//	}
+		//	break;
+		//}
+		//case WM_NCPAINT:
+		//{
+		//	if (!nativeWindow->isThickFrame)
+		//	{
+		//		HDC hdc = GetDCEx(hWnd, (HRGN)wParam, DCX_WINDOW | DCX_INTERSECTRGN);
+		//		if (hdc) {
+		//			RECT windowRect;
+		//			GetWindowRect(hWnd, &windowRect);
+		//			int width = windowRect.right - windowRect.left;
+		//			int height = windowRect.bottom - windowRect.top;
+
+		//			// Apply clipping region
+		//			SelectClipRgn(hdc, (HRGN)wParam);
+
+		//			// Draw the custom frame
+		//			HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0)); // Black frame
+		//			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0)); // Black border pen.
+
+		//			SelectObject(hdc, hBrush);
+		//			SelectObject(hdc, hPen);
+
+		//			::Rectangle(hdc, 0, 0, width, height);
+
+		//			DeleteObject(hBrush);
+		//			DeleteObject(hPen);
+
+		//			ReleaseDC(hWnd, hdc);
+		//		}
 		//		defaultToWindowProc = false;
 		//	}
 		//	break;
@@ -283,8 +314,11 @@ namespace Berta
 				::InvalidateRect(hWnd, NULL, TRUE);
 				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
-			defaultToWindowProc = false;
+			//::InvalidateRect(hWnd, NULL, TRUE);
+			//::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_FRAME);
+			//defaultToWindowProc = false;
 			break;
+
 		case WM_SHOWWINDOW:
 		{
 			bool isVisible = (wParam == TRUE);
@@ -791,6 +825,8 @@ namespace Berta
 		case WM_ERASEBKGND:
 		case WM_ACTIVATEAPP:
 		case WM_ACTIVATE:
+		//case WM_NCCALCSIZE:
+		//case WM_NCPAINT:
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
 		case WM_SIZE:

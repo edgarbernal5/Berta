@@ -18,6 +18,7 @@ namespace Berta
     struct Window;
     class LayoutNode;
     class DockPaneLayoutNode;
+    class DockPaneTabLayoutNode;
     class ControlBase;
 
     struct PaneInfo;
@@ -126,6 +127,7 @@ namespace Berta
         virtual ~LayoutDockPaneEventsNotifier() = default;
 
         virtual void NotifyFloat(LayoutNode* node) = 0;
+        virtual void RequestClose(LayoutNode* node) = 0;
     };
 
     class Layout : public LayoutDockPaneEventsNotifier
@@ -139,12 +141,14 @@ namespace Berta
         //void AddPane(const std::string& paneId, Args & ... args);
 
         void AddPane(const std::string& paneId);
+        void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control);
 
         void Attach(const std::string& fieldId, Window* window);
         void Create(Window* window);
         void Parse(const std::string& source);
 
         void NotifyFloat(LayoutNode* node) override;
+        void RequestClose(LayoutNode* node) override;
     private:
         class Parser
         {
@@ -163,10 +167,14 @@ namespace Berta
             std::string m_source;
         };
 
+        DockPaneLayoutNode* GetPane(const std::string& paneId);
+        DockPaneTabLayoutNode* GetPaneTab(const std::string& paneId, const std::string& tabId);
+
         Window* m_parent{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
         std::map<std::string, LayoutNode*> m_fields;
         std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
+        std::map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
         std::vector<LayoutNode*> m_floatingDockFields;
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
     };

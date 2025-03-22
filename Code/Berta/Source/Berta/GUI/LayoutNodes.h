@@ -346,6 +346,11 @@ namespace Berta
 
     struct PaneInfo
     {
+        bool ShouldShowCloseButton() const
+        {
+            return showCaption && showCloseButton;
+        }
+
         std::string id;
         bool showCaption{ true };
         bool showCloseButton{ true };
@@ -365,15 +370,33 @@ namespace Berta
         virtual ~DockEventsNotifier() = default;
 
         virtual void NotifyFloat() = 0;
+        virtual void RequestClose() = 0;
     };
 
+    constexpr int DockAreaCaptionButtonSize = 14;
     class DockAreaCaptionReactor : public ControlReactor
     {
     public:
         void Init(ControlBase& control) override;
         void Update(Graphics& graphics) override;
 
+        void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+        void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+        void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+        void Resize(Graphics& graphics, const ArgResize& args) override;
+
+        enum class State
+        {
+            None,
+            Pressed,
+            Hovered
+        };
+
         PaneInfo* m_paneInfo{ nullptr };
+        bool m_mouseDownCloseButton{ false };
+        bool m_clickedCloseButton{ false };
+        Rectangle m_buttonRect{};
+        State m_buttonStatus{ State::None };
     };
 
     class DockAreaCaption : public Control<DockAreaCaptionReactor>
@@ -382,6 +405,8 @@ namespace Berta
         DockAreaCaption() = default;
 
         void SetPaneInfo(PaneInfo* paneInfo);
+        bool WasPressedCloseButton() const;
+        bool HaveClickedCloseButton() const;
     };
 
     class DockArea : public Control<ControlReactor>
@@ -389,9 +414,8 @@ namespace Berta
     public:
         DockArea() = default;
 
+        void AddTab(const std::string& id, ControlBase* control);
         void Create(Window* parent, PaneInfo* paneInfo);
-
-        //void AddPane();
 
         struct MouseInteraction
         {
@@ -406,7 +430,7 @@ namespace Berta
         }
 
         MouseInteraction m_mouseInteraction;
-        Window* m_hostWindow;
+        Window* m_hostWindow{ nullptr };
         DockEventsNotifier* m_eventsNotifier{ nullptr };
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
@@ -420,9 +444,11 @@ namespace Berta
     public:
         DockPaneLayoutNode();
 
+        void AddTab(const std::string& id, ControlBase* control);
         void CalculateAreas() override;
 
         void NotifyFloat() override;
+        void RequestClose() override;
 
         LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };
         std::unique_ptr<DockArea> m_dockArea;

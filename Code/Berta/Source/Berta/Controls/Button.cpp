@@ -41,13 +41,6 @@ namespace Berta
 			color = window->Appearance->ButtonPressedBackground;
 		}
 		graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
-		//graphics.DrawRoundRectBox(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
-
-		//graphics.DrawGradientFill(backgroundRect, window->Appearance->BoxBorderColor, window->Appearance->BoxBorderDisabledColor);
-		
-		//graphics.DrawButton(backgroundRect, window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
-		//graphics.DrawRoundedRectWithShadow({3,3, window->Size.Width-6, window->Size.Height-6}, 3, 3);// window->Appearance->ButtonTest1, window->Appearance->ButtonTest2, window->Appearance->BoxBorderColor);
-		//graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 
 		auto caption = m_control->GetCaption();
 		Point textExtent = graphics.GetTextExtent(caption);

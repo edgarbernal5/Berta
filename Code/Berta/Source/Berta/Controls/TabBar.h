@@ -16,6 +16,12 @@
 
 namespace Berta
 {
+	enum class TabBarPosition
+	{
+		Top,
+		Bottom
+	};
+
 	class TabBarReactor : public ControlReactor
 	{
 	public:
@@ -30,6 +36,7 @@ namespace Berta
 		void InsertTab(size_t position, const std::string& tabId, Panel* panel);
 		void EraseTab(size_t position);
 
+		void SetTabPosition(TabBarPosition position);
 	private:
 		struct PanelItem
 		{
@@ -37,9 +44,11 @@ namespace Berta
 			PanelItem(const std::string& id, Panel* panel) : Id(id), PanelPtr(panel) {}
 			~PanelItem();
 
-			Point Position;
-			Size Center;
-			Size Size;
+			Point Position{};
+			Point Center{};
+			Size Size{};
+			Rectangle PanelArea{};
+
 			std::string Id;
 			std::shared_ptr<Panel> PanelPtr;
 		};
@@ -75,6 +84,7 @@ namespace Berta
 			std::list<PanelItem> m_panels;
 			int m_selectedTabIndex{ -1 };
 			Window* m_owner{ nullptr };
+			TabBarPosition m_tabPosition{ TabBarPosition::Top };
 
 		private:
 			void UpdatePanelMoveRect(Panel* panel) const;
@@ -117,6 +127,9 @@ namespace Berta
 
 			return newPanel;
 		}
+
+		ControlBase* PushBack2(const std::string& tabId, ControlBase* control);
+		void SetTabPosition(TabBarPosition position);
 
 	private:
 		ControlBase* PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory);

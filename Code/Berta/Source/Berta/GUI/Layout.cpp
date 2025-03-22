@@ -35,34 +35,51 @@ namespace Berta
 			return;
 
 		auto paneNode = m_rootNode->Find(paneId);
+		if (paneNode)
+		{
+			return;
+		}
+		auto dockRoot = m_rootNode->FindFirst(LayoutNode::Type::Dock);
+		if (!dockRoot || !dockRoot->m_children.empty())
+		{
+			return;
+		}
+
+		//create a new layout node (DockPaneLayoutNode)
+		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
+
+		m_dockPaneFields[paneId] = newPaneNode.get();
+		auto& paneInfo = m_dockPaneInfoFields[paneId];
+		paneInfo.id = paneId;
+
+		newPaneNode->m_dockArea = std::make_unique<DockArea>();
+		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
+
+		newPaneNode->SetParentNode(dockRoot);
+		newPaneNode->m_dockLayoutEvents = this;
+
+		dockRoot->m_children.emplace_back(std::move(newPaneNode));
+	}
+
+	void Layout::AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control)
+	{
+		if (!m_rootNode)
+			return;
+
+		auto paneNode = GetPane(paneId);
 		if (!paneNode)
 		{
-			auto dockRoot = m_rootNode->FindFirst(LayoutNode::Type::Dock);
-			if (!dockRoot || !dockRoot->m_children.empty())
-			{
-				return;
-			}
-
-			//create a new layout node (DockPaneLayoutNode)
-			auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
-
-			m_dockPaneFields[paneId] = newPaneNode.get();
-			auto& paneInfo = m_dockPaneInfoFields[paneId];
-			paneInfo.id = paneId;
-
-			newPaneNode->m_dockArea = std::make_unique<DockArea>();
-			newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
-			newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
-
-			newPaneNode->SetParentNode(dockRoot);
-			newPaneNode->m_dockLayoutEvents = this;
-			dockRoot->m_children.emplace_back(std::move(newPaneNode));
+			return;
 		}
-		else if (paneNode->GetType() == LayoutNode::Type::DockPane)
+
+		auto paneTabId = paneId + "/" + tabId;
+		if (GetPaneTab(paneId, tabId))
 		{
-			auto newPaneNode = reinterpret_cast<DockPaneLayoutNode*>(paneNode);
-
+			return;
 		}
+
+		paneNode->AddTab(tabId, control);
 	}
 
 	void Layout::Attach(const std::string& fieldId, Window* window)
@@ -133,9 +150,10 @@ namespace Berta
 			if (parent->m_children[i].get() == node)
 			{
 				m_floatingDockFields.emplace_back(parent->m_children[i].release());
-				m_floatingDockFields.back()->SetParentNode(nullptr);
-				m_floatingDockFields.back()->SetPrev(nullptr);
-				m_floatingDockFields.back()->SetNext(nullptr);
+				auto& floatingDockField = m_floatingDockFields.back();
+				floatingDockField->SetParentNode(nullptr);
+				floatingDockField->SetPrev(nullptr);
+				floatingDockField->SetNext(nullptr);
 
 				parent->m_children.erase(parent->m_children.begin() + i);
 				break;
@@ -143,6 +161,33 @@ namespace Berta
 		}
 
 		//node->CalculateAreas();
+	}
+
+	void Layout::RequestClose(LayoutNode* node)
+	{
+		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
+		auto window = paneNode->m_dockArea->Handle();
+		
+		GUI::DisposeWindow(window);
+	}
+
+	DockPaneLayoutNode* Layout::GetPane(const std::string& paneId)
+	{
+		auto it = m_dockPaneFields.find(paneId);
+		if (it != m_dockPaneFields.end())
+			return it->second;
+
+		return nullptr;
+	}
+
+	DockPaneTabLayoutNode* Layout::GetPaneTab(const std::string& paneId, const std::string& tabId)
+	{
+		auto paneTabId = paneId + "/" + tabId;
+		auto it = m_dockPaneTabFields.find(paneTabId);
+		if (it != m_dockPaneTabFields.end())
+			return it->second;
+
+		return nullptr;
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 

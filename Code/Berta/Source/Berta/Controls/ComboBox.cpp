@@ -122,7 +122,7 @@ namespace Berta
 		if (args.ButtonState.LeftButton)
 		{
 			auto window = m_control->Handle();
-			auto pointInScreen = GUI::GetPointClientToScreen(window, m_control->Handle()->Position);
+			auto pointInScreen = window->Position;
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
 			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appearance->ComboBoxItemHeight);

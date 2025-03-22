@@ -459,6 +459,11 @@ namespace Berta
 	{
 	}
 
+	void DockPaneLayoutNode::AddTab(const std::string& id, ControlBase* control)
+	{
+		m_dockArea->AddTab(id, control);
+	}
+
 	void DockPaneLayoutNode::CalculateAreas()
 	{
 		if (!m_dockArea)
@@ -472,6 +477,11 @@ namespace Berta
 		m_dockLayoutEvents->NotifyFloat(this);
 	}
 
+	void DockPaneLayoutNode::RequestClose()
+	{
+		m_dockLayoutEvents->RequestClose(this);
+	}
+
 	void DockAreaCaptionReactor::Init(ControlBase& control)
 	{
 		m_control = &control;
@@ -481,11 +491,102 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->MenuBackground, true);
-		
-		Point textPos{ window->ToScale(5), 0};
+
+		Point textPos{ window->ToScale(5), 0 };
 		textPos.Y = (int)window->Size.Height - (int)graphics.GetTextExtent().Height;
 		textPos.Y >>= 1;
 		graphics.DrawString(textPos, m_control->GetCaption(), window->Appearance->Foreground);
+
+		if (!m_paneInfo || !m_paneInfo->ShouldShowCloseButton())
+		{
+			return;
+		}
+		auto color = window->Appearance->Background;
+		if (m_buttonStatus == State::None)
+		{
+			color = window->Appearance->ButtonBackground;
+		}
+		else if (m_buttonStatus == State::Hovered)
+		{
+			color = window->Appearance->ButtonHighlightBackground;
+		}
+		else if (m_buttonStatus == State::Pressed)
+		{
+			color = window->Appearance->ButtonPressedBackground;
+		}
+		auto two = window->ToScale(2);
+		graphics.DrawRoundRectBox(m_buttonRect, color, window->Appearance->BoxBorderColor, true);
+
+		auto x = L"x";
+		Point textExtent = graphics.GetTextExtent(x);
+		Point windowSize{ (int)m_buttonRect.Width, (int)m_buttonRect.Height };
+		auto center = windowSize - textExtent;
+		center /= 2;
+		center.Y -= two;
+		graphics.DrawString({ center.X + m_buttonRect.X, center.Y + m_buttonRect.Y }, x, window->Appearance->Foreground);
+	}
+
+	void DockAreaCaptionReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+	{
+		if (!m_paneInfo->ShouldShowCloseButton())
+			return;
+
+		m_mouseDownCloseButton = m_buttonRect.IsInside(args.Position) && args.ButtonState.LeftButton;
+		m_clickedCloseButton = false;
+		if (!m_mouseDownCloseButton)
+		{
+			return;
+		}
+		m_buttonStatus = State::Pressed;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void DockAreaCaptionReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		if (!m_paneInfo->ShouldShowCloseButton())
+			return;
+
+		auto prevStatus = m_buttonStatus;
+		m_buttonStatus = m_buttonRect.IsInside(args.Position) ? (m_mouseDownCloseButton ? State::Pressed : State::Hovered) : State::None;
+
+		if (prevStatus == m_buttonStatus)
+			return;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void DockAreaCaptionReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		if (!m_paneInfo->ShouldShowCloseButton())
+			return;
+
+		m_clickedCloseButton = m_mouseDownCloseButton && m_buttonRect.IsInside(args.Position) && args.ButtonState.LeftButton;
+
+		m_mouseDownCloseButton = false;
+
+		Update(graphics);
+		GUI::MarkAsUpdated(*m_control);
+	}
+
+	void DockAreaCaptionReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+		auto window = m_control->Handle();
+		auto buttonSize = window->ToScale(DockAreaCaptionButtonSize);
+		auto offsetY = ((int)args.NewSize.Height - buttonSize) >> 1;
+
+		auto two = window->ToScale(2);
+		m_buttonRect.X = args.NewSize.Width - buttonSize - offsetY - two;
+		m_buttonRect.Y = offsetY;
+		m_buttonRect.Height = buttonSize;
+		m_buttonRect.Width = buttonSize;
+	}
+
+	void DockArea::AddTab(const std::string& id, ControlBase* control)
+	{
+		m_tabBar->PushBack2(id, control);
 	}
 
 	void DockArea::Create(Window* parent, PaneInfo* paneInfo)
@@ -509,14 +610,24 @@ namespace Berta
 		{
 			if (m_paneInfo->showCaption)
 			{
-				m_caption->SetArea({ 0,0,args.NewSize.Width, Handle()->ToScale(18u) });
+				auto captionHeight = Handle()->ToScale(18u);
+				m_caption->SetArea({ 0,0,args.NewSize.Width, captionHeight });
+				m_tabBar->SetArea({ 0,(int)captionHeight,args.NewSize.Width,args.NewSize.Height - captionHeight });
+			}
+			else
+			{
+				m_tabBar->SetArea({ 0,0,args.NewSize.Width,args.NewSize.Height });
 			}
 		});
 
 		m_caption->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
 		{
-			m_mouseInteraction.m_dragStarted = true;
 			GUI::Capture(*m_caption);
+
+			if (m_caption->WasPressedCloseButton())
+				return;
+
+			m_mouseInteraction.m_dragStarted = true;
 
 			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 			//BT_CORE_TRACE << " - DOWN: args:position = " << args.Position << std::endl;
@@ -582,12 +693,30 @@ namespace Berta
 		{
 			m_mouseInteraction.m_dragStarted = false;
 			GUI::ReleaseCapture(*m_caption);
+
+			if (m_caption->HaveClickedCloseButton())
+			{
+				m_eventsNotifier->RequestClose();
+			}
 		});
+
+		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
+		m_tabBar->SetTabPosition(TabBarPosition::Bottom);
 	}
 
 	void DockAreaCaption::SetPaneInfo(PaneInfo* paneInfo)
 	{
 		m_reactor.m_paneInfo = paneInfo;
+	}
+
+	bool DockAreaCaption::WasPressedCloseButton() const
+	{
+		return m_reactor.m_mouseDownCloseButton;
+	}
+
+	bool DockAreaCaption::HaveClickedCloseButton() const
+	{
+		return m_reactor.m_clickedCloseButton;
 	}
 
 	DockPaneTabLayoutNode::DockPaneTabLayoutNode() :
