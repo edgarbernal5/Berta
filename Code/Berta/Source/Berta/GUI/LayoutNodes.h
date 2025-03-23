@@ -420,6 +420,7 @@ namespace Berta
 
         void AddTab(const std::string& id, ControlBase* control);
         void Create(Window* parent, PaneInfo* paneInfo);
+        void Dock();
         int GetTabSelectedIndex() const;
 
         struct MouseInteraction

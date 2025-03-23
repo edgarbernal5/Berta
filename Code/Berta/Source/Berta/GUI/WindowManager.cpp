@@ -309,7 +309,7 @@ namespace Berta
 
 	void WindowManager::Capture(Window* window, bool redirectToChildren)
 	{
-		//BT_CORE_TRACE << "Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		BT_CORE_TRACE << " - Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr != window)
 		{
 			if (Exists(window))
@@ -328,7 +328,7 @@ namespace Berta
 
 	void WindowManager::ReleaseCapture(Window* window)
 	{
-		//BT_CORE_TRACE << "ReleaseCapture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 		if (m_capture.WindowPtr == window)
 		{
 			m_capture.WindowPtr = nullptr;

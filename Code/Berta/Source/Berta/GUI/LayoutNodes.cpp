@@ -484,12 +484,12 @@ namespace Berta
 
 	void DockPaneLayoutNode::NotifyMove()
 	{
-		m_dockLayoutEvents->NotifyMove();
+		m_dockLayoutEvents->NotifyMove(this);
 	}
 
 	void DockPaneLayoutNode::NotifyMoveStopped()
 	{
-		m_dockLayoutEvents->NotifyMoveStopped();
+		m_dockLayoutEvents->NotifyMoveStopped(this);
 	}
 
 	void DockPaneLayoutNode::RequestClose()
@@ -662,7 +662,7 @@ namespace Berta
 				if (std::abs(m_mouseInteraction.m_dragStartPos.X - screenMousePos.X) > floatingThreshold ||
 					std::abs(m_mouseInteraction.m_dragStartPos.Y - screenMousePos.Y) > floatingThreshold)
 				{
-					auto pointInScreen = GUI::GetPointClientToScreen(dockAreaWindow, dockAreaWindow->Position);
+					auto pointInScreen = dockAreaWindow->Position;
 					auto dockAreaSize = this->GetSize();
 
 					Rectangle formRect;
@@ -723,6 +723,12 @@ namespace Berta
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
 		m_tabBar->SetTabPosition(TabBarPosition::Bottom);
+	}
+
+	void DockArea::Dock()
+	{
+		GUI::SetParentWindow(this->Handle(), m_hostWindow);
+		m_nativeContainer.reset();
 	}
 
 	int DockArea::GetTabSelectedIndex() const

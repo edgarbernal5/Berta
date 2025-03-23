@@ -157,26 +157,9 @@ namespace Berta
 		//m_rootNode->CalculateAreas();
 	}
 
-	void Layout::NotifyFloat(LayoutNode* node)
+	void Layout::NotifyFloat(DockPaneLayoutNode* node)
 	{
-		auto parent = node->GetParentNode();
-		if (!parent)
-			return;
-
-		for (size_t i = 0; i < parent->m_children.size(); ++i)
-		{
-			if (parent->m_children[i].get() == node)
-			{
-				m_floatingDockFields.emplace_back(parent->m_children[i].release());
-				auto& floatingDockField = m_floatingDockFields.back();
-				floatingDockField->SetParentNode(nullptr);
-				floatingDockField->SetPrev(nullptr);
-				floatingDockField->SetNext(nullptr);
-
-				parent->m_children.erase(parent->m_children.begin() + i);
-				break;
-			}
-		}
+		DoFloat(node);
 
 		//node->CalculateAreas();
 	}
@@ -186,7 +169,7 @@ namespace Berta
 
 	}
 
-	void Layout::NotifyMove()
+	void Layout::NotifyMove(LayoutNode* node)
 	{
 		if (!IsMouseInsideWindow())
 		{
@@ -203,10 +186,38 @@ namespace Berta
 		{
 			HidePaneDockIndicators();
 		}
+
+		DockPosition dockPosition = DockPosition::Tab;
+		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
+		if (IsMouseInsideDockIndicator(&dockPosition))
+		{
+			auto newArea = paneNode->GetArea();
+			auto newSize = paneNode->m_dockArea->GetSize();
+			newArea.Width = newSize.Width;
+			newArea.Height = newSize.Height;
+
+			paneNode->SetArea(newArea);
+			if (DoDock(paneNode, paneOrDock, dockPosition))
+			{
+				Apply();
+			}
+		}
+		else
+		{
+			if (DoFloat(paneNode))
+			{
+				Apply();
+			}
+		}
 	}
 
-	void Layout::NotifyMoveStopped()
+	void Layout::NotifyMoveStopped(LayoutNode* node)
 	{
+		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
+		if (IsMouseInsideDockIndicator())
+		{
+			paneNode->m_dockArea->Dock();
+		}
 		HidePaneDockIndicators();
 	}
 
@@ -299,8 +310,9 @@ namespace Berta
 
 	void Layout::ShowPaneDockIndicators(LayoutNode* node)
 	{
-		auto indicatoorSize = m_parent->ToScale(16);
-		auto indicatoorSizeHalf = indicatoorSize >> 1;
+		auto indicatorSize = m_parent->ToScale(32);
+		auto indicatorSizeHalf = indicatorSize >> 1;
+		auto indicatorSizeOffset = indicatorSizeHalf >> 1;
 
 		for (auto& indicator : m_paneIndicators)
 		{
@@ -320,10 +332,36 @@ namespace Berta
 			{
 				if (indicator->Position == DockPosition::Tab)
 				{
-					Point position{ x - indicatoorSizeHalf , y - indicatoorSizeHalf };
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{position.X, position.Y, (uint32_t)indicatoorSize, (uint32_t)indicatoorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = 0;
+					Point position{ x - indicatorSizeHalf, y - indicatorSizeHalf };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
+				/*else if (indicator->Position == DockPosition::Up)
+				{
+					Point position{ x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+				}
+				else if (indicator->Position == DockPosition::Down)
+				{
+					Point position{ x - indicatorSizeHalf, y + indicatorSizeHalf + indicatorSizeOffset };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+				}
+				else if (indicator->Position == DockPosition::Left)
+				{
+					Point position{ x - indicatorSizeHalf - indicatorSize - indicatorSizeOffset, y - indicatorSizeHalf };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+				}
+				else if (indicator->Position == DockPosition::Right)
+				{
+					Point position{ x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
+					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+				}*/
+				//GUI::MakeWindowActive(*indicator->Docker, false, nullptr);
+				
 				if (indicator->Docker)
 				indicator->Docker->Show();
 			}
@@ -340,6 +378,33 @@ namespace Berta
 		Rectangle rect{ windowPosition.X, windowPosition.Y, m_parent->Size.Width, m_parent->Size.Height };
 
 		return rect.IsInside(mousePosition);
+	}
+
+	bool Layout::IsMouseInsideDockIndicator(DockPosition* outDockPosition) const
+	{
+		for (auto& indicator : m_paneIndicators)
+		{
+			if (!indicator->Docker)
+			{
+				continue;
+			}
+
+			auto mousePosition = GUI::GetScreenMousePosition();
+			auto dockerHandle = indicator->Docker->Handle();
+			auto windowPosition = GUI::GetPointClientToScreen(dockerHandle, GUI::GetAbsoluteRootPosition(dockerHandle));
+			Rectangle rect{ windowPosition.X, windowPosition.Y, dockerHandle->Size.Width, dockerHandle->Size.Height };
+
+			if (rect.IsInside(mousePosition))
+			{
+				if (outDockPosition)
+				{
+					*outDockPosition = indicator->Position;
+				}
+
+				return true;
+			}
+		}
+		return false;
 	}
 
 	LayoutNode* Layout::GetPaneOrDockOnMousePosition() const
@@ -387,6 +452,55 @@ namespace Berta
 			}
 		}
 		return nullptr;
+	}
+
+	bool Layout::DoFloat(DockPaneLayoutNode* paneNode)
+	{
+		auto parent = paneNode->GetParentNode();
+		if (!parent)
+		{
+			return false;
+		}
+
+		for (size_t i = 0; i < parent->m_children.size(); ++i)
+		{
+			if (parent->m_children[i].get() == paneNode)
+			{
+				m_floatingDockFields.emplace_back(parent->m_children[i].release());
+				auto& floatingDockField = m_floatingDockFields.back();
+				floatingDockField->SetParentNode(nullptr);
+				floatingDockField->SetPrev(nullptr);
+				floatingDockField->SetNext(nullptr);
+
+				parent->m_children.erase(parent->m_children.begin() + i);
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	bool Layout::DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition)
+	{
+		size_t nodeIndex = 0;
+		for (nodeIndex = 0; nodeIndex < m_floatingDockFields.size(); ++nodeIndex)
+		{
+			if (m_floatingDockFields[nodeIndex] == paneNode)
+			{
+				break;
+			}
+		}
+
+		if (nodeIndex == m_floatingDockFields.size())
+			return false; // It is alrealy docked!
+
+		if (target && target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
+		{
+			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
+			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
+			return true;
+		}
+		return false;
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 

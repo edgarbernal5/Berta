@@ -137,10 +137,10 @@ namespace Berta
     public:
         virtual ~LayoutDockPaneEventsNotifier() = default;
 
-        virtual void NotifyFloat(LayoutNode* node) = 0;
+        virtual void NotifyFloat(DockPaneLayoutNode* node) = 0;
         virtual void NotifyMoveStarted() = 0;
-        virtual void NotifyMove() = 0;
-        virtual void NotifyMoveStopped() = 0;
+        virtual void NotifyMove(LayoutNode* node) = 0;
+        virtual void NotifyMoveStopped(LayoutNode* node) = 0;
         virtual void RequestClose(LayoutNode* node) = 0;
     };
 
@@ -168,10 +168,10 @@ namespace Berta
         void Create(Window* window);
         void Parse(const std::string& source);
 
-        void NotifyFloat(LayoutNode* node) override;
+        void NotifyFloat(DockPaneLayoutNode* node) override;
         void NotifyMoveStarted() override;
-        void NotifyMove() override;
-        void NotifyMoveStopped() override;
+        void NotifyMove(LayoutNode* node) override;
+        void NotifyMoveStopped(LayoutNode* node) override;
         void RequestClose(LayoutNode* node) override;
     private:
         class Parser
@@ -197,8 +197,12 @@ namespace Berta
         void HidePaneDockIndicators();
         void ShowPaneDockIndicators(LayoutNode* node);
         bool IsMouseInsideWindow() const;
+        bool IsMouseInsideDockIndicator(DockPosition* outDockPosition = nullptr) const;
         LayoutNode* GetPaneOrDockOnMousePosition() const;
         LayoutNode* GetPaneOrDockOnMousePositionInternal(LayoutNode* node, LayoutNodeType nodeType) const;
+
+        bool DoFloat(DockPaneLayoutNode* paneNode);
+        bool DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition);
 
         Window* m_parent{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
