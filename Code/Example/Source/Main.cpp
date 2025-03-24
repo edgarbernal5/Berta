@@ -570,6 +570,7 @@ int main()
 	form.GetLayout().AddPane("dockPane");
 	form.GetLayout().AddPaneTab("dockPane", "tab1", &buttonPaneTab);
 	form.GetLayout().AddPaneTab("dockPane", "tab2", &buttonPaneTab2);
+	form.GetLayout().Apply();
 
 	//form.GetLayout().Attach("b", nestedForm);
 

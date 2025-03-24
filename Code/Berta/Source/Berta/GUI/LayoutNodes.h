@@ -267,6 +267,7 @@ namespace Berta
         Number m_fixedHeight;
 
     protected:
+        virtual void CalculateAreasWindows();
         LayoutNode* Find(const std::string& id, LayoutNode* node);
         LayoutNode* FindFirst(LayoutNodeType nodeType, LayoutNode* node);
 
@@ -315,6 +316,9 @@ namespace Berta
 
         void CalculateAreas() override;
 
+    protected:
+        ContainerLayoutNode(LayoutNodeType type);
+
     private:
         bool m_isVertical{ false };
     };
@@ -357,12 +361,12 @@ namespace Berta
         bool showCloseButton{ true };
     };
 
-    class DockLayoutNode : public LayoutNode
+    class DockLayoutNode : public ContainerLayoutNode
     {
     public:
         DockLayoutNode();
 
-        void CalculateAreas() override;
+        //void CalculateAreas() override;
     };
 
     class DockEventsNotifier
@@ -378,6 +382,7 @@ namespace Berta
     };
 
     constexpr int DockAreaCaptionButtonSize = 14;
+
     class DockAreaCaptionReactor : public ControlReactor
     {
     public:
@@ -462,6 +467,9 @@ namespace Berta
         LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };
         std::unique_ptr<DockArea> m_dockArea;
         std::string m_paneId;
+
+    protected:
+        //void CalculateAreasWindows() override;
     };
 
     class DockPaneTabLayoutNode : public LayoutNode

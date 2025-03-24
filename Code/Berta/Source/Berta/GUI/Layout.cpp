@@ -58,9 +58,10 @@ namespace Berta
 		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
 		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
 
-		newPaneNode->SetParentNode(dockRoot);
 		newPaneNode->m_dockLayoutEvents = this;
 		newPaneNode->m_paneId = paneId;
+		newPaneNode->SetParentNode(dockRoot);
+		newPaneNode->SetParentWindow(dockRoot->GetParentWindow());
 
 		dockRoot->m_children.emplace_back(std::move(newPaneNode));
 	}
@@ -85,6 +86,7 @@ namespace Berta
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->m_tabId = paneTabId;
 		paneTabNode->SetParentNode(paneNode);
+		paneTabNode->SetParentWindow(paneNode->GetParentWindow());
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
 		paneNode->AddTab(tabId, control);
@@ -96,6 +98,7 @@ namespace Berta
 		if (!m_rootNode || !m_parent)
 			return;
 
+		m_rootNode->SetArea(GUI::AreaWindow(m_parent));
 		m_rootNode->CalculateAreas();
 		m_rootNode->Apply();
 	}
@@ -133,6 +136,8 @@ namespace Berta
 				m_rootNode->CalculateAreas();
 				m_rootNode->Apply();
 			}
+
+			Print();
 		});
 
 		m_parent->Events->Destroy.Connect([](const ArgDestroy& args)
@@ -159,9 +164,20 @@ namespace Berta
 
 	void Layout::NotifyFloat(DockPaneLayoutNode* node)
 	{
+		node->SetParentWindow(node->m_dockArea->m_nativeContainer->Handle());
 		DoFloat(node);
 
-		//node->CalculateAreas();
+		//auto newArea = node->GetArea();
+		//auto dockAreaArea = node->m_dockArea->GetArea();
+		//auto newSize = node->m_dockArea->GetSize();
+		//newArea.X = 0;
+		//newArea.Y = 0;
+		//newArea.Width = newSize.Width;
+		//newArea.Height = newSize.Height;
+		//node->SetArea(newArea);
+
+		node->CalculateAreas();
+		Print();
 	}
 
 	void Layout::NotifyMoveStarted()
@@ -191,22 +207,36 @@ namespace Berta
 		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
 		if (IsMouseInsideDockIndicator(&dockPosition))
 		{
-			auto newArea = paneNode->GetArea();
+			/*auto newArea = paneNode->GetArea();
 			auto newSize = paneNode->m_dockArea->GetSize();
 			newArea.Width = newSize.Width;
 			newArea.Height = newSize.Height;
 
-			paneNode->SetArea(newArea);
+			paneNode->SetArea(newArea);*/
+
 			if (DoDock(paneNode, paneOrDock, dockPosition))
 			{
-				Apply();
+				BT_CORE_TRACE << " - DoDock." << std::endl;
+				//paneOrDock->Apply();
+				Print();
 			}
 		}
 		else
 		{
 			if (DoFloat(paneNode))
 			{
-				Apply();
+				/*auto newArea = paneNode->GetArea();
+				auto newSize = paneNode->m_dockArea->GetSize();
+				newArea.X = 0;
+				newArea.Y = 0;
+				newArea.Width = newSize.Width;
+				newArea.Height = newSize.Height;
+				paneNode->SetArea(newArea);*/
+
+				BT_CORE_TRACE << " - DoFloat." << std::endl;
+				paneNode->CalculateAreas();
+				paneNode->Apply();
+				Print();
 			}
 		}
 	}
@@ -216,7 +246,10 @@ namespace Berta
 		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
 		if (IsMouseInsideDockIndicator())
 		{
+			node->SetParentWindow(paneNode->m_dockArea->m_hostWindow);
 			paneNode->m_dockArea->Dock();
+			Apply();
+			GUI::UpdateWindow(*paneNode->m_dockArea);
 		}
 		HidePaneDockIndicators();
 	}
@@ -363,7 +396,12 @@ namespace Berta
 				//GUI::MakeWindowActive(*indicator->Docker, false, nullptr);
 				
 				if (indicator->Docker)
-				indicator->Docker->Show();
+				{
+					std::ostringstream builder;
+					builder << "Indicator-" << (int)indicator->Position;
+					indicator->Docker->SetDebugName(builder.str());
+					indicator->Docker->Show();
+				}
 			}
 		}
 	}
@@ -492,15 +530,88 @@ namespace Berta
 		}
 
 		if (nodeIndex == m_floatingDockFields.size())
-			return false; // It is alrealy docked!
+			return false; // paneNode is alrealy docked!
 
 		if (target && target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{
+			paneNode->SetParentNode(target);
 			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 			return true;
 		}
 		return false;
+	}
+
+	void Layout::Print()
+	{
+		std::cout << "Print()" << std::endl;
+		if (!m_rootNode)
+		{
+			std::cout << " - empty." << std::endl;
+			return;
+		}
+
+		Print(m_rootNode.get(), 0);
+	}
+
+	void Layout::Print(LayoutNode* node, uint32_t level)
+	{
+		for (size_t i = 0; i < level; i++)
+		{
+			std::cout << " ";
+		}
+
+		if (node->GetType() == LayoutNodeType::Container)
+		{
+			std::cout << "{Container}";
+		}
+		 else if (node->GetType() == LayoutNodeType::DockPane)
+		{
+			std::cout << "{DockPane}";
+		}
+		else if (node->GetType() == LayoutNodeType::Dock)
+		{
+			std::cout << "{Dock}";
+		}
+		else if (node->GetType() == LayoutNodeType::DockPaneTab)
+		{
+			std::cout << "{DockPaneTab}";
+		}
+		else if (node->GetType() == LayoutNodeType::Leaf)
+		{
+			std::cout << "{Leaf}";
+		}
+		std::cout << " id = " << node->GetId() << ". children = " << node->m_children.size() << std::endl;
+		for (size_t i = 0; i < node->m_children.size(); i++)
+		{
+			Print(node->m_children[i].get(), level + 1);
+		}
+		for (size_t i = 0; i < level; i++)
+		{
+			std::cout << " ";
+		}
+
+		if (node->GetType() == LayoutNodeType::Container)
+		{
+			std::cout << "{/Container}";
+		}
+		else if (node->GetType() == LayoutNodeType::DockPane)
+		{
+			std::cout << "{/DockPane}";
+		}
+		else if (node->GetType() == LayoutNodeType::Dock)
+		{
+			std::cout << "{/Dock}";
+		}
+		else if (node->GetType() == LayoutNodeType::DockPaneTab)
+		{
+			std::cout << "{/DockPaneTab}";
+		}
+		else if (node->GetType() == LayoutNodeType::Leaf)
+		{
+			std::cout << "{/Leaf}";
+		}
+		std::cout << std::endl;
 	}
 
 	Tokenizer::Tokenizer(const std::string& source) : 

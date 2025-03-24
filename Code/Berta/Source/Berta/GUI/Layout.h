@@ -204,6 +204,9 @@ namespace Berta
         bool DoFloat(DockPaneLayoutNode* paneNode);
         bool DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition);
 
+        void Print();
+        void Print(LayoutNode* node, uint32_t level);
+
         Window* m_parent{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
         std::map<std::string, LayoutNode*> m_fields;

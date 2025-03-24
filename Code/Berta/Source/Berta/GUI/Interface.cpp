@@ -232,6 +232,17 @@ namespace Berta::GUI
 		}
 	}
 
+	Rectangle AreaWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			auto position = GetAbsolutePosition(window);
+			return { position.X, position.Y, window->Size.Width, window->Size.Height };
+		}
+		return{};
+	}
+
 	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

@@ -21,7 +21,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES2
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -306,8 +306,8 @@ namespace Berta
 			break;
 		}
 		case WM_ACTIVATE:
-			BT_CORE_DEBUG << " wParam = " << wParam << ". window = " << nativeWindow->Name << std::endl;
-			BT_CORE_DEBUG << " lParam = " << lParam << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " wParam = " << wParam << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " lParam = " << lParam << ". window = " << nativeWindow->Name << std::endl;
 			//if (wParam == WA_INACTIVE)
 			{
 				//Added these calls for float window that rendered a thick frame when loses/gains focus.
@@ -341,19 +341,20 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps;
+			::PAINTSTRUCT ps;
 			::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "} window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
-			BT_CORE_DEBUG << " areaToUpdate = { x=" << areaToUpdate.X << "; y=" << areaToUpdate.Y << "; w=" << areaToUpdate.Width << "; h=" << areaToUpdate.Height << "}" << std::endl;
+			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
+			
 			defaultToWindowProc = false;
 			break;
 		}
@@ -362,16 +363,17 @@ namespace Berta
 			uint32_t newWidth = (uint32_t)LOWORD(lParam);
 			uint32_t newHeight = (uint32_t)HIWORD(lParam);
 
+			Size newSize{ newWidth , newHeight };
+#if BT_DEBUG
+			BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
+#else
+			BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
+#endif
+
 			if (newWidth > 0 && newHeight > 0)
 			{
 				ArgResize argResize;
-				argResize.NewSize.Width = newWidth;
-				argResize.NewSize.Height = newHeight; 
-#if BT_DEBUG
-				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << ". window = " << nativeWindow->Name << std::endl;
-#else
-				BT_CORE_DEBUG << "   Size: new size " << argResize.NewSize << std::endl;
-#endif
+				argResize.NewSize = newSize;
 
 				//TODO: esto es un hack!
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);

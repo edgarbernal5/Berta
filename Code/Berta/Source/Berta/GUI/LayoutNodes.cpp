@@ -31,6 +31,26 @@ namespace Berta
 		return FindFirst(nodeType, this);
 	}
 
+	void LayoutNode::CalculateAreasWindows()
+	{
+		for (auto& childNode : m_children)
+		{
+			auto containerArea = childNode->GetArea();
+			auto count = static_cast<uint32_t>(childNode->GetWindowsAreas().size());
+			Point offset{ containerArea.X, containerArea.Y };
+			for (auto& windowArea : childNode->GetWindowsAreas())
+			{
+				Rectangle childArea{};
+				childArea.X = offset.X;
+				childArea.Y = offset.Y;
+				childArea.Height = containerArea.Height;
+				childArea.Width = containerArea.Width;
+
+				windowArea.area = childArea;
+			}
+		}
+	}
+
 	LayoutNode* LayoutNode::Find(const std::string& id, LayoutNode* node)
 	{
 		if (node->GetId() == id)
@@ -276,22 +296,12 @@ namespace Berta
 			childNode->CalculateAreas();
 		}
 
-		for (auto& childNode : m_children)
-		{
-			auto containerArea = childNode->GetArea();
-			auto count = static_cast<uint32_t>(childNode->GetWindowsAreas().size());
-			Point offset{ containerArea.X, containerArea.Y };
-			for (auto& windowArea : childNode->GetWindowsAreas())
-			{
-				Rectangle childArea{};
-				childArea.X = offset.X;
-				childArea.Y = offset.Y;
-				childArea.Height = containerArea.Height;
-				childArea.Width = containerArea.Width;
-				
-				windowArea.area = childArea;
-			}
-		}
+		CalculateAreasWindows();
+	}
+
+	ContainerLayoutNode::ContainerLayoutNode(LayoutNodeType type) :
+		LayoutNode(type)
+	{
 	}
 
 	ContainerLayoutNode::ContainerLayoutNode(bool isVertical) : 
@@ -440,19 +450,19 @@ namespace Berta
 	}
 
 	DockLayoutNode::DockLayoutNode() :
-		LayoutNode(LayoutNodeType::Dock)
+		ContainerLayoutNode(LayoutNodeType::Dock)
 	{
 	}
 
-	void DockLayoutNode::CalculateAreas()
-	{
-		auto area = GetArea();
-		for (size_t i = 0; i < m_children.size(); i++)
-		{
-			m_children[i]->SetArea(area);
-			m_children[i]->CalculateAreas();
-		}
-	}
+	//void DockLayoutNode::CalculateAreas()
+	//{
+	//	auto area = GetArea();
+	//	for (size_t i = 0; i < m_children.size(); i++)
+	//	{
+	//		m_children[i]->SetArea(area);
+	//		m_children[i]->CalculateAreas();
+	//	}
+	//}
 
 	DockPaneLayoutNode::DockPaneLayoutNode() :
 		LayoutNode(LayoutNodeType::DockPane)
@@ -469,7 +479,16 @@ namespace Berta
 		if (!m_dockArea)
 			return;
 
-		m_dockArea->SetArea(GetArea());
+		auto area = m_parentNode ? m_parentNode->GetArea() : GUI::AreaWindow(m_parentWindow);
+		m_dockArea->SetArea(area);
+
+		for (auto& child : m_children)
+		{
+			child->SetArea(area);
+			child->CalculateAreas();
+		}
+
+		GUI::UpdateTree(m_dockArea->Handle());
 	}
 
 	void DockPaneLayoutNode::NotifyFloat()
@@ -496,6 +515,10 @@ namespace Berta
 	{
 		m_dockLayoutEvents->RequestClose(this);
 	}
+
+	/*void DockPaneLayoutNode::CalculateAreasWindows()
+	{
+	}*/
 
 	void DockAreaCaptionReactor::Init(ControlBase& control)
 	{
@@ -623,16 +646,18 @@ namespace Berta
 
 		this->GetEvents().Resize.Connect([this](const ArgResize& args)
 		{
+			BT_CORE_DEBUG << " dock area / Resize = " << this->GetArea() << std::endl;
 			if (m_paneInfo->showCaption)
 			{
 				auto captionHeight = Handle()->ToScale(18u);
-				m_caption->SetArea({ 0,0,args.NewSize.Width, captionHeight });
-				m_tabBar->SetArea({ 0,(int)captionHeight,args.NewSize.Width,args.NewSize.Height - captionHeight });
+				m_caption->SetArea({ 0, 0, args.NewSize.Width, captionHeight });
+				m_tabBar->SetArea({ 0, (int)captionHeight, args.NewSize.Width, args.NewSize.Height - captionHeight });
 			}
 			else
 			{
-				m_tabBar->SetArea({ 0,0,args.NewSize.Width,args.NewSize.Height });
+				m_tabBar->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
 			}
+			//GUI::UpdateWindow(this->Handle());
 		});
 
 		m_caption->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
@@ -684,6 +709,7 @@ namespace Berta
 					auto prevHostWindow = dockAreaWindow->RootWindow;
 					GUI::SetParentWindow(dockAreaWindow, m_nativeContainer->Handle());
 
+					BT_CORE_DEBUG << " 2 dock area = " << this->GetArea() << std::endl;
 					m_nativeContainer->Show();
 
 					GUI::UpdateTree(prevHostWindow);
@@ -758,5 +784,6 @@ namespace Berta
 
 	void DockPaneTabLayoutNode::CalculateAreas()
 	{
+		//SetArea(m_parentNode->GetArea());
 	}
 }
