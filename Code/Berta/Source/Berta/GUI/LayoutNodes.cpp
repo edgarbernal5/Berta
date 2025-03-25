@@ -496,11 +496,6 @@ namespace Berta
 		m_dockLayoutEvents->NotifyFloat(this);
 	}
 
-	void DockPaneLayoutNode::NotifyMoveStarted()
-	{
-		m_dockLayoutEvents->NotifyMoveStarted();
-	}
-
 	void DockPaneLayoutNode::NotifyMove()
 	{
 		m_dockLayoutEvents->NotifyMove(this);
@@ -669,8 +664,8 @@ namespace Berta
 
 			m_mouseInteraction.m_dragStarted = true;
 
-			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 			//BT_CORE_TRACE << " - DOWN: args:position = " << args.Position << std::endl;
+			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) : this->GetPosition();
 		});
 
@@ -715,8 +710,8 @@ namespace Berta
 					GUI::UpdateTree(prevHostWindow);
 					GUI::UpdateWindow(prevHostWindow);
 
+					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();
-					m_eventsNotifier->NotifyMoveStarted();
 				}
 			}
 			else
@@ -726,7 +721,8 @@ namespace Berta
 
 				//BT_CORE_TRACE << " - args:position = " << args.Position << std::endl;
 				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
-				
+
+				m_mouseInteraction.m_hasChanged = true;
 				GUI::MoveWindow(*m_nativeContainer, newPosition);
 
 				m_eventsNotifier->NotifyMove();
@@ -744,7 +740,10 @@ namespace Berta
 				return;
 			}
 
-			m_eventsNotifier->NotifyMoveStopped();
+			if (m_mouseInteraction.m_hasChanged)
+			{
+				m_eventsNotifier->NotifyMoveStopped();
+			}
 		});
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});

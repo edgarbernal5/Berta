@@ -543,9 +543,9 @@ namespace Berta
 			{
 				API::MoveWindow(window->RootHandle, newRect);
 
-				ArgMove argMove;
+				/*ArgMove argMove;
 				argMove.NewPosition = newRect;
-				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);*/
 			}
 		}
 	}

@@ -375,7 +375,6 @@ namespace Berta
         virtual ~DockEventsNotifier() = default;
 
         virtual void NotifyFloat() = 0;
-        virtual void NotifyMoveStarted() = 0;
         virtual void NotifyMove() = 0;
         virtual void NotifyMoveStopped() = 0;
         virtual void RequestClose() = 0;
@@ -431,6 +430,7 @@ namespace Berta
         struct MouseInteraction
         {
             bool m_dragStarted{ false };
+            bool m_hasChanged{ false };
             Point m_dragStartPos{ };
             Point m_dragStartLocalPos{ };
         };
@@ -459,7 +459,6 @@ namespace Berta
         void CalculateAreas() override;
 
         void NotifyFloat() override;
-        void NotifyMoveStarted() override;
         void NotifyMove() override;
         void NotifyMoveStopped() override;
         void RequestClose() override;

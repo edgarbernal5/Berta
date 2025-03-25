@@ -138,7 +138,6 @@ namespace Berta
         virtual ~LayoutDockPaneEventsNotifier() = default;
 
         virtual void NotifyFloat(DockPaneLayoutNode* node) = 0;
-        virtual void NotifyMoveStarted() = 0;
         virtual void NotifyMove(LayoutNode* node) = 0;
         virtual void NotifyMoveStopped(LayoutNode* node) = 0;
         virtual void RequestClose(LayoutNode* node) = 0;
@@ -162,6 +161,7 @@ namespace Berta
 
         void AddPane(const std::string& paneId);
         void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control);
+        void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control, const std::string& relativePaneId, DockPosition dockPosition);
 
         void Apply();
         void Attach(const std::string& fieldId, Window* window);
@@ -169,7 +169,6 @@ namespace Berta
         void Parse(const std::string& source);
 
         void NotifyFloat(DockPaneLayoutNode* node) override;
-        void NotifyMoveStarted() override;
         void NotifyMove(LayoutNode* node) override;
         void NotifyMoveStopped(LayoutNode* node) override;
         void RequestClose(LayoutNode* node) override;

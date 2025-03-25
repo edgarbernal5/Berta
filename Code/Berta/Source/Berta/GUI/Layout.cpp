@@ -77,11 +77,11 @@ namespace Berta
 			return;
 		}
 
-		auto paneTabId = paneId + "/" + tabId;
 		if (GetPaneTab(paneId, tabId))
 		{
 			return;
 		}
+		auto paneTabId = paneId + "/" + tabId;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->m_tabId = paneTabId;
@@ -91,6 +91,49 @@ namespace Berta
 
 		paneNode->AddTab(tabId, control);
 		paneNode->m_children.emplace_back(std::move(paneTabNode));
+	}
+
+	void Layout::AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control, const std::string& relativePaneId, DockPosition dockPosition)
+	{
+		if (!m_rootNode)
+			return;
+
+		if (GetPane(paneId) || GetPaneTab(paneId, tabId))
+		{
+			return;
+		}
+
+		auto dockRoot = m_rootNode->FindFirst(LayoutNodeType::Dock);
+		auto relativePaneNode = relativePaneId.empty() ? (!dockRoot || !dockRoot->m_children.empty() ? nullptr : dockRoot) : GetPane(relativePaneId);
+		if (!relativePaneNode)
+			return;
+
+		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
+
+		m_dockPaneFields[paneId] = newPaneNode.get();
+		auto& paneInfo = m_dockPaneInfoFields[paneId];
+		paneInfo.id = paneId;
+
+		newPaneNode->m_dockArea = std::make_unique<DockArea>();
+		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
+
+		newPaneNode->m_dockLayoutEvents = this;
+		newPaneNode->m_paneId = paneId;
+		//newPaneNode->SetParentNode(dockRoot);
+		newPaneNode->SetParentWindow(m_parent);
+
+		auto paneTabId = paneId + "/" + tabId;
+
+		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
+		paneTabNode->m_tabId = paneTabId;
+		paneTabNode->SetParentNode(newPaneNode.get());
+		paneTabNode->SetParentWindow(newPaneNode->GetParentWindow());
+		
+		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
+
+		newPaneNode->AddTab(tabId, control);
+		newPaneNode->m_children.emplace_back(std::move(paneTabNode));
 	}
 
 	void Layout::Apply()
@@ -178,11 +221,6 @@ namespace Berta
 
 		node->CalculateAreas();
 		Print();
-	}
-
-	void Layout::NotifyMoveStarted()
-	{
-
 	}
 
 	void Layout::NotifyMove(LayoutNode* node)
@@ -539,6 +577,17 @@ namespace Berta
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 			return true;
 		}
+
+		if (target == nullptr)
+		{
+			/*paneNode->SetParentNode(target);
+			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
+			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);*/
+			return true;
+		}
+
+
+
 		return false;
 	}
 

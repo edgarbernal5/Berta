@@ -358,6 +358,23 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		case WM_MOVE:
+		{
+			int x = (int)(short)LOWORD(lParam);
+			int y = (int)(short)HIWORD(lParam);
+#if BT_DEBUG
+//			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
+#else
+//			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << std::endl;
+#endif
+			ArgMove argMove;
+			argMove.NewPosition.X = x;
+			argMove.NewPosition.Y = y;
+			foundation.ProcessEvents(nativeWindow, &Renderer::Move, &ControlEvents::Move, argMove);
+
+			defaultToWindowProc = false;
+			break;
+		}
 		case WM_SIZE:
 		{
 			uint32_t newWidth = (uint32_t)LOWORD(lParam);
@@ -831,6 +848,7 @@ namespace Berta
 		//case WM_NCPAINT:
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
+		case WM_MOVE:
 		case WM_SIZE:
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
