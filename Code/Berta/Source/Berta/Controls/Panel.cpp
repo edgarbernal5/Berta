@@ -24,4 +24,12 @@ namespace Berta
 		m_handle->Name = "Panel";
 #endif
 	}
+	Panel::Panel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible)
+	{
+		Create(parent, isUnscaleRect, rectangle, visible, true);
+
+#if BT_DEBUG
+		m_handle->Name = "Panel";
+#endif
+	}
 }

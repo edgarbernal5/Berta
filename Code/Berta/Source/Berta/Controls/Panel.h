@@ -28,6 +28,7 @@ namespace Berta
 	public:
 		Panel() = default;
 		Panel(Window* parent, const Rectangle& rectangle = {}, bool visible = true);
+		Panel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle = {}, bool visible = true);
 	};
 }
 

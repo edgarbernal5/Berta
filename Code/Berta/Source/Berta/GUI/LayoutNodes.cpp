@@ -350,12 +350,10 @@ namespace Berta
 
 	void SplitterLayoutNode::CalculateAreas()
 	{
-		auto splitterArea = GetArea();
 		if (!m_splitter)
 		{
+			auto splitterArea = GetArea();
 			m_containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
-
-			//m_isVertical = m_containerNode->GetOrientation();
 
 			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, splitterArea);
 			m_splitter->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
@@ -387,12 +385,14 @@ namespace Berta
 				GUI::ChangeCursor(*m_splitter, Cursor::Default);
 			});
 
-			m_splitter->GetEvents().MouseMove.Connect([this, splitterArea](const ArgMouse& args)
+			m_splitter->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
 			{
 				if (!m_isSplitterMoving)
 					return;
 				
 				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
+				
+				auto splitterArea = GetArea();
 				auto newSplitterArea = splitterArea;
 
 				if (m_isVertical)
@@ -456,6 +456,7 @@ namespace Berta
 		}
 		else
 		{
+			auto splitterArea = GetArea();
 			GUI::MoveWindow(m_splitter->Handle(), splitterArea);
 		}
 	}
@@ -466,7 +467,7 @@ namespace Berta
 	}
 
 	SplitterLayoutControl::SplitterLayoutControl(Window* parent, const Rectangle& rectangle, bool visible) :
-		Panel(parent, rectangle, visible)
+		Panel(parent, false, rectangle, visible)
 	{
 #if BT_DEBUG
 		m_handle->Name = "SplitterLayoutControl";

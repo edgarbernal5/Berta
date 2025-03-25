@@ -677,6 +677,9 @@ namespace Berta
 				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 				containerPtr->m_children.emplace_back(splitterPtr);
 				containerPtr->m_children.emplace_back(targetPtr.release());
+
+				containerPtr->m_children[1]->SetPrev(containerPtr->m_children[0].get());
+				containerPtr->m_children[1]->SetNext(containerPtr->m_children[2].get());
 			}
 			else
 			{
@@ -686,8 +689,10 @@ namespace Berta
 				containerPtr->m_children.emplace_back(targetPtr.release());
 				containerPtr->m_children.emplace_back(splitterPtr);
 				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
-			}
 
+				containerPtr->m_children[1]->SetPrev(containerPtr->m_children[0].get());
+				containerPtr->m_children[1]->SetNext(containerPtr->m_children[2].get());
+			}
 
 			if (targetIndex == std::string::npos)
 			{
