@@ -120,7 +120,6 @@ namespace Berta
 
 		newPaneNode->m_dockLayoutEvents = this;
 		newPaneNode->m_paneId = paneId;
-		//newPaneNode->SetParentNode(dockRoot);
 		newPaneNode->SetParentWindow(m_parent);
 
 		auto paneTabId = paneId + "/" + tabId;
@@ -548,7 +547,31 @@ namespace Berta
 				floatingDockField->SetPrev(nullptr);
 				floatingDockField->SetNext(nullptr);
 
-				parent->m_children.erase(parent->m_children.begin() + i);
+				if (i == parent->m_children.size() - 1)
+				{
+					parent->m_children.pop_back();
+					if (parent->m_children.size())
+					{
+						parent->m_children.pop_back();
+					}
+				}
+				else
+				{
+					parent->m_children.erase(parent->m_children.begin() + i);
+					if (parent->m_children.size())
+					{
+						parent->m_children.erase(parent->m_children.begin() + i);
+						if (i > 0 && i < parent->m_children.size())
+						{
+							parent->m_children[i - 1]->SetNext(parent->m_children[i].get());
+						}
+					}
+				}
+
+				if (parent->m_children.size() == 1 && parent->GetType() == LayoutNodeType::Container)
+				{
+					auto child = parent->m_children[0].release();
+				}
 				break;
 			}
 		}
@@ -578,17 +601,128 @@ namespace Berta
 			return true;
 		}
 
-		if (target == nullptr)
+		/*if (target == nullptr)
 		{
-			/*paneNode->SetParentNode(target);
+			paneNode->SetParentNode(target);
 			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
-			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);*/
+			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 			return true;
+		}*/
+
+		LayoutNode* dockRootNode = target;
+		while (dockRootNode)
+		{
+			if (dockRootNode->GetType() == LayoutNodeType::Dock)
+			{
+				break;
+			}
+
+			dockRootNode = dockRootNode->GetParentNode();
 		}
 
+		if (dockRootNode == nullptr)
+		{
+			return false;
+		}
+
+		auto targetParent = reinterpret_cast<ContainerLayoutNode*>(target ? target->GetParentNode() : dockRootNode);
+		bool addNewOrientation = false;
+		if (dockRootNode->m_children[0]->GetType() == LayoutNodeType::DockPane)
+		{
+			addNewOrientation = true;
+		}
+		else
+		{
+			if (targetParent->GetOrientation() != (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down))
+			{
+				addNewOrientation = true;
+			}
+		}
+
+		auto targetIndex = target->GetIndex();
+		if (addNewOrientation)
+		{
+			std::unique_ptr<LayoutNode> targetPtr = std::move(target->GetParentNode()->m_children[targetIndex]);
+
+			auto containerPtr = new ContainerLayoutNode((dockPosition == DockPosition::Up || dockPosition == DockPosition::Down));
+			containerPtr->SetParentNode(target->GetParentNode());
+
+			auto splitterPtr = new SplitterLayoutNode();
+			splitterPtr->SetParentNode(containerPtr->GetParentNode());
+
+			paneNode->SetParentNode(containerPtr);
+			targetPtr->SetParentNode(containerPtr);
+			containerPtr->SetNext(target->GetNext());
+
+			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
+			{
+				paneNode->SetNext(splitterPtr);
+				splitterPtr->SetNext(target);
+
+				containerPtr->m_children.emplace_back(m_floatingDockFields[nodeIndex]);
+				containerPtr->m_children.emplace_back(splitterPtr);
+				containerPtr->m_children.emplace_back(targetPtr.release());
+			}
+			else
+			{
+				targetPtr->SetNext(splitterPtr);
+				splitterPtr->SetNext(paneNode);
+
+				containerPtr->m_children.emplace_back(targetPtr.release());
+				containerPtr->m_children.emplace_back(splitterPtr);
+				containerPtr->m_children.emplace_back(m_floatingDockFields[nodeIndex]);
+			}
 
 
-		return false;
+			if (targetIndex == std::string::npos)
+			{
+				return false;
+			}
+			else
+			{
+				targetParent->m_children[targetIndex].reset(containerPtr);
+				if (targetIndex > 0)
+				{
+					targetParent->m_children[targetIndex - 1]->SetNext(containerPtr);
+				}
+			}
+		}
+		else
+		{
+			auto splitterPtr = new SplitterLayoutNode();
+			splitterPtr->SetParentNode(targetParent);
+
+			paneNode->SetParentNode(targetParent);
+
+			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
+			{
+				if (targetIndex == std::string::npos)
+					targetIndex = 0;
+
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex, m_floatingDockFields[nodeIndex]);
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
+			}
+			else
+			{
+				if (targetIndex == std::string::npos)
+					targetIndex = targetParent->m_children.size() - 1;
+
+
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, m_floatingDockFields[nodeIndex]);
+			}
+
+			for (size_t i = 0; i < targetParent->m_children.size(); i++)
+			{
+				if (i == targetParent->m_children.size() - 1)
+					targetParent->m_children[i]->SetNext(nullptr);
+				else
+					targetParent->m_children[i]->SetNext(targetParent->m_children[i + 1].get());
+			}
+		}
+		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
+
+		return true;
 	}
 
 	void Layout::Print()

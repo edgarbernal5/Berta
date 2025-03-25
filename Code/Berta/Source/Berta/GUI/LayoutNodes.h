@@ -150,6 +150,8 @@ namespace Berta
             }
         }
 
+        size_t GetIndex() const;
+
         std::string GetId() const
         {
             return m_id;
@@ -243,6 +245,16 @@ namespace Berta
         LayoutNode* GetParentNode() const
         {
             return m_parentNode;
+        }
+        
+        LayoutNode* GetPrev() const
+        {
+            return m_prevNode;
+        }
+
+        LayoutNode* GetNext() const
+        {
+            return m_nextNode;
         }
 
         void SetPrev(LayoutNode* node)

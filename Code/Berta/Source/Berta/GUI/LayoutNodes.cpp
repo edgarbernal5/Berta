@@ -21,6 +21,19 @@ namespace Berta
 		m_controlContainer.AddWindow(window);
 	}
 
+	size_t LayoutNode::GetIndex() const
+	{
+		if (m_parentNode)
+		{
+			for (size_t i = 0; i < m_parentNode->m_children.size(); i++)
+			{
+				if (m_parentNode->m_children[i].get() == this)
+					return i;
+			}
+		}
+		return std::string::npos;
+	}
+
 	LayoutNode* LayoutNode::Find(const std::string& id)
 	{
 		return Find(id, this);
