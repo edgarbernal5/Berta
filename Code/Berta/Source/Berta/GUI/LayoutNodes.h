@@ -346,9 +346,12 @@ namespace Berta
     class SplitterLayoutNode : public LayoutNode
     {
     public:
-        SplitterLayoutNode();
+        const static int Size = 4;
+    public:
+        SplitterLayoutNode(bool isVertical);
         
         void CalculateAreas() override;
+        void SetOrientation(bool isVertical);
 
     private:
         Point m_mousePositionOffset{};
@@ -373,12 +376,12 @@ namespace Berta
         bool showCloseButton{ true };
     };
 
-    class DockLayoutNode : public ContainerLayoutNode
+    class DockLayoutNode : public LayoutNode
     {
     public:
         DockLayoutNode();
 
-        //void CalculateAreas() override;
+        void CalculateAreas() override;
     };
 
     class DockEventsNotifier
@@ -466,6 +469,10 @@ namespace Berta
     {
     public:
         DockPaneLayoutNode();
+        ~DockPaneLayoutNode()
+        {
+
+        }
 
         void AddTab(const std::string& id, ControlBase* control);
         void CalculateAreas() override;

@@ -211,7 +211,7 @@ namespace Berta
         std::map<std::string, LayoutNode*> m_fields;
         std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
         std::map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
-        std::vector<LayoutNode*> m_floatingDockFields;
+        std::vector<std::unique_ptr<LayoutNode>> m_floatingDockFields;
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
 
         std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;

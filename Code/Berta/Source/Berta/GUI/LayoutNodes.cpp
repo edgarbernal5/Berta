@@ -48,6 +48,8 @@ namespace Berta
 	{
 		for (auto& childNode : m_children)
 		{
+			childNode->CalculateAreasWindows();
+
 			auto containerArea = childNode->GetArea();
 			auto count = static_cast<uint32_t>(childNode->GetWindowsAreas().size());
 			Point offset{ containerArea.X, containerArea.Y };
@@ -204,8 +206,9 @@ namespace Berta
 		{
 			auto& childNode = m_children[i];
 			Rectangle childArea{ };
-			childArea.X = marginLeft;
-			childArea.Y = marginTop;
+			childArea.X = parentArea.X + marginLeft;
+			childArea.Y = parentArea.Y + marginTop;
+			
 			if (markedChildren[i])
 			{
 				childArea.Width = areas[i].Width;
@@ -337,9 +340,12 @@ namespace Berta
 	{
 	}
 
-	SplitterLayoutNode::SplitterLayoutNode() :
-		LayoutNode(LayoutNodeType::Splitter)
+	SplitterLayoutNode::SplitterLayoutNode(bool isVertical) :
+		LayoutNode(LayoutNodeType::Splitter),
+		m_isVertical(isVertical)
 	{
+		auto propertyName = isVertical ? "Height" : "Width";
+		SetProperty(propertyName, Number{ SplitterLayoutNode::Size });
 	}
 
 	void SplitterLayoutNode::CalculateAreas()
@@ -349,7 +355,7 @@ namespace Berta
 		{
 			m_containerNode = reinterpret_cast<ContainerLayoutNode*>(m_parentNode);
 
-			m_isVertical = m_containerNode->GetOrientation();
+			//m_isVertical = m_containerNode->GetOrientation();
 
 			m_splitter = std::make_unique<SplitterLayoutControl>(m_parentWindow, splitterArea);
 			m_splitter->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
@@ -454,6 +460,11 @@ namespace Berta
 		}
 	}
 
+	void SplitterLayoutNode::SetOrientation(bool isVertical)
+	{
+		m_isVertical = isVertical;
+	}
+
 	SplitterLayoutControl::SplitterLayoutControl(Window* parent, const Rectangle& rectangle, bool visible) :
 		Panel(parent, rectangle, visible)
 	{
@@ -463,19 +474,20 @@ namespace Berta
 	}
 
 	DockLayoutNode::DockLayoutNode() :
-		ContainerLayoutNode(LayoutNodeType::Dock)
+		LayoutNode(LayoutNodeType::Dock)
 	{
 	}
 
-	//void DockLayoutNode::CalculateAreas()
-	//{
-	//	auto area = GetArea();
-	//	for (size_t i = 0; i < m_children.size(); i++)
-	//	{
-	//		m_children[i]->SetArea(area);
-	//		m_children[i]->CalculateAreas();
-	//	}
-	//}
+	void DockLayoutNode::CalculateAreas()
+	{
+		if (m_children.empty())
+		{
+			return;
+		}
+		auto area = GetArea();
+		m_children[0]->SetArea(area);
+		m_children[0]->CalculateAreas();
+	}
 
 	DockPaneLayoutNode::DockPaneLayoutNode() :
 		LayoutNode(LayoutNodeType::DockPane)
@@ -492,16 +504,23 @@ namespace Berta
 		if (!m_dockArea)
 			return;
 
-		auto area = m_parentNode ? m_parentNode->GetArea() : GUI::AreaWindow(m_parentWindow);
-		m_dockArea->SetArea(area);
+		if (!m_parentNode)
+		{
+			m_dockArea->SetArea(GUI::AreaWindow(m_parentWindow));
+		}
+		else if (m_parentNode->GetType() == LayoutNodeType::Dock)
+		{
+			auto area = m_parentNode->GetArea();
+			m_dockArea->SetArea(area);
+		}
 
 		for (auto& child : m_children)
 		{
-			child->SetArea(area);
+			child->SetArea(GetArea());
 			child->CalculateAreas();
 		}
 
-		GUI::UpdateTree(m_dockArea->Handle());
+		//GUI::UpdateTree(m_parentWindow);
 	}
 
 	void DockPaneLayoutNode::NotifyFloat()

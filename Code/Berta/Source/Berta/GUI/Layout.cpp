@@ -110,13 +110,14 @@ namespace Berta
 
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
 
-		m_dockPaneFields[paneId] = newPaneNode.get();
+		auto newPaneNodePtr = newPaneNode.get();
+		m_dockPaneFields[paneId] = newPaneNodePtr;
 		auto& paneInfo = m_dockPaneInfoFields[paneId];
 		paneInfo.id = paneId;
 
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
 		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
-		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
+		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNodePtr;
 
 		newPaneNode->m_dockLayoutEvents = this;
 		newPaneNode->m_paneId = paneId;
@@ -126,13 +127,18 @@ namespace Berta
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->m_tabId = paneTabId;
-		paneTabNode->SetParentNode(newPaneNode.get());
+		paneTabNode->SetParentNode(newPaneNodePtr);
 		paneTabNode->SetParentWindow(newPaneNode->GetParentWindow());
 		
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
 		newPaneNode->AddTab(tabId, control);
 		newPaneNode->m_children.emplace_back(std::move(paneTabNode));
+
+		m_floatingDockFields.emplace_back(std::move(newPaneNode));
+
+		newPaneNodePtr->GetWindowsAreas().push_back({ newPaneNodePtr->m_dockArea->Handle() });
+		DoDock(newPaneNodePtr, relativePaneNode, dockPosition);
 	}
 
 	void Layout::Apply()
@@ -207,19 +213,11 @@ namespace Berta
 	void Layout::NotifyFloat(DockPaneLayoutNode* node)
 	{
 		node->SetParentWindow(node->m_dockArea->m_nativeContainer->Handle());
-		DoFloat(node);
-
-		//auto newArea = node->GetArea();
-		//auto dockAreaArea = node->m_dockArea->GetArea();
-		//auto newSize = node->m_dockArea->GetSize();
-		//newArea.X = 0;
-		//newArea.Y = 0;
-		//newArea.Width = newSize.Width;
-		//newArea.Height = newSize.Height;
-		//node->SetArea(newArea);
-
-		node->CalculateAreas();
-		Print();
+		if (DoFloat(node))
+		{
+			Apply();
+			Print();
+		}
 	}
 
 	void Layout::NotifyMove(LayoutNode* node)
@@ -240,8 +238,8 @@ namespace Berta
 			HidePaneDockIndicators();
 		}
 
-		DockPosition dockPosition = DockPosition::Tab;
 		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
+		DockPosition dockPosition = DockPosition::Tab;
 		if (IsMouseInsideDockIndicator(&dockPosition))
 		{
 			/*auto newArea = paneNode->GetArea();
@@ -262,14 +260,6 @@ namespace Berta
 		{
 			if (DoFloat(paneNode))
 			{
-				/*auto newArea = paneNode->GetArea();
-				auto newSize = paneNode->m_dockArea->GetSize();
-				newArea.X = 0;
-				newArea.Y = 0;
-				newArea.Width = newSize.Width;
-				newArea.Height = newSize.Height;
-				paneNode->SetArea(newArea);*/
-
 				BT_CORE_TRACE << " - DoFloat." << std::endl;
 				paneNode->CalculateAreas();
 				paneNode->Apply();
@@ -310,13 +300,13 @@ namespace Berta
 			{
 				for (size_t i = 0; i < m_floatingDockFields.size(); i++)
 				{
-					if (m_floatingDockFields[i] == paneNode)
+					if (m_floatingDockFields[i].get() == paneNode)
 					{
 						m_floatingDockFields.erase(m_floatingDockFields.begin() + i);
 						break;
 					}
 				}
-				std::unique_ptr<DockPaneLayoutNode> remove(paneNode);
+				//std::unique_ptr<DockPaneLayoutNode> remove(paneNode);
 			}
 			else
 			{
@@ -571,6 +561,26 @@ namespace Berta
 				if (parent->m_children.size() == 1 && parent->GetType() == LayoutNodeType::Container)
 				{
 					auto child = parent->m_children[0].release();
+
+					auto parentParent = parent->GetParentNode();
+					if (parentParent)
+					{
+						for (size_t j = 0; j < parentParent->m_children.size(); j++)
+						{
+							if (parentParent->m_children[j].get() == parent)
+							{
+								child->SetNext(parentParent->m_children[j]->GetNext());
+								parentParent->m_children[j].reset(child);
+								if (j > 0)
+									parentParent->m_children[j - 1]->SetNext(child);
+
+								//parentParent->weight.reset();
+								//child->weight.reset();
+								child->SetParentNode(parentParent);
+								break;
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -584,7 +594,7 @@ namespace Berta
 		size_t nodeIndex = 0;
 		for (nodeIndex = 0; nodeIndex < m_floatingDockFields.size(); ++nodeIndex)
 		{
-			if (m_floatingDockFields[nodeIndex] == paneNode)
+			if (m_floatingDockFields[nodeIndex].get() == paneNode)
 			{
 				break;
 			}
@@ -598,6 +608,7 @@ namespace Berta
 			paneNode->SetParentNode(target);
 			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
+
 			return true;
 		}
 
@@ -644,11 +655,13 @@ namespace Berta
 		{
 			std::unique_ptr<LayoutNode> targetPtr = std::move(target->GetParentNode()->m_children[targetIndex]);
 
-			auto containerPtr = new ContainerLayoutNode((dockPosition == DockPosition::Up || dockPosition == DockPosition::Down));
+			auto containerPtr = new ContainerLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
 			containerPtr->SetParentNode(target->GetParentNode());
+			containerPtr->SetParentWindow(target->GetParentWindow());
 
-			auto splitterPtr = new SplitterLayoutNode();
+			auto splitterPtr = new SplitterLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
 			splitterPtr->SetParentNode(containerPtr->GetParentNode());
+			splitterPtr->SetParentWindow(target->GetParentWindow());
 
 			paneNode->SetParentNode(containerPtr);
 			targetPtr->SetParentNode(containerPtr);
@@ -659,7 +672,7 @@ namespace Berta
 				paneNode->SetNext(splitterPtr);
 				splitterPtr->SetNext(target);
 
-				containerPtr->m_children.emplace_back(m_floatingDockFields[nodeIndex]);
+				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 				containerPtr->m_children.emplace_back(splitterPtr);
 				containerPtr->m_children.emplace_back(targetPtr.release());
 			}
@@ -670,7 +683,7 @@ namespace Berta
 
 				containerPtr->m_children.emplace_back(targetPtr.release());
 				containerPtr->m_children.emplace_back(splitterPtr);
-				containerPtr->m_children.emplace_back(m_floatingDockFields[nodeIndex]);
+				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 			}
 
 
@@ -689,8 +702,9 @@ namespace Berta
 		}
 		else
 		{
-			auto splitterPtr = new SplitterLayoutNode();
+			auto splitterPtr = new SplitterLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
 			splitterPtr->SetParentNode(targetParent);
+			splitterPtr->SetParentWindow(target->GetParentWindow());
 
 			paneNode->SetParentNode(targetParent);
 
@@ -699,7 +713,7 @@ namespace Berta
 				if (targetIndex == std::string::npos)
 					targetIndex = 0;
 
-				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex, m_floatingDockFields[nodeIndex]);
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex, std::move(m_floatingDockFields[nodeIndex]));
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
 			}
 			else
@@ -709,7 +723,7 @@ namespace Berta
 
 
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
-				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, m_floatingDockFields[nodeIndex]);
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, std::move(m_floatingDockFields[nodeIndex]));
 			}
 
 			for (size_t i = 0; i < targetParent->m_children.size(); i++)
@@ -981,8 +995,8 @@ namespace Berta
 			}
 			case Berta::Token::Type::Splitter:
 			{
-				auto splitterNode = std::make_unique<SplitterLayoutNode>();
-				splitterNode->SetProperty("Dimension", Number{ 4 });
+				auto splitterNode = std::make_unique<SplitterLayoutNode>(false);
+				splitterNode->SetProperty("Dimension", Number{ SplitterLayoutNode::Size });
 
 				children.emplace_back(std::move(splitterNode));
 				break;
@@ -1109,6 +1123,9 @@ namespace Berta
 
 			if (child->GetType() == LayoutNodeType::Splitter)
 			{
+				auto splitterNode = reinterpret_cast<SplitterLayoutNode*>(child);
+				splitterNode->SetOrientation(isVertical);
+
 				auto dimension = child->GetProperty<Number>("Dimension");
 				child->SetProperty(isVertical ? "Height" : "Width", dimension);
 				child->RemoveProperty("Dimension");
