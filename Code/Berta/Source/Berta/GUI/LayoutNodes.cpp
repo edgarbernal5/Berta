@@ -519,8 +519,6 @@ namespace Berta
 			child->SetArea(GetArea());
 			child->CalculateAreas();
 		}
-
-		//GUI::UpdateTree(m_parentWindow);
 	}
 
 	void DockPaneLayoutNode::NotifyFloat()
@@ -542,10 +540,6 @@ namespace Berta
 	{
 		m_dockLayoutEvents->RequestClose(this);
 	}
-
-	/*void DockPaneLayoutNode::CalculateAreasWindows()
-	{
-	}*/
 
 	void DockAreaCaptionReactor::Init(ControlBase& control)
 	{
@@ -815,6 +809,5 @@ namespace Berta
 
 	void DockPaneTabLayoutNode::CalculateAreas()
 	{
-		//SetArea(m_parentNode->GetArea());
 	}
 }

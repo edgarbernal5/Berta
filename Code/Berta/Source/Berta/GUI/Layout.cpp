@@ -207,15 +207,17 @@ namespace Berta
 
 		m_rootNode = std::move(rootNode);
 		m_rootNode->SetParentWindow(m_parent);
-		//m_rootNode->CalculateAreas();
 	}
 
 	void Layout::NotifyFloat(DockPaneLayoutNode* node)
 	{
+		auto oldParentWindow = node->GetParentWindow();
 		node->SetParentWindow(node->m_dockArea->m_nativeContainer->Handle());
+
 		if (DoFloat(node))
 		{
 			Apply();
+			GUI::UpdateTree(oldParentWindow);
 			Print();
 		}
 	}
