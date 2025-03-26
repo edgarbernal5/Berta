@@ -785,6 +785,15 @@ namespace Berta
 		{
 			std::cout << "{Leaf}";
 		}
+		else if (node->GetType() == LayoutNodeType::Splitter)
+		{
+			std::cout << "{Splitter}";
+		}
+		else
+		{
+			std::cout << "{UNKNOWN}";
+		}
+
 		std::cout << " id = " << node->GetId() << ". children = " << node->m_children.size() << std::endl;
 		for (size_t i = 0; i < node->m_children.size(); i++)
 		{
@@ -814,6 +823,14 @@ namespace Berta
 		else if (node->GetType() == LayoutNodeType::Leaf)
 		{
 			std::cout << "{/Leaf}";
+		}
+		else if (node->GetType() == LayoutNodeType::Splitter)
+		{
+			std::cout << "{/Splitter}";
+		}
+		else
+		{
+			std::cout << "{/UNKNOWN}";
 		}
 		std::cout << std::endl;
 	}
