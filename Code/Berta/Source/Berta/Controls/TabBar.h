@@ -22,6 +22,8 @@ namespace Berta
 		Bottom
 	};
 
+	struct TabBarEvents;
+
 	class TabBarReactor : public ControlReactor
 	{
 	public:
@@ -36,6 +38,7 @@ namespace Berta
 		void InsertTab(size_t position, const std::string& tabId, Panel* panel);
 		void EraseTab(size_t position);
 		int GetSelectedIndex() const;
+		size_t Count() const;
 
 		void SetTabPosition(TabBarPosition position);
 	private:
@@ -86,6 +89,7 @@ namespace Berta
 			std::list<PanelItem> m_panels;
 			int m_selectedTabIndex{ -1 };
 			Window* m_owner{ nullptr };
+			TabBarEvents* m_events{ nullptr };
 			TabBarPosition m_tabPosition{ TabBarPosition::Top };
 
 		private:
@@ -94,7 +98,17 @@ namespace Berta
 		Module m_module;
 	};
 
-	class TabBar : public Control<TabBarReactor>
+	struct ArgTabBar
+	{
+
+	};
+
+	struct TabBarEvents : public ControlEvents
+	{
+		Event<ArgTabBar> TabChanged;
+	};
+
+	class TabBar : public Control<TabBarReactor, TabBarEvents>
 	{
 	public:
 		TabBar() = default;
@@ -115,6 +129,7 @@ namespace Berta
 			return newPanel;
 		}
 		
+		size_t Count() const;
 		void Erase(size_t index);
 		int GetSelectedIndex() const;
 

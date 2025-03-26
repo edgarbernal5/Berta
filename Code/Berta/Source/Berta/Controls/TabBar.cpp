@@ -15,6 +15,7 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_owner = control.Handle();
+		m_module.m_events = reinterpret_cast<TabBarEvents*>(m_module.m_owner->Events.get());
 	}
 
 	void TabBarReactor::Update(Graphics& graphics)
@@ -136,6 +137,9 @@ namespace Berta
 			auto newSelectedTabItem = m_module.At(newSelectedIndex);
 			newSelectedTabItem->PanelPtr->Show();
 
+			ArgTabBar argsTabBar;
+			m_module.m_events->TabChanged.Emit(argsTabBar);
+
 			Update(graphics);
 			GUI::MarkAsUpdated(m_module.m_owner);
 		}
@@ -186,6 +190,11 @@ namespace Berta
 	int TabBarReactor::GetSelectedIndex() const
 	{
 		return m_module.GetSelectedIndex();
+	}
+
+	size_t TabBarReactor::Count() const
+	{
+		return m_module.m_panels.size();
 	}
 
 	void TabBarReactor::SetTabPosition(TabBarPosition position)
@@ -424,6 +433,11 @@ namespace Berta
 	}
 
 	
+	size_t TabBar::Count() const
+	{
+		return m_reactor.Count();
+	}
+
 	void TabBar::Erase(size_t index)
 	{
 		m_reactor.EraseTab(index);

@@ -646,7 +646,13 @@ namespace Berta
 
 	void DockArea::AddTab(const std::string& id, ControlBase* control)
 	{
+		bool isFirstTab = m_tabBar->Count() == 0;
 		m_tabBar->PushBack2(id, control);
+		if (isFirstTab)
+		{
+			std::wstring caption(id.begin(), id.end());
+			m_caption->SetCaption(caption);
+		}
 	}
 
 	void DockArea::Create(Window* parent, PaneInfo* paneInfo)
@@ -775,6 +781,11 @@ namespace Berta
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
 		m_tabBar->SetTabPosition(TabBarPosition::Bottom);
+
+		m_tabBar->GetEvents().TabChanged.Connect([](const ArgTabBar& args)
+		{
+
+		});
 	}
 
 	void DockArea::Dock()
