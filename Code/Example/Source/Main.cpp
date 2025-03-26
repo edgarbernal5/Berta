@@ -563,18 +563,18 @@ int main()
 	form.GetLayout().Attach("menuBar", menuBar);
 
 	//auto buttonPane = std::make_shared<ButtonPane>();
-	Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Nested");
-	Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Nested 2");
+	Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Scene");
+	Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Properties");
 	
-	buttonPaneTab.Hide();
-	buttonPaneTab2.Hide();
+	//buttonPaneTab.Hide();
+	//buttonPaneTab2.Hide();
 
 	/*form.GetLayout().AddPane("dockPane");
 	form.GetLayout().AddPaneTab("dockPane", "tab1", &buttonPaneTab);
 	form.GetLayout().AddPaneTab("dockPane", "tab2", &buttonPaneTab2);*/
 
-	form.GetLayout().AddPaneTab("dockPane1", "tab1", &buttonPaneTab, "", Berta::DockPosition::Tab);
-	form.GetLayout().AddPaneTab("dockPane2", "tab1", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
+	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
+	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
 
 	form.GetLayout().Apply();
 

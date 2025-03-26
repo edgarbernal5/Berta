@@ -138,7 +138,10 @@ namespace Berta
 		m_floatingDockFields.emplace_back(std::move(newPaneNode));
 
 		newPaneNodePtr->GetWindowsAreas().push_back({ newPaneNodePtr->m_dockArea->Handle() });
-		DoDock(newPaneNodePtr, relativePaneNode, dockPosition);
+		if (DoDock(newPaneNodePtr, relativePaneNode, dockPosition))
+		{
+
+		}
 	}
 
 	void Layout::Apply()
@@ -185,7 +188,7 @@ namespace Berta
 				m_rootNode->Apply();
 			}
 
-			Print();
+			//Print();
 		});
 
 		m_parent->Events->Destroy.Connect([](const ArgDestroy& args)
@@ -378,14 +381,14 @@ namespace Berta
 
 		for (auto& indicator : m_paneIndicators)
 		{
-			if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
+			/*if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
 			{
 				if (indicator->Docker)
 				{
 					indicator->Docker.reset();
 				}
 				continue;
-			}
+			}*/
 			auto nodeArea = node->GetArea();
 			auto x = nodeArea.X + static_cast<int>(nodeArea.Width) / 2;
 			auto y = nodeArea.Y + static_cast<int>(nodeArea.Height) / 2;
@@ -398,7 +401,7 @@ namespace Berta
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
-				/*else if (indicator->Position == DockPosition::Up)
+				else if (indicator->Position == DockPosition::Up)
 				{
 					Point position{ x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
@@ -421,7 +424,7 @@ namespace Berta
 					Point position{ x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
-				}*/
+				}
 				//GUI::MakeWindowActive(*indicator->Docker, false, nullptr);
 				
 				if (indicator->Docker)
@@ -521,6 +524,20 @@ namespace Berta
 		return nullptr;
 	}
 
+	bool Layout::IsAlreadyDocked(LayoutNode* node, size_t& nodeIndex) const
+	{
+		nodeIndex = 0;
+		for (nodeIndex = 0; nodeIndex < m_floatingDockFields.size(); ++nodeIndex)
+		{
+			if (m_floatingDockFields[nodeIndex].get() == node)
+			{
+				break;
+			}
+		}
+
+		return nodeIndex == m_floatingDockFields.size(); 
+	}
+
 	bool Layout::DoFloat(DockPaneLayoutNode* paneNode)
 	{
 		auto parent = paneNode->GetParentNode();
@@ -593,17 +610,9 @@ namespace Berta
 
 	bool Layout::DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition)
 	{
-		size_t nodeIndex = 0;
-		for (nodeIndex = 0; nodeIndex < m_floatingDockFields.size(); ++nodeIndex)
-		{
-			if (m_floatingDockFields[nodeIndex].get() == paneNode)
-			{
-				break;
-			}
-		}
-
-		if (nodeIndex == m_floatingDockFields.size())
-			return false; // paneNode is alrealy docked!
+		size_t nodeIndex;
+		if (IsAlreadyDocked(paneNode, nodeIndex))
+			return false;
 
 		if (target && target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{

@@ -200,6 +200,7 @@ namespace Berta
         LayoutNode* GetPaneOrDockOnMousePosition() const;
         LayoutNode* GetPaneOrDockOnMousePositionInternal(LayoutNode* node, LayoutNodeType nodeType) const;
 
+        bool IsAlreadyDocked(LayoutNode* node, size_t& nodeIndex) const;
         bool DoFloat(DockPaneLayoutNode* paneNode);
         bool DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition);
 

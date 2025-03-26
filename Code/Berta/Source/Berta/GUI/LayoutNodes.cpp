@@ -674,7 +674,7 @@ namespace Berta
 
 		this->GetEvents().Resize.Connect([this](const ArgResize& args)
 		{
-			BT_CORE_DEBUG << " dock area / Resize = " << this->GetArea() << std::endl;
+			//BT_CORE_DEBUG << " dock area / Resize = " << this->GetArea() << std::endl;
 			if (m_paneInfo->showCaption)
 			{
 				auto captionHeight = Handle()->ToScale(18u);
