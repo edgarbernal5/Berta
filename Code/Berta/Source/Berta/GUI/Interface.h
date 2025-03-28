@@ -34,8 +34,8 @@ namespace Berta
 
 		void ResizeWindow(Window* window, const Size& newSize);
 		Size SizeWindow(Window* window);
-		void MoveWindow(Window* window, const Rectangle& newRect);
-		void MoveWindow(Window* window, const Point& newPosition);
+		bool MoveWindow(Window* window, const Rectangle& newRect);
+		bool MoveWindow(Window* window, const Point& newPosition);
 		Rectangle AreaWindow(Window* window);
 
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);

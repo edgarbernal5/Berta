@@ -109,6 +109,7 @@ namespace Berta
 			return;
 
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
+		newPaneNode->SetId(paneId);
 
 		auto newPaneNodePtr = newPaneNode.get();
 		m_dockPaneFields[paneId] = newPaneNodePtr;
@@ -126,6 +127,7 @@ namespace Berta
 		auto paneTabId = paneId + "/" + tabId;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
+		paneTabNode->SetId(paneTabId);
 		paneTabNode->m_tabId = paneTabId;
 		paneTabNode->SetParentNode(newPaneNodePtr);
 		paneTabNode->SetParentWindow(newPaneNode->GetParentWindow());
@@ -137,10 +139,9 @@ namespace Berta
 
 		m_floatingDockFields.emplace_back(std::move(newPaneNode));
 
-		newPaneNodePtr->GetWindowsAreas().push_back({ newPaneNodePtr->m_dockArea->Handle() });
 		if (DoDock(newPaneNodePtr, relativePaneNode, dockPosition))
 		{
-
+			Apply();
 		}
 	}
 
@@ -151,7 +152,10 @@ namespace Berta
 
 		m_rootNode->SetArea(GUI::AreaWindow(m_parent));
 		m_rootNode->CalculateAreas();
-		m_rootNode->Apply();
+		{
+			GUI::UpdateTree(m_parent);
+			GUI::UpdateWindow(m_parent);
+		}
 	}
 
 	void Layout::Attach(const std::string& fieldId, Window* window)
@@ -185,7 +189,6 @@ namespace Berta
 			{
 				m_rootNode->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
 				m_rootNode->CalculateAreas();
-				m_rootNode->Apply();
 			}
 
 			//Print();
@@ -214,13 +217,11 @@ namespace Berta
 
 	void Layout::NotifyFloat(DockPaneLayoutNode* node)
 	{
-		auto oldParentWindow = node->GetParentWindow();
 		node->SetParentWindow(node->m_dockArea->m_nativeContainer->Handle());
 
 		if (DoFloat(node))
 		{
 			Apply();
-			GUI::UpdateTree(oldParentWindow);
 			Print();
 		}
 	}
@@ -247,17 +248,10 @@ namespace Berta
 		DockPosition dockPosition = DockPosition::Tab;
 		if (IsMouseInsideDockIndicator(&dockPosition))
 		{
-			/*auto newArea = paneNode->GetArea();
-			auto newSize = paneNode->m_dockArea->GetSize();
-			newArea.Width = newSize.Width;
-			newArea.Height = newSize.Height;
-
-			paneNode->SetArea(newArea);*/
-
 			if (DoDock(paneNode, paneOrDock, dockPosition))
 			{
 				BT_CORE_TRACE << " - DoDock." << std::endl;
-				//paneOrDock->Apply();
+				Apply();
 				Print();
 			}
 		}
@@ -266,8 +260,7 @@ namespace Berta
 			if (DoFloat(paneNode))
 			{
 				BT_CORE_TRACE << " - DoFloat." << std::endl;
-				paneNode->CalculateAreas();
-				paneNode->Apply();
+				Apply();
 				Print();
 			}
 		}
@@ -296,41 +289,32 @@ namespace Berta
 		paneNode->m_dockArea->m_tabBar->Erase(index);
 		paneNode->m_children.erase(paneNode->m_children.begin() + index);
 
-		bool needUpdate = false;
 		m_dockPaneFields.erase(paneNode->m_paneId);
+
+		bool needUpdate = false;
 		if (paneNode->m_children.empty())
 		{
-			auto parent = paneNode->GetParentNode();
-			if (parent == nullptr)
-			{
-				for (size_t i = 0; i < m_floatingDockFields.size(); i++)
-				{
-					if (m_floatingDockFields[i].get() == paneNode)
-					{
-						m_floatingDockFields.erase(m_floatingDockFields.begin() + i);
-						break;
-					}
-				}
-				//std::unique_ptr<DockPaneLayoutNode> remove(paneNode);
-			}
-			else
-			{
-				for (size_t i = 0; i < parent->m_children.size(); i++)
-				{
-					if (parent->m_children[i].get() == node)
-					{
-						parent->m_children.erase(parent->m_children.begin() + i);
-						break;
-					}
-				}
-				needUpdate = true;
-			}
+			needUpdate = RemoveDockPane(paneNode);
 		}
 		if (needUpdate)
 		{
 			GUI::UpdateWindow(m_parent);
 			Apply();
 		}
+	}
+
+	bool Layout::RemoveDockPane(DockPaneLayoutNode* node)
+	{
+		DoFloat(node);
+
+		size_t nodeIndex;
+		if (IsAlreadyDocked(node, nodeIndex))
+		{
+			return false;
+		}
+
+		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
+		return true;
 	}
 
 	DockPaneLayoutNode* Layout::GetPane(const std::string& paneId)
@@ -362,7 +346,7 @@ namespace Berta
 		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Down });
 		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Left });
 		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Right });
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Tab });
+		//m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Tab });
 	}
 
 	void Layout::HidePaneDockIndicators()
@@ -623,14 +607,6 @@ namespace Berta
 			return true;
 		}
 
-		/*if (target == nullptr)
-		{
-			paneNode->SetParentNode(target);
-			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
-			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
-			return true;
-		}*/
-
 		LayoutNode* dockRootNode = target;
 		while (dockRootNode)
 		{
@@ -647,7 +623,7 @@ namespace Berta
 			return false;
 		}
 
-		auto targetParent = reinterpret_cast<ContainerLayoutNode*>(target ? target->GetParentNode() : dockRootNode);
+		auto targetParent = target ? target->GetParentNode() : dockRootNode;
 		bool addNewOrientation = false;
 		if (dockRootNode->m_children[0]->GetType() == LayoutNodeType::DockPane)
 		{
@@ -655,7 +631,8 @@ namespace Berta
 		}
 		else
 		{
-			if (targetParent->GetOrientation() != (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down))
+			auto targetParentContainer = reinterpret_cast<ContainerLayoutNode*>(targetParent);
+			if (targetParentContainer->GetOrientation() != (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down))
 			{
 				addNewOrientation = true;
 			}

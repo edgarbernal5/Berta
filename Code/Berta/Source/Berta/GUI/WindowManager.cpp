@@ -519,7 +519,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Move(Window* window, const Rectangle& newRect)
+	bool WindowManager::Move(Window* window, const Rectangle& newRect)
 	{
 		auto& foundation = Foundation::GetInstance();
 
@@ -547,16 +547,19 @@ namespace Berta
 				argMove.NewPosition = newRect;
 				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);*/
 			}
+			return sizeChanged || positionChanged;
 		}
+		return false;
 	}
 
-	void WindowManager::Move(Window* window, const Point& newPosition)
+	bool WindowManager::Move(Window* window, const Point& newPosition)
 	{
 		auto& foundation = Foundation::GetInstance();
 		
 		if (window->Type == WindowType::Form)
 		{
 			API::MoveWindow(window->RootHandle, newPosition);
+			return true;
 		}
 		else if (window->Position != newPosition)
 		{
@@ -565,7 +568,9 @@ namespace Berta
 			ArgMove argMove;
 			argMove.NewPosition = newPosition;
 			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+			return true;
 		}
+		return false;
 	}
 
 	void WindowManager::Update(Window* window)

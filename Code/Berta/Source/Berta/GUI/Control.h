@@ -36,7 +36,9 @@ namespace Berta
 		void SetEnabled(bool enabled);
 
 		Window* GetParent() const;
+
 		Point GetPosition() const;
+		void SetPosition(const Point& newPosition);
 
 		Rectangle GetArea() const;
 		void SetArea(const Rectangle& area);
@@ -95,6 +97,7 @@ namespace Berta
 		virtual void DoOnSize(const Size& newSize);
 		virtual Size DoOnSize() const;
 
+		virtual void DoOnMove(const Point& newPoint);
 		virtual void DoOnMove(const Rectangle& newArea);
 
 		void NotifyDestroy()

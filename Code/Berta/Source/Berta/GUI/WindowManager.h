@@ -66,8 +66,8 @@ namespace Berta
 		void Show(Window* window, bool visible);
 
 		void Resize(Window* window, const Size& newSize, bool resizeForm = true);
-		void Move(Window* window, const Rectangle& newRect);
-		void Move(Window* window, const Point& newPosition);
+		bool Move(Window* window, const Rectangle& newRect);
+		bool Move(Window* window, const Point& newPosition);
 		void Update(Window* window);
 		bool TryDeferredUpdate(Window* window);
 		void UpdateDeferredRequests(Window* rootWindow);

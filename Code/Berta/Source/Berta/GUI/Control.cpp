@@ -42,6 +42,11 @@ namespace Berta
 		return GUI::GetLocalPosition(m_handle);
 	}
 
+	void ControlBase::SetPosition(const Point& newPosition)
+	{
+		DoOnMove(newPosition);
+	}
+
 	Rectangle ControlBase::GetArea() const
 	{
 		auto position = GUI::GetAbsolutePosition(m_handle);
@@ -112,6 +117,11 @@ namespace Berta
 	Size ControlBase::DoOnSize() const
 	{
 		return GUI::SizeWindow(m_handle);
+	}
+
+	void ControlBase::DoOnMove(const Point& newPoint)
+	{
+		GUI::MoveWindow(m_handle, newPoint);
 	}
 
 	void ControlBase::DoOnMove(const Rectangle& newArea)

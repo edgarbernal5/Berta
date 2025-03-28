@@ -214,22 +214,24 @@ namespace Berta::GUI
 		return {};
 	}
 
-	void MoveWindow(Window* window, const Rectangle& newRect)
+	bool MoveWindow(Window* window, const Rectangle& newRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.Move(window, newRect);
+			return windowManager.Move(window, newRect);
 		}
+		return false;
 	}
 
-	void MoveWindow(Window* window, const Point& newPosition)
+	bool MoveWindow(Window* window, const Point& newPosition)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.Move(window, newPosition);
+			return windowManager.Move(window, newPosition);
 		}
+		return false;
 	}
 
 	Rectangle AreaWindow(Window* window)

@@ -16,11 +16,6 @@ namespace Berta
 	{
 	}
 
-	void LayoutNode::AddWindow(Window* window)
-	{
-		m_controlContainer.AddWindow(window);
-	}
-
 	size_t LayoutNode::GetIndex() const
 	{
 		if (m_parentNode)
@@ -42,28 +37,6 @@ namespace Berta
 	LayoutNode* LayoutNode::FindFirst(LayoutNodeType nodeType)
 	{
 		return FindFirst(nodeType, this);
-	}
-
-	void LayoutNode::CalculateAreasWindows()
-	{
-		for (auto& childNode : m_children)
-		{
-			childNode->CalculateAreasWindows();
-
-			auto containerArea = childNode->GetArea();
-			auto count = static_cast<uint32_t>(childNode->GetWindowsAreas().size());
-			Point offset{ containerArea.X, containerArea.Y };
-			for (auto& windowArea : childNode->GetWindowsAreas())
-			{
-				Rectangle childArea{};
-				childArea.X = offset.X;
-				childArea.Y = offset.Y;
-				childArea.Height = containerArea.Height;
-				childArea.Width = containerArea.Width;
-
-				windowArea.area = childArea;
-			}
-		}
 	}
 
 	LayoutNode* LayoutNode::Find(const std::string& id, LayoutNode* node)
@@ -98,18 +71,6 @@ namespace Berta
 		}
 
 		return nullptr;
-	}
-
-	void LayoutNode::Apply()
-	{
-		for (auto& childNode : m_children)
-		{
-			childNode->Apply();
-			for (auto& windowArea : childNode->GetWindowsAreas())
-			{
-				GUI::MoveWindow(windowArea.window, windowArea.area);
-			}
-		}
 	}
 
 	void ContainerLayoutNode::CalculateAreas()
@@ -307,12 +268,10 @@ namespace Berta
 					childArea.Width += remainArea.Width - appliedPixels;
 				}
 			}
-			childNode->SetArea(childArea);
 
+			childNode->SetArea(childArea);
 			childNode->CalculateAreas();
 		}
-
-		CalculateAreasWindows();
 	}
 
 	ContainerLayoutNode::ContainerLayoutNode(LayoutNodeType type) :
@@ -338,6 +297,15 @@ namespace Berta
 
 	void LeafLayoutNode::CalculateAreas()
 	{
+		if (!m_window)
+			return;
+
+		GUI::MoveWindow(m_window, GetArea());
+	}
+
+	void LeafLayoutNode::AddWindow(Window* window)
+	{
+		m_window = window;
 	}
 
 	SplitterLayoutNode::SplitterLayoutNode(bool isVertical) :
@@ -438,7 +406,6 @@ namespace Berta
 				GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
 
 				m_containerNode->CalculateAreas();
-				m_containerNode->Apply();
 
 				auto windowToUpdate = m_containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
 				GUI::UpdateTree(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
@@ -500,19 +467,15 @@ namespace Berta
 		m_dockArea->AddTab(id, control);
 	}
 
+	void DockPaneLayoutNode::AddWindow(Window* window)
+	{
+	}
+
 	void DockPaneLayoutNode::CalculateAreas()
 	{
-		if (!m_dockArea)
-			return;
-
-		if (!m_parentNode)
+		if (m_dockArea && !m_dockArea->IsFloating())
 		{
-			m_dockArea->SetArea(GUI::AreaWindow(m_parentWindow));
-		}
-		else if (m_parentNode->GetType() == LayoutNodeType::Dock)
-		{
-			auto area = m_parentNode->GetArea();
-			m_dockArea->SetArea(area);
+			GUI::MoveWindow(m_dockArea->Handle(), GetArea());
 		}
 
 		for (auto& child : m_children)
@@ -700,6 +663,7 @@ namespace Berta
 			//BT_CORE_TRACE << " - DOWN: args:position = " << args.Position << std::endl;
 			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) : this->GetPosition();
+			m_savedDPI = this->Handle()->DPI;
 		});
 
 		m_caption->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
@@ -725,23 +689,19 @@ namespace Berta
 					formRect.Height = dockAreaSize.Height;
 
 					m_nativeContainer = std::make_unique<Form>(m_hostWindow, formRect, FormStyle::Float());
-					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
-					{
-						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
-					});
 
 #if BT_DEBUG
 					m_nativeContainer->Handle()->Name = "DockFloat-" + m_paneInfo->id;
 #endif
 
-					auto prevHostWindow = dockAreaWindow->RootWindow;
 					GUI::SetParentWindow(dockAreaWindow, m_nativeContainer->Handle());
+					this->SetPosition({ 0, 0 });
 
-					BT_CORE_DEBUG << " 2 dock area = " << this->GetArea() << std::endl;
+					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
+					{
+						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
+					});
 					m_nativeContainer->Show();
-
-					GUI::UpdateTree(prevHostWindow);
-					GUI::UpdateWindow(prevHostWindow);
 
 					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();
@@ -749,6 +709,11 @@ namespace Berta
 			}
 			else
 			{
+
+				if (m_savedDPI != m_nativeContainer->Handle()->DPI)
+				{
+
+				}
 				auto newPosition = screenMousePos - m_mouseInteraction.m_dragStartPos;
 				newPosition += m_mouseInteraction.m_dragStartLocalPos;
 

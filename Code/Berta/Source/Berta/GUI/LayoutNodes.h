@@ -116,7 +116,7 @@ namespace Berta
         LayoutNode(LayoutNodeType type);
         virtual ~LayoutNode() = default;
 
-        void AddWindow(Window* window);
+        virtual void AddWindow(Window* window) {};
         void SetProperty(const std::string& key, const PropertyValue& value)
         {
             m_properties[key] = value;
@@ -226,16 +226,10 @@ namespace Berta
             m_area = newArea;
         }
 
-        void Apply();
         virtual void CalculateAreas() = 0;
 
         LayoutNode* Find(const std::string& id);
         LayoutNode* FindFirst(LayoutNodeType nodeType);
-
-        std::vector<LayoutControlContainer::WindowArea>& GetWindowsAreas()
-        {
-            return m_controlContainer.GetWindowsAreas();
-        }
 
         void SetParentWindow(Window* window)
         {
@@ -279,14 +273,12 @@ namespace Berta
         Number m_fixedHeight;
 
     protected:
-        virtual void CalculateAreasWindows();
         LayoutNode* Find(const std::string& id, LayoutNode* node);
         LayoutNode* FindFirst(LayoutNodeType nodeType, LayoutNode* node);
 
         std::string m_id;
         Rectangle m_area;
 
-        LayoutControlContainer m_controlContainer;
         Window* m_parentWindow{ nullptr };
         LayoutNode* m_prevNode{ nullptr };
         LayoutNode* m_nextNode{ nullptr };
@@ -340,7 +332,11 @@ namespace Berta
     public:
         LeafLayoutNode();
 
+        void AddWindow(Window* window) override;
         void CalculateAreas() override;
+
+    private:
+        Window* m_window{ nullptr };
     };
 
     class SplitterLayoutNode : public LayoutNode
@@ -461,6 +457,7 @@ namespace Berta
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
+        uint32_t m_savedDPI;
 
         PaneInfo* m_paneInfo{ nullptr };
     };
@@ -475,6 +472,7 @@ namespace Berta
         }
 
         void AddTab(const std::string& id, ControlBase* control);
+        void AddWindow(Window* window) override;
         void CalculateAreas() override;
 
         void NotifyFloat() override;
@@ -487,7 +485,6 @@ namespace Berta
         std::string m_paneId;
 
     protected:
-        //void CalculateAreasWindows() override;
     };
 
     class DockPaneTabLayoutNode : public LayoutNode

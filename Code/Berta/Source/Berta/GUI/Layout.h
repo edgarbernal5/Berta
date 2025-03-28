@@ -172,6 +172,8 @@ namespace Berta
         void NotifyMove(LayoutNode* node) override;
         void NotifyMoveStopped(LayoutNode* node) override;
         void RequestClose(LayoutNode* node) override;
+
+        bool RemoveDockPane(DockPaneLayoutNode* node);
     private:
         class Parser
         {
