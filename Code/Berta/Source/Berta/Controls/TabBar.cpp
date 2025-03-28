@@ -137,7 +137,7 @@ namespace Berta
 			auto newSelectedTabItem = m_module.At(newSelectedIndex);
 			newSelectedTabItem->PanelPtr->Show();
 
-			ArgTabBar argsTabBar;
+			ArgTabBar argsTabBar{ newSelectedTabItem->Id };
 			m_module.m_events->TabChanged.Emit(argsTabBar);
 
 			Update(graphics);

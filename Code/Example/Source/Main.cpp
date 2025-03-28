@@ -565,6 +565,7 @@ int main()
 	//auto buttonPane = std::make_shared<ButtonPane>();
 	Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Scene");
 	Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Properties");
+	Berta::Button buttonPaneTab3(form, { 320,250, 200, 200 }, L"Explorer");
 	
 	//buttonPaneTab.Hide();
 	//buttonPaneTab2.Hide();
@@ -575,6 +576,7 @@ int main()
 
 	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
+	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
 
 	form.GetLayout().Apply();
 

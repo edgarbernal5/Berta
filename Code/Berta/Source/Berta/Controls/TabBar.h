@@ -100,7 +100,7 @@ namespace Berta
 
 	struct ArgTabBar
 	{
-
+		std::string id;
 	};
 
 	struct TabBarEvents : public ControlEvents

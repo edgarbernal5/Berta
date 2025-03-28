@@ -84,13 +84,20 @@ namespace Berta
 		auto paneTabId = paneId + "/" + tabId;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
+		paneTabNode->SetId(paneTabId);
 		paneTabNode->m_tabId = paneTabId;
+
 		paneTabNode->SetParentNode(paneNode);
 		paneTabNode->SetParentWindow(paneNode->GetParentWindow());
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
 		paneNode->AddTab(tabId, control);
 		paneNode->m_children.emplace_back(std::move(paneTabNode));
+
+		if (DoDock(paneNode, paneNode->m_children.back().get()))
+		{
+			Apply();
+		}
 	}
 
 	void Layout::AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control, const std::string& relativePaneId, DockPosition dockPosition)
@@ -586,6 +593,12 @@ namespace Berta
 			}
 		}
 
+		return true;
+	}
+
+	bool Layout::DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target)
+	{
+		
 		return true;
 	}
 

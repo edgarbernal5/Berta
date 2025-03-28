@@ -48,7 +48,7 @@ namespace Berta
 
 		void Add(Window* window);
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, FormData&& append);
-		void Caption(Window* window, const std::wstring& caption);
+		bool Caption(Window* window, const std::wstring& caption);
 		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);

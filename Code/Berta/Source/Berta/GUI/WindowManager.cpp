@@ -37,13 +37,17 @@ namespace Berta
 		m_windowNativeRegistry.emplace(nativeWindowHandle, std::move(append));
 	}
 
-	void WindowManager::Caption(Window* window, const std::wstring& caption)
+	bool WindowManager::Caption(Window* window, const std::wstring& caption)
 	{
+		if (window->Title == caption)
+			return false;
+
 		window->Title = caption;
 		if (window->Type == WindowType::Form)
 		{
 			API::CaptionNativeWindow(window->RootHandle, caption);
 		}
+		return true;
 	}
 
 	void WindowManager::Destroy(Window* window)
@@ -443,28 +447,30 @@ namespace Berta
 
 	void WindowManager::Show(Window* window, bool visible)
 	{
-		if (window->Visible != visible)
+		if (window->Visible == visible)
 		{
-			if (window->Type == WindowType::Form)
-			{
-				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
-			}
-			else
-			{
-				window->Visible = visible;
+			return;
+		}
 
-				ArgVisibility argVisibility;
-				argVisibility.IsVisible = visible;
-				window->Events->Visibility.Emit(argVisibility);
+		if (window->Type == WindowType::Form)
+		{
+			API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
+		}
+		else
+		{
+			window->Visible = visible;
 
-				auto windowToUpdate = window->FindFirstNonPanelAncestor();
-				if (windowToUpdate)
-				{
-					UpdateTree(windowToUpdate);
-					auto position = GetAbsoluteRootPosition(windowToUpdate);
-					Rectangle areaToUpdate{ position.X,position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
-					Map(windowToUpdate, &areaToUpdate);
-				}
+			ArgVisibility argVisibility;
+			argVisibility.IsVisible = visible;
+			window->Events->Visibility.Emit(argVisibility);
+
+			auto windowToUpdate = window->FindFirstNonPanelAncestor();
+			if (windowToUpdate)
+			{
+				UpdateTree(windowToUpdate);
+				auto position = GetAbsoluteRootPosition(windowToUpdate);
+				Rectangle areaToUpdate{ position.X,position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
+				Map(windowToUpdate, &areaToUpdate);
 			}
 		}
 	}
@@ -767,13 +773,11 @@ namespace Berta
 				}
 			}
 		}
-		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
-
 		window->Parent = newParent;
 		window->RootHandle = newParent->RootHandle;
 		window->RootWindow = newParent->RootWindow;
 		window->RootGraphics = newParent->RootGraphics;
-		window->Position -= deltaPosition;
+		window->Position = { 0,0 };
 
 		newParent->Children.emplace_back(window);
 

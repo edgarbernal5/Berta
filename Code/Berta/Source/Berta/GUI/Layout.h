@@ -204,6 +204,7 @@ namespace Berta
 
         bool IsAlreadyDocked(LayoutNode* node, size_t& nodeIndex) const;
         bool DoFloat(DockPaneLayoutNode* paneNode);
+        bool DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target);
         bool DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target, DockPosition dockPosition);
 
         void Print();

@@ -17,6 +17,12 @@ namespace Berta
 		DoOnCaption(caption);
 	}
 
+	void ControlBase::SetCaption(const std::string& caption)
+	{
+		std::wstring wstr(caption.begin(), caption.end());
+		DoOnCaption(wstr);
+	}
+
 	std::wstring ControlBase::GetCaption() const
 	{
 		return DoOnCaption();

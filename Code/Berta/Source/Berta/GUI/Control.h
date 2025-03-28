@@ -30,6 +30,7 @@ namespace Berta
 		Window* Handle() const { return m_handle; }
 
 		void SetCaption(const std::wstring& caption);
+		void SetCaption(const std::string& caption);
 		std::wstring GetCaption() const;
 
 		bool GetEnabled() const;

@@ -115,7 +115,10 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (windowManager.Exists(window))
 		{
-			windowManager.Caption(window, caption);
+			if (windowManager.Caption(window, caption))
+			{
+				windowManager.Update(window);
+			}
 		}
 	}
 
