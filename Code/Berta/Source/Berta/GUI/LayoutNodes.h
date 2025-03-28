@@ -396,7 +396,6 @@ namespace Berta
     class DockAreaCaptionReactor : public ControlReactor
     {
     public:
-        void Init(ControlBase& control) override;
         void Update(Graphics& graphics) override;
 
         void MouseDown(Graphics& graphics, const ArgMouse& args) override;

@@ -226,7 +226,7 @@ namespace Berta
 		}
 	}
 
-	void Layout::NotifyMove(LayoutNode* node)
+	void Layout::NotifyMove(DockPaneLayoutNode* paneNode)
 	{
 		if (!IsMouseInsideWindow())
 		{
@@ -244,7 +244,6 @@ namespace Berta
 			HidePaneDockIndicators();
 		}
 
-		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
 		DockPosition dockPosition = DockPosition::Tab;
 		if (IsMouseInsideDockIndicator(&dockPosition))
 		{
@@ -266,22 +265,21 @@ namespace Berta
 		}
 	}
 
-	void Layout::NotifyMoveStopped(LayoutNode* node)
+	void Layout::NotifyMoveStopped(DockPaneLayoutNode* paneNode)
 	{
-		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
 		if (IsMouseInsideDockIndicator())
 		{
-			node->SetParentWindow(paneNode->m_dockArea->m_hostWindow);
+			paneNode->SetParentWindow(paneNode->m_dockArea->m_hostWindow);
 			paneNode->m_dockArea->Dock();
+			
 			Apply();
-			GUI::UpdateWindow(*paneNode->m_dockArea);
 		}
+
 		HidePaneDockIndicators();
 	}
 
-	void Layout::RequestClose(LayoutNode* node)
+	void Layout::RequestClose(DockPaneLayoutNode* paneNode)
 	{
-		auto paneNode = reinterpret_cast<DockPaneLayoutNode*>(node);
 		auto index = paneNode->m_dockArea->GetTabSelectedIndex();
 		auto childNode = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[index].get());
 		m_dockPaneTabFields.erase(childNode->m_tabId);
@@ -298,7 +296,6 @@ namespace Berta
 		}
 		if (needUpdate)
 		{
-			GUI::UpdateWindow(m_parent);
 			Apply();
 		}
 	}
@@ -409,7 +406,7 @@ namespace Berta
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
-				//GUI::MakeWindowActive(*indicator->Docker, false, nullptr);
+				GUI::MakeWindowActive(*indicator->Docker, false, m_parent);
 				
 				if (indicator->Docker)
 				{

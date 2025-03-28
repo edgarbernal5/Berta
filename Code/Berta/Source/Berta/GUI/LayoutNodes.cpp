@@ -505,11 +505,6 @@ namespace Berta
 		m_dockLayoutEvents->RequestClose(this);
 	}
 
-	void DockAreaCaptionReactor::Init(ControlBase& control)
-	{
-		m_control = &control;
-	}
-
 	void DockAreaCaptionReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();

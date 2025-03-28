@@ -138,9 +138,9 @@ namespace Berta
         virtual ~LayoutDockPaneEventsNotifier() = default;
 
         virtual void NotifyFloat(DockPaneLayoutNode* node) = 0;
-        virtual void NotifyMove(LayoutNode* node) = 0;
-        virtual void NotifyMoveStopped(LayoutNode* node) = 0;
-        virtual void RequestClose(LayoutNode* node) = 0;
+        virtual void NotifyMove(DockPaneLayoutNode* node) = 0;
+        virtual void NotifyMoveStopped(DockPaneLayoutNode* node) = 0;
+        virtual void RequestClose(DockPaneLayoutNode* node) = 0;
     };
 
     struct DockIndicator
@@ -169,9 +169,9 @@ namespace Berta
         void Parse(const std::string& source);
 
         void NotifyFloat(DockPaneLayoutNode* node) override;
-        void NotifyMove(LayoutNode* node) override;
-        void NotifyMoveStopped(LayoutNode* node) override;
-        void RequestClose(LayoutNode* node) override;
+        void NotifyMove(DockPaneLayoutNode* node) override;
+        void NotifyMoveStopped(DockPaneLayoutNode* node) override;
+        void RequestClose(DockPaneLayoutNode* node) override;
 
         bool RemoveDockPane(DockPaneLayoutNode* node);
     private:

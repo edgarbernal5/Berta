@@ -14,7 +14,11 @@
 #include <filesystem>
 #include <mutex>
 
-#if BT_STACK_TRACER
+//#ifndef BT_STACK_TRACER
+//#define BT_STACK_TRACER
+//#endif
+
+#ifdef BT_STACK_TRACER
 #include "Berta/Core/StackTracer.h"
 #endif
 
@@ -168,7 +172,7 @@ namespace Berta
 			
 			std::string outputMessage = builder.str();
 			
-#if BT_STACK_TRACER
+#ifdef BT_STACK_TRACER
 			static StackTracer tracer;
 			outputMessage += tracer.GetStackTrace(3, 8);
 #endif
