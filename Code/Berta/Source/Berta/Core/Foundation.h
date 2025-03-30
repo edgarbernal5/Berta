@@ -92,9 +92,9 @@ namespace Berta
 					}
 				}
 			}
+			window->Status = WindowStatus::None;
 		}
 
-		window->Status = WindowStatus::None;
 	}
 }
 
