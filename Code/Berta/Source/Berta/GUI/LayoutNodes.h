@@ -466,10 +466,6 @@ namespace Berta
     {
     public:
         DockPaneLayoutNode();
-        ~DockPaneLayoutNode()
-        {
-
-        }
 
         void AddTab(const std::string& id, ControlBase* control);
         void AddPane(DockPaneLayoutNode* paneNode);

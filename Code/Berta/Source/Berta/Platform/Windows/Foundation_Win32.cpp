@@ -21,7 +21,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -567,7 +567,7 @@ namespace Berta
 				//BT_CORE_DEBUG << " - window and hovered / window " << (window != nullptr ? window->Name :"NULL") << ". hovered " << (rootWindowData.Hovered != nullptr ? rootWindowData.Hovered->Name : "NULL") << std::endl;
 				if (window && window != rootWindowData.Hovered)
 				{
-					if (rootWindowData.Hovered)
+					if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
 					{
 						ArgMouse argMouseLeave;
 						argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(rootWindowData.Hovered);
@@ -577,9 +577,8 @@ namespace Berta
 
 						//BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 						foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
-
-						rootWindowData.Hovered = nullptr;
 					}
+					rootWindowData.Hovered = nullptr;
 				}
 
 				if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)

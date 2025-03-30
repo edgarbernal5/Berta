@@ -70,7 +70,7 @@ namespace Berta
 			(window->Renderer.*rendererEventPtr)(args);
 		}
 		
-		if (eventPtr)
+		if (m_windowManager.Exists(window) && eventPtr)
 		{
 			(*window->Events.*eventPtr).Emit(args);
 		}

@@ -70,6 +70,16 @@ namespace Berta
 		}
 
 		DestroyInternal(window);
+
+		if (window->Type != WindowType::Form)
+		{
+#if BT_DEBUG
+			BT_CORE_DEBUG << "    - Destroy. Window =" << window->Name << std::endl;
+#else
+			BT_CORE_DEBUG << "    - Destroy." << std::endl;
+#endif
+			delete window;
+		}
 	}
 
 	void WindowManager::DestroyInternal(Window* window)
@@ -93,10 +103,15 @@ namespace Berta
 				API::DestroyNativeWindow(child->RootHandle); //TODO: don't know if this makes sense here.
 				continue;
 			}
-			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window " << child << std::endl;
 			DestroyInternal(child);
 			window->Children.pop_back();
-			//delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
+
+#if BT_DEBUG
+			BT_CORE_DEBUG << "    - DestroyInternal. Child Window =" << child->Name << std::endl;
+#else
+			BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
+#endif
+			delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
 		}
 
 		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
@@ -276,6 +291,13 @@ namespace Berta
 		{
 			m_windowNativeRegistry.erase(window->RootHandle);
 			m_windowRegistry.erase(window);
+
+#if BT_DEBUG
+			BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
+#else
+			BT_CORE_DEBUG << "    - Remove." << std::endl;
+#endif
+			delete window;
 		}
 	}
 
@@ -314,19 +336,21 @@ namespace Berta
 	void WindowManager::Capture(Window* window, bool redirectToChildren)
 	{
 		BT_CORE_TRACE << " - Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
-		if (m_capture.WindowPtr != window)
+		if (m_capture.WindowPtr == window)
 		{
-			if (Exists(window))
-			{
-				API::CaptureWindow(window->RootHandle, true);
+			return;
+		}
 
-				if (m_capture.WindowPtr)
-				{
-					m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr, m_capture.RedirectToChildren);
-				}
-				m_capture.WindowPtr = window;
-				m_capture.RedirectToChildren = redirectToChildren;
+		if (Exists(window))
+		{
+			API::CaptureWindow(window->RootHandle, true);
+
+			if (m_capture.WindowPtr)
+			{
+				m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr, m_capture.RedirectToChildren);
 			}
+			m_capture.WindowPtr = window;
+			m_capture.RedirectToChildren = redirectToChildren;
 		}
 	}
 
@@ -477,84 +501,89 @@ namespace Berta
 
 	void WindowManager::Resize(Window* window, const Size& newSize, bool resizeForm)
 	{
-		auto& foundation = Foundation::GetInstance();
-		if (window->Size != newSize)
+		if (window->Size == newSize)
 		{
-			window->Size = newSize;
-
-			Graphics newGraphics;
-			Graphics newRootGraphics;
-			if (window->Type != WindowType::Panel)
-			{
-				newGraphics.Build(newSize);
-				newGraphics.BuildFont(window->DPI);
-				//newGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
-
-				if (window->Type == WindowType::Form)
-				{
-					newRootGraphics.Build(newSize);
-					newRootGraphics.BuildFont(window->DPI);
-					newRootGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
-				}
-			}
-
-			if (window->Type != WindowType::Panel)
-			{
-				window->Renderer.GetGraphics().Swap(newGraphics);
-
-				if (window->Type == WindowType::Form)
-				{
-					window->RootGraphics->Swap(newRootGraphics);
-
-					if (resizeForm)
-					{
-						Rectangle newArea{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
-						API::MoveWindow(window->RootHandle, newArea);
-					}
-				}
-			}
-
-			ArgResize argResize;
-			argResize.NewSize = newSize;
-#if BT_DEBUG
-			//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
-#else
-			//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
-#endif
-			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+			return;
 		}
+		auto& foundation = Foundation::GetInstance();
+
+		window->Size = newSize;
+
+		Graphics newGraphics;
+		Graphics newRootGraphics;
+		if (window->Type != WindowType::Panel)
+		{
+			newGraphics.Build(newSize);
+			newGraphics.BuildFont(window->DPI);
+			//newGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+
+			if (window->Type == WindowType::Form)
+			{
+				newRootGraphics.Build(newSize);
+				newRootGraphics.BuildFont(window->DPI);
+				newRootGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+			}
+		}
+
+		if (window->Type != WindowType::Panel)
+		{
+			window->Renderer.GetGraphics().Swap(newGraphics);
+
+			if (window->Type == WindowType::Form)
+			{
+				window->RootGraphics->Swap(newRootGraphics);
+
+				if (resizeForm)
+				{
+					Rectangle newArea{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+					API::MoveWindow(window->RootHandle, newArea);
+				}
+			}
+		}
+
+		ArgResize argResize;
+		argResize.NewSize = newSize;
+#if BT_DEBUG
+		//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
+#else
+		//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
+#endif
+		foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 	}
 
 	bool WindowManager::Move(Window* window, const Rectangle& newRect)
 	{
+		Rectangle currentRect{ window->Position, window->Size };
+		if (currentRect == newRect)
+		{
+			return false;
+		}
+
 		auto& foundation = Foundation::GetInstance();
 
-		Rectangle currentRect{ window->Position, window->Size };
-		if (currentRect != newRect)
+		bool sizeChanged = window->Size != newRect;
+		bool positionChanged = window->Position != newRect;
+
+		if (positionChanged && window->Type != WindowType::Form)
 		{
-			bool sizeChanged = window->Size != newRect;
-			bool positionChanged = window->Position != newRect;
-
-			if (positionChanged && window->Type != WindowType::Form)
-			{
-				window->Position = newRect;
-			}
-
-			if (sizeChanged)
-			{
-				Resize(window, newRect);
-			}
-
-			if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
-			{
-				API::MoveWindow(window->RootHandle, newRect);
-
-				/*ArgMove argMove;
-				argMove.NewPosition = newRect;
-				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);*/
-			}
-			return sizeChanged || positionChanged;
+			window->Position = newRect;
 		}
+
+		if (sizeChanged)
+		{
+			Resize(window, newRect);
+		}
+
+		if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
+		{
+			API::MoveWindow(window->RootHandle, newRect);
+
+			/*ArgMove argMove;
+			argMove.NewPosition = newRect;
+			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);*/
+		}
+		return sizeChanged || positionChanged;
+		
 		return false;
 	}
 
@@ -574,6 +603,7 @@ namespace Berta
 			ArgMove argMove;
 			argMove.NewPosition = newPosition;
 			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+
 			return true;
 		}
 		return false;
@@ -623,11 +653,7 @@ namespace Berta
 			return false;
 		}
 
-		if (std::find(
-			window->RootWindow->DeferredRequests.begin(),
-			window->RootWindow->DeferredRequests.end(),
-			window) == window->RootWindow->DeferredRequests.end()
-			)
+		if (!window->RootWindow->HaveRequestedDeferred(window))
 		{
 			auto requestIt = window->RootWindow->DeferredRequests.begin();
 			while (requestIt != window->RootWindow->DeferredRequests.end())

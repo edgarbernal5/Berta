@@ -158,6 +158,7 @@ namespace Berta
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
+
 			if (!isPanel)
 			{
 				GUI::InitRendererReactor(this, m_reactor);

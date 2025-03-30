@@ -24,6 +24,10 @@ namespace Berta
 
 	Window::~Window()
 	{
+		if (RootWindow && RootWindow->HaveRequestedDeferred(this))
+		{
+			RootWindow->DeleteDeferredRequest(this);
+		}
 		DeferredRequests.clear();
 	}
 
@@ -73,5 +77,16 @@ namespace Berta
 			current = current->Parent;
 		}
 		return false;
+	}
+
+	void Window::DeleteDeferredRequest(Window* window)
+	{
+		auto it = std::find(DeferredRequests.begin(), DeferredRequests.end(), window);
+		DeferredRequests.erase(it);
+	}
+
+	bool Window::HaveRequestedDeferred(Window* window) const
+	{
+		return std::find(DeferredRequests.begin(), DeferredRequests.end(), window) != DeferredRequests.end();
 	}
 }

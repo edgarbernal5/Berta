@@ -114,6 +114,8 @@ namespace Berta
 		bool AreParentsVisible() const;
 		bool IsVisible() const;
 		bool IsAncestorOf(Window* window) const;
+		void DeleteDeferredRequest(Window* window);
+		bool HaveRequestedDeferred(Window* window) const;
 	};
 }
 

@@ -627,11 +627,6 @@ namespace Berta
 		return true;
 	}
 
-	bool Layout::DoDock(DockPaneLayoutNode* paneNode, LayoutNode* target)
-	{
-		return true;
-	}
-
 	bool Layout::DoDock(DockPaneLayoutNode* node, LayoutNode* target, DockPosition dockPosition)
 	{
 		size_t nodeIndex;
