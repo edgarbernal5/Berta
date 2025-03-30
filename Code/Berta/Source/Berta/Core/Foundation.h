@@ -76,25 +76,21 @@ namespace Berta
 		}
 
 		bool isResizing = std::is_same_v<TArgument, ArgResize>;
-		if (m_windowManager.Exists(window) && (window->Status == WindowStatus::Updated || isResizing))
+		if (m_windowManager.Exists(window))
 		{
-			if (!m_windowManager.TryDeferredUpdate(window))
+			if (window->Status == WindowStatus::Updated || isResizing)
 			{
-				if (window->Visible)
+				if (window->Visible && !m_windowManager.TryDeferredUpdate(window))
 				{
-					if (window->Status == WindowStatus::Updated)
+					if (window->Status == WindowStatus::Updated && window->Type != WindowType::Panel)
 					{
-						if (window->Type != WindowType::Panel)
-						{
-							m_windowManager.Paint(window, isResizing);
-							m_windowManager.Map(window, nullptr); // Copy from root graphics to native hwnd window.
-						}
+						m_windowManager.Paint(window, isResizing);
+						m_windowManager.Map(window, nullptr); // Copy from root graphics to native hwnd window.
 					}
 				}
 			}
 			window->Status = WindowStatus::None;
 		}
-
 	}
 }
 
