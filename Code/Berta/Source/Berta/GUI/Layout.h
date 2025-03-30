@@ -211,11 +211,13 @@ namespace Berta
         void Print(LayoutNode* node, uint32_t level);
 
         Window* m_parent{ nullptr };
+        LayoutNode* m_lastTargetNode{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
         std::map<std::string, LayoutNode*> m_fields;
         std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
         std::map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
         std::vector<std::unique_ptr<LayoutNode>> m_floatingDockFields;
+        std::unique_ptr<LayoutNode> m_tabDockField;
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
 
         std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;

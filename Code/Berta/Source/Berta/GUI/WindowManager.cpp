@@ -762,6 +762,9 @@ namespace Berta
 
 	void WindowManager::SetParent(Window* window, Window* newParent)
 	{
+		if (window->Parent == newParent)
+			return;
+
 		if (window->Parent)
 		{
 			for (size_t i = 0; i < window->Parent->Children.size(); i++)

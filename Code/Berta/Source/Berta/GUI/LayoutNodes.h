@@ -451,12 +451,13 @@ namespace Berta
         }
 
         MouseInteraction m_mouseInteraction;
+        uint32_t m_savedDPI{ 0 };
         Window* m_hostWindow{ nullptr };
         DockEventsNotifier* m_eventsNotifier{ nullptr };
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
-        uint32_t m_savedDPI;
+        std::vector<ControlBase*> m_tabBarPanels;
 
         PaneInfo* m_paneInfo{ nullptr };
     };
@@ -471,6 +472,7 @@ namespace Berta
         }
 
         void AddTab(const std::string& id, ControlBase* control);
+        void AddPane(DockPaneLayoutNode* paneNode);
         void AddWindow(Window* window) override;
         void CalculateAreas() override;
 

@@ -54,7 +54,7 @@ namespace Berta
 			Rectangle PanelArea{};
 
 			std::string Id;
-			std::shared_ptr<Panel> PanelPtr;
+			Panel* PanelPtr;
 		};
 
 		struct Module

@@ -467,6 +467,18 @@ namespace Berta
 		m_dockArea->AddTab(id, control);
 	}
 
+	void DockPaneLayoutNode::AddPane(DockPaneLayoutNode* paneNode)
+	{
+		DockArea& dockArea = *paneNode->m_dockArea;
+		for (size_t i = 0; i < dockArea.m_tabBarPanels.size(); i++)
+		{
+			auto paneTab = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[i].get());
+
+			auto tabId = paneTab->m_tabId.substr(paneNode->m_paneId.size() + 1);
+			m_dockArea->AddTab(tabId, dockArea.m_tabBarPanels[i]);
+		}
+	}
+
 	void DockPaneLayoutNode::AddWindow(Window* window)
 	{
 	}
@@ -605,7 +617,8 @@ namespace Berta
 	void DockArea::AddTab(const std::string& id, ControlBase* control)
 	{
 		bool isFirstTab = m_tabBar->Count() == 0;
-		m_tabBar->PushBack2(id, control);
+		auto panel = m_tabBar->PushBack2(id, control); 
+		m_tabBarPanels.push_back(panel);
 		if (isFirstTab)
 		{
 			std::wstring caption(id.begin(), id.end());
@@ -729,6 +742,7 @@ namespace Berta
 
 			if (m_caption->HaveClickedCloseButton())
 			{
+				//m_tabBarPanels
 				m_eventsNotifier->RequestClose();
 				return;
 			}

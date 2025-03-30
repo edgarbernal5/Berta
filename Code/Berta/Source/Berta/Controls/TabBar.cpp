@@ -304,6 +304,7 @@ namespace Berta
 
 		auto current = At(index);
 
+		auto panelPtr = current->PanelPtr;
 		bool removeSelectedIndex = index == m_selectedTabIndex;
 		current = m_panels.erase(current);
 		if (m_selectedTabIndex >= static_cast<int>(m_panels.size()))
@@ -312,8 +313,12 @@ namespace Berta
 			if (m_selectedTabIndex >= 0)
 				--current;
 		}
+		GUI::DisposeWindow(*panelPtr);
 		if (removeSelectedIndex && m_selectedTabIndex >= 0)
 		{
+			ArgTabBar argsTabBar{ current->Id };
+			m_events->TabChanged.Emit(argsTabBar);
+
 			current->PanelPtr->Show();
 		}
 
@@ -374,11 +379,20 @@ namespace Berta
 
 	ControlBase* TabBar::PushBack2(const std::string& tabId, ControlBase* control)
 	{
-		auto result = new Panel(this->Handle());
+		auto controlAsPanel = dynamic_cast<Panel*>(control);
+		Panel* result = controlAsPanel;
+		if (!controlAsPanel)
+		{
+			result = new Panel(this->Handle());
 #if BT_DEBUG
-		result->Handle()->Name = "Panel-" + tabId;
+			result->Handle()->Name = "Panel-" + tabId;
 #endif
-		GUI::SetParentWindow(control->Handle(), *result);
+			GUI::SetParentWindow(control->Handle(), result->Handle());
+		}
+		else
+		{
+			GUI::SetParentWindow(control->Handle(), this->Handle());
+		}
 
 		m_reactor.AddTab(tabId, result);
 
@@ -414,7 +428,7 @@ namespace Berta
 		auto startIndex = m_panels.size();
 		auto& newItem = m_panels.emplace_back();
 		newItem.Id = tabId;
-		newItem.PanelPtr.reset(panel);
+		newItem.PanelPtr = panel;
 
 		//TODO: maybe we need to move this after selected tab index is set.
 		UpdatePanelMoveRect(panel);
