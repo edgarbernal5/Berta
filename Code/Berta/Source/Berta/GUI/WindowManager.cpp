@@ -231,9 +231,9 @@ namespace Berta
 		{
 			auto child = window->Children[i];
 
-			child->RootHandle = window->RootHandle;
-			child->RootWindow = window->RootWindow;
-			child->RootGraphics = window->RootGraphics;
+			child->RootHandle = newParent->RootHandle;
+			child->RootWindow = newParent->RootWindow;
+			child->RootGraphics = newParent->RootGraphics;
 
 			SetParentInternal(child, newParent);
 		}
@@ -252,7 +252,7 @@ namespace Berta
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
-		auto parent = window->FindFirstNonPanelAncestor();
+		auto parent = window->FindFirstPanelAncestor();
 		auto parentPosition = GetAbsoluteRootPosition(parent);
 		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
 		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
@@ -455,7 +455,13 @@ namespace Berta
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
-		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		auto parent = window->FindFirstPanelAncestor();
+		auto parentPosition = GetAbsoluteRootPosition(parent);
+		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
+		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
+		{
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		}
 		
 		UpdateTreeInternal(window, rootGraphics, absolutePosition);
 	}

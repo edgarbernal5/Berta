@@ -47,6 +47,22 @@ namespace Berta
 		return windowToUpdate;
 	}
 
+	Window* Window::FindFirstPanelAncestor() const
+	{
+		if (!Parent)
+		{
+			return const_cast<Window*>(this);
+		}
+
+		auto windowToUpdate = this->Parent;
+		while (windowToUpdate && windowToUpdate->Type != WindowType::Panel)
+		{
+			windowToUpdate = windowToUpdate->Parent;
+		}
+
+		return windowToUpdate == nullptr ? const_cast<Window*>(this) : windowToUpdate;
+	}
+
 	bool Window::AreParentsVisible() const
 	{
 		auto current = Parent;

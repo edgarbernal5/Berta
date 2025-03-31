@@ -171,7 +171,6 @@ namespace Berta
 		}
 
 	protected:
-
 		virtual void DoOnNotifyDestroy() override
 		{
 			m_events = std::make_shared<EventsType>();
