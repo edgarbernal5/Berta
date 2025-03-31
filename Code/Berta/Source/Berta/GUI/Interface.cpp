@@ -81,7 +81,7 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
 		window->Init(control);
-		
+
 		Rectangle finalRect{ rectangle };
 		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
 		{
@@ -113,262 +113,297 @@ namespace Berta::GUI
 	void CaptionWindow(Window* window, const std::wstring& caption)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			if (windowManager.Caption(window, caption))
-			{
-				windowManager.Update(window);
-			}
+			return;
+		}
+
+		if (windowManager.Caption(window, caption))
+		{
+			windowManager.Update(window);
 		}
 	}
 
 	std::wstring CaptionWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			if (window->Type == WindowType::Form)
-			{
-				window->Title = API::GetCaptionNativeWindow(window->RootHandle);
-			}
-
-			return window->Title;
+			return {};
 		}
-		return {};
+
+		if (window->Type == WindowType::Form)
+		{
+			window->Title = API::GetCaptionNativeWindow(window->RootHandle);
+		}
+
+		return window->Title;
 	}
 
 	void DisposeWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && !window->Flags.IsDisposed)
+		if (!windowManager.Exists(window) || window->Flags.IsDisposed)
 		{
-			windowManager.Dispose(window);
+			return;
 		}
+
+		windowManager.Dispose(window);
 	}
 
 	void ShowWindow(Window* window, bool visible)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.Show(window, visible);
+			return;
 		}
+
+		windowManager.Show(window, visible);
 	}
 
 	bool IsWindowVisible(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return window->IsVisible();
+			return false;
 		}
-		return false;
+
+		return window->IsVisible();
 	}
 
 	void UpdateWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.Update(window);
+			return;
 		}
+
+		windowManager.Update(window);
 	}
 
 	void EnableWindow(Window* window, bool isEnabled)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && window->Flags.IsEnabled != isEnabled)
+		if (!windowManager.Exists(window) || window->Flags.IsEnabled == isEnabled)
 		{
-			window->Flags.IsEnabled = isEnabled;
-			UpdateWindow(window);
-			if (window->Type == WindowType::Form)
-			{
-				API::EnableWindow(window->RootHandle, isEnabled);
-			}
+			return;
+		}
+
+		window->Flags.IsEnabled = isEnabled;
+		UpdateWindow(window);
+		if (window->Type == WindowType::Form)
+		{
+			API::EnableWindow(window->RootHandle, isEnabled);
 		}
 	}
 
 	bool EnableWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return window->Flags.IsEnabled;
+			return false;
 		}
-		return false;
+
+		return window->Flags.IsEnabled;
 	}
 
 	void ResizeWindow(Window* window, const Size& newSize)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.Resize(window, newSize);
+			return;
 		}
+
+		windowManager.Resize(window, newSize);
 	}
 
 	Size SizeWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return window->Size;
+			return {};
 		}
-		return {};
+
+		return window->Size;
 	}
 
 	bool MoveWindow(Window* window, const Rectangle& newRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.Move(window, newRect);
+			return false;
 		}
-		return false;
+
+		return windowManager.Move(window, newRect);
 	}
 
 	bool MoveWindow(Window* window, const Point& newPosition)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.Move(window, newPosition);
+			return false;
 		}
-		return false;
+
+		return windowManager.Move(window, newPosition);
 	}
 
 	Rectangle AreaWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			auto position = GetAbsolutePosition(window);
-			return { position.X, position.Y, window->Size.Width, window->Size.Height };
+			return{};
 		}
-		return{};
+
+		auto position = GetAbsolutePosition(window);
+		return { position.X, position.Y, window->Size.Width, window->Size.Height };
 	}
 
 	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			if (active)
-			{
-				makeTargetWhenInactive = nullptr;
-			}
-			window->Flags.MakeActive = active;
-			window->MakeTargetWhenInactive = makeTargetWhenInactive;
+			return;
 		}
+
+		if (active)
+		{
+			makeTargetWhenInactive = nullptr;
+		}
+		window->Flags.MakeActive = active;
+		window->MakeTargetWhenInactive = makeTargetWhenInactive;
 	}
 
 	Window* GetParentWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			if (window->Type == WindowType::Form)
-			{
-				auto rootWindow = windowManager.Get(API::GetParentWindow(window->RootHandle));
-				return rootWindow;
-			}
-			return window->Parent;
+			return nullptr;
 		}
-		return nullptr;
+
+		if (window->Type == WindowType::Form)
+		{
+			auto rootWindow = windowManager.Get(API::GetParentWindow(window->RootHandle));
+			return rootWindow;
+		}
+		return window->Parent;
 	}
 
 	void Capture(Window* window, bool redirectToChildren)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.Capture(window, redirectToChildren);
+			return;
 		}
+
+		windowManager.Capture(window, redirectToChildren);
 	}
 
 	void ReleaseCapture(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.ReleaseCapture(window);
+			return;
 		}
+
+		windowManager.ReleaseCapture(window);
 	}
 
 	void InitRendererReactor(ControlBase* control, ControlReactor& controlReactor)
 	{
 		auto window = control->Handle();
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			auto& graphics = window->Renderer.GetGraphics();
-			graphics.Build(window->Size);
-			graphics.BuildFont(window->DPI);
-			graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
-			
-			window->Renderer.Init(*control, controlReactor);
-			window->Renderer.Update();
+			return;
 		}
+
+		auto& graphics = window->Renderer.GetGraphics();
+		graphics.Build(window->Size);
+		graphics.BuildFont(window->DPI);
+		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+
+		window->Renderer.Init(*control, controlReactor);
+		window->Renderer.Update();
 	}
 
 	void SetEvents(Window* window, std::shared_ptr<ControlEvents> events)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			window->Events = events;
+			return;
 		}
+
+		window->Events = events;
 	}
 
 	void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			window->Appearance = controlAppearance;
+			return;
 		}
+
+		window->Appearance = controlAppearance;
 	}
 
 	Point GetAbsolutePosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.GetAbsolutePosition(window);
+			return {};
 		}
-		return {};
+
+		return windowManager.GetAbsolutePosition(window);
 	}
 
 	Point GetAbsoluteRootPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.GetAbsoluteRootPosition(window);
+			return {};
 		}
-		return {};
+
+		return windowManager.GetAbsoluteRootPosition(window);
 	}
 
 	Point GetLocalPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.GetLocalPosition(window);
+			return {};
 		}
-		return {};
+
+		return windowManager.GetLocalPosition(window);
 	}
 
 	Point GetMousePositionToWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetScreenMousePosition());
-
-			return mousePosition - windowManager.GetAbsolutePosition(window);
+			return {};
 		}
-		return {};
+
+		auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetScreenMousePosition());
+		return mousePosition - windowManager.GetAbsolutePosition(window);
 	}
 
 	Point GetScreenMousePosition()
@@ -379,47 +414,56 @@ namespace Berta::GUI
 	void SetParentWindow(Window* window, Window* newParent)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window) && windowManager.Exists(newParent))
+		if (!windowManager.Exists(window) || !windowManager.Exists(newParent))
 		{
-			windowManager.SetParent(window, newParent);
+			return;
 		}
+
+		windowManager.SetParent(window, newParent);
 	}
 
 	void UpdateTree(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.UpdateTree(window);
+			return;
 		}
+
+		windowManager.UpdateTree(window);
 	}
 
 	void MarkAsUpdated(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			window->Status = WindowStatus::Updated;
+			return;
 		}
+
+		window->Status = WindowStatus::Updated;
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			windowManager.ChangeCursor(window, newCursor);
+			return;
 		}
+
+		windowManager.ChangeCursor(window, newCursor);
 	}
 
 	Cursor GetCursor(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return windowManager.GetCursor(window);
+			return Cursor::Default;
 		}
-		return Cursor::Default;
+
+		return windowManager.GetCursor(window);
 	}
 
 	//TODO: JustCtrl_CenterWindow
@@ -460,39 +504,45 @@ namespace Berta::GUI
 	Point GetPointClientToScreen(Window* window, const Point& point)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return API::GetPointClientToScreen(window->RootWindow->RootHandle, point);
+			return {};
 		}
-		return {};
+
+		return API::GetPointClientToScreen(window->RootWindow->RootHandle, point);
 	}
 
 	Point GetPointScreenToClient(Window* window, const Point& point)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			return API::GetPointScreenToClient(window->RootWindow->RootHandle, point);
+			return {};
 		}
-		return {};
+
+		return API::GetPointScreenToClient(window->RootWindow->RootHandle, point);
 	}
 
 	void SendCustomMessage(Window* window, std::function<void()> body)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(window))
+		if (!windowManager.Exists(window))
 		{
-			API::SendCustomMessage(window->RootWindow->RootHandle, body);
+			return;
 		}
+
+		API::SendCustomMessage(window->RootWindow->RootHandle, body);
 	}
 
 	void SetMenu(MenuItemReactor* rootMenuItemWindow)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (windowManager.Exists(rootMenuItemWindow->Owner()))
+		if (!windowManager.Exists(rootMenuItemWindow->Owner()))
 		{
-			windowManager.SetMenu(rootMenuItemWindow);
+			return;
 		}
+
+		windowManager.SetMenu(rootMenuItemWindow);
 	}
 
 	void DisposeMenu()
