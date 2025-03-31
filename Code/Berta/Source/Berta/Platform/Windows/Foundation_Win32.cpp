@@ -819,11 +819,11 @@ namespace Berta
 		//Otra cosa que hay que mejorar es no repetir dos solicitudes para la misma ventana en el mismo "tick"
 		//Otra mejora: solo actualizar el segmento (rectangulo) que necesita cambiar (por ejemplo al moverse dentro de un menu solo se deberia actualizar el rectangulo
 		//del nuevo elemento seleccionado y no todo el menu
-		if (!nativeWindow->Flags.IsDisposed)
+		if (windowManager.Exists(nativeWindow) && !nativeWindow->Flags.IsDisposed)
 		{
 			windowManager.UpdateDeferredRequests(nativeWindow);
+			nativeWindow->DeferredRequests.clear();
 		}
-		nativeWindow->DeferredRequests.clear();
 
 		if (defaultToWindowProc)
 		{
