@@ -252,7 +252,14 @@ namespace Berta
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
-		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		auto parent = window->FindFirstNonPanelAncestor();
+		auto parentPosition = GetAbsoluteRootPosition(parent);
+		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
+		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
+		{
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+		}
+
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition);
 	}
 
@@ -802,15 +809,22 @@ namespace Berta
 				}
 			}
 		}
+
 		window->Parent = newParent;
-		window->RootHandle = newParent->RootHandle;
-		window->RootWindow = newParent->RootWindow;
-		window->RootGraphics = newParent->RootGraphics;
+		if (window->Type != WindowType::Form)
+		{
+			window->RootHandle = newParent->RootHandle;
+			window->RootWindow = newParent->RootWindow;
+			window->RootGraphics = newParent->RootGraphics;
+		}
 		window->Position = { 0,0 };
 
 		newParent->Children.emplace_back(window);
 
-		SetParentInternal(window, newParent);
+		if (window->Type != WindowType::Form)
+		{
+			SetParentInternal(window, newParent);
+		}
 	}
 
 	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)

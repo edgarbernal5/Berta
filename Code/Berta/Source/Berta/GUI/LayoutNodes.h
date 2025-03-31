@@ -243,7 +243,18 @@ namespace Berta
         
         LayoutNode* GetPrev() const
         {
-            return m_prevNode;
+            //return m_prevNode;
+            if (!m_parentNode)
+                return nullptr;
+
+            for (size_t i = 0; i < m_parentNode->m_children.size(); i++)
+            {
+                if (m_parentNode->m_children[i]->GetNext() == this)
+                {
+                    return m_parentNode->m_children[i].get();
+                }
+            }
+            return nullptr;
         }
 
         LayoutNode* GetNext() const

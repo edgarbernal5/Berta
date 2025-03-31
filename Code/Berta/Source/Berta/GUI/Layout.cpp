@@ -253,6 +253,7 @@ namespace Berta
 		{
 			if (DoDock(paneNode, paneOrDock, dockPosition))
 			{
+				m_lockPaneIndicators = true;
 				m_lastTargetNode = paneOrDock;
 				BT_CORE_TRACE << " - DoDock." << std::endl;
 				Apply();
@@ -261,6 +262,7 @@ namespace Berta
 		}
 		else
 		{
+			m_lockPaneIndicators = false;
 			if (DoFloat(paneNode))
 			{
 				m_lastTargetNode = nullptr;
@@ -273,6 +275,8 @@ namespace Berta
 
 	void Layout::NotifyMoveStopped(DockPaneLayoutNode* paneNode)
 	{
+		m_lockPaneIndicators = false;
+		
 		if (IsMouseInsideDockIndicator())
 		{
 			if (m_tabDockField)
@@ -373,6 +377,9 @@ namespace Berta
 
 	void Layout::HidePaneDockIndicators()
 	{
+		if (m_lockPaneIndicators)
+			return;
+
 		for (auto& indicator : m_paneIndicators)
 		{
 			indicator->Docker.reset();
@@ -381,6 +388,9 @@ namespace Berta
 
 	void Layout::ShowPaneDockIndicators(LayoutNode* node)
 	{
+		if (m_lockPaneIndicators)
+			return;
+
 		auto indicatorSize = m_parent->ToScale(32);
 		auto indicatorSizeHalf = indicatorSize >> 1;
 		auto indicatorSizeOffset = indicatorSizeHalf >> 1;
@@ -435,10 +445,40 @@ namespace Berta
 				
 				if (indicator->Docker)
 				{
+#if BT_DEBUG
 					std::ostringstream builder;
 					builder << "Indicator-" << (int)indicator->Position;
 					indicator->Docker->SetDebugName(builder.str());
+#endif
 					indicator->Docker->Show();
+				}
+			}
+			else
+			{
+				if (indicator->Position == DockPosition::Tab)
+				{
+					Point position{ x - indicatorSizeHalf, y - indicatorSizeHalf };
+					indicator->Docker->SetPosition(position);
+				}
+				else if (indicator->Position == DockPosition::Up)
+				{
+					Point position{ x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
+					indicator->Docker->SetPosition(position);
+				}
+				else if (indicator->Position == DockPosition::Down)
+				{
+					Point position{ x - indicatorSizeHalf, y + indicatorSizeHalf + indicatorSizeOffset };
+					indicator->Docker->SetPosition(position);
+				}
+				else if (indicator->Position == DockPosition::Left)
+				{
+					Point position{ x - indicatorSizeHalf - indicatorSize - indicatorSizeOffset, y - indicatorSizeHalf };
+					indicator->Docker->SetPosition(position);
+				}
+				else if (indicator->Position == DockPosition::Right)
+				{
+					Point position{ x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
+					indicator->Docker->SetPosition(position);
 				}
 			}
 		}
@@ -692,7 +732,7 @@ namespace Berta
 			containerPtr->SetParentWindow(target->GetParentWindow());
 
 			auto splitterPtr = new SplitterLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
-			splitterPtr->SetParentNode(containerPtr->GetParentNode());
+			splitterPtr->SetParentNode(containerPtr);
 			splitterPtr->SetParentWindow(target->GetParentWindow());
 
 			node->SetParentNode(containerPtr);

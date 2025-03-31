@@ -498,9 +498,6 @@ int main()
 //	auto margin = tabbar.Handle()->ToScale(2);
 //	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
 
-	//Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
-	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
-
 	//Berta::Button nestedForm(form, { 320,35, 200, 200 }, L"Button");
 	//Berta::Button buttonLayout(form, { 320,250, 200, 200 }, L"Nested");
 
@@ -574,9 +571,15 @@ int main()
 	form.GetLayout().AddPaneTab("dockPane", "tab1", &buttonPaneTab);
 	form.GetLayout().AddPaneTab("dockPane", "tab2", &buttonPaneTab2);*/
 
+	Berta::Button buttonHideScrollbar(form, { 15,150,75,25 }, L"Show or Hide");
+
+	//Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
+	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
+
 	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
+	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &buttonHideScrollbar, "dockPane1", Berta::DockPosition::Down);
 
 	form.GetLayout().Apply();
 

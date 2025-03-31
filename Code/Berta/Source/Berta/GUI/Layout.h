@@ -220,6 +220,7 @@ namespace Berta
         std::map<std::string, PaneInfo> m_dockPaneInfoFields;
 
         std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;
+        bool m_lockPaneIndicators{ false };
     };
 
     //template<typename ...Args>

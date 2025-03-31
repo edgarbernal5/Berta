@@ -334,7 +334,7 @@ namespace Berta
 				m_splitterBeginRect = m_splitter->GetArea();
 				m_mousePositionOffset = -args.Position;
 
-				m_leftArea = m_prevNode->GetArea();
+				m_leftArea = GetPrev()->GetArea();
 				m_rightArea = m_nextNode->GetArea();
 
 				m_isSplitterMoving = true;
@@ -377,7 +377,7 @@ namespace Berta
 					newRightArea.Height = static_cast<uint32_t>(rightLimit);
 
 					auto containerArea = m_containerNode->GetArea();
-					m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
 					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
 
 					newSplitterArea.Y += deltaY;
@@ -396,7 +396,7 @@ namespace Berta
 					newRightArea.Width = static_cast<uint32_t>(rightLimit);
 
 					auto containerArea = m_containerNode->GetArea();
-					m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
 					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
 
 					newSplitterArea.X += deltaX;
