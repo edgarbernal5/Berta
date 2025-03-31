@@ -92,6 +92,7 @@ namespace Berta
         {
             scalar = 0;
             hasValue = false;
+            isPercentage = false;
         }
 
         bool isPercentage{ false };
@@ -182,9 +183,10 @@ namespace Berta
             m_area = newSize;
         }
 
-        void SetAreaWithPercentage(const Rectangle& newSize, const Size& parentSize, Size fixedSize)
+        void SetAreaWithPercentage(const Rectangle& newSize, const Size& parentSize, Size fixedSize, size_t splitterCount)
         {
             auto newArea = newSize;
+            fixedSize *= (uint32_t)splitterCount;
             if (m_fixedWidth.HasValue())
             {
                 auto remainSize = parentSize - fixedSize;

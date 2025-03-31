@@ -376,9 +376,10 @@ namespace Berta
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Height) - deltaY);
 					newRightArea.Height = static_cast<uint32_t>(rightLimit);
 
+					auto splitterCount = (m_containerNode->m_children.size() - 1) / 2;
 					auto containerArea = m_containerNode->GetArea();
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea, splitterCount);
+					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea, splitterCount);
 
 					newSplitterArea.Y += deltaY;
 				}
@@ -395,9 +396,10 @@ namespace Berta
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Width) - deltaX);
 					newRightArea.Width = static_cast<uint32_t>(rightLimit);
 
+					auto splitterCount = (m_containerNode->m_children.size() - 1) / 2;
 					auto containerArea = m_containerNode->GetArea();
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea);
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea, splitterCount);
+					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea, splitterCount);
 
 					newSplitterArea.X += deltaX;
 				}

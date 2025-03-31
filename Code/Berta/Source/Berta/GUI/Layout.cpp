@@ -409,35 +409,52 @@ namespace Berta
 			auto x = nodeArea.X + static_cast<int>(nodeArea.Width) / 2;
 			auto y = nodeArea.Y + static_cast<int>(nodeArea.Height) / 2;
 
+			Point position{};
+			if (indicator->Position == DockPosition::Tab)
+			{
+				position = { x - indicatorSizeHalf, y - indicatorSizeHalf };
+			}
+			else if (indicator->Position == DockPosition::Up)
+			{
+				position = { x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
+			}
+			else if (indicator->Position == DockPosition::Down)
+			{
+				position = { x - indicatorSizeHalf, y + indicatorSizeHalf + indicatorSizeOffset };
+			}
+			else if (indicator->Position == DockPosition::Left)
+			{
+				position = { x - indicatorSizeHalf - indicatorSize - indicatorSizeOffset, y - indicatorSizeHalf };
+			}
+			else if (indicator->Position == DockPosition::Right)
+			{
+				position = { x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
+			}
+
 			if (!indicator->Docker)
 			{
 				if (indicator->Position == DockPosition::Tab)
 				{
-					Point position{ x - indicatorSizeHalf, y - indicatorSizeHalf };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
 				else if (indicator->Position == DockPosition::Up)
 				{
-					Point position{ x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
 				else if (indicator->Position == DockPosition::Down)
 				{
-					Point position{ x - indicatorSizeHalf, y + indicatorSizeHalf + indicatorSizeOffset };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
 				else if (indicator->Position == DockPosition::Left)
 				{
-					Point position{ x - indicatorSizeHalf - indicatorSize - indicatorSizeOffset, y - indicatorSizeHalf };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
 				else if (indicator->Position == DockPosition::Right)
 				{
-					Point position{ x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
 				}
@@ -455,31 +472,7 @@ namespace Berta
 			}
 			else
 			{
-				if (indicator->Position == DockPosition::Tab)
-				{
-					Point position{ x - indicatorSizeHalf, y - indicatorSizeHalf };
-					indicator->Docker->SetPosition(position);
-				}
-				else if (indicator->Position == DockPosition::Up)
-				{
-					Point position{ x - indicatorSizeHalf, y - indicatorSize - indicatorSizeHalf - indicatorSizeOffset };
-					indicator->Docker->SetPosition(position);
-				}
-				else if (indicator->Position == DockPosition::Down)
-				{
-					Point position{ x - indicatorSizeHalf, y + indicatorSizeHalf + indicatorSizeOffset };
-					indicator->Docker->SetPosition(position);
-				}
-				else if (indicator->Position == DockPosition::Left)
-				{
-					Point position{ x - indicatorSizeHalf - indicatorSize - indicatorSizeOffset, y - indicatorSizeHalf };
-					indicator->Docker->SetPosition(position);
-				}
-				else if (indicator->Position == DockPosition::Right)
-				{
-					Point position{ x + indicatorSizeHalf + indicatorSizeOffset, y - indicatorSizeHalf };
-					indicator->Docker->SetPosition(position);
-				}
+				indicator->Docker->SetPosition(position);
 			}
 		}
 	}
@@ -652,8 +645,11 @@ namespace Berta
 								if (j > 0)
 									parentParent->m_children[j - 1]->SetNext(child);
 
-								//parentParent->weight.reset();
-								//child->weight.reset();
+								parentParent->m_fixedHeight.Reset();
+								parentParent->m_fixedWidth.Reset();
+								child->m_fixedHeight.Reset();
+								child->m_fixedWidth.Reset();
+
 								child->SetParentNode(parentParent);
 								break;
 							}
@@ -739,6 +735,12 @@ namespace Berta
 			targetPtr->SetParentNode(containerPtr);
 			containerPtr->SetNext(target->GetNext());
 
+			targetPtr->m_fixedHeight.Reset();
+			targetPtr->m_fixedWidth.Reset();
+
+			node->m_fixedHeight.Reset();
+			node->m_fixedWidth.Reset();
+
 			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
 			{
 				node->SetNext(splitterPtr);
@@ -806,9 +808,15 @@ namespace Berta
 			for (size_t i = 0; i < targetParent->m_children.size(); i++)
 			{
 				if (i == targetParent->m_children.size() - 1)
+				{
 					targetParent->m_children[i]->SetNext(nullptr);
+				}
 				else
+				{
 					targetParent->m_children[i]->SetNext(targetParent->m_children[i + 1].get());
+				}
+				targetParent->m_children[i]->m_fixedHeight.Reset();
+				targetParent->m_children[i]->m_fixedWidth.Reset();
 			}
 		}
 		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
