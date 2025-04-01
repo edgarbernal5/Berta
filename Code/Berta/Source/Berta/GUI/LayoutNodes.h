@@ -183,15 +183,13 @@ namespace Berta
             m_area = newSize;
         }
 
-        void SetAreaWithPercentage(const Rectangle& newSize, const Size& parentSize, Size fixedSize, size_t splitterCount)
+        void SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize)
         {
-            auto newArea = newSize;
-            fixedSize *= (uint32_t)splitterCount;
             if (m_fixedWidth.HasValue())
             {
                 auto remainSize = parentSize - fixedSize;
 
-                auto newScalar = static_cast<double>(newSize.Width) / remainSize.Width;
+                auto newScalar = static_cast<double>(newArea.Width) / remainSize.Width;
                 m_fixedWidth.isPercentage = true;
                 m_fixedWidth.SetValue(newScalar);
 
@@ -200,7 +198,7 @@ namespace Berta
                 {
                     auto widthProp = GetProperty<Number>("Width");
 
-                    auto newScalar = static_cast<double>(newSize.Width) / parentSize.Width;
+                    auto newScalar = static_cast<double>(newArea.Width) / parentSize.Width;
                     widthProp.isPercentage = true;
                     widthProp.SetValue(newScalar * 100.0);
                     SetProperty("Width", widthProp);
@@ -210,7 +208,7 @@ namespace Berta
             {
                 auto remainSize = parentSize - fixedSize;
 
-                auto newScalar = static_cast<double>(newSize.Height) / remainSize.Height;
+                auto newScalar = static_cast<double>(newArea.Height) / remainSize.Height;
                 m_fixedHeight.isPercentage = true;
                 m_fixedHeight.SetValue(newScalar);
 
@@ -219,7 +217,7 @@ namespace Berta
                 {
                     auto widthProp = GetProperty<Number>("Height");
 
-                    auto newScalar = static_cast<double>(newSize.Height) / parentSize.Height;
+                    auto newScalar = static_cast<double>(newArea.Height) / parentSize.Height;
                     widthProp.isPercentage = true;
                     widthProp.SetValue(newScalar * 100.0);
                     SetProperty("Height", widthProp);

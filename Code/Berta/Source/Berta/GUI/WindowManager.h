@@ -94,7 +94,7 @@ namespace Berta
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, Point parentPosition = {});
-		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, Point parentPosition = {});
+		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition = {});
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
 		void SetParentInternal(Window* window, Window* newParent);

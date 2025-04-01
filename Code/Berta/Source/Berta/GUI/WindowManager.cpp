@@ -107,9 +107,9 @@ namespace Berta
 			window->Children.pop_back();
 
 #if BT_DEBUG
-			BT_CORE_DEBUG << "    - DestroyInternal. Child Window =" << child->Name << std::endl;
+			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window =" << child->Name << std::endl;
 #else
-			BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
+			//BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
 #endif
 			delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
 		}
@@ -167,7 +167,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, Point parentPosition)
+	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition)
 	{
 		if (window == nullptr)
 		{
@@ -300,9 +300,9 @@ namespace Berta
 			m_windowRegistry.erase(window);
 
 #if BT_DEBUG
-			BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
+			//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
 #else
-			BT_CORE_DEBUG << "    - Remove." << std::endl;
+			//BT_CORE_DEBUG << "    - Remove." << std::endl;
 #endif
 			delete window;
 		}
@@ -506,7 +506,7 @@ namespace Berta
 			{
 				UpdateTree(windowToUpdate);
 				auto position = GetAbsoluteRootPosition(windowToUpdate);
-				Rectangle areaToUpdate{ position.X,position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
+				Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
 				Map(windowToUpdate, &areaToUpdate);
 			}
 		}

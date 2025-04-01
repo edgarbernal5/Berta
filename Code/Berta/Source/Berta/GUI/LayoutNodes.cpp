@@ -362,6 +362,7 @@ namespace Berta
 				
 				auto splitterArea = GetArea();
 				auto newSplitterArea = splitterArea;
+				auto fixedSize = splitterArea;
 
 				if (m_isVertical)
 				{
@@ -370,16 +371,34 @@ namespace Berta
 					auto newRightArea = m_rightArea;
 
 					int leftLimit = (std::max)(0, static_cast<int>(newLeftArea.Height) + deltaY);
+					leftLimit = (std::min)(leftLimit, static_cast<int>(m_leftArea.Height + m_rightArea.Height));
 					newLeftArea.Height = static_cast<uint32_t>(leftLimit);
 
 					newRightArea.Y = (std::max)(newLeftArea.Y, newRightArea.Y + deltaY);
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Height) - deltaY);
+					rightLimit = (std::min)(rightLimit, (int)(m_leftArea.Height + m_rightArea.Height));
 					newRightArea.Height = static_cast<uint32_t>(rightLimit);
 
-					auto splitterCount = (m_containerNode->m_children.size() - 1) / 2;
+					auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
 					auto containerArea = m_containerNode->GetArea();
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea, splitterCount);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea, splitterCount);
+					fixedSize.Height *= splitterCount;
+
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize);
+					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize);
+
+					if (newLeftArea.Height + newRightArea.Height != m_leftArea.Height + m_rightArea.Height)
+					{
+						int newValue = newLeftArea.Height + newRightArea.Height;
+						int oldValue = m_leftArea.Height + m_rightArea.Height;
+						auto diff = oldValue - newValue;
+
+						double diffPercent = (double)diff / (containerArea.Height - splitterArea.Height);
+						auto prevPercent = GetPrev()->m_fixedHeight.GetValue<double>() + diffPercent * 0.5;
+						auto nextPercent = m_nextNode->m_fixedHeight.GetValue<double>() + diffPercent * 0.5;
+
+						GetPrev()->m_fixedHeight.SetValue(prevPercent);
+						m_nextNode->m_fixedHeight.SetValue(nextPercent);
+					}
 
 					newSplitterArea.Y += deltaY;
 				}
@@ -390,22 +409,39 @@ namespace Berta
 					auto newRightArea = m_rightArea;
 
 					int leftLimit = (std::max)(0, static_cast<int>(newLeftArea.Width) + deltaX);
+					leftLimit = (std::min)(leftLimit, static_cast<int>(m_leftArea.Width + m_rightArea.Width));
 					newLeftArea.Width = static_cast<uint32_t>(leftLimit);
 
 					newRightArea.X = (std::max)(newLeftArea.X, newRightArea.X + deltaX);
 					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Width) - deltaX);
+					rightLimit = (std::min)(rightLimit, (int)(m_leftArea.Width + m_rightArea.Width));
 					newRightArea.Width = static_cast<uint32_t>(rightLimit);
 
-					auto splitterCount = (m_containerNode->m_children.size() - 1) / 2;
+					auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
 					auto containerArea = m_containerNode->GetArea();
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, splitterArea, splitterCount);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, splitterArea, splitterCount);
+					fixedSize.Width *= splitterCount;
+
+					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize);
+					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize);
+
+					if (newLeftArea.Width + newRightArea.Width != m_leftArea.Width + m_rightArea.Width)
+					{
+						int newValue = newLeftArea.Width + newRightArea.Width;
+						int oldValue = m_leftArea.Width + m_rightArea.Width;
+						auto diff = oldValue - newValue;
+
+						double diffPercent = (double)diff / (containerArea.Width - splitterArea.Width);
+						auto prevPercent = GetPrev()->m_fixedWidth.GetValue<double>() + diffPercent * 0.5;
+						auto nextPercent = m_nextNode->m_fixedWidth.GetValue<double>() + diffPercent * 0.5;
+
+						GetPrev()->m_fixedWidth.SetValue(prevPercent);
+						m_nextNode->m_fixedWidth.SetValue(nextPercent);
+					}
 
 					newSplitterArea.X += deltaX;
 				}
 
 				SetArea(newSplitterArea);
-				GUI::MoveWindow(m_splitter->Handle(), newSplitterArea);
 
 				m_containerNode->CalculateAreas();
 

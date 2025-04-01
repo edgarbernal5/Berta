@@ -19,7 +19,7 @@ namespace Berta
 	void FormReactor::Update(Graphics& graphics)
 	{
 #if BT_DEBUG
-		BT_CORE_TRACE << "  - Form::Update | window=" << m_control->Handle()->Name << ". hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
+		//BT_CORE_TRACE << "  - Form::Update | window=" << m_control->Handle()->Name << ". hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #else
 		BT_CORE_TRACE << "  - Form::Update. hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #endif
