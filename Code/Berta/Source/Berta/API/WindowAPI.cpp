@@ -242,7 +242,26 @@ namespace Berta
 		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::MoveWindow(nativeHandle.Handle, newArea.X, newArea.Y, newArea.Width, newArea.Height, true);
+			int x = newArea.X;
+			int y = newArea.Y;
+			HWND owner = ::GetWindow(nativeHandle.Handle, GW_OWNER);
+			if (owner)
+			{
+				::RECT ownerRECT;
+				::GetWindowRect(owner, &ownerRECT);
+				::POINT positionRECT = { ownerRECT.left, ownerRECT.top };
+				::ScreenToClient(owner, &positionRECT);
+				x += (ownerRECT.left - positionRECT.x);
+				y += (ownerRECT.top - positionRECT.y);
+			}
+
+			RECT clientRECT, windowAreaRECT;
+			::GetClientRect(nativeHandle.Handle, &clientRECT);
+			::GetWindowRect(nativeHandle.Handle, &windowAreaRECT);
+			unsigned borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
+			unsigned borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
+
+			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, true);
 #endif
 		}
 

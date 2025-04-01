@@ -369,14 +369,14 @@ namespace Berta
 				auto newLeftArea = m_leftArea;
 				auto newRightArea = m_rightArea;
 
-				auto& newLeftAreaValue = m_isVertical ? newLeftArea.Height : newLeftArea.Width;
 				auto& leftAreaValue = m_isVertical ? m_leftArea.Height : m_leftArea.Width;
 				auto& rightAreaValue = m_isVertical ? m_rightArea.Height : m_rightArea.Width;
+
+				auto& newLeftAreaValue = m_isVertical ? newLeftArea.Height : newLeftArea.Width;
+				auto& newRightAreaValue = m_isVertical ? newRightArea.Height : newRightArea.Width;
 				
 				auto& leftPos = m_isVertical ? newLeftArea.Y : newLeftArea.X;
 				auto& rightPos = m_isVertical ? newRightArea.Y : newRightArea.X;
-
-				auto& newRightAreaValue = m_isVertical ? newRightArea.Height : newRightArea.Width;
 
 				auto containerArea = m_containerNode->GetArea();
 				auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
