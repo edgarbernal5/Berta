@@ -110,6 +110,11 @@ namespace Berta
 			return (units * DPIScaleFactor);
 		}
 
+		bool IsNested() const
+		{
+			return Type == WindowType::Form && !Owner && Parent;
+		}
+
 		Window* FindFirstNonPanelAncestor() const;
 		Window* FindFirstPanelAncestor() const;
 		bool AreParentsVisible() const;

@@ -21,7 +21,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -311,8 +311,8 @@ namespace Berta
 			//if (wParam == WA_INACTIVE)
 			{
 				//Added these calls for float window that rendered a thick frame when loses/gains focus.
-				::InvalidateRect(hWnd, NULL, TRUE);
-				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+				//::InvalidateRect(hWnd, NULL, TRUE);
+				//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
 			//::InvalidateRect(hWnd, NULL, TRUE);
 			//::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_FRAME);
@@ -429,7 +429,7 @@ namespace Berta
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			//Added this call for float window that rendered a thick frame when loses/gains focus.
-			::InvalidateRect(hWnd, NULL, TRUE);
+			//::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_KILLFOCUS:
@@ -440,7 +440,7 @@ namespace Berta
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			//Added this call for float window that rendered a thick frame when loses/gains focus.
-			::InvalidateRect(hWnd, NULL, TRUE);
+			//::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured

@@ -239,6 +239,15 @@ namespace Berta
 #endif
 		}
 
+		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::SetParent(nativeHandle.Handle, parentNativeHandle.Handle);
+
+			::SetWindowPos(nativeHandle.Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+#endif
+		}
+
 		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea)
 		{
 #ifdef BT_PLATFORM_WINDOWS

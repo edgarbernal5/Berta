@@ -567,26 +567,21 @@ int main()
 	//buttonPaneTab.Hide();
 	//buttonPaneTab2.Hide();
 
-	/*form.GetLayout().AddPane("dockPane");
-	form.GetLayout().AddPaneTab("dockPane", "tab1", &buttonPaneTab);
-	form.GetLayout().AddPaneTab("dockPane", "tab2", &buttonPaneTab2);*/
+	//Berta::Button nestedForm(form, { 15,150,75,25 }, L"Show or Hide");
 
-	Berta::Button buttonHideScrollbar(form, { 15,150,75,25 }, L"Show or Hide");
-
-	//Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
-	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
+	Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
+	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
 
 	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
-	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &buttonHideScrollbar, "dockPane1", Berta::DockPosition::Down);
+	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &nestedForm, "dockPane1", Berta::DockPosition::Down);
 
+	//form.GetLayout().Attach("dockRoot", nestedForm);
 	form.GetLayout().Apply();
 
-	//form.GetLayout().Attach("b", nestedForm);
-
 	form.Show();
-	//nestedForm.Show();
+	nestedForm.Show();
 	form.Exec();
 
 	return 0;
