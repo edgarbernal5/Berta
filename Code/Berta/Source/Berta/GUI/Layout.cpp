@@ -1098,7 +1098,7 @@ namespace Berta
 			case Berta::Token::Type::Splitter:
 			{
 				auto splitterNode = std::make_unique<SplitterLayoutNode>(false);
-				splitterNode->SetProperty("Dimension", Number{ SplitterLayoutNode::Size });
+				splitterNode->SetProperty("Dimension", Number{ SplitterLayoutNode::SizeInPixels });
 
 				children.emplace_back(std::move(splitterNode));
 				break;

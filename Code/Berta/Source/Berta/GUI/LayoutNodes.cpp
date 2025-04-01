@@ -313,7 +313,7 @@ namespace Berta
 		m_isVertical(isVertical)
 	{
 		auto propertyName = isVertical ? "Height" : "Width";
-		SetProperty(propertyName, Number{ SplitterLayoutNode::Size });
+		SetProperty(propertyName, Number{ SplitterLayoutNode::SizeInPixels });
 	}
 
 	void SplitterLayoutNode::CalculateAreas()
@@ -362,84 +362,59 @@ namespace Berta
 				
 				auto splitterArea = GetArea();
 				auto newSplitterArea = splitterArea;
-				auto fixedSize = splitterArea;
+				auto fixedSplitterSize = m_isVertical ? splitterArea.Height : splitterArea.Width;
 
-				if (m_isVertical)
+				auto& deltaValue = m_isVertical ? delta.Y : delta.X;
+
+				auto newLeftArea = m_leftArea;
+				auto newRightArea = m_rightArea;
+
+				auto& newLeftAreaValue = m_isVertical ? newLeftArea.Height : newLeftArea.Width;
+				auto& leftAreaValue = m_isVertical ? m_leftArea.Height : m_leftArea.Width;
+				auto& rightAreaValue = m_isVertical ? m_rightArea.Height : m_rightArea.Width;
+				
+				auto& leftPos = m_isVertical ? newLeftArea.Y : newLeftArea.X;
+				auto& rightPos = m_isVertical ? newRightArea.Y : newRightArea.X;
+
+				auto& newRightAreaValue = m_isVertical ? newRightArea.Height : newRightArea.Width;
+
+				auto containerArea = m_containerNode->GetArea();
+				auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
+				fixedSplitterSize *= splitterCount;
+				Size fixedSize{ fixedSplitterSize, fixedSplitterSize };
+
+				int leftLimit = (std::max)(0, static_cast<int>(leftAreaValue) + deltaValue);
+				leftLimit = (std::min)(leftLimit, static_cast<int>(leftAreaValue + rightAreaValue));
+				newLeftAreaValue = static_cast<uint32_t>(leftLimit);
+
+				rightPos = (std::max)(leftPos, rightPos + deltaValue);
+				int rightLimit = (std::max)(0, static_cast<int>(newRightAreaValue) - deltaValue);
+				rightLimit = (std::min)(rightLimit, (int)(leftAreaValue + newRightAreaValue));
+				newRightAreaValue = static_cast<uint32_t>(rightLimit);
+
+				GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize);
+				m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize);
+
+				auto& prevFixedPercent = m_isVertical ? GetPrev()->m_fixedHeight : GetPrev()->m_fixedWidth;
+				auto& nextFixedPercent = m_isVertical ? m_nextNode->m_fixedHeight : m_nextNode->m_fixedWidth;
+
+				auto& newSplitterAreaPos = m_isVertical ? newSplitterArea.Y : newSplitterArea.X;
+				auto& containerAreaValue = m_isVertical ? containerArea.Height : containerArea.Width;
+				if (newLeftAreaValue + newRightAreaValue != leftAreaValue + rightAreaValue)
 				{
-					auto deltaY = delta.Y;
-					auto newLeftArea = m_leftArea;
-					auto newRightArea = m_rightArea;
+					int newValue = newLeftAreaValue + newRightAreaValue;
+					int oldValue = leftAreaValue + rightAreaValue;
+					auto diff = oldValue - newValue;
 
-					int leftLimit = (std::max)(0, static_cast<int>(newLeftArea.Height) + deltaY);
-					leftLimit = (std::min)(leftLimit, static_cast<int>(m_leftArea.Height + m_rightArea.Height));
-					newLeftArea.Height = static_cast<uint32_t>(leftLimit);
+					double diffPercent = (double)diff / (containerAreaValue - fixedSplitterSize);
+					auto prevPercent = prevFixedPercent.GetValue<double>() + diffPercent * 0.5;
+					auto nextPercent = nextFixedPercent.GetValue<double>() + diffPercent * 0.5;
 
-					newRightArea.Y = (std::max)(newLeftArea.Y, newRightArea.Y + deltaY);
-					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Height) - deltaY);
-					rightLimit = (std::min)(rightLimit, (int)(m_leftArea.Height + m_rightArea.Height));
-					newRightArea.Height = static_cast<uint32_t>(rightLimit);
-
-					auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
-					auto containerArea = m_containerNode->GetArea();
-					fixedSize.Height *= splitterCount;
-
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize);
-
-					if (newLeftArea.Height + newRightArea.Height != m_leftArea.Height + m_rightArea.Height)
-					{
-						int newValue = newLeftArea.Height + newRightArea.Height;
-						int oldValue = m_leftArea.Height + m_rightArea.Height;
-						auto diff = oldValue - newValue;
-
-						double diffPercent = (double)diff / (containerArea.Height - splitterArea.Height);
-						auto prevPercent = GetPrev()->m_fixedHeight.GetValue<double>() + diffPercent * 0.5;
-						auto nextPercent = m_nextNode->m_fixedHeight.GetValue<double>() + diffPercent * 0.5;
-
-						GetPrev()->m_fixedHeight.SetValue(prevPercent);
-						m_nextNode->m_fixedHeight.SetValue(nextPercent);
-					}
-
-					newSplitterArea.Y += deltaY;
+					prevFixedPercent.SetValue(prevPercent);
+					nextFixedPercent.SetValue(nextPercent);
 				}
-				else
-				{
-					auto deltaX = delta.X;
-					auto newLeftArea = m_leftArea;
-					auto newRightArea = m_rightArea;
-
-					int leftLimit = (std::max)(0, static_cast<int>(newLeftArea.Width) + deltaX);
-					leftLimit = (std::min)(leftLimit, static_cast<int>(m_leftArea.Width + m_rightArea.Width));
-					newLeftArea.Width = static_cast<uint32_t>(leftLimit);
-
-					newRightArea.X = (std::max)(newLeftArea.X, newRightArea.X + deltaX);
-					int rightLimit = (std::max)(0, static_cast<int>(newRightArea.Width) - deltaX);
-					rightLimit = (std::min)(rightLimit, (int)(m_leftArea.Width + m_rightArea.Width));
-					newRightArea.Width = static_cast<uint32_t>(rightLimit);
-
-					auto splitterCount = (uint32_t)(m_containerNode->m_children.size() - 1) / 2;
-					auto containerArea = m_containerNode->GetArea();
-					fixedSize.Width *= splitterCount;
-
-					GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize);
-					m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize);
-
-					if (newLeftArea.Width + newRightArea.Width != m_leftArea.Width + m_rightArea.Width)
-					{
-						int newValue = newLeftArea.Width + newRightArea.Width;
-						int oldValue = m_leftArea.Width + m_rightArea.Width;
-						auto diff = oldValue - newValue;
-
-						double diffPercent = (double)diff / (containerArea.Width - splitterArea.Width);
-						auto prevPercent = GetPrev()->m_fixedWidth.GetValue<double>() + diffPercent * 0.5;
-						auto nextPercent = m_nextNode->m_fixedWidth.GetValue<double>() + diffPercent * 0.5;
-
-						GetPrev()->m_fixedWidth.SetValue(prevPercent);
-						m_nextNode->m_fixedWidth.SetValue(nextPercent);
-					}
-
-					newSplitterArea.X += deltaX;
-				}
+				
+				newSplitterAreaPos += deltaValue;
 
 				SetArea(newSplitterArea);
 
