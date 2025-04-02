@@ -381,17 +381,17 @@ namespace Berta
 	{
 		auto controlAsPanel = dynamic_cast<Panel*>(control);
 		Panel* result = controlAsPanel;
-		if (!controlAsPanel)
+		if (controlAsPanel)
+		{
+			GUI::SetParentWindow(control->Handle(), this->Handle());
+		}
+		else
 		{
 			result = new Panel(this->Handle());
 #if BT_DEBUG
 			result->Handle()->Name = "Panel-" + tabId;
 #endif
 			GUI::SetParentWindow(control->Handle(), result->Handle());
-		}
-		else
-		{
-			GUI::SetParentWindow(control->Handle(), this->Handle());
 		}
 
 		m_reactor.AddTab(tabId, result);

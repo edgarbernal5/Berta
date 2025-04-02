@@ -151,7 +151,7 @@ namespace Berta
 			{
 				if (child->Type == WindowType::Form)
 				{
-					Paint(child, true);
+					//Paint(child, true);
 					continue;
 				}
 
@@ -196,7 +196,10 @@ namespace Berta
 				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
-					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+					if (!child->IsNested())
+					{
+						rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+					}
 				}
 			}
 			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition);
@@ -252,13 +255,10 @@ namespace Berta
 
 	void WindowManager::MoveInternal(Window* window, const Point& delta)
 	{
-		if (window->Type == WindowType::Form && window->IsNested())
+		if (window->Type == WindowType::Form)
 		{
-			auto position = GetAbsolutePosition(window);
+			auto position = API::GetWindowPosition(window->RootHandle);
 			API::MoveWindow(window->RootHandle, position + delta);
-
-			//UpdateTree(window);
-			API::RefreshWindow(window->RootHandle);
 		}
 
 		for (size_t i = 0; i < window->Children.size(); i++)
@@ -285,7 +285,12 @@ namespace Berta
 		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
 		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
 		{
-			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+			if (!window->IsNested())
+			{
+				//requestRectangle.X = 0;
+				//requestRectangle.Y = 0;
+				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+			}
 		}
 
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition);
@@ -490,10 +495,9 @@ namespace Berta
 		{
 			if (window->IsNested())
 			{
-				auto positionRoot = GetAbsoluteRootPosition(window);
 				requestRectangle.X = 0;
 				requestRectangle.Y = 0;
-				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+				//rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 			}
 			else
 			{
@@ -616,30 +620,31 @@ namespace Berta
 		bool positionChanged = window->Position != newRect;
 		Point delta{ newRect.X - window->Position.X, newRect.Y - window->Position.Y };
 
-		if (positionChanged /* && window->Type != WindowType::Form*/)
+		if (positionChanged && window->Type != WindowType::Form)
 		{
 			window->Position = newRect;
 		}
 
 		if (positionChanged && window->Type != WindowType::Form)
+		{
 			MoveInternal(window, delta);
+			
+			ArgMove argMove;
+			argMove.NewPosition = newRect;
+			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+		}
 
 		if (sizeChanged)
 		{
 			Resize(window, newRect);
 		}
 
-		if (window->Type == WindowType::Form /* && positionChanged && !sizeChanged*/)
+		if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
 		{
 			API::MoveWindow(window->RootHandle, newRect);
-
-			/*ArgMove argMove;
-			argMove.NewPosition = newRect;
-			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);*/
 		}
+
 		return sizeChanged || positionChanged;
-		
-		return false;
 	}
 
 	bool WindowManager::Move(Window* window, const Point& newPosition)
@@ -648,9 +653,6 @@ namespace Berta
 		
 		if (window->Type == WindowType::Form)
 		{
-			if (window->IsNested())
-				window->Position = newPosition;
-
 			API::MoveWindow(window->RootHandle, newPosition);
 			return true;
 		}
@@ -660,7 +662,9 @@ namespace Berta
 			window->Position = newPosition;
 
 			if (window->Type != WindowType::Form)
+			{
 				MoveInternal(window, delta);
+			}
 
 			ArgMove argMove;
 			argMove.NewPosition = newPosition;
@@ -866,7 +870,7 @@ namespace Berta
 			}
 		}
 
-		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
+		auto deltaPosition = GUI::GetAbsolutePosition(window) - GUI::GetAbsolutePosition(newParent);
 
 		window->Parent = newParent;
 		if (window->Type != WindowType::Form)
@@ -879,6 +883,14 @@ namespace Berta
 
 		newParent->Children.emplace_back(window);
 
+		if (window->Type == WindowType::Form)
+		{
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
+			API::SetParentWindow(window->RootHandle, newParent->RootHandle);
+
+			nativePosition -= deltaPosition;
+			API::MoveWindow(window->RootHandle, nativePosition);
+		}
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 
