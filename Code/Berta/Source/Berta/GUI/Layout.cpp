@@ -276,8 +276,10 @@ namespace Berta
 	void Layout::NotifyMoveStopped(DockPaneLayoutNode* paneNode)
 	{
 		m_lockPaneIndicators = false;
-		
-		if (IsMouseInsideDockIndicator())
+		auto shouldDock = IsMouseInsideDockIndicator();
+		HidePaneDockIndicators();
+
+		if (shouldDock)
 		{
 			if (m_tabDockField)
 			{
@@ -304,7 +306,6 @@ namespace Berta
 		}
 
 		m_lastTargetNode = nullptr;
-		HidePaneDockIndicators();
 	}
 
 	void Layout::RequestClose(DockPaneLayoutNode* paneNode)
