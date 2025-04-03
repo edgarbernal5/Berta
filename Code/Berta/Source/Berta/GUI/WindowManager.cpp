@@ -100,7 +100,7 @@ namespace Berta
 			auto child = window->Children.back();
 			if (child->Type == WindowType::Form)
 			{
-				API::DestroyNativeWindow(child->RootHandle); //TODO: don't know if this makes sense here.
+				API::DestroyNativeWindow(child->RootHandle); //child will be removed from parent's children.
 				continue;
 			}
 			DestroyInternal(child);
@@ -130,14 +130,14 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 	}
 
-	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, Point parentPosition)
+	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition, const Rectangle& parentRectangle)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, window->Size.Width, window->Size.Height };
+		Rectangle newParentRectangle = parentRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -147,34 +147,38 @@ namespace Berta
 
 			auto absolutePositionChild = GetLocalPosition(child);
 			absolutePositionChild += parentPosition;
+			Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
 			if (child->Type != WindowType::Panel)
 			{
 				if (child->Type == WindowType::Form)
 				{
-					//Paint(child, true);
+					Paint(child, true);
 					continue;
 				}
 
 				child->Renderer.Update();
 
-				Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			UpdateTreeInternal(child, rootGraphics, absolutePositionChild);
+			else
+			{
+				newParentRectangle = childRectangle;
+			}
+			UpdateTreeInternal(child, rootGraphics, absolutePositionChild, newParentRectangle);
 		}
 	}
 
-	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition)
+	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition, const Rectangle& parentRectangle)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, window->Size.Width, window->Size.Height };
+		Rectangle newParentRectangle = parentRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -184,6 +188,7 @@ namespace Berta
 
 			auto childAbsolutePosition = GetLocalPosition(child);
 			childAbsolutePosition += parentPosition;
+			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 			if (child->Type != WindowType::Panel)
 			{
 				if (doUpdate && !child->Flags.isUpdating)
@@ -193,16 +198,16 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-				Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
 				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
 				{
-					if (!child->IsNested())
-					{
-						rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
-					}
+					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
-			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition);
+			else
+			{
+				newParentRectangle = childRectangle;
+			}
+			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition, newParentRectangle);
 		}
 	}
 
@@ -280,20 +285,15 @@ namespace Berta
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
-		auto parent = window->FindFirstPanelAncestor();
+		auto parent = window->FindFirstPanelOrFormAncestor();
 		auto parentPosition = GetAbsoluteRootPosition(parent);
 		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
 		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
 		{
-			if (!window->IsNested())
-			{
-				//requestRectangle.X = 0;
-				//requestRectangle.Y = 0;
-				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-			}
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		}
 
-		PaintInternal(window, rootGraphics, doUpdate, absolutePosition);
+		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, parentRectangle);
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -484,28 +484,19 @@ namespace Berta
 		auto& rootGraphics = *(window->RootGraphics);
 
 		Rectangle requestRectangle = window->Size.ToRectangle();
-		auto absolutePosition = GetAbsolutePosition(window);
+		auto absolutePosition = GetAbsoluteRootPosition(window);
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
-		auto parent = window->FindFirstPanelAncestor(); //TODO: panel or window
-		auto parentPosition = GetAbsolutePosition(parent);
+		auto parent = window->FindFirstPanelOrFormAncestor(); //TODO: panel or window
+		auto parentPosition = GetAbsoluteRootPosition(parent);
 		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
 		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
 		{
-			if (window->IsNested())
-			{
-				requestRectangle.X = 0;
-				requestRectangle.Y = 0;
-				//rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-			}
-			else
-			{
-				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
-			}
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		}
 		
-		UpdateTreeInternal(window, rootGraphics, absolutePosition);
+		UpdateTreeInternal(window, rootGraphics, absolutePosition, parentRectangle);
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -661,10 +652,7 @@ namespace Berta
 			Point delta{ newPosition.X - window->Position.X, newPosition.Y - window->Position.Y };
 			window->Position = newPosition;
 
-			if (window->Type != WindowType::Form)
-			{
-				MoveInternal(window, delta);
-			}
+			MoveInternal(window, delta);
 
 			ArgMove argMove;
 			argMove.NewPosition = newPosition;

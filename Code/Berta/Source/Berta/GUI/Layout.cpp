@@ -800,7 +800,6 @@ namespace Berta
 				if (targetIndex == std::string::npos)
 					targetIndex = targetParent->m_children.size() - 1;
 
-
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, std::move(m_floatingDockFields[nodeIndex]));
 			}
