@@ -200,10 +200,6 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-				if (child->IsNested())
-				{
-					int a = 33;
-				}
 				if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 				{
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
