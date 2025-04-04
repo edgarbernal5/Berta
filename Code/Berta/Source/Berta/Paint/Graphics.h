@@ -24,7 +24,7 @@ namespace Berta
 
 	public:
 		Graphics();
-		Graphics(const Size& size);
+		Graphics(const Size& size, uint32_t dpi);
 		Graphics(const Graphics& other);
 		Graphics(Graphics&& other) noexcept;
 		~Graphics();

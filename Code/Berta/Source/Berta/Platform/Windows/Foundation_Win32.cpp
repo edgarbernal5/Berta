@@ -88,10 +88,10 @@ namespace Berta
 		MSG msg = { 0 };
 		while (msg.message != WM_QUIT)
 		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
 			}
 		}
 	}
@@ -101,43 +101,13 @@ namespace Berta
 	uint32_t g_debugLastMessageCount{0};
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		{WM_CREATE,			"WM_CREATE"},
-		{WM_NCCREATE,		"WM_NCCREATE"},
-		//{WM_MOVE,			"WM_MOVE"},
-		//{WM_MOVING,			"WM_MOVING"},
+		{WM_MOVE,			"WM_MOVE"},
 		{WM_SIZE,			"WM_SIZE"},
-		{WM_SIZING,			"WM_SIZING"},
-		//{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
-		//{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
-		//{WM_ERASEBKGND,	"WM_ERASEBKGND"},
-
-		{WM_DESTROY,		"WM_DESTROY"},
-		{WM_NCDESTROY,		"WM_NCDESTROY"},
-		{WM_SETFOCUS,		"WM_SETFOCUS"},
-		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
-		{WM_CLOSE,			"WM_CLOSE"},
-
-		{WM_CHAR,			"WM_CHAR"},
-		{WM_KEYDOWN,		"WM_KEYDOWN"},
-		{WM_KEYUP,			"WM_KEYUP"},
-		{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
-		{WM_SYSKEYUP,		"WM_SYSKEYUP"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
 		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
-		//{WM_NCCALCSIZE,		"WM_NCCALCSIZE"},
-		//{WM_SETCURSOR,		"WM_SETCURSOR"},
 
-		{WM_ACTIVATE,		"WM_ACTIVATE"},
-		{WM_CAPTURECHANGED,	"WM_CAPTURECHANGED"},
-
-		{WM_LBUTTONDBLCLK,	"WM_LBUTTONDBLCLK"},
-
-		{WM_MOUSEACTIVATE,	"WM_MOUSEACTIVATE"},
-
-		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
 		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
@@ -145,11 +115,60 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
-		{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
-		{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
-
 	};
+
+	//std::map<uint32_t, std::string> g_debugWndMessages
+	//{
+	//	{WM_CREATE,			"WM_CREATE"},
+	//	{WM_NCCREATE,		"WM_NCCREATE"},
+	//	{WM_MOVE,			"WM_MOVE"},
+	//	//{WM_MOVING,			"WM_MOVING"},
+	//	{WM_SIZE,			"WM_SIZE"},
+	//	{WM_SIZING,			"WM_SIZING"},
+	//	//{WM_ENTERSIZEMOVE,	"WM_ENTERSIZEMOVE"},
+	//	//{WM_EXITSIZEMOVE,	"WM_EXITSIZEMOVE"},
+	//	//{WM_ERASEBKGND,	"WM_ERASEBKGND"},
+
+	//	{WM_DESTROY,		"WM_DESTROY"},
+	//	{WM_NCDESTROY,		"WM_NCDESTROY"},
+	//	{WM_SETFOCUS,		"WM_SETFOCUS"},
+	//	{WM_KILLFOCUS,		"WM_KILLFOCUS"},
+	//	{WM_CLOSE,			"WM_CLOSE"},
+
+	//	{WM_CHAR,			"WM_CHAR"},
+	//	{WM_KEYDOWN,		"WM_KEYDOWN"},
+	//	{WM_KEYUP,			"WM_KEYUP"},
+	//	{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
+	//	{WM_SYSKEYUP,		"WM_SYSKEYUP"},
+
+	//	{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
+	//	{WM_ACTIVATEAPP,	"WM_ACTIVATEAPP"},
+	//	{WM_PAINT,			"WM_PAINT"},
+	//	{WM_DPICHANGED,		"WM_DPICHANGED"},
+	//	{WM_NCCALCSIZE,		"WM_NCCALCSIZE"},
+	//	{WM_NCPAINT,		"WM_NCPAINT"},
+	//	//{WM_SETCURSOR,		"WM_SETCURSOR"},
+
+	//	{WM_ACTIVATE,		"WM_ACTIVATE"},
+	//	{WM_CAPTURECHANGED,	"WM_CAPTURECHANGED"},
+
+	//	{WM_LBUTTONDBLCLK,	"WM_LBUTTONDBLCLK"},
+
+	//	{WM_MOUSEACTIVATE,	"WM_MOUSEACTIVATE"},
+
+	//	{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+	//	{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+	//	{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
+	//	{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
+
+	//	{WM_LBUTTONUP,		"WM_LBUTTONUP"},
+	//	{WM_MBUTTONUP,		"WM_MBUTTONUP"},
+	//	{WM_RBUTTONUP,		"WM_RBUTTONUP"},
+	//	//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+	//	{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
+	//	{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
+
+	//};
 #endif
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
@@ -295,6 +314,7 @@ namespace Berta
 		//	}
 		//	break;
 		//}
+		//https://github.com/rossy/borderless-window/blob/master/borderless-window.c#L347
 
 		case WM_ACTIVATEAPP:
 		{
@@ -396,7 +416,8 @@ namespace Berta
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 
-				nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
+				//This should be called later in deferred request.
+				//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
 			defaultToWindowProc = false;
 			break;
@@ -824,6 +845,12 @@ namespace Berta
 			windowManager.UpdateDeferredRequests(nativeWindow);
 			nativeWindow->DeferredRequests.clear();
 		}
+#ifdef BT_PRINT_WND_MESSAGES
+		if (it != g_debugWndMessages.end())
+		{
+			BT_CORE_DEBUG << "/// WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
+		}
+#endif
 
 		if (defaultToWindowProc)
 		{

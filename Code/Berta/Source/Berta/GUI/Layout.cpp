@@ -234,6 +234,7 @@ namespace Berta
 	{
 		if (!IsMouseInsideWindow())
 		{
+			m_lastTargetNode = nullptr;
 			HidePaneDockIndicators();
 			return;
 		}

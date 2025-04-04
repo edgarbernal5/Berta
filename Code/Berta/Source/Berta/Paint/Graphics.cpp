@@ -30,8 +30,9 @@ namespace Berta
 	{
 	}
 
-	Graphics::Graphics(const Size& size) :
-		m_attributes(std::make_unique<NativeAttributes>())
+	Graphics::Graphics(const Size& size, uint32_t dpi) :
+		m_attributes(std::make_unique<NativeAttributes>()),
+		m_dpi(dpi)
 	{
 		Build(size);
 	}
@@ -42,7 +43,8 @@ namespace Berta
 	}
 
 	Graphics::Graphics(Graphics&& other) noexcept :
-		m_attributes(std::move(other.m_attributes))
+		m_attributes(std::move(other.m_attributes)),
+		m_dpi(std::move(other.m_dpi))
 	{
 	}
 

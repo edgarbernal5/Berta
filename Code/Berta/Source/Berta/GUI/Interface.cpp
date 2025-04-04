@@ -433,6 +433,17 @@ namespace Berta::GUI
 		windowManager.UpdateTree(window);
 	}
 
+	void DoDeferredUpdate(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+
+		windowManager.DoDeferredUpdate(window);
+	}
+
 	void MarkAsUpdated(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

@@ -60,6 +60,7 @@ namespace Berta
 	{
 	public:
 		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false });
+		NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false });
 
 	private:
 	};

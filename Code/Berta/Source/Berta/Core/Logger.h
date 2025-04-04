@@ -15,7 +15,7 @@
 #include <mutex>
 
 //#ifndef BT_STACK_TRACER
-//#define BT_STACK_TRACER
+#define BT_STACK_TRACER
 //#endif
 
 #ifdef BT_STACK_TRACER
@@ -164,7 +164,8 @@ namespace Berta
 			struct tm timeinfo;
 			localtime_s(&timeinfo, &currentTime);
 
-			strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H-%M-%S", &timeinfo);
+			strftime(timeBuffer, sizeof(timeBuffer), "%H-%M-%S", &timeinfo);
+			//strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H-%M-%S", &timeinfo);
 
 			std::string logContent = m_stream.str();
 			std::ostringstream builder;

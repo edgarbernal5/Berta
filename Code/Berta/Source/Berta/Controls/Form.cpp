@@ -91,4 +91,12 @@ namespace Berta
 		m_handle->Name = "NestedForm";
 #endif
 	}
+
+	NestedForm::NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle) : 
+		FormBase(owner, true, rectangle, windowStyle, true)
+	{
+#if BT_DEBUG
+		m_handle->Name = "NestedForm";
+#endif
+	}
 }

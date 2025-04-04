@@ -353,7 +353,7 @@ namespace Berta
     class SplitterLayoutNode : public LayoutNode
     {
     public:
-        const static int SizeInPixels = 4;
+        const static int SizeInPixels = 5;
     public:
         SplitterLayoutNode(bool isVertical);
         

@@ -318,6 +318,26 @@ private:
 	uint32_t m_thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
 };
 
+class TabForm : public Berta::Panel
+{
+public:
+	TabForm(Berta::Window* parent) : Panel(parent)
+	{
+		m_nestedForm= std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{0,0, 200, 200});
+		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xAB20CC };
+
+		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+		{
+			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+		});
+
+		m_nestedForm->Show();
+	}
+
+private:
+	std::unique_ptr<Berta::NestedForm> m_nestedForm;
+};
+
 int main()
 {
 	Berta::Form form(Berta::Size(700u, 550u), { true, true, true });
@@ -569,19 +589,21 @@ int main()
 
 	//Berta::Button nestedForm(form, { 15,150,75,25 }, L"Show or Hide");
 
-	Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
-	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };
+	/*Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
+	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };*/
+
+	TabForm tabForm(form);
 
 	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
-	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &nestedForm, "dockPane1", Berta::DockPosition::Down);
+	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &tabForm, "dockPane1", Berta::DockPosition::Down);
 
 	//form.GetLayout().Attach("dockRoot", nestedForm);
 	form.GetLayout().Apply();
 
 	form.Show();
-	nestedForm.Show();
+	//nestedForm.Show();
 	form.Exec();
 
 	return 0;

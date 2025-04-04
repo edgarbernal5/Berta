@@ -23,7 +23,7 @@ namespace Berta
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size)
+		RootGraphics(size, window->DPI)
 	{
 	}
 
@@ -130,14 +130,14 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 	}
 
-	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition, const Rectangle& parentRectangle)
+	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition, const Rectangle& containerRectangle)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		Rectangle newParentRectangle = parentRectangle;
+		Rectangle newContainerRectangle = containerRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -153,32 +153,36 @@ namespace Berta
 				if (child->Type == WindowType::Form)
 				{
 					Paint(child, true);
+
+					//rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+					Map(child, nullptr);
+					
 					continue;
 				}
 
 				child->Renderer.Update();
 
-				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
+				if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 				{
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
 			else
 			{
-				newParentRectangle = childRectangle;
+				newContainerRectangle = childRectangle;
 			}
-			UpdateTreeInternal(child, rootGraphics, absolutePositionChild, newParentRectangle);
+			UpdateTreeInternal(child, rootGraphics, absolutePositionChild, newContainerRectangle);
 		}
 	}
 
-	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition, const Rectangle& parentRectangle)
+	void WindowManager::PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition, const Rectangle& containerRectangle)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		Rectangle newParentRectangle = parentRectangle;
+		Rectangle newContainerRectangle = containerRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -198,16 +202,20 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-				if (GetIntersectionClipRect(parentRectangle, childRectangle, childRectangle))
+				if (child->IsNested())
+				{
+					int a = 33;
+				}
+				if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 				{
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
 			}
 			else
 			{
-				newParentRectangle = childRectangle;
+				newContainerRectangle = childRectangle;
 			}
-			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition, newParentRectangle);
+			PaintInternal(child, rootGraphics, doUpdate, childAbsolutePosition, newContainerRectangle);
 		}
 	}
 
@@ -285,15 +293,15 @@ namespace Berta
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
 
-		auto parent = window->FindFirstPanelOrFormAncestor();
-		auto parentPosition = GetAbsoluteRootPosition(parent);
-		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
-		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
+		auto container = window->FindFirstPanelOrFormAncestor();
+		auto containerPosition = GetAbsoluteRootPosition(container);
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->Size.Width, container->Size.Height };
+		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		}
 
-		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, parentRectangle);
+		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, containerRectangle);
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -488,15 +496,29 @@ namespace Berta
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
-		auto parent = window->FindFirstPanelOrFormAncestor(); //TODO: panel or window
-		auto parentPosition = GetAbsoluteRootPosition(parent);
-		Rectangle parentRectangle{ parentPosition.X, parentPosition.Y, parent->Size.Width, parent->Size.Height };
-		if (GetIntersectionClipRect(parentRectangle, requestRectangle, requestRectangle))
+		auto container = window->FindFirstPanelOrFormAncestor();
+		auto containerPosition = GetAbsoluteRootPosition(container);
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->Size.Width, container->Size.Height };
+		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
 		}
 		
-		UpdateTreeInternal(window, rootGraphics, absolutePosition, parentRectangle);
+		UpdateTreeInternal(window, rootGraphics, absolutePosition, containerRectangle);
+	}
+
+	void WindowManager::DoDeferredUpdate(Window* window)
+	{
+		if (!TryDeferredUpdate(window))
+		{
+#if BT_DEBUG
+			BT_CORE_TRACE << " - WindowManager.DoDeferredUpdate() / paint and map... " << window->Name << ". Hwnd = " << window->RootHandle.Handle << std::endl;
+#else
+			BT_CORE_TRACE << " - WindowManager.DoDeferredUpdate() / paint and map... Hwnd = " << window->RootHandle.Handle << std::endl;
+#endif
+			Paint(window, false);
+			Map(window, nullptr);
+		}
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -581,7 +603,8 @@ namespace Berta
 
 				if (resizeForm)
 				{
-					Rectangle newArea{ window->Position.X, window->Position.Y, window->Size.Width, window->Size.Height };
+					auto nativePosition = API::GetWindowPosition(window->RootHandle);
+					Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
 					API::MoveWindow(window->RootHandle, newArea);
 				}
 			}
@@ -677,16 +700,7 @@ namespace Berta
 			window->Flags.isUpdating = false;
 		}
 
-		if (!TryDeferredUpdate(window))
-		{
-#if BT_DEBUG
-			BT_CORE_TRACE << " - WindowManager.Update() / paint and map... " << window->Name << ". Hwnd = " << window->RootHandle.Handle << std::endl;
-#else
-			BT_CORE_TRACE << " - WindowManager.Update() / paint and map... Hwnd = " << window->RootHandle.Handle << std::endl;
-#endif
-			Paint(window, false);
-			Map(window, nullptr);
-		}
+		DoDeferredUpdate(window);
 	}
 
 	bool WindowManager::TryDeferredUpdate(Window* window)
@@ -698,7 +712,6 @@ namespace Berta
 
 		if (window->RootWindow->Flags.IsDeferredCount == 0)
 		{
-			//TODO: paint and map
 #if BT_DEBUG
 			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. window = " << window->Name << ". hwnd = " << window->RootHandle.Handle << std::endl;
 #else
@@ -742,7 +755,6 @@ namespace Berta
 		{
 			if (Exists(request) && !request->Flags.IsDisposed)
 			{
-				//TODO: don't update a window twice. A child could be in the queue, add check.
 				Paint(request, false);
 				Map(request, nullptr);
 
@@ -753,35 +765,43 @@ namespace Berta
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
 	{
-		if (window->DPI != newDPI)
+		if (window->DPI == newDPI)
 		{
-			auto oldDPI = window->DPI;
-			window->DPI = newDPI;
-			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
+			return;
+		}
 
-			float scalingFactor = (float)newDPI / oldDPI;
+		auto oldDPI = window->DPI;
+		window->DPI = newDPI;
+		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
+
+		float scalingFactor = (float)newDPI / oldDPI;
+		if (window->Type != WindowType::Form)
+		{
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
 			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
-			window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
-			window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+		}
+		window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
+		window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
 
-			auto& graphics = window->Renderer.GetGraphics();
-			graphics.Release();
-			graphics.Build(window->Size);
-			graphics.BuildFont(newDPI);
+		auto& graphics = window->Renderer.GetGraphics();
+		graphics.Release();
+		graphics.Build(window->Size);
+		graphics.BuildFont(newDPI);
 
-			if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
-			{
-				auto position = GetAbsolutePosition(window);
-				Rectangle newArea{ position.X, position.Y, window->Size.Width, window->Size.Height };
-				API::MoveWindow(window->RootHandle, newArea);
-				API::RefreshWindow(window->RootHandle);
-			}
+		if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
+		{
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
+			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
+			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
 
-			for (auto& child : window->Children)
-			{
-				ChangeDPI(child, newDPI, nativeWindowHandle);
-			}
+			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
+			API::MoveWindow(window->RootHandle, newArea);
+			API::RefreshWindow(window->RootHandle);
+		}
+
+		for (auto& child : window->Children)
+		{
+			ChangeDPI(child, newDPI, nativeWindowHandle);
 		}
 	}
 

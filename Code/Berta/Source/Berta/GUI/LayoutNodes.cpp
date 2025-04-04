@@ -422,7 +422,7 @@ namespace Berta
 
 				auto windowToUpdate = m_containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
 				GUI::UpdateTree(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
-				GUI::UpdateWindow(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
+				GUI::DoDeferredUpdate(windowToUpdate);
 			});
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)

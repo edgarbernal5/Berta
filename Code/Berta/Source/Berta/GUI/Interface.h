@@ -58,6 +58,7 @@ namespace Berta
 		void SetParentWindow(Window* window, Window* newParent);
 
 		void UpdateTree(Window* window);
+		void DoDeferredUpdate(Window* window);
 		void MarkAsUpdated(Window* window); //Precondition: window must have been updated.
 
 		void ChangeCursor(Window* window, Cursor newCursor);

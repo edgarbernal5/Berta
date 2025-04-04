@@ -62,6 +62,7 @@ namespace Berta
 
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window);
+		void DoDeferredUpdate(Window* window);
 		void Map(Window* window, const Rectangle* areaToUpdate);
 		void Show(Window* window, bool visible);
 
