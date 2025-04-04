@@ -153,8 +153,6 @@ namespace Berta
 				if (child->Type == WindowType::Form)
 				{
 					Paint(child, true);
-
-					//rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 					Map(child, nullptr);
 					
 					continue;
