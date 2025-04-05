@@ -153,8 +153,6 @@ namespace Berta
 				if (child->Type == WindowType::Form)
 				{
 					Paint(child, true);
-					Map(child, nullptr);
-					
 					continue;
 				}
 

@@ -39,6 +39,7 @@ namespace Berta
 		{
 			return m_layout;
 		}
+
 		void SetLayout(const std::string& layoutText);
 	private:
 		Layout m_layout;

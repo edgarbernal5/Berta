@@ -15,7 +15,7 @@
 #include <mutex>
 
 //#ifndef BT_STACK_TRACER
-#define BT_STACK_TRACER
+//#define BT_STACK_TRACER
 //#endif
 
 #ifdef BT_STACK_TRACER

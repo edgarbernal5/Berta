@@ -82,7 +82,7 @@ namespace Berta
 			{
 				if (window->Visible && !m_windowManager.TryDeferredUpdate(window))
 				{
-					if (window->Status == WindowStatus::Updated && window->Type != WindowType::Panel)
+					if (window->Type != WindowType::Panel)
 					{
 						m_windowManager.Paint(window, isResizing);
 						m_windowManager.Map(window, nullptr); // Copy from root graphics to native hwnd window.

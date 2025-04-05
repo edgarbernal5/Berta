@@ -412,7 +412,6 @@ namespace Berta
 				ArgResize argResize;
 				argResize.NewSize = newSize;
 
-				//TODO: esto es un hack!
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 

@@ -669,7 +669,6 @@ namespace Berta
 			{
 				m_tabBar->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
 			}
-			//GUI::UpdateWindow(this->Handle());
 		});
 
 		m_caption->GetEvents().MouseDown.Connect([this](const ArgMouse& args)
