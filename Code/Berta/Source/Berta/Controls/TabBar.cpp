@@ -354,11 +354,17 @@ namespace Berta
 		Rectangle rect;
 		if (m_tabPosition == TabBarPosition::Top)
 		{
-			rect = { 2, (int)tabBarItemHeight + 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
+			int newWidth = (std::max)(0, static_cast<int>(m_owner->Size.Width) - 4);
+			int newHeight = (std::max)(0, static_cast<int>(m_owner->Size.Height) - static_cast<int>(tabBarItemHeight) - 4);
+
+			rect = { 2, (int)tabBarItemHeight + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
 		else
 		{
-			rect = { 2, 2, m_owner->Size.Width - 4, m_owner->Size.Height - tabBarItemHeight - 4 };
+			int newWidth = (std::max)(0, static_cast<int>(m_owner->Size.Width) - 4);
+			int newHeight = (std::max)(0, static_cast<int>(m_owner->Size.Height) - static_cast<int>(tabBarItemHeight) - 4);
+
+			rect = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
 		GUI::MoveWindow(panel->Handle(), rect);
 	}
