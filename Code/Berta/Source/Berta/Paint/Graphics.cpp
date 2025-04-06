@@ -60,38 +60,40 @@ namespace Berta
 			m_attributes = std::make_unique<NativeAttributes>();
 		}
 
-		if (m_attributes->m_size != size)
+		if (m_attributes->m_size == size)
 		{
-			m_attributes->m_size = size;
-			if (m_attributes->m_size.IsEmpty())
-			{
-				Release();
-				return;
-			}
+			return;
+		}
+
+		m_attributes->m_size = size;
+		if (m_attributes->m_size.IsEmpty())
+		{
+			Release();
+			return;
+		}
 
 #ifdef BT_PLATFORM_WINDOWS
-			HDC hdc = ::GetDC(nullptr);
+		HDC hdc = ::GetDC(nullptr);
 
-			HDC cdc = ::CreateCompatibleDC(hdc);
-			if (cdc == nullptr)
-			{
-				::ReleaseDC(nullptr, hdc);
+		HDC cdc = ::CreateCompatibleDC(hdc);
+		if (cdc == nullptr)
+		{
+			::ReleaseDC(nullptr, hdc);
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 				BT_CORE_TRACE << "Error." << std::endl;
 #endif
-				return;
-			}
-
-			HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
-			::SelectObject(cdc, hBitmap);
-
-			::SetBkMode(cdc, TRANSPARENT);
-			m_attributes->m_hdc = cdc;
-			m_attributes->m_hBitmap = hBitmap;
-
-			::ReleaseDC(0, hdc);
-#endif
+			return;
 		}
+
+		HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
+		::SelectObject(cdc, hBitmap);
+
+		::SetBkMode(cdc, TRANSPARENT);
+		m_attributes->m_hdc = cdc;
+		m_attributes->m_hBitmap = hBitmap;
+
+		::ReleaseDC(0, hdc);
+#endif
 	}
 
 	void Graphics::BuildFont(uint32_t dpi)
@@ -115,6 +117,17 @@ namespace Berta
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
 		::SelectObject(m_attributes->m_hdc, oldFont);
+	}
+
+	void Graphics::Rebuild(const Size& size)
+	{
+		if (m_attributes->m_size == size)
+		{
+			return;
+		}
+
+		m_attributes.reset(new NativeAttributes());
+		Build(size);
 	}
 
 	void Graphics::Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, float alpha)

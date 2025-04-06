@@ -25,6 +25,8 @@
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
+//TODO: flickering!! https://stackoverflow.com/questions/50898990/reduce-flickering-when-using-setwindowpos-to-change-the-left-edge-of-a-window
+//Google search: SWP_NOCOPYBITS
 namespace Berta
 {
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
@@ -99,6 +101,8 @@ namespace Berta
 #ifdef BT_PRINT_WND_MESSAGES
 	uint32_t g_debugLastMessageId{};
 	uint32_t g_debugLastMessageCount{0};
+
+	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
 		{WM_MOVE,			"WM_MOVE"},
@@ -115,8 +119,12 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
+
+		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 	};
 
+	//Long list.
 	//std::map<uint32_t, std::string> g_debugWndMessages
 	//{
 	//	{WM_CREATE,			"WM_CREATE"},

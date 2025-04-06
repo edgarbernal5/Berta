@@ -249,9 +249,9 @@ namespace Berta
 			}
 			else
 			{
-				child->RootHandle = newParent->RootHandle;
-				child->RootWindow = newParent->RootWindow;
-				child->RootGraphics = newParent->RootGraphics;
+				child->RootHandle = window->RootHandle;
+				child->RootWindow = window->RootWindow;
+				child->RootGraphics = window->RootGraphics;
 			}
 
 			SetParentInternal(child, newParent, deltaPosition);
@@ -614,40 +614,67 @@ namespace Berta
 
 	bool WindowManager::Move(Window* window, const Rectangle& newRect)
 	{
-		Rectangle currentRect{ window->Position, window->Size };
-		if (currentRect == newRect)
-		{
-			return false;
-		}
-
 		auto& foundation = Foundation::GetInstance();
 
+		bool positionChanged = false;
 		bool sizeChanged = window->Size != newRect;
-		bool positionChanged = window->Position != newRect;
-		Point delta{ newRect.X - window->Position.X, newRect.Y - window->Position.Y };
-
-		if (positionChanged && window->Type != WindowType::Form)
+		if (window->Type == WindowType::Form)
 		{
-			window->Position = newRect;
+			Rectangle rootRect = newRect;
+			if (window->Owner)
+			{
+				auto ownerPosition = GetAbsoluteRootPosition(window->Owner);
+				rootRect.X += ownerPosition.X;
+				rootRect.Y += ownerPosition.Y;
+			}
+			else if (window->Parent)
+			{
+				auto parentPosition = GetAbsoluteRootPosition(window->Parent);
+				rootRect.X += parentPosition.X;
+				rootRect.Y += parentPosition.Y;
+			}
+
+			if (sizeChanged)
+			{
+				window->Size = newRect;
+				window->Renderer.GetGraphics().Rebuild(window->Size);
+				window->RootGraphics->Rebuild(window->Size);
+
+				API::MoveWindow(window->RootHandle, rootRect);
+
+				ArgResize argResize;
+				argResize.NewSize = window->Size;
+#if BT_DEBUG
+				//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
+#else
+				//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
+#endif
+				foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+			}
+			else
+			{
+				API::MoveWindow(window->RootHandle, { rootRect.X, rootRect.Y });
+			}
 		}
-
-		if (positionChanged && window->Type != WindowType::Form)
+		else
 		{
-			MoveInternal(window, delta);
-			
-			ArgMove argMove;
-			argMove.NewPosition = newRect;
-			foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
-		}
+			positionChanged = window->Position != newRect;
+			Point delta{ newRect.X - window->Position.X, newRect.Y - window->Position.Y };
 
-		if (sizeChanged)
-		{
-			Resize(window, newRect);
-		}
+			if (positionChanged)
+			{
+				window->Position = newRect;
+				MoveInternal(window, delta);
 
-		if (window->Type == WindowType::Form && positionChanged && !sizeChanged)
-		{
-			API::MoveWindow(window->RootHandle, newRect);
+				ArgMove argMove;
+				argMove.NewPosition = newRect;
+				foundation.ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
+			}
+
+			if (sizeChanged)
+			{
+				Resize(window, newRect);
+			}
 		}
 
 		return sizeChanged || positionChanged;
@@ -870,7 +897,7 @@ namespace Berta
 			}
 		}
 
-		auto deltaPosition = GUI::GetAbsolutePosition(window) - GUI::GetAbsolutePosition(newParent);
+		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
 
 		window->Parent = newParent;
 		if (window->Type != WindowType::Form)

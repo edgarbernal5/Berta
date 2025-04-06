@@ -358,7 +358,7 @@ namespace Berta
 				if (!m_isSplitterMoving)
 					return;
 				
-				auto delta = GUI::GetAbsolutePosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
+				auto delta = GUI::GetAbsoluteRootPosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
 				
 				auto splitterArea = GetArea();
 				auto newSplitterArea = splitterArea;

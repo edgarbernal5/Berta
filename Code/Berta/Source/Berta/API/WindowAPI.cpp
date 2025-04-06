@@ -270,7 +270,7 @@ namespace Berta
 			unsigned borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
 			unsigned borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
-			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, true);
+			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, false);
 #endif
 		}
 
@@ -291,7 +291,8 @@ namespace Berta
 				adjustedPosition.X += (ownerRECT.left - ownerPosition.x);
 				adjustedPosition.Y += (ownerRECT.top - ownerPosition.y);
 			}
-			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, true);
+
+			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, false);
 #endif
 		}
 

@@ -331,11 +331,17 @@ public:
 			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
 		});
 
+		m_button1.Create(m_nestedForm->Handle(), true, Berta::Rectangle{10,10,140,40});
+		m_button1.SetCaption("Nested button");
+#ifdef BT_DEBUG
+		m_button1.SetDebugName("Nested button");
+#endif
 		m_nestedForm->Show();
 	}
 
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
+	Berta::Button m_button1;
 };
 
 int main()
