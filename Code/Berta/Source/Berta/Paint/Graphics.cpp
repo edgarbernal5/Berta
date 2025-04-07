@@ -126,7 +126,7 @@ namespace Berta
 			return;
 		}
 
-		m_attributes.reset(new NativeAttributes());
+		Release();
 		Build(size);
 	}
 
