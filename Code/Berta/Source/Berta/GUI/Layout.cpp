@@ -649,10 +649,25 @@ namespace Berta
 
 								parentParent->m_fixedHeight.Reset();
 								parentParent->m_fixedWidth.Reset();
-								child->m_fixedHeight.Reset();
-								child->m_fixedWidth.Reset();
 
 								child->SetParentNode(parentParent);
+
+								for (size_t k = 0; k < parentParent->m_children.size(); k++)
+								{
+									auto current = parentParent->m_children[k].get();
+									if (k == parentParent->m_children.size() - 1) {
+										current->SetNext(nullptr);
+									}
+									else
+									{
+										current->SetNext(parentParent->m_children[k + 1].get());
+									}
+									//if (k >= j)
+									{
+										current->m_fixedHeight.Reset();
+										current->m_fixedWidth.Reset();
+									}
+								}
 								break;
 							}
 						}
