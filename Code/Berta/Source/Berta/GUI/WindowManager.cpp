@@ -612,7 +612,7 @@ namespace Berta
 		foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 	}
 
-	bool WindowManager::Move(Window* window, const Rectangle& newRect)
+	bool WindowManager::Move(Window* window, const Rectangle& newRect, bool forceRepaint)
 	{
 		auto& foundation = Foundation::GetInstance();
 
@@ -640,7 +640,7 @@ namespace Berta
 				window->Renderer.GetGraphics().Rebuild(window->Size);
 				window->RootGraphics->Rebuild(window->Size);
 
-				API::MoveWindow(window->RootHandle, rootRect);
+				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
 				ArgResize argResize;
 				argResize.NewSize = window->Size;
@@ -653,7 +653,7 @@ namespace Berta
 			}
 			else
 			{
-				API::MoveWindow(window->RootHandle, { rootRect.X, rootRect.Y });
+				API::MoveWindow(window->RootHandle, { rootRect.X, rootRect.Y }, forceRepaint);
 			}
 		}
 		else
@@ -680,13 +680,13 @@ namespace Berta
 		return sizeChanged || positionChanged;
 	}
 
-	bool WindowManager::Move(Window* window, const Point& newPosition)
+	bool WindowManager::Move(Window* window, const Point& newPosition, bool forceRepaint)
 	{
 		auto& foundation = Foundation::GetInstance();
 		
 		if (window->Type == WindowType::Form)
 		{
-			API::MoveWindow(window->RootHandle, newPosition);
+			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
 			return true;
 		}
 		else if (window->Position != newPosition)
@@ -790,10 +790,11 @@ namespace Berta
 		}
 
 		auto oldDPI = window->DPI;
+		float scalingFactor = (float)newDPI / oldDPI;
+
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-		float scalingFactor = (float)newDPI / oldDPI;
 		if (window->Type != WindowType::Form)
 		{
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
@@ -814,8 +815,7 @@ namespace Berta
 			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
 
 			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
-			API::MoveWindow(window->RootHandle, newArea);
-			API::RefreshWindow(window->RootHandle);
+			API::MoveWindow(window->RootHandle, newArea, true);
 		}
 
 		for (auto& child : window->Children)

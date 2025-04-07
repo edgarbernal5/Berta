@@ -741,7 +741,7 @@ namespace Berta
 				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
 
 				m_mouseInteraction.m_hasChanged = true;
-				GUI::MoveWindow(*m_nativeContainer, newPosition);
+				GUI::MoveWindow(*m_nativeContainer, newPosition, true);
 
 				m_eventsNotifier->NotifyMove();
 			}

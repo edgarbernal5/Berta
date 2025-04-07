@@ -248,7 +248,7 @@ namespace Berta
 #endif
 		}
 
-		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea)
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			int x = newArea.X;
@@ -270,11 +270,11 @@ namespace Berta
 			unsigned borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
 			unsigned borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
-			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, false);
+			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint);
 #endif
 		}
 
-		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition)
+		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint)
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			::RECT nativeRECT;
@@ -292,7 +292,7 @@ namespace Berta
 				adjustedPosition.Y += (ownerRECT.top - ownerPosition.y);
 			}
 
-			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, false);
+			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, forceRepaint);
 #endif
 		}
 
@@ -415,7 +415,21 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			auto param = new CustomCallbackMessage();
 			param->Body = body;
+
 			::PostMessage(nativeHandle.Handle, static_cast<UINT>(CustomMessageId::CustomCallback), reinterpret_cast<WPARAM>(param), 0);
+#endif
+		}
+
+		void SendDpiChanged(NativeWindowHandle nativeHandle, uint32_t oldDpi, uint32_t newDpi, const Rectangle& newArea)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::RECT rect;
+			rect.left = newArea.X;
+			rect.right = newArea.X + newArea.Width;
+			rect.top = newArea.Y;
+			rect.bottom = newArea.Y + newArea.Height;
+
+			::SendMessage(nativeHandle.Handle, WM_DPICHANGED, MAKELPARAM(oldDpi, newDpi), reinterpret_cast<LPARAM>(&rect));
 #endif
 		}
 
@@ -424,6 +438,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			::POINT nativePoint;
 			::GetCursorPos(&nativePoint);
+
 			return Point(nativePoint.x, nativePoint.y);
 #else
 			return {};

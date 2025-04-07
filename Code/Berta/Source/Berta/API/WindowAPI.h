@@ -72,8 +72,8 @@ namespace Berta
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);
 		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle);
 
-		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea);
-		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition);
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint = false);
+		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint = false);
 		void ResizeWindow(NativeWindowHandle nativeHandle, const Size& newSize);
 
 		Point GetWindowPosition(NativeWindowHandle nativeHandle);
@@ -86,7 +86,9 @@ namespace Berta
 
 		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);
 		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point);
-		void SendCustomMessage(API::NativeWindowHandle nativeHandle, std::function<void()> body);
+		void SendCustomMessage(NativeWindowHandle nativeHandle, std::function<void()> body);
+
+		void SendDpiChanged(NativeWindowHandle nativeHandle, uint32_t oldDpi, uint32_t newDpi, const Rectangle& newArea);
 
 		Point GetScreenMousePosition();
 	}

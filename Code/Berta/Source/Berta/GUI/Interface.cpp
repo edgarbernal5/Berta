@@ -233,7 +233,7 @@ namespace Berta::GUI
 		return window->Size;
 	}
 
-	bool MoveWindow(Window* window, const Rectangle& newRect)
+	bool MoveWindow(Window* window, const Rectangle& newRect, bool forceRepaint)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -241,10 +241,10 @@ namespace Berta::GUI
 			return false;
 		}
 
-		return windowManager.Move(window, newRect);
+		return windowManager.Move(window, newRect, forceRepaint);
 	}
 
-	bool MoveWindow(Window* window, const Point& newPosition)
+	bool MoveWindow(Window* window, const Point& newPosition, bool forceRepaint)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -252,7 +252,7 @@ namespace Berta::GUI
 			return false;
 		}
 
-		return windowManager.Move(window, newPosition);
+		return windowManager.Move(window, newPosition, forceRepaint);
 	}
 
 	Rectangle AreaWindow(Window* window)
