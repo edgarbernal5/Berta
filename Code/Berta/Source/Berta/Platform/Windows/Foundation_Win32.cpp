@@ -105,7 +105,7 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		{WM_MOVE,			"WM_MOVE"},
+		//{WM_MOVE,			"WM_MOVE"},
 		{WM_SIZE,			"WM_SIZE"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
