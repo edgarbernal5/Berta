@@ -99,7 +99,7 @@ namespace Berta
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
-		void MoveInternal(Window* window, const Point& delta);
+		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
 
 		struct CaptureHistoryData
 		{

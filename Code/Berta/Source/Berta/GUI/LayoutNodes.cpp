@@ -300,7 +300,7 @@ namespace Berta
 		if (!m_window)
 			return;
 
-		GUI::MoveWindow(m_window, GetArea());
+		GUI::MoveWindow(m_window, GetArea(), false);
 	}
 
 	void LeafLayoutNode::AddWindow(Window* window)
@@ -502,7 +502,7 @@ namespace Berta
 	{
 		if (m_dockArea && !m_dockArea->IsFloating())
 		{
-			GUI::MoveWindow(m_dockArea->Handle(), GetArea());
+			GUI::MoveWindow(m_dockArea->Handle(), GetArea(), false);
 		}
 
 		for (auto& child : m_children)
@@ -743,7 +743,7 @@ namespace Berta
 				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
 
 				m_mouseInteraction.m_hasChanged = true;
-				GUI::MoveWindow(*m_nativeContainer, newPosition, true);
+				GUI::MoveWindow(*m_nativeContainer, newPosition);
 
 				m_eventsNotifier->NotifyMove();
 			}

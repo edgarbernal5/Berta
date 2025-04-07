@@ -78,7 +78,7 @@ namespace Berta
 #else
 			BT_CORE_DEBUG << "    - Destroy." << std::endl;
 #endif
-			delete window;
+			delete window;  //TODO: place this deallocation in a safe place!
 		}
 	}
 
@@ -111,7 +111,7 @@ namespace Berta
 #else
 			//BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
 #endif
-			delete child; //TODO: make it shared ptr (Window*) or maybe move this deallocation to Remove method (when WM_NCDESTROY is sent)
+			delete child; //TODO: place this deallocation in a safe place!
 		}
 
 		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
@@ -258,17 +258,17 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::MoveInternal(Window* window, const Point& delta)
+	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
 	{
 		if (window->Type == WindowType::Form)
 		{
 			auto position = API::GetWindowPosition(window->RootHandle);
-			API::MoveWindow(window->RootHandle, position + delta);
+			API::MoveWindow(window->RootHandle, position + delta, forceRepaint);
 		}
 
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
-			MoveInternal(window->Children[i], delta);
+			MoveInternal(window->Children[i], delta, forceRepaint);
 		}
 	}
 
@@ -618,6 +618,7 @@ namespace Berta
 
 		bool positionChanged = false;
 		bool sizeChanged = window->Size != newRect;
+
 		if (window->Type == WindowType::Form)
 		{
 			Rectangle rootRect = newRect;
@@ -664,7 +665,7 @@ namespace Berta
 			if (positionChanged)
 			{
 				window->Position = newRect;
-				MoveInternal(window, delta);
+				MoveInternal(window, delta, forceRepaint);
 
 				ArgMove argMove;
 				argMove.NewPosition = newRect;
@@ -694,7 +695,7 @@ namespace Berta
 			Point delta{ newPosition.X - window->Position.X, newPosition.Y - window->Position.Y };
 			window->Position = newPosition;
 
-			MoveInternal(window, delta);
+			MoveInternal(window, delta, forceRepaint);
 
 			ArgMove argMove;
 			argMove.NewPosition = newPosition;
@@ -815,7 +816,7 @@ namespace Berta
 			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
 
 			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
-			API::MoveWindow(window->RootHandle, newArea, true);
+			API::MoveWindow(window->RootHandle, newArea);
 		}
 
 		for (auto& child : window->Children)

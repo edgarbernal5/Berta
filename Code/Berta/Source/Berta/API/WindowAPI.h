@@ -72,8 +72,8 @@ namespace Berta
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);
 		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle);
 
-		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint = false);
-		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint = false);
+		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint = true);
+		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint = true);
 		void ResizeWindow(NativeWindowHandle nativeHandle, const Size& newSize);
 
 		Point GetWindowPosition(NativeWindowHandle nativeHandle);
