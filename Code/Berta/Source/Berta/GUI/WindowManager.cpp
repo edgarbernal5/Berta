@@ -78,7 +78,7 @@ namespace Berta
 #else
 			BT_CORE_DEBUG << "    - Destroy." << std::endl;
 #endif
-			delete window;  //TODO: place this deallocation in a safe place!
+			//delete window;  //TODO: place this deallocation in a safe place!
 		}
 	}
 
@@ -111,7 +111,7 @@ namespace Berta
 #else
 			//BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
 #endif
-			delete child; //TODO: place this deallocation in a safe place!
+			//delete child; //TODO: place this deallocation in a safe place!
 		}
 
 		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
@@ -242,7 +242,11 @@ namespace Berta
 			if (child->Type == WindowType::Form)
 			{
 				auto nativePosition = API::GetWindowPosition(child->RootHandle);
-				API::SetParentWindow(child->RootHandle, newParent->RootHandle);
+				auto currentParent = API::GetParentWindow(child->RootHandle);
+				if (currentParent != newParent->RootHandle)
+				{
+					API::SetParentWindow(child->RootHandle, newParent->RootHandle);
+				}
 
 				nativePosition -= deltaPosition;
 				API::MoveWindow(child->RootHandle, nativePosition);
@@ -337,7 +341,7 @@ namespace Berta
 #else
 			//BT_CORE_DEBUG << "    - Remove." << std::endl;
 #endif
-			delete window;
+			//delete window; //TODO: place this deallocation in a safe place!
 		}
 	}
 
@@ -913,8 +917,12 @@ namespace Berta
 
 		if (window->Type == WindowType::Form)
 		{
-			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			API::SetParentWindow(window->RootHandle, newParent->RootHandle);
+			auto nativePosition = API::GetWindowPosition(window->RootHandle); 
+			auto currentParent = API::GetParentWindow(window->RootHandle);
+			if (currentParent != newParent->RootHandle)
+			{
+				API::SetParentWindow(window->RootHandle, newParent->RootHandle);
+			}
 
 			nativePosition -= deltaPosition;
 			API::MoveWindow(window->RootHandle, nativePosition);

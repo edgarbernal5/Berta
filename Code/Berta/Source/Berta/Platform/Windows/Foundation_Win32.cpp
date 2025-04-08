@@ -109,7 +109,7 @@ namespace Berta
 		{WM_SIZE,			"WM_SIZE"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		{WM_PAINT,			"WM_PAINT"},
+		//{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -120,7 +120,12 @@ namespace Berta
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 
-		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+
+		{WM_NCCALCSIZE,		"WM_NCCALCSIZE"},
+		{WM_NCPAINT,		"WM_NCPAINT"},
+		{WM_NCACTIVATE,		"WM_NCACTIVATE"},
+
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 	};
 
@@ -175,7 +180,7 @@ namespace Berta
 	//	//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 	//	{WM_MOUSEHWHEEL,	"WM_MOUSEHWHEEL"},
 	//	{WM_MOUSEWHEEL,		"WM_MOUSEWHEEL"},
-
+	//	{ WM_NCACTIVATE, "WM_NCACTIVATE" },
 	//};
 #endif
 
@@ -269,60 +274,9 @@ namespace Berta
 		case WM_ERASEBKGND:
 			return TRUE;
 
-		//case WM_NCCALCSIZE:
-		//{
-		//	if (wParam == TRUE && !nativeWindow->isThickFrame)
-		//	{
-		//		NCCALCSIZE_PARAMS* params = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
-
-		//		UINT dpi = ::GetDpiForWindow(hWnd);
-		//		float scaleFactor = dpi / BT_APPLICATION_DPI;
-
-		//		int baseFrameThickness = 1;
-		//		int scaledFrameThickness = static_cast<int>(std::round(baseFrameThickness * scaleFactor));
-
-		//		params->rgrc[0].left += scaledFrameThickness;
-		//		params->rgrc[0].top += scaledFrameThickness;
-		//		params->rgrc[0].right -= scaledFrameThickness;
-		//		params->rgrc[0].bottom -= scaledFrameThickness;
-
-		//		defaultToWindowProc = false;
-		//	}
-		//	break;
-		//}
-		//case WM_NCPAINT:
-		//{
-		//	if (!nativeWindow->isThickFrame)
-		//	{
-		//		HDC hdc = GetDCEx(hWnd, (HRGN)wParam, DCX_WINDOW | DCX_INTERSECTRGN);
-		//		if (hdc) {
-		//			RECT windowRect;
-		//			GetWindowRect(hWnd, &windowRect);
-		//			int width = windowRect.right - windowRect.left;
-		//			int height = windowRect.bottom - windowRect.top;
-
-		//			// Apply clipping region
-		//			SelectClipRgn(hdc, (HRGN)wParam);
-
-		//			// Draw the custom frame
-		//			HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0)); // Black frame
-		//			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0)); // Black border pen.
-
-		//			SelectObject(hdc, hBrush);
-		//			SelectObject(hdc, hPen);
-
-		//			::Rectangle(hdc, 0, 0, width, height);
-
-		//			DeleteObject(hBrush);
-		//			DeleteObject(hPen);
-
-		//			ReleaseDC(hWnd, hdc);
-		//		}
-		//		defaultToWindowProc = false;
-		//	}
-		//	break;
-		//}
+		//WM_NCPAINT, WM_NCCALCSIZE
 		//https://github.com/rossy/borderless-window/blob/master/borderless-window.c#L347
+		//https://devblog.cyotek.com/post/painting-the-borders-of-a-custom-control-using-wm-ncpaint
 
 		case WM_ACTIVATEAPP:
 		{
@@ -333,20 +287,11 @@ namespace Berta
 			events->Activated.Emit(argActivated);
 			break;
 		}
-		case WM_ACTIVATE:
-			//BT_CORE_DEBUG << " wParam = " << wParam << ". window = " << nativeWindow->Name << std::endl;
-			//BT_CORE_DEBUG << " lParam = " << lParam << ". window = " << nativeWindow->Name << std::endl;
-			//if (wParam == WA_INACTIVE)
-			{
-				//Added these calls for float window that rendered a thick frame when loses/gains focus.
-				//::InvalidateRect(hWnd, NULL, TRUE);
-				//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
-			}
-			//::InvalidateRect(hWnd, NULL, TRUE);
-			//::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_FRAME);
-			//defaultToWindowProc = false;
-			break;
 
+		case WM_NCACTIVATE:
+			return ::DefWindowProc(hWnd, message, wParam, -1);	//DefWindowProc won't repaint the window border if lParam (normally a HRGN) is - 1.
+																//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+		
 		case WM_SHOWWINDOW:
 		{
 			bool isVisible = (wParam == TRUE);
@@ -456,8 +401,6 @@ namespace Berta
 				ArgFocus argFocus{ true };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
-			//Added this call for float window that rendered a thick frame when loses/gains focus.
-			//::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_KILLFOCUS:
@@ -467,8 +410,6 @@ namespace Berta
 				ArgFocus argFocus{ false };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
-			//Added this call for float window that rendered a thick frame when loses/gains focus.
-			//::InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		}
 		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured
@@ -876,9 +817,8 @@ namespace Berta
 		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
 		case WM_ERASEBKGND:
 		case WM_ACTIVATEAPP:
-		case WM_ACTIVATE:
-		//case WM_NCCALCSIZE:
-		//case WM_NCPAINT:
+		//case WM_ACTIVATE:
+		case WM_NCACTIVATE:
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
 		case WM_MOVE:

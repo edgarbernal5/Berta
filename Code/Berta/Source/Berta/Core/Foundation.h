@@ -85,7 +85,7 @@ namespace Berta
 					if (window->Type != WindowType::Panel)
 					{
 						m_windowManager.Paint(window, isResizing);
-						m_windowManager.Map(window, nullptr); // Copy from root graphics to native hwnd window.
+						m_windowManager.Map(window, nullptr);
 					}
 				}
 			}
