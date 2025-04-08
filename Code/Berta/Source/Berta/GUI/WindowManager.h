@@ -100,6 +100,7 @@ namespace Berta
 
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
 		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
+		void ShowInternal(Window* window, bool visible);
 
 		struct CaptureHistoryData
 		{

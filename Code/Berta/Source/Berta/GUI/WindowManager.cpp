@@ -276,6 +276,22 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::ShowInternal(Window* window, bool visible)
+	{
+		if (window->Type == WindowType::Form)
+		{
+			if (visible != window->Visible)
+			{
+				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
+			}
+		}
+
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			ShowInternal(window->Children[i], visible);
+		}
+	}
+
 	void WindowManager::Paint(Window* window, bool doUpdate)
 	{
 		if (doUpdate && !window->Flags.isUpdating)
@@ -547,6 +563,8 @@ namespace Berta
 		else
 		{
 			window->Visible = visible;
+
+			ShowInternal(window, visible);
 
 			ArgVisibility argVisibility;
 			argVisibility.IsVisible = visible;
