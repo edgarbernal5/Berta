@@ -39,11 +39,11 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		m_textEditor->Render();
 		
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

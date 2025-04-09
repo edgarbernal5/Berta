@@ -31,7 +31,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 		auto trackRect = GetSliderTrackRect();
 		graphics.DrawRoundRectBox(trackRect, 2, window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
@@ -139,7 +139,7 @@ namespace Berta
 
 		m_timer.Stop();
 		m_pressedArea = InteractionArea::None;
-		if (!window->Size.IsInside(args.Position))
+		if (!window->ClientSize.IsInside(args.Position))
 		{
 			m_hoverArea = InteractionArea::None;
 		}
@@ -305,7 +305,7 @@ namespace Berta
 
 		if (m_isVertical)
 		{
-			auto boxWidth = (std::max)(window->Size.Width, sliderBox);
+			auto boxWidth = (std::max)(window->ClientSize.Width, sliderBox);
 			trackRect.Height -= boxLength;
 
 			return {
@@ -314,7 +314,7 @@ namespace Berta
 				boxWidth, boxLength
 			};
 		}
-		auto boxHeight = (std::max)(window->Size.Height, sliderBox);
+		auto boxHeight = (std::max)(window->ClientSize.Height, sliderBox);
 		trackRect.Width -= boxLength;
 		
 		return {
@@ -357,11 +357,11 @@ namespace Berta
 		auto trackThickness = window->ToScale(m_trackThickness);
 		if (m_isVertical)
 		{
-			auto margin = (window->Size.Width - trackThickness) >> 1;
-			return Rectangle{ (int)margin, 0, trackThickness,window->Size.Height };
+			auto margin = (window->ClientSize.Width - trackThickness) >> 1;
+			return Rectangle{ (int)margin, 0, trackThickness,window->ClientSize.Height };
 		}
-		auto margin = (window->Size.Height - trackThickness) >> 1;
-		return Rectangle{ 0, (int)margin, window->Size.Width, trackThickness };
+		auto margin = (window->ClientSize.Height - trackThickness) >> 1;
+		return Rectangle{ 0, (int)margin, window->ClientSize.Width, trackThickness };
 	}
 
 	Slider::Slider(Window* parent, const Rectangle& rectangle, bool isVertical)

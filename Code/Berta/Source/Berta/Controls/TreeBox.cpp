@@ -32,7 +32,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		m_module.DrawNavigationLines(graphics);
 		m_module.DrawTreeNodes(graphics);
@@ -40,9 +40,9 @@ namespace Berta
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			graphics.DrawRectangle({ (int)(m_module.m_window->Size.Width - scrollSize) - 1, (int)(m_module.m_window->Size.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
+			graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
 		}
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void TreeBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -55,7 +55,7 @@ namespace Berta
 		if (m_module.m_scrollBarVert)
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
+			Rectangle scrollRect{ static_cast<int>(m_module.m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->ClientSize.Height - 2u };
 			GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
 		}
 	}
@@ -534,7 +534,7 @@ namespace Berta
 
 	void TreeBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
 	{
-		viewportData.m_backgroundRect = m_window->Size.ToRectangle();
+		viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
 		viewportData.m_backgroundRect.X = viewportData.m_backgroundRect.Y = 1;
 		viewportData.m_backgroundRect.Width -= 2u;
 		viewportData.m_backgroundRect.Height -= 2u;
@@ -742,7 +742,7 @@ namespace Berta
 
 	TreeBoxReactor::InteractionArea TreeBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
-		if (!m_window->Size.IsInside(mousePosition))
+		if (!m_window->ClientSize.IsInside(mousePosition))
 		{
 			return InteractionArea::None;
 		}
@@ -1189,7 +1189,7 @@ namespace Berta
 		
 		if (m_viewport.m_needVerticalScroll)
 		{
-			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
+			Rectangle scrollRect{ static_cast<int>(m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_window->ClientSize.Height - 2u };
 			if (m_viewport.m_needHorizontalScroll)
 			{
 				scrollRect.Height -= scrollSize;

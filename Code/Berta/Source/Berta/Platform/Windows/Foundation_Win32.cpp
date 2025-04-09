@@ -122,10 +122,6 @@ namespace Berta
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 
-		{WM_NCCALCSIZE,		"WM_NCCALCSIZE"},
-		{WM_NCPAINT,		"WM_NCPAINT"},
-		{WM_NCACTIVATE,		"WM_NCACTIVATE"},
-
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 	};
 
@@ -307,7 +303,7 @@ namespace Berta
 				if (targetWindow)
 				{
 					windowManager.UpdateTree(targetWindow);
-					targetWindow->Renderer.Map(targetWindow, targetWindow->Size.ToRectangle());
+					targetWindow->Renderer.Map(targetWindow, targetWindow->ClientSize.ToRectangle());
 				}
 			}
 			break;
@@ -320,7 +316,7 @@ namespace Berta
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
@@ -486,7 +482,7 @@ namespace Berta
 					::ScreenToClient(currentWindow->RootHandle.Handle, &screenToClientPoint);
 
 					auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsoluteRootPosition(currentWindow);
-					if (currentWindow->Size.IsInside(localPosition))
+					if (currentWindow->ClientSize.IsInside(localPosition))
 					{
 						if (rootWindowData.Hovered == nullptr)
 						{
@@ -553,7 +549,7 @@ namespace Berta
 				if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
 				{
 					Point position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
-					if (window != rootWindowData.Hovered && window->Size.IsInside(position))
+					if (window != rootWindowData.Hovered && window->ClientSize.IsInside(position))
 					{
 						ArgMouse argMouseEnter;
 						argMouseEnter.Position = position;
@@ -578,7 +574,7 @@ namespace Berta
 						//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
 						foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
 					}
-					if (!rootWindowData.IsTracking && window->Size.IsInside(position))
+					if (!rootWindowData.IsTracking && window->ClientSize.IsInside(position))
 					{
 						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 						trackEvent.hwndTrack = hWnd;
@@ -606,7 +602,7 @@ namespace Berta
 				argMouseUp.ButtonState.RightButton = message == WM_RBUTTONUP;
 				argMouseUp.ButtonState.MiddleButton = message == WM_MBUTTONUP;
 
-				if (window->Size.IsInside(argMouseUp.Position))
+				if (window->ClientSize.IsInside(argMouseUp.Position))
 				{
 					ArgClick argClick;
 					foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
@@ -793,6 +789,7 @@ namespace Berta
 			windowManager.UpdateDeferredRequests(nativeWindow);
 			nativeWindow->DeferredRequests.clear();
 		}
+
 #ifdef BT_PRINT_WND_MESSAGES
 		if (it != g_debugWndMessages.end())
 		{

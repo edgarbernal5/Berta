@@ -29,7 +29,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->BoxBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		Point offset{ 0, -m_module.m_state.m_offset };
 
@@ -94,7 +94,7 @@ namespace Berta
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
 		}
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 		//m_module.Draw(graphics);
 	}
 
@@ -109,7 +109,7 @@ namespace Berta
 		if (m_module.m_scrollBar)
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			Rectangle scrollRect{ static_cast<int>(m_module.m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->Size.Height - 2u };
+			Rectangle scrollRect{ static_cast<int>(m_module.m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->ClientSize.Height - 2u };
 			GUI::MoveWindow(m_module.m_scrollBar->Handle(), scrollRect);
 		}
 	}
@@ -407,7 +407,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
 	{
-		viewportData.m_backgroundRect = m_window->Size.ToRectangle();
+		viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
 		viewportData.m_innerMargin = m_window->ToScale(3u);
 
 		viewportData.m_backgroundRect.Width -= viewportData.m_innerMargin * 2u;
@@ -575,7 +575,7 @@ namespace Berta
 		if (!m_scrollBar)
 		{
 			auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
-			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
+			Rectangle scrollRect{ static_cast<int>(m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_window->ClientSize.Height - 2u };
 
 			m_scrollBar = std::make_unique<ScrollBar>(m_window, false, scrollRect);
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)

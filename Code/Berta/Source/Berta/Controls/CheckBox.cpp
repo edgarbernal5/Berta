@@ -23,12 +23,12 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->Size.ToRectangle();
+		auto backgroundRect = window->ClientSize.ToRectangle();
 		auto leftTextMargin = window->ToScale(3);
 		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
 
 		auto checkboxHeight = window->ToScale(window->Appearance->CheckboxHeight);
-		Rectangle checkBoxRect{ 0, static_cast<int>((window->Size.Height - checkboxHeight) >> 1),checkboxHeight, checkboxHeight };
+		Rectangle checkBoxRect{ 0, static_cast<int>((window->ClientSize.Height - checkboxHeight) >> 1),checkboxHeight, checkboxHeight };
 		graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBackground, true);
 		graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBorderColor, false);
 
@@ -48,7 +48,7 @@ namespace Berta
 				window->Appearance->Foreground2nd);
 		}
 
-		int positionY = (window->Size.Height - graphics.GetTextExtent().Height) >> 1;
+		int positionY = (window->ClientSize.Height - graphics.GetTextExtent().Height) >> 1;
 		graphics.DrawString({ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) + leftTextMargin, positionY }, m_control->GetCaption(), window->Appearance->Foreground);
 	}
 
@@ -80,7 +80,7 @@ namespace Berta
 
 	void CheckBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		if (m_control->Handle()->Size.IsInside(args.Position))
+		if (m_control->Handle()->ClientSize.IsInside(args.Position))
 		{
 			m_status = State::Hovered;
 			m_module.m_isChecked = !m_module.m_isChecked;

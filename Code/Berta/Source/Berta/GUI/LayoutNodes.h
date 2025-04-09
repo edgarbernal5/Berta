@@ -454,6 +454,7 @@ namespace Berta
             bool m_hasChanged{ false };
             Point m_dragStartPos{ };
             Point m_dragStartLocalPos{ };
+            Point m_dragStartCaptionPos{ };
         };
 
         bool IsFloating() const

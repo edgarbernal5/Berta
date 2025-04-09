@@ -33,7 +33,7 @@ namespace Berta
 		auto window = m_module.m_owner;
 		bool enabled = m_module.m_control->GetEnabled();
 
-		graphics.DrawRectangle(window->Size.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground, true);
 
 		auto& items = m_module.m_items;
 		auto itemMargin = window->ToScale(4u);
@@ -285,7 +285,7 @@ namespace Berta
 		auto itemMargin = m_owner->ToScale(6u);
 		auto itemMarginInner = m_owner->ToScale(10u);
 		auto menuBarItemHeight = m_owner->ToScale(m_owner->Appearance->MenuBarItemHeight);
-		Point offset{ 0, (int)(m_owner->Size.Height - menuBarItemHeight) >> 1 };
+		Point offset{ 0, (int)(m_owner->ClientSize.Height - menuBarItemHeight) >> 1 };
 
 		if (startIndex > 0)
 		{

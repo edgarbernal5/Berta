@@ -205,7 +205,7 @@ namespace Berta
 				if (item.m_isSpearator)
 				{
 					int separatorCenterOffset = (separatorHeight >> 1) - 1;
-					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->Size.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appearance->BoxBorderColor);
+					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->ClientSize.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appearance->BoxBorderColor);
 					offsetY += separatorHeight;
 				}
 				else
@@ -217,7 +217,7 @@ namespace Berta
 					bool isItemSelected = m_selectedIndex == (int)i;
 					if (isItemSelected)
 					{
-						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->Size.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appearance->HighlightColor, true);
+						graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->ClientSize.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appearance->HighlightColor, true);
 					}
 					if (item.m_image)
 					{
@@ -238,7 +238,7 @@ namespace Berta
 					{
 						int arrowWidth = window->ToScale(4);
 						int arrowLength = window->ToScale(2);
-						graphics.DrawArrow({ static_cast<int>(window->Size.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
+						graphics.DrawArrow({ static_cast<int>(window->ClientSize.Width - menuBoxSubMenuArrowWidth) , offsetY, menuBoxSubMenuArrowWidth, menuBoxItemHeight },
 							arrowLength,
 							arrowWidth,
 							Graphics::ArrowDirection::Right,
@@ -548,7 +548,7 @@ namespace Berta
 		Point position{ 1 + (int)itemTextPadding, 1 + (int)itemTextPadding };
 		uint32_t separators = 0;
 		uint32_t maxWidth = 0;
-		uint32_t sizeOfNormalItem = window->Size.Width - 2u - itemTextPadding * 2u;
+		uint32_t sizeOfNormalItem = window->ClientSize.Width - 2u - itemTextPadding * 2u;
 
 		for (size_t i = 0; i < m_items->size(); i++)
 		{
@@ -638,7 +638,7 @@ namespace Berta
 
 	int MenuBoxReactor::FindItem(const ArgMouse& args)
 	{
-		if (!Rectangle{ m_control->Handle()->Size}.IsInside(args.Position))
+		if (!Rectangle{ m_control->Handle()->ClientSize }.IsInside(args.Position))
 		{
 			return -1;
 		}

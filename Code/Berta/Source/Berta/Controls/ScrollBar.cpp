@@ -36,7 +36,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->ScrollBarBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->ScrollBarBackground, true);
 
 		if (!IsValid())
 		{
@@ -47,8 +47,8 @@ namespace Berta
 		int arrowLength = window->ToScale(2);
 
 		Rectangle button1Rect = m_isVertical ?
-			Rectangle{ 0, 0, window->Size.Width, buttonSize } :
-			Rectangle{ 0, 0, buttonSize, window->Size.Height };
+			Rectangle{ 0, 0, window->ClientSize.Width, buttonSize } :
+			Rectangle{ 0, 0, buttonSize, window->ClientSize.Height };
 		DrawButton(graphics, button1Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Left, m_hoverArea == InteractionArea::Button1, enabled);
 
 		if (isScrollable())
@@ -59,8 +59,8 @@ namespace Berta
 		}
 
 		Rectangle button2Rect = m_isVertical ?
-			Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize } :
-			Rectangle{ (int)(window->Size.Width - buttonSize), 0, buttonSize, window->Size.Height };
+			Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize } :
+			Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height };
 		DrawButton(graphics, button2Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right, m_hoverArea == InteractionArea::Button2, enabled);
 	}
 
@@ -150,7 +150,7 @@ namespace Berta
 
 		m_timer.Stop();
 		m_pressedArea = InteractionArea::None;
-		if (!window->Size.IsInside(args.Position))
+		if (!window->ClientSize.IsInside(args.Position))
 		{
 			m_hoverArea = InteractionArea::None;
 		}
@@ -209,12 +209,12 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 
-		if (m_isVertical && window->Size.Height < buttonSize * 2u + 2u + 4u)
+		if (m_isVertical && window->ClientSize.Height < buttonSize * 2u + 2u + 4u)
 		{
 			return false;
 		}
 
-		if (!m_isVertical && window->Size.Width < buttonSize * 2u + 2u + 4u)
+		if (!m_isVertical && window->ClientSize.Width < buttonSize * 2u + 2u + 4u)
 		{
 			return false;
 		}
@@ -300,11 +300,11 @@ namespace Berta
 
 		if (m_isVertical)
 		{
-			if (Rectangle{ 0, 0, window->Size.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, 0, window->ClientSize.Width, buttonSize }.IsInside(position))
 			{
 				return InteractionArea::Button1;
 			}
-			if (Rectangle{ 0, (int)(window->Size.Height - buttonSize), window->Size.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize }.IsInside(position))
 			{
 				return InteractionArea::Button2;
 			}
@@ -321,11 +321,11 @@ namespace Berta
 				return InteractionArea::ScrollTrack;
 			}
 		}
-		if (Rectangle{ 0, 0, buttonSize, window->Size.Height }.IsInside(position))
+		if (Rectangle{ 0, 0, buttonSize, window->ClientSize.Height }.IsInside(position))
 		{
 			return InteractionArea::Button1;
 		}
-		if (Rectangle{ (int)(window->Size.Width - buttonSize), 0, buttonSize, window->Size.Height }.IsInside(position))
+		if (Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height }.IsInside(position))
 		{
 			return InteractionArea::Button2;
 		}
@@ -352,8 +352,8 @@ namespace Berta
 
 		ScrollBarUnit newValue = m_value;
 		Rectangle scrollTrackRect = m_isVertical ?
-			Rectangle{ 0, buttonSize + one, window->Size.Width, window->Size.Height - 2u * buttonSize - 2u } :
-			Rectangle{ buttonSize + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
+			Rectangle{ 0, buttonSize + one, window->ClientSize.Width, window->ClientSize.Height - 2u * buttonSize - 2u } :
+			Rectangle{ buttonSize + one, 0, window->ClientSize.Width - 2u * buttonSize - 2u, window->ClientSize.Height };
 
 		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>((m_isVertical ? scrollTrackRect.Height : scrollTrackRect.Width) * scaleFactor), window->ToScale(6u));
 		int newBoxPosition = position - m_dragOffset - (m_isVertical ? scrollTrackRect.Y : scrollTrackRect.X);
@@ -383,24 +383,24 @@ namespace Berta
 		
 		if (m_isVertical)
 		{
-			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->Size.Width, window->Size.Height - 2u * buttonSize - one * 2u };
+			Rectangle scrollTrackRect{ 0, static_cast<int>(buttonSize) + one, window->ClientSize.Width, window->ClientSize.Height - 2u * buttonSize - one * 2u };
 			uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Height * num), window->ToScale(6u));
 			
 			return {
 				two,
 				static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Height - scrollBoxSize)),
-				window->Size.Width - two * 2,
+				window->ClientSize.Width - two * 2,
 				scrollBoxSize
 			};
 		}
-		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + one, 0, window->Size.Width - 2u * buttonSize - 2u, window->Size.Height };
+		Rectangle scrollTrackRect{ static_cast<int>(buttonSize) + one, 0, window->ClientSize.Width - 2u * buttonSize - 2u, window->ClientSize.Height };
 		uint32_t scrollBoxSize = (std::max)(static_cast<uint32_t>(scrollTrackRect.Width * num), window->ToScale(6u));
 
 		return {
 			static_cast<int>(buttonSize) + one + static_cast<int>((m_value - m_min) / static_cast<float>(m_max - m_min) * (scrollTrackRect.Width - scrollBoxSize)),
 			two,
 			scrollBoxSize,
-			window->Size.Height - two * 2
+			window->ClientSize.Height - two * 2
 		};
 	}
 

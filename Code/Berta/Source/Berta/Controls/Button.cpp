@@ -20,7 +20,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->Size.ToRectangle();
+		auto backgroundRect = window->ClientSize.ToRectangle();
 		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
 
 		auto color = window->Appearance->Background;
@@ -44,7 +44,7 @@ namespace Berta
 
 		auto caption = m_control->GetCaption();
 		Point textExtent = graphics.GetTextExtent(caption);
-		Point windowSize = window->Size;
+		Point windowSize = window->ClientSize;
 		auto center = windowSize - textExtent;
 		center /= 2;
 		graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
@@ -78,7 +78,7 @@ namespace Berta
 
 	void ButtonReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		if (m_control->Handle()->Size.IsInside(args.Position))
+		if (m_control->Handle()->ClientSize.IsInside(args.Position))
 		{
 			m_status = State::Hovered;
 		}

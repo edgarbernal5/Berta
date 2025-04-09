@@ -20,6 +20,8 @@ namespace Berta
 		Flags.MakeActive = true;
 		Flags.isUpdating = false;
 		Flags.IgnoreMouseFocus = false;
+
+		BorderSize = { 0,0 };
 	}
 
 	Window::~Window()

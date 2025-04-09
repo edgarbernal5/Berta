@@ -18,6 +18,7 @@ namespace Berta
 {
 	struct Window;
 	class MenuItemReactor;
+	class ControlBase;
 
 	class WindowManager
 	{
@@ -49,6 +50,8 @@ namespace Berta
 		void Add(Window* window);
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, FormData&& append);
 		bool Caption(Window* window, const std::wstring& caption);
+		Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control);
+		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel);
 		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);

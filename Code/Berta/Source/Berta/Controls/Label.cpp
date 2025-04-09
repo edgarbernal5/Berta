@@ -19,7 +19,7 @@ namespace Berta
 	void LabelReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 		graphics.DrawString({ 0,0 }, m_control->GetCaption(), window->Appearance->Foreground);
 	}
 

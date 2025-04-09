@@ -50,6 +50,99 @@ namespace Berta
 		return true;
 	}
 
+	Window* WindowManager::CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
+	{
+		API::NativeWindowHandle parentHandle{};
+		if (parent)
+		{
+			parentHandle = parent->RootWindow->RootHandle;
+		}
+
+		Rectangle finalRect{ rectangle };
+		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
+		{
+			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
+			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
+			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
+			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
+			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
+		}
+
+		auto windowResult = API::CreateNativeWindow(parentHandle, finalRect, formStyle, isNested);
+		if (windowResult.WindowHandle)
+		{
+			Window* window = new Window(WindowType::Form);
+			window->Init(control);
+
+			window->RootHandle = windowResult.WindowHandle;
+			window->ClientSize = windowResult.ClientSize;
+			window->BorderSize = windowResult.BorderSize;
+			window->RootWindow = window;
+			window->DPI = windowResult.DPI;
+			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
+
+			if (isNested)
+			{
+				window->Parent = parent;
+				window->Position = finalRect;
+				window->Owner = nullptr;
+
+				if (parent)
+				{
+					parent->Children.emplace_back(window);
+				}
+			}
+			else
+			{
+				window->Owner = parent;
+				window->Parent = nullptr;
+			}
+
+			AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->ClientSize));
+			Add(window);
+
+			auto& rootGraphics = GetFormData(windowResult.WindowHandle)->RootGraphics;
+			window->RootGraphics = &rootGraphics;
+
+			return window;
+		}
+
+		return nullptr;
+	}
+
+	Window* WindowManager::CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel)
+	{
+		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
+		window->Init(control);
+
+		Rectangle finalRect{ rectangle };
+		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
+		{
+			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
+			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
+			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
+			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
+			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
+		}
+		window->ClientSize = finalRect;
+		window->Parent = parent;
+		window->Position = finalRect;
+
+		if (parent)
+		{
+			window->DPI = parent->DPI;
+			window->DPIScaleFactor = parent->DPIScaleFactor;
+			window->RootWindow = parent->RootWindow;
+			window->RootHandle = parent->RootHandle;
+			window->RootGraphics = parent->RootGraphics;
+
+			parent->Children.emplace_back(window);
+		}
+
+		Add(window);
+		return window;
+	}
+
 	void WindowManager::Destroy(Window* window)
 	{
 		if (!Exists(window))
@@ -147,7 +240,7 @@ namespace Berta
 
 			auto absolutePositionChild = GetLocalPosition(child);
 			absolutePositionChild += parentPosition;
-			Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->Size.Width, child->Size.Height };
+			Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->ClientSize.Width, child->ClientSize.Height };
 			if (child->Type != WindowType::Panel)
 			{
 				if (child->Type == WindowType::Form)
@@ -188,7 +281,7 @@ namespace Berta
 
 			auto childAbsolutePosition = GetLocalPosition(child);
 			childAbsolutePosition += parentPosition;
-			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->Size.Width, child->Size.Height };
+			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
 			if (child->Type != WindowType::Panel)
 			{
 				if (doUpdate && !child->Flags.isUpdating)
@@ -266,8 +359,8 @@ namespace Berta
 	{
 		if (window->Type == WindowType::Form)
 		{
-			auto position = API::GetWindowPosition(window->RootHandle);
-			API::MoveWindow(window->RootHandle, position + delta, forceRepaint);
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
+			API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
 		}
 
 		for (size_t i = 0; i < window->Children.size(); i++)
@@ -303,11 +396,11 @@ namespace Berta
 
 		auto& rootGraphics = *(window->RootWindow->RootGraphics);
 		auto absolutePosition = GetAbsoluteRootPosition(window);
-		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->Size.Width, window->Size.Height };
+		Rectangle requestRectangle{ absolutePosition.X, absolutePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
 
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
-		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->Size.Width, container->Size.Height };
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
@@ -503,14 +596,14 @@ namespace Berta
 		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
 
-		Rectangle requestRectangle = window->Size.ToRectangle();
+		Rectangle requestRectangle = window->ClientSize.ToRectangle();
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
-		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->Size.Width, container->Size.Height };
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
@@ -537,7 +630,7 @@ namespace Berta
 	{
 		if (areaToUpdate == nullptr)
 		{
-			Rectangle requestRectangle = window->Size.ToRectangle();
+			Rectangle requestRectangle = window->ClientSize.ToRectangle();
 			auto absolutePosition = GetAbsoluteRootPosition(window);
 			requestRectangle.X = absolutePosition.X;
 			requestRectangle.Y = absolutePosition.Y;
@@ -575,7 +668,7 @@ namespace Berta
 			{
 				UpdateTree(windowToUpdate);
 				auto position = GetAbsoluteRootPosition(windowToUpdate);
-				Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->Size.Width, windowToUpdate->Size.Height };
+				Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
 				Map(windowToUpdate, &areaToUpdate);
 			}
 		}
@@ -583,13 +676,13 @@ namespace Berta
 
 	void WindowManager::Resize(Window* window, const Size& newSize, bool resizeForm)
 	{
-		if (window->Size == newSize)
+		if (window->ClientSize == newSize)
 		{
 			return;
 		}
 		auto& foundation = Foundation::GetInstance();
 
-		window->Size = newSize;
+		window->ClientSize = newSize;
 
 		Graphics newGraphics;
 		Graphics newRootGraphics;
@@ -603,7 +696,7 @@ namespace Berta
 			{
 				newRootGraphics.Build(newSize);
 				newRootGraphics.BuildFont(window->DPI);
-				newRootGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
 			}
 		}
 
@@ -618,7 +711,7 @@ namespace Berta
 				if (resizeForm)
 				{
 					auto nativePosition = API::GetWindowPosition(window->RootHandle);
-					Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
+					Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
 					API::MoveWindow(window->RootHandle, newArea);
 				}
 			}
@@ -639,7 +732,7 @@ namespace Berta
 		auto& foundation = Foundation::GetInstance();
 
 		bool positionChanged = false;
-		bool sizeChanged = window->Size != newRect;
+		bool sizeChanged = window->ClientSize != newRect;
 
 		if (window->Type == WindowType::Form)
 		{
@@ -659,14 +752,14 @@ namespace Berta
 
 			if (sizeChanged)
 			{
-				window->Size = newRect;
-				window->Renderer.GetGraphics().Rebuild(window->Size);
-				window->RootGraphics->Rebuild(window->Size);
+				window->ClientSize = newRect;
+				window->Renderer.GetGraphics().Rebuild(window->ClientSize);
+				window->RootGraphics->Rebuild(window->ClientSize);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
 				ArgResize argResize;
-				argResize.NewSize = window->Size;
+				argResize.NewSize = window->ClientSize;
 #if BT_DEBUG
 				//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
 #else
@@ -823,12 +916,12 @@ namespace Berta
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
 			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
 		}
-		window->Size.Width = static_cast<uint32_t>(window->Size.Width * scalingFactor);
-		window->Size.Height = static_cast<uint32_t>(window->Size.Height * scalingFactor);
+		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
+		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
 		auto& graphics = window->Renderer.GetGraphics();
 		graphics.Release();
-		graphics.Build(window->Size);
+		graphics.Build(window->ClientSize);
 		graphics.BuildFont(newDPI);
 
 		if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
@@ -837,7 +930,7 @@ namespace Berta
 			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
 			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
 
-			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->Size.Width, window->Size.Height };
+			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
 			API::MoveWindow(window->RootHandle, newArea);
 		}
 
@@ -1004,7 +1097,7 @@ namespace Berta
 		Rectangle rect
 		{
 			absolutePosition,
-			window->Size
+			window->ClientSize
 		};
 		return rect.IsInside(point);
 	}

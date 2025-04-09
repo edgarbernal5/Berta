@@ -50,7 +50,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->Size.ToRectangle();
+		auto backgroundRect = window->ClientSize.ToRectangle();
 		if (m_module.m_status == State::Normal)
 		{
 			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
@@ -63,7 +63,7 @@ namespace Berta
 		//m_textEditor->Render();
 
 		auto textItemHeight = graphics.GetTextExtent().Height;
-		Point textPosition{ 3,static_cast<int>(window->Size.Height - textItemHeight) >> 1 };
+		Point textPosition{ 3,static_cast<int>(window->ClientSize.Height - textItemHeight) >> 1 };
 		if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
 		{
 			auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
@@ -74,7 +74,7 @@ namespace Berta
 			if (icon)
 			{
 				auto iconSourceSize = icon.GetSize();
-				auto positionY = (window->Size.Height - iconSize) >> 1;
+				auto positionY = (window->ClientSize.Height - iconSize) >> 1;
 				icon.Paste(graphics, { 3, (int)positionY, iconSize , iconSize });
 			}
 		}
@@ -82,11 +82,11 @@ namespace Berta
 
 		auto buttonSize = window->ToScale(window->Appearance->ScrollBarSize);
 
-		graphics.DrawRectangle({ static_cast<int>(window->Size.Width - buttonSize - 1), 1, buttonSize, window->Size.Height - 2 }, window->Appearance->Background, true);
+		graphics.DrawRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background, true);
 
 		int arrowWidth = window->ToScale(4);
 		int arrowLength = window->ToScale(2);
-		graphics.DrawArrow({ static_cast<int>(window->Size.Width - buttonSize) - 1, 1, buttonSize, window->Size.Height }, 
+		graphics.DrawArrow({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1, buttonSize, window->ClientSize.Height },
 			arrowLength, 
 			arrowWidth, 
 			Graphics::ArrowDirection::Downwards,
@@ -94,8 +94,8 @@ namespace Berta
 			true,
 			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
-		graphics.DrawLine({ static_cast<int>(window->Size.Width - buttonSize) - 1, 1 }, 
-			{ static_cast<int>(window->Size.Width - buttonSize) - 1, (int)window->Size.Height - 1 },
+		graphics.DrawLine({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1 },
+			{ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
 			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
 		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
@@ -126,7 +126,7 @@ namespace Berta
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
 			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appearance->ComboBoxItemHeight);
-			m_module.m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->Size.Height, window->Size.Width, floatBoxHeight + 2u });
+			m_module.m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
 			m_module.m_floatBox->Init(m_module.Data);
 
 			m_module.m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)

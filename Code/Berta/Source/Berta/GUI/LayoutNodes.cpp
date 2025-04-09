@@ -535,10 +535,10 @@ namespace Berta
 	void DockAreaCaptionReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->MenuBackground, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->MenuBackground, true);
 
 		Point textPos{ window->ToScale(5), 0 };
-		textPos.Y = (int)window->Size.Height - (int)graphics.GetTextExtent().Height;
+		textPos.Y = (int)window->ClientSize.Height - (int)graphics.GetTextExtent().Height;
 		textPos.Y >>= 1;
 		graphics.DrawString(textPos, m_control->GetCaption(), window->Appearance->Foreground);
 
@@ -682,9 +682,10 @@ namespace Berta
 
 			m_mouseInteraction.m_dragStarted = true;
 
-			//BT_CORE_TRACE << " - DOWN: args:position = " << args.Position << std::endl;
 			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) : this->GetPosition();
+			m_mouseInteraction.m_dragStartCaptionPos = args.Position;
+
 			m_savedDPI = this->Handle()->DPI;
 		});
 
@@ -710,6 +711,9 @@ namespace Berta
 					formRect.Width = dockAreaSize.Width;
 					formRect.Height = dockAreaSize.Height;
 
+					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
+					m_mouseInteraction.m_dragStartCaptionPos = args.Position;
+
 					m_nativeContainer = std::make_unique<Form>(m_hostWindow, formRect, FormStyle::Float());
 
 #if BT_DEBUG
@@ -731,17 +735,23 @@ namespace Berta
 			}
 			else
 			{
-
-				if (m_savedDPI != m_nativeContainer->Handle()->DPI)
-				{
-
-				}
 				auto newPosition = screenMousePos - m_mouseInteraction.m_dragStartPos;
 				newPosition += m_mouseInteraction.m_dragStartLocalPos;
 
-				//BT_CORE_TRACE << " - args:position = " << args.Position << std::endl;
-				//BT_CORE_TRACE << " - newPosition = " << newPosition << std::endl;
+				if (m_savedDPI != m_nativeContainer->Handle()->DPI)
+				{
+					float adjustScaleFactor = (float)m_nativeContainer->Handle()->DPI / m_savedDPI;
+					m_mouseInteraction.m_dragStartCaptionPos.X *= adjustScaleFactor;
+					m_mouseInteraction.m_dragStartCaptionPos.Y *= adjustScaleFactor;
 
+					auto upperLeftOffset = API::GetPointScreenToClient(m_nativeContainer->Handle()->RootHandle, screenMousePos);
+
+					m_mouseInteraction.m_dragStartPos = screenMousePos;
+					m_mouseInteraction.m_dragStartLocalPos = API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) + upperLeftOffset - m_mouseInteraction.m_dragStartCaptionPos;
+					
+					m_savedDPI = m_nativeContainer->Handle()->DPI;
+				}
+				
 				m_mouseInteraction.m_hasChanged = true;
 				GUI::MoveWindow(*m_nativeContainer, newPosition);
 

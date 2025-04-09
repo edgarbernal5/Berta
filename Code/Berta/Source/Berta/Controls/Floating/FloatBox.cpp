@@ -22,10 +22,10 @@ namespace Berta
 	void FloatBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		Rectangle rect{ 0,0,window->Size.Width,window->Size.Height };
+		Rectangle rect{ 0,0,window->ClientSize.Width,window->ClientSize.Height };
 		if (m_scrollBar)
 		{
-			rect.Width -= m_scrollBar->Handle()->Size.Width;
+			rect.Width -= m_scrollBar->Handle()->ClientSize.Width;
 		}
 		graphics.DrawRectangle(rect, window->Appearance->BoxBackground, true);
 		
@@ -195,8 +195,8 @@ namespace Berta
 
 	bool FloatBoxReactor::IsInside(const Point& point)
 	{
-		return (point.X > 0 && point.X < static_cast<int>(m_control->Handle()->Size.Width) - 1 &&
-			point.Y > 0 && point.Y < static_cast<int>(m_control->Handle()->Size.Height) - 2);
+		return (point.X > 0 && point.X < static_cast<int>(m_control->Handle()->ClientSize.Width) - 1 &&
+			point.Y > 0 && point.Y < static_cast<int>(m_control->Handle()->ClientSize.Height) - 2);
 	}
 
 	void FloatBoxReactor::UpdateScrollBar()
@@ -215,7 +215,7 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		auto scrollSize = window->ToScale(window->Appearance->ScrollBarSize);
-		Rectangle rect{ static_cast<int>(window->Size.Width - scrollSize) - 1, 1, scrollSize, window->Size.Height - 2u };
+		Rectangle rect{ static_cast<int>(window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, window->ClientSize.Height - 2u };
 		if (!m_scrollBar)
 		{
 			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);

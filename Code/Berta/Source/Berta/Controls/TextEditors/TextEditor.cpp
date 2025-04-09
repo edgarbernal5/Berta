@@ -80,13 +80,13 @@ namespace Berta
 			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
 			m_caretPosition = m_selectionEndPosition;
 		}
-		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > (int)m_owner->Size.Width || args.Position.X < 0))
+		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > (int)m_owner->ClientSize.Width || args.Position.X < 0))
 		{
 			m_selectionTimer.SetInterval(300);
 			m_selectionTimer.Start();
 			m_selectionDirection = args.Position.X < 0;
 		}
-		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > (int)m_owner->Size.Width || args.Position.X < 0))
+		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > (int)m_owner->ClientSize.Width || args.Position.X < 0))
 		{
 			m_selectionTimer.Stop();
 		}
@@ -416,14 +416,14 @@ namespace Berta
 			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
 			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
 
-			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width, m_owner->Size.Height - 4 }, m_owner->Appearance->HighlightColor, true);
+			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width, m_owner->ClientSize.Height - 4 }, m_owner->Appearance->HighlightColor, true);
 			//m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, selectionText, m_owner->Appearance->HighlightTextColor);
 		}
 		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->Size.Height - 2 }, { 0 });
+			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->ClientSize.Height - 2 }, { 0 });
 		}
 	}
 

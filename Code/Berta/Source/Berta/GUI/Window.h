@@ -48,8 +48,10 @@ namespace Berta
 
 		std::wstring Title;
 		bool Visible{ false };
-		Size Size;
+		
+		Size ClientSize;
 		Point Position;
+		Size BorderSize;
 
 		uint32_t DPI{ 0 };
 		float DPIScaleFactor{ 1.0f };

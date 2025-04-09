@@ -18,96 +18,12 @@ namespace Berta::GUI
 {
 	Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
 	{
-		API::NativeWindowHandle parentHandle{};
-		if (parent)
-		{
-			parentHandle = parent->RootWindow->RootHandle;
-		}
-
-		Rectangle finalRect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
-		{
-			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
-			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
-			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
-			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
-			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
-		}
-
-		auto windowResult = API::CreateNativeWindow(parentHandle, finalRect, formStyle, isNested);
-		if (windowResult.WindowHandle)
-		{
-			auto& windowManager = Foundation::GetInstance().GetWindowManager();
-			Window* window = new Window(WindowType::Form);
-			window->Init(control);
-
-			window->RootHandle = windowResult.WindowHandle;
-			window->Size = windowResult.ClientSize;
-			window->RootWindow = window;
-			window->DPI = windowResult.DPI;
-			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
-
-			if (isNested)
-			{
-				window->Parent = parent;
-				window->Position = finalRect;
-				window->Owner = nullptr;
-
-				if (parent)
-				{
-					parent->Children.emplace_back(window);
-				}
-			}
-			else
-			{
-				window->Owner = parent;
-				window->Parent = nullptr;
-			}
-
-			windowManager.AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->Size));
-			windowManager.Add(window);
-
-			auto& rootGraphics = windowManager.GetFormData(windowResult.WindowHandle)->RootGraphics;
-			window->RootGraphics = &rootGraphics;
-
-			return window;
-		}
-
-		return nullptr;
+		return Foundation::GetInstance().GetWindowManager().CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, control);
 	}
 
 	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel)
 	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		Window* window = new Window(isPanel ? WindowType::Panel : WindowType::Control);
-		window->Init(control);
-
-		Rectangle finalRect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
-		{
-			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
-			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
-			finalRect.Y = static_cast<int>(finalRect.Y * scalingFactor);
-			finalRect.Width = static_cast<uint32_t>(finalRect.Width * scalingFactor);
-			finalRect.Height = static_cast<uint32_t>(finalRect.Height * scalingFactor);
-		}
-		window->Size = finalRect;
-		window->Parent = parent;
-		window->Position = finalRect;
-
-		if (parent)
-		{
-			window->DPI = parent->DPI;
-			window->DPIScaleFactor = parent->DPIScaleFactor;
-			window->RootWindow = parent->RootWindow;
-			window->RootHandle = parent->RootHandle;
-			window->RootGraphics = parent->RootGraphics;
-
-			parent->Children.emplace_back(window);
-		}
-
-		windowManager.Add(window);
-		return window;
+		return Foundation::GetInstance().GetWindowManager().CreateControl(parent, isUnscaleRect, rectangle, control, isPanel);
 	}
 
 	void CaptionWindow(Window* window, const std::wstring& caption)
@@ -230,7 +146,7 @@ namespace Berta::GUI
 			return {};
 		}
 
-		return window->Size;
+		return window->ClientSize;
 	}
 
 	bool MoveWindow(Window* window, const Rectangle& newRect, bool forceRepaint)
@@ -264,7 +180,7 @@ namespace Berta::GUI
 		}
 
 		auto position = GetAbsolutePosition(window);
-		return { position.X, position.Y, window->Size.Width, window->Size.Height };
+		return { position.X, position.Y, window->ClientSize.Width, window->ClientSize.Height };
 	}
 
 	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
@@ -331,9 +247,9 @@ namespace Berta::GUI
 		}
 
 		auto& graphics = window->Renderer.GetGraphics();
-		graphics.Build(window->Size);
+		graphics.Build(window->ClientSize);
 		graphics.BuildFont(window->DPI);
-		graphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 		window->Renderer.Init(*control, controlReactor);
 		window->Renderer.Update();

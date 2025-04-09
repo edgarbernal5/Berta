@@ -29,7 +29,7 @@ namespace Berta
 	{
 		BT_CORE_TRACE << " -- Listbox Update() " << std::endl;
 		auto enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(m_module.m_window->Size.ToRectangle(), m_module.m_window->Appearance->BoxBackground, true);
+		graphics.DrawRectangle(m_module.m_window->ClientSize.ToRectangle(), m_module.m_window->Appearance->BoxBackground, true);
 
 		m_module.DrawList(graphics);
 		m_module.DrawHeaders(graphics);
@@ -52,9 +52,9 @@ namespace Berta
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			graphics.DrawRectangle({ (int)(m_module.m_window->Size.Width - scrollSize) - 1, (int)(m_module.m_window->Size.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
+			graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
 		}
-		graphics.DrawRectangle(m_module.m_window->Size.ToRectangle(), enabled ? m_module.m_window->Appearance->BoxBorderColor : m_module.m_window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(m_module.m_window->ClientSize.ToRectangle(), enabled ? m_module.m_window->Appearance->BoxBorderColor : m_module.m_window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void ListBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
@@ -563,7 +563,7 @@ namespace Berta
 
 	void ListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
 	{
-		viewportData.m_backgroundRect = m_window->Size.ToRectangle();
+		viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
 		viewportData.m_backgroundRect.Y = viewportData.m_backgroundRect.X = 1;
 		viewportData.m_backgroundRect.Width -= 2u;
 		viewportData.m_backgroundRect.Height -= 2u;
@@ -945,7 +945,7 @@ namespace Berta
 
 		if (m_viewport.m_needVerticalScroll)
 		{
-			Rectangle scrollRect{ static_cast<int>(m_window->Size.Width - scrollSize) - 1, 1, scrollSize, m_window->Size.Height - 2u };
+			Rectangle scrollRect{ static_cast<int>(m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_window->ClientSize.Height - 2u };
 			if (m_viewport.m_needHorizontalScroll)
 			{
 				scrollRect.Height -= scrollSize;
@@ -987,7 +987,7 @@ namespace Berta
 
 		if (m_viewport.m_needHorizontalScroll)
 		{
-			Rectangle scrollRect{ 1, static_cast<int>(m_window->Size.Height - scrollSize) - 1, m_window->Size.Width - 2u, scrollSize };
+			Rectangle scrollRect{ 1, static_cast<int>(m_window->ClientSize.Height - scrollSize) - 1, m_window->ClientSize.Width - 2u, scrollSize };
 			if (m_viewport.m_needVerticalScroll)
 			{
 				scrollRect.Width -= scrollSize;
@@ -1035,7 +1035,7 @@ namespace Berta
 
 		int sortedHeaderMargin = m_window->ToScale(4);
 		int arrowSortedHeaderSize = m_window->ToScale(6);
-		graphics.DrawGradientFill({ 0,0, m_window->Size.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
+		graphics.DrawGradientFill({ 0,0, m_window->ClientSize.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
 		graphics.DrawLine({ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, 1 }, { m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
 		Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X, m_viewport.m_backgroundRect.Y };
@@ -1107,7 +1107,7 @@ namespace Berta
 
 				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
 			}
-			graphics.DrawLine({ m_viewport.m_backgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->Size.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
+			graphics.DrawLine({ m_viewport.m_backgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->ClientSize.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 
 			if (isSortedHeader)
@@ -1538,7 +1538,7 @@ namespace Berta
 	Berta::ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
-		if (!m_window->Size.IsInside(mousePosition))
+		if (!m_window->ClientSize.IsInside(mousePosition))
 		{
 			return InteractionArea::None;
 		}
