@@ -18,10 +18,11 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
+#include "Berta/GUI/DrawBatcher.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES2
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -122,7 +123,7 @@ namespace Berta
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 
-		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
+		{ WM_NCACTIVATE, "WM_NCACTIVATE" },
 	};
 
 	//Long list.
@@ -316,7 +317,7 @@ namespace Berta
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-			//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
@@ -361,6 +362,7 @@ namespace Berta
 				ArgResize argResize;
 				argResize.NewSize = newSize;
 
+				DrawBatcher drawBatch(nativeWindow);
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 

@@ -741,8 +741,8 @@ namespace Berta
 				if (m_savedDPI != m_nativeContainer->Handle()->DPI)
 				{
 					float adjustScaleFactor = (float)m_nativeContainer->Handle()->DPI / m_savedDPI;
-					m_mouseInteraction.m_dragStartCaptionPos.X *= adjustScaleFactor;
-					m_mouseInteraction.m_dragStartCaptionPos.Y *= adjustScaleFactor;
+					m_mouseInteraction.m_dragStartCaptionPos.X = static_cast<int>(m_mouseInteraction.m_dragStartCaptionPos.X * adjustScaleFactor);
+					m_mouseInteraction.m_dragStartCaptionPos.Y = static_cast<int>(m_mouseInteraction.m_dragStartCaptionPos.Y * adjustScaleFactor);
 
 					auto upperLeftOffset = API::GetPointScreenToClient(m_nativeContainer->Handle()->RootHandle, screenMousePos);
 

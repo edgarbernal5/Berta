@@ -70,8 +70,8 @@ namespace Berta
 		void Show(Window* window, bool visible);
 
 		void Resize(Window* window, const Size& newSize, bool resizeForm = true);
-		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = false);
-		bool Move(Window* window, const Point& newPosition, bool forceRepaint = false);
+		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
+		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
 		void Update(Window* window);
 		bool TryDeferredUpdate(Window* window);
 		void UpdateDeferredRequests(Window* rootWindow);
@@ -93,17 +93,19 @@ namespace Berta
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
+		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate); bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
+
 	private:
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
 		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
 		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
-		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
-
+		
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
 		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
 		void ShowInternal(Window* window, bool visible);
+
 
 		struct CaptureHistoryData
 		{

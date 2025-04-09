@@ -8,6 +8,7 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
+#include "Berta/GUI/DrawBatcher.h"
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
@@ -240,7 +241,9 @@ namespace Berta
 
 			auto absolutePositionChild = GetLocalPosition(child);
 			absolutePositionChild += parentPosition;
+
 			Rectangle childRectangle{ absolutePositionChild.X, absolutePositionChild.Y, child->ClientSize.Width, child->ClientSize.Height };
+			
 			if (child->Type != WindowType::Panel)
 			{
 				if (child->Type == WindowType::Form)
@@ -249,17 +252,29 @@ namespace Berta
 					continue;
 				}
 
-				child->Renderer.Update();
-
-				if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+				if (!child->IsBatchActive())
 				{
-					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+					child->Renderer.Update();
+					child->Status = WindowStatus::Updated;
+
+					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+					{
+						rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
+					}
+				}
+				else
+				{
+					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+					{
+						AddWindowToBatch(window, childRectangle);
+					}
 				}
 			}
 			else
 			{
 				newContainerRectangle = childRectangle;
 			}
+
 			UpdateTreeInternal(child, rootGraphics, absolutePositionChild, newContainerRectangle);
 		}
 	}
@@ -361,6 +376,10 @@ namespace Berta
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
+			if (!forceRepaint)
+			{
+				API::RefreshWindow(window->RootHandle);
+			}
 		}
 
 		for (size_t i = 0; i < window->Children.size(); i++)
@@ -383,6 +402,17 @@ namespace Berta
 		{
 			ShowInternal(window->Children[i], visible);
 		}
+	}
+
+	void WindowManager::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate)
+	{
+		if (!window->RootWindow->Batcher)
+			return;
+
+		if (window->RootWindow->Batcher->Exists(window, areaToUpdate))
+			return;
+
+		window->RootWindow->Batcher->AddWindow(window, areaToUpdate);
 	}
 
 	void WindowManager::Paint(Window* window, bool doUpdate)
@@ -593,7 +623,6 @@ namespace Berta
 			return;
 		}
 
-		window->Renderer.Update(); //Update control's window.
 		auto& rootGraphics = *(window->RootGraphics);
 
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();
@@ -604,11 +633,25 @@ namespace Berta
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+
+		if (!window->IsBatchActive())
 		{
-			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+			window->Renderer.Update();
+			window->Status = WindowStatus::Updated;
+
+			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			{
+				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
+			}
 		}
-		
+		else
+		{
+			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			{
+				AddWindowToBatch(window, requestRectangle);
+			}
+		}
+
 		UpdateTreeInternal(window, rootGraphics, absolutePosition, containerRectangle);
 	}
 
@@ -769,7 +812,10 @@ namespace Berta
 			}
 			else
 			{
-				API::MoveWindow(window->RootHandle, { rootRect.X, rootRect.Y }, forceRepaint);
+				auto nativePosition = API::GetWindowPosition(window->RootHandle);
+				Point newNativePosition = { rootRect.X, rootRect.Y };
+				API::MoveWindow(window->RootHandle, newNativePosition, forceRepaint);
+				positionChanged = newNativePosition != nativePosition;
 			}
 		}
 		else
@@ -802,8 +848,15 @@ namespace Berta
 		
 		if (window->Type == WindowType::Form)
 		{
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
-			return true;
+			bool positionChanged = newPosition != nativePosition;
+
+			if (!forceRepaint)
+			{
+				API::RefreshWindow(window->RootHandle);
+			}
+			return positionChanged;
 		}
 		else if (window->Position != newPosition)
 		{

@@ -75,22 +75,24 @@ namespace Berta
 			(*window->Events.*eventPtr).Emit(args);
 		}
 
-		bool isResizing = std::is_same_v<TArgument, ArgResize>;
-		if (m_windowManager.Exists(window))
+		if (!m_windowManager.Exists(window))
 		{
-			if (window->Status == WindowStatus::Updated || isResizing)
+			return;
+		}
+
+		bool isResizing = std::is_same_v<TArgument, ArgResize>;
+		if (window->Status == WindowStatus::Updated || isResizing)
+		{
+			if (window->Visible && !m_windowManager.TryDeferredUpdate(window))
 			{
-				if (window->Visible && !m_windowManager.TryDeferredUpdate(window))
+				if (window->Type != WindowType::Panel)
 				{
-					if (window->Type != WindowType::Panel)
-					{
-						m_windowManager.Paint(window, isResizing);
-						m_windowManager.Map(window, nullptr);
-					}
+					m_windowManager.Paint(window, isResizing);
+					m_windowManager.Map(window, nullptr);
 				}
 			}
-			window->Status = WindowStatus::None;
 		}
+		//window->Status = WindowStatus::None;
 	}
 }
 

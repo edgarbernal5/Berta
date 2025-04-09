@@ -33,6 +33,14 @@ namespace Berta
 		DeferredRequests.clear();
 	}
 
+	bool Window::IsBatchActive() const
+	{
+		if (!RootWindow)
+			return false;
+
+		return RootWindow->Batcher != nullptr;
+	}
+
 	Window* Window::FindFirstNonPanelAncestor() const
 	{
 		if (!Parent)

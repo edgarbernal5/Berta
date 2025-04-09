@@ -156,8 +156,23 @@ namespace Berta::GUI
 		{
 			return false;
 		}
+		bool hasChanged = windowManager.Move(window, newRect, forceRepaint);
+		if (hasChanged && window->IsBatchActive())
+		{
+			Rectangle requestRectangle = window->ClientSize.ToRectangle();
+			auto absolutePosition = GetAbsoluteRootPosition(window);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 
-		return windowManager.Move(window, newRect, forceRepaint);
+			auto container = window->FindFirstPanelOrFormAncestor();
+			auto containerPosition = GetAbsoluteRootPosition(container);
+			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+			if (windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			{
+				windowManager.AddWindowToBatch(window, requestRectangle);
+			}
+		}
+		return hasChanged;
 	}
 
 	bool MoveWindow(Window* window, const Point& newPosition, bool forceRepaint)
@@ -167,8 +182,23 @@ namespace Berta::GUI
 		{
 			return false;
 		}
+		bool hasChanged = windowManager.Move(window, newPosition, forceRepaint);
+		if (hasChanged && window->IsBatchActive())
+		{
+			Rectangle requestRectangle = window->ClientSize.ToRectangle();
+			auto absolutePosition = GetAbsoluteRootPosition(window);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 
-		return windowManager.Move(window, newPosition, forceRepaint);
+			auto container = window->FindFirstPanelOrFormAncestor();
+			auto containerPosition = GetAbsoluteRootPosition(container);
+			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+			if (windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			{
+				windowManager.AddWindowToBatch(window, requestRectangle);
+			}
+		}
+		return hasChanged;
 	}
 
 	Rectangle AreaWindow(Window* window)

@@ -19,6 +19,7 @@ namespace Berta
 	class Graphics;
 	struct ControlEvents;
 	struct ControlAppearance;
+	class DrawBatcher;
 
 	enum class WindowType
 	{
@@ -58,6 +59,7 @@ namespace Berta
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
+		DrawBatcher* Batcher{ nullptr };
 		std::shared_ptr<ControlAppearance> Appearance{ nullptr };
 		std::shared_ptr<ControlEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr }; //TODO: a lo mejor debemos usar un puntero a ControlBase y eliminamos esta interfaz
@@ -116,6 +118,8 @@ namespace Berta
 		{
 			return Type == WindowType::Form && !Owner && Parent;
 		}
+
+		bool IsBatchActive() const;
 
 		Window* FindFirstNonPanelAncestor() const;
 		Window* FindFirstPanelOrFormAncestor() const;
