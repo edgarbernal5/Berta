@@ -372,12 +372,8 @@ namespace Berta
 
 			if (newWidth > 0 && newHeight > 0)
 			{
-				ArgResize argResize;
-				argResize.NewSize = newSize;
-
-				windowManager.Resize(nativeWindow, argResize.NewSize, false);
+				windowManager.Resize(nativeWindow, newSize, false);
 				windowManager.UpdateTree(nativeWindow);
-
 			}
 			defaultToWindowProc = false;
 			break;
