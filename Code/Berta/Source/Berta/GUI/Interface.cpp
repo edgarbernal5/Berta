@@ -156,21 +156,11 @@ namespace Berta::GUI
 		{
 			return false;
 		}
-		bool hasChanged = windowManager.Move(window, newRect, forceRepaint);
-		if (hasChanged && window->IsBatchActive())
-		{
-			Rectangle requestRectangle = window->ClientSize.ToRectangle();
-			auto absolutePosition = GetAbsoluteRootPosition(window);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
 
-			auto container = window->FindFirstPanelOrFormAncestor();
-			auto containerPosition = GetAbsoluteRootPosition(container);
-			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-			if (windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-			{
-				windowManager.AddWindowToBatch(window, requestRectangle);
-			}
+		bool hasChanged = windowManager.Move(window, newRect, forceRepaint);
+		if (hasChanged)
+		{
+			windowManager.Update(window);
 		}
 		return hasChanged;
 	}
@@ -182,21 +172,11 @@ namespace Berta::GUI
 		{
 			return false;
 		}
-		bool hasChanged = windowManager.Move(window, newPosition, forceRepaint);
-		if (hasChanged && window->IsBatchActive())
-		{
-			Rectangle requestRectangle = window->ClientSize.ToRectangle();
-			auto absolutePosition = GetAbsoluteRootPosition(window);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
 
-			auto container = window->FindFirstPanelOrFormAncestor();
-			auto containerPosition = GetAbsoluteRootPosition(container);
-			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-			if (windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-			{
-				windowManager.AddWindowToBatch(window, requestRectangle);
-			}
+		bool hasChanged = windowManager.Move(window, newPosition, forceRepaint);
+		if (hasChanged)
+		{
+			windowManager.Update(window);
 		}
 		return hasChanged;
 	}
@@ -368,7 +348,7 @@ namespace Berta::GUI
 		windowManager.SetParent(window, newParent);
 	}
 
-	void UpdateTree(Window* window)
+	void UpdateTree(Window* window, bool now)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -376,18 +356,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		windowManager.UpdateTree(window);
-	}
-
-	void DoDeferredUpdate(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (!windowManager.Exists(window))
-		{
-			return;
-		}
-
-		windowManager.DoDeferredUpdate(window);
+		windowManager.UpdateTree(window, now);
 	}
 
 	void MarkAsUpdated(Window* window)

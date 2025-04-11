@@ -422,8 +422,7 @@ namespace Berta
 				m_containerNode->CalculateAreas();
 
 				auto windowToUpdate = m_containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
-				GUI::UpdateTree(windowToUpdate);//TODO: no se si tengamos que hacer esta llamada aca. es probable que la tenga que hacer el MoveWindow or ResizeWindow
-				GUI::DoDeferredUpdate(windowToUpdate);
+				GUI::UpdateTree(windowToUpdate);
 				BT_CORE_TRACE << " -- CHANGED..." << std::endl;
 			});
 
@@ -500,14 +499,15 @@ namespace Berta
 
 	void DockPaneLayoutNode::CalculateAreas()
 	{
+		auto area = GetArea();
 		if (m_dockArea && !m_dockArea->IsFloating())
 		{
-			GUI::MoveWindow(m_dockArea->Handle(), GetArea(), false);
+			GUI::MoveWindow(m_dockArea->Handle(), area, false);
 		}
 
 		for (auto& child : m_children)
 		{
-			child->SetArea(GetArea());
+			child->SetArea(area);
 			child->CalculateAreas();
 		}
 	}

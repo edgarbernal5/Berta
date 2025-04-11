@@ -65,6 +65,7 @@ namespace Berta
 			return;
 		}
 
+		window->Status = WindowStatus::None;
 		if (rendererEventPtr)
 		{
 			(window->Renderer.*rendererEventPtr)(args);
@@ -81,18 +82,24 @@ namespace Berta
 		}
 
 		bool isResizing = std::is_same_v<TArgument, ArgResize>;
-		if (window->Status == WindowStatus::Updated || isResizing)
+		if (window->Visible && (window->Status == WindowStatus::Updated || isResizing))
 		{
-			if (window->Visible && !m_windowManager.TryDeferredUpdate(window))
+			if (window->Type != WindowType::Panel && window->IsBatchActive())
 			{
-				if (window->Type != WindowType::Panel)
+				Rectangle requestRectangle = window->ClientSize.ToRectangle();
+				auto absolutePosition = m_windowManager.GetAbsoluteRootPosition(window);
+				requestRectangle.X = absolutePosition.X;
+				requestRectangle.Y = absolutePosition.Y;
+
+				auto container = window->FindFirstPanelOrFormAncestor();
+				auto containerPosition = m_windowManager.GetAbsoluteRootPosition(container);
+				Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+				if (m_windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 				{
-					m_windowManager.Paint(window, isResizing);
-					m_windowManager.Map(window, nullptr);
+					m_windowManager.AddWindowToBatch(window, requestRectangle);
 				}
 			}
 		}
-		//window->Status = WindowStatus::None;
 	}
 }
 

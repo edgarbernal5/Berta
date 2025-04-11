@@ -616,7 +616,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		int two = window->ToScale(2);
 		int four = window->ToScale(4);
-		auto pointInScreen = window->Position;
+		Point pointInScreen = {};
 
 		subMenu->m_parentMenu = parentMenu;
 

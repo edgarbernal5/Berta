@@ -19,7 +19,7 @@ namespace Berta
 	class Graphics;
 	struct ControlEvents;
 	struct ControlAppearance;
-	class DrawBatcher;
+	class DrawBatch;
 
 	enum class WindowType
 	{
@@ -59,7 +59,7 @@ namespace Berta
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
-		DrawBatcher* Batcher{ nullptr };
+		DrawBatch* Batcher{ nullptr };
 		std::shared_ptr<ControlAppearance> Appearance{ nullptr };
 		std::shared_ptr<ControlEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr }; //TODO: a lo mejor debemos usar un puntero a ControlBase y eliminamos esta interfaz
@@ -69,7 +69,6 @@ namespace Berta
 		std::vector<Window*> Children;
 
 		Window* RootWindow{ nullptr };
-		std::vector<Window*> DeferredRequests;
 
 		struct Flags
 		{
@@ -126,8 +125,11 @@ namespace Berta
 		bool AreParentsVisible() const;
 		bool IsVisible() const;
 		bool IsAncestorOf(Window* window) const;
-		void DeleteDeferredRequest(Window* window);
-		bool HaveRequestedDeferred(Window* window) const;
+
+		int GetHierarchyIndex() const;
+
+	private:
+		int GetHierarchyIndexInternal(Window* current, Window* target) const;
 	};
 }
 

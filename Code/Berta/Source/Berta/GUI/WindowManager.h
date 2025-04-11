@@ -64,8 +64,7 @@ namespace Berta
 		void ReleaseCapture(Window* window);
 
 		Window* Find(Window* window, const Point& point);
-		void UpdateTree(Window* window);
-		void DoDeferredUpdate(Window* window);
+		void UpdateTree(Window* window, bool now = false);
 		void Map(Window* window, const Rectangle* areaToUpdate);
 		void Show(Window* window, bool visible);
 
@@ -73,8 +72,6 @@ namespace Berta
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
 		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
 		void Update(Window* window);
-		bool TryDeferredUpdate(Window* window);
-		void UpdateDeferredRequests(Window* rootWindow);
 		void Paint(Window* window, bool doUpdate);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
@@ -99,7 +96,7 @@ namespace Berta
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
-		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
+		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
 		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
 		
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);

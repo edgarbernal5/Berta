@@ -18,11 +18,11 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
-#include "Berta/GUI/DrawBatcher.h"
+#include "Berta/GUI/DrawBatch.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -67,6 +67,8 @@ namespace Berta
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1); //TODO: probar con poner esto en NULL y manejar el mensaje de WM_ERASEBKGND
+		//wcex.hbrBackground = CreateSolidBrush(RGB(212, 208, 200));
+		//wcex.hbrBackground = NULL;
 		wcex.lpszClassName = L"BertaInternalClass";
 		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
 		if (!RegisterClassExW(&wcex))
@@ -106,11 +108,13 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		//{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
+		{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		//{WM_PAINT,			"WM_PAINT"},
+		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -122,6 +126,8 @@ namespace Berta
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		{WM_ERASEBKGND,		"WM_ERASEBKGND"},
+		{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 
 		{ WM_NCACTIVATE, "WM_NCACTIVATE" },
 	};
@@ -199,7 +205,7 @@ namespace Berta
 			if (g_debugLastMessageCount == 1)
 			{
 				printedMessage = true;
-				BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
+				BT_CORE_DEBUG << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
 			if (g_debugLastMessageCount > 0)
 				g_debugLastMessageCount = 0;
@@ -249,6 +255,7 @@ namespace Berta
 		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
 		auto& trackEvent = rootWindowData.TrackEvent;
 
+		DrawBatch drawBatch(nativeWindow);
 		Berta::Foundation::RootGuard rootGuard(nativeWindow);
 
 		switch (message)
@@ -269,7 +276,9 @@ namespace Berta
 			break;
 		}
 		case WM_ERASEBKGND:
+		{
 			return TRUE;
+		}
 
 		//WM_NCPAINT, WM_NCCALCSIZE
 		//https://github.com/rossy/borderless-window/blob/master/borderless-window.c#L347
@@ -300,11 +309,10 @@ namespace Berta
 				argVisibility.IsVisible = isVisible;
 				nativeWindow->Events->Visibility.Emit(argVisibility);
 
-				auto targetWindow = isVisible ? nativeWindow : (nativeWindow->Parent && !nativeWindow->Parent->Flags.IsDisposed && nativeWindow->Parent->RootHandle != nativeWindow->RootHandle ? nativeWindow->Parent : nullptr); //TODO: HACK! Fix me!
+				auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
 				if (targetWindow)
 				{
 					windowManager.UpdateTree(targetWindow);
-					targetWindow->Renderer.Map(targetWindow, targetWindow->ClientSize.ToRectangle());
 				}
 			}
 			break;
@@ -333,7 +341,7 @@ namespace Berta
 			int x = (int)(short)LOWORD(lParam);
 			int y = (int)(short)HIWORD(lParam);
 #if BT_DEBUG
-//			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
+			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
 #else
 //			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << std::endl;
 #endif
@@ -345,6 +353,11 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		//case WM_SIZING:
+		//{
+		//	defaultToWindowProc = false; 
+		//	break;
+		//}
 		case WM_SIZE:
 		{
 			uint32_t newWidth = (uint32_t)LOWORD(lParam);
@@ -362,12 +375,9 @@ namespace Berta
 				ArgResize argResize;
 				argResize.NewSize = newSize;
 
-				DrawBatcher drawBatch(nativeWindow);
 				windowManager.Resize(nativeWindow, argResize.NewSize, false);
 				windowManager.UpdateTree(nativeWindow);
 
-				//This should be called later in deferred request.
-				//nativeWindow->Renderer.Map(nativeWindow, nativeWindow->Size.ToRectangle());
 			}
 			defaultToWindowProc = false;
 			break;
@@ -388,7 +398,7 @@ namespace Berta
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
 			//This is called inside Resize method of WindowManager.
-			//windowManager.UpdateTree(nativeWindow);
+			windowManager.UpdateTree(nativeWindow);
 			defaultToWindowProc = false;
 			break;
 		}
@@ -781,21 +791,11 @@ namespace Berta
 			break;
 		}
 		}
-		//TODO: no se si es mejor tener una lista global de peticiones en vez de por ventana nativa. Asi se estaria actualizando todo al mismo tiempo
-		//(cuando se manipulan menu's es un caso especial, cada menu es una ventana nativa que es diferente a la ventana emisora.
-		//Otra cosa que hay que mejorar es no repetir dos solicitudes para la misma ventana en el mismo "tick"
-		//Otra mejora: solo actualizar el segmento (rectangulo) que necesita cambiar (por ejemplo al moverse dentro de un menu solo se deberia actualizar el rectangulo
-		//del nuevo elemento seleccionado y no todo el menu
-		if (windowManager.Exists(nativeWindow) && !nativeWindow->Flags.IsDisposed)
-		{
-			windowManager.UpdateDeferredRequests(nativeWindow);
-			nativeWindow->DeferredRequests.clear();
-		}
 
 #ifdef BT_PRINT_WND_MESSAGES
 		if (it != g_debugWndMessages.end())
 		{
-			BT_CORE_DEBUG << "/// WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
+			BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
 		}
 #endif
 
@@ -814,6 +814,7 @@ namespace Berta
 		switch (message)
 		{
 		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
+
 		case WM_ERASEBKGND:
 		case WM_ACTIVATEAPP:
 		//case WM_ACTIVATE:
@@ -821,7 +822,10 @@ namespace Berta
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
 		case WM_MOVE:
+		//case WM_MOVING:
 		case WM_SIZE:
+		//case WM_SIZING:
+		case WM_WINDOWPOSCHANGING:
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:

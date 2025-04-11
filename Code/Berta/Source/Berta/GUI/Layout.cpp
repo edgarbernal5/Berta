@@ -10,7 +10,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/LayoutNodes.h"
-#include "Berta/GUI/DrawBatcher.h"
+#include "Berta/GUI/DrawBatch.h"
 #include "Berta/Controls/Form.h"
 
 namespace Berta
@@ -155,13 +155,12 @@ namespace Berta
 		if (!m_rootNode || !m_parent)
 			return;
 
+		DrawBatch drawBatch(m_parent->RootWindow);
+
 		m_rootNode->SetArea(GUI::AreaWindow(m_parent));
 		m_rootNode->CalculateAreas();
 
-		DrawBatcher drawBatch(m_parent);
 		GUI::UpdateTree(m_parent);
-		
-		//GUI::UpdateWindow(m_parent);
 	}
 
 	void Layout::Attach(const std::string& fieldId, Window* window)

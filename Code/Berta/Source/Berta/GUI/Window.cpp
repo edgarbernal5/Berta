@@ -26,11 +26,6 @@ namespace Berta
 
 	Window::~Window()
 	{
-		if (RootWindow && RootWindow->HaveRequestedDeferred(this))
-		{
-			RootWindow->DeleteDeferredRequest(this);
-		}
-		DeferredRequests.clear();
 	}
 
 	bool Window::IsBatchActive() const
@@ -105,14 +100,29 @@ namespace Berta
 		return false;
 	}
 
-	void Window::DeleteDeferredRequest(Window* window)
+	int Window::GetHierarchyIndex() const
 	{
-		auto it = std::find(DeferredRequests.begin(), DeferredRequests.end(), window);
-		DeferredRequests.erase(it);
+		return GetHierarchyIndexInternal(RootWindow, const_cast<Window*>(this));
 	}
 
-	bool Window::HaveRequestedDeferred(Window* window) const
+	int Window::GetHierarchyIndexInternal(Window* current, Window* target) const
 	{
-		return std::find(DeferredRequests.begin(), DeferredRequests.end(), window) != DeferredRequests.end();
+		if (!current)
+			return 0;
+
+		if (current == target)
+			return 0;
+
+		int index = 1;
+		for (size_t i = 0; i < current->Children.size(); i++)
+		{
+			auto child = current->Children[i];
+			if (child == target)
+				return index;
+
+			index += 1 + GetHierarchyIndexInternal(child, target);
+		}
+
+		return index;
 	}
 }

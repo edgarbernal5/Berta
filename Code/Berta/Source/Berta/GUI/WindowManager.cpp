@@ -8,7 +8,7 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/DrawBatcher.h"
+#include "Berta/GUI/DrawBatch.h"
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
@@ -224,14 +224,13 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 	}
 
-	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, const Point& parentPosition, const Rectangle& containerRectangle)
+	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition, const Rectangle& containerRectangle)
 	{
 		if (window == nullptr)
 		{
 			return;
 		}
 
-		Rectangle newContainerRectangle = containerRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -239,6 +238,7 @@ namespace Berta
 				continue;
 			}
 
+			Rectangle newContainerRectangle = containerRectangle;
 			auto absolutePositionChild = GetLocalPosition(child);
 			absolutePositionChild += parentPosition;
 
@@ -252,7 +252,7 @@ namespace Berta
 					continue;
 				}
 
-				if (!child->IsBatchActive())
+				if (now || !child->IsBatchActive())
 				{
 					child->Renderer.Update();
 					child->Status = WindowStatus::Updated;
@@ -266,7 +266,7 @@ namespace Berta
 				{
 					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
-						AddWindowToBatch(window, childRectangle);
+						AddWindowToBatch(child, childRectangle);
 					}
 				}
 			}
@@ -275,7 +275,7 @@ namespace Berta
 				newContainerRectangle = childRectangle;
 			}
 
-			UpdateTreeInternal(child, rootGraphics, absolutePositionChild, newContainerRectangle);
+			UpdateTreeInternal(child, rootGraphics, now, absolutePositionChild, newContainerRectangle);
 		}
 	}
 
@@ -616,7 +616,7 @@ namespace Berta
 		return m_capture.WindowPtr;
 	}
 
-	void WindowManager::UpdateTree(Window* window)
+	void WindowManager::UpdateTree(Window* window, bool now)
 	{
 		if (!window->IsVisible())
 		{
@@ -634,7 +634,7 @@ namespace Berta
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 
-		if (!window->IsBatchActive())
+		if (now || !window->IsBatchActive())
 		{
 			window->Renderer.Update();
 			window->Status = WindowStatus::Updated;
@@ -652,21 +652,7 @@ namespace Berta
 			}
 		}
 
-		UpdateTreeInternal(window, rootGraphics, absolutePosition, containerRectangle);
-	}
-
-	void WindowManager::DoDeferredUpdate(Window* window)
-	{
-		if (!TryDeferredUpdate(window))
-		{
-#if BT_DEBUG
-			BT_CORE_TRACE << " - WindowManager.DoDeferredUpdate() / paint and map... " << window->Name << ". Hwnd = " << window->RootHandle.Handle << std::endl;
-#else
-			BT_CORE_TRACE << " - WindowManager.DoDeferredUpdate() / paint and map... Hwnd = " << window->RootHandle.Handle << std::endl;
-#endif
-			Paint(window, false);
-			Map(window, nullptr);
-		}
+		UpdateTreeInternal(window, rootGraphics, now, absolutePosition, containerRectangle);
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -733,7 +719,7 @@ namespace Berta
 		{
 			newGraphics.Build(newSize);
 			newGraphics.BuildFont(window->DPI);
-			//newGraphics.DrawRectangle(window->Size.ToRectangle(), window->Appearance->Background, true);
+			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 			if (window->Type == WindowType::Form)
 			{
@@ -876,77 +862,40 @@ namespace Berta
 
 	void WindowManager::Update(Window* window)
 	{
-		if (window->Flags.isUpdating)
+		auto windowToUpdate = window;
+		if (window->Type == WindowType::Panel)
 		{
-			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
+			windowToUpdate = window->FindFirstNonPanelAncestor();
 		}
 
-		if (!window->Flags.isUpdating)
+		if (!windowToUpdate->IsBatchActive())
 		{
-			window->Flags.isUpdating = true;
-			window->Renderer.Update();
-			window->Flags.isUpdating = false;
-		}
-
-		DoDeferredUpdate(window);
-	}
-
-	bool WindowManager::TryDeferredUpdate(Window* window)
-	{
-		if (!window->Visible || !window->AreParentsVisible())
-		{
-			return true;
-		}
-
-		if (window->RootWindow->Flags.IsDeferredCount == 0)
-		{
-#if BT_DEBUG
-			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. window = " << window->Name << ". hwnd = " << window->RootHandle.Handle << std::endl;
-#else
-			BT_CORE_TRACE << " -- TryDeferredUpdate / Paint and Map. hwnd = " << window->RootHandle.Handle << std::endl;
-#endif
-			return false;
-		}
-
-		if (!window->RootWindow->HaveRequestedDeferred(window))
-		{
-			auto requestIt = window->RootWindow->DeferredRequests.begin();
-			while (requestIt != window->RootWindow->DeferredRequests.end())
+			if (windowToUpdate->Flags.isUpdating)
 			{
-				if ((*requestIt)->IsAncestorOf(window))
-				{
-					return true;
-				}
-				if (window->IsAncestorOf(*requestIt))
-				{
-					requestIt = window->RootWindow->DeferredRequests.erase(requestIt);
-				}
-				else
-				{
-					++requestIt;
-				}
+				BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			}
-
-			window->RootWindow->DeferredRequests.emplace_back(window);
-		}
-		return true;
-	}
-
-	void WindowManager::UpdateDeferredRequests(Window* rootWindow)
-	{
-		if (rootWindow->DeferredRequests.size() == 0)
-		{
-			return;
-		}
-
-		for (auto& request : rootWindow->DeferredRequests)
-		{
-			if (Exists(request) && !request->Flags.IsDisposed)
+			if (!windowToUpdate->Flags.isUpdating)
 			{
-				Paint(request, false);
-				Map(request, nullptr);
+				windowToUpdate->Flags.isUpdating = true;
+				windowToUpdate->Renderer.Update();
+				windowToUpdate->Flags.isUpdating = false;
+			}
+			//DoDeferredUpdate(windowToUpdate);
+		}
+		else
+		{
+			Rectangle requestRectangle = windowToUpdate->ClientSize.ToRectangle();
+			auto absolutePosition = GetAbsoluteRootPosition(windowToUpdate);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 
-				//request->Status = WindowStatus::None;
+			auto container = windowToUpdate->FindFirstPanelOrFormAncestor();
+			auto containerPosition = GetAbsoluteRootPosition(container);
+			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+
+			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			{
+				AddWindowToBatch(windowToUpdate, requestRectangle);
 			}
 		}
 	}
