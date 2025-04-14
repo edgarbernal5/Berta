@@ -13,6 +13,7 @@
 #include <iostream>
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Paint/Graphics.h"
+#include "Berta/Paint/DrawBatch.h"
 
 namespace Berta
 {
@@ -90,9 +91,9 @@ namespace Berta
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
-		void TryAddWindowToBatch(Window* window);
+		void TryAddWindowToBatch(Window* window, const DrawOperation& operation = DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 	private:
-		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate);
+		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		bool GetIntersectionClipRect(Window* window, Rectangle& result);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 		bool IsPointOnWindow(Window* window, const Point& point);

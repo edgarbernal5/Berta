@@ -299,7 +299,31 @@ namespace Berta
 		case WM_NCACTIVATE:
 			return ::DefWindowProc(hWnd, message, wParam, -1);	//DefWindowProc won't repaint the window border if lParam (normally a HRGN) is - 1.
 																//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
-		
+		case WM_GETMINMAXINFO:
+		{
+			::MINMAXINFO* pMinMax = (::MINMAXINFO*)lParam;
+			bool changed = false;
+			if (!nativeWindow->MinSize.IsEmpty())
+			{
+				pMinMax->ptMinTrackSize.x = nativeWindow->MinSize.Width;
+				pMinMax->ptMinTrackSize.y = nativeWindow->MinSize.Height;
+				changed = true;
+			}
+
+			if (!nativeWindow->MaxSize.IsEmpty())
+			{
+				pMinMax->ptMaxTrackSize.x = nativeWindow->MaxSize.Width;
+				pMinMax->ptMaxTrackSize.y = nativeWindow->MaxSize.Height;
+				changed = true;
+			}
+
+			if (changed)
+			{
+				return 0;
+			}
+			defaultToWindowProc = true;
+			break;
+		}
 		case WM_SHOWWINDOW:
 		{
 			bool isVisible = (wParam == TRUE);
@@ -338,6 +362,7 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		//case WM_MOVING:
 		case WM_MOVE:
 		{
 			int x = (int)(short)LOWORD(lParam);
@@ -351,33 +376,8 @@ namespace Berta
 			argMove.NewPosition.X = x;
 			argMove.NewPosition.Y = y;
 			foundation.ProcessEvents(nativeWindow, &Renderer::Move, &ControlEvents::Move, argMove);
-
+			
 			defaultToWindowProc = false;
-			break;
-		}
-		case WM_GETMINMAXINFO:
-		{
-			::MINMAXINFO* pMinMax = (::MINMAXINFO*)lParam;
-			bool changed = false;
-			if (!nativeWindow->MinSize.IsEmpty())
-			{
-				pMinMax->ptMinTrackSize.x = nativeWindow->MinSize.Width;
-				pMinMax->ptMinTrackSize.y = nativeWindow->MinSize.Height;
-				changed = true;
-			}
-
-			if (!nativeWindow->MaxSize.IsEmpty())
-			{
-				pMinMax->ptMaxTrackSize.x = nativeWindow->MaxSize.Width;
-				pMinMax->ptMaxTrackSize.y = nativeWindow->MaxSize.Height;
-				changed = true;
-			}
-
-			if (changed)
-			{
-				return 0;
-			}
-			defaultToWindowProc = true;
 			break;
 		}
 		case WM_SIZING:
@@ -387,10 +387,7 @@ namespace Berta
 			uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
 			
 			Size newSize{ newWidth , newHeight };
-			/*windowManager.Resize(nativeWindow, newSize, false);
-			windowManager.UpdateTree(nativeWindow);
-			nativeWindow->Batcher->ppu = true;
-			::InvalidateRect(hWnd, nullptr, FALSE);*/
+
 			defaultToWindowProc = false;
 			break;
 		}
@@ -414,6 +411,8 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
+		//case WM_WINDOWPOSCHANGING:
+		//case WM_WINDOWPOSCHANGED:
 		case WM_DPICHANGED:
 		{
 			uint32_t newDPI = (uint32_t)HIWORD(wParam);
@@ -431,6 +430,7 @@ namespace Berta
 
 			//This is called inside Resize method of WindowManager.
 			windowManager.UpdateTree(nativeWindow);
+
 			defaultToWindowProc = false;
 			break;
 		}
@@ -851,14 +851,15 @@ namespace Berta
 		case WM_ACTIVATEAPP:
 		//case WM_ACTIVATE:
 		case WM_NCACTIVATE:
+		case WM_GETMINMAXINFO:
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
 		//case WM_MOVING:
 		case WM_MOVE:
 		//case WM_SIZING:
 		case WM_SIZE:
-		case WM_GETMINMAXINFO:
 		//case WM_WINDOWPOSCHANGING:
+		//case WM_WINDOWPOSCHANGED:
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:

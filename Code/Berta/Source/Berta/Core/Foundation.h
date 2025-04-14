@@ -86,7 +86,11 @@ namespace Berta
 		{
 			if (window->Type != WindowType::Panel && window->IsBatchActive())
 			{
-				m_windowManager.TryAddWindowToBatch(window);
+				m_windowManager.TryAddWindowToBatch
+				(
+					window, 
+					window->Status == WindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap
+				);
 			}
 		}
 	}

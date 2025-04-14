@@ -19,6 +19,24 @@ namespace Berta
 
 #include "Assert.h"
 
+#define BT_DEFINITION_FLAG_FROM_ENUM(Flag) \
+	inline constexpr Flag operator |(const Flag selfValue, const Flag inValue) \
+	{ \
+		return static_cast<Flag>(static_cast<uint8_t>(selfValue) | static_cast<uint8_t>(inValue)); \
+	} \
+	inline constexpr Flag operator &(const Flag selfValue, const Flag inValue) \
+	{ \
+		return static_cast<Flag>(static_cast<uint8_t>(selfValue) & static_cast<uint8_t>(inValue)); \
+	} \
+	inline constexpr Flag operator ~(const Flag selfValue) \
+	{ \
+		return static_cast<Flag>(~static_cast<uint8_t>(selfValue)); \
+	} \
+	inline bool HasFlag(Flag value, Flag flag) \
+	{ \
+		return (static_cast<uint8_t>(value) & static_cast<uint8_t>(flag)) != 0; \
+	}
+
 namespace Berta::StringUtils
 {
 	std::wstring Convert(const std::string& str);

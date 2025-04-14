@@ -8,7 +8,6 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
-#include "Berta/Paint/DrawBatch.h"
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
@@ -266,7 +265,7 @@ namespace Berta
 				{
 					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
-						AddWindowToBatch(child, childRectangle);
+						AddWindowToBatch(child, childRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 					}
 				}
 			}
@@ -404,7 +403,7 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate)
+	void WindowManager::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
 		if (!window->RootWindow->Batcher)
 			return;
@@ -412,15 +411,15 @@ namespace Berta
 		if (window->RootWindow->Batcher->Exists(window, areaToUpdate))
 			return;
 
-		window->RootWindow->Batcher->AddWindow(window, areaToUpdate);
+		window->RootWindow->Batcher->AddWindow(window, areaToUpdate, operation);
 	}
 
-	void WindowManager::TryAddWindowToBatch(Window* window)
+	void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
 	{
 		Rectangle requestRectangle;
 		if (GetIntersectionClipRect(window, requestRectangle))
 		{
-			AddWindowToBatch(window, requestRectangle);
+			AddWindowToBatch(window, requestRectangle, operation);
 		}
 	}
 
@@ -671,7 +670,7 @@ namespace Berta
 		{
 			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
-				AddWindowToBatch(window, requestRectangle);
+				AddWindowToBatch(window, requestRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 			}
 		}
 

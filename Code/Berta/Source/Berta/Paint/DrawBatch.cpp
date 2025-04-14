@@ -59,13 +59,16 @@ namespace Berta
 			if (windowArea.Target->Flags.IsDisposed)
 				continue;
 
-			if (windowArea.Target->Status == WindowStatus::None && !windowArea.Target->Flags.isUpdating)
+			if (HasFlag(windowArea.Operation, DrawOperation::NeedUpdate) && !windowArea.Target->Flags.isUpdating)
 			{
 				windowArea.Target->Flags.isUpdating = true;
 				windowArea.Target->Renderer.Update();
 				windowArea.Target->Flags.isUpdating = false;
 			}
-			rootGraphics.BitBlt(windowArea.Area, windowArea.Target->Renderer.GetGraphics(), { 0,0 });
+			if (HasFlag(windowArea.Operation, DrawOperation::NeedMap))
+			{
+				rootGraphics.BitBlt(windowArea.Area, windowArea.Target->Renderer.GetGraphics(), { 0,0 });
+			}
 
 			if (!fullMap)
 			{
@@ -88,18 +91,19 @@ namespace Berta
 		m_context.m_updateRequests.clear();
 	}
 
-	void DrawBatch::AddWindow(Window* window, const Rectangle& areaToUpdate)
+	void DrawBatch::AddWindow(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
 		for (size_t i = 0; i < m_context.m_updateRequests.size(); i++)
 		{
 			if (m_context.m_updateRequests[i].Target == window)
 			{
 				m_context.m_updateRequests[i].Area = areaToUpdate;
+				m_context.m_updateRequests[i].Operation = operation;
 				return;
 			}
 		}
 
-		m_context.m_updateRequests.emplace_back(WindowAreaBatch{ window, areaToUpdate });
+		m_context.m_updateRequests.emplace_back(WindowAreaBatch{ window, areaToUpdate, operation });
 	}
 
 	bool DrawBatch::Exists(Window* window, const Rectangle& areaToUpdate)
