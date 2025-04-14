@@ -204,8 +204,8 @@
     <ClInclude Include="Source\Berta\Core\StackTracer.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\DrawBatch.h">
-      <Filter>Source\Berta\GUI</Filter>
+    <ClInclude Include="Source\Berta\Paint\DrawBatch.h">
+      <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -338,8 +338,8 @@
     <ClCompile Include="Source\Berta\Core\StackTracer.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\DrawBatch.cpp">
-      <Filter>Source\Berta\GUI</Filter>
+    <ClCompile Include="Source\Berta\Paint\DrawBatch.cpp">
+      <Filter>Source\Berta\Paint</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

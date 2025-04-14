@@ -10,7 +10,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/LayoutNodes.h"
-#include "Berta/GUI/DrawBatch.h"
+#include "Berta/Paint/DrawBatch.h"
 #include "Berta/Controls/Form.h"
 
 namespace Berta

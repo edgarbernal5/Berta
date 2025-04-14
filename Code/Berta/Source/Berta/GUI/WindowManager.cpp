@@ -8,7 +8,7 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/DrawBatch.h"
+#include "Berta/Paint/DrawBatch.h"
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
@@ -771,11 +771,6 @@ namespace Berta
 
 		ArgResize argResize;
 		argResize.NewSize = newSize;
-#if BT_DEBUG
-		//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
-#else
-		//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
-#endif
 		foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 	}
 
@@ -880,43 +875,26 @@ namespace Berta
 
 	void WindowManager::Update(Window* window)
 	{
-		auto windowToUpdate = window;
-		if (window->Type == WindowType::Panel)
+		if (window->IsBatchActive())
 		{
-			windowToUpdate = window->FindFirstNonPanelAncestor();
+			TryAddWindowToBatch(window);
 		}
-
-		if (!windowToUpdate->IsBatchActive())
+		else
 		{
-			if (windowToUpdate->Flags.isUpdating)
+			if (window->Flags.isUpdating)
 			{
 				BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			}
-			if (!windowToUpdate->Flags.isUpdating)
+
+			if (!window->Flags.isUpdating)
 			{
-				windowToUpdate->Flags.isUpdating = true;
-				windowToUpdate->Renderer.Update();
-				windowToUpdate->Flags.isUpdating = false;
+				window->Flags.isUpdating = true;
+				window->Renderer.Update();
+				window->Flags.isUpdating = false;
 			}
 
 			Paint(window, false);
 			Map(window, nullptr);
-		}
-		else
-		{
-			Rectangle requestRectangle = windowToUpdate->ClientSize.ToRectangle();
-			auto absolutePosition = GetAbsoluteRootPosition(windowToUpdate);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
-
-			auto container = windowToUpdate->FindFirstPanelOrFormAncestor();
-			auto containerPosition = GetAbsoluteRootPosition(container);
-			Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-
-			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-			{
-				AddWindowToBatch(windowToUpdate, requestRectangle);
-			}
 		}
 	}
 

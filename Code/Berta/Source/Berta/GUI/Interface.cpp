@@ -160,8 +160,15 @@ namespace Berta::GUI
 		bool hasChanged = windowManager.Move(window, newRect, forceRepaint);
 		if (hasChanged)
 		{
-			windowManager.Update(window);
+			auto windowToUpdate = window;
+			if (window->Type != WindowType::Form)
+			{
+				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
+			}
+
+			windowManager.Update(windowToUpdate);
 		}
+
 		return hasChanged;
 	}
 
@@ -176,8 +183,18 @@ namespace Berta::GUI
 		bool hasChanged = windowManager.Move(window, newPosition, forceRepaint);
 		if (hasChanged)
 		{
-			windowManager.Update(window);
+			auto windowToUpdate = window;
+			if (window->Type != WindowType::Form)
+			{
+				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
+			}
+
+			if (windowToUpdate != window)
+			{
+				windowManager.Update(window);
+			}
 		}
+
 		return hasChanged;
 	}
 

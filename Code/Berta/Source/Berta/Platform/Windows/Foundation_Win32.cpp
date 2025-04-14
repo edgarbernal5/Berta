@@ -18,7 +18,7 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
-#include "Berta/GUI/DrawBatch.h"
+#include "Berta/Paint/DrawBatch.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
