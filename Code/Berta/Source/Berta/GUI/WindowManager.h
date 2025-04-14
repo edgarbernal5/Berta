@@ -94,6 +94,8 @@ namespace Berta
 		void TryAddWindowToBatch(Window* window, const DrawOperation& operation = DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 	private:
 		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
+		void AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
+
 		bool GetIntersectionClipRect(Window* window, Rectangle& result);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 		bool IsPointOnWindow(Window* window, const Point& point);

@@ -384,7 +384,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->Status = WindowStatus::Updated;
+		window->DrawStatus = DrawWindowStatus::Updated;
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)

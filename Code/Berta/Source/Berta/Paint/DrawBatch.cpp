@@ -39,42 +39,42 @@ namespace Berta
 
 		m_context.m_rootWindow->RootWindow->Batcher = nullptr;
 
-		if (m_context.m_updateRequests.empty())
+		if (m_context.m_batchItemRequests.empty())
 		{
 			m_context.m_rootWindow = nullptr;
 			return;
 		}
 
-		for (auto& windowAreaIndex : m_context.m_updateRequests)
+		for (auto& windowAreaIndex : m_context.m_batchItemRequests)
 		{
 			windowAreaIndex.Index = windowAreaIndex.Target->GetHierarchyIndex();
 		}
 
-		WindowAreaBatchComparer comparer;
-		std::sort(m_context.m_updateRequests.begin(), m_context.m_updateRequests.end(), comparer);
+		BatchItemComparer comparer;
+		std::sort(m_context.m_batchItemRequests.begin(), m_context.m_batchItemRequests.end(), comparer);
 
-		bool fullMap = !m_context.m_updateRequests.empty() && m_context.m_updateRequests[0].Target->Type == WindowType::Form;
-		for (auto& windowArea : m_context.m_updateRequests)
+		bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
+		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
-			if (windowArea.Target->Flags.IsDisposed)
+			if (batchItem.Target->Flags.IsDisposed)
 				continue;
 
-			if (HasFlag(windowArea.Operation, DrawOperation::NeedUpdate) && !windowArea.Target->Flags.isUpdating)
+			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
 			{
-				windowArea.Target->Flags.isUpdating = true;
-				windowArea.Target->Renderer.Update();
-				windowArea.Target->Flags.isUpdating = false;
+				batchItem.Target->Flags.isUpdating = true;
+				batchItem.Target->Renderer.Update();
+				batchItem.Target->Flags.isUpdating = false;
 			}
-			if (HasFlag(windowArea.Operation, DrawOperation::NeedMap))
+			if (HasFlag(batchItem.Operation, DrawOperation::NeedMap))
 			{
-				rootGraphics.BitBlt(windowArea.Area, windowArea.Target->Renderer.GetGraphics(), { 0,0 });
+				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
 			}
 
 			if (!fullMap)
 			{
-				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, windowArea.Area);
+				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
 			}
-			windowArea.Target->Status = WindowStatus::None;
+			batchItem.Target->DrawStatus = DrawWindowStatus::None;
 		}
 
 		if (fullMap)
@@ -82,33 +82,41 @@ namespace Berta
 			m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, m_context.m_rootWindow->ClientSize.ToRectangle());
 		}
 
+		for (auto& batchItem : m_context.m_batchItemRequests)
+		{
+			if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
+			{
+				API::RefreshWindow(batchItem.Target->RootHandle);
+			}
+		}
+
 		m_context.m_rootWindow = nullptr;
-		m_context.m_updateRequests.clear();
+		m_context.m_batchItemRequests.clear();
 	}
 
 	void DrawBatch::Clear()
 	{
-		m_context.m_updateRequests.clear();
+		m_context.m_batchItemRequests.clear();
 	}
 
 	void DrawBatch::AddWindow(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
-		for (size_t i = 0; i < m_context.m_updateRequests.size(); i++)
+		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
 		{
-			if (m_context.m_updateRequests[i].Target == window)
+			if (m_context.m_batchItemRequests[i].Target == window)
 			{
-				m_context.m_updateRequests[i].Area = areaToUpdate;
-				m_context.m_updateRequests[i].Operation = operation;
+				m_context.m_batchItemRequests[i].Area = areaToUpdate;
+				m_context.m_batchItemRequests[i].Operation = operation;
 				return;
 			}
 		}
 
-		m_context.m_updateRequests.emplace_back(WindowAreaBatch{ window, areaToUpdate, operation });
+		m_context.m_batchItemRequests.emplace_back(BatchItem{ window, areaToUpdate, operation });
 	}
 
 	bool DrawBatch::Exists(Window* window, const Rectangle& areaToUpdate)
 	{
-		for (auto& windowArea : m_context.m_updateRequests)
+		for (auto& windowArea : m_context.m_batchItemRequests)
 		{
 			if (windowArea.Target == window && windowArea.Area == areaToUpdate)
 				return true;
@@ -117,7 +125,7 @@ namespace Berta
 		return false;
 	}
 
-	bool WindowAreaBatchComparer::operator()(WindowAreaBatch a, WindowAreaBatch b) const
+	bool BatchItemComparer::operator()(BatchItem a, BatchItem b) const
 	{
 		return a.Index < b.Index;
 	}

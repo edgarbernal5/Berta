@@ -103,7 +103,13 @@ namespace Berta
 	int Window::GetHierarchyIndex() const
 	{
 		bool found = false;
-		return GetHierarchyIndexInternal(RootWindow, const_cast<Window*>(this), found);
+		auto root = RootWindow;
+		while (root && root->Parent != nullptr)
+		{
+			root = root->Parent;
+		}
+
+		return GetHierarchyIndexInternal(root, const_cast<Window*>(this), found);
 	}
 
 	int Window::GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const

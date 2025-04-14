@@ -21,10 +21,11 @@ namespace Berta
 		None = 0,
 		NeedUpdate = 1,
 		NeedMap = 2,
+		Refresh = 4,
 	};
 	BT_DEFINITION_FLAG_FROM_ENUM(DrawOperation);
 
-	struct WindowAreaBatch
+	struct BatchItem
 	{
 		Window* Target{ nullptr };
 		Rectangle Area{};
@@ -32,15 +33,15 @@ namespace Berta
 		int Index{ 0 };
 	};
 
-	struct WindowAreaBatchComparer
+	struct BatchItemComparer
 	{
-		bool operator()(WindowAreaBatch a, WindowAreaBatch b) const;
+		bool operator()(BatchItem a, BatchItem b) const;
 	};
 
 	struct DrawBatcherContext
 	{
 		Window* m_rootWindow{ nullptr };
-		std::vector<WindowAreaBatch> m_updateRequests;
+		std::vector<BatchItem> m_batchItemRequests;
 	};
 
 	class DrawBatch

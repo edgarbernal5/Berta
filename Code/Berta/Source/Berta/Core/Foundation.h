@@ -65,7 +65,7 @@ namespace Berta
 			return;
 		}
 
-		window->Status = WindowStatus::None;
+		window->DrawStatus = DrawWindowStatus::None;
 		if (rendererEventPtr)
 		{
 			(window->Renderer.*rendererEventPtr)(args);
@@ -82,14 +82,14 @@ namespace Berta
 		}
 
 		bool isResizing = std::is_same_v<TArgument, ArgResize>;
-		if (window->Visible && (window->Status == WindowStatus::Updated || isResizing))
+		if (window->Visible && (window->DrawStatus == DrawWindowStatus::Updated || isResizing))
 		{
 			if (window->Type != WindowType::Panel && window->IsBatchActive())
 			{
 				m_windowManager.TryAddWindowToBatch
 				(
 					window, 
-					window->Status == WindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap
+					window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap
 				);
 			}
 		}

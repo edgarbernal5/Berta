@@ -28,7 +28,7 @@ namespace Berta
 		Panel			//It has no renderer, empty Graphics. Serves as a logical container of Window.
 	};
 
-	enum class WindowStatus
+	enum class DrawWindowStatus
 	{
 		None,
 		Updated
@@ -83,7 +83,7 @@ namespace Berta
 
 		Window* MakeTargetWhenInactive{ nullptr };
 
-		WindowStatus Status{ WindowStatus::None };
+		DrawWindowStatus DrawStatus{ DrawWindowStatus::None };
 
 		void Init(ControlBase* control);
 

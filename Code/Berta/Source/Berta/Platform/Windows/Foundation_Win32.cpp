@@ -107,8 +107,8 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		{WM_MOVE,			"WM_MOVE"},
-		{WM_MOVING,			"WM_MOVING"},
+		//{WM_MOVE,			"WM_MOVE"},
+		//{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
 
@@ -125,12 +125,12 @@ namespace Berta
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
-		{WM_ERASEBKGND,		"WM_ERASEBKGND"},
+		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
 
-		{ WM_NCACTIVATE, "WM_NCACTIVATE" },
-		{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
+		//{ WM_NCACTIVATE, "WM_NCACTIVATE" },
+		//{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
 	};
 
 	//Long list.
@@ -368,7 +368,7 @@ namespace Berta
 			int x = (int)(short)LOWORD(lParam);
 			int y = (int)(short)HIWORD(lParam);
 #if BT_DEBUG
-			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
 #else
 //			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << std::endl;
 #endif
@@ -380,17 +380,17 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
-		case WM_SIZING:
-		{
-			::RECT* rect = reinterpret_cast<RECT*>(lParam);
-			uint32_t newWidth = static_cast<uint32_t>(rect->right - rect->left) - nativeWindow->BorderSize.Width;
-			uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
-			
-			Size newSize{ newWidth , newHeight };
+		//case WM_SIZING:
+		//{
+		//	::RECT* rect = reinterpret_cast<RECT*>(lParam);
+		//	uint32_t newWidth = static_cast<uint32_t>(rect->right - rect->left) - nativeWindow->BorderSize.Width;
+		//	uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
+		//	
+		//	Size newSize{ newWidth , newHeight };
 
-			defaultToWindowProc = false;
-			break;
-		}
+		//	defaultToWindowProc = false;
+		//	break;
+		//}
 		case WM_SIZE:
 		{
 			uint32_t newWidth = (uint32_t)LOWORD(lParam);

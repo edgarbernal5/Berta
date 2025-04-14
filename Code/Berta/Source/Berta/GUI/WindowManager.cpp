@@ -254,7 +254,7 @@ namespace Berta
 				if (now || !child->IsBatchActive())
 				{
 					child->Renderer.Update();
-					child->Status = WindowStatus::Updated;
+					child->DrawStatus = DrawWindowStatus::Updated;
 
 					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
@@ -377,7 +377,12 @@ namespace Berta
 			API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
 			if (!forceRepaint)
 			{
-				API::RefreshWindow(window->RootHandle);
+				auto batch = window->IsBatchActive() ? window->Batcher : window->Parent->RootWindow->Batcher;
+
+				if (batch)
+				{
+					AddWindowToBatch(batch, window, {}, DrawOperation::Refresh);
+				}
 			}
 		}
 
@@ -408,10 +413,15 @@ namespace Berta
 		if (!window->RootWindow->Batcher)
 			return;
 
-		if (window->RootWindow->Batcher->Exists(window, areaToUpdate))
+		AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
+	}
+
+	void WindowManager::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
+	{
+		if (batch->Exists(window, areaToUpdate))
 			return;
 
-		window->RootWindow->Batcher->AddWindow(window, areaToUpdate, operation);
+		batch->AddWindow(window, areaToUpdate, operation);
 	}
 
 	void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
@@ -659,7 +669,7 @@ namespace Berta
 		if (now || !window->IsBatchActive())
 		{
 			window->Renderer.Update();
-			window->Status = WindowStatus::Updated;
+			window->DrawStatus = DrawWindowStatus::Updated;
 
 			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
@@ -852,7 +862,7 @@ namespace Berta
 
 			if (!forceRepaint)
 			{
-				API::RefreshWindow(window->RootHandle);
+				//API::RefreshWindow(window->RootHandle);
 			}
 			return positionChanged;
 		}
