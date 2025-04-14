@@ -605,7 +605,6 @@ int main()
 	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
 	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &tabForm, "dockPane1", Berta::DockPosition::Down);
 
-	//form.GetLayout().Attach("dockRoot", nestedForm);
 	form.GetLayout().Apply();
 
 	form.Show();

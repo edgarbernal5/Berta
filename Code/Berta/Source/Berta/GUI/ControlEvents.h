@@ -24,7 +24,7 @@ namespace Berta
 	struct ArgMouse
 	{
 		Point Position;
-		MouseButtonState ButtonState;
+		MouseButtonState ButtonState{};
 	};
 
 	struct ArgClick

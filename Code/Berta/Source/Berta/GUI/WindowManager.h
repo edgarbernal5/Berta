@@ -90,9 +90,11 @@ namespace Berta
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
-		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate); bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
-
+		void TryAddWindowToBatch(Window* window);
 	private:
+		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate);
+		bool GetIntersectionClipRect(Window* window, Rectangle& result);
+		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);

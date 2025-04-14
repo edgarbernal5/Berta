@@ -286,7 +286,6 @@ namespace Berta
 			return;
 		}
 
-		Rectangle newContainerRectangle = containerRectangle;
 		for (auto& child : window->Children)
 		{
 			if (!child->Visible)
@@ -294,6 +293,7 @@ namespace Berta
 				continue;
 			}
 
+			Rectangle newContainerRectangle = containerRectangle;
 			auto childAbsolutePosition = GetLocalPosition(child);
 			childAbsolutePosition += parentPosition;
 			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
@@ -415,6 +415,29 @@ namespace Berta
 		window->RootWindow->Batcher->AddWindow(window, areaToUpdate);
 	}
 
+	void WindowManager::TryAddWindowToBatch(Window* window)
+	{
+		Rectangle requestRectangle;
+		if (GetIntersectionClipRect(window, requestRectangle))
+		{
+			AddWindowToBatch(window, requestRectangle);
+		}
+	}
+
+	bool WindowManager::GetIntersectionClipRect(Window* window, Rectangle& result)
+	{
+		Rectangle requestRectangle = window->ClientSize.ToRectangle();
+		auto absolutePosition = GetAbsoluteRootPosition(window);
+		requestRectangle.X = absolutePosition.X;
+		requestRectangle.Y = absolutePosition.Y;
+
+		auto container = window->FindFirstPanelOrFormAncestor();
+		auto containerPosition = GetAbsoluteRootPosition(container);
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+		
+		return GetIntersectionClipRect(containerRectangle, requestRectangle, result);
+	}
+
 	void WindowManager::Paint(Window* window, bool doUpdate)
 	{
 		if (doUpdate && !window->Flags.isUpdating)
@@ -433,7 +456,7 @@ namespace Berta
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
-			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 }); // Copy from control's graphics to root graphics.
+			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
 		}
 
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, containerRectangle);
@@ -789,11 +812,6 @@ namespace Berta
 
 				ArgResize argResize;
 				argResize.NewSize = window->ClientSize;
-#if BT_DEBUG
-				//BT_CORE_TRACE << "* Resize() - window = " << window->Name << ". newSize = " << newSize << std::endl;
-#else
-				//BT_CORE_TRACE << "* Resize(). newSize = "<< newSize<< std::endl;
-#endif
 				foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 			}
 			else
@@ -880,7 +898,9 @@ namespace Berta
 				windowToUpdate->Renderer.Update();
 				windowToUpdate->Flags.isUpdating = false;
 			}
-			//DoDeferredUpdate(windowToUpdate);
+
+			Paint(window, false);
+			Map(window, nullptr);
 		}
 		else
 		{

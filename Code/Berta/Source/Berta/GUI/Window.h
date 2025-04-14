@@ -53,7 +53,8 @@ namespace Berta
 		Size ClientSize;
 		Point Position;
 		Size BorderSize;
-
+		Size MinSize;
+		Size MaxSize;
 		uint32_t DPI{ 0 };
 		float DPIScaleFactor{ 1.0f };
 
@@ -129,7 +130,7 @@ namespace Berta
 		int GetHierarchyIndex() const;
 
 	private:
-		int GetHierarchyIndexInternal(Window* current, Window* target) const;
+		int GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const;
 	};
 }
 

@@ -66,11 +66,10 @@ namespace Berta
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1); //TODO: probar con poner esto en NULL y manejar el mensaje de WM_ERASEBKGND
-		//wcex.hbrBackground = CreateSolidBrush(RGB(212, 208, 200));
-		//wcex.hbrBackground = NULL;
+		wcex.hbrBackground = NULL;
 		wcex.lpszClassName = L"BertaInternalClass";
 		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+		
 		if (!RegisterClassExW(&wcex))
 		{
 			BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
@@ -127,9 +126,11 @@ namespace Berta
 
 		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		{WM_ERASEBKGND,		"WM_ERASEBKGND"},
-		{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
+		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
+		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
 
 		{ WM_NCACTIVATE, "WM_NCACTIVATE" },
+		{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
 	};
 
 	//Long list.
@@ -191,6 +192,7 @@ namespace Berta
 	{
 #ifdef BT_PRINT_WND_MESSAGES
 		bool printedMessage = false;
+		std::ostringstream debugBuilder;
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
@@ -202,19 +204,19 @@ namespace Berta
 			{
 				++g_debugLastMessageCount;
 			}
-			if (g_debugLastMessageCount == 1)
+			//if (g_debugLastMessageCount == 1)
 			{
 				printedMessage = true;
-				BT_CORE_DEBUG << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
+				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
-			if (g_debugLastMessageCount > 0)
-				g_debugLastMessageCount = 0;
+			//if (g_debugLastMessageCount > 0)
+			//	g_debugLastMessageCount = 0;
 
-			//BT_CORE_DEBUG << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
+			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId = message;
 		}
 		else {
-			//BT_CORE_DEBUG << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
+			//debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
 		}
 #endif
 		LRESULT innerResult;
@@ -222,7 +224,7 @@ namespace Berta
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
-				BT_CORE_DEBUG << std::endl;
+				BT_CORE_DEBUG << debugBuilder.str() << " <<" << std::endl;
 #endif
 			return innerResult;
 		}
@@ -235,9 +237,9 @@ namespace Berta
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
-				BT_CORE_DEBUG << std::endl;
+				BT_CORE_DEBUG << debugBuilder.str() << " <<" << std::endl;
 #endif
-			//BT_CORE_DEBUG << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
+			//debugBuilder << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
 
@@ -245,9 +247,9 @@ namespace Berta
 		if (printedMessage)
 		{
 #if BT_DEBUG
-			BT_CORE_DEBUG << ". window = " << nativeWindow->Name;
+			debugBuilder << ". window = " << nativeWindow->Name;
 #endif
-			BT_CORE_DEBUG << std::endl;
+			BT_CORE_DEBUG << debugBuilder.str() << std::endl;
 		}
 #endif
 
@@ -327,7 +329,7 @@ namespace Berta
 #if BT_DEBUG
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
-			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
+			debugBuilder << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
@@ -353,11 +355,45 @@ namespace Berta
 			defaultToWindowProc = false;
 			break;
 		}
-		//case WM_SIZING:
-		//{
-		//	defaultToWindowProc = false; 
-		//	break;
-		//}
+		case WM_GETMINMAXINFO:
+		{
+			::MINMAXINFO* pMinMax = (::MINMAXINFO*)lParam;
+			bool changed = false;
+			if (!nativeWindow->MinSize.IsEmpty())
+			{
+				pMinMax->ptMinTrackSize.x = nativeWindow->MinSize.Width;
+				pMinMax->ptMinTrackSize.y = nativeWindow->MinSize.Height;
+				changed = true;
+			}
+
+			if (!nativeWindow->MaxSize.IsEmpty())
+			{
+				pMinMax->ptMaxTrackSize.x = nativeWindow->MaxSize.Width;
+				pMinMax->ptMaxTrackSize.y = nativeWindow->MaxSize.Height;
+				changed = true;
+			}
+
+			if (changed)
+			{
+				return 0;
+			}
+			defaultToWindowProc = true;
+			break;
+		}
+		case WM_SIZING:
+		{
+			::RECT* rect = reinterpret_cast<RECT*>(lParam);
+			uint32_t newWidth = static_cast<uint32_t>(rect->right - rect->left) - nativeWindow->BorderSize.Width;
+			uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
+			
+			Size newSize{ newWidth , newHeight };
+			/*windowManager.Resize(nativeWindow, newSize, false);
+			windowManager.UpdateTree(nativeWindow);
+			nativeWindow->Batcher->ppu = true;
+			::InvalidateRect(hWnd, nullptr, FALSE);*/
+			defaultToWindowProc = false;
+			break;
+		}
 		case WM_SIZE:
 		{
 			uint32_t newWidth = (uint32_t)LOWORD(lParam);
@@ -817,11 +853,12 @@ namespace Berta
 		case WM_NCACTIVATE:
 		case WM_SHOWWINDOW:
 		case WM_PAINT:
-		case WM_MOVE:
 		//case WM_MOVING:
-		case WM_SIZE:
+		case WM_MOVE:
 		//case WM_SIZING:
-		case WM_WINDOWPOSCHANGING:
+		case WM_SIZE:
+		case WM_GETMINMAXINFO:
+		//case WM_WINDOWPOSCHANGING:
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
@@ -854,4 +891,32 @@ namespace Berta
 		return true;
 	}
 }
+
+/*
+using Clock = std::chrono::steady_clock;
+auto lastPaintTime = Clock::now();
+const int frameDelayMs = 1000 / 60; // ~16ms for 60 FPS
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+	case WM_ERASEBKGND:
+		return TRUE;
+
+	case WM_SIZING:
+	{
+		// Optional: force a redraw but only if enough time has passed
+		auto now = Clock::now();
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPaintTime).count();
+
+		if (ms >= frameDelayMs) {
+			InvalidateRect(hwnd, nullptr, FALSE);  // Mark the whole window dirty
+			lastPaintTime = now;
+		}
+
+		return TRUE;
+	}
+
+*/
 #endif

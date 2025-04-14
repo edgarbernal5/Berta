@@ -267,8 +267,8 @@ namespace Berta
 			RECT clientRECT, windowAreaRECT;
 			::GetClientRect(nativeHandle.Handle, &clientRECT);
 			::GetWindowRect(nativeHandle.Handle, &windowAreaRECT);
-			unsigned borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
-			unsigned borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
+			auto borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
+			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
 			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint);
 #endif

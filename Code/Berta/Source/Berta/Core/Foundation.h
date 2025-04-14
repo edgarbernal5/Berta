@@ -86,18 +86,7 @@ namespace Berta
 		{
 			if (window->Type != WindowType::Panel && window->IsBatchActive())
 			{
-				Rectangle requestRectangle = window->ClientSize.ToRectangle();
-				auto absolutePosition = m_windowManager.GetAbsoluteRootPosition(window);
-				requestRectangle.X = absolutePosition.X;
-				requestRectangle.Y = absolutePosition.Y;
-
-				auto container = window->FindFirstPanelOrFormAncestor();
-				auto containerPosition = m_windowManager.GetAbsoluteRootPosition(container);
-				Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-				if (m_windowManager.GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-				{
-					m_windowManager.AddWindowToBatch(window, requestRectangle);
-				}
+				m_windowManager.TryAddWindowToBatch(window);
 			}
 		}
 	}
