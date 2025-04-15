@@ -439,27 +439,104 @@ namespace Berta
 				if (indicator->Position == DockPosition::Tab)
 				{
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize](Graphics& graphics)
+					{
+						graphics.DrawRectangle(indicator->Docker->Handle()->Appearance->Background, true);
+						graphics.DrawRectangle({ 4,4,(uint32_t)(indicatorSize - 8), 6u }, indicator->Docker->Handle()->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ 4,4,(uint32_t)(indicatorSize - 8), (uint32_t)(indicatorSize - 8) }, indicator->Docker->Handle()->Appearance->BoxBorderColor, false);
+					});
 				}
 				else if (indicator->Position == DockPosition::Up)
 				{
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
+					{
+						auto window = indicator->Docker->Handle();
+						int two = window->ToScale(2);
+						int four = window->ToScale(4);
+						int eight = window->ToScale(8);
+						int six = window->ToScale(6);
+						graphics.DrawRectangle(window->Appearance->Background, true);
+						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor, false);
+
+						int arrowWidth = four;
+						int arrowLength = two;
+						Rectangle arrowRect{ 0, indicatorSizeHalf,(uint32_t)(indicatorSize), (uint32_t)(indicatorSizeHalf + two) };
+
+						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
+							Graphics::ArrowDirection::Upwards,
+							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+					});
 				}
 				else if (indicator->Position == DockPosition::Down)
 				{
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
+					{
+						auto window = indicator->Docker->Handle();
+						int two = window->ToScale(2);
+						int four = window->ToScale(4);
+						int eight = window->ToScale(8);
+						int six = window->ToScale(6);
+						graphics.DrawRectangle(window->Appearance->Background, true);
+						graphics.DrawRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor, false);
+
+						int arrowWidth = four;
+						int arrowLength = two;
+						Rectangle arrowRect{ 0, 0,(uint32_t)(indicatorSize), (uint32_t)(indicatorSizeHalf - two) };
+
+						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
+							Graphics::ArrowDirection::Downwards,
+							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+					});
 				}
 				else if (indicator->Position == DockPosition::Left)
 				{
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
+					{
+						auto window = indicator->Docker->Handle();
+						int two = window->ToScale(2);
+						int four = window->ToScale(4);
+						int eight = window->ToScale(8);
+						int six = window->ToScale(6);
+						graphics.DrawRectangle(window->Appearance->Background, true);
+						graphics.DrawRectangle({ four,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+
+						int arrowWidth = four;
+						int arrowLength = two;
+						Rectangle arrowRect{ indicatorSizeHalf + two, 0,(uint32_t)(indicatorSizeHalf - two), (uint32_t)(indicatorSize) };
+						
+						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
+							 Graphics::ArrowDirection::Left,
+							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+					});
 				}
 				else if (indicator->Position == DockPosition::Right)
 				{
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
-					indicator->Docker->GetAppearance().Background = Colors::Light_ButtonBackground;
+					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
+					{
+						auto window = indicator->Docker->Handle();
+						int two = window->ToScale(2);
+						int four = window->ToScale(4);
+						int eight = window->ToScale(8);
+						int six = window->ToScale(6);
+						graphics.DrawRectangle(window->Appearance->Background, true);
+						graphics.DrawRectangle({ indicatorSize - four - six,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ indicatorSizeHalf - four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+
+						int arrowWidth = four;
+						int arrowLength = two;
+						Rectangle arrowRect{ 0, 0,(uint32_t)(indicatorSizeHalf - two), (uint32_t)(indicatorSize) };
+						
+						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
+							 Graphics::ArrowDirection::Right,
+							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+					});
 				}
 				GUI::MakeWindowActive(*indicator->Docker, false, m_parent);
 				

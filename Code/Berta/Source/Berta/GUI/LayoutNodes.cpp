@@ -628,8 +628,8 @@ namespace Berta
 		m_buttonRect.Height = buttonSize;
 		m_buttonRect.Width = buttonSize;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		//Update(graphics);
+		//GUI::MarkAsUpdated(*m_control);
 	}
 
 	void DockArea::AddTab(const std::string& id, ControlBase* control)

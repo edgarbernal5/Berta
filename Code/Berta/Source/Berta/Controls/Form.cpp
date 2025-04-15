@@ -23,6 +23,12 @@ namespace Berta
 #else
 		BT_CORE_TRACE << "  - Form::Update. hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #endif
+		if (m_customDrawing)
+		{
+			m_customDrawing(graphics);
+			return;
+		}
+
 		graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
 	}
 

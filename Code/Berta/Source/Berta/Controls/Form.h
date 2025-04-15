@@ -25,7 +25,12 @@ namespace Berta
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
+		void SetCustomDrawing(std::function<void(Graphics&)>&& fn)
+		{
+			m_customDrawing = std::move(fn);
+		}
 	private:
+		std::function<void(Graphics&)> m_customDrawing;
 	};
 
 	class FormBase : public Control<FormReactor, FormEvents>
@@ -41,6 +46,11 @@ namespace Berta
 		}
 
 		void SetLayout(const std::string& layoutText);
+
+		void SetCustomDrawing(std::function<void(Graphics&)>&& fn)
+		{
+			m_reactor.SetCustomDrawing(std::move(fn));
+		}
 	private:
 		Layout m_layout;
 	};
