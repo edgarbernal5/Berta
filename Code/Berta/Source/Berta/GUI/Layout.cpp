@@ -441,9 +441,13 @@ namespace Berta
 					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize](Graphics& graphics)
 					{
-						graphics.DrawRectangle(indicator->Docker->Handle()->Appearance->Background, true);
-						graphics.DrawRectangle({ 4,4,(uint32_t)(indicatorSize - 8), 6u }, indicator->Docker->Handle()->Appearance->MenuBackground, true);
-						graphics.DrawRectangle({ 4,4,(uint32_t)(indicatorSize - 8), (uint32_t)(indicatorSize - 8) }, indicator->Docker->Handle()->Appearance->BoxBorderColor, false);
+						auto window = indicator->Docker->Handle();
+						int four = window->ToScale(4);
+						int eight = window->ToScale(8);
+						uint32_t six = window->ToScale(6u);
+						graphics.DrawRectangle(window->Appearance->Background, true);
+						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), six }, window->Appearance->MenuBackground, true);
+						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
 					});
 				}
 				else if (indicator->Position == DockPosition::Up)
