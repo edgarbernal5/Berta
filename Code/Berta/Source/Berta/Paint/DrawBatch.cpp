@@ -45,9 +45,9 @@ namespace Berta
 			return;
 		}
 
-		for (auto& windowAreaIndex : m_context.m_batchItemRequests)
+		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
-			windowAreaIndex.Index = windowAreaIndex.Target->GetHierarchyIndex();
+			batchItem.Index = batchItem.Target->GetHierarchyIndex();
 		}
 
 		BatchItemComparer comparer;
