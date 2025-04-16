@@ -95,6 +95,7 @@ namespace Berta
 	private:
 		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		void AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
+		void TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation);
 
 		bool GetIntersectionClipRect(Window* window, Rectangle& result);
 		bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result);

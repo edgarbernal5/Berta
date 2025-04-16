@@ -295,6 +295,7 @@ namespace Berta
 			Rectangle newContainerRectangle = containerRectangle;
 			auto childAbsolutePosition = GetLocalPosition(child);
 			childAbsolutePosition += parentPosition;
+
 			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
 			if (child->Type != WindowType::Panel)
 			{
@@ -424,12 +425,60 @@ namespace Berta
 		batch->AddWindow(window, areaToUpdate, operation);
 	}
 
+	void WindowManager::TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation)
+	{
+		if (window == nullptr)
+		{
+			return;
+		}
+
+		for (auto& child : window->Children)
+		{
+			if (!child->Visible)
+			{
+				continue;
+			}
+
+			Rectangle newContainerRectangle = containerRectangle;
+			auto childAbsolutePosition = GetLocalPosition(child);
+			childAbsolutePosition += parentPosition;
+
+			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
+			if (child->Type != WindowType::Panel)
+			{
+				if (HasFlag(operation, DrawOperation::NeedMap) && GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+				{
+					AddWindowToBatch(child, childRectangle, DrawOperation::NeedMap);
+				}
+			}
+			else
+			{
+				newContainerRectangle = childRectangle;
+			}
+			TryAddWindowToBatchInternal(child, newContainerRectangle, childAbsolutePosition, operation);
+		}
+	}
+
 	void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
 	{
-		Rectangle requestRectangle;
-		if (GetIntersectionClipRect(window, requestRectangle))
+		//Rectangle requestRectangle;
+		//if (GetIntersectionClipRect(window, requestRectangle))
+
+		Rectangle requestRectangle = window->ClientSize.ToRectangle();
+		auto absolutePosition = GetAbsoluteRootPosition(window);
+		requestRectangle.X = absolutePosition.X;
+		requestRectangle.Y = absolutePosition.Y;
+
+		auto container = window->FindFirstPanelOrFormAncestor();
+		auto containerPosition = GetAbsoluteRootPosition(container);
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			AddWindowToBatch(window, requestRectangle, operation);
+			if (!window->Children.empty())
+			{
+				TryAddWindowToBatchInternal(window, requestRectangle, requestRectangle, operation);
+			}
 		}
 	}
 

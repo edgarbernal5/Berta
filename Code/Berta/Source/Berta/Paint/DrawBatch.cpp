@@ -65,10 +65,13 @@ namespace Berta
 				batchItem.Target->Renderer.Update();
 				batchItem.Target->Flags.isUpdating = false;
 			}
+
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedMap))
 			{
 				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
 			}
+
+			//if there are children, paste it too!
 
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
 		}
@@ -101,12 +104,12 @@ namespace Berta
 
 	void DrawBatch::AddWindow(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
-		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
+		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
-			if (m_context.m_batchItemRequests[i].Target == window)
+			if (batchItem.Target == window)
 			{
-				m_context.m_batchItemRequests[i].Area = areaToUpdate;
-				m_context.m_batchItemRequests[i].Operation = operation;
+				batchItem.Area = areaToUpdate;
+				batchItem.Operation = operation;
 				return;
 			}
 		}
@@ -116,9 +119,9 @@ namespace Berta
 
 	bool DrawBatch::Exists(Window* window, const Rectangle& areaToUpdate)
 	{
-		for (auto& windowArea : m_context.m_batchItemRequests)
+		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
-			if (windowArea.Target == window && windowArea.Area == areaToUpdate)
+			if (batchItem.Target == window && batchItem.Area == areaToUpdate)
 				return true;
 		}
 
