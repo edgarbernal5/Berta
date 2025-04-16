@@ -96,7 +96,7 @@ namespace Berta
 
 			void AddItem(const std::wstring& text, const Image& thumbnail);
 			ThumbListBoxItem At(size_t index);
-			void CalculateViewport(ViewportData& viewportData);
+			void CalculateViewport(ViewportData& viewportData) const;
 			void CalculateVisibleIndices();
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
 			void BuildItems();
@@ -117,7 +117,7 @@ namespace Berta
 			void PerformRangeSelection(int itemIndexAtPosition);
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 
-			void Draw();
+			void Draw() const;
 
 			std::vector<size_t> GetSelectedItems() const;
 			bool EnsureVisibility(int lastSelectedIndex);

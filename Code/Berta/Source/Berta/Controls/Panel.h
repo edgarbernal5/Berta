@@ -18,7 +18,6 @@ namespace Berta
 	class PanelReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
 
 	private:
 	};

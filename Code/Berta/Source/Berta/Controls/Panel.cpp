@@ -5,17 +5,10 @@
 */
 
 #include "btpch.h"
-#include "TabBar.h"
-
-#include "Berta/GUI/Interface.h"
 #include "Panel.h"
 
 namespace Berta
 {
-	void PanelReactor::Init(ControlBase& control)
-	{
-	}
-
 	Panel::Panel(Window* parent, const Rectangle& rectangle, bool visible)
 	{
 		Create(parent, true, rectangle, visible, true);

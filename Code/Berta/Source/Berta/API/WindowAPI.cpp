@@ -107,8 +107,8 @@ namespace Berta
 			::RECT areaWithNonClientRect;
 			::GetWindowRect(hwnd, &areaWithNonClientRect);
 
-			areaWithNonClientRect.right -= areaWithNonClientRect.left;	// width
-			areaWithNonClientRect.bottom -= areaWithNonClientRect.top;	// height
+			auto width = areaWithNonClientRect.right - areaWithNonClientRect.left;
+			auto height = areaWithNonClientRect.bottom - areaWithNonClientRect.top;
 
 			if (isNested)
 			{
@@ -119,22 +119,22 @@ namespace Berta
 			int deltaWidth = static_cast<int>(rectangle.Width) - clientRect.right;
 			int deltaHeight = static_cast<int>(rectangle.Height) - clientRect.bottom;
 
-			::MoveWindow(hwnd, areaWithNonClientRect.left, areaWithNonClientRect.top, areaWithNonClientRect.right + deltaWidth, areaWithNonClientRect.bottom + deltaHeight, true);
+			::MoveWindow(hwnd, areaWithNonClientRect.left, areaWithNonClientRect.top, width + deltaWidth, height + deltaHeight, true);
 
 			::GetClientRect(hwnd, &clientRect);
 			::GetWindowRect(hwnd, &areaWithNonClientRect);
 
-			areaWithNonClientRect.right -= areaWithNonClientRect.left;
-			areaWithNonClientRect.bottom -= areaWithNonClientRect.top;
+			width = areaWithNonClientRect.right - areaWithNonClientRect.left;
+			height = areaWithNonClientRect.bottom - areaWithNonClientRect.top;
 
-			auto extraWidth = static_cast<uint32_t>(areaWithNonClientRect.right - clientRect.right);
-			auto extraHeight = static_cast<uint32_t>(areaWithNonClientRect.bottom - clientRect.bottom);
+			auto borderWidth = static_cast<uint32_t>(width - clientRect.right);
+			auto borderHeight = static_cast<uint32_t>(height - clientRect.bottom);
 
 			return NativeWindowResult
 			{
 				{ hwnd },
 				{ static_cast<uint32_t>(clientRect.right), static_cast<uint32_t>(clientRect.bottom) },
-				{ extraWidth, extraHeight},
+				{ borderWidth, borderHeight},
 				GetNativeWindowDPI(parentHandle)
 			};
 #else

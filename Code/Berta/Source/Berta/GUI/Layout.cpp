@@ -198,11 +198,6 @@ namespace Berta
 
 			//Print();
 		});
-
-		m_parent->Events->Destroy.Connect([](const ArgDestroy& args)
-		{
-			//
-		});
 	}
 
 	void Layout::Parse(const std::string& source)
@@ -335,6 +330,7 @@ namespace Berta
 		{
 			needUpdate = RemoveDockPane(paneNode);
 		}
+
 		if (needUpdate)
 		{
 			Apply();
@@ -445,9 +441,9 @@ namespace Berta
 
 			if (!indicator->Docker)
 			{
+				indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 				if (indicator->Position == DockPosition::Tab)
 				{
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize](Graphics& graphics)
 					{
 						auto window = indicator->Docker->Handle();
@@ -463,7 +459,6 @@ namespace Berta
 				}
 				else if (indicator->Position == DockPosition::Up)
 				{
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
 					{
 						auto window = indicator->Docker->Handle();
@@ -488,7 +483,6 @@ namespace Berta
 				}
 				else if (indicator->Position == DockPosition::Down)
 				{
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
 					{
 						auto window = indicator->Docker->Handle();
@@ -513,7 +507,6 @@ namespace Berta
 				}
 				else if (indicator->Position == DockPosition::Left)
 				{
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
 					{
 						auto window = indicator->Docker->Handle();
@@ -538,7 +531,6 @@ namespace Berta
 				}
 				else if (indicator->Position == DockPosition::Right)
 				{
-					indicator->Docker = std::make_unique<Form>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
 					indicator->Docker->SetCustomDrawing([&indicator, indicatorSize, indicatorSizeHalf](Graphics& graphics)
 					{
 						auto window = indicator->Docker->Handle();
@@ -787,11 +779,14 @@ namespace Berta
 
 	bool Layout::DoDock(DockPaneLayoutNode* node, LayoutNode* target, DockPosition dockPosition)
 	{
+		if (!target)
+			return false;
+
 		size_t nodeIndex;
 		if (IsAlreadyDocked(node, nodeIndex))
 			return false;
 
-		if (target && target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
+		if (target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{
 			node->SetParentNode(target);
 
@@ -804,6 +799,7 @@ namespace Berta
 		if (dockPosition == DockPosition::Tab)
 		{
 			node->SetArea(target->GetArea());
+
 			m_tabDockField = std::move(m_floatingDockFields[nodeIndex]);
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 

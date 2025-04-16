@@ -14,13 +14,10 @@
 
 namespace Berta
 {
-	class ControlBase;
-
 	class DockPanelReactor : public ControlReactor
 	{
 	public:
 		void Update(Graphics& graphics) override;
-
 	};
 
 	class DockPanel : public Control<DockPanelReactor>
@@ -30,7 +27,6 @@ namespace Berta
 		DockPanel(Window* parent, const Rectangle& rectangle = {});
 		DockPanel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle = {});
 	};
-
 }
 
 #endif

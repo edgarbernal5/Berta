@@ -95,7 +95,6 @@ namespace Berta
 		}
 
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
-		//m_module.Draw(graphics);
 	}
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -405,7 +404,7 @@ namespace Berta
 		CalculateVisibleIndices();
 	}
 
-	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
+	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData) const
 	{
 		viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
 		viewportData.m_innerMargin = m_window->ToScale(3u);
@@ -775,7 +774,7 @@ namespace Berta
 		return needUpdate;
 	}
 
-	void ThumbListBoxReactor::Module::Draw()
+	void ThumbListBoxReactor::Module::Draw() const
 	{
 		GUI::UpdateWindow(m_window);
 	}
