@@ -382,121 +382,121 @@ int main()
 	menuEdit.Append(L"Undo", [](Berta::MenuItem& item) {});
 
 	menuBar.PushBack(L"Help");
-//
-//	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
-//		{
-//			auto currentSize = menuBar.GetSize();
-//			menuBar.SetSize({ args.NewSize.Width, currentSize.Height });
-//		});
-//	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
-//
-//	Berta::Label label(form, { 10,28,75,35 }, L"Hello world!");
-//	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
-//
-//	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
-//		{
-//			//std::cout << "LABEL>mouse move" << std::endl;
-//		});
-//
-//	Berta::InputText inputText(form, { 110,28,200,25 });
-//	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
-//	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
-//		{
-//			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
-//		});
-//
-//	Berta::ComboBox comboBox(form, { 110,55,200,25 });
-//	for (size_t i = 0; i < 2; i++)
-//	{
-//		comboBox.PushItem(L"Ejemplo 1", image1);
-//		comboBox.PushItem(L"Ejemplo 2");
-//		comboBox.PushItem(L"Ejemplo 3", image1);
-//		comboBox.PushItem(L"Ejemplo 4", image2);
-//		comboBox.PushItem(L"Ejemplo 5", image3);
-//		comboBox.PushItem(L"Ejemplo 6");
-//		comboBox.PushItem(L"Ejemplo 7", image2);
-//	}
-//	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
-//		{
-//			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
-//		});
-//
-//	Berta::ScrollBar scrollbar(form, { 10, 200, 20, 150 }, true);
-//	scrollbar.SetMinMax(0, 10);
-//	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
-//		{
-//			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
-//		});
-//	Berta::ScrollBar scrollbar2(form, { 40,200, 20, 150 }, true);
-//	scrollbar2.SetMinMax(0, 0);
-//	scrollbar2.SetEnabled(false);
-//
-//	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
-//
-//	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
-//	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
-//	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
-//
-//
-//	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
-//#ifdef BT_DEBUG
-//	button2.SetDebugName("button2");
-//#endif
-//	button2.SetEnabled(false);
-//	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
-//		{
-//			std::cout << "BUTTON 2 >Click" << std::endl;
-//			tabbar.Erase(1);
-//		});
-//
-//	Berta::Button button(form, { 5,90,75,25 }, L"Click me!");
-//#ifdef BT_DEBUG
-//	button.SetDebugName("button1");
-//#endif
-//	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
-//		{
-//			std::cout << "BUTTON > Click" << std::endl;
-//			button2.SetEnabled(!button2.GetEnabled());
-//			/*inputText.SetEnabled(!inputText.GetEnabled());
-//			comboBox.SetEnabled(!comboBox.GetEnabled());
-//			menuBar.SetEnabled(!menuBar.GetEnabled());*/
-//		});
-//	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
-//		{
-//			std::cout << "BUTTON < mouse leave" << std::endl;
-//		});
-//	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
-//		{
-//			std::cout << "BUTTON > mouse enter" << std::endl;
-//		});
-//
-//	Berta::Button buttonClear(form, { 95,90,75,25 }, L"Clear!");
-//#ifdef BT_DEBUG
-//	buttonClear.SetDebugName("buttonClear");
-//#endif
-//	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
-//		{
-//			std::cout << "BUTTON > Clear Click" << std::endl;
-//			tabbar.Clear();
-//		});
-//
-//	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-//		{
-//			std::cout << "form > Visibility = " << args.IsVisible << std::endl;
-//		});
-//	tabExample1->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-//		{
-//			std::cout << "Apariencia > Visibility = " << args.IsVisible << std::endl;
-//		});
-//	tabExample2->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-//		{
-//			std::cout << "Tab Player > Visibility = " << args.IsVisible << std::endl;
-//		});
-//	tabExample3->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-//		{
-//			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
-//		});
-//
+
+	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
+		{
+			auto currentSize = menuBar.GetSize();
+			menuBar.SetSize({ args.NewSize.Width, currentSize.Height });
+		});
+	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
+
+	Berta::Label label(form, { 10,28,75,35 }, L"Hello world!");
+	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
+
+	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
+		{
+			//std::cout << "LABEL>mouse move" << std::endl;
+		});
+
+	Berta::InputText inputText(form, { 110,28,200,25 });
+	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
+		{
+			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
+		});
+
+	Berta::ComboBox comboBox(form, { 110,55,200,25 });
+	for (size_t i = 0; i < 2; i++)
+	{
+		comboBox.PushItem(L"Ejemplo 1", image1);
+		comboBox.PushItem(L"Ejemplo 2");
+		comboBox.PushItem(L"Ejemplo 3", image1);
+		comboBox.PushItem(L"Ejemplo 4", image2);
+		comboBox.PushItem(L"Ejemplo 5", image3);
+		comboBox.PushItem(L"Ejemplo 6");
+		comboBox.PushItem(L"Ejemplo 7", image2);
+	}
+	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
+		{
+			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
+		});
+
+	Berta::ScrollBar scrollbar(form, { 10, 200, 20, 150 }, true);
+	scrollbar.SetMinMax(0, 10);
+	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
+		{
+			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
+		});
+	Berta::ScrollBar scrollbar2(form, { 40,200, 20, 150 }, true);
+	scrollbar2.SetMinMax(0, 0);
+	scrollbar2.SetEnabled(false);
+
+	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
+
+	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
+	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
+	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
+
+
+	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
+#ifdef BT_DEBUG
+	button2.SetDebugName("button2");
+#endif
+	button2.SetEnabled(false);
+	button2.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
+		{
+			std::cout << "BUTTON 2 >Click" << std::endl;
+			tabbar.Erase(1);
+		});
+
+	Berta::Button button(form, { 5,90,75,25 }, L"Click me!");
+#ifdef BT_DEBUG
+	button.SetDebugName("button1");
+#endif
+	button.GetEvents().Click.Connect([&button2 /*, &inputText, &comboBox, &menuBar*/](const Berta::ArgClick& args)
+		{
+			std::cout << "BUTTON > Click" << std::endl;
+			button2.SetEnabled(!button2.GetEnabled());
+			/*inputText.SetEnabled(!inputText.GetEnabled());
+			comboBox.SetEnabled(!comboBox.GetEnabled());
+			menuBar.SetEnabled(!menuBar.GetEnabled());*/
+		});
+	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
+		{
+			std::cout << "BUTTON < mouse leave" << std::endl;
+		});
+	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
+		{
+			std::cout << "BUTTON > mouse enter" << std::endl;
+		});
+
+	Berta::Button buttonClear(form, { 95,90,75,25 }, L"Clear!");
+#ifdef BT_DEBUG
+	buttonClear.SetDebugName("buttonClear");
+#endif
+	buttonClear.GetEvents().Click.Connect([&tabbar](const Berta::ArgClick& args)
+		{
+			std::cout << "BUTTON > Clear Click" << std::endl;
+			tabbar.Clear();
+		});
+
+	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+		{
+			std::cout << "form > Visibility = " << args.IsVisible << std::endl;
+		});
+	tabExample1->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+		{
+			std::cout << "Apariencia > Visibility = " << args.IsVisible << std::endl;
+		});
+	tabExample2->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+		{
+			std::cout << "Tab Player > Visibility = " << args.IsVisible << std::endl;
+		});
+	tabExample3->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+		{
+			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
+		});
+
 	Berta::Menu popupMenu;
 	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
 		{
@@ -520,25 +520,20 @@ int main()
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
 //
-//	auto currentPosition = tabbar.GetPosition();
-//	auto margin = tabbar.Handle()->ToScale(2);
-//	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
+	auto currentPosition = tabbar.GetPosition();
+	auto margin = tabbar.Handle()->ToScale(2);
+	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
 
 	//Berta::Button nestedForm(form, { 320,35, 200, 200 }, L"Button");
 	//Berta::Button buttonLayout(form, { 320,250, 200, 200 }, L"Nested");
 
-	/*form.GetEvents().Resize.Connect([&tabbar, &nestedForm](const Berta::ArgResize& args)
+	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
 		{
 			auto currentPosition = tabbar.GetPosition();
 			auto margin = tabbar.Handle()->ToScale(2);
 			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 
-			currentPosition = nestedForm.GetPosition();
-			auto currentSize = nestedForm.GetSize();
-			Berta::Size newSize = { args.NewSize.Width - currentPosition.X - margin, currentSize.Height };
-			std::cout << " - newSize " << newSize << std::endl;
-			nestedForm.SetSize(newSize);
-		});*/
+		});
 
 
 //	Berta::Button buttonShowNested(form, { 90,120,75,25 }, L"Show");
@@ -580,32 +575,32 @@ int main()
 				scrollbar.Show();
 		});*/
 
-	//form.SetLayout("{{menuBar Height=25}{b}}");
-	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
-	
-	form.GetLayout().Attach("menuBar", menuBar);
+	////form.SetLayout("{{menuBar Height=25}{b}}");
+	//form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
+	//
+	//form.GetLayout().Attach("menuBar", menuBar);
 
-	//auto buttonPane = std::make_shared<ButtonPane>();
-	Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Scene");
-	Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Properties");
-	Berta::Button buttonPaneTab3(form, { 320,250, 200, 200 }, L"Explorer");
-	
-	//buttonPaneTab.Hide();
-	//buttonPaneTab2.Hide();
+	////auto buttonPane = std::make_shared<ButtonPane>();
+	//Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Scene");
+	//Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Properties");
+	//Berta::Button buttonPaneTab3(form, { 320,250, 200, 200 }, L"Explorer");
+	//
+	////buttonPaneTab.Hide();
+	////buttonPaneTab2.Hide();
 
-	//Berta::Button nestedForm(form, { 15,150,75,25 }, L"Show or Hide");
+	////Berta::Button nestedForm(form, { 15,150,75,25 }, L"Show or Hide");
 
-	/*Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
-	nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };*/
+	///*Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
+	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };*/
 
-	TabForm tabForm(form);
+	//TabForm tabForm(form);
 
-	form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
-	form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
-	form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
-	form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &tabForm, "dockPane1", Berta::DockPosition::Down);
+	//form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
+	//form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
+	//form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
+	//form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &tabForm, "dockPane1", Berta::DockPosition::Down);
 
-	form.GetLayout().Apply();
+	//form.GetLayout().Apply();
 
 	form.Show();
 	//nestedForm.Show();

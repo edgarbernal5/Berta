@@ -27,6 +27,7 @@ namespace Berta
 	public:
 		Label() = default;
 		Label(Window* parent, const Rectangle& rectangle, const std::wstring& text);
+		Label(Window* parent, const Rectangle& rectangle, const std::string& text);
 	};
 }
 

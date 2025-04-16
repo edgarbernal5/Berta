@@ -32,4 +32,14 @@ namespace Berta
 		m_handle->Name = "Label";
 #endif
 	}
+
+	Label::Label(Window* parent, const Rectangle& rectangle, const std::string& text)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+
+#if BT_DEBUG
+		m_handle->Name = "Label";
+#endif
+	}
 }
