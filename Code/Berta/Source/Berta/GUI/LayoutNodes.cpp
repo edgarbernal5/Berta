@@ -714,22 +714,24 @@ namespace Berta
 					formRect.Width = dockAreaSize.Width;
 					formRect.Height = dockAreaSize.Height;
 
-					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
-					m_mouseInteraction.m_dragStartCaptionPos = args.Position;
-
 					m_nativeContainer = std::make_unique<Form>(m_hostWindow, formRect, FormStyle::Float());
-
+					auto nativeWindow = m_nativeContainer->Handle();
 #if BT_DEBUG
-					m_nativeContainer->Handle()->Name = "DockFloat-" + m_paneInfo->id;
+					nativeWindow->Name = "DockFloat-" + m_paneInfo->id;
 #endif
 
-					GUI::SetParentWindow(dockAreaWindow, m_nativeContainer->Handle());
+					GUI::SetParentWindow(dockAreaWindow, nativeWindow);
 					this->SetPosition({ 0, 0 });
 
 					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
 					{
 						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
 					});
+
+					m_mouseInteraction.m_dragStartLocalPos.X -= nativeWindow->BorderSize.Width / 2 - (screenMousePos.X - m_mouseInteraction.m_dragStartPos.X);
+					m_mouseInteraction.m_dragStartLocalPos.Y -= nativeWindow->BorderSize.Height / 2 - (screenMousePos.Y - m_mouseInteraction.m_dragStartPos.Y);
+					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
+
 					m_nativeContainer->Show();
 
 					m_mouseInteraction.m_hasChanged = true;

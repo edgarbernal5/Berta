@@ -728,9 +728,6 @@ namespace Berta
 			if (windowToUpdate)
 			{
 				UpdateTree(windowToUpdate);
-				auto position = GetAbsoluteRootPosition(windowToUpdate);
-				Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
-				Map(windowToUpdate, &areaToUpdate);
 			}
 		}
 	}
@@ -920,7 +917,12 @@ namespace Berta
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-		if (window->Type != WindowType::Form)
+		if (window->Type == WindowType::Form)
+		{
+			window->BorderSize.Width = static_cast<uint32_t>(window->BorderSize.Width * scalingFactor);
+			window->BorderSize.Height = static_cast<uint32_t>(window->BorderSize.Height * scalingFactor);
+		}
+		else
 		{
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
 			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
