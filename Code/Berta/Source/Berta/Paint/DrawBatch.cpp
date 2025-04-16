@@ -70,10 +70,6 @@ namespace Berta
 				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
 			}
 
-			if (!fullMap)
-			{
-				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
-			}
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
 		}
 
@@ -84,6 +80,10 @@ namespace Berta
 
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
+			if (!fullMap)
+			{
+				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
+			}
 			if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
 			{
 				API::RefreshWindow(batchItem.Target->RootHandle);
