@@ -409,14 +409,14 @@ namespace Berta
 
 		for (auto& indicator : m_paneIndicators)
 		{
-			/*if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
+			if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
 			{
 				if (indicator->Docker)
 				{
 					indicator->Docker.reset();
 				}
 				continue;
-			}*/
+			}
 			auto nodeArea = node->GetArea();
 			auto x = nodeArea.X + static_cast<int>(nodeArea.Width) / 2;
 			auto y = nodeArea.Y + static_cast<int>(nodeArea.Height) / 2;
@@ -457,6 +457,8 @@ namespace Berta
 						graphics.DrawRectangle(window->Appearance->Background, true);
 						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), six }, window->Appearance->MenuBackground, true);
 						graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+
+						graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 					});
 				}
 				else if (indicator->Position == DockPosition::Up)
@@ -480,6 +482,8 @@ namespace Berta
 						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
 							Graphics::ArrowDirection::Upwards,
 							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+
+						graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 					});
 				}
 				else if (indicator->Position == DockPosition::Down)
@@ -503,6 +507,8 @@ namespace Berta
 						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
 							Graphics::ArrowDirection::Downwards,
 							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+
+						graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 					});
 				}
 				else if (indicator->Position == DockPosition::Left)
@@ -526,6 +532,8 @@ namespace Berta
 						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
 							 Graphics::ArrowDirection::Left,
 							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+
+						graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 					});
 				}
 				else if (indicator->Position == DockPosition::Right)
@@ -549,12 +557,14 @@ namespace Berta
 						graphics.DrawArrow(arrowRect, arrowLength, arrowWidth,
 							 Graphics::ArrowDirection::Right,
 							window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
+
+						graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 					});
 				}
-				GUI::MakeWindowActive(*indicator->Docker, false, m_parent);
 				
 				if (indicator->Docker)
 				{
+					GUI::MakeWindowActive(*indicator->Docker, false, m_parent);
 #if BT_DEBUG
 					std::ostringstream builder;
 					builder << "Indicator-" << (int)indicator->Position;
@@ -565,7 +575,11 @@ namespace Berta
 			}
 			else
 			{
-				indicator->Docker->SetPosition(position);
+				auto oldPosition = API::GetWindowPosition(indicator->Docker->Handle()->RootHandle);
+				if (oldPosition != position)
+				{
+					indicator->Docker->SetPosition(position);
+				}
 			}
 		}
 	}
