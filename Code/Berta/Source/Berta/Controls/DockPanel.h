@@ -24,8 +24,8 @@ namespace Berta
 	{
 	public:
 		DockPanel() = default;
-		DockPanel(Window* parent, const Rectangle& rectangle = {});
-		DockPanel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle = {});
+		DockPanel(Window* parent, const Rectangle& rectangle = {}, bool visible = true);
+		DockPanel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle = {}, bool visible = true);
 	};
 }
 

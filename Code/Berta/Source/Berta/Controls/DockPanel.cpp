@@ -16,17 +16,17 @@ namespace Berta
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->SelectionBorderHighlightColor, false);
 	}
 
-	DockPanel::DockPanel(Window* parent, const Rectangle& rectangle)
+	DockPanel::DockPanel(Window* parent, const Rectangle& rectangle, bool visible)
 	{
-		Create(parent, true, rectangle);
+		Create(parent, true, rectangle, visible);
 
 #if BT_DEBUG
 		m_handle->Name = "DockPanel";
 #endif
 	}
-	DockPanel::DockPanel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle)
+	DockPanel::DockPanel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible)
 	{
-		Create(parent, isUnscaleRect, rectangle);
+		Create(parent, isUnscaleRect, rectangle, visible);
 
 #if BT_DEBUG
 		m_handle->Name = "DockPanel";
