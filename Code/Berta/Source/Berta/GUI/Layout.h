@@ -8,6 +8,7 @@
 #define BT_LAYOUT_HEADER
 
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Controls/DockPanel.h"
 
 #include <memory>
 #include <functional>
@@ -221,6 +222,7 @@ namespace Berta
 
         std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;
         bool m_lockPaneIndicators{ false };
+        std::unique_ptr<DockPanel> m_dockPanelTarget;
     };
 
     //template<typename ...Args>

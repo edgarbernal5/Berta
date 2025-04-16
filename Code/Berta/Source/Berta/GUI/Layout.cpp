@@ -255,10 +255,16 @@ namespace Berta
 		{
 			if (DoDock(paneNode, paneOrDock, dockPosition))
 			{
+				BT_CORE_TRACE << " - DoDock." << std::endl;
 				m_lockPaneIndicators = true;
 				m_lastTargetNode = paneOrDock;
-				BT_CORE_TRACE << " - DoDock." << std::endl;
 				Apply();
+
+				auto dockPanelTargetArea = paneNode->GetArea();
+
+				m_dockPanelTarget.reset(new DockPanel(m_parent, false, dockPanelTargetArea));
+				m_dockPanelTarget->Show();
+
 				Print();
 			}
 		}
@@ -269,6 +275,8 @@ namespace Berta
 			{
 				m_lastTargetNode = nullptr;
 				BT_CORE_TRACE << " - DoFloat." << std::endl;
+				m_dockPanelTarget.reset();
+
 				Apply();
 				Print();
 			}
@@ -281,6 +289,7 @@ namespace Berta
 		auto shouldDock = IsMouseInsideDockIndicator();
 		HidePaneDockIndicators();
 
+		m_dockPanelTarget.reset();
 		if (shouldDock)
 		{
 			if (m_tabDockField)
@@ -780,6 +789,7 @@ namespace Berta
 
 		if (dockPosition == DockPosition::Tab)
 		{
+			node->SetArea(target->GetArea());
 			m_tabDockField = std::move(m_floatingDockFields[nodeIndex]);
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 

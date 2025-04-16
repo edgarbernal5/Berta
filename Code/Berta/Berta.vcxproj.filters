@@ -207,6 +207,9 @@
     <ClInclude Include="Source\Berta\Paint\DrawBatch.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\DockPanel.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -340,6 +343,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Paint\DrawBatch.cpp">
       <Filter>Source\Berta\Paint</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\DockPanel.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
