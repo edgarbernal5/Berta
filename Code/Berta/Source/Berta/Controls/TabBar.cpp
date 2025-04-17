@@ -434,7 +434,6 @@ namespace Berta
 		newItem.Id = tabId;
 		newItem.PanelPtr = panel;
 
-		//TODO: maybe we need to move this after selected tab index is set.
 		UpdatePanelMoveRect(panel);
 
 		if (m_selectedTabIndex == -1)
