@@ -10,6 +10,12 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/Core/Foundation.h"
 
+#if BT_DEBUG
+#ifndef BT_PRINT_DRAW_BATCH_MESSAGES
+#define BT_PRINT_DRAW_BATCH_MESSAGES
+#endif // !BT_PRINT_DRAW_BATCH_MESSAGES
+#endif
+
 namespace Berta
 {
 	std::unordered_map< Window*, DrawBatcherContext> DrawBatch::g_contexts;
@@ -52,6 +58,16 @@ namespace Berta
 
 		BatchItemComparer comparer;
 		std::sort(m_context.m_batchItemRequests.begin(), m_context.m_batchItemRequests.end(), comparer);
+
+#ifdef BT_PRINT_DRAW_BATCH_MESSAGES
+		BT_CORE_TRACE << "Draw Batch size = " << m_context.m_batchItemRequests.size() << ". root window=" << m_context.m_rootWindow->Name << std::endl;
+		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
+		{
+			auto& item = m_context.m_batchItemRequests[i];
+			BT_CORE_TRACE << "  - batch item = " << item.Target->Name << ". flags="  << (uint32_t)item.Operation << std::endl;
+		}
+		std::cout << std::endl;
+#endif // BT_PRINT_DRAW_BATCH_MESSAGES
 
 		bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
 		for (auto& batchItem : m_context.m_batchItemRequests)

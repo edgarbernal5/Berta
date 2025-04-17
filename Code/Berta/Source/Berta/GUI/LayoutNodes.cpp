@@ -639,8 +639,7 @@ namespace Berta
 		m_tabBarPanels.push_back(panel);
 		if (isFirstTab)
 		{
-			std::wstring caption(id.begin(), id.end());
-			m_caption->SetCaption(caption);
+			m_caption->SetCaption(id);
 		}
 	}
 
@@ -771,7 +770,7 @@ namespace Berta
 
 			if (m_caption->HaveClickedCloseButton())
 			{
-				//m_tabBarPanels
+				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex());
 				m_eventsNotifier->RequestClose();
 				return;
 			}

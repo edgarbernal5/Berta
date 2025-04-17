@@ -7,13 +7,40 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/Button.h>
 #include <Berta/Controls/MenuBar.h>
+#include <Berta/Controls/Panel.h>
 
 #include <iostream>
+
+class TabForm : public Berta::Panel
+{
+public:
+	TabForm(Berta::Window* parent) : Panel(parent)
+	{
+		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 });
+		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xAB20CC };
+
+		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+			{
+				m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+			});
+
+		m_button1.Create(m_nestedForm->Handle(), true, Berta::Rectangle{ 10,10,140,40 });
+		m_button1.SetCaption("Nested button");
+#ifdef BT_DEBUG
+		m_button1.SetDebugName("Nested button");
+#endif
+		m_nestedForm->Show();
+	}
+
+private:
+	std::unique_ptr<Berta::NestedForm> m_nestedForm;
+	Berta::Button m_button1;
+};
 
 int main()
 {
 	Berta::Form form(Berta::Size(700u, 450u), { true, true, true });
-	form.SetCaption(L"Docking system - Example");
+	form.SetCaption("Docking system - Example");
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
@@ -25,6 +52,8 @@ int main()
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPanePropierties(form, { 320,250, 200, 200 }, "Properties");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
+	
+	TabForm tabForm(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
@@ -34,6 +63,7 @@ int main()
 	layout.AddPaneTab("dockScene", "tab-Scene", &buttonPaneScene, "", Berta::DockPosition::Tab);
 	layout.AddPaneTab("dockProp", "tab-Properties", &buttonPanePropierties, "dockScene", Berta::DockPosition::Right);
 	layout.AddPaneTab("dockProp", "tab-Explorer", &buttonPaneExplorer);
+	layout.AddPaneTab("dockD3D", "tab-D3D", &tabForm, "dockScene", Berta::DockPosition::Down);
 
 	layout.Apply();
 
