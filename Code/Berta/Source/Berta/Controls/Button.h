@@ -38,6 +38,7 @@ namespace Berta
 	{
 	public:
 		Button() = default;
+		Button(Window* parent, const Rectangle& rectangle, const std::string& text);
 		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text);
 	};
 }

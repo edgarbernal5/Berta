@@ -419,7 +419,7 @@ namespace Berta
 
 	void WindowManager::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
-		if (batch->Exists(window, areaToUpdate))
+		if (batch->Exists(window, areaToUpdate, operation))
 			return;
 
 		batch->AddWindow(window, areaToUpdate, operation);
@@ -787,11 +787,11 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Resize(Window* window, const Size& newSize, bool resizeForm)
+	bool WindowManager::Resize(Window* window, const Size& newSize, bool resizeForm)
 	{
 		if (window->ClientSize == newSize)
 		{
-			return;
+			return false;
 		}
 		auto& foundation = Foundation::GetInstance();
 
@@ -833,6 +833,8 @@ namespace Berta
 		ArgResize argResize;
 		argResize.NewSize = newSize;
 		foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+
+		return true;
 	}
 
 	bool WindowManager::Move(Window* window, const Rectangle& newRect, bool forceRepaint)
@@ -936,6 +938,9 @@ namespace Berta
 
 	void WindowManager::Update(Window* window)
 	{
+		if (!window->IsVisible())
+			return;
+
 		if (window->IsBatchActive())
 		{
 			TryAddWindowToBatch(window);

@@ -93,6 +93,16 @@ namespace Berta
 		GUI::MarkAsUpdated(*m_control);
 	}
 
+	Button::Button(Window* parent, const Rectangle& rectangle, const std::string& text)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+
+#if BT_DEBUG
+		m_handle->Name = "Button";
+#endif
+	}
+
 	Button::Button(Window* parent, const Rectangle& rectangle, const std::wstring& text)
 	{
 		Create(parent, true, rectangle);

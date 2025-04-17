@@ -53,7 +53,7 @@ namespace Berta
 		void Clear();
 
 		void AddWindow(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
-		bool Exists(Window* window, const Rectangle& areaToUpdate);
+		bool Exists(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 
 	private:
 		DrawBatcherContext& m_context;

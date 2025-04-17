@@ -60,6 +60,7 @@ namespace Berta
 		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
 
+		void Append(const std::string& text, ClickCallback onClick = {});
 		void Append(const std::wstring& text, ClickCallback onClick = {});
 		void AppendSeparator();
 		void ShowPopup(Window* owner, const ArgMouse& args);

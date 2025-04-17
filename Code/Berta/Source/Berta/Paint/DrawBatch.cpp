@@ -81,6 +81,17 @@ namespace Berta
 			m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, m_context.m_rootWindow->ClientSize.ToRectangle());
 		}
 
+		//TODO: Remove this! or put an ASSERT
+		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
+		{
+			for (size_t j = i + 1; j < m_context.m_batchItemRequests.size(); j++)
+			{
+				if (m_context.m_batchItemRequests[i].Target == m_context.m_batchItemRequests[j].Target) {
+					break;
+				}
+			}
+		}
+
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
 			if (!fullMap)
@@ -109,7 +120,7 @@ namespace Berta
 			if (batchItem.Target == window)
 			{
 				batchItem.Area = areaToUpdate;
-				batchItem.Operation = operation;
+				batchItem.Operation = batchItem.Operation | operation;
 				return;
 			}
 		}
@@ -117,11 +128,11 @@ namespace Berta
 		m_context.m_batchItemRequests.emplace_back(BatchItem{ window, areaToUpdate, operation });
 	}
 
-	bool DrawBatch::Exists(Window* window, const Rectangle& areaToUpdate)
+	bool DrawBatch::Exists(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
 	{
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
-			if (batchItem.Target == window && batchItem.Area == areaToUpdate)
+			if (batchItem.Target == window && batchItem.Area == areaToUpdate && batchItem.Operation == operation)
 				return true;
 		}
 

@@ -69,7 +69,7 @@ namespace Berta
 		void Map(Window* window, const Rectangle* areaToUpdate);
 		void Show(Window* window, bool visible);
 
-		void Resize(Window* window, const Size& newSize, bool resizeForm = true);
+		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
 		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
 		void Update(Window* window);

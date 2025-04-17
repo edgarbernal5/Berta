@@ -17,6 +17,12 @@ namespace Berta
 	int MenuBox::g_globalId = 0;
 #endif
 
+	void Menu::Append(const std::string& text, ClickCallback onClick)
+	{
+		std::wstring wstr(text.begin(), text.end());
+		auto& newItem = m_items.emplace_back(new Menu::Item{ wstr , onClick });
+	}
+
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
 		auto& newItem = m_items.emplace_back(new Menu::Item{ text , onClick });

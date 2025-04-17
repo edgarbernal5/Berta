@@ -135,7 +135,16 @@ namespace Berta::GUI
 			return;
 		}
 
-		windowManager.Resize(window, newSize);
+		if (windowManager.Resize(window, newSize))
+		{
+			auto windowToUpdate = window;
+			if (window->Type != WindowType::Form)
+			{
+				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
+			}
+
+			windowManager.Update(windowToUpdate);
+		}
 	}
 
 	Size SizeWindow(Window* window)
