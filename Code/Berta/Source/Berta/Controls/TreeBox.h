@@ -111,6 +111,8 @@ namespace Berta
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
 			void Init();
+
+			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle);
@@ -125,7 +127,7 @@ namespace Berta
 			bool ClearSingleSelection();
 			void SelectItem(TreeNodeType* node);
 
-			bool HandleMultiSelection(TreeNodeType* node, const ArgMouse& args);
+			bool HandleMultiSelection(TreeNodeType* node);
 			bool UpdateSingleSelection(TreeNodeType* node);
 			bool IsVisibleNode(TreeNodeType* node) const;
 			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
@@ -191,10 +193,22 @@ namespace Berta
 		void Collapse();
 		void Expand();
 
-		TreeNodeHandle& GetHandle()
+		std::string& GetText() const
+		{
+			return m_node->text;
+		}
+
+		TreeNodeHandle& GetHandle() const
 		{
 			return m_node->key;
 		}
+
+		TreeBoxItem FirstChild()
+		{
+			return { m_node->firstChild, m_module };
+		}
+
+		void Select();
 
 		operator bool() const
 		{

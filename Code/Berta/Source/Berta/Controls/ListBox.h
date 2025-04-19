@@ -234,6 +234,7 @@ namespace Berta
 
 		void SetIcon(const Image& image);
 		void SetText(size_t columnIndex, const std::string& text);
+		std::string GetText(size_t columnIndex);
 
 		operator bool() const
 		{

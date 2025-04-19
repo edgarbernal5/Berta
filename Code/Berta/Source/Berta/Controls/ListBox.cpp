@@ -859,9 +859,19 @@ namespace Berta
 		m_list.m_items.emplace_back(text);
 		m_list.m_sortedIndexes.emplace_back(startIndex);
 
+		if (m_headers.m_sortedHeaderIndex != -1)
+		{
+			size_t selectedHeaderIndex = static_cast<size_t>(m_headers.m_sortedHeaderIndex);
+
+			SortHeader(m_headers.m_sorted[selectedHeaderIndex], m_headers.isAscendingOrdering);
+		}
+
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		BuildListItemBounds(startIndex);
+		UpdateScrollBars();
+
+		GUI::UpdateWindow(m_window);
 	}
 
 	void ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
@@ -889,6 +899,13 @@ namespace Berta
 		}
 		m_list.m_sortedIndexes.emplace_back(startIndex);
 
+		if (m_headers.m_sortedHeaderIndex != -1)
+		{
+			size_t selectedHeaderIndex = static_cast<size_t>(m_headers.m_sortedHeaderIndex);
+
+			SortHeader(m_headers.m_sorted[selectedHeaderIndex], m_headers.isAscendingOrdering);
+		}
+
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		BuildListItemBounds(startIndex);
@@ -904,6 +921,7 @@ namespace Berta
 	{
 		bool needUpdate = !m_list.m_items.empty();
 		m_list.m_items.clear();
+		m_list.m_sortedIndexes.clear();
 
 		m_mouseSelection.Clear();
 		CalculateViewport(m_viewport);
@@ -1792,6 +1810,14 @@ namespace Berta
 		{
 			GUI::UpdateWindow(m_module->m_window);
 		}
+	}
+
+	std::string ListBoxItem::GetText(size_t columnIndex)
+	{
+		if (columnIndex >= m_module->m_headers.m_items.size())
+			return std::string();
+
+		return m_target->m_cells[columnIndex].m_text;
 	}
 
 	ListBox::ListBox(Window* parent, const Rectangle& rectangle)

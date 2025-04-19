@@ -112,7 +112,7 @@ namespace Berta
 		{
 			if (m_module.m_multiselection)
 			{
-				if (m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredNode, args))
+				if (m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredNode))
 				{
 					needUpdate = true;
 					emitSelectionEvent = true;
@@ -980,15 +980,24 @@ namespace Berta
 		m_root.isExpanded = true;
 	}
 
+	TreeNodeHandle TreeBoxReactor::Module::CleanKey(const TreeNodeHandle& key)
+	{
+		if (key.empty() || key[key.size()-1]!='/')
+			return key;
+
+		return key.substr(0, key.size() - 1);
+	}
+
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
-		auto hasParentIndex = key.find_last_of('/');
+		auto cleanKey = CleanKey(key);
+		auto hasParentIndex = cleanKey.find_last_of('/');
 		if (hasParentIndex != std::string::npos)
 		{
-			return Insert(key.substr(hasParentIndex + 1, key.size()), text, key.substr(0, hasParentIndex));
+			return Insert(cleanKey.substr(hasParentIndex + 1, cleanKey.size()), text, cleanKey.substr(0, hasParentIndex));
 		}
 
-		auto node = std::make_unique<TreeNodeType>(key, text, &m_root);
+		auto node = std::make_unique<TreeNodeType>(cleanKey, text, &m_root);
 		TreeNodeType* nodePtr = node.get();
 
 		if (m_root.firstChild)
@@ -1006,7 +1015,7 @@ namespace Berta
 			m_root.firstChild = nodePtr;
 		}
 		
-		m_nodeLookup[key] = std::move(node);
+		m_nodeLookup[cleanKey] = std::move(node);
 		return { nodePtr, this };
 	}
 
@@ -1087,7 +1096,9 @@ namespace Berta
 	{
 		if (parentNode)
 		{
-			return parentNode->key + "/" + key;
+			return !parentNode->key.empty() && parentNode->key.back()=='/' ? 
+				parentNode->key + key :
+				parentNode->key + "/" + key;
 		}
 		return key;
 	}
@@ -1260,7 +1271,7 @@ namespace Berta
 		m_mouseSelection.m_selectedNode = node;
 	}
 
-	bool TreeBoxReactor::Module::HandleMultiSelection(TreeNodeType* node, const ArgMouse& args)
+	bool TreeBoxReactor::Module::HandleMultiSelection(TreeNodeType* node)
 	{
 		auto savedSelectedNode = m_mouseSelection.m_selectedNode;
 		auto savedPivotNode = m_mouseSelection.m_pivotNode;
@@ -1527,12 +1538,53 @@ namespace Berta
 
 	void TreeBoxItem::Collapse()
 	{
-		m_module->Collapse(*this);
+		if (m_module->Collapse(*this))
+		{
+			m_module->Update();
+			m_module->Draw();
+		}
 	}
 
 	void TreeBoxItem::Expand()
 	{
-		m_module->Expand(*this);
+		if (m_module->Expand(*this))
+		{
+			m_module->Update();
+			m_module->Draw();
+		}
+	}
+
+	void TreeBoxItem::Select()
+	{
+		//m_module->SelectItem(m_node);
+
+		bool needUpdate = false;
+		bool emitSelectionEvent = false;
+		if (m_module->m_multiselection)
+		{
+			if (m_module->HandleMultiSelection(m_node))
+			{
+				needUpdate = true;
+				emitSelectionEvent = true;
+			}
+		}
+		else
+		{
+			if (m_module->UpdateSingleSelection(m_node))
+			{
+				needUpdate = true;
+				emitSelectionEvent = true;
+			}
+		}
+		if (needUpdate)
+		{
+			m_module->Update();
+			m_module->Draw();
+		}
+		if (emitSelectionEvent)
+		{
+			m_module->EmitSelectionEvent();
+		}
 	}
 
 	std::vector<TreeBoxItem> TreeBoxReactor::Module::GetSelected()
@@ -1594,12 +1646,26 @@ namespace Berta
 
 	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
-		return m_reactor.GetModule().Insert(key, text);
+		auto item = m_reactor.GetModule().Insert(key, text);
+
+		if (item)
+		{
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
+		}
+		return item;
 	}
 
 	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text)
 	{
-		return m_reactor.GetModule().Insert(key, text, parent.GetHandle());
+		auto item = m_reactor.GetModule().Insert(key, text, parent.GetHandle());
+
+		if (item)
+		{
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
+		}
+		return item;
 	}
 
 	void TreeBox::ExpandAll()

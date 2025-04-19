@@ -461,9 +461,6 @@ namespace Berta
 
 	void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
 	{
-		//Rectangle requestRectangle;
-		//if (GetIntersectionClipRect(window, requestRectangle))
-
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();
 		auto absolutePosition = GetAbsoluteRootPosition(window);
 		requestRectangle.X = absolutePosition.X;
