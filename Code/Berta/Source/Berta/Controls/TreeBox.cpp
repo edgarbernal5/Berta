@@ -961,8 +961,23 @@ namespace Berta
 		if (minDepth > 1 && minDepth < (std::numeric_limits<uint32_t>::max)())
 		{
 			auto currentDepth = minDepth - 1;
+			auto parentVisible = m_visibleNodes[0]->parent;
+			auto depthParentVisible = CalculateNodeDepth(parentVisible);
+			while (parentVisible && depthParentVisible > currentDepth)
+			{
+				parentVisible = parentVisible->parent;
+				--depthParentVisible;
+			}
+
 			while (currentDepth > 0)
 			{
+				if (parentVisible && !parentVisible->nextSibling)
+				{
+					--currentDepth;
+					parentVisible = parentVisible->parent;
+					continue;
+				}
+
 				int nodeOffsetX = (currentDepth - 1) * depthWidthMultiplier;
 
 				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex };
@@ -971,6 +986,7 @@ namespace Berta
 				graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
 
 				--currentDepth;
+				parentVisible = parentVisible->parent;
 			}
 		}
 	}
@@ -982,7 +998,7 @@ namespace Berta
 
 	TreeNodeHandle TreeBoxReactor::Module::CleanKey(const TreeNodeHandle& key)
 	{
-		if (key.empty() || key[key.size()-1]!='/')
+		if (key.empty() || key[key.size() - 1] != '/')
 			return key;
 
 		return key.substr(0, key.size() - 1);

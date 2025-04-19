@@ -15,7 +15,7 @@
 int main()
 {
 	Berta::Form form(Berta::Size(700u, 550u), { true, true, true });
-	form.SetCaption("Main Window - Example");
+	form.SetCaption("File explorer - Example");
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
