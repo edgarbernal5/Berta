@@ -127,13 +127,16 @@ namespace Berta
 
 		if (m_module.m_pressedArea == InteractionArea::List)
 		{
-			if (m_module.m_multiselection)
+			if (m_module.m_mouseSelection.m_hoveredItem)
 			{
-				needUpdate = m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredItem, args);
-			}
-			else
-			{
-				needUpdate = m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_hoveredItem);
+				if (m_module.m_multiselection)
+				{
+					needUpdate = m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredItem, args);
+				}
+				else
+				{
+					needUpdate = m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_hoveredItem);
+				}
 			}
 		}
 		else if (m_module.m_pressedArea == InteractionArea::ListBlank)

@@ -110,20 +110,23 @@ namespace Berta
 
 		if (m_module.m_pressedArea == InteractionArea::Node)
 		{
-			if (m_module.m_multiselection)
+			if (m_module.m_mouseSelection.m_hoveredNode)
 			{
-				if (m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredNode))
+				if (m_module.m_multiselection)
 				{
-					needUpdate = true;
-					emitSelectionEvent = true;
+					if (m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredNode))
+					{
+						needUpdate = true;
+						emitSelectionEvent = true;
+					}
 				}
-			}
-			else
-			{
-				if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_hoveredNode))
+				else
 				{
-					needUpdate = true;
-					emitSelectionEvent = true;
+					if (m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_hoveredNode))
+					{
+						needUpdate = true;
+						emitSelectionEvent = true;
+					}
 				}
 			}
 		}
