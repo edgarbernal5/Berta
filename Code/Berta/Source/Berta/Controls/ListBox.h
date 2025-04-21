@@ -148,8 +148,8 @@ namespace Berta
 		struct Module
 		{
 			void AppendHeader(const std::string& text, uint32_t width);
-			void Append(const std::string& text);
-			void Append(std::initializer_list<std::string> texts);
+			ListBoxItem Append(const std::string& text);
+			ListBoxItem Append(std::initializer_list<std::string> texts);
 			ListBoxItem At(size_t index);
 
 			void Clear();
@@ -264,8 +264,8 @@ namespace Berta
 		ListBox(Window* parent, const Rectangle& rectangle);
 
 		void AppendHeader(const std::string& name, uint32_t width = 120);
-		void Append(const std::string& text);
-		void Append(std::initializer_list<std::string> texts);
+		ListBoxItem Append(const std::string& text);
+		ListBoxItem Append(std::initializer_list<std::string> texts);
 		ListBoxItem At(size_t index);
 		void Clear();
 		void ClearHeaders();

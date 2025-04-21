@@ -856,7 +856,7 @@ namespace Berta
 		BuildHeaderBounds(startIndex);
 	}
 
-	void ListBoxReactor::Module::Append(const std::string& text)
+	ListBoxItem ListBoxReactor::Module::Append(const std::string& text)
 	{
 		auto startIndex = m_list.m_items.size();
 		m_list.m_items.emplace_back(text);
@@ -875,9 +875,10 @@ namespace Berta
 		UpdateScrollBars();
 
 		GUI::UpdateWindow(m_window);
+		return { &m_list.m_items.back(), this};
 	}
 
-	void ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
+	ListBoxItem ListBoxReactor::Module::Append(std::initializer_list<std::string> texts)
 	{
 		auto startIndex = m_list.m_items.size();
 
@@ -912,6 +913,8 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		BuildListItemBounds(startIndex);
+
+		return { &m_list.m_items.back(), this };
 	}
 
 	ListBoxItem ListBoxReactor::Module::At(size_t index)
@@ -1837,14 +1840,14 @@ namespace Berta
 		m_reactor.GetModule().AppendHeader(name, width);
 	}
 
-	void ListBox::Append(const std::string& text)
+	ListBoxItem ListBox::Append(const std::string& text)
 	{
-		m_reactor.GetModule().Append(text);
+		return m_reactor.GetModule().Append(text);
 	}
 
-	void ListBox::Append(std::initializer_list<std::string> texts)
+	ListBoxItem ListBox::Append(std::initializer_list<std::string> texts)
 	{
-		m_reactor.GetModule().Append(texts);
+		return m_reactor.GetModule().Append(texts);
 	}
 
 	ListBoxItem ListBox::At(size_t index)

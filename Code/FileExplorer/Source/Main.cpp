@@ -24,12 +24,17 @@ int main()
 		std::cout << "EXIT()..." << std::endl;
 	});
 
+	Berta::Image folderImg("..\\..\\Resources\\Icons\\Folder 2 128.png");
+	Berta::Image folderOpenImg("..\\..\\Resources\\Icons\\Folder 128.png");
+	Berta::Image fileImg("..\\..\\Resources\\Icons\\File 128.png");
+	Berta::Image hardDriveImg("..\\..\\Resources\\Icons\\Hard drive 3 128.png");
+
 	Berta::TreeBox treeBox(form, {});
 	Berta::ListBox listBox(form, {});
 
 	listBox.AppendHeader("Name", 200);
 
-	treeBox.GetEvents().Selected.Connect([&listBox](const Berta::ArgTreeBoxSelection& args)
+	treeBox.GetEvents().Selected.Connect([&listBox, &folderImg, &fileImg](const Berta::ArgTreeBoxSelection& args)
 	{
 		listBox.Clear();
 
@@ -46,7 +51,12 @@ int main()
 			{
 				if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 				{
-					listBox.Append(entry.path().filename().string());
+					auto newItem = listBox.Append(entry.path().filename().string());
+					newItem.SetIcon(folderImg);
+				}
+				else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
+					auto newItem = listBox.Append(entry.path().filename().string());
+					newItem.SetIcon(fileImg);
 				}
 			}
 			catch (...)
@@ -56,7 +66,7 @@ int main()
 		}
 	});
 
-	treeBox.GetEvents().Expanded.Connect([&listBox, &treeBox](const Berta::ArgTreeBox& args)
+	treeBox.GetEvents().Expanded.Connect([&listBox, &treeBox, &folderImg](const Berta::ArgTreeBox& args)
 	{
 		if (!args.IsExpanded)
 			return;
@@ -73,7 +83,8 @@ int main()
 				{
 					if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 					{
-						treeBox.Insert(entry.path().string(), entry.path().filename().string());
+						auto newItem = treeBox.Insert(entry.path().string(), entry.path().filename().string());
+						newItem.SetIcon(folderImg);
 
 						auto subEntryPath = entry.path().string() + "/";
 						for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
@@ -101,7 +112,7 @@ int main()
 		}
 	});
 
-	listBox.GetEvents().DblClick.Connect([&listBox, &treeBox](const Berta::ArgMouse& args)
+	listBox.GetEvents().DblClick.Connect([&listBox, &treeBox, &folderImg](const Berta::ArgMouse& args)
 	{
 		if (listBox.GetSelected().empty())
 			return;
@@ -110,7 +121,7 @@ int main()
 		auto& first = selected.at(0);
 
 		auto treeItemSelected = treeBox.GetSelected().at(0);
-		auto newSelected = treeBox.Find(treeBox.GetSelected().at(0).GetHandle() + "/" + first.GetText(0));
+		auto newSelected = treeBox.Find(treeItemSelected.GetHandle() + "/" + first.GetText(0));
 		if (newSelected)
 		{
 			treeItemSelected.Expand();
@@ -130,7 +141,8 @@ int main()
 				{
 					if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 					{
-						treeBox.Insert(entry.path().string(), entry.path().filename().string());
+						auto newItem = treeBox.Insert(entry.path().string(), entry.path().filename().string());
+						newItem.SetIcon(folderImg);
 
 						auto subEntryPath = entry.path().string() + "/";
 						for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
@@ -175,7 +187,9 @@ int main()
 			std::string letter = std::string(1, 'A' + i) + ":/";
 			std::string text = std::string(1, 'A' + i) + ":";
 
-			treeBox.Insert(letter, text);
+			auto newItem = treeBox.Insert(letter, text);
+			newItem.SetIcon(hardDriveImg);
+
 			treeBox.Insert(letter + ".../", "...");
 		}
 	}

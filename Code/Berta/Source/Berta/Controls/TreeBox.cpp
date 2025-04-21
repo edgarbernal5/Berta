@@ -1575,8 +1575,6 @@ namespace Berta
 
 	void TreeBoxItem::Select()
 	{
-		//m_module->SelectItem(m_node);
-
 		bool needUpdate = false;
 		bool emitSelectionEvent = false;
 		if (m_module->m_multiselection)
