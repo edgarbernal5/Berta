@@ -93,6 +93,7 @@ namespace Berta
 
 		size_t GetCount() const;
 		Menu& PushBack(const std::wstring& itemName);
+		Menu& PushBack(const std::string& itemName);
 	};
 }
 

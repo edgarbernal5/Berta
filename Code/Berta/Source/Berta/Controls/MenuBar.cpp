@@ -284,7 +284,7 @@ namespace Berta
 
 		auto itemMargin = m_owner->ToScale(6u);
 		auto itemMarginInner = m_owner->ToScale(10u);
-		auto menuBarItemHeight = m_owner->ToScale(m_owner->Appearance->MenuBarItemHeight);
+		auto menuBarItemHeight = m_owner->ClientSize.Height - itemMargin;
 		Point offset{ 0, (int)(m_owner->ClientSize.Height - menuBarItemHeight) >> 1 };
 
 		if (startIndex > 0)
@@ -336,5 +336,12 @@ namespace Berta
 	Menu& MenuBar::PushBack(const std::wstring& itemName)
 	{
 		return m_reactor.GetModule().PushBack(itemName);
+	}
+
+	Menu& MenuBar::PushBack(const std::string& itemName)
+	{
+		std::wstring wItemName(itemName.begin(), itemName.end());
+
+		return m_reactor.GetModule().PushBack(wItemName);
 	}
 }

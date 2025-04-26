@@ -22,6 +22,15 @@ namespace Berta
 
 	class MenuBox;
 
+	struct MenuBoxAppearance : public ControlAppearance
+	{
+		uint32_t MenuBarItemHeight = 18;
+		uint32_t MenuBoxLeftPaneWidth = 32;
+		uint32_t MenuBoxItemHeight = 20;
+		uint32_t MenuBoxSubMenuArrowWidth = 20;
+		uint32_t MenuBoxShortcutWidth = 20;
+	};
+
 	class MenuItemReactor
 	{
 	public:
@@ -136,6 +145,8 @@ namespace Berta
 		bool IsMenuBar() const override { return false; }
 
 		Menu* GetMenuOwner() const { return m_menuOwner; }
+
+		void BuildItems();
 		void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
 		void SetMenuOwner(Menu* menuOwner);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
@@ -159,8 +170,9 @@ namespace Berta
 		bool MouseMoveInternal(const ArgMouse& args);
 		MenuItemReactor* GetLastMenuItem() const;
 
-		MenuBox* m_control{ nullptr };
+		MenuBox* m_menuBox{ nullptr };
 		Menu* m_menuOwner{ nullptr };
+		MenuBoxAppearance* m_appearance{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
 		Rectangle m_menuBarItemRect{  };
 		std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
@@ -172,7 +184,7 @@ namespace Berta
 		SubMenuAction m_subMenuAction{ SubMenuAction::None };
 	};
 
-	class MenuBox : public Control<MenuBoxReactor, FormEvents>
+	class MenuBox : public Control<MenuBoxReactor, FormEvents, MenuBoxAppearance>
 	{
 	public:
 		friend struct Menu;
@@ -180,7 +192,7 @@ namespace Berta
 		friend class MenuBarReactor;
 
 	public:
-		MenuBox(Window* parent, const Rectangle& rectangle);
+		MenuBox(Window* parent, const Point& position);
 		~MenuBox();
 
 		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect);

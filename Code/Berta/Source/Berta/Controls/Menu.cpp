@@ -37,8 +37,7 @@ namespace Berta
 	{
 		m_parentWindow = owner;
 
-		auto boxSize = GetMenuBoxSize(owner);//TODO: meter esto dentro de la clase MenuBox
-		m_menuBox = new MenuBox(owner, { position.X, position.Y, boxSize.Width, boxSize.Height });
+		m_menuBox = new MenuBox(owner, position);
 		m_menuBox->Init(this, m_items, menuBarItem);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
@@ -135,13 +134,13 @@ namespace Berta
 				hasSubmenu |= m_items[i]->m_subMenu != nullptr;
 			}
 		}
-
-		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appearance->MenuBoxLeftPaneWidth);
+		
+		auto menuBoxLeftPaneWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxLeftPaneWidth);
 		auto itemTextPadding = parent->ToScale(ItemTextPadding);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appearance->MenuBoxSubMenuArrowWidth) : 0;
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(m_menuBox->GetAppearance().MenuBoxSubMenuArrowWidth) : 0;
 		auto separatorHeight = parent->ToScale(SeparatorHeight);
-		auto menuBoxItemHeight = parent->ToScale(parent->Appearance->MenuBoxItemHeight);
-		auto menuBoxShortcutWidth = parent->ToScale(parent->Appearance->MenuBoxShortcutWidth);
+		auto menuBoxItemHeight = parent->ToScale(m_menuBox->GetAppearance().MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxShortcutWidth);
 
 		return { 
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
@@ -155,7 +154,9 @@ namespace Berta
 
 	void MenuBoxReactor::Init(ControlBase& control)
 	{
-		m_control = reinterpret_cast<MenuBox*>(&control);
+		ControlReactor::Init(control);
+		m_menuBox = reinterpret_cast<MenuBox*>(&control);
+		m_appearance = reinterpret_cast<MenuBoxAppearance*>(m_menuBox->Handle()->Appearance.get());
 
 		m_subMenuTimer.SetOwner(m_control->Handle());
 		m_subMenuTimer.SetInterval(400);
@@ -196,10 +197,10 @@ namespace Berta
 
 		graphics.DrawRectangle(window->Appearance->MenuBackground, true);
 
-		auto menuBoxLeftPaneWidth = window->ToScale(window->Appearance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = window->ToScale(m_appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = window->ToScale(ItemTextPadding);
-		auto menuBoxItemHeight = window->ToScale(window->Appearance->MenuBoxItemHeight);
-		auto menuBoxSubMenuArrowWidth = window->ToScale(window->Appearance->MenuBoxSubMenuArrowWidth);
+		auto menuBoxItemHeight = window->ToScale(m_appearance->MenuBoxItemHeight);
+		auto menuBoxSubMenuArrowWidth = window->ToScale(m_appearance->MenuBoxSubMenuArrowWidth);
 		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		if (m_items)
@@ -359,13 +360,13 @@ namespace Berta
 			return;
 		}
 
+		GUI::DisposeMenu();
+
 		if (!item->m_isSpearator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
 			item->m_onClick(menuItem);
 		}
-
-		GUI::DisposeMenu();
 	}
 
 	void MenuBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
@@ -526,13 +527,13 @@ namespace Berta
 			return;
 		}
 
+		GUI::DisposeMenu();
+
 		if (!item->m_isSpearator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
 			item->m_onClick(menuItem);
 		}
-
-		GUI::DisposeMenu();
 	}
 
 	void MenuBoxReactor::Quit()
@@ -540,15 +541,14 @@ namespace Berta
 		GUI::DisposeMenu(this);
 	}
 
-	void MenuBoxReactor::SetItems(std::vector<std::unique_ptr<Menu::Item>>& items)
+	void MenuBoxReactor::BuildItems()
 	{
-		m_items = &items;
 		m_itemSizePositions.clear();
 
 		auto window = m_control->Handle();
-		auto menuBoxLeftPaneWidth = window->ToScale(window->Appearance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = window->ToScale(m_appearance->MenuBoxLeftPaneWidth);
 		auto itemTextPadding = window->ToScale(ItemTextPadding);
-		auto menuBoxItemHeight = window->ToScale(window->Appearance->MenuBoxItemHeight);
+		auto menuBoxItemHeight = window->ToScale(m_appearance->MenuBoxItemHeight);
 		auto separatorHeight = window->ToScale(SeparatorHeight);
 
 		Point position{ 1 + (int)itemTextPadding, 1 + (int)itemTextPadding };
@@ -575,6 +575,11 @@ namespace Berta
 				position.Y += menuBoxItemHeight;
 			}
 		}
+	}
+
+	void MenuBoxReactor::SetItems(std::vector<std::unique_ptr<Menu::Item>>& items)
+	{
+		m_items = &items;
 	}
 
 	void MenuBoxReactor::SetMenuOwner(Menu* menuOwner)
@@ -604,12 +609,12 @@ namespace Berta
 			}
 		}
 
-		auto menuBoxLeftPaneWidth = parent->ToScale(parent->Appearance->MenuBoxLeftPaneWidth);
+		auto menuBoxLeftPaneWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxLeftPaneWidth);
 		auto itemTextPadding = parent->ToScale(ItemTextPadding);
-		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(parent->Appearance->MenuBoxSubMenuArrowWidth) : 0;
+		auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(m_menuBox->GetAppearance().MenuBoxSubMenuArrowWidth) : 0;
 		auto separatorHeight = parent->ToScale(SeparatorHeight);
-		auto menuBoxItemHeight = parent->ToScale(parent->Appearance->MenuBoxItemHeight);
-		auto menuBoxShortcutWidth = parent->ToScale(parent->Appearance->MenuBoxShortcutWidth);
+		auto menuBoxItemHeight = parent->ToScale(m_menuBox->GetAppearance().MenuBoxItemHeight);
+		auto menuBoxShortcutWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxShortcutWidth);
 
 		return {
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
@@ -743,9 +748,9 @@ namespace Berta
 		return hasChanged;
 	}
 
-	MenuBox::MenuBox(Window* parent, const Rectangle& rectangle)
+	MenuBox::MenuBox(Window* parent, const Point& position)
 	{
-		Create(parent, false, rectangle, { false, false, false, false, true, false }, false);
+		Create(parent, false, { position.X, position.Y, 1, 1 }, { false, false, false, false, true, false }, false);
 		GUI::MakeWindowActive(m_handle, false, nullptr);
 
 #if BT_DEBUG
@@ -765,9 +770,16 @@ namespace Berta
 
 	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect)
 	{
+		menuOwner->m_menuBox = this;
+
 		m_reactor.SetItems(items);
 		m_reactor.SetMenuBarItemRect(rect);
 		m_reactor.SetMenuOwner(menuOwner);
+
+		auto boxSize = GetMenuBoxSize();
+		SetSize(boxSize);
+
+		m_reactor.BuildItems();
 	}
 
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
