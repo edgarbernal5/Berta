@@ -16,6 +16,7 @@ namespace Berta
 		m_control = &control;
 		m_module.m_owner = control.Handle();
 		m_module.m_events = reinterpret_cast<TabBarEvents*>(m_module.m_owner->Events.get());
+		m_module.m_appearance = reinterpret_cast<TabBarAppearance*>(m_module.m_owner->Appearance.get());
 	}
 
 	void TabBarReactor::Update(Graphics& graphics)
@@ -29,7 +30,7 @@ namespace Berta
 			return;
 		}
 
-		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_owner->Appearance->TabBarItemHeight);
+		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_appearance->TabBarItemHeight);
 		auto tabPadding = m_module.m_owner->ToScale(10);
 		auto tabMarginUnselected = m_module.m_owner->ToScale(4);
 		auto one = m_module.m_owner->ToScale(1);
@@ -249,7 +250,7 @@ namespace Berta
 			return;
 		}
 
-		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appearance->TabBarItemHeight);
+		auto tabBarItemHeight = m_owner->ToScale(m_appearance->TabBarItemHeight);
 		auto tabPadding = m_owner->ToScale(10u);
 
 		Point offset{ 0, 0 };
@@ -351,7 +352,7 @@ namespace Berta
 
 	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel) const
 	{
-		auto tabBarItemHeight = m_owner->ToScale(m_owner->Appearance->TabBarItemHeight);
+		auto tabBarItemHeight = m_owner->ToScale(m_appearance->TabBarItemHeight);
 
 		int newWidth = (std::max)(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
 		int newHeight = (std::max)(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);

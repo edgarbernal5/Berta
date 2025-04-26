@@ -11,11 +11,6 @@
 
 namespace Berta
 {
-	void LabelReactor::Init(ControlBase& control)
-	{
-		m_control = &control;
-	}
-
 	void LabelReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();

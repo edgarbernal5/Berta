@@ -7,6 +7,7 @@
 #include "btpch.h"
 #include "FloatBox.h"
 #include "Berta/GUI/EnumTypes.h"
+#include "Berta/Controls/ComboBox.h"
 
 namespace Berta
 {
@@ -16,7 +17,10 @@ namespace Berta
 
 	void FloatBoxReactor::Init(ControlBase& control)
 	{
-		m_control = reinterpret_cast<FloatBox*>(&control);
+		m_control = &control;
+		m_floatBox = reinterpret_cast<FloatBox*>(&control);
+
+		m_comboBoxAppearance = reinterpret_cast<ComboboxAppearance*>(m_floatBox->GetParent()->Appearance.get());
 	}
 
 	void FloatBoxReactor::Update(Graphics& graphics)
@@ -35,7 +39,7 @@ namespace Berta
 			auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
-			auto itemHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
+			auto itemHeight = window->ToScale(m_comboBoxAppearance->ComboBoxItemHeight);
 
 			for (size_t i = 0; i < visibleItemsCount; i++)
 			{
@@ -76,7 +80,7 @@ namespace Berta
 			}
 		}
 
-		graphics.DrawRectangle(m_control->GetAppearance().BoxBorderColor, false);
+		graphics.DrawRectangle(m_floatBox->GetAppearance().BoxBorderColor, false);
 	}
 
 	void FloatBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -92,7 +96,7 @@ namespace Berta
 		if (IsInside(args.Position))
 		{
 			auto window = m_control->Handle();
-			auto itemHeight = window->ToScale(window->Appearance->ComboBoxItemHeight);
+			auto itemHeight = window->ToScale(m_comboBoxAppearance->ComboBoxItemHeight);
 			auto index = (args.Position.Y - 1) / itemHeight;
 			
 			m_state.m_hoveredIndex = m_state.m_offset + index;

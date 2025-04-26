@@ -15,6 +15,17 @@ namespace Berta
 {
 	class TextEditor;
 
+	struct ArgTextChanged
+	{
+		//ArgTextChanged(std::wstring& value):NewValue(value){}
+		std::wstring NewValue;
+	};
+
+	struct InputTextEvents : public ControlEvents
+	{
+		Event<ArgTextChanged> ValueChanged;
+	};
+
 	class InputTextReactor : public ControlReactor
 	{
 	public:
@@ -37,17 +48,6 @@ namespace Berta
 		TextEditor* GetEditor() const { return m_textEditor; }
 	private:
 		TextEditor* m_textEditor{ nullptr };
-	};
-
-	struct ArgTextChanged
-	{
-		//ArgTextChanged(std::wstring& value):NewValue(value){}
-		std::wstring NewValue;
-	};
-
-	struct InputTextEvents : public ControlEvents
-	{
-		Event<ArgTextChanged> ValueChanged;
 	};
 
 	class InputText : public Control<InputTextReactor, InputTextEvents>

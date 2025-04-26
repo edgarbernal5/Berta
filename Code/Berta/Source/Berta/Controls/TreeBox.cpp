@@ -19,11 +19,10 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_window = control.Handle();
+		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 
 		m_module.Init();
 		m_module.CalculateViewport(m_module.m_viewport);
-
-		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -83,7 +82,7 @@ namespace Berta
 		{
 			if (m_module.m_hoveredArea == InteractionArea::Expander)
 			{
-				auto nodeHeight = m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight);
+				auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
 				auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 				auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
@@ -133,7 +132,7 @@ namespace Berta
 
 		if (needUpdate && m_module.m_hoveredArea == InteractionArea::Node && m_module.m_viewport.m_needVerticalScroll)
 		{
-			auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight));
+			auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight));
 			auto selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_hoveredNode);
 			auto positionY = selectedIndex * nodeHeightInt - m_module.m_scrollOffset.Y;
 			auto newValue = m_module.m_scrollOffset.Y;
@@ -171,7 +170,7 @@ namespace Berta
 		
 		if (hoveredArea == InteractionArea::Node || hoveredArea == InteractionArea::Expander)
 		{
-			auto nodeHeight = m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight);
+			auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
 			auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 			auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
@@ -248,7 +247,7 @@ namespace Berta
 		bool recalculateVisibleNodes = false;
 		bool emitSelectionEvent = false;
 		bool emitCollaspedEvent = false;
-		auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_window->Appearance->ComboBoxItemHeight));
+		auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight));
 
 		if (args.Key == KeyboardKey::ArrowLeft && m_module.m_mouseSelection.m_selectedNode)
 		{
@@ -542,7 +541,7 @@ namespace Berta
 		viewportData.m_backgroundRect.Width -= 2u;
 		viewportData.m_backgroundRect.Height -= 2u;
 
-		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		viewportData.m_treeSize = CalculateTreeSize(&m_root) - 1;
 		viewportData.m_contentSize.Height = nodeHeight * viewportData.m_treeSize;
 
@@ -564,7 +563,7 @@ namespace Berta
 			return;
 		}
 
-		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto visibleHeight = m_viewport.m_backgroundRect.Height;
 		
 		m_viewport.m_startingVisibleIndex = m_scrollOffset.Y / nodeHeight;
@@ -750,7 +749,7 @@ namespace Berta
 			return InteractionArea::None;
 		}
 
-		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 		auto positionY = mousePosition.Y - m_viewport.m_backgroundRect.Y + m_scrollOffset.Y;
@@ -815,7 +814,7 @@ namespace Berta
 	void TreeBoxReactor::Module::DrawTreeNodes(Graphics& graphics)
 	{
 		bool enabled = true;
-		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto nodeTextMargin = m_window->ToScale(4u);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 		auto nodeHeightHalfInt = nodeHeightInt >> 1;
@@ -893,7 +892,7 @@ namespace Berta
 
 	void TreeBoxReactor::Module::DrawNavigationLines(Graphics& graphics)
 	{
-		auto nodeHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto nodeTextMargin = m_window->ToScale(8u);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 		auto nodeHeightHalfInt = nodeHeightInt >> 1;
@@ -1241,7 +1240,7 @@ namespace Berta
 				GUI::MoveWindow(m_scrollBarVert->Handle(), scrollRect);
 			}
 
-			auto nodeItemHeight = m_window->ToScale(m_window->Appearance->ComboBoxItemHeight);
+			auto nodeItemHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 			m_scrollBarVert->SetMinMax(0, (int)(m_viewport.m_contentSize.Height - m_viewport.m_backgroundRect.Height));
 			m_scrollBarVert->SetPageStepValue(m_viewport.m_backgroundRect.Height);
 			m_scrollBarVert->SetStepValue(nodeItemHeight);

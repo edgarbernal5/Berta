@@ -22,7 +22,19 @@ namespace Berta
 		Bottom
 	};
 
-	struct TabBarEvents;
+	struct ArgTabBar
+	{
+		std::string id;
+	};
+
+	struct TabBarEvents : public ControlEvents
+	{
+		Event<ArgTabBar> TabChanged;
+	};
+	struct TabBarAppearance : public ControlAppearance
+	{
+		uint32_t TabBarItemHeight = 27;
+	};
 
 	class TabBarReactor : public ControlReactor
 	{
@@ -90,6 +102,7 @@ namespace Berta
 			int m_selectedTabIndex{ -1 };
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
+			TabBarAppearance* m_appearance{ nullptr };
 			TabBarPosition m_tabPosition{ TabBarPosition::Top };
 
 		private:
@@ -98,17 +111,7 @@ namespace Berta
 		Module m_module;
 	};
 
-	struct ArgTabBar
-	{
-		std::string id;
-	};
-
-	struct TabBarEvents : public ControlEvents
-	{
-		Event<ArgTabBar> TabChanged;
-	};
-
-	class TabBar : public Control<TabBarReactor, TabBarEvents>
+	class TabBar : public Control<TabBarReactor, TabBarEvents, TabBarAppearance>
 	{
 	public:
 		TabBar() = default;

@@ -15,6 +15,7 @@ namespace Berta
 	Timer::Timer(Window* owner) : 
 		m_owner(owner)
 	{
+		m_isRunning.store(false);
 	}
 
 	Timer::Timer()

@@ -16,7 +16,6 @@ namespace Berta
 	class LabelReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 
 	private:

@@ -16,6 +16,17 @@
 
 namespace Berta
 {
+
+	struct ArgScrollBar
+	{
+		ScrollBarUnit Value;
+	};
+
+	struct ScrollBarEvents : public ControlEvents
+	{
+		Event<ArgScrollBar>	ValueChanged;
+	};
+
 	class ScrollBarReactor : public ControlReactor
 	{
 	public:
@@ -38,6 +49,7 @@ namespace Berta
 		ScrollBarUnit GetValue() const { return m_value; }
 		ScrollBarUnit GetStepValue() const { return m_step; }
 		ScrollBarUnit GetPageStepValue() const { return m_pageStep; }
+
 	private:
 		enum class InteractionArea
 		{
@@ -74,16 +86,6 @@ namespace Berta
 		Point m_mouseDownPosition{};
 		ScrollBarUnit m_prevTrackValue{};
 		bool m_trackPageUp{ false };
-	};
-
-	struct ArgScrollBar
-	{
-		ScrollBarUnit Value;
-	};
-
-	struct ScrollBarEvents : public ControlEvents
-	{
-		Event<ArgScrollBar>	ValueChanged;
 	};
 
 	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>

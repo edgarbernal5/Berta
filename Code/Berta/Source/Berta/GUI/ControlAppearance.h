@@ -54,17 +54,9 @@ namespace Berta
 		Color SelectionBorderHighlightColor{ Colors::Light_SelectionBorderHighlightColor };
 
 		uint32_t CheckboxHeight = 12;
-		uint32_t ComboBoxItemHeight = 20;
 		uint32_t ScrollBarSize = 18;
 		uint32_t SmallIconSize = 16;
 
-		uint32_t MenuBarItemHeight = 18;
-		uint32_t MenuBoxLeftPaneWidth = 32;
-		uint32_t MenuBoxItemHeight = 20;
-		uint32_t MenuBoxSubMenuArrowWidth = 20;
-		uint32_t MenuBoxShortcutWidth = 20;
-
-		uint32_t TabBarItemHeight = 27;
 	};
 }
 

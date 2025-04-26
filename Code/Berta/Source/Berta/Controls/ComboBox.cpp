@@ -32,7 +32,8 @@ namespace Berta
 
 	void ComboBoxReactor::Init(ControlBase& control)
 	{
-		m_control = reinterpret_cast<ComboBox*>(&control);
+		m_control = &control;
+		m_module.m_comboBox = reinterpret_cast<ComboBox*>(&control);
 		m_module.m_textEditor = new TextEditor(*m_control);
 
 		auto window = m_control->Handle();
@@ -51,6 +52,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 		auto backgroundRect = window->ClientSize.ToRectangle();
+
 		if (m_module.m_status == State::Normal)
 		{
 			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
@@ -80,7 +82,7 @@ namespace Berta
 		}
 		graphics.DrawString(textPosition, m_module.m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 
-		auto buttonSize = window->ToScale(window->Appearance->ScrollBarSize);
+		auto buttonSize = window->ToScale(m_module.m_comboBox->GetAppearance().ButtonSize);
 
 		graphics.DrawRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background, true);
 
@@ -121,11 +123,11 @@ namespace Berta
 	{
 		if (args.ButtonState.LeftButton)
 		{
-			auto window = m_control->Handle();
+			auto window = m_module.m_owner;
 			auto pointInScreen = window->Position;
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
-			auto floatBoxHeight = window->ToScale(clampedItemsToShow * window->Appearance->ComboBoxItemHeight);
+			auto floatBoxHeight = window->ToScale(clampedItemsToShow * m_module.m_comboBox->GetAppearance().ComboBoxItemHeight);
 			m_module.m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
 			m_module.m_floatBox->Init(m_module.Data);
 

@@ -13,7 +13,15 @@
 
 namespace Berta
 {
-	struct CheckBoxEvents;
+	struct ArgCheckBox
+	{
+		bool IsChecked{ false };
+	};
+
+	struct CheckBoxEvents : public ControlEvents
+	{
+		Event<ArgCheckBox> CheckedChanged;
+	};
 
 	class CheckBoxReactor : public ControlReactor
 	{
@@ -47,16 +55,6 @@ namespace Berta
 		};
 		State m_status{ State::Normal };
 		Module m_module;
-	};
-
-	struct ArgCheckBox
-	{
-		bool IsChecked{ false };
-	};
-
-	struct CheckBoxEvents : public ControlEvents
-	{
-		Event<ArgCheckBox> CheckedChanged;
 	};
 
 	class CheckBox : public Control<CheckBoxReactor, CheckBoxEvents>

@@ -29,6 +29,16 @@ namespace Berta
 		uint32_t ListItemIconMargin = 4;
 	};
 
+	struct ArgListBox
+	{
+		size_t SelectedIndex{ 0 };
+	};
+
+	struct ListBoxEvents : public ControlEvents
+	{
+		Event<ArgListBox> Selected;
+	};
+
 	class ListBoxReactor : public ControlReactor
 	{
 	public:
@@ -245,16 +255,6 @@ namespace Berta
 	private:
 		ListBoxReactor::List::Item* m_target{ nullptr };
 		ListBoxReactor::Module* m_module{ nullptr };
-	};
-
-	struct ArgListBox
-	{
-		size_t SelectedIndex{ 0 };
-	};
-
-	struct ListBoxEvents : public ControlEvents
-	{
-		Event<ArgListBox> Selected;
 	};
 
 	class ListBox : public Control<ListBoxReactor, ListBoxEvents, ListBoxAppearance>

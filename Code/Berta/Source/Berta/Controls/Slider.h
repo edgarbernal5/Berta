@@ -16,6 +16,16 @@
 
 namespace Berta
 {
+	struct ArgSlider
+	{
+		int Value;
+	};
+
+	struct SliderEvents : public ControlEvents
+	{
+		Event<ArgSlider>	ValueChanged;
+	};
+
 	class SliderReactor : public ControlReactor
 	{
 	public:
@@ -38,6 +48,7 @@ namespace Berta
 		int GetValue() const { return m_value; }
 		int GetStepValue() const { return m_step; }
 		int GetPageStepValue() const { return m_pageStep; }
+
 	private:
 		enum class InteractionArea
 		{
@@ -74,16 +85,6 @@ namespace Berta
 		Point m_mouseDownPosition{};
 		int m_prevTrackValue{};
 		bool m_trackPageUp{ false };
-	};
-
-	struct ArgSlider
-	{
-		int Value;
-	};
-
-	struct SliderEvents : public ControlEvents
-	{
-		Event<ArgSlider>	ValueChanged;
 	};
 
 	class Slider : public Control<SliderReactor, SliderEvents>

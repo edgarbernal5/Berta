@@ -19,6 +19,22 @@ namespace Berta
 	class FloatBox;
 	class ComboBox;
 
+	struct ComboboxAppearance : public ControlAppearance
+	{
+		uint32_t ButtonSize = 18;
+		uint32_t ComboBoxItemHeight = 20;
+	};
+
+	struct ArgComboBox
+	{
+		int SelectedIndex;
+	};
+
+	struct ComboboxEvents : public ControlEvents
+	{
+		Event<ArgComboBox>	Selected;
+	};
+
 	class ComboBoxReactor : public ControlReactor
 	{
 	public:
@@ -53,6 +69,7 @@ namespace Berta
 			State m_status{ State::Normal };
 
 			FloatBox* m_floatBox{ nullptr };
+			ComboBox* m_comboBox{ nullptr };
 
 			void EmitSelectionEvent(int index);
 		};
@@ -68,17 +85,7 @@ namespace Berta
 		Module m_module;
 	};
 
-	struct ArgComboBox
-	{
-		int SelectedIndex;
-	};
-
-	struct ComboboxEvents : public ControlEvents
-	{
-		Event<ArgComboBox>	Selected;
-	};
-
-	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents>
+	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents, ComboboxAppearance>
 	{
 	public:
 		ComboBox() = default;

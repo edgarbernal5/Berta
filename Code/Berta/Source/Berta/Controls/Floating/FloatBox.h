@@ -16,6 +16,7 @@
 namespace Berta
 {
 	class FloatBox;
+	struct ComboboxAppearance;
 
 	class FloatBoxReactor : public ControlReactor
 	{
@@ -48,7 +49,8 @@ namespace Berta
 		bool IsInside(const Point& point);
 		void UpdateScrollBar();
 
-		FloatBox* m_control{ nullptr };
+		FloatBox* m_floatBox{ nullptr };
+		ComboboxAppearance* m_comboBoxAppearance{ nullptr };
 
 		Float::InteractionData* m_interactionData{ nullptr };
 		State m_state;
