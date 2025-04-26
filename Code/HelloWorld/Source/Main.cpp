@@ -11,7 +11,7 @@
 int main()
 {
 	Berta::Form form(Berta::Size(450u, 350u), { true, true, true });
-	form.SetCaption(L"Hello World - Example");
+	form.SetCaption("Hello World - Example");
 
 	Berta::Label label(form, { 15,15,200,100 }, "Hello world!");
 

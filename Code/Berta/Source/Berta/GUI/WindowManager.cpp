@@ -479,6 +479,15 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles)
+	{
+		windowHandles.clear();
+		for (auto& item : m_windowNativeRegistry)
+		{
+			windowHandles.push_back(item.first);
+		}
+	}
+
 	bool WindowManager::GetIntersectionClipRect(Window* window, Rectangle& result)
 	{
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();

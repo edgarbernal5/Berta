@@ -92,6 +92,8 @@ namespace Berta
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
 		void TryAddWindowToBatch(Window* window, const DrawOperation& operation = DrawOperation::NeedUpdate | DrawOperation::NeedMap);
+
+		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
 	private:
 		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		void AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
@@ -108,7 +110,6 @@ namespace Berta
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
 		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
 		void ShowInternal(Window* window, bool visible);
-
 
 		struct CaptureHistoryData
 		{

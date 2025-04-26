@@ -14,27 +14,28 @@
 class TabForm : public Berta::Panel
 {
 public:
-	TabForm(Berta::Window* parent) : Panel(parent)
+	TabForm(Berta::Window* parent) :
+		Panel(parent)
 	{
 		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 });
 		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xAB20CC };
 
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
-			{
-				m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
-			});
+		{
+			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+		});
 
-		m_button1.Create(m_nestedForm->Handle(), true, Berta::Rectangle{ 10,10,140,40 });
-		m_button1.SetCaption("Nested button");
+		m_button.Create(m_nestedForm->Handle(), true, Berta::Rectangle{ 10,10,140,40 });
+		m_button.SetCaption("Nested button");
 #ifdef BT_DEBUG
-		m_button1.SetDebugName("Nested button");
+		m_button.SetDebugName("Nested button");
 #endif
 		m_nestedForm->Show();
 	}
 
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
-	Berta::Button m_button1;
+	Berta::Button m_button;
 };
 
 int main()
@@ -45,9 +46,9 @@ int main()
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
-		{
-			std::cout << "EXIT()..." << std::endl;
-		});
+	{
+		Berta::GUI::Exit();
+	});
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPanePropierties(form, { 320,250, 200, 200 }, "Properties");

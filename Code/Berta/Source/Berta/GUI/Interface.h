@@ -75,6 +75,8 @@ namespace Berta
 
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
+
+		void Exit();
 	}
 }
 

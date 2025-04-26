@@ -508,4 +508,16 @@ namespace Berta::GUI
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		windowManager.DisposeMenu(rootReactor);
 	}
+
+	void Exit()
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		std::vector<API::NativeWindowHandle> allHandles;
+		windowManager.GetNativeWindows(allHandles);
+
+		for (auto& item : allHandles)
+		{
+			API::DestroyNativeWindow(item);
+		}
+	}
 }
