@@ -34,7 +34,7 @@ int main()
 
 	listBox.AppendHeader("Name", 200);
 
-	treeBox.GetEvents().Selected.Connect([&listBox, &folderImg, &fileImg](const Berta::ArgTreeBoxSelection& args)
+	treeBox.GetEvents().Selected.Connect([&listBox, &folderImg, &fileImg, &treeBox](const Berta::ArgTreeBoxSelection& args)
 	{
 		listBox.Clear();
 
@@ -43,7 +43,7 @@ int main()
 
 		auto& treeItem = args.Items[0];
 
-		auto path = treeItem.GetHandle() + "/";
+		auto path = treeBox.GetKeyPath(treeItem, '/') + "/";
 
 		for (const auto& entry : std::filesystem::directory_iterator(path))
 		{
@@ -73,7 +73,7 @@ int main()
 
 		if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == "...")
 		{
-			auto path = args.Item.GetHandle() + "/";
+			auto path = treeBox.GetKeyPath(args.Item, '/') + "/";
 
 			auto child = args.Item.FirstChild();
 			treeBox.Erase(child);
@@ -121,7 +121,8 @@ int main()
 		auto& first = selected.at(0);
 
 		auto treeItemSelected = treeBox.GetSelected().at(0);
-		auto newSelected = treeBox.Find(treeItemSelected.GetHandle() + "/" + first.GetText(0));
+		auto pathTreeItemSelected = treeBox.GetKeyPath(treeItemSelected, '/');
+		auto newSelected = treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
 		if (newSelected)
 		{
 			treeItemSelected.Expand();
@@ -131,7 +132,7 @@ int main()
 		
 		if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == "...")
 		{
-			auto path = treeItemSelected.GetHandle() + "/";
+			auto path = treeBox.GetKeyPath(treeItemSelected, '/') + "/";
 
 			auto child = treeItemSelected.FirstChild();
 			treeBox.Erase(child);
@@ -168,7 +169,7 @@ int main()
 				}
 			}
 
-			newSelected = treeBox.Find(treeBox.GetSelected().at(0).GetHandle() + "/" + first.GetText(0));
+			newSelected = treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
 			if (newSelected)
 			{
 				treeItemSelected.Expand();

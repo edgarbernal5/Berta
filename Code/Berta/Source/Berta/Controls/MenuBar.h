@@ -62,6 +62,7 @@ namespace Berta
 
 		struct Module
 		{
+			Menu& At(size_t index);
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
 			Menu& PushBack(const std::wstring& text);
@@ -90,7 +91,8 @@ namespace Berta
 	{
 	public:
 		MenuBar(Window* parent, const Rectangle& rectangle);
-
+		
+		Menu& At(size_t index);
 		size_t GetCount() const;
 		Menu& PushBack(const std::wstring& itemName);
 		Menu& PushBack(const std::string& itemName);

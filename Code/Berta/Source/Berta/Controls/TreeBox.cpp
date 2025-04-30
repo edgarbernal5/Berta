@@ -33,7 +33,10 @@ namespace Berta
 
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
 
-		m_module.DrawNavigationLines(graphics);
+		if (m_module.m_showNavigationLines)
+		{
+			m_module.DrawNavigationLines(graphics);
+		}
 		m_module.DrawTreeNodes(graphics);
 
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
@@ -642,7 +645,7 @@ namespace Berta
 		bool needUpdate = m_root.firstChild != nullptr;
 		m_root.firstChild = nullptr;
 		m_visibleNodes.clear();
-		m_nodeLookup.clear();
+		m_root.m_lookup.clear();
 
 		CalculateViewport(m_viewport);
 		UpdateScrollBars();
@@ -653,7 +656,7 @@ namespace Berta
 		}
 	}
 
-	Berta::TreeBoxReactor::TreeNodeType* TreeBoxReactor::Module::GetNextVisible(TreeNodeType* node)
+	Berta::TreeNodeType* TreeBoxReactor::Module::GetNextVisible(TreeNodeType* node)
 	{
 		if (node == nullptr)
 			return nullptr;
@@ -711,7 +714,7 @@ namespace Berta
 		return -1;
 	}
 
-	TreeBoxReactor::TreeNodeType* TreeBoxReactor::Module::LocateNodeIndexInTree(int nodeIndex) const
+	TreeNodeType* TreeBoxReactor::Module::LocateNodeIndexInTree(int nodeIndex) const
 	{
 		int index = 0;
 
@@ -1009,7 +1012,18 @@ namespace Berta
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
 		auto cleanKey = CleanKey(key);
-		auto hasParentIndex = cleanKey.find_last_of('/');
+		if (cleanKey.empty())
+			return {};
+
+		auto parts = Split(key, '/');
+		TreeNodeType* current = &m_root;
+		for (const auto& part : parts)
+		{
+			current = current->Add(part, text, current);
+		}
+		return { current, this };
+
+		/*auto hasParentIndex = cleanKey.find_last_of('/');
 		if (hasParentIndex != std::string::npos)
 		{
 			return Insert(cleanKey.substr(hasParentIndex + 1, cleanKey.size()), text, cleanKey.substr(0, hasParentIndex));
@@ -1034,12 +1048,14 @@ namespace Berta
 		}
 		
 		m_nodeLookup[cleanKey] = std::move(node);
-		return { nodePtr, this };
+		return { nodePtr, this };*/
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle)
 	{
-		TreeNodeType* parentNode{ nullptr };
+		return {};
+
+		/*TreeNodeType* parentNode{ nullptr };
 		if (!parentHandle.empty())
 		{
 			auto it = m_nodeLookup.find(parentHandle);
@@ -1091,7 +1107,7 @@ namespace Berta
 		}
 
 		m_nodeLookup[handle] = std::move(node);
-		return { nodePtr, this };
+		return { nodePtr, this };*/
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
@@ -1101,13 +1117,17 @@ namespace Berta
 			return {};
 		}
 
-		auto it = m_nodeLookup.find(handle);
-		if (it == m_nodeLookup.end())
+		auto parts = Split(handle, '/');
+		auto current = &m_root;
+		for (auto& part : parts)
 		{
-			return {};
+			current = current->Find(part);
+			if (!current)
+			{
+				return {};
+			}
 		}
-
-		return { it->second.get(), this };
+		return { current, this };
 	}
 
 	TreeNodeHandle TreeBoxReactor::Module::GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode)
@@ -1177,10 +1197,12 @@ namespace Berta
 		{
 			auto temp = current->nextSibling;
 			EraseNode(current);
+
 			current = temp;
 		}
-
-		m_nodeLookup.erase(node->key);
+		node->m_lookup.clear();
+		
+		auto eraseResult = node->parent->m_lookup.erase(node->key);
 	}
 
 	void TreeBoxReactor::Module::Unlink(TreeNodeType* node)
@@ -1603,6 +1625,30 @@ namespace Berta
 		}
 	}
 
+	TreeNodeType* TreeBoxReactor::Module::GetRoot()
+	{
+		return &m_root;
+	}
+
+	std::string TreeBoxReactor::Module::GetKeyPath(TreeBoxItem item, char separator)
+	{
+		std::string path;
+		std::string temp;
+
+		auto current = item.m_node;
+		auto root = GetRoot();
+		while (current->parent != root)
+		{
+			temp = separator;
+			temp += current->key;
+			path.insert(0, temp);
+
+			current = current->parent;
+		}
+		path.insert(0, current->key);
+		return path;
+	}
+
 	std::vector<TreeBoxItem> TreeBoxReactor::Module::GetSelected()
 	{
 		std::vector<TreeBoxItem> selections;
@@ -1611,6 +1657,30 @@ namespace Berta
 			selections.emplace_back(TreeBoxItem{ m_mouseSelection.m_selections[i], this });
 		}
 		return selections;
+	}
+
+	bool TreeBoxReactor::Module::ShowNavigationLines(bool visible)
+	{
+		if (m_showNavigationLines == visible)
+			return false;
+
+		m_showNavigationLines = visible;
+		return true;
+	}
+
+	std::vector<std::string> TreeBoxReactor::Module::Split(const std::string& str, char delimiter)
+	{
+		std::vector<std::string> result;
+		std::stringstream ss(str);
+		std::string item;
+		while (std::getline(ss, item, delimiter))
+		{
+			if (!item.empty())
+			{
+				result.push_back(item);
+			}
+		}
+		return result;
 	}
 
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
@@ -1702,8 +1772,58 @@ namespace Berta
 		}
 	}
 
+	std::string TreeBox::GetKeyPath(TreeBoxItem item, char separator)
+	{
+		return m_reactor.GetModule().GetKeyPath(item, separator);
+	}
+
 	std::vector<TreeBoxItem> TreeBox::GetSelected()
 	{
 		return m_reactor.GetModule().GetSelected();
+	}
+
+	void TreeBox::ShowNavigationLines(bool visible)
+	{
+		if (m_reactor.GetModule().ShowNavigationLines(visible))
+		{
+			m_reactor.GetModule().Update();
+			m_reactor.GetModule().Draw();
+		}
+	}
+
+	TreeNodeType* TreeNodeType::Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_)
+	{
+		auto it = m_lookup.find(childKey);
+		if (it != m_lookup.end())
+		{
+			return it->second.get();
+		}
+
+		auto child = std::make_unique<TreeNodeType>(childKey, text_, parent_);
+		TreeNodeType* childPtr = child.get();
+		m_lookup[childKey] = std::move(child);
+
+		if (firstChild)
+		{
+			auto lastNode = firstChild;
+			while (lastNode->nextSibling != nullptr)
+			{
+				lastNode = lastNode->nextSibling;
+			}
+			lastNode->nextSibling = childPtr;
+			childPtr->prevSibling = lastNode;
+		}
+		else
+		{
+			firstChild = childPtr;
+		}
+
+		return childPtr;
+	}
+
+	TreeNodeType* TreeNodeType::Find(const TreeNodeHandle& key)
+	{
+		auto it = m_lookup.find(key);
+		return it != m_lookup.end() ? it->second.get() : nullptr;
 	}
 }

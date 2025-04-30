@@ -275,6 +275,11 @@ namespace Berta
 		return m_interactionData.m_activeMenu->m_menuBox;
 	}
 
+	Menu& MenuBarReactor::Module::At(size_t index)
+	{
+		return m_items[index]->menu;
+	}
+
 	void MenuBarReactor::Module::BuildItems(size_t startIndex)
 	{
 		if (startIndex >= m_items.size())
@@ -326,6 +331,11 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "MenuBar";
 #endif
+	}
+
+	Menu& MenuBar::At(size_t index)
+	{
+		return m_reactor.GetModule().At(index);
 	}
 
 	size_t MenuBar::GetCount() const
