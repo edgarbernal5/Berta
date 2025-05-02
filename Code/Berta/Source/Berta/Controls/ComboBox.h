@@ -48,6 +48,7 @@ namespace Berta
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
+		std::wstring GetText(uint32_t index) const;
 		std::wstring GetText() const;
 		void SetText(const std::wstring& text);
 
@@ -89,13 +90,16 @@ namespace Berta
 	{
 	public:
 		ComboBox() = default;
-		ComboBox(Window* parent, const Rectangle& rectangle);
+		ComboBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
 		void Erase(uint32_t index);
 		void PushItem(const std::wstring& text);
+		void PushItem(const std::string& text);
 		void PushItem(const std::wstring& text, const Image& icon);
+		void PushItem(const std::string& text, const Image& icon);
 		int GetSelectedIndex() { m_reactor.GetSelectedIndex(); }
+		std::wstring GetText(uint32_t index);
 		void SetSelectedIndex(uint32_t index);
 
 	protected:

@@ -43,6 +43,11 @@ namespace Berta
 		return GUI::GetParentWindow(m_handle);
 	}
 
+	Window* ControlBase::GetOwner() const
+	{
+		return GUI::GetOwnerWindow(m_handle);
+	}
+
 	Point ControlBase::GetPosition() const
 	{
 		return GUI::GetLocalPosition(m_handle);

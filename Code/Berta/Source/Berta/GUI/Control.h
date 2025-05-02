@@ -37,6 +37,7 @@ namespace Berta
 		void SetEnabled(bool enabled);
 
 		Window* GetParent() const;
+		Window* GetOwner() const;
 
 		Point GetPosition() const;
 		void SetPosition(const Point& newPosition);

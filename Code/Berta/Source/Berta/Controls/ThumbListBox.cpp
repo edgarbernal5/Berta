@@ -914,6 +914,7 @@ namespace Berta
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
 		m_reactor.GetModule().AddItem(text, thumbnail);
+		m_reactor.GetModule().Draw();
 	}
 
 	ThumbListBoxItem ThumbListBox::At(size_t index)

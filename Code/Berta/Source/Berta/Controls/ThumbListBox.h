@@ -182,7 +182,7 @@ namespace Berta
 	{
 	public:
 		ThumbListBox() = default;
-		ThumbListBox(Window* parent, const Rectangle& rectangle);
+		ThumbListBox(Window* parent, const Rectangle& rectangle = {});
 
 		void AddItem(const std::wstring& text, const Image& thumbnail);
 		ThumbListBoxItem At(size_t index);

@@ -70,6 +70,7 @@ namespace Berta
 		void RefreshWindow(NativeWindowHandle nativeHandle);
 		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled);
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);
+		NativeWindowHandle GetOwnerWindow(NativeWindowHandle nativeHandle);
 		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle);
 
 		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint = true);

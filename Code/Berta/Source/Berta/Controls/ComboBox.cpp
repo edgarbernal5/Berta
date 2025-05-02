@@ -124,7 +124,7 @@ namespace Berta
 		if (args.ButtonState.LeftButton)
 		{
 			auto window = m_module.m_owner;
-			auto pointInScreen = window->Position;
+			auto pointInScreen = GUI::GetAbsoluteRootPosition(window);
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
 			auto floatBoxHeight = window->ToScale(clampedItemsToShow * m_module.m_comboBox->GetAppearance().ComboBoxItemHeight);
@@ -215,6 +215,11 @@ namespace Berta
 			window->Renderer.Update();
 			GUI::MarkAsUpdated(window);
 		}
+	}
+
+	std::wstring ComboBoxReactor::GetText(uint32_t index) const
+	{
+		return m_module.Data.m_items[index].m_text;
 	}
 
 	std::wstring ComboBoxReactor::GetText() const
@@ -317,6 +322,11 @@ namespace Berta
 		m_reactor.Erase(index);
 	}
 
+	std::wstring ComboBox::GetText(uint32_t index)
+	{
+		return m_reactor.GetText(index);
+	}
+
 	void ComboBox::SetSelectedIndex(uint32_t index)
 	{
 		m_reactor.SetSelectedIndex(index);
@@ -327,9 +337,21 @@ namespace Berta
 		m_reactor.PushItem(text);
 	}
 
+	void ComboBox::PushItem(const std::string& text)
+	{
+		std::wstring wText(text.begin(), text.end());
+		m_reactor.PushItem(wText);
+	}
+
 	void ComboBox::PushItem(const std::wstring& text, const Image& icon)
 	{
 		m_reactor.PushItem(text, icon);
+	}
+
+	void ComboBox::PushItem(const std::string& text, const Image& icon)
+	{
+		std::wstring wText(text.begin(), text.end());
+		m_reactor.PushItem(wText, icon);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)

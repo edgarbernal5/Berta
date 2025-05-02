@@ -41,6 +41,7 @@ namespace Berta
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
 
 		Window* GetParentWindow(Window* window);
+		Window* GetOwnerWindow(Window* window);
 
 		void Capture(Window* window, bool redirectToChildren = false);
 		void ReleaseCapture(Window* window);

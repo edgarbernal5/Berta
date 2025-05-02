@@ -260,7 +260,7 @@ namespace Berta
 	{
 	public:
 		TreeBox() = default;
-		TreeBox(Window* parent, const Rectangle& rectangle);
+		TreeBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
 		void CollapseAll();
