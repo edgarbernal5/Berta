@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{555d19e8-ef53-49aa-b2d8-8c6cb5cecb4a}</ProjectGuid>
+    <RootNamespace>D3DExample</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\..\Output\$(Configuration)_$(Platform)\$(ProjectName)\</OutDir>
+    <IntDir>..\..\Output\$(Configuration)_$(Platform)_tmp\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;BT_PLATFORM_WINDOWS;BT_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>Source;..\Berta\Source;Dependencies\D3D12MA;Dependencies\d3dx12;Dependencies\DirectXTex\include;Dependencies\SimpleMath;Dependencies;Dependencies\dxc;Dependencies\DirectXTex\include\Shaders\Compiled</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;dxcompiler.lib;Dependencies\DirectXTex\bin\DirectXTexd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Dependencies\D3D12Lite.cpp" />
+    <ClCompile Include="Dependencies\D3D12MA\D3D12MemAlloc.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\BC.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\BC4BC5.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\BC6HBC7.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\BCDirectCompute.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexCompress.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexCompressGPU.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexConvert.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexD3D11.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexD3D12.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexDDS.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexFlipRotate.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexHDR.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexImage.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexMipmaps.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexMisc.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexNormalMaps.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexPMAlpha.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexResize.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexTGA.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexUtil.cpp" />
+    <ClCompile Include="Dependencies\DirectXTex\include\DirectXTexWIC.cpp" />
+    <ClCompile Include="Source\Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Berta\Berta.vcxproj">
+      <Project>{43f596e7-94e6-4642-98c2-ac2be46955c0}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Dependencies\DirectXTex\include\DirectXTex.inl" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Dependencies\D3D12Lite.h" />
+    <ClInclude Include="Dependencies\D3D12MA\D3D12MemAlloc.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_barriers.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_check_feature_support.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_core.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_default.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_pipeline_state_stream.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_property_format_table.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_render_pass.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_resource_helpers.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_root_signature.h" />
+    <ClInclude Include="Dependencies\d3dx12\d3dx12_state_object.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\BC.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\BCDirectCompute.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\DDS.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\DirectXTex.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\DirectXTexP.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\filters.h" />
+    <ClInclude Include="Dependencies\DirectXTex\include\scoped.h" />
+    <ClInclude Include="Dependencies\dxc\dxcapi.h" />
+    <ClInclude Include="Dependencies\dxc\dxcapi.internal.h" />
+    <ClInclude Include="Dependencies\dxc\dxcdxrfallbackcompiler.h" />
+    <ClInclude Include="Dependencies\dxc\dxcerrors.h" />
+    <ClInclude Include="Dependencies\dxc\dxcisense.h" />
+    <ClInclude Include="Dependencies\dxc\dxcpix.h" />
+    <ClInclude Include="Dependencies\dxc\dxctools.h" />
+    <ClInclude Include="Dependencies\dxc\HlslIntrinsicOp.h" />
+    <ClInclude Include="Dependencies\dxc\WinAdapter.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets'))" />
+  </Target>
+</Project>

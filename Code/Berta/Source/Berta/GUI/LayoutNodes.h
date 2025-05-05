@@ -381,6 +381,7 @@ namespace Berta
         std::string id;
         bool showCaption{ true };
         bool showCloseButton{ true };
+        bool showTabBar{ true };
     };
 
     class DockLayoutNode : public LayoutNode

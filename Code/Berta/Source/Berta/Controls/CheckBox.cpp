@@ -124,6 +124,16 @@ namespace Berta
 #endif
 	}
 
+	CheckBox::CheckBox(Window* parent, const Rectangle& rectangle, const std::string& text)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+
+#if BT_DEBUG
+		m_handle->Name = "CheckBox";
+#endif
+	}
+
 	bool CheckBox::IsChecked() const
 	{
 		return m_reactor.GetModule().m_isChecked;

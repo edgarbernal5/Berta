@@ -6,7 +6,6 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/Label.h>
-#include <iostream>
 
 int main()
 {

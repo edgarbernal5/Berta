@@ -727,8 +727,8 @@ namespace Berta
 						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
 					});
 
-					m_mouseInteraction.m_dragStartLocalPos.X -= nativeWindow->BorderSize.Width / 2 - (screenMousePos.X - m_mouseInteraction.m_dragStartPos.X);
-					m_mouseInteraction.m_dragStartLocalPos.Y -= nativeWindow->BorderSize.Height / 2 - (screenMousePos.Y - m_mouseInteraction.m_dragStartPos.Y);
+					m_mouseInteraction.m_dragStartLocalPos.X -= static_cast<int>(nativeWindow->BorderSize.Width / 2) - (screenMousePos.X - m_mouseInteraction.m_dragStartPos.X);
+					m_mouseInteraction.m_dragStartLocalPos.Y -= static_cast<int>(nativeWindow->BorderSize.Height / 2) - (screenMousePos.Y - m_mouseInteraction.m_dragStartPos.Y);
 					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 
 					m_nativeContainer->Show();
@@ -788,6 +788,9 @@ namespace Berta
 		{
 			m_caption->SetCaption(args.id);
 		});
+
+		if (!paneInfo->showCaption)
+			m_caption->Hide();
 	}
 
 	void DockArea::Dock()

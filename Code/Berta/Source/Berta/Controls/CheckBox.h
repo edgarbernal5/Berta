@@ -63,6 +63,7 @@ namespace Berta
 		CheckBox() = default;
 		CheckBox(Window* parent, const Rectangle& rectangle);
 		CheckBox(Window* parent, const Rectangle& rectangle, const std::wstring& text);
+		CheckBox(Window* parent, const Rectangle& rectangle, const std::string& text);
 
 		bool IsChecked() const;
 		void SetChecked(bool isChecked);

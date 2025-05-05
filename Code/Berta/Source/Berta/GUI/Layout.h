@@ -157,9 +157,6 @@ namespace Berta
         Layout(Window* window);
         ~Layout();
 
-        //template<typename ...Args>
-        //void AddPane(const std::string& paneId, Args & ... args);
-
         void AddPane(const std::string& paneId);
         void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control);
         void AddPaneTab(const std::string& paneId, const std::string& tabId, ControlBase* control, const std::string& relativePaneId, DockPosition dockPosition);
@@ -224,12 +221,6 @@ namespace Berta
         bool m_lockPaneIndicators{ false };
         std::unique_ptr<DockPanel> m_dockPanelTarget;
     };
-
-    //template<typename ...Args>
-    //inline void Layout::AddPane(const std::string& paneId, Args & ...args)
-    //{
-
-    //}
 }
 
 #endif

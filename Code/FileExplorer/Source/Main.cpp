@@ -21,7 +21,7 @@ int main()
 	auto& menuFile = menuBar.PushBack(L"File");
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
 	{
-		std::cout << "EXIT()..." << std::endl;
+		Berta::GUI::Exit();
 	});
 
 	Berta::Image folderImg("..\\..\\Resources\\Icons\\Folder 2 128.png");

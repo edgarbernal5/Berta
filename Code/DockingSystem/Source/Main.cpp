@@ -11,6 +11,38 @@
 
 #include <iostream>
 
+class TabProperties : public Berta::Panel
+{
+public:
+	TabProperties(Berta::Window* parent) :
+		Panel(parent)
+	{
+		m_buttonGrid.Create(*this, true, Berta::Rectangle{ 10,10,140,40 });
+		m_buttonGrid.SetCaption("Grid");
+#ifdef BT_DEBUG
+		m_buttonGrid.SetDebugName("Button Grid");
+#endif
+
+		m_buttonValues.Create(*this, true, Berta::Rectangle{ 10,10,140,40 });
+		m_buttonValues.SetCaption("Values");
+#ifdef BT_DEBUG
+		m_buttonValues.SetDebugName("Button Values");
+
+		m_layout.Create(*this);
+		m_layout.Parse("{{grid}{values}}");
+
+		m_layout.Attach("grid", m_buttonGrid);
+		m_layout.Attach("values", m_buttonValues);
+		m_layout.Apply();
+#endif
+	}
+
+private:
+	Berta::Layout m_layout;
+	Berta::Button m_buttonGrid;
+	Berta::Button m_buttonValues;
+};
+
 class TabForm : public Berta::Panel
 {
 public:
@@ -51,10 +83,10 @@ int main()
 	});
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
-	Berta::Button buttonPanePropierties(form, { 320,250, 200, 200 }, "Properties");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
 	
 	TabForm tabForm(form);
+	TabProperties tabProperties(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
@@ -62,7 +94,7 @@ int main()
 	layout.Attach("menuBar", menuBar);
 
 	layout.AddPaneTab("dockScene", "tab-Scene", &buttonPaneScene, "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Properties", &buttonPanePropierties, "dockScene", Berta::DockPosition::Right);
+	layout.AddPaneTab("dockProp", "tab-Properties", &tabProperties, "dockScene", Berta::DockPosition::Right);
 	layout.AddPaneTab("dockProp", "tab-Explorer", &buttonPaneExplorer);
 	layout.AddPaneTab("dockD3D", "tab-D3D", &tabForm, "dockScene", Berta::DockPosition::Down);
 

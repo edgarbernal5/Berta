@@ -4,6 +4,9 @@ Output/Debug_x64_tmp
 Output/Release_x64
 Output/Release_x64_tmp
 
+# Nuget
+Code/packages/*.*
+
 # Visual Studio files and folder
 .vs/
 **.vcxproj.user
