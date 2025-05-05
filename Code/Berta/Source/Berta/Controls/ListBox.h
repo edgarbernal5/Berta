@@ -261,7 +261,7 @@ namespace Berta
 	{
 	public:
 		ListBox() = default;
-		ListBox(Window* parent, const Rectangle& rectangle);
+		ListBox(Window* parent, const Rectangle& rectangle = {});
 
 		void AppendHeader(const std::string& name, uint32_t width = 120);
 		ListBoxItem Append(const std::string& text);

@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <any>
 
 namespace Berta
 {
@@ -26,6 +27,32 @@ namespace Berta
 		uint32_t ExpanderButtonSize = 12u;
 		uint32_t DepthWidthMultiplier = 20u;
 		uint32_t TreeItemHeight = 20;
+	};
+
+	struct TreeNodeType
+	{
+		TreeNodeType() = default;
+		TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
+			: key(key_), text(text_), parent(parent_) {
+		}
+
+		TreeNodeType* Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_ = nullptr);
+		TreeNodeType* Find(const TreeNodeHandle& key);
+
+		bool isExpanded{ false };
+		bool isSelected{ false };
+		std::string text;
+		TreeNodeHandle key;
+		Image icon;
+		Size textExtents;
+		std::any userData;
+
+		std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_lookup;
+
+		TreeNodeType* parent{ nullptr };
+		TreeNodeType* firstChild{ nullptr };
+		TreeNodeType* nextSibling{ nullptr };
+		TreeNodeType* prevSibling{ nullptr };
 	};
 
 	class TreeBoxReactor : public ControlReactor
@@ -42,25 +69,7 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-		struct TreeNodeType
-		{
-			TreeNodeType() = default;
-			TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
-				: key(key_),text(text_), parent(parent_) {}
-
-			bool isExpanded{ false };
-			bool isSelected{ false };
-			std::string text;
-			TreeNodeHandle key;
-			Image icon;
-			Size m_textExtents;
-
-			TreeNodeType* parent{ nullptr };
-			TreeNodeType* firstChild{ nullptr };
-			TreeNodeType* nextSibling{ nullptr };
-			TreeNodeType* prevSibling{ nullptr };
-		};
-
+		
 		enum class InteractionArea
 		{
 			None,
@@ -146,8 +155,13 @@ namespace Berta
 			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText) const;
 
+			TreeNodeType* GetRoot();
+			std::string GetKeyPath(TreeBoxItem item, char separator);
 			std::vector<TreeBoxItem> GetSelected();
-			std::unordered_map<TreeNodeHandle, std::unique_ptr<TreeNodeType>> m_nodeLookup;
+
+			bool ShowNavigationLines(bool visible);
+
+			static std::vector<std::string> Split(const std::string& str, char delimiter);
 			
 			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
@@ -167,6 +181,7 @@ namespace Berta
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
+			bool m_showNavigationLines{ true };
 		};
 
 		Module& GetModule() { return m_module; }
@@ -179,7 +194,7 @@ namespace Berta
 	struct TreeBoxItem
 	{
 		TreeBoxItem() = default;
-		TreeBoxItem(TreeBoxReactor::TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
+		TreeBoxItem(TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
 		
 		void SetText(const std::string& text)
 		{
@@ -206,7 +221,7 @@ namespace Berta
 
 		TreeBoxItem FirstChild()
 		{
-			return { m_node->firstChild, m_module };
+			return { m_node->firstChild, m_module};
 		}
 
 		void Select();
@@ -218,7 +233,7 @@ namespace Berta
 
 		friend struct TreeBoxReactor::Module;
 	private:
-		TreeBoxReactor::TreeNodeType* m_node{ nullptr };
+		TreeNodeType* m_node{ nullptr };
 		TreeBoxReactor::Module* m_module{ nullptr };
 	};
 
@@ -245,7 +260,7 @@ namespace Berta
 	{
 	public:
 		TreeBox() = default;
-		TreeBox(Window* parent, const Rectangle& rectangle);
+		TreeBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
 		void CollapseAll();
@@ -259,7 +274,10 @@ namespace Berta
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
 
+		std::string GetKeyPath(TreeBoxItem item, char separator);
 		std::vector<TreeBoxItem> GetSelected();
+
+		void ShowNavigationLines(bool visible);
 	};
 }
 

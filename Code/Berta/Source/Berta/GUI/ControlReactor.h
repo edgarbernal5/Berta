@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_CONTROL_RENDERER_HEADER
-#define BT_CONTROL_RENDERER_HEADER
+#ifndef BT_CONTROL_REACTOR_HEADER
+#define BT_CONTROL_REACTOR_HEADER
 
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"

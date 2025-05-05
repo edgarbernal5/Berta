@@ -251,6 +251,27 @@ namespace Berta::GUI
 		return window->Parent;
 	}
 
+	Window* GetOwnerWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return nullptr;
+		}
+
+		if (window->Owner)
+		{
+			return window->Owner;
+		}
+
+		if (window->Type == WindowType::Form)
+		{
+			auto rootWindow = windowManager.Get(API::GetOwnerWindow(window->RootHandle));
+			return rootWindow;
+		}
+		return nullptr;
+	}
+
 	void Capture(Window* window, bool redirectToChildren)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

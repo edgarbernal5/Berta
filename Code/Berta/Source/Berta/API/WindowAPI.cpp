@@ -239,6 +239,15 @@ namespace Berta
 #endif
 		}
 
+		NativeWindowHandle GetOwnerWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			return { ::GetWindow(nativeHandle.Handle, GW_OWNER) };
+#else
+			return {};
+#endif
+		}
+
 		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
