@@ -16,9 +16,9 @@
 
 namespace Berta::GUI
 {
-	Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
+	Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm)
 	{
-		return Foundation::GetInstance().GetWindowManager().CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, control);
+		return Foundation::GetInstance().GetWindowManager().CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, control, isRenderForm);
 	}
 
 	Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel)
@@ -48,7 +48,7 @@ namespace Berta::GUI
 			return {};
 		}
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			window->Title = API::GetCaptionNativeWindow(window->RootHandle);
 		}
@@ -110,7 +110,8 @@ namespace Berta::GUI
 
 		window->Flags.IsEnabled = isEnabled;
 		UpdateWindow(window);
-		if (window->Type == WindowType::Form)
+
+		if (window->IsNative())
 		{
 			API::EnableWindow(window->RootHandle, isEnabled);
 		}
@@ -138,7 +139,7 @@ namespace Berta::GUI
 		if (windowManager.Resize(window, newSize))
 		{
 			auto windowToUpdate = window;
-			if (window->Type != WindowType::Form)
+			if (!window->IsNative())
 			{
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
@@ -170,7 +171,7 @@ namespace Berta::GUI
 		if (hasChanged)
 		{
 			auto windowToUpdate = window;
-			if (window->Type != WindowType::Form)
+			if (!window->IsNative())
 			{
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
@@ -193,7 +194,7 @@ namespace Berta::GUI
 		if (hasChanged)
 		{
 			auto windowToUpdate = window;
-			if (window->Type != WindowType::Form)
+			if (!window->IsNative())
 			{
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
@@ -243,11 +244,12 @@ namespace Berta::GUI
 			return nullptr;
 		}
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto rootWindow = windowManager.Get(API::GetParentWindow(window->RootHandle));
 			return rootWindow;
 		}
+
 		return window->Parent;
 	}
 
@@ -264,11 +266,12 @@ namespace Berta::GUI
 			return window->Owner;
 		}
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto rootWindow = windowManager.Get(API::GetOwnerWindow(window->RootHandle));
 			return rootWindow;
 		}
+
 		return nullptr;
 	}
 

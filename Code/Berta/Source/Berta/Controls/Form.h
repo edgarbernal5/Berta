@@ -36,9 +36,9 @@ namespace Berta
 	class FormBase : public Control<FormReactor, FormEvents>
 	{
 	public:
-		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested);
-		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
-		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
+		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
+		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
+		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
 
 		Layout& GetLayout()
 		{
@@ -58,10 +58,10 @@ namespace Berta
 	class Form : public FormBase
 	{
 	public:
-		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true });
-		Form(const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
-		explicit Form(Window* owner, const Size& size, const FormStyle& windowStyle = { true, true, true });
-		Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
+		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
+		Form(const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
+		explicit Form(Window* owner, const Size& size, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
+		Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
 
 		void Exec();
 	private:
@@ -70,8 +70,8 @@ namespace Berta
 	class NestedForm : public FormBase
 	{
 	public:
-		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false });
-		NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false });
+		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false }, bool isRenderForm = false);
+		NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false }, bool isRenderForm = false);
 
 	private:
 	};

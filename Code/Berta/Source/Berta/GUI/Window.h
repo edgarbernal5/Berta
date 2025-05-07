@@ -25,7 +25,8 @@ namespace Berta
 	{
 		Form = 0,		//Native window.
 		Control,
-		Panel			//It has no renderer, empty Graphics. Serves as a logical container of Window.
+		Panel,			//It has no renderer, empty Graphics. Serves as a logical container of Window.
+		RenderForm		//D3D / OpenGL / Vulkan renderer. Don't have graphics.
 	};
 
 	enum class DrawWindowStatus
@@ -114,9 +115,14 @@ namespace Berta
 			return (units * DPIScaleFactor);
 		}
 
+		bool IsNative() const
+		{
+			return (Type == WindowType::Form || Type == WindowType::RenderForm);
+		}
+
 		bool IsNested() const
 		{
-			return Type == WindowType::Form && !Owner && Parent;
+			return IsNative() && !Owner && Parent;
 		}
 
 		bool IsBatchActive() const;

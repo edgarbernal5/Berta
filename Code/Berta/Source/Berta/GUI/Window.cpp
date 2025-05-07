@@ -60,7 +60,7 @@ namespace Berta
 			return window;
 		}
 
-		while (window && window->Type != WindowType::Panel && window->Type != WindowType::Form)
+		while (window && window->Type != WindowType::Panel && !window->IsNative())
 		{
 			window = window->Parent;
 		}

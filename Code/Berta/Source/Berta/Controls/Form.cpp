@@ -32,27 +32,27 @@ namespace Berta
 		graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
 	}
 
-	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested)
+	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
 	{
-		Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested);
+		Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested, isRenderForm);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
 #endif
 	}
 
-	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
+	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
 	{
-		Create(owner, false, rectangle, windowStyle, isNested);
+		Create(owner, false, rectangle, windowStyle, isNested, isRenderForm);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
 #endif
 	}
 
-	FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested)
+	FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
 	{
-		Create(owner, isUnscaleRect, rectangle, windowStyle, isNested);
+		Create(owner, isUnscaleRect, rectangle, windowStyle, isNested, isRenderForm);
 
 #if BT_DEBUG
 		m_handle->Name = "Form";
@@ -65,23 +65,23 @@ namespace Berta
 		m_layout.Parse(layoutText);
 	}
 
-	Form::Form(const Size& size, const FormStyle& windowStyle) : 
-		FormBase(nullptr, size, windowStyle, false)
+	Form::Form(const Size& size, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(nullptr, size, windowStyle, false, isRenderForm)
 	{
 	}
 
-	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle) : 
-		FormBase(nullptr, rectangle, windowStyle, false)
+	Form::Form(const Rectangle& rectangle, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(nullptr, rectangle, windowStyle, false, isRenderForm)
 	{
 	}
 
-	Form::Form(Window* owner, const Size& size, const FormStyle& windowStyle) :
-		FormBase(owner, size, windowStyle, false)
+	Form::Form(Window* owner, const Size& size, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(owner, size, windowStyle, false, isRenderForm)
 	{
 	}
 
-	Form::Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle) :
-		FormBase(owner, rectangle, windowStyle, false)
+	Form::Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(owner, rectangle, windowStyle, false, isRenderForm)
 	{
 	}
 
@@ -90,16 +90,16 @@ namespace Berta
 		Foundation::GetInstance().ProcessMessages();
 	}
 
-	NestedForm::NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle) : 
-		FormBase(owner.Handle(), true, rectangle, windowStyle, true)
+	NestedForm::NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(owner.Handle(), true, rectangle, windowStyle, true, isRenderForm)
 	{
 #if BT_DEBUG
 		m_handle->Name = "NestedForm";
 #endif
 	}
 
-	NestedForm::NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle) : 
-		FormBase(owner, true, rectangle, windowStyle, true)
+	NestedForm::NestedForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isRenderForm) :
+		FormBase(owner, true, rectangle, windowStyle, true, isRenderForm)
 	{
 #if BT_DEBUG
 		m_handle->Name = "NestedForm";

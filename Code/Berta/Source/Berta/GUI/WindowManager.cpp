@@ -43,14 +43,15 @@ namespace Berta
 			return false;
 
 		window->Title = caption;
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			API::CaptionNativeWindow(window->RootHandle, caption);
 		}
+
 		return true;
 	}
 
-	Window* WindowManager::CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control)
+	Window* WindowManager::CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm)
 	{
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
@@ -71,7 +72,7 @@ namespace Berta
 		auto windowResult = API::CreateNativeWindow(parentHandle, finalRect, formStyle, isNested);
 		if (windowResult.WindowHandle)
 		{
-			Window* window = new Window(WindowType::Form);
+			Window* window = new Window(isRenderForm ? WindowType::RenderForm : WindowType::Form);
 			window->Init(control);
 
 			window->RootHandle = windowResult.WindowHandle;
@@ -164,7 +165,7 @@ namespace Berta
 
 		DestroyInternal(window);
 
-		if (window->Type != WindowType::Form)
+		if (!window->IsNative())
 		{
 #if BT_DEBUG
 			BT_CORE_DEBUG << "    - Destroy. Window =" << window->Name << std::endl;
@@ -191,7 +192,7 @@ namespace Berta
 		while (!window->Children.empty())
 		{
 			auto child = window->Children.back();
-			if (child->Type == WindowType::Form)
+			if (child->IsNative())
 			{
 				API::DestroyNativeWindow(child->RootHandle); //child will be removed from parent's children.
 				continue;
@@ -215,7 +216,7 @@ namespace Berta
 		
 		window->Renderer.Shutdown();
 		window->ControlWindowPtr->Destroy();
-		if (window->Type != WindowType::Form)
+		if (!window->IsNative())
 		{
 			m_windowRegistry.erase(window);
 		}
@@ -347,7 +348,7 @@ namespace Berta
 		{
 			auto child = window->Children[i];
 
-			if (child->Type == WindowType::Form)
+			if (child->IsNative())
 			{
 				auto nativePosition = API::GetWindowPosition(child->RootHandle);
 				auto currentParent = API::GetParentWindow(child->RootHandle);
@@ -372,7 +373,7 @@ namespace Berta
 
 	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
 	{
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
@@ -395,7 +396,7 @@ namespace Berta
 
 	void WindowManager::ShowInternal(Window* window, bool visible)
 	{
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			if (visible != window->Visible)
 			{
@@ -533,7 +534,7 @@ namespace Berta
 			return;
 		}
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			ArgDisposing argDisposing{ false };
 			auto events = dynamic_cast<FormEvents*>(window->Events.get());
@@ -557,7 +558,7 @@ namespace Berta
 
 	void WindowManager::Remove(Window* window)
 	{
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			m_windowNativeRegistry.erase(window->RootHandle);
 			m_windowRegistry.erase(window);
@@ -765,7 +766,7 @@ namespace Berta
 			return;
 		}
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
 		}
@@ -805,7 +806,7 @@ namespace Berta
 
 		Graphics newGraphics;
 		Graphics newRootGraphics;
-		if (window->Type != WindowType::Panel)
+		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
 			newGraphics.Build(newSize);
 			newGraphics.BuildFont(window->DPI);
@@ -819,7 +820,7 @@ namespace Berta
 			}
 		}
 
-		if (window->Type != WindowType::Panel)
+		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
 			window->Renderer.GetGraphics().Swap(newGraphics);
 
@@ -850,7 +851,7 @@ namespace Berta
 		bool positionChanged = false;
 		bool sizeChanged = window->ClientSize != newRect;
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			Rectangle rootRect = newRect;
 			if (window->Owner)
@@ -914,7 +915,7 @@ namespace Berta
 	{
 		auto& foundation = Foundation::GetInstance();
 		
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
@@ -983,7 +984,7 @@ namespace Berta
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			window->BorderSize.Width = static_cast<uint32_t>(window->BorderSize.Width * scalingFactor);
 			window->BorderSize.Height = static_cast<uint32_t>(window->BorderSize.Height * scalingFactor);
@@ -996,12 +997,15 @@ namespace Berta
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
-		auto& graphics = window->Renderer.GetGraphics();
-		graphics.Release();
-		graphics.Build(window->ClientSize);
-		graphics.BuildFont(newDPI);
+		if (window->Type != WindowType::RenderForm)
+		{
+			auto& graphics = window->Renderer.GetGraphics();
+			graphics.Release();
+			graphics.Build(window->ClientSize);
+			graphics.BuildFont(newDPI);
+		}
 
-		if (window->Type == WindowType::Form && window->RootHandle != nativeWindowHandle)
+		if (window->IsNative() && window->RootHandle != nativeWindowHandle)
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
@@ -1060,7 +1064,7 @@ namespace Berta
 	Point WindowManager::GetAbsoluteRootPosition(Window* window)
 	{
 		Point position{};
-		while (window && window->Type != WindowType::Form)
+		while (window && !window->IsNative())
 		{
 			position += window->Position;
 			window = window->Parent;
@@ -1093,7 +1097,7 @@ namespace Berta
 		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
 
 		window->Parent = newParent;
-		if (window->Type != WindowType::Form)
+		if (!window->IsNative())
 		{
 			window->RootHandle = newParent->RootHandle;
 			window->RootWindow = newParent->RootWindow;
@@ -1103,7 +1107,7 @@ namespace Berta
 
 		newParent->Children.emplace_back(window);
 
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle); 
 			auto currentParent = API::GetParentWindow(window->RootHandle);
@@ -1193,7 +1197,7 @@ namespace Berta
 			do
 			{
 				auto child = window->Children[--index];
-				if (child->Type != WindowType::Form && IsPointOnWindow(child, point))
+				if (!child->IsNative() && IsPointOnWindow(child, point))
 				{
 					auto innerChild = FindInTree(child, point);
 					if (innerChild)

@@ -142,14 +142,18 @@ namespace Berta
 		AppearanceType& GetAppearance() const { return *m_appearance; }
 		EventsType& GetEvents() const { return *m_events; }
 
-		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested)
+		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, bool isRenderForm = false)
 		{
-			m_handle = GUI::CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, this);
+			m_handle = GUI::CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, this, isRenderForm);
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
-			GUI::InitRendererReactor(this, m_reactor);
+
+			if (!isRenderForm)
+			{
+				GUI::InitRendererReactor(this, m_reactor);
+			}
 		}
 
 		virtual void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)

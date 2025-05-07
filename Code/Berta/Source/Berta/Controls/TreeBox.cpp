@@ -1021,93 +1021,13 @@ namespace Berta
 		{
 			current = current->Add(part, text, current);
 		}
+
 		return { current, this };
-
-		/*auto hasParentIndex = cleanKey.find_last_of('/');
-		if (hasParentIndex != std::string::npos)
-		{
-			return Insert(cleanKey.substr(hasParentIndex + 1, cleanKey.size()), text, cleanKey.substr(0, hasParentIndex));
-		}
-
-		auto node = std::make_unique<TreeNodeType>(cleanKey, text, &m_root);
-		TreeNodeType* nodePtr = node.get();
-
-		if (m_root.firstChild)
-		{
-			auto lastNode = m_root.firstChild;
-			while (lastNode->nextSibling != nullptr)
-			{
-				lastNode = lastNode->nextSibling;
-			}
-			lastNode->nextSibling = nodePtr;
-			nodePtr->prevSibling = lastNode;
-		}
-		else
-		{
-			m_root.firstChild = nodePtr;
-		}
-		
-		m_nodeLookup[cleanKey] = std::move(node);
-		return { nodePtr, this };*/
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle)
 	{
 		return {};
-
-		/*TreeNodeType* parentNode{ nullptr };
-		if (!parentHandle.empty())
-		{
-			auto it = m_nodeLookup.find(parentHandle);
-			if (it == m_nodeLookup.end())
-			{
-				return {};
-			}
-			parentNode = it->second.get();
-		}
-
-		TreeNodeHandle handle = GenerateUniqueHandle(key, parentNode);
-		auto node = std::make_unique<TreeNodeType>(handle, text, parentNode);
-		node->parent = parentNode;
-		TreeNodeType* nodePtr = node.get();
-
-		if (parentNode)
-		{
-			if (parentNode->firstChild == nullptr)
-			{
-				parentNode->firstChild = nodePtr;
-			}
-			else
-			{
-				auto lastNode = parentNode->firstChild;
-				while (lastNode->nextSibling != nullptr)
-				{
-					lastNode = lastNode->nextSibling;
-				}
-				lastNode->nextSibling = nodePtr;
-				nodePtr->prevSibling = lastNode;
-			}
-		}
-		else
-		{
-			if (m_root.firstChild == nullptr)
-			{
-				m_root.firstChild = nodePtr;
-			}
-			else
-			{
-				auto lastNode = m_root.firstChild;
-				while (lastNode->nextSibling != nullptr)
-				{
-					lastNode = lastNode->nextSibling;
-				}
-				m_root.nextSibling = nodePtr;
-				nodePtr->prevSibling = lastNode;
-			}
-		}
-
-		m_nodeLookup[handle] = std::move(node);
-		return { nodePtr, this };*/
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
@@ -1127,6 +1047,7 @@ namespace Berta
 				return {};
 			}
 		}
+
 		return { current, this };
 	}
 
