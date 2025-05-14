@@ -257,14 +257,14 @@ namespace Berta
 					child->Renderer.Update();
 					child->DrawStatus = DrawWindowStatus::Updated;
 
-					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+					if (LayoutUtils::GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
 						rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 					}
 				}
 				else
 				{
-					if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+					if (LayoutUtils::GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
 						AddWindowToBatch(child, childRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 					}
@@ -307,7 +307,7 @@ namespace Berta
 					child->Flags.isUpdating = false;
 				}
 
-				if (GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+				if (LayoutUtils::GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 				{
 					rootGraphics.BitBlt(childRectangle, child->Renderer.GetGraphics(), { 0,0 });
 				}
@@ -320,27 +320,7 @@ namespace Berta
 		}
 	}
 
-	bool WindowManager::GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& result)
-	{
-		if (parentRectangle.X + (int)parentRectangle.Width <= childRectangle.X || childRectangle.X + (int)childRectangle.Width <= parentRectangle.X ||
-			parentRectangle.Y + (int)parentRectangle.Height <= childRectangle.Y || childRectangle.Y + (int)childRectangle.Height <= parentRectangle.Y) {
-			return false;
-		}
-
-		// Calculate the intersection rectangle
-		int interLeft = (std::max)(parentRectangle.X, childRectangle.X);
-		int interTop = (std::max)(parentRectangle.Y, childRectangle.Y);
-		int interRight = (std::min)(parentRectangle.X + parentRectangle.Width, childRectangle.X + childRectangle.Width);
-		int interBottom = (std::min)(parentRectangle.Y + parentRectangle.Height, childRectangle.Y + childRectangle.Height);
-
-		// Set the intersection rectangle's position and size
-		result.X = interLeft;
-		result.Y = interTop;
-		result.Width = interRight - interLeft;
-		result.Height = interBottom - interTop;
-
-		return true;
-	}
+	
 
 	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
 	{
@@ -447,7 +427,7 @@ namespace Berta
 			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
 			if (child->Type != WindowType::Panel)
 			{
-				if (HasFlag(operation, DrawOperation::NeedMap) && GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
+				if (HasFlag(operation, DrawOperation::NeedMap) && LayoutUtils::GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 				{
 					AddWindowToBatch(child, childRectangle, DrawOperation::NeedMap);
 				}
@@ -470,7 +450,7 @@ namespace Berta
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+		if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			AddWindowToBatch(window, requestRectangle, operation);
 			if (!window->Children.empty())
@@ -500,7 +480,7 @@ namespace Berta
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 		
-		return GetIntersectionClipRect(containerRectangle, requestRectangle, result);
+		return LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, result);
 	}
 
 	void WindowManager::Paint(Window* window, bool doUpdate)
@@ -519,7 +499,7 @@ namespace Berta
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-		if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+		if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
 		}
@@ -727,14 +707,14 @@ namespace Berta
 			window->Renderer.Update();
 			window->DrawStatus = DrawWindowStatus::Updated;
 
-			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
 				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
 			}
 		}
 		else
 		{
-			if (GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
+			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
 				AddWindowToBatch(window, requestRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
 			}

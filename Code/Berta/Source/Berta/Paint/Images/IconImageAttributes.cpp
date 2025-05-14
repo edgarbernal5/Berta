@@ -40,7 +40,7 @@ namespace Berta
 			BT_CORE_ERROR << "Failed to load icon: " << GetLastError() << std::endl;
 		}
 
-		m_attributes.reset(new NativeAttributes());
+		m_attributes.reset(new PaintNativeHandle());
 		m_attributes->m_hIcon = hIcon;
 		*/
 

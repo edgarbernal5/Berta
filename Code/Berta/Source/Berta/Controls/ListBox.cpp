@@ -46,7 +46,7 @@ namespace Berta
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
 
 			Rectangle blendRect{ startPoint.X + m_module.m_scrollOffset.X, startPoint.Y + m_module.m_scrollOffset.Y, boxSize.Width, boxSize.Height };
-			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
+			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
 		}
 
 		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
@@ -1129,7 +1129,7 @@ namespace Berta
 				}
 				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
 
-				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5f);
+				graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5);
 			}
 			graphics.DrawLine({ m_viewport.m_backgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->ClientSize.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 			graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);

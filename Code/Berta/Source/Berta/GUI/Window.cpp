@@ -20,6 +20,7 @@ namespace Berta
 		Flags.MakeActive = true;
 		Flags.isUpdating = false;
 		Flags.IgnoreMouseFocus = false;
+		Flags.AutoDraw = true;
 
 		BorderSize = { 0,0 };
 	}

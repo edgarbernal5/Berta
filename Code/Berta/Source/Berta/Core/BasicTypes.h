@@ -154,6 +154,10 @@ namespace Berta
 		::RECT ToRECT() const;
 #endif
 		bool IsInside(const Point& point) const;
+		bool IsEmpty() const
+		{
+			return Width == 0 && Height == 0;
+		}
 		bool Intersect(const Rectangle& other) const;
 		bool Contains(const Rectangle& other) const;
 
@@ -236,12 +240,12 @@ namespace Berta
 	{
 		struct
 		{
-			unsigned char A;
 			unsigned char B;
 			unsigned char G;
 			unsigned char R;
+			unsigned char A;
 		}Channels;
-		uint32_t ABGR; //Format: 0xBBGGRR
+		uint32_t BGRA; //Format: 0xBBGGRR
 	};
 	
 	struct Color

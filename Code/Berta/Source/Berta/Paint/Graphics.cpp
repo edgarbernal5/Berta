@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "Graphics.h"
 
+#include "Berta/Paint/ColorBuffer.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -26,19 +28,19 @@
 namespace Berta
 {
 	Graphics::Graphics() :
-		m_attributes(std::make_unique<NativeAttributes>())
+		m_attributes(std::make_unique<PaintNativeHandle>())
 	{
 	}
 
 	Graphics::Graphics(const Size& size, uint32_t dpi) :
-		m_attributes(std::make_unique<NativeAttributes>()),
+		m_attributes(std::make_unique<PaintNativeHandle>()),
 		m_dpi(dpi)
 	{
 		Build(size);
 	}
 
 	Graphics::Graphics(const Graphics& other) :
-		m_attributes(std::make_unique<NativeAttributes>())
+		m_attributes(std::make_unique<PaintNativeHandle>())
 	{
 	}
 
@@ -57,7 +59,7 @@ namespace Berta
 	{
 		if (!m_attributes)
 		{
-			m_attributes = std::make_unique<NativeAttributes>();
+			m_attributes = std::make_unique<PaintNativeHandle>();
 		}
 
 		if (m_attributes->m_size == size)
@@ -78,19 +80,44 @@ namespace Berta
 		HDC cdc = ::CreateCompatibleDC(hdc);
 		if (cdc == nullptr)
 		{
-			::ReleaseDC(nullptr, hdc);
 #ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 				BT_CORE_TRACE << "Error." << std::endl;
 #endif
+			::ReleaseDC(nullptr, hdc);
 			return;
 		}
 
-		HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
-		::SelectObject(cdc, hBitmap);
+		BITMAPINFO bmi{};
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = size.Width;
+		bmi.bmiHeader.biHeight = -static_cast<int>(size.Height);
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+		bmi.bmiHeader.biSizeImage = (size.Width * size.Height) << 2;
+
+		HBITMAP hBitmap = ::CreateDIBSection(cdc, &bmi, DIB_RGB_COLORS, reinterpret_cast<void**>(&(m_attributes->m_bmpColorBuffer)), 0, 0);
+
+		if (hBitmap == nullptr)
+		{
+#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
+			BT_CORE_TRACE << "Error creating DIB Section." << std::endl;
+#endif
+			::DeleteDC(cdc);
+			::ReleaseDC(nullptr, hdc);
+			return;
+		}
+
+		//HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
+		auto oldBitmap = ::SelectObject(cdc, hBitmap);
+		::DeleteObject(oldBitmap);
+		//auto oldFont=::SelectObject(cdc, hBitmap);
 
 		::SetBkMode(cdc, TRANSPARENT);
 		m_attributes->m_hdc = cdc;
 		m_attributes->m_hBitmap = hBitmap;
+
+		m_attributes->m_bytesPerLine = size.Width * sizeof(ColorABGR);
 
 		::ReleaseDC(0, hdc);
 #endif
@@ -130,32 +157,18 @@ namespace Berta
 		Build(size);
 	}
 
-	void Graphics::Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, float alpha)
+	void Graphics::Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc && graphicsSource.m_attributes->m_hdc)
-		{
-			// Set up alpha blending
-			BLENDFUNCTION blendFunc{};
-			blendFunc.BlendOp = AC_SRC_OVER;
-			blendFunc.BlendFlags = 0;
-			blendFunc.SourceConstantAlpha = static_cast<BYTE>(alpha * 255);
-			blendFunc.AlphaFormat = 0;
+		Rectangle r;
+		r.X = pointSource.X;
+		r.Y = pointSource.Y;
+		r.Width = blendRectangle.Width;
+		r.Height = blendRectangle.Height;
 
-			auto sourceSize = graphicsSource.m_attributes->m_size;
+		ColorBuffer destBuffer;
+		destBuffer.Attach(graphicsSource.GetHandle(), r);
 
-			// Apply alpha blending
-			if (!::AlphaBlend(m_attributes->m_hdc, blendRectangle.X, blendRectangle.Y,
-				(int)(blendRectangle.Width), (int)(blendRectangle.Height), graphicsSource.m_attributes->m_hdc,
-				pointSource.X, pointSource.Y,
-				sourceSize.Width, sourceSize.Height, blendFunc))
-			{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << " Graphics / AlphaBlend ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-			}
-		}
-#endif
+		destBuffer.Blend(r, m_attributes.get(), blendRectangle, 1.0 - alpha);
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
@@ -307,10 +320,10 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_attributes->m_lastForegroundColor != color)
+		if (m_lastForegroundColor != color)
 		{
 			::SetTextColor(m_attributes->m_hdc, color);
-			m_attributes->m_lastForegroundColor = color;
+			m_lastForegroundColor = color;
 		}
 		::TextOut(m_attributes->m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
 		::SelectObject(m_attributes->m_hdc, oldFont);
@@ -327,10 +340,10 @@ namespace Berta
 		auto wstr = StringUtils::Convert(str);
 #ifdef BT_PLATFORM_WINDOWS
 		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_attributes->m_lastForegroundColor != color)
+		if (m_lastForegroundColor != color)
 		{
 			::SetTextColor(m_attributes->m_hdc, color);
-			m_attributes->m_lastForegroundColor = color;
+			m_lastForegroundColor = color;
 		}
 		::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
 		::SelectObject(m_attributes->m_hdc, oldFont);
@@ -885,30 +898,5 @@ namespace Berta
 	void Graphics::Release()
 	{
 		m_attributes.reset();
-	}
-
-	Graphics::NativeAttributes::~NativeAttributes()
-	{
-		m_size = Size::Zero;
-
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_hdc)
-		{
-			::DeleteDC(m_hdc);
-			m_hdc = nullptr;
-		}
-
-		if (m_hBitmap)
-		{
-			::DeleteObject(m_hBitmap);
-			m_hBitmap = nullptr;
-		}
-
-		if (m_hFont)
-		{
-			::DeleteObject(m_hFont);
-			m_hFont = nullptr;
-		}
-#endif
 	}
 }

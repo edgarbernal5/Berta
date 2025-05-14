@@ -9,6 +9,7 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Core/Base.h"
+#include "Berta/Paint/ColorBuffer.h"
 
 namespace Berta
 {
@@ -24,6 +25,9 @@ namespace Berta
 
 		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
 		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
+
+	protected:
+		ColorBuffer m_colorBuffer;
 	};
 
 	class Image

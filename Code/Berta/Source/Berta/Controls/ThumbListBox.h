@@ -111,7 +111,8 @@ namespace Berta
 				bool m_inverseSelection{ false };
 			};
 
-			void AddItem(const std::wstring& text, const Image& thumbnail);
+			bool AddItem(const std::wstring& text);
+			bool AddItem(const std::wstring& text, const Image& thumbnail);
 			ThumbListBoxItem At(size_t index);
 			void CalculateViewport(ViewportData& viewportData) const;
 			void CalculateVisibleIndices();
@@ -135,6 +136,7 @@ namespace Berta
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 
 			void Draw() const;
+			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
 
 			std::vector<size_t> GetSelectedItems() const;
 			bool EnsureVisibility(int lastSelectedIndex);
@@ -184,6 +186,7 @@ namespace Berta
 		ThumbListBox() = default;
 		ThumbListBox(Window* parent, const Rectangle& rectangle = {});
 
+		void AddItem(const std::wstring& text);
 		void AddItem(const std::wstring& text, const Image& thumbnail);
 		ThumbListBoxItem At(size_t index);
 		void Clear();

@@ -45,23 +45,27 @@ namespace Berta
 			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_selectedIndex;
 			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
 
-			Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
-			Size thumbFrameSize{ thumbSize, thumbSize };
-			Rectangle thumbnailRect;
-			if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
+			if (item.m_thumbnail)
 			{
-				thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
-			}
-			else
-			{
-				Point center = thumbFrameSize;
-				center -= imageSize;
-				center /= 2;
+				Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
+				Size thumbFrameSize{ thumbSize, thumbSize };
+				Rectangle thumbnailRect;
+				if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
+				{
+					thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
+				}
+				else
+				{
+					Point center = thumbFrameSize;
+					center -= imageSize;
+					center /= 2;
 
-				thumbnailRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
-			}
+					thumbnailRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
+				}
 
-			item.m_thumbnail.Paste(graphics, thumbnailRect);
+				item.m_thumbnail.Paste(graphics, thumbnailRect);
+			}
+			
 			{
 				Size cardTextSize{ thumbSize, cardHeight };
 				auto center = cardTextSize - graphics.GetTextExtent(item.m_text);
@@ -91,7 +95,7 @@ namespace Berta
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
 
 			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
-			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5f);
+			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
 		}
 
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
@@ -394,7 +398,18 @@ namespace Berta
 		return ThumbListBoxItem{ m_items[index], *this };
 	}
 
-	void ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
+	bool ThumbListBoxReactor::Module::AddItem(const std::wstring& text)
+	{
+		auto& newItem = m_items.emplace_back();
+		newItem.m_text = text;
+
+		BuildItems();
+		CalculateVisibleIndices();
+
+		return true;
+	}
+
+	bool ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
 		auto& newItem = m_items.emplace_back();
 		newItem.m_text = text;
@@ -402,6 +417,8 @@ namespace Berta
 
 		BuildItems();
 		CalculateVisibleIndices();
+
+		return true;
 	}
 
 	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData) const
@@ -911,10 +928,20 @@ namespace Berta
 #endif
 	}
 
+	void ThumbListBox::AddItem(const std::wstring& text)
+	{
+		if (m_reactor.GetModule().AddItem(text) && GetAutoDraw())
+		{
+			m_reactor.GetModule().Draw();
+		}
+	}
+
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
-		m_reactor.GetModule().AddItem(text, thumbnail);
-		m_reactor.GetModule().Draw();
+		if (m_reactor.GetModule().AddItem(text, thumbnail) && GetAutoDraw())
+		{
+			m_reactor.GetModule().Draw();
+		}
 	}
 
 	ThumbListBoxItem ThumbListBox::At(size_t index)

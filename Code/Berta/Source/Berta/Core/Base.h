@@ -42,10 +42,17 @@ namespace Berta::StringUtils
 	std::wstring Convert(const std::string& str);
 }
 
+#include "BasicTypes.h"
+
 namespace Berta::LayoutUtils
 {
 	float CalculateDPIScaleFactor(uint32_t dpi);
 	float CalculateDownwardDPIScaleFactor(uint32_t dpi);
+	bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& output);
+	bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Size& parentSize, const Rectangle& childRectangle, const Size& childSize, Rectangle& outputParentRect, Rectangle& outputChildRect);
+
+	void Scale(const Rectangle& destScaled, const Rectangle& scaled, const Rectangle& destRect, Rectangle& output);
+	bool Contains(const Rectangle& r1, const Rectangle& r2);
 }
 
 #endif

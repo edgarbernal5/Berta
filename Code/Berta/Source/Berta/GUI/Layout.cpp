@@ -155,9 +155,14 @@ namespace Berta
 		if (!m_rootNode || !m_parent)
 			return;
 
+		auto area = GUI::AreaWindow(m_parent);
+		if (area.IsEmpty())
+		{
+			return;
+		}
 		DrawBatch drawBatch(m_parent->RootWindow);
 
-		m_rootNode->SetArea(GUI::AreaWindow(m_parent));
+		m_rootNode->SetArea(area);
 		m_rootNode->CalculateAreas();
 
 		GUI::UpdateTree(m_parent);

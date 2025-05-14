@@ -10,6 +10,7 @@
 #include <memory>
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/API/WindowAPI.h"
+#include "Berta/API/PaintAPI.h"
 
 namespace Berta
 {
@@ -47,7 +48,7 @@ namespace Berta
 		void Build(const Size& size);
 		void BuildFont(uint32_t dpi);
 		void Rebuild(const Size& size);
-		void Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, float alpha);
+		void Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style = LineStyle::Solid);
@@ -76,6 +77,7 @@ namespace Berta
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
+		PaintNativeHandle* GetHandle() const { return m_attributes.get(); }
 
 		void Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
@@ -93,35 +95,11 @@ namespace Berta
 #endif
 		}
 	private:
-#ifdef BT_PLATFORM_WINDOWS
-		struct NativeAttributes
-		{
-			HDC m_hdc{ nullptr };
-			HBITMAP	m_hBitmap{ nullptr };
-			HFONT m_hFont{ nullptr };
-			uint32_t m_lastForegroundColor{ 0 };
-			Size m_size;
-			Size m_textExtent;
-
-			NativeAttributes() = default;
-			~NativeAttributes();
-
-			NativeAttributes(const NativeAttributes&) = delete;
-			NativeAttributes& operator=(const NativeAttributes&) = delete;
-		};
-#else
-		struct NativeAttributes
-		{
-			Size m_size;
-
-			NativeAttributes() = default;
-			~NativeAttributes();
-		};
-#endif
 		//void EnableAntiAliasing(HDC hdc);
 
 		uint32_t m_dpi{ 96u };
-		std::unique_ptr<NativeAttributes> m_attributes;
+		uint32_t m_lastForegroundColor{ 0 };
+		std::unique_ptr<PaintNativeHandle> m_attributes;
 	};
 }
 

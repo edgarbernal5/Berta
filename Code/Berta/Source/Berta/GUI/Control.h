@@ -54,6 +54,9 @@ namespace Berta
 		void Hide();
 		void Dispose();
 
+		bool GetAutoDraw() const;
+		void SetAutoDraw(bool autoDraw);
+
 #if BT_DEBUG
 		void SetDebugName(const std::string& name)
 		{

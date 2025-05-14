@@ -212,6 +212,10 @@ namespace Berta
 	{
 		bool needUpdate = !m_panels.empty();
 		m_selectedTabIndex = -1;
+		for (auto it = m_panels.begin(); it != m_panels.end(); ++it)
+		{
+			GUI::DisposeWindow(*it->PanelPtr);
+		}
 		m_panels.clear();
 
 		return needUpdate;

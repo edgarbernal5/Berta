@@ -100,6 +100,16 @@ namespace Berta
 		GUI::DisposeWindow(m_handle);
 	}
 
+	bool ControlBase::GetAutoDraw() const
+	{
+		return m_handle->Flags.AutoDraw;
+	}
+
+	void ControlBase::SetAutoDraw(bool autoDraw)
+	{
+		m_handle->Flags.AutoDraw = autoDraw;
+	}
+
 	void ControlBase::DoOnCaption(const std::wstring& caption)
 	{
 		GUI::CaptionWindow(m_handle, caption);

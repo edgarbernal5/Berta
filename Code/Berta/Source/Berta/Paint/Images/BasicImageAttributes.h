@@ -8,6 +8,7 @@
 #define BT_BASIC_IMAGE_ATTRIBUTES_HEADER
 
 #include "Berta/Paint/Image.h"
+#include "Berta/Paint/ColorBuffer.h"
 
 namespace Berta
 {
@@ -25,15 +26,9 @@ namespace Berta
 	private:
 		void ReleaseNativeObjects();
 
-		unsigned char* m_imageData{ nullptr };
 		Size m_size{};
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };
-
-#if BT_PLATFORM_WINDOWS
-		HDC m_hdc{ nullptr };
-		HBITMAP m_hBitmap{ nullptr };
-#endif
 	};
 }
 

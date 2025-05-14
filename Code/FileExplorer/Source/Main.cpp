@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <Berta/GUI/ControlDrawBatch.h>
 
 class TabExplorer : public Berta::Panel
 {
@@ -50,24 +51,31 @@ public:
 
 			auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
 
-			for (const auto& entry : std::filesystem::directory_iterator(path))
+			try
 			{
-				try
+				for (const auto& entry : std::filesystem::directory_iterator(path))
 				{
-					if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+					try
 					{
-						auto newItem = m_listBox.Append(entry.path().filename().string());
-						newItem.SetIcon(m_folderImg);
+						if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+						{
+							auto newItem = m_listBox.Append(entry.path().filename().string());
+							newItem.SetIcon(m_folderImg);
+						}
+						else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
+							auto newItem = m_listBox.Append(entry.path().filename().string());
+							newItem.SetIcon(m_fileImg);
+						}
 					}
-					else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
-						auto newItem = m_listBox.Append(entry.path().filename().string());
-						newItem.SetIcon(m_fileImg);
-					}
-				}
-				catch (...)
-				{
+					catch (...)
+					{
 
+					}
 				}
+			}
+			catch (...)
+			{
+
 			}
 		});
 
@@ -213,6 +221,7 @@ public:
 		m_comboBox.GetEvents().Selected.Connect([this](const Berta::ArgComboBox& args)
 		{
 			m_currentPath = m_comboBox.GetText(args.SelectedIndex);
+			Berta::ControlDrawBatch controlBatch(m_thumbListBox);
 			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
 			{
 				try
@@ -220,6 +229,7 @@ public:
 					if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 					{
 						//auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+						//m_thumbListBox.AddItem(entry.path().filename(), m_hardDriveImg);
 						m_thumbListBox.AddItem(entry.path().filename(), m_folderImg);
 
 					}
