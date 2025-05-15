@@ -18,6 +18,7 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appearance.get());
+		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(control.Handle()->Events.get());
 
 		m_module.m_window = control.Handle();
 		m_module.m_control = m_control;
@@ -26,7 +27,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
 	{
-		BT_CORE_TRACE << "  - ThumbListBoxReactor::Update " << std::endl;
+		//BT_CORE_TRACE << "  - ThumbListBoxReactor::Update " << std::endl;
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
@@ -404,10 +405,21 @@ namespace Berta
 		auto& newItem = m_items.emplace_back();
 		newItem.m_text = text;
 
+		CalculateViewport(m_viewport);
+
+		UpdateScrollBar();
 		BuildItems();
+
+		auto savedEndingIndex = m_viewport.m_endingVisibleIndex;
 		CalculateVisibleIndices();
 
-		return true;
+		bool hasChanged = savedEndingIndex != m_viewport.m_endingVisibleIndex;
+		if (hasChanged)
+		{
+			EmitVisibilityEvent(savedEndingIndex, true);
+		}
+
+		return hasChanged;
 	}
 
 	bool ThumbListBoxReactor::Module::AddItem(const std::wstring& text, const Image& thumbnail)
@@ -416,10 +428,21 @@ namespace Berta
 		newItem.m_text = text;
 		newItem.m_thumbnail = thumbnail;
 
+		CalculateViewport(m_viewport);
+
+		UpdateScrollBar();
 		BuildItems();
+
+		auto savedEndingIndex = m_viewport.m_endingVisibleIndex;
 		CalculateVisibleIndices();
 
-		return true;
+		bool hasChanged = savedEndingIndex != m_viewport.m_endingVisibleIndex;
+		if (hasChanged)
+		{
+			EmitVisibilityEvent(savedEndingIndex, true);
+		}
+
+		return hasChanged;
 	}
 
 	void ThumbListBoxReactor::Module::CalculateViewport(ViewportData& viewportData) const
@@ -598,7 +621,30 @@ namespace Berta
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
 				{
 					m_state.m_offset = args.Value;
+					auto savedStartingIndex = m_viewport.m_startingVisibleIndex;
+					auto savedEndingIndex = m_viewport.m_endingVisibleIndex;
 					CalculateVisibleIndices();
+
+					if (savedStartingIndex != m_viewport.m_startingVisibleIndex || savedEndingIndex != m_viewport.m_endingVisibleIndex)
+					{
+						for (size_t i = savedStartingIndex; i < m_viewport.m_startingVisibleIndex; i++)
+						{
+							EmitVisibilityEvent(i, false);
+						}
+						for (size_t i = m_viewport.m_startingVisibleIndex; i < savedStartingIndex; i++)
+						{
+							EmitVisibilityEvent(i, true);
+						}
+
+						for (size_t i = m_viewport.m_endingVisibleIndex; i < savedEndingIndex; i++)
+						{
+							EmitVisibilityEvent(i, false);
+						}
+						for (size_t i = savedEndingIndex; i < m_viewport.m_endingVisibleIndex; i++)
+						{
+							EmitVisibilityEvent(i, true);
+						}
+					}
 
 					GUI::UpdateWindow(m_window);
 				});
@@ -794,6 +840,15 @@ namespace Berta
 		return needUpdate;
 	}
 
+	void ThumbListBoxReactor::Module::EmitVisibilityEvent(size_t index, bool visible) const
+	{
+		ArgThumbListBoxItemVisibility args;
+		args.Index = index;
+		args.Visible = visible;
+		BT_CORE_DEBUG << " - visibility item = " << index << ". visible=" << visible << std::endl;
+		m_events->ItemVisibility.Emit(args);
+	}
+
 	void ThumbListBoxReactor::Module::Draw() const
 	{
 		GUI::UpdateWindow(m_window);
@@ -933,7 +988,7 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::wstring& text)
 	{
-		if (m_reactor.GetModule().AddItem(text) && GetAutoDraw())
+		if (m_reactor.GetModule().AddItem(text) && IsAutoDraw())
 		{
 			m_reactor.GetModule().Draw();
 		}
@@ -941,7 +996,7 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
-		if (m_reactor.GetModule().AddItem(text, thumbnail) && GetAutoDraw())
+		if (m_reactor.GetModule().AddItem(text, thumbnail) && IsAutoDraw())
 		{
 			m_reactor.GetModule().Draw();
 		}

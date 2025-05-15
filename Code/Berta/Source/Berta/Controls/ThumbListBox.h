@@ -31,7 +31,7 @@ namespace Berta
 
 	struct ArgThumbListBoxItemVisibility
 	{
-		size_t SelectedIndex{ 0 };
+		size_t Index{ 0 };
 		bool Visible{ false };
 	};
 
@@ -135,6 +135,7 @@ namespace Berta
 			void PerformRangeSelection(int itemIndexAtPosition);
 			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 
+			void EmitVisibilityEvent(size_t index, bool visible) const;
 			void Draw() const;
 			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
 
@@ -153,6 +154,7 @@ namespace Berta
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
+			ThumbListBoxEvents* m_events{ nullptr };
 			MouseSelection m_mouseSelection;
 			std::vector<GridCardType> m_gridCards;
 			ViewportData m_viewport;
