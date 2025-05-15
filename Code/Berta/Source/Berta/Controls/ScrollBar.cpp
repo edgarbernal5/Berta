@@ -179,11 +179,13 @@ namespace Berta
 		//{
 		//	EmitValueChanged();
 		//}
+		GUI::UpdateWindow(m_control->Handle());
 	}
 
 	void ScrollBarReactor::SetValue(ScrollBarUnit value)
 	{
 		m_value = std::clamp(value, m_min, m_max);
+		GUI::UpdateWindow(m_control->Handle());
 	}
 
 	void ScrollBarReactor::SetStepValue(ScrollBarUnit value)
@@ -193,6 +195,7 @@ namespace Berta
 			return;
 		}
 		m_step = std::clamp(value, 1, m_max);
+		GUI::UpdateWindow(m_control->Handle());
 	}
 
 	void ScrollBarReactor::SetPageStepValue(ScrollBarUnit value)

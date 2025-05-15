@@ -9,6 +9,7 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
+#include "Berta/Paint/DrawBatch.h"
 #include "Berta/GUI/EnumTypes.h"
 #include "Berta/Controls/TextEditors/TextEditor.h"
 #include "Berta/Controls/Floating/FloatBox.h"
@@ -142,6 +143,8 @@ namespace Berta
 				{
 					m_module.Data.m_selectedIndex = selectedIndex;
 					m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
+
+					DrawBatch drawBatch(m_module.m_owner);
 
 					m_module.EmitSelectionEvent(selectedIndex);
 

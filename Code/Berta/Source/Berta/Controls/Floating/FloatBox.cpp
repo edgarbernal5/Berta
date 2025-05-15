@@ -8,6 +8,7 @@
 #include "FloatBox.h"
 #include "Berta/GUI/EnumTypes.h"
 #include "Berta/Controls/ComboBox.h"
+#include "Berta/Paint/DrawBatch.h"
 
 namespace Berta
 {
@@ -220,6 +221,8 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto scrollSize = window->ToScale(window->Appearance->ScrollBarSize);
 		Rectangle rect{ static_cast<int>(window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, window->ClientSize.Height - 2u };
+		DrawBatch drawBatch(window);
+		
 		if (!m_scrollBar)
 		{
 			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
