@@ -44,19 +44,20 @@ namespace Berta
 
         auto& storage = *m_storage.get();
         Rectangle validDestRect, validSourceDest;
-        auto handleSize = API::GetPaintHandleSize(destHandle);
-        if (!LayoutUtils::GetIntersectionClipRect(sourceRect, storage.m_size, destinationRect, handleSize, validSourceDest, validDestRect))
+        if (!LayoutUtils::GetIntersectionClipRect(sourceRect, storage.m_size, destinationRect, API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
             return;
+
+        ColorBuffer destBuffer;
+        destBuffer.Attach(destHandle, validDestRect);
 
         if (storage.m_hasAlphaChannel)
         {
-            ColorBuffer destBuffer;
-            destBuffer.Attach(destHandle, validDestRect);
-
             //ImageProcessor::ScaleBilinearWithAlphaBlend(*this, validSourceDest, destBuffer, validDestRect);
             ImageProcessor::ScaleNearestAlphaBlend(*this, validSourceDest, destBuffer, validDestRect);
             return;
         }
+
+        ImageProcessor::ScaleNearest(*this, validSourceDest, destBuffer, validDestRect);
     }
 
     void ColorBuffer::Blend(const Rectangle& sourceRect, PaintNativeHandle* destHandle, const Point& destinationPos, double alpha)
@@ -66,17 +67,17 @@ namespace Berta
 
         auto& storage = *m_storage.get();
         Rectangle validDestRect, validSourceDest;
-        auto handleSize = API::GetPaintHandleSize(destHandle);
         if (!LayoutUtils::GetIntersectionClipRect(sourceRect, storage.m_size, { destinationPos.X, destinationPos.Y, sourceRect.Width, sourceRect.Height },
-            handleSize, validSourceDest, validDestRect))
+            API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
         {
             return;
         }
 
         ColorBuffer destBuffer;
         destBuffer.Attach(destHandle, validSourceDest);
-
-        ImageProcessor::AlphaBlend(*this, validDestRect, destBuffer, {}, alpha);
+        BT_CORE_DEBUG << " - source rect " << validSourceDest << std::endl;
+        BT_CORE_DEBUG << " - dest rect " << validDestRect << std::endl;
+        ImageProcessor::AlphaBlend(*this, validSourceDest, destBuffer, { validDestRect.X, validDestRect.Y }, alpha);
     }
 
     void ColorBuffer::SetAlphaChannel(bool enabled)

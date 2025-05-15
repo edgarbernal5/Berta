@@ -85,7 +85,8 @@ void Berta::ImageProcessor::ScaleBilinearWithAlphaBlend(ColorBuffer& sourceBuffe
 
 void Berta::ImageProcessor::AlphaBlend(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Point& destPos, double alpha)
 {
-    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine >> 2;
+    auto destBytesPerColor = destBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
+    auto sourceBytesPerColor = sourceBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
     uint8_t alphaByte = static_cast<uint8_t>((std::min)(alpha * 255.0, 255.0));
 
     for (int y = 0; y < sourceRect.Height; ++y)
@@ -94,11 +95,11 @@ void Berta::ImageProcessor::AlphaBlend(ColorBuffer& sourceBuffer, const Rectangl
         {
             auto get = [&](int px, int py) -> const ColorABGR&
                 {
-                    return sourceBuffer.Get(py * sourceRect.Width + px);
+                    return sourceBuffer.Get(py * sourceBytesPerColor + px);
                 };
 
-            const ColorABGR& srcPixel = get(x, y);
-            ColorABGR& dstPixel = destBuffer.Get((y + sourceRect.Y + destPos.Y) * bytesPerColor + x + sourceRect.X + destPos.X);
+            const ColorABGR& srcPixel = get(x + sourceRect.X, y + sourceRect.Y);
+            ColorABGR& dstPixel = destBuffer.Get((y + destPos.Y) * destBytesPerColor + x + destPos.X);
 
             dstPixel.Channels.A = srcPixel.Channels.A * alpha + dstPixel.Channels.A * (1.0 - alpha);
             dstPixel.Channels.R = srcPixel.Channels.R * alpha + dstPixel.Channels.R * (1.0 - alpha);
@@ -110,40 +111,29 @@ void Berta::ImageProcessor::AlphaBlend(ColorBuffer& sourceBuffer, const Rectangl
 
 void Berta::ImageProcessor::ScaleNearestAlphaBlend(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect)
 {
-    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine >> 2;
+    auto destBytesPerColor = destBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
+    auto sourceBytesPerColor = sourceBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
 
     for (int y = 0; y < destRect.Height; ++y)
     {
         int srcY = destRect.Height == 1 ? 0 : (y * (sourceRect.Height - 1) * 256) / (destRect.Height - 1);
         int y0 = srcY / 256;
         y0 += sourceRect.Y;
-        int fy = srcY % 256;
-        int y1 = (y0 + 1 < sourceRect.Height) ? y0 + 1 : y0;
 
         for (int x = 0; x < destRect.Width; ++x)
         {
             int srcX = destRect.Width == 1 ? 0 : (x * (sourceRect.Width - 1) * 256) / (destRect.Width - 1);
             int x0 = srcX / 256;
             x0 += sourceRect.X;
-            int fx = srcX % 256;
-            int x1 = (x0 + 1 < sourceRect.Width) ? x0 + 1 : x0;
 
             auto get = [&](int px, int py) -> const ColorABGR&
                 {
-                    return sourceBuffer.Get(py * sourceRect.Width + px);
+                    return sourceBuffer.Get(py * sourceBytesPerColor + px);
                 };
 
-            const ColorABGR& c00 = get(x0, y0);
+            const ColorABGR& result = get(x0, y0);
 
-            ColorABGR result;
-            for (int k = 0; k < 4; ++k) { // A, B, G, R
-
-                int v00 = ((uint8_t*)&c00)[k];
-
-                ((uint8_t*)&result)[k] = (uint8_t)v00;
-            }
-
-            ColorABGR& dstPixel = destBuffer.Get((y + destRect.Y) * bytesPerColor + x + destRect.X);
+            ColorABGR& dstPixel = destBuffer.Get((y + destRect.Y) * destBytesPerColor + x + destRect.X);
 
             uint8_t srcA = result.Channels.A;
             uint8_t srcB = result.Channels.B;
@@ -170,6 +160,39 @@ void Berta::ImageProcessor::ScaleNearestAlphaBlend(ColorBuffer& sourceBuffer, co
             dstPixel.Channels.B = blend(srcB, dstB, srcA);
             dstPixel.Channels.G = blend(srcG, dstG, srcA);
             dstPixel.Channels.R = blend(srcR, dstR, srcA);
+        }
+    }
+}
+
+void Berta::ImageProcessor::ScaleNearest(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect)
+{
+    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine >> 2;
+
+    for (int y = 0; y < destRect.Height; ++y)
+    {
+        int srcY = destRect.Height == 1 ? 0 : (y * (sourceRect.Height - 1) * 256) / (destRect.Height - 1);
+        int y0 = srcY / 256;
+        y0 += sourceRect.Y;
+
+        for (int x = 0; x < destRect.Width; ++x)
+        {
+            int srcX = destRect.Width == 1 ? 0 : (x * (sourceRect.Width - 1) * 256) / (destRect.Width - 1);
+            int x0 = srcX / 256;
+            x0 += sourceRect.X;
+
+            auto get = [&](int px, int py) -> const ColorABGR&
+                {
+                    return sourceBuffer.Get(py * sourceRect.Width + px);
+                };
+
+            const ColorABGR& result = get(x0, y0);
+
+            ColorABGR& dstPixel = destBuffer.Get((y + destRect.Y) * bytesPerColor + x + destRect.X);
+
+            dstPixel.Channels.A = result.Channels.A;
+            dstPixel.Channels.B = result.Channels.B;
+            dstPixel.Channels.G = result.Channels.G;
+            dstPixel.Channels.R = result.Channels.R;
         }
     }
 }

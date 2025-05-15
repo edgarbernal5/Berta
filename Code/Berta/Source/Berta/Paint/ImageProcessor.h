@@ -15,6 +15,7 @@ namespace Berta::ImageProcessor
 	void ScaleBilinearWithAlphaBlend(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect);
 	void AlphaBlend(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Point& destPos, double alpha);
 	void ScaleNearestAlphaBlend(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect);
+	void ScaleNearest(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect);
 }
 
 #endif
