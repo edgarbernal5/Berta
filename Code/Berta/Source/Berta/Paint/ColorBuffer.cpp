@@ -75,8 +75,7 @@ namespace Berta
 
         ColorBuffer destBuffer;
         destBuffer.Attach(destHandle, validSourceDest);
-        BT_CORE_DEBUG << " - source rect " << validSourceDest << std::endl;
-        BT_CORE_DEBUG << " - dest rect " << validDestRect << std::endl;
+
         ImageProcessor::AlphaBlend(*this, validSourceDest, destBuffer, { validDestRect.X, validDestRect.Y }, alpha);
     }
 
@@ -87,7 +86,7 @@ namespace Berta
 
     ColorABGR& ColorBuffer::Get(size_t index)
     {
-        return m_storage->m_imageData[index];
+        return m_storage->m_buffer[index];
     }
 
     ColorBuffer::Storage::Storage(uint32_t width, uint32_t height) :
@@ -100,17 +99,17 @@ namespace Berta
     ColorBuffer::Storage::Storage(PaintNativeHandle* paintHandle, const Rectangle& targetRect) :
         m_paintHandle(paintHandle),
         m_bytesPerLine(paintHandle->m_bytesPerLine),
-        m_imageData(paintHandle->m_bmpColorBuffer),
+        m_buffer(paintHandle->m_bmpColorBuffer),
         m_size(API::GetPaintHandleSize(paintHandle))
     {
     }
 
     ColorBuffer::Storage::~Storage()
     {
-        if (!m_paintHandle && m_imageData)
+        if (!m_paintHandle && m_buffer)
         {
-            delete[] m_imageData;
-            m_imageData = nullptr;
+            delete[] m_buffer;
+            m_buffer = nullptr;
         }
         m_paintHandle = nullptr;
     }
@@ -120,14 +119,14 @@ namespace Berta
         if (m_size.IsEmpty())
             return;
 
-        m_imageData = new ColorABGR[m_size.Width * m_size.Height];
+        m_buffer = new ColorABGR[m_size.Width * m_size.Height];
     }
 
     void ColorBuffer::Storage::Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine)
     {
         if (m_size.Width == width && m_size.Height == height && m_bytesPerLine == bytesPerLine && bitsPerPixel == 32)
         {
-            memcpy(m_imageData, rawbits, bytesPerLine * m_size.Height);
+            memcpy(m_buffer, rawbits, bytesPerLine * m_size.Height);
             return;
         }
 

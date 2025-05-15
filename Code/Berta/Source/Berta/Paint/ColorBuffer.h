@@ -43,7 +43,7 @@ namespace Berta
 			void Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine);
 
 			PaintNativeHandle* m_paintHandle{ nullptr };
-			ColorABGR* m_imageData{ nullptr };
+			ColorABGR* m_buffer{ nullptr };
 			Size m_size{};
 			uint32_t m_bytesPerLine{ 0 };
 			bool m_hasAlphaChannel{ false };

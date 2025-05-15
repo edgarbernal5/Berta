@@ -91,7 +91,7 @@ namespace Berta
 	{
 	public:
 		Slider() = default;
-		Slider(Window* parent, const Rectangle& rectangle, bool isVertical = true);
+		Slider(Window* parent, const Rectangle& rectangle = {}, bool isVertical = true);
 		Slider(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
 		void SetMinMax(int min, int max);

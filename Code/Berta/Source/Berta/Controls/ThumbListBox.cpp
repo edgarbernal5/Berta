@@ -640,6 +640,7 @@ namespace Berta
 						{
 							EmitVisibilityEvent(i, false);
 						}
+
 						for (size_t i = savedEndingIndex; i < m_viewport.m_endingVisibleIndex; i++)
 						{
 							EmitVisibilityEvent(i, true);

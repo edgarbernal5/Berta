@@ -157,18 +157,18 @@ namespace Berta
 		Build(size);
 	}
 
-	void Graphics::Blend(const Rectangle& blendRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
+	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
-		Rectangle r;
-		r.X = pointSource.X;
-		r.Y = pointSource.Y;
-		r.Width = blendRectangle.Width;
-		r.Height = blendRectangle.Height;
+		Rectangle sourceRect;
+		sourceRect.X = pointSource.X;
+		sourceRect.Y = pointSource.Y;
+		sourceRect.Width = blendDestRectangle.Width;
+		sourceRect.Height = blendDestRectangle.Height;
 
 		ColorBuffer destBuffer;
-		destBuffer.Attach(graphicsSource.GetHandle(), r);
+		destBuffer.Attach(graphicsSource.GetHandle(), sourceRect);
 
-		destBuffer.Blend(r, m_attributes.get(), blendRectangle, 1.0 - alpha);
+		destBuffer.Blend(sourceRect, m_attributes.get(), blendDestRectangle, 1.0 - alpha);
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)

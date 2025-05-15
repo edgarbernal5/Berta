@@ -11,6 +11,7 @@
 #include <Berta/Controls/TabBar.h>
 #include <Berta/Controls/ThumbListBox.h>
 #include <Berta/Controls/ComboBox.h>
+#include <Berta/Controls/Slider.h>
 
 #include <iostream>
 #include <filesystem>
@@ -219,6 +220,16 @@ public:
 	TabImages(Berta::Window* parent) :
 		Panel(parent)
 	{
+		m_slider.SetOrientation(false);
+		m_slider.SetMinMax(0, 4);
+
+		m_slider.GetEvents().ValueChanged.Connect([this](const Berta::ArgSlider& args)
+		{
+			uint32_t thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
+
+			m_thumbListBox.SetThumbnailSize(thumbnailSizes[args.Value]);
+		});
+
 		m_comboBox.GetEvents().Selected.Connect([this](const Berta::ArgComboBox& args)
 		{
 			m_currentPath = m_comboBox.GetText(args.SelectedIndex);
@@ -256,9 +267,10 @@ public:
 		}
 
 		m_layout.Create(*this);
-		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 {{comboBox Width=120}}{thumbBox}}");
+		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 {{comboBox Width=120}{slider Width=180}}{thumbBox}}");
 
 		m_layout.Attach("comboBox", m_comboBox);
+		m_layout.Attach("slider", m_slider);
 		m_layout.Attach("thumbBox", m_thumbListBox);
 		m_layout.Apply();
 	}
@@ -266,6 +278,7 @@ public:
 private:
 	Berta::ThumbListBox m_thumbListBox{ *this };
 	Berta::ComboBox m_comboBox{ *this };
+	Berta::Slider m_slider{ *this };
 
 	std::wstring m_currentPath;
 	Berta::Layout m_layout;

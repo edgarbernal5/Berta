@@ -166,7 +166,7 @@ void Berta::ImageProcessor::ScaleNearestAlphaBlend(ColorBuffer& sourceBuffer, co
 
 void Berta::ImageProcessor::ScaleNearest(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect)
 {
-    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine >> 2;
+    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
 
     for (int y = 0; y < destRect.Height; ++y)
     {
