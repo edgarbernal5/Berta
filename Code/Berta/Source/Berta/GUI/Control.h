@@ -54,7 +54,7 @@ namespace Berta
 		void Hide();
 		void Dispose();
 
-		bool GetAutoDraw() const;
+		bool IsAutoDraw() const;
 		void SetAutoDraw(bool autoDraw);
 
 #if BT_DEBUG

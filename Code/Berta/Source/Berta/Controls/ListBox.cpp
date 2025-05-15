@@ -27,7 +27,7 @@ namespace Berta
 
 	void ListBoxReactor::Update(Graphics& graphics)
 	{
-		BT_CORE_TRACE << " -- Listbox Update() " << std::endl;
+		//BT_CORE_TRACE << " -- Listbox Update() " << std::endl;
 		auto enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(m_module.m_window->ClientSize.ToRectangle(), m_module.m_window->Appearance->BoxBackground, true);
 
@@ -862,6 +862,10 @@ namespace Berta
 		m_list.m_items.emplace_back(text);
 		m_list.m_sortedIndexes.emplace_back(startIndex);
 
+		for (size_t i = 1; i < m_headers.m_items.size(); i++)
+		{
+			m_list.m_items.back().m_cells.emplace_back("");
+		}
 		if (m_headers.m_sortedHeaderIndex != -1)
 		{
 			size_t selectedHeaderIndex = static_cast<size_t>(m_headers.m_sortedHeaderIndex);
@@ -875,6 +879,7 @@ namespace Berta
 		UpdateScrollBars();
 
 		GUI::UpdateWindow(m_window);
+
 		return { &m_list.m_items.back(), this};
 	}
 
@@ -1203,6 +1208,7 @@ namespace Berta
 			for (size_t j = 0; j < item.m_cells.size(); j++)
 			{
 				const auto& headerIndex = m_headers.m_sorted[j];
+
 				const auto& cell = item.m_cells[headerIndex];
 				const auto& header = m_headers.m_items[headerIndex];
 				auto headerWidth = m_window->ToScale(header.m_bounds.Width);

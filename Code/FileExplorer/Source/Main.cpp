@@ -23,6 +23,7 @@ public:
 		Panel(parent)
 	{
 		m_listBox.AppendHeader("Name", 200);
+		m_listBox.AppendHeader("Type", 120);
 
 		DWORD drives = ::GetLogicalDrives();
 

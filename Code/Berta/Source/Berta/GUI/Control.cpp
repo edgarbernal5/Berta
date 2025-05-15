@@ -100,7 +100,7 @@ namespace Berta
 		GUI::DisposeWindow(m_handle);
 	}
 
-	bool ControlBase::GetAutoDraw() const
+	bool ControlBase::IsAutoDraw() const
 	{
 		return m_handle->Flags.AutoDraw;
 	}
