@@ -350,7 +350,7 @@ namespace Berta
 
 	Menu& MenuBar::PushBack(const std::string& itemName)
 	{
-		std::wstring wItemName(itemName.begin(), itemName.end());
+		std::wstring wItemName = StringUtils::Convert(itemName);
 
 		return m_reactor.GetModule().PushBack(wItemName);
 	}

@@ -40,6 +40,9 @@ namespace Berta
 namespace Berta::StringUtils
 {
 	std::wstring Convert(const std::string& str);
+
+	std::vector<std::string> Split(const std::string& str, char delimiter);
+	std::vector<std::wstring> Split(const std::wstring& str, wchar_t delimiter);
 }
 
 #include "BasicTypes.h"
@@ -52,7 +55,7 @@ namespace Berta::LayoutUtils
 	bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Size& parentSize, const Rectangle& childRectangle, const Size& childSize, Rectangle& outputParentRect, Rectangle& outputChildRect);
 
 	void Scale(const Rectangle& destScaled, const Rectangle& scaled, const Rectangle& destRect, Rectangle& output);
-	bool Contains(const Rectangle& r1, const Rectangle& r2);
+	bool Contains(const Rectangle& rect1, const Rectangle& rect2); // rect2 contains rect1.
 }
 
 #endif

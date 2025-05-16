@@ -77,6 +77,7 @@ namespace Berta
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
+
 		PaintNativeHandle* GetHandle() const { return m_attributes.get(); }
 
 		void Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;

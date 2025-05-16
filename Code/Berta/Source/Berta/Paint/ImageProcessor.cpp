@@ -166,7 +166,8 @@ void Berta::ImageProcessor::ScaleNearestAlphaBlend(ColorBuffer& sourceBuffer, co
 
 void Berta::ImageProcessor::ScaleNearest(ColorBuffer& sourceBuffer, const Rectangle& sourceRect, ColorBuffer& destBuffer, const Rectangle& destRect)
 {
-    auto bytesPerColor = destBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
+    auto sourceBytesPerColor = sourceBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
+    auto destBytesPerColor = destBuffer.m_storage->m_bytesPerLine / sizeof(ColorABGR);
 
     for (int y = 0; y < destRect.Height; ++y)
     {
@@ -182,12 +183,12 @@ void Berta::ImageProcessor::ScaleNearest(ColorBuffer& sourceBuffer, const Rectan
 
             auto get = [&](int px, int py) -> const ColorABGR&
                 {
-                    return sourceBuffer.Get(py * sourceRect.Width + px);
+                    return sourceBuffer.Get(py * sourceBytesPerColor + px);
                 };
 
             const ColorABGR& result = get(x0, y0);
 
-            ColorABGR& dstPixel = destBuffer.Get((y + destRect.Y) * bytesPerColor + x + destRect.X);
+            ColorABGR& dstPixel = destBuffer.Get((y + destRect.Y) * destBytesPerColor + x + destRect.X);
 
             dstPixel.Channels.A = result.Channels.A;
             dstPixel.Channels.B = result.Channels.B;

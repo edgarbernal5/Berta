@@ -37,24 +37,27 @@ namespace Berta
 
 		auto thumbSize = m_module.m_window->ToScale(m_module.m_thumbnailSize);
 		auto cardHeight = m_module.m_window->ToScale(m_module.m_appearance->ThumbnailCardHeight);
+		Size thumbFrameSize{ thumbSize, thumbSize };
+
 		for (size_t i = m_module.m_viewport.m_startingVisibleIndex; i < m_module.m_viewport.m_endingVisibleIndex; i++)
 		{
 			auto& item = m_module.m_items[i];
 
 			Rectangle cardRect{ item.m_bounds.X + offset.X, item.m_bounds.Y + offset.Y, m_module.m_viewport.m_cardSize.Width, m_module.m_viewport.m_cardSize.Height };
 			
+			Rectangle thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
 			const bool& isSelected = item.m_isSelected;
 			bool isLastSelected = (int)i == m_module.m_mouseSelection.m_selectedIndex;
-			graphics.DrawRectangle(cardRect, window->Appearance->Background, true);
+			graphics.DrawRectangle(cardRect, window->Appearance->ButtonBackground, true);
+			graphics.DrawRectangle(thumbnailRect, window->Appearance->Background, true);
 
 			if (item.m_thumbnail)
 			{
 				Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
-				Size thumbFrameSize{ thumbSize, thumbSize };
-				Rectangle thumbnailRect;
+				Rectangle thumbnailImageRect;
 				if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
 				{
-					thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
+					thumbnailImageRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
 				}
 				else
 				{
@@ -62,23 +65,18 @@ namespace Berta
 					center -= imageSize;
 					center /= 2;
 
-					thumbnailRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
+					thumbnailImageRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
 				}
 
-				item.m_thumbnail.Paste(graphics, thumbnailRect);
+				item.m_thumbnail.Paste(graphics, thumbnailImageRect);
 			}
 			
+			
+			if (isSelected)
 			{
-				Size cardTextSize{ thumbSize, cardHeight };
-				auto center = cardTextSize - graphics.GetTextExtent(item.m_text);
-				center *= 0.5f;
-
-				if (isSelected)
-				{
-					graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize, cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
-				}
-				graphics.DrawString({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.m_text, window->Appearance->Foreground);
+				graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize, cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 			}
+			m_module.DrawItemText(graphics, item, cardRect);
 
 			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor, false);
@@ -855,6 +853,26 @@ namespace Berta
 		GUI::UpdateWindow(m_window);
 	}
 
+	void ThumbListBoxReactor::Module::DrawItem(Graphics& graphics, ItemType& item, Point& offset)
+	{
+	}
+
+	void ThumbListBoxReactor::Module::DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect)
+	{
+		auto words = StringUtils::Split(item.m_text, ' ');
+		for (size_t i = 0; i < words.size(); i++)
+		{
+			auto& word = words[i];
+			auto wordExtent = graphics.GetTextExtent(word);
+		}
+		//Size cardTextSize{ thumbSize, cardHeight };
+		//auto center = cardTextSize - graphics.GetTextExtent(item.m_text);
+		//center *= 0.5f;
+
+		//graphics.+({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.m_text, window->Appearance->Foreground);
+
+	}
+
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
 	{
 		return m_mouseSelection.m_selections;
@@ -896,7 +914,31 @@ namespace Berta
 			offsetAdjustment = (itemBounds.Y + itemHeight) - viewportHeight;
 		}
 		m_state.m_offset = std::clamp(m_state.m_offset + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+		auto savedStartingIndex = m_viewport.m_startingVisibleIndex;
+		auto savedEndingIndex = m_viewport.m_endingVisibleIndex;
 		CalculateVisibleIndices();
+
+		if (savedStartingIndex != m_viewport.m_startingVisibleIndex || savedEndingIndex != m_viewport.m_endingVisibleIndex)
+		{
+			for (size_t i = savedStartingIndex; i < m_viewport.m_startingVisibleIndex; i++)
+			{
+				EmitVisibilityEvent(i, false);
+			}
+			for (size_t i = m_viewport.m_startingVisibleIndex; i < savedStartingIndex; i++)
+			{
+				EmitVisibilityEvent(i, true);
+			}
+
+			for (size_t i = m_viewport.m_endingVisibleIndex; i < savedEndingIndex; i++)
+			{
+				EmitVisibilityEvent(i, false);
+			}
+
+			for (size_t i = savedEndingIndex; i < m_viewport.m_endingVisibleIndex; i++)
+			{
+				EmitVisibilityEvent(i, true);
+			}
+		}
 
 		m_scrollBar->SetValue(m_state.m_offset);
 

@@ -36,6 +36,9 @@ namespace Berta
 	namespace API
 	{
 		Size GetPaintHandleSize(PaintNativeHandle* handle);
+		Size GetTextExtentSize(PaintNativeHandle* handle, const std::string& wstr);
+		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr);
+		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length);
 	}
 }
 

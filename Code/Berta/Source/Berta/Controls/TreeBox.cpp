@@ -1015,7 +1015,7 @@ namespace Berta
 		if (cleanKey.empty())
 			return {};
 
-		auto parts = Split(key, '/');
+		auto parts = StringUtils::Split(key, '/');
 		TreeNodeType* current = &m_root;
 		for (const auto& part : parts)
 		{
@@ -1037,7 +1037,7 @@ namespace Berta
 			return {};
 		}
 
-		auto parts = Split(handle, '/');
+		auto parts = StringUtils::Split(handle, '/');
 		auto current = &m_root;
 		for (auto& part : parts)
 		{
@@ -1587,21 +1587,6 @@ namespace Berta
 
 		m_showNavigationLines = visible;
 		return true;
-	}
-
-	std::vector<std::string> TreeBoxReactor::Module::Split(const std::string& str, char delimiter)
-	{
-		std::vector<std::string> result;
-		std::stringstream ss(str);
-		std::string item;
-		while (std::getline(ss, item, delimiter))
-		{
-			if (!item.empty())
-			{
-				result.push_back(item);
-			}
-		}
-		return result;
 	}
 
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)

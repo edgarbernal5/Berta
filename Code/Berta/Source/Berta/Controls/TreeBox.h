@@ -69,7 +69,6 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-		
 		enum class InteractionArea
 		{
 			None,
@@ -161,8 +160,6 @@ namespace Berta
 
 			bool ShowNavigationLines(bool visible);
 
-			static std::vector<std::string> Split(const std::string& str, char delimiter);
-			
 			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;

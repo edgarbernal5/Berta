@@ -66,11 +66,6 @@ namespace Berta
 				Rectangle m_bounds;
 			};
 
-			struct GridCardType
-			{
-				Rectangle m_positionSize{};
-			};
-
 			struct State
 			{
 				int m_offset{ 0 };
@@ -138,6 +133,7 @@ namespace Berta
 			void EmitVisibilityEvent(size_t index, bool visible) const;
 			void Draw() const;
 			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
+			void DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect);
 
 			std::vector<size_t> GetSelectedItems() const;
 			bool EnsureVisibility(int lastSelectedIndex);
@@ -154,9 +150,9 @@ namespace Berta
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
+
 			ThumbListBoxEvents* m_events{ nullptr };
 			MouseSelection m_mouseSelection;
-			std::vector<GridCardType> m_gridCards;
 			ViewportData m_viewport;
 		private:
 

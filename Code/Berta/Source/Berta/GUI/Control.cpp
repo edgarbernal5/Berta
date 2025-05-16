@@ -19,7 +19,7 @@ namespace Berta
 
 	void ControlBase::SetCaption(const std::string& caption)
 	{
-		std::wstring wCaption(caption.begin(), caption.end());
+		std::wstring wCaption = StringUtils::Convert(caption);
 		DoOnCaption(wCaption);
 	}
 

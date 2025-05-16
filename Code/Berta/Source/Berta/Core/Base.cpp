@@ -34,6 +34,36 @@ namespace Berta::StringUtils
 		std::wstring wstr(str.begin(), str.end());
 		return wstr;
 	}
+
+	std::vector<std::string> Split(const std::string& str, char delimiter)
+	{
+		std::vector<std::string> result;
+		std::stringstream ss(str);
+		std::string item;
+		while (std::getline(ss, item, delimiter))
+		{
+			if (!item.empty())
+			{
+				result.push_back(item);
+			}
+		}
+		return result;
+	}
+
+	std::vector<std::wstring> Split(const std::wstring& wstr, wchar_t delimiter)
+	{
+		std::vector<std::wstring> result;
+		std::wstringstream ss(wstr);
+		std::wstring item;
+		while (std::getline(ss, item, delimiter))
+		{
+			if (!item.empty())
+			{
+				result.push_back(item);
+			}
+		}
+		return result;
+	}
 }
 
 namespace Berta::LayoutUtils
@@ -74,88 +104,33 @@ namespace Berta::LayoutUtils
 
 	bool GetIntersectionClipRect(const Rectangle& sourceRectangle, const Size& sourceSize, const Rectangle& destRectangle, const Size& destSize, Rectangle& outputSourceRect, Rectangle& outputDestRect)
 	{
-		Rectangle validParentRect{ sourceSize };
-		if (!GetIntersectionClipRect(sourceRectangle, validParentRect, outputSourceRect))
+		// Valid clip area for parent and child based on their sizes
+		Rectangle validSourceRect{ sourceSize };
+		if (!GetIntersectionClipRect(sourceRectangle, validSourceRect, outputSourceRect))
 			return false;
 
-		Rectangle validChildRect{ destSize };
-		Rectangle resultChildRect;
-		if (!GetIntersectionClipRect(destRectangle, validChildRect, resultChildRect))
+		Rectangle validDestRect{ destSize };
+		Rectangle resultDestRect;
+		if (!GetIntersectionClipRect(destRectangle, validDestRect, resultDestRect))
 			return false;
 
+		// Compute proportional offset from original parent rect to output clipped rect
 		Scale(sourceRectangle, outputSourceRect, destRectangle, outputDestRect);
 
-		if (Contains(outputDestRect, resultChildRect))
+		if (Contains(outputDestRect, resultDestRect))
 		{
 			//GetIntersectionClipRect({ outputChildRect }, resultChildRect, outputChildRect);
 		}
 		else
 		{
-			outputDestRect = resultChildRect;
+			outputDestRect = resultDestRect;
 
-			Scale(destRectangle, resultChildRect, sourceRectangle, outputSourceRect);
+			// Recalculate parent projection from clipped child
+			Scale(destRectangle, resultDestRect, sourceRectangle, outputSourceRect);
 		}
 
 		return true;
 	}
-
-	//bool GetIntersectionClipRect(
-	//	const Rectangle& parentRect,
-	//	const Size& parentSize,
-	//	const Rectangle& childRect,
-	//	const Size& childSize,
-	//	Rectangle& outParentClip,
-	//	Rectangle& outChildClip)
-	//{
-	//	// Valid clip area for parent and child based on their sizes
-	//	Rectangle maxParentClip{ parentSize };
-	//	if (!GetIntersectionClipRect(parentRect, maxParentClip, outParentClip))
-	//		return false;
-
-	//	Rectangle maxChildClip{ childSize };
-	//	Rectangle clippedChild;
-	//	if (!GetIntersectionClipRect(childRect, maxChildClip, clippedChild))
-	//		return false;
-
-	//	// Compute proportional offset from original parent rect to output clipped rect
-	//	auto computeRate = [](int clippedStart, int originalStart, int originalLength) -> double {
-	//		return originalLength > 0 ? (clippedStart - originalStart) / static_cast<double>(originalLength) : 0.0;
-	//		};
-
-	//	auto scaleLength = [](int clippedLength, int originalLength, int otherLength) -> uint32_t {
-	//		return originalLength > 0 ? static_cast<uint32_t>((clippedLength / static_cast<double>(originalLength)) * otherLength) : 0;
-	//		};
-
-	//	// Initial child clip projection based on parent clip
-	//	double rateX = computeRate(outParentClip.X, parentRect.X, parentRect.Width);
-	//	double rateY = computeRate(outParentClip.Y, parentRect.Y, parentRect.Height);
-
-	//	outChildClip.X = static_cast<int>(rateX * childRect.Width) + childRect.X;
-	//	outChildClip.Y = static_cast<int>(rateY * childRect.Height) + childRect.Y;
-	//	outChildClip.Width = scaleLength(outParentClip.Width, parentRect.Width, childRect.Width);
-	//	outChildClip.Height = scaleLength(outParentClip.Height, parentRect.Height, childRect.Height);
-
-	//	if (covered(outChildClip, clippedChild))
-	//	{
-	//		GetIntersectionClipRect({ outChildClip }, clippedChild, outChildClip);
-	//	}
-	//	else
-	//	{
-	//		// Use clipped child rect
-	//		outChildClip = clippedChild;
-
-	//		// Recalculate parent projection from clipped child
-	//		double reverseRateX = computeRate(clippedChild.X, childRect.X, childRect.Width);
-	//		double reverseRateY = computeRate(clippedChild.Y, childRect.Y, childRect.Height);
-
-	//		outParentClip.X = static_cast<int>(reverseRateX * parentRect.Width) + parentRect.X;
-	//		outParentClip.Y = static_cast<int>(reverseRateY * parentRect.Height) + parentRect.Y;
-	//		outParentClip.Width = scaleLength(clippedChild.Width, childRect.Width, parentRect.Width);
-	//		outParentClip.Height = scaleLength(clippedChild.Height, childRect.Height, parentRect.Height);
-	//	}
-
-	//	return true;
-	//}
 
 	void Scale(const Rectangle& destScaled, const Rectangle& scaled, const Rectangle& destRect, Rectangle& output)
 	{
@@ -169,10 +144,10 @@ namespace Berta::LayoutUtils
 		output.Height = static_cast<uint32_t>((double)scaled.Height / (double)(destScaled.Height) * destRect.Height);
 	}
 
-	bool Contains(const Rectangle& r1, const Rectangle& r2)
+	bool Contains(const Rectangle& rect1, const Rectangle& rect2)
 	{
-		if (r1.X < r2.X || r1.X + r1.Width > r2.X + r2.Width) return false;
-		if (r1.Y < r2.Y || r1.Y + r1.Height > r2.Y + r2.Height) return false;
+		if (rect1.X < rect2.X || rect1.X + rect1.Width > rect2.X + rect2.Width) return false;
+		if (rect1.Y < rect2.Y || rect1.Y + rect1.Height > rect2.Y + rect2.Height) return false;
 
 		return true;
 	}

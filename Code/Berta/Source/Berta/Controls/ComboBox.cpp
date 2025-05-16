@@ -342,7 +342,7 @@ namespace Berta
 
 	void ComboBox::PushItem(const std::string& text)
 	{
-		std::wstring wText(text.begin(), text.end());
+		std::wstring wText = StringUtils::Convert(text);
 		m_reactor.PushItem(wText);
 	}
 
@@ -353,7 +353,7 @@ namespace Berta
 
 	void ComboBox::PushItem(const std::string& text, const Image& icon)
 	{
-		std::wstring wText(text.begin(), text.end());
+		std::wstring wText = StringUtils::Convert(text);
 		m_reactor.PushItem(wText, icon);
 	}
 

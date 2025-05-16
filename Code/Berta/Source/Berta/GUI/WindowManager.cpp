@@ -320,8 +320,6 @@ namespace Berta
 		}
 	}
 
-	
-
 	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
 	{
 		for (size_t i = 0; i < window->Children.size(); i++)

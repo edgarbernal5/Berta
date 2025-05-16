@@ -828,71 +828,17 @@ namespace Berta
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr)
 	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_hdc || wstr.size() == 0)
-		{
-			return {};
-		}
-
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		::SIZE nativeSize;
-		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
-		{
-			::SelectObject(m_attributes->m_hdc, oldFont);
-			return Size(nativeSize.cx, nativeSize.cy);
-		}
-		::SelectObject(m_attributes->m_hdc, oldFont);
-
-		return {};
-#else
-		return {};
-#endif
+		return API::GetTextExtentSize(m_attributes.get(), wstr);
 	}
 
 	Size Graphics::GetTextExtent(const std::string& str)
 	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc == nullptr || str.size() == 0)
-		{
-			return {};
-		}
-		auto wstr = StringUtils::Convert(str);
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		::SIZE nativeSize;
-		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(wstr.size()), &nativeSize))
-		{
-			::SelectObject(m_attributes->m_hdc, oldFont);
-			return Size(nativeSize.cx, nativeSize.cy);
-		}
-
-		::SelectObject(m_attributes->m_hdc, oldFont);
-		return {};
-#else
-		return {};
-#endif
+		return API::GetTextExtentSize(m_attributes.get(), str);
 	}
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length)
 	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (m_attributes->m_hdc == nullptr || wstr.size() == 0)
-		{
-			return {};
-		}
-
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		::SIZE nativeSize;
-		if (::GetTextExtentPoint32(m_attributes->m_hdc, wstr.c_str(), static_cast<int>(length), &nativeSize))
-		{
-			::SelectObject(m_attributes->m_hdc, oldFont);
-			return Size(nativeSize.cx, nativeSize.cy);
-		}
-
-		::SelectObject(m_attributes->m_hdc, oldFont);
-		return {};
-#else
-		return {};
-#endif
+		return API::GetTextExtentSize(m_attributes.get(), wstr, length);
 	}
 
 	void Graphics::Release()
