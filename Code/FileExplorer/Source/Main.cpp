@@ -232,6 +232,11 @@ public:
 
 		m_comboBox.GetEvents().Selected.Connect([this](const Berta::ArgComboBox& args)
 		{
+			//m_thumbListBox.AddItem("ABC", m_folderImg);
+			//m_thumbListBox.AddItem("Program Files (x86)", m_folderImg);
+			//m_thumbListBox.AddItem("Windows", m_folderImg);
+			//m_thumbListBox.AddItem("Folder...", m_folderImg);
+				
 			m_currentPath = m_comboBox.GetText(args.SelectedIndex);
 			Berta::ControlDrawBatch controlBatch(m_thumbListBox);
 			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))

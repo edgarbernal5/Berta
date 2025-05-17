@@ -31,6 +31,18 @@ namespace Berta::StringUtils
 {
 	std::wstring Convert(const std::string& str)
 	{
+		/*
+		
+		if (str.empty()) return std::wstring();
+
+		int tamanoNecesario = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+		std::wstring resultado(tamanoNecesario, L'\0');
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &resultado[0], tamanoNecesario);
+
+		// Elimina el caracter nulo final
+		resultado.pop_back();
+		return resultado;
+		*/
 		std::wstring wstr(str.begin(), str.end());
 		return wstr;
 	}

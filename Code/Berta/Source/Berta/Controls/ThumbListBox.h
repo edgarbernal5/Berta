@@ -185,7 +185,9 @@ namespace Berta
 		ThumbListBox(Window* parent, const Rectangle& rectangle = {});
 
 		void AddItem(const std::wstring& text);
+		void AddItem(const std::string& text);
 		void AddItem(const std::wstring& text, const Image& thumbnail);
+		void AddItem(const std::string& text, const Image& thumbnail);
 		ThumbListBoxItem At(size_t index);
 		void Clear();
 		void Erase(size_t index);

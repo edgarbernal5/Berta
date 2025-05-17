@@ -32,6 +32,7 @@ namespace Berta
 		void SetAlphaChannel(bool enabled);
 
 		ColorABGR& Get(size_t index);
+		ColorABGR& Get(int x, int y) const;
 
 		struct Storage
 		{

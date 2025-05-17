@@ -89,6 +89,11 @@ namespace Berta
         return m_storage->m_buffer[index];
     }
 
+    ColorABGR& ColorBuffer::Get(int x, int y) const
+    {
+        return *reinterpret_cast<ColorABGR*>(reinterpret_cast<uint8_t*>(m_storage->m_buffer + x) + y * m_storage->m_bytesPerLine);
+    }
+
     ColorBuffer::Storage::Storage(uint32_t width, uint32_t height) :
         m_size(width, height),
         m_bytesPerLine(width * sizeof(ColorABGR))

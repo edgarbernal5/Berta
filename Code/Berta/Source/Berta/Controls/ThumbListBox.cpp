@@ -76,7 +76,7 @@ namespace Berta
 			{
 				graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize, cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 			}
-			m_module.DrawItemText(graphics, item, cardRect);
+			m_module.DrawItemText(graphics, item, { cardRect.X, cardRect.Y + (int)thumbSize, cardRect.Width, cardRect.Height });
 
 			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor, false);
@@ -859,18 +859,49 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect)
 	{
+		auto wholeExtent = graphics.GetTextExtent(item.m_text);
+
+		if (wholeExtent.Width < cardRect.Width)
+		{
+			Point targetSub{ cardRect.X, cardRect.Y };
+			targetSub.X += (int)(cardRect.Width - wholeExtent.Width) >> 1;
+			graphics.DrawString(targetSub, item.m_text, m_appearance->Foreground);
+			return;
+		}
+
 		auto words = StringUtils::Split(item.m_text, ' ');
+		Point offset{};
 		for (size_t i = 0; i < words.size(); i++)
 		{
 			auto& word = words[i];
 			auto wordExtent = graphics.GetTextExtent(word);
+
+			if (wordExtent.Width + offset.X >= cardRect.Width)
+			{
+				for (size_t j = word.size() - 1; j > 0; --j)
+				{
+					auto subExtent = graphics.GetTextExtent(word, j);
+					if (subExtent.Width + offset.X < cardRect.Width)
+					{
+						Point targetSub{ offset.X + cardRect.X, offset.Y + cardRect.Y};
+						targetSub.X += (int)(cardRect.Width - subExtent.Width) >> 1;
+						graphics.DrawString(targetSub, word.substr(0, j), m_appearance->Foreground);
+
+						offset.X += subExtent.Width;
+						break;
+					}
+				}
+			}
+			else
+			{
+				Point targetSub{ offset.X + cardRect.X, offset.Y + cardRect.Y };
+				targetSub.X += (int)(cardRect.Width - wordExtent.Width) >> 1;
+				graphics.DrawString(targetSub, word, m_appearance->Foreground);
+				offset.Y += wordExtent.Height;
+
+				offset.X = 0;
+			}
 		}
-		//Size cardTextSize{ thumbSize, cardHeight };
-		//auto center = cardTextSize - graphics.GetTextExtent(item.m_text);
-		//center *= 0.5f;
-
-		//graphics.+({ cardRect.X + (int)center.Width, cardRect.Y + (int)thumbSize + (int)center.Height }, item.m_text, window->Appearance->Foreground);
-
 	}
 
 	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
@@ -1037,9 +1068,25 @@ namespace Berta
 		}
 	}
 
+	void ThumbListBox::AddItem(const std::string& text)
+	{
+		if (m_reactor.GetModule().AddItem(StringUtils::Convert(text)) && IsAutoDraw())
+		{
+			m_reactor.GetModule().Draw();
+		}
+	}
+
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
 		if (m_reactor.GetModule().AddItem(text, thumbnail) && IsAutoDraw())
+		{
+			m_reactor.GetModule().Draw();
+		}
+	}
+
+	void ThumbListBox::AddItem(const std::string& text, const Image& thumbnail)
+	{
+		if (m_reactor.GetModule().AddItem(StringUtils::Convert(text), thumbnail) && IsAutoDraw())
 		{
 			m_reactor.GetModule().Draw();
 		}
