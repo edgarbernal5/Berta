@@ -5,9 +5,9 @@
 */
 
 #include "btpch.h"
+#include "Berta/Core/Foundation.h"
 
 #ifdef BT_PLATFORM_WINDOWS
-#include "Berta/Core/Foundation.h"
 
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
@@ -354,7 +354,7 @@ namespace Berta
 #if BT_DEBUG
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
-			debugBuilder << " areaToUpdate = " << areaToUpdate << std::endl;
+			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
