@@ -54,9 +54,6 @@
     <ClInclude Include="Source\Berta\Core\Log.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Core\Base.h">
-      <Filter>Source\Berta\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Core\Foundation.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
@@ -218,6 +215,9 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\ControlDrawBatch.h">
       <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\Base.h">
+      <Filter>Source\Berta\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
