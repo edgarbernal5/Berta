@@ -113,7 +113,7 @@ namespace Berta
 			void CalculateVisibleIndices();
 			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
 			void BuildItems();
-			void Clear();
+			bool Clear();
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollBar();

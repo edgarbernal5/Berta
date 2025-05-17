@@ -528,7 +528,7 @@ namespace Berta
 		boxSize = { (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
 	}
 
-	void ThumbListBoxReactor::Module::Clear()
+	bool ThumbListBoxReactor::Module::Clear()
 	{
 		bool needUpdate = !m_items.empty();
 		m_items.clear();
@@ -544,8 +544,8 @@ namespace Berta
 				m_scrollBar.reset();
 				m_state.m_offset = 0;
 			}
-			GUI::UpdateWindow(m_window);
 		}
+		return needUpdate;
 	}
 
 	void ThumbListBoxReactor::Module::Erase(size_t index)
@@ -1099,7 +1099,10 @@ namespace Berta
 
 	void ThumbListBox::Clear()
 	{
-		m_reactor.GetModule().Clear();
+		if (m_reactor.GetModule().Clear() && IsAutoDraw())
+		{
+			m_reactor.GetModule().Draw();
+		}
 	}
 
 	void ThumbListBox::Erase(size_t index)
