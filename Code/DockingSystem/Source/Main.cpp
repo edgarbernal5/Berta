@@ -27,6 +27,7 @@ public:
 		m_buttonValues.SetCaption("Values");
 #ifdef BT_DEBUG
 		m_buttonValues.SetDebugName("Button Values");
+#endif
 
 		m_layout.Create(*this);
 		m_layout.Parse("{{grid}{values}}");
@@ -34,7 +35,6 @@ public:
 		m_layout.Attach("grid", m_buttonGrid);
 		m_layout.Attach("values", m_buttonValues);
 		m_layout.Apply();
-#endif
 	}
 
 private:

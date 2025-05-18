@@ -45,4 +45,8 @@ namespace Berta
 		m_stream << outputMessage;
 		//m_stream.flush();
 	}
+
+	void EmptySink::Commit(const std::string& outputMessage)
+	{
+	}
 }

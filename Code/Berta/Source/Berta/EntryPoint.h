@@ -14,10 +14,6 @@
 
 namespace Berta
 {
-	namespace
-	{
-		auto& foundation = Foundation::GetInstance();
-	}
 }
 
 #else

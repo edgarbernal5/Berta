@@ -1393,7 +1393,8 @@ namespace Berta
 
 	void TreeBoxReactor::Module::EmitExpansionEvent(TreeNodeType* node)
 	{
-		ArgTreeBox argTreeBox({ node, this}, node->isExpanded);
+		auto item = TreeBoxItem{ node, this };
+		ArgTreeBox argTreeBox(item, node->isExpanded);
 		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Expanded.Emit(argTreeBox);
 	}
 

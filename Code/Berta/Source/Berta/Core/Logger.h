@@ -81,6 +81,15 @@ namespace Berta
 		std::ofstream m_stream;
 	};
 
+	class EmptySink : public Sink
+	{
+	public:
+		EmptySink() = default;
+		virtual ~EmptySink() = default;
+
+		void Commit(const std::string& outputMessage) override;
+	};
+
 	class Logger
 	{
 	public:
