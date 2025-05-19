@@ -469,7 +469,9 @@ namespace Berta::GUI
 
 		int x = static_cast<int>((primaryScreen.Width - size.Width) >> 1);
 		int y = static_cast<int>((primaryScreen.Height - size.Height) >> 1);
-		return Rectangle{
+
+		return Rectangle
+		{
 			static_cast<int>(x * upwardScale),
 			static_cast<int>(y * upwardScale),
 			static_cast<uint32_t>(size.Width * upwardScale),

@@ -32,6 +32,8 @@
 //Google search: SWP_NOCOPYBITS
 namespace Berta
 {
+	Foundation Foundation::g_foundation;
+
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 	bool ProcessMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
 

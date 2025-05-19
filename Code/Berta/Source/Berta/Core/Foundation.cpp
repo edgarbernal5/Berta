@@ -11,7 +11,6 @@ namespace Berta
 {
 	Foundation& Foundation::GetInstance()
 	{
-		static Foundation g_foundation;
 		return g_foundation;
 	}
 

@@ -52,6 +52,7 @@ namespace Berta
 			Window* m_window;
 		};
 	private:
+		static Foundation g_foundation;
 		WindowManager m_windowManager;
 	};
 
