@@ -52,7 +52,6 @@ namespace Berta
 			Window* m_window;
 		};
 	private:
-		std::shared_ptr<Logger> m_logger;
 		WindowManager m_windowManager;
 	};
 

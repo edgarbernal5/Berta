@@ -47,7 +47,6 @@ namespace Berta
 	Foundation::Foundation()
 	{
 		InitializeCore();
-		m_logger = Log::GetCoreLogger();
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
 		//TODO: proper way of implementing dpi awareness.
@@ -254,7 +253,7 @@ namespace Berta
 		}
 #endif
 
-		bool defaultToWindowProc = true;
+		bool wasHandled = false;
 		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
 		auto& trackEvent = rootWindowData.TrackEvent;
 
@@ -276,6 +275,7 @@ namespace Berta
 				//TODO: improve memory management here.
 				delete argParam;
 			}
+			wasHandled = false;
 			break;
 		}
 		case WM_ERASEBKGND:
@@ -294,6 +294,8 @@ namespace Berta
 			//BT_CORE_TRACE << "    IsActivated = " << argActivated.IsActivated << ". " << hWnd << std::endl;
 			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->Activated.Emit(argActivated);
+
+			wasHandled = false;
 			break;
 		}
 
@@ -322,7 +324,7 @@ namespace Berta
 			{
 				return 0;
 			}
-			defaultToWindowProc = true;
+			wasHandled = false;
 			break;
 		}
 		case WM_SHOWWINDOW:
@@ -342,6 +344,7 @@ namespace Berta
 					windowManager.UpdateTree(targetWindow);
 				}
 			}
+			wasHandled = false;
 			break;
 		}
 		case WM_PAINT:
@@ -359,8 +362,8 @@ namespace Berta
 			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
-			
-			defaultToWindowProc = false;
+
+			wasHandled = true;
 			break;
 		}
 		//case WM_MOVING:
@@ -377,8 +380,8 @@ namespace Berta
 			argMove.NewPosition.X = x;
 			argMove.NewPosition.Y = y;
 			foundation.ProcessEvents(nativeWindow, &Renderer::Move, &ControlEvents::Move, argMove);
-			
-			defaultToWindowProc = false;
+
+			wasHandled = true;
 			break;
 		}
 		//case WM_SIZING:
@@ -389,7 +392,7 @@ namespace Berta
 		//	
 		//	Size newSize{ newWidth , newHeight };
 
-		//	defaultToWindowProc = false;
+		//	wasHandled = true;
 		//	break;
 		//}
 		case WM_SIZE:
@@ -409,7 +412,7 @@ namespace Berta
 				windowManager.Resize(nativeWindow, newSize, false);
 				windowManager.UpdateTree(nativeWindow);
 			}
-			defaultToWindowProc = false;
+			wasHandled = true;
 			break;
 		}
 		//case WM_WINDOWPOSCHANGING:
@@ -432,7 +435,7 @@ namespace Berta
 			//This is called inside Resize method of WindowManager.
 			windowManager.UpdateTree(nativeWindow);
 
-			defaultToWindowProc = false;
+			wasHandled = false;
 			break;
 		}
 		case WM_SETFOCUS:
@@ -442,6 +445,7 @@ namespace Berta
 				ArgFocus argFocus{ true };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
+			wasHandled = false;
 			break;
 		}
 		case WM_KILLFOCUS:
@@ -451,6 +455,7 @@ namespace Berta
 				ArgFocus argFocus{ false };
 				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
+			wasHandled = false;
 			break;
 		}
 		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured
@@ -459,14 +464,14 @@ namespace Berta
 			{
 				return MA_NOACTIVATE;
 			}
-
+			wasHandled = false;
 			break;
 		}
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
-			defaultToWindowProc = false;
+			wasHandled = true;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -507,6 +512,7 @@ namespace Berta
 		}
 		case WM_MOUSEMOVE:
 		{
+			wasHandled = true;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -628,13 +634,13 @@ namespace Berta
 					}
 				}
 			}
-			defaultToWindowProc = false;
 			break;
 		}
 		case WM_LBUTTONUP:
 		case WM_MBUTTONUP:
 		case WM_RBUTTONUP:
 		{
+			wasHandled = true;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -658,12 +664,12 @@ namespace Berta
 				rootWindowData.Released = rootWindowData.Pressed;
 			}
 			rootWindowData.Pressed = nullptr;
-			defaultToWindowProc = false;
 
 			break;
 		}
 		case WM_LBUTTONDBLCLK:
 		{
+			wasHandled = true;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
 
@@ -679,7 +685,7 @@ namespace Berta
 				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
 			}
 			rootWindowData.Released = nullptr;
-			defaultToWindowProc = false;
+			wasHandled = true;
 			break;
 		}
 		case WM_MOUSELEAVE:
@@ -694,12 +700,14 @@ namespace Berta
 
 				rootWindowData.Hovered = nullptr;
 			}
-			defaultToWindowProc = false;
+			wasHandled = true;
 			break;
 		}
 		case WM_MOUSEHWHEEL:
 		case WM_MOUSEWHEEL:
 		{
+			wasHandled = true;
+
 			int wheelDelta = ((int)(short)HIWORD(wParam));
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
@@ -721,6 +729,8 @@ namespace Berta
 		}
 		case WM_CHAR:
 		{
+			wasHandled = true;
+
 			ArgKeyboard argKeyboard{};
 			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
 			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
@@ -736,7 +746,6 @@ namespace Berta
 
 			foundation.ProcessEvents(window, &Renderer::KeyChar, &ControlEvents::KeyChar, argKeyboard);
 
-			defaultToWindowProc = false;
 			break;
 		}
 		case WM_KEYDOWN:
@@ -774,7 +783,6 @@ namespace Berta
 				foundation.ProcessEvents(target, &Renderer::KeyPressed, &ControlEvents::KeyPressed, argKeyboard);
 			}
 			
-			defaultToWindowProc = false;
 			break;
 		}
 		case WM_ENTERSIZEMOVE:
@@ -798,7 +806,7 @@ namespace Berta
 			events->Disposing.Emit(argDisposing);
 			if (argDisposing.Cancel)
 			{
-				defaultToWindowProc = false;
+				wasHandled = true;
 			}
 			
 			break;
@@ -806,7 +814,7 @@ namespace Berta
 		case WM_DESTROY: // WM_DESTROY, next WM_NCDESTROY
 		{
 			windowManager.Destroy(nativeWindow);
-			defaultToWindowProc = false;
+			wasHandled = true;
 			
 			break;
 		}
@@ -819,7 +827,7 @@ namespace Berta
 			}
 			else
 			{
-				defaultToWindowProc = false;
+				wasHandled = true;
 			}
 			break;
 		}
@@ -832,7 +840,7 @@ namespace Berta
 		}
 #endif
 
-		if (defaultToWindowProc)
+		if (!wasHandled)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
 		}
