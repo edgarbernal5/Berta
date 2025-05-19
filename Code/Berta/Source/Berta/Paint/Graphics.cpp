@@ -13,6 +13,8 @@
 #include <cmath>
 
 #if BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+
 #pragma comment(lib, "Msimg32.lib") // added for AlphaBlend
 #endif
 
@@ -36,7 +38,7 @@ namespace Berta
 		m_attributes(std::make_unique<PaintNativeHandle>()),
 		m_dpi(dpi)
 	{
-		Build(size);
+		Build(size, {});
 	}
 
 	Graphics::Graphics(const Graphics& other) :
@@ -55,7 +57,7 @@ namespace Berta
 		Release();
 	}
 
-	void Graphics::Build(const Size& size)
+	void Graphics::Build(const Size& size, API::NativeWindowHandle nativeWindowHandle)
 	{
 		if (!m_attributes)
 		{
@@ -75,6 +77,17 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
+		if (m_backend == Backend::D2D)
+		{
+			if (m_renderTarget == nullptr || nativeWindowHandle.Handle)
+			{
+				auto hResult = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
+					D2D1::HwndRenderTargetProperties(nativeWindowHandle.Handle, D2D1::SizeU(size.Width, size.Height)), &m_renderTarget);
+			}
+
+			return;
+		}
+
 		HDC hdc = ::GetDC(nullptr);
 
 		HDC cdc = ::CreateCompatibleDC(hdc);
@@ -154,7 +167,7 @@ namespace Berta
 		}
 
 		Release();
-		Build(size);
+		Build(size, {});
 	}
 
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
@@ -817,6 +830,11 @@ namespace Berta
 	void Graphics::Flush()
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		if (m_backend != Backend::GDI)
+		{
+			return;
+		}
+
 		::GdiFlush();
 #endif
 	}

@@ -9,8 +9,13 @@
 
 #include <memory>
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Core/Backend.h"
 #include "Berta/API/WindowAPI.h"
 #include "Berta/API/PaintAPI.h"
+
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+#endif
 
 namespace Berta
 {
@@ -45,7 +50,7 @@ namespace Berta
 			Dotted
 		};
 
-		void Build(const Size& size);
+		void Build(const Size& size, API::NativeWindowHandle nativeWindowHandle);
 		void BuildFont(uint32_t dpi);
 		void Rebuild(const Size& size);
 		void Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha);
@@ -97,6 +102,16 @@ namespace Berta
 		}
 	private:
 		//void EnableAntiAliasing(HDC hdc);
+
+#ifdef BT_PLATFORM_WINDOWS
+		Backend m_backend{ Backend::D2D };
+#else
+		Backend m_backend{ Backend::Other };
+#endif
+
+#ifdef BT_PLATFORM_WINDOWS
+		ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+#endif
 
 		uint32_t m_dpi{ 96u };
 		uint32_t m_lastForegroundColor{ 0 };

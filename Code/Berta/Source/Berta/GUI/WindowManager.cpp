@@ -786,13 +786,13 @@ namespace Berta
 		Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
-			newGraphics.Build(newSize);
+			newGraphics.Build(newSize, window->RootHandle);
 			newGraphics.BuildFont(window->DPI);
 			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 			if (window->Type == WindowType::Form)
 			{
-				newRootGraphics.Build(newSize);
+				newRootGraphics.Build(newSize, window->RootHandle);
 				newRootGraphics.BuildFont(window->DPI);
 				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
 			}
@@ -979,7 +979,7 @@ namespace Berta
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
-			graphics.Build(window->ClientSize);
+			graphics.Build(window->ClientSize, nativeWindowHandle);
 			graphics.BuildFont(newDPI);
 		}
 

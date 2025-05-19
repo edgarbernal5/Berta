@@ -219,7 +219,7 @@ namespace Berta
 						columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
 					}
 
-					draggingBox.Build({ columnRect.Width, columnRect.Height });
+					draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootHandle);
 					draggingBox.BuildFont(m_module.m_window->DPI);
 
 					draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
