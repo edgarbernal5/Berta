@@ -10,12 +10,15 @@
 #ifdef BT_PLATFORM_WINDOWS
 
 #include <d2d1.h>
+#include <dwrite.h>
+#pragma comment(lib, "dwrite")
 
 namespace Berta::DirectX
 {
 	struct D2DHandle
 	{
 		ID2D1Factory* m_factory{ nullptr };
+		IDWriteFactory* m_dwriteFactory{ nullptr };
 	};
 
 	class D2DModule

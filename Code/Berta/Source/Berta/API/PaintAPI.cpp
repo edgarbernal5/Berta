@@ -12,8 +12,6 @@ namespace Berta
 
 	PaintNativeHandle::~PaintNativeHandle()
 	{
-		m_size = Size::Zero;
-
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_hdc)
 		{

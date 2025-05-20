@@ -17,13 +17,13 @@ namespace Berta
 {
 	WindowManager::FormData::FormData(FormData&& other) noexcept :
 		WindowPtr(other.WindowPtr),
-		RootGraphics(std::move(other.RootGraphics))
+		RootGraphics(std::move(other.RootGraphics), true)
 	{
 	}
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size, window->DPI)
+		RootGraphics(size, window->DPI, window->RootHandle, true)
 	{
 	}
 
@@ -794,7 +794,9 @@ namespace Berta
 			{
 				newRootGraphics.Build(newSize, window->RootHandle);
 				newRootGraphics.BuildFont(window->DPI);
-				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				//newRootGraphics.Begin();
+				//newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				//newRootGraphics.Flush();
 			}
 		}
 

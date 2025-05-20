@@ -43,6 +43,7 @@ namespace Berta
 		if (m_controlReactor && !m_updating && m_graphics.IsValid())
 		{
 			m_updating = true;
+			m_graphics.Begin();
 			m_controlReactor->Update(m_graphics);
 			m_graphics.Flush();
 			m_updating = false;

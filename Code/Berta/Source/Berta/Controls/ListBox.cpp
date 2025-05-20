@@ -41,7 +41,7 @@ namespace Berta
 			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
-			Graphics selectionBox(boxSize, m_module.m_window->DPI);
+			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootHandle);
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
 

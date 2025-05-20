@@ -137,6 +137,16 @@ namespace Berta
 		return 0;
 	}
 
+	Color::operator D2D1_COLOR_F() const
+	{
+		D2D1_COLOR_F color;
+		color.a = 1.0f;
+		color.r = R / 255.0f;
+		color.g = G / 255.0f;
+		color.b = B / 255.0f;
+		return color;
+	}
+
 	FormStyle FormStyle::Float()
 	{
 		return FormStyle{ false, false, true, false, false, false };

@@ -29,26 +29,28 @@
 
 namespace Berta
 {
-	Graphics::Graphics() :
-		m_attributes(std::make_unique<PaintNativeHandle>())
+	Graphics::Graphics()
 	{
 	}
 
-	Graphics::Graphics(const Size& size, uint32_t dpi) :
-		m_attributes(std::make_unique<PaintNativeHandle>()),
-		m_dpi(dpi)
+	Graphics::Graphics(const Size& size, uint32_t dpi, API::NativeWindowHandle nativeHandle, bool isRootGraphics) :
+		m_dpi(dpi),
+		m_isRootGraphics(isRootGraphics)
 	{
-		Build(size, {});
+		Build(size, nativeHandle);
 	}
 
-	Graphics::Graphics(const Graphics& other) :
-		m_attributes(std::make_unique<PaintNativeHandle>())
+	/*Graphics::Graphics(const Graphics& other)
 	{
-	}
+	}*/
 
-	Graphics::Graphics(Graphics&& other) noexcept :
+	Graphics::Graphics(Graphics&& other, bool isRootGraphics) noexcept :
 		m_attributes(std::move(other.m_attributes)),
-		m_dpi(std::move(other.m_dpi))
+		m_dpi(std::move(other.m_dpi)),
+		m_size(std::move(other.m_size)),
+		m_renderTarget(std::move(other.m_renderTarget)),
+		m_isRootGraphics(isRootGraphics)
+		//m_bitmapRT(std::move(other.m_bitmapRT))
 	{
 	}
 
@@ -57,35 +59,96 @@ namespace Berta
 		Release();
 	}
 
-	void Graphics::Build(const Size& size, API::NativeWindowHandle nativeWindowHandle)
+	Graphics& Graphics::operator=(const Graphics& other)
 	{
-		if (!m_attributes)
+		if (this != &other)
 		{
-			m_attributes = std::make_unique<PaintNativeHandle>();
+			/*m_attributes = std::move(other.m_attributes);
+			m_dpi = std::move(other.m_dpi);
+			m_size = std::move(other.m_size);
+			m_renderTarget = std::move(other.m_renderTarget);
+			m_bitmapRT = std::move(other.m_bitmapRT);*/
+		}
+		return *this;
+	}
+
+	Graphics& Graphics::operator=(Graphics&& other)
+	{
+		if (this != &other)
+		{
+			m_attributes = std::move(other.m_attributes);
+			m_dpi = std::move(other.m_dpi);
+			m_size = std::move(other.m_size);
+			m_renderTarget = std::move(other.m_renderTarget);
+			//m_bitmapRT = std::move(other.m_bitmapRT);
 		}
 
-		if (m_attributes->m_size == size)
+		return *this;
+	}
+
+	void Graphics::Build(const Size& size, API::NativeWindowHandle nativeWindowHandle)
+	{
+		if (m_size == size)
 		{
 			return;
 		}
 
-		m_attributes->m_size = size;
-		if (m_attributes->m_size.IsEmpty())
+		m_size = size;
+		if (m_size.IsEmpty())
 		{
 			Release();
 			return;
 		}
 
+		m_nativeWindowHandle = nativeWindowHandle;
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_backend == Backend::D2D)
+		//if (m_backend == Backend::D2D)
 		{
-			if (m_renderTarget == nullptr || nativeWindowHandle.Handle)
+			if (!nativeWindowHandle)
 			{
-				auto hResult = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
+				int asdsa = 1;
+			}
+			if (m_renderTarget == nullptr && !m_isRootGraphics /* && nativeWindowHandle*/)
+			{
+				/*auto hResult = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
 					D2D1::HwndRenderTargetProperties(nativeWindowHandle.Handle, D2D1::SizeU(size.Width, size.Height)), &m_renderTarget);
+				
+				HRESULT hr = m_renderTarget->CreateCompatibleRenderTarget(
+					D2D1::SizeF(size.Width, size.Height),
+					&m_bitmapRT
+				);*/
+
+				D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+					D2D1_RENDER_TARGET_TYPE_DEFAULT,
+					D2D1::PixelFormat(
+						DXGI_FORMAT_B8G8R8A8_UNORM,
+						D2D1_ALPHA_MODE_PREMULTIPLIED
+					),
+					0, 0,
+					D2D1_RENDER_TARGET_USAGE_NONE,
+					D2D1_FEATURE_LEVEL_DEFAULT
+				);
+
+				//HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateDCRenderTarget(&props, m_renderTarget.ReleaseAndGetAddressOf());
+				HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateDCRenderTarget(&props, &m_renderTarget);
+				
+				if (FAILED(hr))
+				{
+					int a = 3;
+				}
+			}
+			else if (m_renderTarget)
+			{
+				int aa = 333;
+				//m_renderTarget->Resize(D2D1::SizeU(size.Width, size.Height));
 			}
 
-			return;
+			//return;
+		}
+
+		if (!m_attributes)
+		{
+			m_attributes = std::make_unique<PaintNativeHandle>();
 		}
 
 		HDC hdc = ::GetDC(nullptr);
@@ -121,7 +184,6 @@ namespace Berta
 			return;
 		}
 
-		//HBITMAP hBitmap = ::CreateCompatibleBitmap(hdc, size.Width, size.Height);
 		auto oldBitmap = ::SelectObject(cdc, hBitmap);
 		::DeleteObject(oldBitmap);
 		//auto oldFont=::SelectObject(cdc, hBitmap);
@@ -132,6 +194,8 @@ namespace Berta
 
 		m_attributes->m_bytesPerLine = size.Width * sizeof(ColorABGR);
 
+		/*RECT rc = { 0, 0, size.Width, size.Height };
+		HRESULT hr = m_renderTarget->BindDC(cdc, &rc);*/
 		::ReleaseDC(0, hdc);
 #endif
 	}
@@ -161,7 +225,7 @@ namespace Berta
 
 	void Graphics::Rebuild(const Size& size)
 	{
-		if (m_attributes->m_size == size)
+		if (m_size == size)
 		{
 			return;
 		}
@@ -187,6 +251,19 @@ namespace Berta
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		//if (m_backend == Backend::D2D)
+		//{
+			/*ID2D1Bitmap* pBitmap = nullptr;
+			if (SUCCEEDED(graphicsSource.m_bitmapRT->GetBitmap(&pBitmap)))
+			{
+				D2D1_SIZE_F size = pBitmap->GetSize();
+				D2D1_RECT_F destRect = D2D1::RectF(rectDestination.X, rectDestination.Y, rectDestination.X + size.width, rectDestination.Y + size.height);
+				m_renderTarget->DrawBitmap(pBitmap, destRect);
+				pBitmap->Release();
+			}
+			return;*/
+		//}
+
 		if (m_attributes->m_hdc && graphicsSource.m_attributes->m_hdc)
 		{
 			if (!::BitBlt(m_attributes->m_hdc, rectDestination.X, rectDestination.Y, rectDestination.Width, rectDestination.Height, graphicsSource.m_attributes->m_hdc, pointSource.X, pointSource.Y, SRCCOPY))
@@ -288,13 +365,26 @@ namespace Berta
 
 	void Graphics::DrawRectangle(const Color& color, bool solid)
 	{
-		DrawRectangle(m_attributes->m_size.ToRectangle(), color, solid);
+		DrawRectangle(m_size.ToRectangle(), color, solid);
 	}
 
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_hdc)
+
+		D2D1_RECT_F d2dRect; 
+		d2dRect.left = rectangle.X;
+		d2dRect.top = rectangle.Y;
+		d2dRect.right = rectangle.X + rectangle.Width;
+		d2dRect.bottom = rectangle.Y + rectangle.Height;
+
+		ID2D1SolidColorBrush* brush;
+		m_renderTarget->CreateSolidColorBrush(color, &brush);
+		m_renderTarget->FillRectangle(&d2dRect, brush);
+
+		brush->Release();
+
+		/*if (!m_attributes->m_hdc)
 		{
 			return;
 		}
@@ -320,47 +410,68 @@ namespace Berta
 			}
 		}
 		
-		::DeleteObject(brush);
+		::DeleteObject(brush);*/
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::wstring& str, const Color& color)
+	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color)
 	{
-		if (str.size() == 0)
+		if (wstr.size() == 0)
 		{
 			return;
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_lastForegroundColor != color)
-		{
-			::SetTextColor(m_attributes->m_hdc, color);
-			m_lastForegroundColor = color;
-		}
-		::TextOut(m_attributes->m_hdc, position.X, position.Y, str.c_str(), static_cast<int>(str.size()));
-		::SelectObject(m_attributes->m_hdc, oldFont);
+		
+		IDWriteTextFormat* textFormat = nullptr;
+		HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_dwriteFactory->CreateTextFormat(
+			L"Segoe UI",            // fuente
+			nullptr,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			12,
+			L"en-us",
+			&textFormat
+		);
+
+		D2D1_RECT_F d2dRect;
+		d2dRect.left = position.X;
+		d2dRect.top = position.Y;
+		d2dRect.right = position.X;
+		d2dRect.bottom = position.Y;
+
+		ID2D1SolidColorBrush* brush;
+		m_renderTarget->CreateSolidColorBrush(color,
+			&brush);
+
+		m_renderTarget->DrawText(
+			wstr.c_str(),
+			wstr.size(),
+			textFormat,
+			d2dRect,
+			brush
+		);
+
+		brush->Release();
+		textFormat->Release();
+
+		
+
+		//HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
+		//if (m_lastForegroundColor != color)
+		//{
+		//	::SetTextColor(m_attributes->m_hdc, color);
+		//	m_lastForegroundColor = color;
+		//}
+		//::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
+		//::SelectObject(m_attributes->m_hdc, oldFont);
 #endif
 	}
 
 	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
 	{
-		if (str.size() == 0)
-		{
-			return;
-		}
-
-		auto wstr = StringUtils::Convert(str);
-#ifdef BT_PLATFORM_WINDOWS
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		if (m_lastForegroundColor != color)
-		{
-			::SetTextColor(m_attributes->m_hdc, color);
-			m_lastForegroundColor = color;
-		}
-		::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
-		::SelectObject(m_attributes->m_hdc, oldFont);
-#endif
+		DrawString(position, StringUtils::Convert(str), color);
 	}
 	
 	//// Function to enable anti-aliasing for the given device context
@@ -827,21 +938,37 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::Begin()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		
+		RECT rc = { 0, 0, m_size.Width, m_size.Height };
+		auto hr = m_renderTarget->BindDC(m_attributes->m_hdc, &rc);
+
+		m_renderTarget->BeginDraw();
+		m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+		m_renderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
+#endif
+	}
+
 	void Graphics::Flush()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_backend != Backend::GDI)
-		{
-			return;
-		}
+		
+		m_renderTarget->EndDraw();
 
-		::GdiFlush();
+		//::GdiFlush();
 #endif
 	}
 
 	void Graphics::Swap(Graphics& other)
 	{
 		m_attributes.swap(other.m_attributes);
+		m_size = other.m_size;
+
+		//m_renderTarget.Swap(other.m_renderTarget);
+		std::swap(m_renderTarget, other.m_renderTarget);
+		//std::swap(m_bitmapRT, other.m_bitmapRT);
 	}
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr)
@@ -862,5 +989,19 @@ namespace Berta
 	void Graphics::Release()
 	{
 		m_attributes.reset();
+		
+		/*if (m_bitmapRT)
+		{
+			m_bitmapRT->Release();
+			m_bitmapRT = nullptr;
+		}*/
+		if (m_renderTarget)
+		{
+			m_renderTarget->Release();
+			m_renderTarget = nullptr;
+		}
+		//return;
+		
+		m_size = Size::Zero;
 	}
 }

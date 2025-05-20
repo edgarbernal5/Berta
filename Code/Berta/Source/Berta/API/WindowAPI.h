@@ -42,7 +42,7 @@ namespace Berta
 
 			operator bool() const { return false; }
 #endif
-
+			NativeWindowHandle() = default;
 			NativeWindowHandle(const NativeWindowHandle&) = default;
 			NativeWindowHandle& operator=(const NativeWindowHandle&) = default;
 		};

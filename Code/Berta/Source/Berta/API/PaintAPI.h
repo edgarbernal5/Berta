@@ -21,7 +21,6 @@ namespace Berta
 		ColorABGR* m_bmpColorBuffer{ nullptr };
 		HFONT m_hFont{ nullptr };
 		uint32_t m_bytesPerLine{ 0 };
-		Size m_size;
 		Size m_textExtent;
 #else
 #endif

@@ -9,6 +9,10 @@
 
 #include <cstdint>
 
+#ifdef BT_PLATFORM_WINDOWS
+#include <d2d1.h>
+#endif
+
 namespace Berta
 {
 	struct Size;
@@ -253,6 +257,9 @@ namespace Berta
 		Color(uint32_t colorBGR);
 
 		operator uint32_t() const;
+#ifdef BT_PLATFORM_WINDOWS
+		operator D2D1_COLOR_F() const;
+#endif
 
 	private:
 		unsigned char R{ 255 };

@@ -16,6 +16,7 @@
 #ifdef BT_PLATFORM_WINDOWS
 #include "Berta/Platform/Windows/D2D.h"
 #endif
+#include <wrl/client.h>
 
 namespace Berta
 {
@@ -30,10 +31,13 @@ namespace Berta
 
 	public:
 		Graphics();
-		Graphics(const Size& size, uint32_t dpi);
-		Graphics(const Graphics& other);
-		Graphics(Graphics&& other) noexcept;
-		~Graphics();
+		Graphics(const Size& size, uint32_t dpi, API::NativeWindowHandle nativeHandle, bool isRootGraphics=false);
+		//Graphics(const Graphics& other);
+		Graphics(Graphics&& other, bool isRootGraphics = false) noexcept;
+		~Graphics(); 
+		
+		Graphics& operator=(const Graphics& other);
+		Graphics& operator=(Graphics&& other);
 
 		enum class ArrowDirection
 		{
@@ -77,7 +81,7 @@ namespace Berta
 		void DrawEllipse(const Rectangle& rect, const Color& fillColor, const Color& borderColor, bool solid);
 
 		uint32_t GetDpi() const { return m_dpi; }
-		const Size& GetSize() const { return m_attributes->m_size; }
+		const Size& GetSize() const { return m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
@@ -87,6 +91,8 @@ namespace Berta
 
 		void Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
+
+		void Begin();
 		void Flush();
 
 		void Swap(Graphics& other);
@@ -95,7 +101,8 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_attributes != nullptr && m_attributes->m_hdc;
+			return m_renderTarget;
+			//return m_attributes != nullptr && m_attributes->m_hdc;
 #else
 			return m_attributes != nullptr;
 #endif
@@ -104,17 +111,17 @@ namespace Berta
 		//void EnableAntiAliasing(HDC hdc);
 
 #ifdef BT_PLATFORM_WINDOWS
-		Backend m_backend{ Backend::D2D };
-#else
-		Backend m_backend{ Backend::Other };
+		//ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+		//ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
+		
+		ID2D1DCRenderTarget* m_renderTarget{ nullptr };
+		//Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> m_renderTarget;
 #endif
-
-#ifdef BT_PLATFORM_WINDOWS
-		ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
-#endif
-
+		bool m_isRootGraphics{ false };
 		uint32_t m_dpi{ 96u };
 		uint32_t m_lastForegroundColor{ 0 };
+		Size m_size{};
+		API::NativeWindowHandle m_nativeWindowHandle;
 		std::unique_ptr<PaintNativeHandle> m_attributes;
 	};
 }
