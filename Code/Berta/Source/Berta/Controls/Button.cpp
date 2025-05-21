@@ -54,7 +54,9 @@ namespace Berta
 	{
 		m_status = State::Hovered;
 
+		graphics.Begin();
 		Update(graphics);
+		graphics.Flush();
 		GUI::MarkAsUpdated(*m_control);
 	}
 

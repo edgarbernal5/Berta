@@ -396,7 +396,10 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-
+		if (!m_attributes || !m_attributes->m_hdc)
+		{
+			return;
+		}
 		D2D1_RECT_F d2dRect; 
 		d2dRect.left = rectangle.X;
 		d2dRect.top = rectangle.Y;
@@ -451,7 +454,10 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		
+		if (!m_attributes || !m_attributes->m_hdc || !m_textFormat)
+		{
+			return;
+		}
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = position.X;
 		d2dRect.top = position.Y;
@@ -982,7 +988,10 @@ namespace Berta
 	void Graphics::Begin()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		if (!m_attributes || !m_attributes->m_hdc)
+		{
+			return;
+		}
 		RECT rc = { 0, 0, m_size.Width, m_size.Height };
 		auto hr = m_renderTarget->BindDC(m_attributes->m_hdc, &rc);
 
@@ -995,7 +1004,10 @@ namespace Berta
 	void Graphics::Flush()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		if (!m_attributes || !m_attributes->m_hdc)
+		{
+			return;
+		}
 		m_renderTarget->EndDraw();
 
 		//::GdiFlush();
