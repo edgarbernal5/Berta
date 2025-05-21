@@ -19,6 +19,5 @@
 
 #include "Berta/Core/Log.h"
 #include "Berta/Core/Assert.h"
-#include "Berta/Core/Backend.h"
 
 #endif

@@ -20,8 +20,6 @@
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Paint/DrawBatch.h"
 
-#include "Berta/Platform/Windows/D2D.h"
-
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
 #define BT_PRINT_WND_MESSAGES
@@ -51,7 +49,6 @@ namespace Berta
 	Foundation::Foundation()
 	{
 		InitializeCore();
-
 		BT_CORE_TRACE << "Foundation init..." << std::endl;
 
 		//TODO: proper way of implementing dpi awareness.
@@ -79,8 +76,6 @@ namespace Berta
 			BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
 			return;
 		}
-
-		DirectX::D2DModule::GetInstance();
 	}
 
 	Foundation::~Foundation()
