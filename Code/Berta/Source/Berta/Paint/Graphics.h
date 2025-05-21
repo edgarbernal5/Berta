@@ -115,6 +115,7 @@ namespace Berta
 		//ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		
 		ID2D1DCRenderTarget* m_renderTarget{ nullptr };
+		IDWriteTextFormat* m_textFormat{ nullptr };
 		//Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> m_renderTarget;
 #endif
 		bool m_isRootGraphics{ false };

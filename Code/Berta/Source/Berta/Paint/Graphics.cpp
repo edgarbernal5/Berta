@@ -130,7 +130,7 @@ namespace Berta
 				);
 
 				//HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateDCRenderTarget(&props, m_renderTarget.ReleaseAndGetAddressOf());
-				HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_factory->CreateDCRenderTarget(&props, &m_renderTarget);
+				HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateDCRenderTarget(&props, &m_renderTarget);
 				
 				if (FAILED(hr))
 				{
@@ -207,20 +207,27 @@ namespace Berta
 		{
 			return;
 		}
-
-		if (m_attributes->m_hFont)
-		{
-			::DeleteObject(m_attributes->m_hFont);
-			m_attributes->m_hFont = nullptr;
-		}
+#ifdef BT_PLATFORM_WINDOWS
 
 		::LOGFONT lfText = {};
-		SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
-		m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
+		::SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
 
-		HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
-		::SelectObject(m_attributes->m_hdc, oldFont);
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextFormat(
+			lfText.lfFaceName,            // fuente
+			nullptr,
+			DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			std::abs(lfText.lfHeight),
+			L"en-us",
+			&m_textFormat
+		);
+		//m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
+
+		//HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
+		//m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
+		//::SelectObject(m_attributes->m_hdc, oldFont);
+#endif
 	}
 
 	void Graphics::Rebuild(const Size& size)
@@ -289,7 +296,25 @@ namespace Berta
 			return;
 		}
 
-		if (style == LineStyle::Dotted)
+		ID2D1SolidColorBrush* brush;
+		auto hr = m_renderTarget->CreateSolidColorBrush(color, &brush);
+
+		if (SUCCEEDED(hr))
+		{
+			D2D1_POINT_2F point1F;
+			point1F.x = point1.X;
+			point1F.y = point1.Y;
+
+			D2D1_POINT_2F point2F;
+			point2F.x = point2.X;
+			point2F.y = point2.Y;
+
+			m_renderTarget->DrawLine(point1F, point2F, brush);
+
+			brush->Release();
+		}
+
+		/*if (style == LineStyle::Dotted)
 		{
 			int dx = point2.X - point1.X;
 			int dy = point2.Y - point1.Y;
@@ -335,7 +360,7 @@ namespace Berta
 
 			::SelectObject(m_attributes->m_hdc, hOldPen);
 			::DeleteObject(hPen);
-		}
+		}*/
 #endif
 	}
 
@@ -379,10 +404,14 @@ namespace Berta
 		d2dRect.bottom = rectangle.Y + rectangle.Height;
 
 		ID2D1SolidColorBrush* brush;
-		m_renderTarget->CreateSolidColorBrush(color, &brush);
-		m_renderTarget->FillRectangle(&d2dRect, brush);
+		auto hr = m_renderTarget->CreateSolidColorBrush(color, &brush);
 
-		brush->Release();
+		if (SUCCEEDED(hr))
+		{
+			m_renderTarget->FillRectangle(&d2dRect, brush);
+
+			brush->Release();
+		}
 
 		/*if (!m_attributes->m_hdc)
 		{
@@ -423,23 +452,11 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		
-		IDWriteTextFormat* textFormat = nullptr;
-		HRESULT hr = DirectX::D2DModule::GetInstance().Handle().m_dwriteFactory->CreateTextFormat(
-			L"Segoe UI",            // fuente
-			nullptr,
-			DWRITE_FONT_WEIGHT_NORMAL,
-			DWRITE_FONT_STYLE_NORMAL,
-			DWRITE_FONT_STRETCH_NORMAL,
-			12,
-			L"en-us",
-			&textFormat
-		);
-
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = position.X;
 		d2dRect.top = position.Y;
-		d2dRect.right = position.X;
-		d2dRect.bottom = position.Y;
+		d2dRect.right = position.X + m_size.Width;
+		d2dRect.bottom = position.Y + m_size.Height;
 
 		ID2D1SolidColorBrush* brush;
 		m_renderTarget->CreateSolidColorBrush(color,
@@ -448,15 +465,12 @@ namespace Berta
 		m_renderTarget->DrawText(
 			wstr.c_str(),
 			wstr.size(),
-			textFormat,
+			m_textFormat,
 			d2dRect,
 			brush
 		);
 
 		brush->Release();
-		textFormat->Release();
-
-		
 
 		//HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
 		//if (m_lastForegroundColor != color)
@@ -685,8 +699,35 @@ namespace Berta
 		{
 			return;
 		}
-
 		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
+		auto radiusScaled = static_cast<int>(radius * scaleFactor);
+		D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect(
+			D2D1::RectF(rect.X, rect.Y, rect.X+ rect.Width, rect.Y+ rect.Height),
+			radiusScaled,
+			radiusScaled
+		);
+
+		ID2D1SolidColorBrush* brush;
+		auto hr = m_renderTarget->CreateSolidColorBrush(color, &brush);
+
+		ID2D1SolidColorBrush* brushBorder;
+		hr = m_renderTarget->CreateSolidColorBrush(bordercolor, &brushBorder);
+		if (SUCCEEDED(hr))
+		{
+			if (solid)
+			{
+				m_renderTarget->FillRoundedRectangle(&roundedRect, brush);
+				m_renderTarget->DrawRoundedRectangle(&roundedRect, brushBorder);
+			}
+			else
+			{
+
+				m_renderTarget->DrawRoundedRectangle(&roundedRect, brushBorder);
+			}
+			brush->Release();
+			brushBorder->Release();
+		}
+		/*float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
 		auto radiusScaled = static_cast<int>(radius * scaleFactor);
 
 		if (solid)
@@ -709,7 +750,7 @@ namespace Berta
 
 			::DeleteObject(region);
 			::DeleteObject(brush);
-		}
+		}*/
 #endif
 	}
 
@@ -990,17 +1031,16 @@ namespace Berta
 	{
 		m_attributes.reset();
 		
-		/*if (m_bitmapRT)
+		if (m_textFormat)
 		{
-			m_bitmapRT->Release();
-			m_bitmapRT = nullptr;
-		}*/
+			m_textFormat->Release();
+			m_textFormat = nullptr;
+		}
 		if (m_renderTarget)
 		{
 			m_renderTarget->Release();
 			m_renderTarget = nullptr;
 		}
-		//return;
 		
 		m_size = Size::Zero;
 	}

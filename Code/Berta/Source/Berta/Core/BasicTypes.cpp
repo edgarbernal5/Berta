@@ -140,7 +140,7 @@ namespace Berta
 	Color::operator D2D1_COLOR_F() const
 	{
 		D2D1_COLOR_F color;
-		color.a = 1.0f;
+		color.a = A / 255.0f;
 		color.r = R / 255.0f;
 		color.g = G / 255.0f;
 		color.b = B / 255.0f;
