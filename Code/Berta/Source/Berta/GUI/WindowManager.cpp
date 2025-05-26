@@ -11,19 +11,25 @@
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+
+#include "Berta/Platform/Windows/D2D.h"
+
+#endif
+
 #include <stack>
 
 namespace Berta
 {
 	WindowManager::FormData::FormData(FormData&& other) noexcept :
 		WindowPtr(other.WindowPtr),
-		RootGraphics(std::move(other.RootGraphics), true)
+		RootGraphics(std::move(other.RootGraphics))
 	{
 	}
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size, window->DPI, window->RootHandle, true)
+		RootGraphics(size, window->DPI, window->RootBufferHandle)
 	{
 	}
 
@@ -82,6 +88,20 @@ namespace Berta
 			window->DPI = windowResult.DPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 
+#ifdef BT_PLATFORM_WINDOWS
+			auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateHwndRenderTarget
+			(
+				D2D1::RenderTargetProperties(),
+				D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
+					D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
+				&window->RootBufferHandle.m_renderTarget
+			);
+
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "Error creating render target hwnd." << std::endl;
+			}
+#endif
 			if (isNested)
 			{
 				window->Parent = parent;
@@ -135,6 +155,7 @@ namespace Berta
 			window->DPIScaleFactor = parent->DPIScaleFactor;
 			window->RootWindow = parent->RootWindow;
 			window->RootHandle = parent->RootHandle;
+			window->RootBufferHandle = parent->RootBufferHandle;
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
@@ -782,21 +803,32 @@ namespace Berta
 
 		window->ClientSize = newSize;
 
+#ifdef BT_PLATFORM_WINDOWS
+		if (window->Type == WindowType::Form)
+		{
+			auto hr = window->RootBufferHandle.m_renderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+			}
+		}
+#endif
+
 		Graphics newGraphics;
 		Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
-			newGraphics.Build(newSize, window->RootHandle);
+			newGraphics.Build(newSize, window->RootBufferHandle);
 			newGraphics.BuildFont(window->DPI);
 			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 			if (window->Type == WindowType::Form)
 			{
-				newRootGraphics.Build(newSize, window->RootHandle);
+				newRootGraphics.Build(newSize, window->RootBufferHandle);
 				newRootGraphics.BuildFont(window->DPI);
-				//newRootGraphics.Begin();
-				//newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
-				//newRootGraphics.Flush();
+				newRootGraphics.Begin();
+				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				newRootGraphics.Flush();
 			}
 		}
 
@@ -851,7 +883,7 @@ namespace Berta
 			{
 				window->ClientSize = newRect;
 				window->Renderer.GetGraphics().Rebuild(window->ClientSize);
-				window->RootGraphics->Rebuild(window->ClientSize);
+				//window->RootGraphics->Rebuild(window->ClientSize);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
@@ -981,7 +1013,7 @@ namespace Berta
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
-			graphics.Build(window->ClientSize, nativeWindowHandle);
+			graphics.Build(window->ClientSize, window->RootBufferHandle);
 			graphics.BuildFont(newDPI);
 		}
 

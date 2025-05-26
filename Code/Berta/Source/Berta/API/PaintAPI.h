@@ -34,6 +34,13 @@ namespace Berta
 
 	namespace API
 	{
+		struct RootBufferNativeHandle
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+#endif
+		};
+
 		Size GetPaintHandleSize(PaintNativeHandle* handle);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::string& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr);

@@ -34,6 +34,7 @@ namespace Berta::DirectX
 			static D2DModule d2dModule;
 			return d2dModule;
 		}
+
 	private:
 		ID2D1Factory* m_factory{ nullptr };
 		IDWriteFactory* m_dWriteFactory{ nullptr };

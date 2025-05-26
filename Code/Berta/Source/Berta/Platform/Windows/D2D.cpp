@@ -9,8 +9,9 @@ namespace Berta::DirectX
 
 		if (FAILED(hr))
 		{
-
+			BT_CORE_ERROR << "Error creating d2d factory." << std::endl;
 		}
+
 		hr = DWriteCreateFactory(
 			DWRITE_FACTORY_TYPE_SHARED,
 			__uuidof(IDWriteFactory),
@@ -19,7 +20,7 @@ namespace Berta::DirectX
 
 		if (FAILED(hr))
 		{
-
+			BT_CORE_ERROR << "Error creating d2d write factory." << std::endl;
 		}
 	}
 }

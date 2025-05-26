@@ -307,7 +307,7 @@ namespace Berta::GUI
 		}
 
 		auto& graphics = window->Renderer.GetGraphics();
-		graphics.Build(window->ClientSize, window->RootHandle);
+		graphics.Build(window->ClientSize, window->RootBufferHandle);
 		graphics.BuildFont(window->DPI);
 		graphics.Begin();
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);

@@ -13,6 +13,7 @@
 #include <iostream>
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Paint/Graphics.h"
+//#include "Berta/Paint/RootBuffer.h"
 #include "Berta/Paint/DrawBatch.h"
 
 namespace Berta

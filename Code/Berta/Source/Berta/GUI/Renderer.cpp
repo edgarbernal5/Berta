@@ -10,6 +10,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/ControlReactor.h"
+#include "Berta/Paint/RootBuffer.h"
 
 namespace Berta
 {
@@ -30,7 +31,7 @@ namespace Berta
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		window->RootGraphics->Paste(window->RootHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
+		window->RootGraphics->Paste(window->RootBufferHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
 	void Renderer::Update()

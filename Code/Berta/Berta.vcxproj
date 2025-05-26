@@ -203,6 +203,7 @@
     <ClInclude Include="Source\Berta\Paint\Image.h" />
     <ClInclude Include="Source\Berta\Paint\Images\IconImageAttributes.h" />
     <ClInclude Include="Source\Berta\Paint\ColorBuffer.h" />
+    <ClInclude Include="Source\Berta\Paint\RootBuffer.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\D2D.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\Messages.h" />
     <ClInclude Include="Source\btpch.h" />
@@ -251,6 +252,7 @@
     <ClCompile Include="Source\Berta\Paint\Image.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\IconImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Paint\ColorBuffer.cpp" />
+    <ClCompile Include="Source\Berta\Paint\RootBuffer.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\D2D.cpp" />
     <ClCompile Include="Source\Berta\Platform\Windows\Foundation_Win32.cpp" />
     <ClCompile Include="Source\Berta\Core\Base.cpp" />

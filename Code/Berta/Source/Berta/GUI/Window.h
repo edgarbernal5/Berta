@@ -17,6 +17,7 @@
 namespace Berta
 {
 	class Graphics;
+	class RootBuffer;
 	struct ControlEvents;
 	struct ControlAppearance;
 	class DrawBatch;
@@ -43,6 +44,7 @@ namespace Berta
 
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};
+		API::RootBufferNativeHandle RootBufferHandle{};
 
 #if BT_DEBUG
 		std::string Name;

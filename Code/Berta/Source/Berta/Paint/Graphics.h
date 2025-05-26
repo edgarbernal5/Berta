@@ -31,9 +31,9 @@ namespace Berta
 
 	public:
 		Graphics();
-		Graphics(const Size& size, uint32_t dpi, API::NativeWindowHandle nativeHandle, bool isRootGraphics=false);
+		Graphics(const Size& size, uint32_t dpi, API::RootBufferNativeHandle nativeHandle);
 		//Graphics(const Graphics& other);
-		Graphics(Graphics&& other, bool isRootGraphics = false) noexcept;
+		Graphics(Graphics&& other) noexcept;
 		~Graphics(); 
 		
 		Graphics& operator=(const Graphics& other);
@@ -54,7 +54,7 @@ namespace Berta
 			Dotted
 		};
 
-		void Build(const Size& size, API::NativeWindowHandle nativeWindowHandle);
+		void Build(const Size& size, API::RootBufferNativeHandle nativeWindowHandle);
 		void BuildFont(uint32_t dpi);
 		void Rebuild(const Size& size);
 		void Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha);
@@ -82,15 +82,20 @@ namespace Berta
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
-		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
+		const Size& GetTextExtent() const 
+		{
+			return Size{ 0,0 };
+		}
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
 
-		PaintNativeHandle* GetHandle() const { return m_attributes.get(); }
+		PaintNativeHandle* GetHandle() const { return nullptr; }
 
 		void Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;
+		void Paste(API::RootBufferNativeHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const;
 		void Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
+		void Paste(API::RootBufferNativeHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const;
 
 		void Begin();
 		void Flush();
@@ -101,7 +106,7 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_renderTarget;
+			return m_bitmapRT;
 			//return m_attributes != nullptr && m_attributes->m_hdc;
 #else
 			return m_attributes != nullptr;
@@ -111,19 +116,18 @@ namespace Berta
 		//void EnableAntiAliasing(HDC hdc);
 
 #ifdef BT_PLATFORM_WINDOWS
-		//ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
-		//ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
+		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		
-		ID2D1DCRenderTarget* m_renderTarget{ nullptr };
+		//ID2D1DCRenderTarget* m_renderTarget{ nullptr };
 		IDWriteTextFormat* m_textFormat{ nullptr };
 		//Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> m_renderTarget;
 #endif
-		bool m_isRootGraphics{ false };
+
 		uint32_t m_dpi{ 96u };
 		uint32_t m_lastForegroundColor{ 0 };
 		Size m_size{};
-		API::NativeWindowHandle m_nativeWindowHandle;
-		std::unique_ptr<PaintNativeHandle> m_attributes;
+		API::RootBufferNativeHandle m_nativeWindowHandle;
+		//std::unique_ptr<PaintNativeHandle> m_attributes;
 	};
 }
 

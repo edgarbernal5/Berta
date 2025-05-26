@@ -225,6 +225,9 @@
     <ClInclude Include="Source\Berta\Platform\Windows\D2D.h">
       <Filter>Source\Berta\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\RootBuffer.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -371,6 +374,11 @@
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Platform\Windows\D2D.cpp" />
+    <ClCompile Include="Source\Berta\Paint\RootBuffer.cpp">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Platform\Windows\D2D.cpp">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
