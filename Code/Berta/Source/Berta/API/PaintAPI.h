@@ -16,12 +16,14 @@ namespace Berta
 	struct PaintNativeHandle
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		HDC m_hdc{ nullptr };
+		/*HDC m_hdc{ nullptr };
 		HBITMAP	m_hBitmap{ nullptr };
 		ColorABGR* m_bmpColorBuffer{ nullptr };
 		HFONT m_hFont{ nullptr };
 		uint32_t m_bytesPerLine{ 0 };
-		Size m_textExtent;
+		Size m_textExtent;*/
+
+		IDWriteTextFormat* m_textFormat{ nullptr };
 #else
 #endif
 
@@ -38,6 +40,7 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+			HWND m_hwnd{ nullptr };
 #endif
 		};
 

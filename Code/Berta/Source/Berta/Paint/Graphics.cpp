@@ -28,7 +28,8 @@
 
 namespace Berta
 {
-	Graphics::Graphics()
+	Graphics::Graphics() :
+		m_attributes(new PaintNativeHandle())
 	{
 	}
 
@@ -43,15 +44,14 @@ namespace Berta
 	}*/
 
 	Graphics::Graphics(Graphics&& other) noexcept :
-		//m_attributes(std::move(other.m_attributes)),
+		m_attributes(std::move(other.m_attributes)),
 		m_dpi(other.m_dpi),
 		m_size(other.m_size),
 		m_bitmapRT(other.m_bitmapRT),
-		m_textFormat(other.m_textFormat),
 		m_nativeWindowHandle(other.m_nativeWindowHandle)
 	{
 		other.m_bitmapRT = nullptr;
-		other.m_textFormat = nullptr;
+		other.m_attributes.reset(new PaintNativeHandle());
 	}
 
 	Graphics::~Graphics()
@@ -106,13 +106,12 @@ namespace Berta
 		{
 			D2D1_SIZE_F desiredSize = D2D1::SizeF(m_size.Width, m_size.Height);
 
-			// Formato de píxel: BGRA con alfa premultiplicado
-			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat(
+			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
+			(
 				DXGI_FORMAT_B8G8R8A8_UNORM,
 				D2D1_ALPHA_MODE_PREMULTIPLIED
 			);
 
-			// Crear el render target compatible
 			HRESULT hr = m_nativeWindowHandle.m_renderTarget->CreateCompatibleRenderTarget
 			(
 				desiredSize,// D2D1::SizeU(0, 0), pixelFormat,
@@ -125,67 +124,16 @@ namespace Berta
 			}
 		}
 
-		//if (!m_attributes)
-		//{
-		//	m_attributes = std::make_unique<PaintNativeHandle>();
-		//}
-
-//		HDC hdc = ::GetDC(nullptr);
-//
-//		HDC cdc = ::CreateCompatibleDC(hdc);
-//		if (cdc == nullptr)
-//		{
-//#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-//				BT_CORE_TRACE << "Error." << std::endl;
-//#endif
-//			::ReleaseDC(nullptr, hdc);
-//			return;
-//		}
-//
-//		BITMAPINFO bmi{};
-//		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-//		bmi.bmiHeader.biWidth = size.Width;
-//		bmi.bmiHeader.biHeight = -static_cast<int>(size.Height);
-//		bmi.bmiHeader.biPlanes = 1;
-//		bmi.bmiHeader.biBitCount = 32;
-//		bmi.bmiHeader.biCompression = BI_RGB;
-//		bmi.bmiHeader.biSizeImage = (size.Width * size.Height) << 2;
-//
-//		HBITMAP hBitmap = ::CreateDIBSection(cdc, &bmi, DIB_RGB_COLORS, reinterpret_cast<void**>(&(m_attributes->m_bmpColorBuffer)), 0, 0);
-//
-//		if (hBitmap == nullptr)
-//		{
-//#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-//			BT_CORE_TRACE << "Error creating DIB Section." << std::endl;
-//#endif
-//			::DeleteDC(cdc);
-//			::ReleaseDC(nullptr, hdc);
-//			return;
-//		}
-//
-//		auto oldBitmap = ::SelectObject(cdc, hBitmap);
-//		::DeleteObject(oldBitmap);
-//		//auto oldFont=::SelectObject(cdc, hBitmap);
-//
-//		::SetBkMode(cdc, TRANSPARENT);
-//		m_attributes->m_hdc = cdc;
-//		m_attributes->m_hBitmap = hBitmap;
-//
-//		m_attributes->m_bytesPerLine = size.Width * sizeof(ColorABGR);
-//
-//		/*RECT rc = { 0, 0, size.Width, size.Height };
-//		HRESULT hr = m_renderTarget->BindDC(cdc, &rc);*/
-//		::ReleaseDC(0, hdc);
 #endif
 	}
 
 	void Graphics::BuildFont(uint32_t dpi)
 	{
 		m_dpi = dpi;
-		//if (!m_attributes || m_attributes->m_hdc == nullptr)
-		//{
-		//	return;
-		//}
+		if (!m_attributes)
+		{
+			return;
+		}
 #ifdef BT_PLATFORM_WINDOWS
 
 		::LOGFONT lfText = {};
@@ -199,13 +147,8 @@ namespace Berta
 			DWRITE_FONT_STRETCH_NORMAL,
 			std::abs(lfText.lfHeight),
 			L"en-us",
-			&m_textFormat
+			&m_attributes->m_textFormat
 		);
-		//m_attributes->m_hFont = ::CreateFontIndirect(&lfText);
-
-		//HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		//m_attributes->m_textExtent = GetTextExtent(L"()[]{}");
-		//::SelectObject(m_attributes->m_hdc, oldFont);
 #endif
 	}
 
@@ -241,22 +184,16 @@ namespace Berta
 		if (SUCCEEDED(graphicsSource.m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
 			D2D1_SIZE_F size = sourceBitmap->GetSize();
-			D2D1_RECT_F destRect = D2D1::RectF(rectDestination.X, rectDestination.Y, rectDestination.X + m_size.Width, rectDestination.Y + m_size.Height);
-			D2D1_RECT_F srcRect = D2D1::RectF(pointSource.X, pointSource.Y, pointSource.X + m_size.Width, pointSource.Y + m_size.Height);
+			D2D1_RECT_F destRect = D2D1::RectF(rectDestination.X, rectDestination.Y, rectDestination.X + size.width, rectDestination.Y + size.height);
+			D2D1_RECT_F srcRect = D2D1::RectF(pointSource.X, pointSource.Y, pointSource.X + size.width, pointSource.Y + size.height);
 			
-			m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, srcRect);
+			m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, srcRect);
 			sourceBitmap->Release();
 		}
-
-//		if (m_attributes->m_hdc && graphicsSource.m_attributes->m_hdc)
-//		{
-//			if (!::BitBlt(m_attributes->m_hdc, rectDestination.X, rectDestination.Y, rectDestination.Width, rectDestination.Height, graphicsSource.m_attributes->m_hdc, pointSource.X, pointSource.Y, SRCCOPY))
-//			{
-//#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-//				BT_CORE_ERROR << " Graphics / BitBlt ::GetLastError() = " << ::GetLastError() << std::endl;
-//#endif
-//			}
-//		}
+		else
+		{
+			BT_CORE_ERROR << " Graphics / BitBlt" << std::endl;
+		}
 #endif
 	}
 
@@ -268,10 +205,10 @@ namespace Berta
 	void Graphics::DrawLine(const Point& point1, const Point& point2, int lineWidth, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
+		if (!m_attributes)
 		{
 			return;
-		}*/
+		}
 
 		ID2D1SolidColorBrush* brush;
 		auto hr = m_bitmapRT->CreateSolidColorBrush(color, &brush);
@@ -389,38 +326,17 @@ namespace Berta
 
 		if (SUCCEEDED(hr))
 		{
-			m_bitmapRT->FillRectangle(&d2dRect, brush);
+			if (solid)
+			{
+				m_bitmapRT->FillRectangle(&d2dRect, brush);
+			}
+			else
+			{
+				m_bitmapRT->DrawRectangle(&d2dRect, brush);
+			}
 
 			brush->Release();
 		}
-
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		auto brush = ::CreateSolidBrush(color);
-		RECT nativeRect = rectangle.ToRECT();
-		if (solid)
-		{
-			if (!::FillRect(m_attributes->m_hdc, &nativeRect, brush))
-			{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << " Graphics / FillRect ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-			}
-		}
-		else
-		{
-			if (!::FrameRect(m_attributes->m_hdc, &nativeRect, brush))
-			{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << " Graphics / FrameRect ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-			}
-		}
-		
-		::DeleteObject(brush);*/
 #endif
 	}
 
@@ -432,15 +348,18 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes || !m_attributes->m_hdc || !m_textFormat)
+		if (!m_bitmapRT)
 		{
 			return;
-		}*/
+		}
+
+		auto textSize = GetTextExtent(wstr);
+
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = position.X;
 		d2dRect.top = position.Y;
-		d2dRect.right = position.X + m_size.Width;
-		d2dRect.bottom = position.Y + m_size.Height;
+		d2dRect.right = position.X + textSize.Width+1;
+		d2dRect.bottom = position.Y + textSize.Height+1;
 
 		ID2D1SolidColorBrush* brush;
 		m_bitmapRT->CreateSolidColorBrush(color,
@@ -449,7 +368,7 @@ namespace Berta
 		m_bitmapRT->DrawText(
 			wstr.c_str(),
 			wstr.size(),
-			m_textFormat,
+			m_attributes->m_textFormat,
 			d2dRect,
 			brush
 		);
@@ -974,6 +893,7 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		ID2D1Bitmap* pBitmap = nullptr;
+
 		if (SUCCEEDED(m_bitmapRT->GetBitmap(&pBitmap)))
 		{
 			destinationHandle.m_renderTarget->BeginDraw();
@@ -981,8 +901,8 @@ namespace Berta
 			destinationHandle.m_renderTarget->DrawBitmap
 			(
 				pBitmap,
-				D2D1::RectF(dx, dy, dx + width, dy + height),1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-				D2D1::RectF(sx, sx, sx + width, sx + height)
+				D2D1::RectF(dx, dy, dx + width, dy + height), 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+				D2D1::RectF(sx, sy, sx + width, sy + height)
 			);
 
 			auto hr = destinationHandle.m_renderTarget->EndDraw();
@@ -1017,6 +937,7 @@ namespace Berta
 		{
 			return;
 		}
+
 		auto hr = m_bitmapRT->EndDraw();
 		if (FAILED(hr))
 		{
@@ -1034,37 +955,28 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		std::swap(m_bitmapRT, other.m_bitmapRT);
-		std::swap(m_textFormat, other.m_textFormat);
+		std::swap(m_attributes, other.m_attributes);
 #endif
 	}
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr)
 	{
-		return {};
-		//return API::GetTextExtentSize(m_attributes.get(), wstr);
+		return API::GetTextExtentSize(m_attributes.get(), wstr);
 	}
 
 	Size Graphics::GetTextExtent(const std::string& str)
 	{
-		return {};
-		//return API::GetTextExtentSize(m_attributes.get(), str);
+		return API::GetTextExtentSize(m_attributes.get(), str);
 	}
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length)
 	{
-		return {};
-		//return API::GetTextExtentSize(m_attributes.get(), wstr, length);
+		return API::GetTextExtentSize(m_attributes.get(), wstr, length);
 	}
 
 	void Graphics::Release()
 	{
-		//m_attributes.reset();
-		
-		if (m_textFormat)
-		{
-			m_textFormat->Release();
-			m_textFormat = nullptr;
-		}
+		m_attributes.reset();
 
 		if (m_bitmapRT)
 		{

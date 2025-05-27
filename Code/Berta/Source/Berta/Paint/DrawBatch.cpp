@@ -69,6 +69,7 @@ namespace Berta
 		std::cout << std::endl;
 #endif // BT_PRINT_DRAW_BATCH_MESSAGES
 
+		rootGraphics.Begin();
 		bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
@@ -92,6 +93,7 @@ namespace Berta
 
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
 		}
+		rootGraphics.Flush();
 
 		if (fullMap)
 		{

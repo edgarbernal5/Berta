@@ -119,7 +119,6 @@ namespace Berta
 		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		
 		//ID2D1DCRenderTarget* m_renderTarget{ nullptr };
-		IDWriteTextFormat* m_textFormat{ nullptr };
 		//Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> m_renderTarget;
 #endif
 
@@ -127,7 +126,7 @@ namespace Berta
 		uint32_t m_lastForegroundColor{ 0 };
 		Size m_size{};
 		API::RootBufferNativeHandle m_nativeWindowHandle;
-		//std::unique_ptr<PaintNativeHandle> m_attributes;
+		std::unique_ptr<PaintNativeHandle> m_attributes;
 	};
 }
 

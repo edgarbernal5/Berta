@@ -101,6 +101,8 @@ namespace Berta
 			{
 				BT_CORE_ERROR << "Error creating render target hwnd." << std::endl;
 			}
+
+			window->RootBufferHandle.m_hwnd = windowResult.WindowHandle.Handle;
 #endif
 			if (isNested)
 			{
@@ -518,12 +520,14 @@ namespace Berta
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+		rootGraphics.Begin();
 		if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
 		}
 
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, containerRectangle);
+		rootGraphics.Flush();
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -725,7 +729,7 @@ namespace Berta
 		{
 			window->Renderer.Update();
 			window->DrawStatus = DrawWindowStatus::Updated;
-
+			rootGraphics.Begin();
 			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
 				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
@@ -740,6 +744,11 @@ namespace Berta
 		}
 
 		UpdateTreeInternal(window, rootGraphics, now, absolutePosition, containerRectangle);
+
+		if (now || !window->IsBatchActive())
+		{
+			rootGraphics.Flush();
+		}
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
