@@ -47,6 +47,12 @@ namespace Berta::StringUtils
 		return wstr;
 	}
 
+	std::string Convert(const std::wstring& wstr)
+	{
+		std::string str(wstr.begin(), wstr.end());
+		return str;
+	}
+
 	std::vector<std::string> Split(const std::string& str, char delimiter)
 	{
 		std::vector<std::string> result;

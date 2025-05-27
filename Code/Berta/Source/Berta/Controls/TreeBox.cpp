@@ -27,7 +27,7 @@ namespace Berta
 
 	void TreeBoxReactor::Update(Graphics& graphics)
 	{
-		BT_CORE_TRACE << " -- TreeBox Update() " << std::endl;
+		//BT_CORE_TRACE << " -- TreeBox Update() " << std::endl;
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 

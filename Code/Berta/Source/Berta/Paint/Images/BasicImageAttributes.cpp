@@ -92,10 +92,56 @@ namespace Berta
 
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
 	{
-		m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
+		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
+		
+		if (m_bitmap)
+		{
+			m_bitmap->Release();
+			m_bitmap = nullptr;
+		}
+
+		auto handle = destination.GetHandle();
+		if (!m_bitmap)
+		{
+			HRESULT hr = handle->m_bitmapRT->CreateBitmap
+			(
+				D2D1::SizeU(m_size.Width, m_size.Height),
+				static_cast<void*>( m_colorBuffer.m_storage->m_buffer),                     // Pointer to your image array
+				m_colorBuffer.m_storage->m_bytesPerLine,                        // Bytes per row (width * 4 for 32bpp)
+				D2D1::BitmapProperties(
+					D2D1::PixelFormat(
+						DXGI_FORMAT_B8G8R8A8_UNORM, // Or DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
+						D2D1_ALPHA_MODE_PREMULTIPLIED // Important for transparency
+					)
+				),
+				&m_bitmap
+			);
+
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "Failed to create bitmap: " << std::endl;
+				return;
+			}
+		}
+
+		handle->m_bitmapRT->DrawBitmap
+		(
+			m_bitmap,
+			D2D1::RectF(static_cast<FLOAT>(destinationRect.X), static_cast<FLOAT>(destinationRect.Y), static_cast<FLOAT>(destinationRect.X + destinationRect.Width), static_cast<FLOAT>(destinationRect.Y + destinationRect.Height)),
+			1.0f,
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+			D2D1::RectF(static_cast<FLOAT>(sourceRect.X), static_cast<FLOAT>(sourceRect.Y), static_cast<FLOAT>(sourceRect.X + sourceRect.Width), static_cast<FLOAT>(sourceRect.Y + sourceRect.Height))
+		);
 	}
 
 	void BasicImageAttributes::ReleaseNativeObjects()
 	{
+#if BT_PLATFORM_WINDOWS
+		if (m_bitmap)
+		{
+			m_bitmap->Release();
+			m_bitmap = nullptr;
+		}
+#endif
 	}
 }

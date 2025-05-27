@@ -13,8 +13,7 @@
 #include <cmath>
 
 #if BT_PLATFORM_WINDOWS
-
-#pragma comment(lib, "Msimg32.lib") // added for AlphaBlend
+#include <comdef.h>
 #endif
 
 // Define M_PI if it's not already defined
@@ -223,8 +222,28 @@ namespace Berta
 			point2F.x = static_cast<FLOAT>(point2.X);
 			point2F.y = static_cast<FLOAT>(point2.Y);
 
-			m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush);
+			if (style == LineStyle::Solid)
+			{
+				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush);
+			}
+			else
+			{
+				ID2D1StrokeStyle* strokeStyle = nullptr;
 
+				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties(
+					D2D1_CAP_STYLE_ROUND,      // startCap
+					D2D1_CAP_STYLE_ROUND,      // endCap
+					D2D1_CAP_STYLE_FLAT,       // dashCap
+					D2D1_LINE_JOIN_ROUND,      // lineJoin
+					10.0f,                     // miterLimit
+					D2D1_DASH_STYLE_DASH,      // dashStyle
+					0.0f                       // dashOffset
+				);
+				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, nullptr, 0, &strokeStyle);
+				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush, 1.0f, strokeStyle);
+
+				strokeStyle->Release();
+			}
 			brush->Release();
 		}
 
@@ -542,7 +561,8 @@ namespace Berta
 		auto hr = m_attributes->m_bitmapRT->EndDraw();
 		if (FAILED(hr))
 		{
-			BT_CORE_ERROR << "error Bitmap EndDraw()" << std::endl;
+			_com_error err(hr);
+			BT_CORE_ERROR << "Error Bitmap EndDraw(). err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
 		}
 #endif
 	}
