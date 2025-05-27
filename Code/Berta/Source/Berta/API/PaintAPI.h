@@ -23,7 +23,9 @@ namespace Berta
 		uint32_t m_bytesPerLine{ 0 };
 		Size m_textExtent;*/
 
+		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		IDWriteTextFormat* m_textFormat{ nullptr };
+		Size m_textExtent;
 #else
 #endif
 

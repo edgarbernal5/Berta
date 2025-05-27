@@ -584,8 +584,7 @@ namespace Berta
 		}
 		m_buttonStatus = State::Pressed;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -599,8 +598,7 @@ namespace Berta
 		if (prevStatus == m_buttonStatus)
 			return;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -612,8 +610,7 @@ namespace Berta
 
 		m_mouseDownCloseButton = false;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::Resize(Graphics& graphics, const ArgResize& args)

@@ -59,7 +59,7 @@ namespace Berta
 		void SetParentWindow(Window* window, Window* newParent);
 
 		void UpdateTree(Window* window, bool now = false);
-		void MarkAsUpdated(Window* window); //Precondition: window must have been updated.
+		void MarkAsNeedUpdate(Window* window);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);

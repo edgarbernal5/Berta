@@ -10,7 +10,6 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/ControlReactor.h"
-#include "Berta/Paint/RootBuffer.h"
 
 namespace Berta
 {

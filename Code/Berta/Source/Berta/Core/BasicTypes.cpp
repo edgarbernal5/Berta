@@ -69,6 +69,13 @@ namespace Berta
 		return { X, Y };
 	}
 
+#ifdef BT_PLATFORM_WINDOWS
+	Rectangle::operator D2D1_RECT_F() const
+	{
+		return { static_cast<FLOAT>(X), static_cast<FLOAT>(Y), static_cast<FLOAT>(X + Width), static_cast<FLOAT>(Y + Height) };
+	}
+#endif
+
 	Size Size::operator-(const Size& other) const
 	{
 		return { Width - other.Width, Height - other.Height };

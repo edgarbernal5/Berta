@@ -183,6 +183,10 @@ namespace Berta
 
 		operator Size() const;
 		operator Point() const;
+#ifdef BT_PLATFORM_WINDOWS
+		operator D2D1_RECT_F() const;
+#endif
+
 	};
 
 	struct Size

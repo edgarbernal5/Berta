@@ -88,8 +88,7 @@ namespace Berta
 	{
 		m_state.m_hoveredIndex = -1;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void FloatBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -102,8 +101,7 @@ namespace Berta
 			
 			m_state.m_hoveredIndex = m_state.m_offset + index;
 
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -139,11 +137,9 @@ namespace Berta
 			m_state.m_offset = newOffset;
 			m_scrollBar->SetValue(m_state.m_offset);
 
-			m_scrollBar->Handle()->Renderer.Update();
-			GUI::MarkAsUpdated(m_scrollBar->Handle());
+			GUI::MarkAsNeedUpdate(m_scrollBar->Handle());
 
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 

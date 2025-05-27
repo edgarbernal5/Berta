@@ -79,8 +79,7 @@ namespace Berta
 
 		m_module.SelectIndex(-1);
 
-		Update(graphics);
-		GUI::MarkAsUpdated(m_module.m_owner);
+		GUI::MarkAsNeedUpdate(m_module.m_owner);
 	}
 
 	void MenuBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -101,8 +100,7 @@ namespace Berta
 				GUI::SetMenu(this);
 			}
 
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_owner);
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 	}
 
@@ -133,8 +131,7 @@ namespace Berta
 			{
 				m_module.SelectIndex(selectedItem);
 
-				Update(graphics);
-				GUI::MarkAsUpdated(m_module.m_owner);
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
 		m_module.m_lastMousePosition = args.Position;

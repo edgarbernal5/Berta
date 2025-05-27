@@ -34,6 +34,7 @@ namespace Berta
 	}
 
 	Graphics::Graphics(const Size& size, uint32_t dpi, API::RootBufferNativeHandle nativeHandle) :
+		m_attributes(new PaintNativeHandle()),
 		m_dpi(dpi)
 	{
 		Build(size, nativeHandle);
@@ -47,10 +48,8 @@ namespace Berta
 		m_attributes(std::move(other.m_attributes)),
 		m_dpi(other.m_dpi),
 		m_size(other.m_size),
-		m_bitmapRT(other.m_bitmapRT),
 		m_nativeWindowHandle(other.m_nativeWindowHandle)
 	{
-		other.m_bitmapRT = nullptr;
 		other.m_attributes.reset(new PaintNativeHandle());
 	}
 
@@ -76,10 +75,9 @@ namespace Berta
 	{
 		if (this != &other)
 		{
-			//m_attributes = std::move(other.m_attributes);
+			m_attributes = std::move(other.m_attributes);
 			m_dpi = std::move(other.m_dpi);
 			m_size = std::move(other.m_size);
-			m_bitmapRT = std::move(other.m_bitmapRT);
 		}
 
 		return *this;
@@ -102,9 +100,9 @@ namespace Berta
 		m_nativeWindowHandle = nativeWindowHandle;
 #ifdef BT_PLATFORM_WINDOWS
 
-		if (m_bitmapRT == nullptr)
+		if (m_attributes->m_bitmapRT == nullptr)
 		{
-			D2D1_SIZE_F desiredSize = D2D1::SizeF(m_size.Width, m_size.Height);
+			D2D1_SIZE_F desiredSize = D2D1::SizeF(static_cast<FLOAT>(m_size.Width), static_cast<FLOAT>(m_size.Height));
 
 			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
 			(
@@ -115,7 +113,7 @@ namespace Berta
 			HRESULT hr = m_nativeWindowHandle.m_renderTarget->CreateCompatibleRenderTarget
 			(
 				desiredSize,// D2D1::SizeU(0, 0), pixelFormat,
-				&m_bitmapRT
+				&m_attributes->m_bitmapRT
 			);
 
 			if (FAILED(hr))
@@ -140,15 +138,17 @@ namespace Berta
 		::SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
 
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextFormat(
-			lfText.lfFaceName,            // fuente
+			lfText.lfFaceName,
 			nullptr,
 			DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
-			std::abs(lfText.lfHeight),
+			static_cast<FLOAT>(std::abs(lfText.lfHeight)),
 			L"en-us",
 			&m_attributes->m_textFormat
 		);
+
+		m_attributes->m_textExtent = GetTextExtent("{}[]");
 #endif
 	}
 
@@ -181,13 +181,13 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		ID2D1Bitmap* sourceBitmap = nullptr;
-		if (SUCCEEDED(graphicsSource.m_bitmapRT->GetBitmap(&sourceBitmap)))
+		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
-			D2D1_SIZE_F size = sourceBitmap->GetSize();
-			D2D1_RECT_F destRect = D2D1::RectF(rectDestination.X, rectDestination.Y, rectDestination.X + size.width, rectDestination.Y + size.height);
-			D2D1_RECT_F srcRect = D2D1::RectF(pointSource.X, pointSource.Y, pointSource.X + size.width, pointSource.Y + size.height);
+			D2D1_SIZE_F sourceSize = sourceBitmap->GetSize();
+			D2D1_RECT_F destRect = D2D1::RectF(static_cast<FLOAT>(rectDestination.X), static_cast<FLOAT>(rectDestination.Y), static_cast<FLOAT>(rectDestination.X + sourceSize.width), static_cast<FLOAT>(rectDestination.Y + sourceSize.height));
+			D2D1_RECT_F srcRect = D2D1::RectF(static_cast<FLOAT>(pointSource.X), static_cast<FLOAT>(pointSource.Y), static_cast<FLOAT>(pointSource.X + sourceSize.width), static_cast<FLOAT>(pointSource.Y + sourceSize.height));
 			
-			m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, srcRect);
+			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, srcRect);
 			sourceBitmap->Release();
 		}
 		else
@@ -211,19 +211,19 @@ namespace Berta
 		}
 
 		ID2D1SolidColorBrush* brush;
-		auto hr = m_bitmapRT->CreateSolidColorBrush(color, &brush);
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
 
 		if (SUCCEEDED(hr))
 		{
 			D2D1_POINT_2F point1F;
-			point1F.x = point1.X;
-			point1F.y = point1.Y;
+			point1F.x = static_cast<FLOAT>(point1.X);
+			point1F.y = static_cast<FLOAT>(point1.Y);
 
 			D2D1_POINT_2F point2F;
-			point2F.x = point2.X;
-			point2F.y = point2.Y;
+			point2F.x = static_cast<FLOAT>(point2.X);
+			point2F.y = static_cast<FLOAT>(point2.Y);
 
-			m_bitmapRT->DrawLine(point1F, point2F, brush);
+			m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush);
 
 			brush->Release();
 		}
@@ -310,29 +310,25 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_bitmapRT)
+		if (!m_attributes->m_bitmapRT)
 		{
 			return;
 		}
 
-		D2D1_RECT_F d2dRect; 
-		d2dRect.left = rectangle.X;
-		d2dRect.top = rectangle.Y;
-		d2dRect.right = rectangle.X + rectangle.Width;
-		d2dRect.bottom = rectangle.Y + rectangle.Height;
+		D2D1_RECT_F d2dRect = rectangle;
 
 		ID2D1SolidColorBrush* brush;
-		auto hr = m_bitmapRT->CreateSolidColorBrush(color, &brush);
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
 
 		if (SUCCEEDED(hr))
 		{
 			if (solid)
 			{
-				m_bitmapRT->FillRectangle(&d2dRect, brush);
+				m_attributes->m_bitmapRT->FillRectangle(&d2dRect, brush);
 			}
 			else
 			{
-				m_bitmapRT->DrawRectangle(&d2dRect, brush);
+				m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, brush);
 			}
 
 			brush->Release();
@@ -348,7 +344,7 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_bitmapRT)
+		if (!m_attributes->m_bitmapRT)
 		{
 			return;
 		}
@@ -356,33 +352,25 @@ namespace Berta
 		auto textSize = GetTextExtent(wstr);
 
 		D2D1_RECT_F d2dRect;
-		d2dRect.left = position.X;
-		d2dRect.top = position.Y;
-		d2dRect.right = position.X + textSize.Width+1;
-		d2dRect.bottom = position.Y + textSize.Height+1;
+		d2dRect.left = static_cast<FLOAT>(position.X);
+		d2dRect.top = static_cast<FLOAT>(position.Y);
+		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width + 1);
+		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height + 1);
 
 		ID2D1SolidColorBrush* brush;
-		m_bitmapRT->CreateSolidColorBrush(color,
+		m_attributes->m_bitmapRT->CreateSolidColorBrush(color,
 			&brush);
 
-		m_bitmapRT->DrawText(
+		m_attributes->m_bitmapRT->DrawText
+		(
 			wstr.c_str(),
-			wstr.size(),
+			static_cast<UINT32>(wstr.size()),
 			m_attributes->m_textFormat,
 			d2dRect,
 			brush
 		);
 
 		brush->Release();
-
-		//HFONT oldFont = (HFONT)::SelectObject(m_attributes->m_hdc, m_attributes->m_hFont);
-		//if (m_lastForegroundColor != color)
-		//{
-		//	::SetTextColor(m_attributes->m_hdc, color);
-		//	m_lastForegroundColor = color;
-		//}
-		//::TextOut(m_attributes->m_hdc, position.X, position.Y, wstr.c_str(), static_cast<int>(wstr.size()));
-		//::SelectObject(m_attributes->m_hdc, oldFont);
 #endif
 	}
 
@@ -390,118 +378,6 @@ namespace Berta
 	{
 		DrawString(position, StringUtils::Convert(str), color);
 	}
-	
-	//// Function to enable anti-aliasing for the given device context
-	//void  Graphics::EnableAntiAliasing(HDC hdc) {
-	//	auto aa=GetGraphicsMode(hdc);
-	//	auto bb=SetGraphicsMode(hdc, GM_ADVANCED);  // Set the graphics mode to advanced
-	//	SetBkMode(hdc, TRANSPARENT);         // Make sure background is transparent (optional)
-	//	
-	//	// Create a quality pen that supports anti-aliasing
-	//	SetStretchBltMode(hdc, HALFTONE);   // Enable high-quality stretching (optional)
-	//	SetTextCharacterExtra(hdc, 0);      // Prevent text distortion (optional)
-	//}
-	
-	//Version 1
-	/*
-	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, const Color& color, ArrowDirection direction, bool solid)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		Point arrowPoints[3];
-
-		int centerX = (rect.X * 2 + (int)rect.Width) >> 1;
-		int centerY = (rect.Y * 2 + (int)rect.Height) >> 1;
-
-		if (direction == ArrowDirection::Downwards)
-		{
-			arrowPoints[0].X = centerX - arrowWidth;
-			arrowPoints[0].Y = centerY - arrowLength;
-
-			arrowPoints[1].X = centerX + arrowWidth;
-			arrowPoints[1].Y = centerY - arrowLength;
-
-			arrowPoints[2].X = centerX;
-			arrowPoints[2].Y = centerY + arrowLength;
-		}
-		else if (direction == ArrowDirection::Upwards)
-		{
-			arrowPoints[0].X = centerX - arrowWidth;
-			arrowPoints[0].Y = centerY + arrowLength;
-
-			arrowPoints[1].X = centerX + arrowWidth;
-			arrowPoints[1].Y = centerY + arrowLength;
-
-			arrowPoints[2].X = centerX;
-			arrowPoints[2].Y = centerY - arrowLength;
-		}
-		else if (direction == ArrowDirection::Right)
-		{
-			arrowPoints[0].X = centerX - arrowLength;
-			arrowPoints[0].Y = centerY - arrowWidth;
-
-			arrowPoints[1].X = centerX - arrowLength;
-			arrowPoints[1].Y = centerY + arrowWidth;
-
-			arrowPoints[2].X = centerX + arrowLength;
-			arrowPoints[2].Y = centerY;
-		}
-		else if (direction == ArrowDirection::Left)
-		{
-			arrowPoints[0].X = centerX + arrowLength;
-			arrowPoints[0].Y = centerY + arrowWidth;
-
-			arrowPoints[1].X = centerX + arrowLength;
-			arrowPoints[1].Y = centerY - arrowWidth;
-
-			arrowPoints[2].X = centerX - arrowLength;
-			arrowPoints[2].Y = centerY;
-		}
-
-		HBRUSH brush = ::CreateSolidBrush(color);
-		::SelectObject(m_attributes->m_hdc, brush);
-
-		if (solid)
-		{
-			::BeginPath(m_attributes->m_hdc);
-		}
-
-		// Move to the first point
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, color);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
-
-		::MoveToEx(m_attributes->m_hdc, arrowPoints[0].X, arrowPoints[0].Y, 0);
-
-		// Draw lines to each subsequent point
-		for (int i = 1; i < 3; ++i)
-		{
-			::LineTo(m_attributes->m_hdc, arrowPoints[i].X, arrowPoints[i].Y);
-		}
-
-		// Close the polygon by drawing a line back to the first point
-		::LineTo(m_attributes->m_hdc, arrowPoints[0].X, arrowPoints[0].Y);
-
-		if (solid)
-		{
-			::EndPath(m_attributes->m_hdc);
-			::FillPath(m_attributes->m_hdc);
-		}
-
-		if (hPen)
-		{
-			::DeleteObject(hPen);
-		}
-
-		if (brush)
-		{
-			::DeleteObject(brush);
-		}
-#endif
-	}*/
 	
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor)
 	{
@@ -512,81 +388,7 @@ namespace Berta
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		POINT arrowPoints[4]{};
-
-		int centerX = (rect.X * 2 + (int)rect.Width) >> 1;
-		int centerY = (rect.Y * 2 + (int)rect.Height) >> 1;
-
-		if (direction == ArrowDirection::Downwards)
-		{
-			arrowPoints[0].x = centerX - arrowWidth;
-			arrowPoints[0].y = centerY - arrowLength;
-
-			arrowPoints[1].x = centerX + arrowWidth;
-			arrowPoints[1].y = centerY - arrowLength;
-
-			arrowPoints[2].x = centerX;
-			arrowPoints[2].y = centerY + arrowLength;
-		}
-		else if (direction == ArrowDirection::Upwards)
-		{
-			arrowPoints[0].x = centerX - arrowWidth;
-			arrowPoints[0].y = centerY + arrowLength;
-
-			arrowPoints[1].x = centerX + arrowWidth;
-			arrowPoints[1].y = centerY + arrowLength;
-
-			arrowPoints[2].x = centerX;
-			arrowPoints[2].y = centerY - arrowLength;
-		}
-		else if (direction == ArrowDirection::Right)
-		{
-			arrowPoints[0].x = centerX - arrowLength;
-			arrowPoints[0].y = centerY - arrowWidth;
-
-			arrowPoints[1].x = centerX - arrowLength;
-			arrowPoints[1].y = centerY + arrowWidth;
-
-			arrowPoints[2].x = centerX + arrowLength;
-			arrowPoints[2].y = centerY;
-		}
-		else if (direction == ArrowDirection::Left)
-		{
-			arrowPoints[0].x = centerX + arrowLength;
-			arrowPoints[0].y = centerY + arrowWidth;
-
-			arrowPoints[1].x = centerX + arrowLength;
-			arrowPoints[1].y = centerY - arrowWidth;
-
-			arrowPoints[2].x = centerX - arrowLength;
-			arrowPoints[2].y = centerY;
-		}
-
-		arrowPoints[3] = arrowPoints[0];
-
-		HPEN hPen = ::CreatePen(PS_SOLID, 1, borderColor);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
-
-		if (solid)
-		{
-			HBRUSH hBrush = ::CreateSolidBrush(solidColor);
-			HBRUSH oldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hBrush);
-			::Polygon(m_attributes->m_hdc, arrowPoints, 3);
-			::DeleteObject(hBrush);
-			::SelectObject(m_attributes->m_hdc, oldBrush);
-		}
-		else
-		{
-			::Polyline(m_attributes->m_hdc, arrowPoints, 4);
-		}
-
-		::DeleteObject(hPen);
-		::SelectObject(m_attributes->m_hdc, hOldPen);*/
+		
 #endif
 	}
 	
@@ -598,261 +400,74 @@ namespace Berta
 	void Graphics::DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_bitmapRT)
+		if (!m_attributes->m_bitmapRT)
 		{
 			return;
 		}
 
 		float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
-		auto radiusScaled = static_cast<int>(radius * scaleFactor);
-		D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect(
-			D2D1::RectF(rect.X, rect.Y, rect.X+ rect.Width, rect.Y+ rect.Height),
+		auto radiusScaled = radius * scaleFactor;
+		D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect
+		(
+			D2D1::RectF(static_cast<FLOAT>(rect.X), static_cast<FLOAT>(rect.Y), static_cast<FLOAT>(rect.X + rect.Width), static_cast<FLOAT>(rect.Y + rect.Height)),
 			radiusScaled,
 			radiusScaled
 		);
 
 		ID2D1SolidColorBrush* brush;
-		auto hr = m_bitmapRT->CreateSolidColorBrush(color, &brush);
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
 
 		ID2D1SolidColorBrush* brushBorder;
-		hr = m_bitmapRT->CreateSolidColorBrush(bordercolor, &brushBorder);
+		hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(bordercolor, &brushBorder);
 		if (SUCCEEDED(hr))
 		{
 			if (solid)
 			{
-				m_bitmapRT->FillRoundedRectangle(&roundedRect, brush);
-				m_bitmapRT->DrawRoundedRectangle(&roundedRect, brushBorder);
+				m_attributes->m_bitmapRT->FillRoundedRectangle(&roundedRect, brush);
+				m_attributes->m_bitmapRT->DrawRoundedRectangle(&roundedRect, brushBorder);
 			}
 			else
 			{
 
-				m_bitmapRT->DrawRoundedRectangle(&roundedRect, brushBorder);
+				m_attributes->m_bitmapRT->DrawRoundedRectangle(&roundedRect, brushBorder);
 			}
 			brush->Release();
 			brushBorder->Release();
 		}
-		/*float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
-		auto radiusScaled = static_cast<int>(radius * scaleFactor);
-
-		if (solid)
-		{
-			auto prevPen = ::SelectObject(m_attributes->m_hdc, ::CreatePen(PS_SOLID, 1, bordercolor));
-			auto prevBrush = ::SelectObject(m_attributes->m_hdc, ::CreateSolidBrush(color));
-
-			::RoundRect(m_attributes->m_hdc, rect.X, rect.Y, rect.X + static_cast<int>(rect.Width), rect.Y + static_cast<int>(rect.Height), static_cast<int>(radiusScaled * 2), static_cast<int>(radiusScaled * 2));
-
-			::DeleteObject(::SelectObject(m_attributes->m_hdc, prevBrush));
-			::DeleteObject(::SelectObject(m_attributes->m_hdc, prevPen));
-		}
-		else
-		{
-			auto brush = ::CreateSolidBrush(color);
-
-			auto region = ::CreateRoundRectRgn(rect.X, rect.Y, rect.X + static_cast<int>(rect.Width) + 1, rect.Y + static_cast<int>(rect.Height) + 1, static_cast<int>(radiusScaled + 1), static_cast<int>(radiusScaled + 1));
-
-			::FrameRgn(m_attributes->m_hdc, region, brush, 1, 1);
-
-			::DeleteObject(region);
-			::DeleteObject(brush);
-		}*/
+		
 #endif
 	}
 
 	void Graphics::DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		auto x = (LONG)rect.X;
-		auto y = (LONG)rect.Y;
-		auto width = (LONG)rect.Width;
-		auto height = (LONG)rect.Height;
-
-		TRIVERTEX vertices[] =
-		{
-			{ x, y, (COLOR16)(GetRValue(startColor) << 8), (COLOR16)(GetGValue(startColor) << 8), (COLOR16)(GetBValue(startColor) << 8), (COLOR16)0xFF00 },
-			{ x + width, y + height, (COLOR16)(GetRValue(endColor) << 8), (COLOR16)(GetGValue(endColor) << 8), (COLOR16)(GetBValue(endColor) << 8), (COLOR16)0xFF00 }
-		};
-
-		GRADIENT_RECT gradientRect = { 0, 1 };
-		::GradientFill(m_attributes->m_hdc, vertices, 2, &gradientRect, 1, GRADIENT_FILL_RECT_V);*/
+		
 #endif
 	}
 
 	void Graphics::DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		//auto& hdc = m_attributes->m_hdc;
-		//int radius = 3;
-
-		//float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
-		//auto radiusScaled = static_cast<int>(radius * scaleFactor);
-
-		//int x = rect.X;
-		//int y = rect.Y;
-		//int height = rect.Height;
-		//int width = rect.Width;
-		//HRGN buttonRegion = ::CreateRoundRectRgn(x, y, x + width, y + height, radiusScaled, radiusScaled);
-		//::SelectClipRgn(hdc, buttonRegion);
-
-		//DrawGradientFill(rect, startColor, endColor);
-		//
-		//::SelectClipRgn(hdc, nullptr);
-		////SetBkMode(hdc, TRANSPARENT);
-		//DrawRoundRectBox(rect, radius, borderColor, borderColor, false);
-		//::DeleteObject(buttonRegion);
+		
 #endif
 	}
 
 	void Graphics::DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize)
 	{
-		//auto& hdc = m_attributes->m_hdc;
-
-		//float scaleFactor = LayoutUtils::CalculateDPIScaleFactor(m_dpi);
-		//auto radiusScaled = static_cast<int>(radius * scaleFactor);
-
-		//int x = rect.X;
-		//int y = rect.Y;
-		//int height = rect.Height;
-		//int width = rect.Width;
-
-		//// Paleta de colores de sombra (de más oscuro a más claro)
-		//COLORREF shadowColors[] = {
-		//	RGB(50, 50, 50),  // Sombra oscura
-		//	RGB(80, 80, 80),
-		//	RGB(110, 110, 110),
-		//	RGB(140, 140, 140),
-		//	RGB(170, 170, 170),  // Sombra clara
-		//};
-
-		//int numShadows = sizeof(shadowColors) / sizeof(shadowColors[0]);
-
-		//// Dibuja sombras en capas alrededor del rectángulo central
-		//for (int i = 0; i < numShadows; i++) {
-		//	HPEN hPen = CreatePen(PS_SOLID, 1, shadowColors[i]);
-		//	HBRUSH hBrush = CreateSolidBrush(shadowColors[i]);
-		//	SelectObject(hdc, hPen);
-		//	SelectObject(hdc, hBrush);
-
-		//	// Ajusta el tamaño de cada capa para crear la sombra difusa
-		//	::RoundRect(
-		//		hdc,
-		//		x - shadowSize + i,
-		//		y - shadowSize + i,
-		//		x + width + shadowSize - i,
-		//		y + height + shadowSize - i,
-		//		radiusScaled + (shadowSize - i),  // Ajusta el radio para mantener la curva
-		//		radiusScaled + (shadowSize - i)
-		//	);
-
-		//	DeleteObject(hPen);
-		//	DeleteObject(hBrush);
-		//}
-
-		//// Dibuja el rectángulo redondeado principal
-		//HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));      // Color del borde
-		//HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 255));  // Color de relleno
-		//SelectObject(hdc, hPen);
-		//SelectObject(hdc, hBrush);
-
-		//RoundRect(hdc, x, y, x + width, y + height, radiusScaled, radiusScaled);
-
-		//DeleteObject(hPen);
-		//DeleteObject(hBrush);
+		
 	}
 
 	void Graphics::DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		HBRUSH hFillBrush = NULL;
-		if (solid)
-		{
-			hFillBrush = ::CreateSolidBrush(fillColor);
-		}
-		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
-
-		HBRUSH hOldBrush = NULL;
-		if (solid)
-		{
-			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hFillBrush);
-		}
-		else
-		{
-			HBRUSH hNullBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
-			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hNullBrush);
-		}
-
-		RECT destRECT{};
-		destRECT.left = static_cast<LONG>(dest.X - radius);
-		destRECT.top = static_cast<LONG>(dest.Y - radius);
-		destRECT.right = static_cast<LONG>(dest.X + radius);
-		destRECT.bottom = static_cast<LONG>(dest.Y + radius);
-
-		::Ellipse(m_attributes->m_hdc, destRECT.left, destRECT.top, destRECT.right, destRECT.bottom);
-
-		::SelectObject(m_attributes->m_hdc, hOldPen);
-		::SelectObject(m_attributes->m_hdc, hOldBrush);
-
-		if (solid)
-		{
-			::DeleteObject(hFillBrush);
-		}
-		::DeleteObject(hBorderPen);*/
+		
 #endif
 	}
 
 	void Graphics::DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
-
-		HBRUSH hFillBrush = NULL;
-		if (solid)
-		{
-			hFillBrush = ::CreateSolidBrush(fillColor);
-		}
-		HPEN hBorderPen = ::CreatePen(PS_SOLID, 1, borderColor);
-		HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hBorderPen);
-
-		HBRUSH hOldBrush = NULL;
-		if (solid)
-		{
-			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hFillBrush);
-		}
-		else
-		{
-			HBRUSH hNullBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
-			hOldBrush = (HBRUSH)::SelectObject(m_attributes->m_hdc, hNullBrush);
-		}
-
-		RECT destRECT{};
-		destRECT.left = static_cast<LONG>(dest.X);
-		destRECT.top = static_cast<LONG>(dest.Y);
-		destRECT.right = static_cast<LONG>(dest.X + dest.Width);
-		destRECT.bottom = static_cast<LONG>(dest.Y + dest.Height);
-
-		::Ellipse(m_attributes->m_hdc, destRECT.left, destRECT.top, destRECT.right, destRECT.bottom);
 		
-		::SelectObject(m_attributes->m_hdc, hOldPen);
-		::SelectObject(m_attributes->m_hdc, hOldBrush);
-
-		if (solid)
-		{
-			::DeleteObject(hFillBrush);
-		}
-		::DeleteObject(hBorderPen);*/
 #endif
 	}
 
@@ -869,40 +484,29 @@ namespace Berta
 	void Graphics::Paste(API::NativeWindowHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!m_attributes->m_hdc)
-		{
-			return;
-		}
 
-		HDC dc = ::GetDC(destinationHandle.Handle);
-		if (dc)
-		{
-			if (!::BitBlt(dc, dx, dy, width, height, m_attributes->m_hdc, sx, sy, SRCCOPY))
-			{
-#ifdef BT_GRAPHICS_DEBUG_ERROR_MESSAGES
-				BT_CORE_ERROR << " Graphics / BitBlt-Paste ::GetLastError() = " << ::GetLastError() << std::endl;
-#endif
-			}
-
-			::ReleaseDC(destinationHandle.Handle, dc);
-		}*/
 #endif
 	}
 
 	void Graphics::Paste(API::RootBufferNativeHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
 		ID2D1Bitmap* pBitmap = nullptr;
 
-		if (SUCCEEDED(m_bitmapRT->GetBitmap(&pBitmap)))
+		if (SUCCEEDED(m_attributes->m_bitmapRT->GetBitmap(&pBitmap)))
 		{
 			destinationHandle.m_renderTarget->BeginDraw();
 
 			destinationHandle.m_renderTarget->DrawBitmap
 			(
 				pBitmap,
-				D2D1::RectF(dx, dy, dx + width, dy + height), 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-				D2D1::RectF(sx, sy, sx + width, sy + height)
+				D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height)), 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+				D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height))
 			);
 
 			auto hr = destinationHandle.m_renderTarget->EndDraw();
@@ -917,33 +521,29 @@ namespace Berta
 	void Graphics::Begin()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_bitmapRT)
+		if (!m_attributes->m_bitmapRT)
 		{
 			return;
 		}
-		//RECT rc = { 0, 0, m_size.Width, m_size.Height };
-		//auto hr = m_renderTarget->BindDC(m_attributes->m_hdc, &rc);
-
-		m_bitmapRT->BeginDraw();
-		m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
-		m_bitmapRT->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
+		
+		m_attributes->m_bitmapRT->BeginDraw();
+		m_attributes->m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
 #endif
 	}
 
 	void Graphics::Flush()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_bitmapRT)
+		if (!m_attributes->m_bitmapRT)
 		{
 			return;
 		}
 
-		auto hr = m_bitmapRT->EndDraw();
+		auto hr = m_attributes->m_bitmapRT->EndDraw();
 		if (FAILED(hr))
 		{
 			BT_CORE_ERROR << "error Bitmap EndDraw()" << std::endl;
 		}
-		//::GdiFlush();
 #endif
 	}
 
@@ -953,10 +553,7 @@ namespace Berta
 		std::swap(m_nativeWindowHandle, other.m_nativeWindowHandle);
 		std::swap(m_dpi, other.m_dpi);
 
-#ifdef BT_PLATFORM_WINDOWS
-		std::swap(m_bitmapRT, other.m_bitmapRT);
 		std::swap(m_attributes, other.m_attributes);
-#endif
 	}
 
 	Size Graphics::GetTextExtent(const std::wstring& wstr)
@@ -977,13 +574,7 @@ namespace Berta
 	void Graphics::Release()
 	{
 		m_attributes.reset();
-
-		if (m_bitmapRT)
-		{
-			m_bitmapRT->Release();
-			m_bitmapRT = nullptr;
-		}
-		
+				
 		m_size = Size::Zero;
 	}
 }

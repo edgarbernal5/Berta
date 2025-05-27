@@ -17,7 +17,6 @@
 namespace Berta
 {
 	class Graphics;
-	class RootBuffer;
 	struct ControlEvents;
 	struct ControlAppearance;
 	class DrawBatch;
@@ -33,6 +32,7 @@ namespace Berta
 	enum class DrawWindowStatus
 	{
 		None,
+		NeedUpdate,
 		Updated
 	};
 

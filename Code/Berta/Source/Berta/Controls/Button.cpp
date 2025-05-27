@@ -54,26 +54,21 @@ namespace Berta
 	{
 		m_status = State::Hovered;
 
-		graphics.Begin();
-		Update(graphics);
-		graphics.Flush();
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void ButtonReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Normal;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void ButtonReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Pressed;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 
 		GUI::Capture(*m_control);
 	}
@@ -91,8 +86,7 @@ namespace Berta
 
 		GUI::ReleaseCapture(*m_control);
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	Button::Button(Window* parent, const Rectangle& rectangle, const std::string& text)

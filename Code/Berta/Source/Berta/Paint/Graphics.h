@@ -16,7 +16,6 @@
 #ifdef BT_PLATFORM_WINDOWS
 #include "Berta/Platform/Windows/D2D.h"
 #endif
-#include <wrl/client.h>
 
 namespace Berta
 {
@@ -84,7 +83,7 @@ namespace Berta
 		const Size& GetSize() const { return m_size; }
 		const Size& GetTextExtent() const 
 		{
-			return Size{ 0,0 };
+			return m_attributes->m_textExtent;
 		}
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
@@ -106,21 +105,12 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_bitmapRT;
-			//return m_attributes != nullptr && m_attributes->m_hdc;
+			return m_attributes != nullptr && m_attributes->m_bitmapRT;
 #else
 			return m_attributes != nullptr;
 #endif
 		}
 	private:
-		//void EnableAntiAliasing(HDC hdc);
-
-#ifdef BT_PLATFORM_WINDOWS
-		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
-		
-		//ID2D1DCRenderTarget* m_renderTarget{ nullptr };
-		//Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> m_renderTarget;
-#endif
 
 		uint32_t m_dpi{ 96u };
 		uint32_t m_lastForegroundColor{ 0 };

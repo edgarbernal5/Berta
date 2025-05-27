@@ -106,8 +106,7 @@ namespace Berta
 		m_module.m_pressedArea = InteractionArea::None;
 		m_module.m_hoveredArea = hoveredArea;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(m_module.m_window);
+		GUI::MarkAsNeedUpdate(m_module.m_window);
 	}
 
 	void ListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -162,8 +161,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -341,8 +339,7 @@ namespace Berta
 		m_module.m_hoveredArea = hoveredArea;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -387,8 +384,7 @@ namespace Berta
 		m_module.m_pressedArea = InteractionArea::None;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -411,8 +407,7 @@ namespace Berta
 		m_module.m_hoveredArea = InteractionArea::None;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -439,19 +434,17 @@ namespace Berta
 				m_module.m_scrollBarVert->SetValue(newOffset);
 
 				m_module.m_scrollBarVert->Handle()->Renderer.Update();
-				GUI::MarkAsUpdated(m_module.m_scrollBarVert->Handle());
+				GUI::MarkAsNeedUpdate(m_module.m_scrollBarVert->Handle());
 			}
 			else
 			{
 				m_module.m_scrollOffset.X = newOffset;
 				m_module.m_scrollBarHoriz->SetValue(newOffset);
 
-				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
-				GUI::MarkAsUpdated(m_module.m_scrollBarHoriz->Handle());
+				GUI::MarkAsNeedUpdate(m_module.m_scrollBarHoriz->Handle());
 			}
 
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -553,8 +546,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 

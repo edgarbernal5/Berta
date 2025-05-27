@@ -411,7 +411,7 @@ namespace Berta::GUI
 		windowManager.UpdateTree(window, now);
 	}
 
-	void MarkAsUpdated(Window* window)
+	void MarkAsNeedUpdate(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -419,7 +419,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->DrawStatus = DrawWindowStatus::Updated;
+		window->DrawStatus = DrawWindowStatus::NeedUpdate;
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)
