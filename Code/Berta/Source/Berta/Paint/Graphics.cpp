@@ -96,6 +96,11 @@ namespace Berta
 			return;
 		}
 
+		if (!m_attributes)
+		{
+			m_attributes.reset(new PaintNativeHandle());
+		}
+
 		m_nativeWindowHandle = nativeWindowHandle;
 #ifdef BT_PLATFORM_WINDOWS
 
@@ -111,7 +116,7 @@ namespace Berta
 
 			HRESULT hr = m_nativeWindowHandle.m_renderTarget->CreateCompatibleRenderTarget
 			(
-				desiredSize,// D2D1::SizeU(0, 0), pixelFormat,
+				desiredSize, D2D1::SizeU(m_size.Width, m_size.Height), pixelFormat,
 				&m_attributes->m_bitmapRT
 			);
 
@@ -182,9 +187,10 @@ namespace Berta
 		ID2D1Bitmap* sourceBitmap = nullptr;
 		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
-			D2D1_SIZE_F sourceSize = sourceBitmap->GetSize();
-			D2D1_RECT_F destRect = D2D1::RectF(static_cast<FLOAT>(rectDestination.X), static_cast<FLOAT>(rectDestination.Y), static_cast<FLOAT>(rectDestination.X + sourceSize.width), static_cast<FLOAT>(rectDestination.Y + sourceSize.height));
-			D2D1_RECT_F srcRect = D2D1::RectF(static_cast<FLOAT>(pointSource.X), static_cast<FLOAT>(pointSource.Y), static_cast<FLOAT>(pointSource.X + sourceSize.width), static_cast<FLOAT>(pointSource.Y + sourceSize.height));
+			//D2D1_SIZE_F sourceSize = sourceBitmap->GetSize();
+			auto sourceSize = graphicsSource.GetSize();
+			D2D1_RECT_F destRect = D2D1::RectF(static_cast<FLOAT>(rectDestination.X), static_cast<FLOAT>(rectDestination.Y), static_cast<FLOAT>(rectDestination.X + sourceSize.Width), static_cast<FLOAT>(rectDestination.Y + sourceSize.Height));
+			D2D1_RECT_F srcRect = D2D1::RectF(static_cast<FLOAT>(pointSource.X), static_cast<FLOAT>(pointSource.Y), static_cast<FLOAT>(pointSource.X + sourceSize.Width), static_cast<FLOAT>(pointSource.Y + sourceSize.Height));
 			
 			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, srcRect);
 			sourceBitmap->Release();
@@ -515,16 +521,18 @@ namespace Berta
 			return;
 		}
 
-		ID2D1Bitmap* pBitmap = nullptr;
+		ID2D1Bitmap* sourceBitmap = nullptr;
 
-		if (SUCCEEDED(m_attributes->m_bitmapRT->GetBitmap(&pBitmap)))
+		if (SUCCEEDED(m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
 			destinationHandle.m_renderTarget->BeginDraw();
+			destinationHandle.m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 
 			destinationHandle.m_renderTarget->DrawBitmap
 			(
-				pBitmap,
-				D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height)), 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+				sourceBitmap,
+				D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height)),
+				1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 				D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height))
 			);
 

@@ -12,9 +12,8 @@
 #include "Berta/Core/Foundation.h"
 
 #ifdef BT_PLATFORM_WINDOWS
-
 #include "Berta/Platform/Windows/D2D.h"
-
+#include <comdef.h>
 #endif
 
 #include <stack>
@@ -89,9 +88,20 @@ namespace Berta
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 
 #ifdef BT_PLATFORM_WINDOWS
+			auto rtProps = D2D1::RenderTargetProperties();
+			rtProps.dpiX = BT_APPLICATION_DPI;
+			rtProps.dpiY = BT_APPLICATION_DPI;
+
+			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
+			(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			);
+			rtProps.pixelFormat = pixelFormat;
+
 			auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateHwndRenderTarget
 			(
-				D2D1::RenderTargetProperties(),
+				rtProps,
 				D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
 					D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
 				&window->RootBufferHandle.m_renderTarget
@@ -99,7 +109,8 @@ namespace Berta
 
 			if (FAILED(hr))
 			{
-				BT_CORE_ERROR << "Error creating render target hwnd." << std::endl;
+				_com_error err(hr);
+				BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
 			}
 
 			window->RootBufferHandle.m_hwnd = windowResult.WindowHandle.Handle;
