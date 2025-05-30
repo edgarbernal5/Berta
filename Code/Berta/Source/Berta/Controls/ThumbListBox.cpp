@@ -251,7 +251,6 @@ namespace Berta
 			m_module.m_scrollBar->Handle()->Renderer.Update();
 			GUI::MarkAsNeedUpdate(m_module.m_scrollBar->Handle());
 
-			Update(graphics);
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}

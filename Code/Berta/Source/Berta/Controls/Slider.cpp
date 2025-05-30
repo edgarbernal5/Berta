@@ -63,7 +63,7 @@ namespace Berta
 
 		auto window = m_control->Handle();
 		m_hoverArea = InteractionArea::None;
-		Update(graphics);
+
 		GUI::MarkAsNeedUpdate(window);
 	}
 
