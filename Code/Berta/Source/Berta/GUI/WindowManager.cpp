@@ -112,8 +112,6 @@ namespace Berta
 				_com_error err(hr);
 				BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
 			}
-
-			window->RootBufferHandle.m_hwnd = windowResult.WindowHandle.Handle;
 #endif
 			if (isNested)
 			{

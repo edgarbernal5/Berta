@@ -42,7 +42,6 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
-			HWND m_hwnd{ nullptr };
 #endif
 		};
 
