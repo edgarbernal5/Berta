@@ -221,12 +221,12 @@ namespace Berta
 		if (SUCCEEDED(hr))
 		{
 			D2D1_POINT_2F point1F;
-			point1F.x = static_cast<FLOAT>(point1.X);
-			point1F.y = static_cast<FLOAT>(point1.Y);
+			point1F.x = static_cast<FLOAT>(point1.X) + 0.5f;
+			point1F.y = static_cast<FLOAT>(point1.Y) + 0.5f;
 
 			D2D1_POINT_2F point2F;
-			point2F.x = static_cast<FLOAT>(point2.X);
-			point2F.y = static_cast<FLOAT>(point2.Y);
+			point2F.x = static_cast<FLOAT>(point2.X) + 0.5f;
+			point2F.y = static_cast<FLOAT>(point2.Y) + 0.5f;
 
 			if (style == LineStyle::Solid)
 			{
@@ -434,13 +434,18 @@ namespace Berta
 		auto radiusScaled = radius * scaleFactor;
 		D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect
 		(
-			D2D1::RectF(static_cast<FLOAT>(rect.X), static_cast<FLOAT>(rect.Y), static_cast<FLOAT>(rect.X + rect.Width), static_cast<FLOAT>(rect.Y + rect.Height)),
+			D2D1::RectF(static_cast<FLOAT>(rect.X) + 0.5f, static_cast<FLOAT>(rect.Y + 0.5f), 
+				static_cast<FLOAT>(rect.X + rect.Width), static_cast<FLOAT>(rect.Y + rect.Height)),
 			radiusScaled,
 			radiusScaled
 		);
 
 		ID2D1SolidColorBrush* brush;
 		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
+		if (FAILED(hr))
+		{
+			return;
+		}
 
 		ID2D1SolidColorBrush* brushBorder;
 		hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(bordercolor, &brushBorder);
@@ -456,10 +461,10 @@ namespace Berta
 
 				m_attributes->m_bitmapRT->DrawRoundedRectangle(&roundedRect, brushBorder);
 			}
-			brush->Release();
 			brushBorder->Release();
 		}
-		
+
+		brush->Release();
 #endif
 	}
 
