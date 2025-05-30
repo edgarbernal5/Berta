@@ -128,6 +128,17 @@ namespace Berta::GUI
 		return window->Flags.IsEnabled;
 	}
 
+	void RefreshWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+
+		windowManager.Refresh(window);
+	}
+
 	void ResizeWindow(Window* window, const Size& newSize)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

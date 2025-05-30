@@ -42,7 +42,36 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+
+			operator bool() const
+			{
+				return m_renderTarget != nullptr;
+			}
+			bool operator==(const RootBufferNativeHandle& other) const
+			{
+				return m_renderTarget == other.m_renderTarget;
+			}
+
+			bool operator!=(const RootBufferNativeHandle& other) const
+			{
+				return m_renderTarget != other.m_renderTarget;
+			}
+#else
+			operator bool() const
+			{
+				return false;
+			}
+			bool operator==(const RootBufferNativeHandle& other) const
+			{
+				return false;
+			}
+
+			bool operator!=(const RootBufferNativeHandle& other) const
+			{
+				return false;
+			}
 #endif
+
 		};
 
 		Size GetPaintHandleSize(PaintNativeHandle* handle);

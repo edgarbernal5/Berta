@@ -375,6 +375,14 @@ namespace Berta
 				child->RootHandle = window->RootHandle;
 				child->RootWindow = window->RootWindow;
 				child->RootGraphics = window->RootGraphics;
+
+				if (child->RootBufferHandle != window->RootBufferHandle)
+				{
+					child->RootBufferHandle = window->RootBufferHandle;
+					auto& graphics = child->Renderer.GetGraphics();
+					graphics.Rebuild(child->ClientSize, window->RootBufferHandle);
+					graphics.BuildFont(child->DPI);
+				}
 			}
 
 			SetParentInternal(child, newParent, deltaPosition);
@@ -582,6 +590,11 @@ namespace Berta
 #endif
 			//delete window; //TODO: place this deallocation in a safe place!
 		}
+	}
+
+	void WindowManager::Refresh(Window* window)
+	{
+		API::RefreshWindow(window->RootHandle);
 	}
 
 	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle) const
@@ -900,7 +913,7 @@ namespace Berta
 			if (sizeChanged)
 			{
 				window->ClientSize = newRect;
-				window->Renderer.GetGraphics().Rebuild(window->ClientSize);
+				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootBufferHandle);
 				//window->RootGraphics->Rebuild(window->ClientSize);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
@@ -1132,6 +1145,14 @@ namespace Berta
 			window->RootHandle = newParent->RootHandle;
 			window->RootWindow = newParent->RootWindow;
 			window->RootGraphics = newParent->RootGraphics;
+
+			if (window->RootBufferHandle != newParent->RootBufferHandle)
+			{
+				window->RootBufferHandle = newParent->RootBufferHandle;
+				auto& graphics = window->Renderer.GetGraphics();
+				graphics.Rebuild(window->ClientSize, newParent->RootBufferHandle);
+				graphics.BuildFont(window->DPI);
+			}
 		}
 		window->Position = { 0,0 };
 
@@ -1149,6 +1170,7 @@ namespace Berta
 			nativePosition -= deltaPosition;
 			API::MoveWindow(window->RootHandle, nativePosition);
 		}
+
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 

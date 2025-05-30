@@ -156,15 +156,15 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::Rebuild(const Size& size)
+	void Graphics::Rebuild(const Size& size, API::RootBufferNativeHandle nativeWindowHandle)
 	{
-		if (m_size == size)
+		if (m_size == size && m_nativeWindowHandle == nativeWindowHandle)
 		{
 			return;
 		}
 
 		Release();
-		Build(size, {});
+		Build(size, nativeWindowHandle);
 	}
 
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)

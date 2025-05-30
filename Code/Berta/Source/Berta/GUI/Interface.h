@@ -32,6 +32,7 @@ namespace Berta
 		void EnableWindow(Window* window, bool isEnabled);
 		bool EnableWindow(Window* window);
 
+		void RefreshWindow(Window* window);
 		void ResizeWindow(Window* window, const Size& newSize);
 		Size SizeWindow(Window* window);
 		bool MoveWindow(Window* window, const Rectangle& newRect, bool forceRepaint = true);

@@ -732,6 +732,8 @@ namespace Berta
 
 					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();
+
+					//GUI::RefreshWindow(nativeWindow);
 				}
 			}
 			else

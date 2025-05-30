@@ -55,7 +55,7 @@ namespace Berta
 
 		void Build(const Size& size, API::RootBufferNativeHandle nativeWindowHandle);
 		void BuildFont(uint32_t dpi);
-		void Rebuild(const Size& size);
+		void Rebuild(const Size& size, API::RootBufferNativeHandle nativeWindowHandle);
 		void Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		
