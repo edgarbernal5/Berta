@@ -184,6 +184,11 @@ namespace Berta
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
 	{
 #ifdef BT_PLATFORM_WINDOWS
+		if (!graphicsSource.m_attributes || !graphicsSource.m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
 		ID2D1Bitmap* sourceBitmap = nullptr;
 		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
@@ -608,6 +613,7 @@ namespace Berta
 		
 		m_attributes->m_bitmapRT->BeginDraw();
 		m_attributes->m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
+		m_attributes->m_bitmapRT->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
 #endif
 	}
 
