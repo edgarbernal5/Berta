@@ -471,7 +471,55 @@ namespace Berta
 	void Graphics::DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		if (!m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
+		D2D1_GRADIENT_STOP gradientStops[2];
+		gradientStops[0].position = 0.0f;
+		gradientStops[0].color = startColor;
+
+		gradientStops[1].position = 1.0f;
+		gradientStops[1].color = endColor;
+
+		ID2D1GradientStopCollection* pGradientStopCollection = nullptr;
+		auto hr = m_attributes->m_bitmapRT->CreateGradientStopCollection(
+			gradientStops,
+			2,
+			D2D1_GAMMA_2_2,
+			D2D1_EXTEND_MODE_CLAMP,
+			&pGradientStopCollection
+		);
+
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		ID2D1LinearGradientBrush* pLinearGradientBrush = nullptr;
+		D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES linearGradientBrushProperties =
+			D2D1::LinearGradientBrushProperties(
+				D2D1::Point2F(0, 0),
+				D2D1::Point2F(0, rect.Height)
+			);
+
+		hr = m_attributes->m_bitmapRT->CreateLinearGradientBrush(
+			linearGradientBrushProperties,
+			pGradientStopCollection,
+			&pLinearGradientBrush
+		);
+
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		D2D1_RECT_F d2dRect = rect;
+		m_attributes->m_bitmapRT->FillRectangle(&d2dRect, pLinearGradientBrush);
+
+		if (pLinearGradientBrush) pLinearGradientBrush->Release();
+		if (pGradientStopCollection) pGradientStopCollection->Release();
 #endif
 	}
 
