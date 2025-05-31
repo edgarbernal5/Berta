@@ -62,6 +62,15 @@ namespace Berta
 				imageData[i + 2] = i0;
 				imageData[i + 3] = i3;
 			}
+
+			for (size_t i = 0; i < totalBytes; i += 4)
+			{
+				unsigned char* pixel = &imageData[i];
+				float alpha = pixel[3] / 255.0f;
+				pixel[0] = static_cast<unsigned char>(pixel[0] * alpha);
+				pixel[1] = static_cast<unsigned char>(pixel[1] * alpha);
+				pixel[2] = static_cast<unsigned char>(pixel[2] * alpha);
+			}
 		}
 
 		m_colorBuffer.Create(m_size);
@@ -93,7 +102,13 @@ namespace Berta
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
 	{
 		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
-		
+
+		Rectangle validDestRect, validSourceDest;
+		if (!LayoutUtils::GetIntersectionClipRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
+		{
+			return;
+		}
+
 		if (m_bitmap)
 		{
 			m_bitmap->Release();
@@ -127,10 +142,10 @@ namespace Berta
 		handle->m_bitmapRT->DrawBitmap
 		(
 			m_bitmap,
-			D2D1::RectF(static_cast<FLOAT>(destinationRect.X), static_cast<FLOAT>(destinationRect.Y), static_cast<FLOAT>(destinationRect.X + destinationRect.Width), static_cast<FLOAT>(destinationRect.Y + destinationRect.Height)),
+			validDestRect,
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			D2D1::RectF(static_cast<FLOAT>(sourceRect.X), static_cast<FLOAT>(sourceRect.Y), static_cast<FLOAT>(sourceRect.X + sourceRect.Width), static_cast<FLOAT>(sourceRect.Y + sourceRect.Height))
+			validSourceDest
 		);
 	}
 

@@ -344,7 +344,7 @@ namespace Berta
 		}
 
 		D2D1_RECT_F d2dRect = rectangle;
-
+		
 		ID2D1SolidColorBrush* brush;
 		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
 
@@ -416,7 +416,61 @@ namespace Berta
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		// Compute triangle points based on direction
+		D2D1_POINT_2F p1, p2, p3;
+		Point center{};
+		center.X = (rect.X * 2 + rect.Width) >> 1;
+		center.Y = (rect.Y * 2 + rect.Height) >> 1;
+		switch (direction)
+		{
+		case ArrowDirection::Upwards:
+			p1 = D2D1::Point2F(center.X, center.Y - arrowLength ); // tip
+			p2 = D2D1::Point2F(center.X - arrowWidth , center.Y + arrowLength ); // left base
+			p3 = D2D1::Point2F(center.X + arrowWidth , center.Y + arrowLength ); // right base
+			break;
+
+		case ArrowDirection::Downwards:
+			p1 = D2D1::Point2F(center.X, center.Y + arrowLength ); // tip
+			p2 = D2D1::Point2F(center.X - arrowWidth , center.Y - arrowLength );
+			p3 = D2D1::Point2F(center.X + arrowWidth , center.Y - arrowLength );
+			break;
+
+		case ArrowDirection::Left:
+			p1 = D2D1::Point2F(center.X - arrowLength , center.Y); // tip
+			p2 = D2D1::Point2F(center.X + arrowLength , center.Y - arrowWidth );
+			p3 = D2D1::Point2F(center.X + arrowLength , center.Y + arrowWidth );
+			break;
+
+		case ArrowDirection::Right:
+			p1 = D2D1::Point2F(center.X + arrowLength , center.Y); // tip
+			p2 = D2D1::Point2F(center.X - arrowLength , center.Y - arrowWidth );
+			p3 = D2D1::Point2F(center.X - arrowLength , center.Y + arrowWidth );
+			break;
+		}
+
+		// Create path geometry for triangle
+		ID2D1PathGeometry* geometry = nullptr;
+		ID2D1GeometrySink* sink = nullptr;
+
+		DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&geometry);
+		geometry->Open(&sink);
+
+		sink->BeginFigure(p1, D2D1_FIGURE_BEGIN_FILLED);
+		sink->AddLine(p2);
+		sink->AddLine(p3);
+		sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+		sink->Close();
+
+		ID2D1SolidColorBrush* brush;
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(solidColor, &brush);
+
+		// Draw filled arrow
+		m_attributes->m_bitmapRT->FillGeometry(geometry, brush);
+
+		// Release resources
+		sink->Release();
+		geometry->Release();
+		brush->Release();
 #endif
 	}
 	

@@ -368,7 +368,6 @@ namespace Berta
 			m_value = newValue;
 			EmitValueChanged();
 
-			Update(window->Renderer.GetGraphics());
 			GUI::MarkAsNeedUpdate(window);
 		}
 	}
