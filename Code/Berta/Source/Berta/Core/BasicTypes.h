@@ -158,6 +158,9 @@ namespace Berta
 		::RECT ToRECT() const;
 #endif
 		bool IsInside(const Point& point) const;
+#ifdef BT_PLATFORM_WINDOWS
+		bool IsInside(const D2D1_POINT_2F& pointF) const;
+#endif
 		bool IsEmpty() const
 		{
 			return Width == 0 && Height == 0;

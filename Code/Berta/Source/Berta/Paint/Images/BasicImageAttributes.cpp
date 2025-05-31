@@ -63,6 +63,7 @@ namespace Berta
 				imageData[i + 3] = i3;
 			}
 
+			//Premultiplied alpha.
 			for (size_t i = 0; i < totalBytes; i += 4)
 			{
 				unsigned char* pixel = &imageData[i];

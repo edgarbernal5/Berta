@@ -169,16 +169,19 @@ namespace Berta
 
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
-		/*Rectangle sourceRect;
+		Rectangle sourceRect;
 		sourceRect.X = pointSource.X;
 		sourceRect.Y = pointSource.Y;
 		sourceRect.Width = blendDestRectangle.Width;
 		sourceRect.Height = blendDestRectangle.Height;
 
-		ColorBuffer destBuffer;
-		destBuffer.Attach(graphicsSource.GetHandle(), sourceRect);
+		ID2D1Bitmap* sourceBitmap = nullptr;
+		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
+		{
+			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, blendDestRectangle, static_cast<float>(alpha), D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, sourceRect);
 
-		destBuffer.Blend(sourceRect, m_attributes.get(), blendDestRectangle, 1.0 - alpha);*/
+			sourceBitmap->Release();
+		}
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
@@ -343,6 +346,12 @@ namespace Berta
 			return;
 		}
 
+		Rectangle output;
+		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, output))
+		{
+			return;
+		}
+
 		D2D1_RECT_F d2dRect = rectangle;
 		
 		ID2D1SolidColorBrush* brush;
@@ -416,39 +425,47 @@ namespace Berta
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		// Compute triangle points based on direction
+		Rectangle output;
+		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rect, output))
+		{
+			return;
+		}
+
 		D2D1_POINT_2F p1, p2, p3;
 		Point center{};
 		center.X = (rect.X * 2 + rect.Width) >> 1;
 		center.Y = (rect.Y * 2 + rect.Height) >> 1;
+
 		switch (direction)
 		{
 		case ArrowDirection::Upwards:
-			p1 = D2D1::Point2F(center.X, center.Y - arrowLength ); // tip
-			p2 = D2D1::Point2F(center.X - arrowWidth , center.Y + arrowLength ); // left base
-			p3 = D2D1::Point2F(center.X + arrowWidth , center.Y + arrowLength ); // right base
+			p1 = D2D1::Point2F(static_cast<float>(center.X), static_cast<float>(center.Y - arrowLength));
+			p2 = D2D1::Point2F(static_cast<float>(center.X - arrowWidth), static_cast<float>(center.Y + arrowLength));
+			p3 = D2D1::Point2F(static_cast<float>(center.X + arrowWidth), static_cast<float>(center.Y + arrowLength));
 			break;
 
 		case ArrowDirection::Downwards:
-			p1 = D2D1::Point2F(center.X, center.Y + arrowLength ); // tip
-			p2 = D2D1::Point2F(center.X - arrowWidth , center.Y - arrowLength );
-			p3 = D2D1::Point2F(center.X + arrowWidth , center.Y - arrowLength );
+			p1 = D2D1::Point2F(static_cast<float>(center.X), static_cast<float>(center.Y + arrowLength));
+			p2 = D2D1::Point2F(static_cast<float>(center.X - arrowWidth), static_cast<float>(center.Y - arrowLength));
+			p3 = D2D1::Point2F(static_cast<float>(center.X + arrowWidth), static_cast<float>(center.Y - arrowLength));
 			break;
 
 		case ArrowDirection::Left:
-			p1 = D2D1::Point2F(center.X - arrowLength , center.Y); // tip
-			p2 = D2D1::Point2F(center.X + arrowLength , center.Y - arrowWidth );
-			p3 = D2D1::Point2F(center.X + arrowLength , center.Y + arrowWidth );
+			p1 = D2D1::Point2F(static_cast<float>(center.X - arrowLength), static_cast<float>(center.Y));
+			p2 = D2D1::Point2F(static_cast<float>(center.X + arrowLength), static_cast<float>(center.Y - arrowWidth));
+			p3 = D2D1::Point2F(static_cast<float>(center.X + arrowLength), static_cast<float>(center.Y + arrowWidth));
 			break;
 
 		case ArrowDirection::Right:
-			p1 = D2D1::Point2F(center.X + arrowLength , center.Y); // tip
-			p2 = D2D1::Point2F(center.X - arrowLength , center.Y - arrowWidth );
-			p3 = D2D1::Point2F(center.X - arrowLength , center.Y + arrowWidth );
+			p1 = D2D1::Point2F(static_cast<float>(center.X + arrowLength), static_cast<float>(center.Y));
+			p2 = D2D1::Point2F(static_cast<float>(center.X - arrowLength), static_cast<float>(center.Y - arrowWidth));
+			p3 = D2D1::Point2F(static_cast<float>(center.X - arrowLength), static_cast<float>(center.Y + arrowWidth));
 			break;
 		}
 
-		// Create path geometry for triangle
+		if (!output.IsInside(p1) || !output.IsInside(p2) || !output.IsInside(p3))
+			return;
+
 		ID2D1PathGeometry* geometry = nullptr;
 		ID2D1GeometrySink* sink = nullptr;
 
@@ -483,6 +500,12 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
+		Rectangle output;
+		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rect, output))
 		{
 			return;
 		}
@@ -557,8 +580,8 @@ namespace Berta
 		ID2D1LinearGradientBrush* pLinearGradientBrush = nullptr;
 		D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES linearGradientBrushProperties =
 			D2D1::LinearGradientBrushProperties(
-				D2D1::Point2F(0, 0),
-				D2D1::Point2F(0, rect.Height)
+				D2D1::Point2F(0.0f, 0.0f),
+				D2D1::Point2F(0.0f, static_cast<float>(rect.Height))
 			);
 
 		hr = m_attributes->m_bitmapRT->CreateLinearGradientBrush(

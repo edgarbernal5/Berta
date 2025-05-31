@@ -42,8 +42,10 @@ namespace Berta
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
 			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootBufferHandle);
+			selectionBox.Begin();
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
+			selectionBox.Flush();
 
 			Rectangle blendRect{ startPoint.X + m_module.m_scrollOffset.X, startPoint.Y + m_module.m_scrollOffset.Y, boxSize.Width, boxSize.Height };
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
@@ -220,12 +222,15 @@ namespace Berta
 					draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootBufferHandle);
 					draggingBox.BuildFont(m_module.m_window->DPI);
 
+					draggingBox.Begin();
 					draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
-
+					
 					Rectangle textRect = columnRect;
 					textRect.X += (int)leftMarginTextHeader + textOffset;
 					textRect.Width -= leftMarginTextHeader * 2 + textOffset;
 					m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.m_name, false, textRect, m_module.m_appearance->SelectionHighlightColor);
+					
+					draggingBox.Flush();
 				}
 				m_module.m_headers.m_mouseDraggingPosition = args.Position.X;
 				m_module.m_headers.m_isDragging = true;

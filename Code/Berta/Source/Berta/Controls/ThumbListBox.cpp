@@ -91,8 +91,10 @@ namespace Berta
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
 			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootBufferHandle);
+			selectionBox.Begin();
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
+			selectionBox.Flush();
 
 			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
