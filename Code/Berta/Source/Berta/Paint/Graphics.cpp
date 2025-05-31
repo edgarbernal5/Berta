@@ -183,10 +183,14 @@ namespace Berta
 		sourceRect.Width = blendDestRectangle.Width;
 		sourceRect.Height = blendDestRectangle.Height;
 
+		Rectangle validDestRect, validSourceDest;
+		if (!LayoutUtils::GetIntersectionClipRect(sourceRect, graphicsSource.GetSize(), blendDestRectangle, GetSize(), validSourceDest, validDestRect))
+			return;
+
 		ID2D1Bitmap* sourceBitmap = nullptr;
 		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
-			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, blendDestRectangle, static_cast<float>(alpha), D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, sourceRect);
+			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, validDestRect, static_cast<float>(alpha), D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, validSourceDest);
 
 			sourceBitmap->Release();
 		}
@@ -666,15 +670,17 @@ namespace Berta
 
 		if (SUCCEEDED(m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
+			auto destRect = D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height));
+			auto sourceRect = D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height));
 			destinationHandle.m_renderTarget->BeginDraw();
 			destinationHandle.m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 
 			destinationHandle.m_renderTarget->DrawBitmap
 			(
 				sourceBitmap,
-				D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height)),
+				destRect,
 				1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-				D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height))
+				sourceRect
 			);
 
 			auto hr = destinationHandle.m_renderTarget->EndDraw();
