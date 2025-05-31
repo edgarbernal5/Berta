@@ -116,7 +116,9 @@ namespace Berta
 
 			HRESULT hr = m_nativeWindowHandle.m_renderTarget->CreateCompatibleRenderTarget
 			(
-				desiredSize, D2D1::SizeU(m_size.Width, m_size.Height), pixelFormat,
+				desiredSize, 
+				D2D1::SizeU(m_size.Width, m_size.Height), 
+				pixelFormat,
 				&m_attributes->m_bitmapRT
 			);
 
@@ -428,7 +430,6 @@ namespace Berta
 		DrawArrow(rect, arrowLength, arrowWidth, direction, borderColor, false, borderColor);
 	}
 
-//Version 2
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -695,7 +696,9 @@ namespace Berta
 		
 		m_attributes->m_bitmapRT->BeginDraw();
 		m_attributes->m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
+#ifdef BT_DEBUG
 		m_attributes->m_bitmapRT->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
+#endif
 #endif
 	}
 
