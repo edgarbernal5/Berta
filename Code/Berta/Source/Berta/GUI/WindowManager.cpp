@@ -254,6 +254,10 @@ namespace Berta
 		}
 
 		window->Renderer.GetGraphics().Release();
+		if (window->IsNative())
+		{
+			API::Dispose(window->RootBufferHandle);
+		}
 	}
 
 	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition, const Rectangle& containerRectangle)
@@ -578,18 +582,20 @@ namespace Berta
 
 	void WindowManager::Remove(Window* window)
 	{
-		if (window->IsNative())
+		if (!window->IsNative())
 		{
-			m_windowNativeRegistry.erase(window->RootHandle);
-			m_windowRegistry.erase(window);
-
-#if BT_DEBUG
-			//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
-#else
-			//BT_CORE_DEBUG << "    - Remove." << std::endl;
-#endif
-			//delete window; //TODO: place this deallocation in a safe place!
+			return;
 		}
+
+		m_windowNativeRegistry.erase(window->RootHandle);
+		m_windowRegistry.erase(window);
+#if BT_DEBUG
+		//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
+#else
+		//BT_CORE_DEBUG << "    - Remove." << std::endl;
+#endif
+		//delete window; //TODO: place this deallocation in a safe place!
+		
 	}
 
 	void WindowManager::Refresh(Window* window)
@@ -913,8 +919,17 @@ namespace Berta
 			if (sizeChanged)
 			{
 				window->ClientSize = newRect;
+
+#ifdef BT_PLATFORM_WINDOWS
+				auto hr = window->RootBufferHandle.m_renderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
+				if (FAILED(hr))
+				{
+					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+				}
+#endif
+
 				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootBufferHandle);
-				//window->RootGraphics->Rebuild(window->ClientSize);
+				window->RootGraphics->Rebuild(window->ClientSize, window->RootBufferHandle);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 

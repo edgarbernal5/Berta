@@ -13,7 +13,6 @@
 
 namespace Berta
 {
-
 	PaintNativeHandle::~PaintNativeHandle()
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -58,7 +57,7 @@ namespace Berta
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		IDWriteTextLayout* pTextLayout = nullptr;
+		IDWriteTextLayout* textLayout = nullptr;
 		
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
 		(
@@ -66,21 +65,33 @@ namespace Berta
 			static_cast<UINT32>(length),
 			handle->m_textFormat,
 			FLT_MAX, FLT_MAX, // Allow layout to determine its size
-			&pTextLayout
+			&textLayout
 		);
 
 		if (SUCCEEDED(hr))
 		{
 			DWRITE_TEXT_METRICS metrics = {};
-			pTextLayout->GetMetrics(&metrics);
+			textLayout->GetMetrics(&metrics);
 
-			pTextLayout->Release();
+			textLayout->Release();
 			return { static_cast<uint32_t>(metrics.width), static_cast<uint32_t>(metrics.height) };
 		}
 
 		return {};
 #else
 		return {};
+#endif
+	}
+
+	void API::Dispose(RootBufferNativeHandle& rootHandle)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (rootHandle)
+		{
+			rootHandle.m_renderTarget->Release();
+			rootHandle.m_renderTarget = nullptr;
+		}
+#else
 #endif
 	}
 }

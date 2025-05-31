@@ -41,8 +41,6 @@ namespace Berta
 		struct RootBufferNativeHandle
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
-
 			operator bool() const
 			{
 				return m_renderTarget != nullptr;
@@ -56,6 +54,8 @@ namespace Berta
 			{
 				return m_renderTarget != other.m_renderTarget;
 			}
+
+			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
 #else
 			operator bool() const
 			{
@@ -78,6 +78,8 @@ namespace Berta
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::string& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length);
+
+		void Dispose(RootBufferNativeHandle& rootHandle);
 	}
 }
 

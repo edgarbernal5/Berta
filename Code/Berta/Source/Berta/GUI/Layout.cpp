@@ -949,6 +949,7 @@ namespace Berta
 
 	void Layout::Print()
 	{
+#if BT_LAYOUT_PRINT_DEBUG
 		std::cout << "Print()" << std::endl;
 		if (!m_rootNode)
 		{
@@ -957,6 +958,7 @@ namespace Berta
 		}
 
 		Print(m_rootNode.get(), 0);
+#endif
 	}
 
 	void Layout::Print(LayoutNode* node, uint32_t level)
