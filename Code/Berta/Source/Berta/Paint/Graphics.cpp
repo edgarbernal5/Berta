@@ -192,10 +192,8 @@ namespace Berta
 		ID2D1Bitmap* sourceBitmap = nullptr;
 		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
-			//D2D1_SIZE_F sourceSize = sourceBitmap->GetSize();
-			auto sourceSize = graphicsSource.GetSize();
-			D2D1_RECT_F destRect = D2D1::RectF(static_cast<FLOAT>(rectDestination.X), static_cast<FLOAT>(rectDestination.Y), static_cast<FLOAT>(rectDestination.X + sourceSize.Width), static_cast<FLOAT>(rectDestination.Y + sourceSize.Height));
-			D2D1_RECT_F srcRect = D2D1::RectF(static_cast<FLOAT>(pointSource.X), static_cast<FLOAT>(pointSource.Y), static_cast<FLOAT>(pointSource.X + sourceSize.Width), static_cast<FLOAT>(pointSource.Y + sourceSize.Height));
+			D2D1_RECT_F destRect = rectDestination;
+			D2D1_RECT_F srcRect = D2D1::RectF(static_cast<FLOAT>(pointSource.X), static_cast<FLOAT>(pointSource.Y), static_cast<FLOAT>(pointSource.X + rectDestination.Width), static_cast<FLOAT>(pointSource.Y + rectDestination.Height));
 			
 			m_attributes->m_bitmapRT->DrawBitmap(sourceBitmap, destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, srcRect);
 			sourceBitmap->Release();
