@@ -169,6 +169,12 @@ namespace Berta
 
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
 		Rectangle sourceRect;
 		sourceRect.X = pointSource.X;
 		sourceRect.Y = pointSource.Y;
@@ -182,6 +188,7 @@ namespace Berta
 
 			sourceBitmap->Release();
 		}
+#endif
 	}
 
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
