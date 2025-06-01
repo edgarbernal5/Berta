@@ -86,7 +86,6 @@ namespace Berta
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedMap))
 			{
 				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
-				//::InvalidateRect(batchItem.Target->RootHandle.Handle, NULL, FALSE);
 			}
 
 			//if there are children, paste it too!
