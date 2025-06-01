@@ -261,6 +261,7 @@ namespace Berta
 	
 	struct Color
 	{
+		Color() = default;
 		Color(uint32_t colorBGR);
 
 		operator uint32_t() const;

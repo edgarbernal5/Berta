@@ -41,7 +41,7 @@ namespace Berta
 			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
-			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootBufferHandle);
+			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
 			selectionBox.Begin();
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
@@ -219,7 +219,7 @@ namespace Berta
 						columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
 					}
 
-					draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootBufferHandle);
+					draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootPaintHandle);
 					draggingBox.BuildFont(m_module.m_window->DPI);
 
 					draggingBox.Begin();

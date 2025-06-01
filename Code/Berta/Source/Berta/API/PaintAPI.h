@@ -16,13 +16,6 @@ namespace Berta
 	struct PaintNativeHandle
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*HDC m_hdc{ nullptr };
-		HBITMAP	m_hBitmap{ nullptr };
-		ColorABGR* m_bmpColorBuffer{ nullptr };
-		HFONT m_hFont{ nullptr };
-		uint32_t m_bytesPerLine{ 0 };
-		Size m_textExtent;*/
-
 		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		IDWriteTextFormat* m_textFormat{ nullptr };
 		Size m_textExtent;
@@ -38,35 +31,36 @@ namespace Berta
 
 	namespace API
 	{
-		struct RootBufferNativeHandle
+		struct RootPaintNativeHandle
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			operator bool() const
 			{
-				return m_renderTarget != nullptr;
-			}
-			bool operator==(const RootBufferNativeHandle& other) const
-			{
-				return m_renderTarget == other.m_renderTarget;
+				return RenderTarget != nullptr;
 			}
 
-			bool operator!=(const RootBufferNativeHandle& other) const
+			bool operator==(const RootPaintNativeHandle& other) const
 			{
-				return m_renderTarget != other.m_renderTarget;
+				return RenderTarget == other.RenderTarget;
 			}
 
-			ID2D1HwndRenderTarget* m_renderTarget{ nullptr };
+			bool operator!=(const RootPaintNativeHandle& other) const
+			{
+				return RenderTarget != other.RenderTarget;
+			}
+
+			ID2D1HwndRenderTarget* RenderTarget{ nullptr };
 #else
 			operator bool() const
 			{
 				return false;
 			}
-			bool operator==(const RootBufferNativeHandle& other) const
+			bool operator==(const RootPaintNativeHandle& other) const
 			{
 				return false;
 			}
 
-			bool operator!=(const RootBufferNativeHandle& other) const
+			bool operator!=(const RootPaintNativeHandle& other) const
 			{
 				return false;
 			}
@@ -79,7 +73,7 @@ namespace Berta
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length);
 
-		void Dispose(RootBufferNativeHandle& rootHandle);
+		void Dispose(RootPaintNativeHandle& rootHandle);
 	}
 }
 

@@ -39,6 +39,20 @@ namespace Berta
 
 			operator bool () const { return Handle != nullptr; }
 #else
+			constexpr bool operator<(const NativeWindowHandle& other) const
+			{
+				return false;
+		}
+
+			constexpr bool operator==(const NativeWindowHandle& other) const
+			{
+				return false;
+			}
+
+			constexpr bool operator!=(const NativeWindowHandle& other) const
+			{
+				return false;
+			}
 
 			operator bool() const { return false; }
 #endif

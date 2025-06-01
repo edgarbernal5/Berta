@@ -44,7 +44,7 @@ namespace Berta
 
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};
-		API::RootBufferNativeHandle RootBufferHandle{};
+		API::RootPaintNativeHandle RootPaintHandle{};
 
 #if BT_DEBUG
 		std::string Name;

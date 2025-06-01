@@ -30,7 +30,7 @@ namespace Berta
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		window->RootGraphics->Paste(window->RootBufferHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
+		window->RootGraphics->Paste(window->RootPaintHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
 	void Renderer::Update()

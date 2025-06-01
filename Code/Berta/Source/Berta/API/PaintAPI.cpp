@@ -64,7 +64,7 @@ namespace Berta
 			wstr.c_str(), 
 			static_cast<UINT32>(length),
 			handle->m_textFormat,
-			FLT_MAX, FLT_MAX, // Allow layout to determine its size
+			FLT_MAX, FLT_MAX,
 			&textLayout
 		);
 
@@ -74,7 +74,7 @@ namespace Berta
 			textLayout->GetMetrics(&metrics);
 
 			textLayout->Release();
-			return { static_cast<uint32_t>(metrics.width), static_cast<uint32_t>(metrics.height) };
+			return { static_cast<uint32_t>(std::ceilf(metrics.width)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
 		}
 
 		return {};
@@ -83,13 +83,13 @@ namespace Berta
 #endif
 	}
 
-	void API::Dispose(RootBufferNativeHandle& rootHandle)
+	void API::Dispose(RootPaintNativeHandle& rootHandle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (rootHandle)
 		{
-			rootHandle.m_renderTarget->Release();
-			rootHandle.m_renderTarget = nullptr;
+			rootHandle.RenderTarget->Release();
+			rootHandle.RenderTarget = nullptr;
 		}
 #else
 #endif

@@ -32,11 +32,11 @@ namespace Berta
 	{
 	}
 
-	Graphics::Graphics(const Size& size, uint32_t dpi, API::RootBufferNativeHandle nativeHandle) :
+	Graphics::Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle) :
 		m_attributes(new PaintNativeHandle()),
 		m_dpi(dpi)
 	{
-		Build(size, nativeHandle);
+		Build(size, rootPaintHandle);
 	}
 
 	/*Graphics::Graphics(const Graphics& other)
@@ -47,7 +47,7 @@ namespace Berta
 		m_attributes(std::move(other.m_attributes)),
 		m_dpi(other.m_dpi),
 		m_size(other.m_size),
-		m_nativeWindowHandle(other.m_nativeWindowHandle)
+		m_rootPaintNativeHandle(other.m_rootPaintNativeHandle)
 	{
 		other.m_attributes.reset(new PaintNativeHandle());
 	}
@@ -82,7 +82,7 @@ namespace Berta
 		return *this;
 	}
 
-	void Graphics::Build(const Size& size, API::RootBufferNativeHandle nativeWindowHandle)
+	void Graphics::Build(const Size& size, API::RootPaintNativeHandle rootPaintHandle)
 	{
 		if (m_size == size)
 		{
@@ -101,7 +101,7 @@ namespace Berta
 			m_attributes.reset(new PaintNativeHandle());
 		}
 
-		m_nativeWindowHandle = nativeWindowHandle;
+		m_rootPaintNativeHandle = rootPaintHandle;
 #ifdef BT_PLATFORM_WINDOWS
 
 		if (m_attributes->m_bitmapRT == nullptr)
@@ -114,7 +114,7 @@ namespace Berta
 				D2D1_ALPHA_MODE_PREMULTIPLIED
 			);
 
-			HRESULT hr = m_nativeWindowHandle.m_renderTarget->CreateCompatibleRenderTarget
+			auto hr = m_rootPaintNativeHandle.RenderTarget->CreateCompatibleRenderTarget
 			(
 				desiredSize, 
 				D2D1::SizeU(m_size.Width, m_size.Height), 
@@ -158,15 +158,15 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::Rebuild(const Size& size, API::RootBufferNativeHandle nativeWindowHandle)
+	void Graphics::Rebuild(const Size& size, API::RootPaintNativeHandle rootPaintHandle)
 	{
-		if (m_size == size && m_nativeWindowHandle == nativeWindowHandle)
+		if (m_size == size && m_rootPaintNativeHandle == rootPaintHandle)
 		{
 			return;
 		}
 
 		Release();
-		Build(size, nativeWindowHandle);
+		Build(size, rootPaintHandle);
 	}
 
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
@@ -325,24 +325,12 @@ namespace Berta
 	void Graphics::DrawBeginLine(const Point& point, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (m_attributes->m_hdc)
-		{
-			HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), 1, color);
-			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
-
-			::MoveToEx(m_attributes->m_hdc, point.X, point.Y, 0);
-		}*/
 #endif
 	}
 
 	void Graphics::DrawLineTo(const Point& point, const Color& color)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		//if (!m_attributes->m_hdc)
-		//{
-		//	return;
-		//}
-		//::LineTo(m_attributes->m_hdc, point.X, point.Y);
 #endif
 	}
 
@@ -359,13 +347,13 @@ namespace Berta
 			return;
 		}
 
-		Rectangle output;
-		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, output))
+		Rectangle validRectangle;
+		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, validRectangle))
 		{
 			return;
 		}
 
-		D2D1_RECT_F d2dRect = rectangle;
+		D2D1_RECT_F d2dRect = validRectangle;
 		
 		ID2D1SolidColorBrush* brush;
 		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
@@ -404,8 +392,8 @@ namespace Berta
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = static_cast<FLOAT>(position.X);
 		d2dRect.top = static_cast<FLOAT>(position.Y);
-		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width + 1);
-		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height + 1);
+		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width);
+		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height);
 
 		ID2D1SolidColorBrush* brush;
 		m_attributes->m_bitmapRT->CreateSolidColorBrush(color,
@@ -434,7 +422,7 @@ namespace Berta
 		DrawArrow(rect, arrowLength, arrowWidth, direction, borderColor, false, borderColor);
 	}
 
-	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor)
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		Rectangle output;
@@ -475,31 +463,54 @@ namespace Berta
 			break;
 		}
 
-		if (!output.IsInside(p1) || !output.IsInside(p2) || !output.IsInside(p3))
+		if (!output.IsInside(p1) && !output.IsInside(p2) && !output.IsInside(p3))
 			return;
 
 		ID2D1PathGeometry* geometry = nullptr;
 		ID2D1GeometrySink* sink = nullptr;
 
-		DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&geometry);
-		geometry->Open(&sink);
+		auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&geometry);
+		if (FAILED(hr))
+		{
+			return;
+		}
 
-		sink->BeginFigure(p1, D2D1_FIGURE_BEGIN_FILLED);
+		hr = geometry->Open(&sink);
+		if (FAILED(hr))
+		{
+			geometry->Release();
+			return;
+		}
+
+		sink->BeginFigure(p1, solid ? D2D1_FIGURE_BEGIN_FILLED : D2D1_FIGURE_BEGIN_HOLLOW);
 		sink->AddLine(p2);
 		sink->AddLine(p3);
 		sink->EndFigure(D2D1_FIGURE_END_CLOSED);
 		sink->Close();
 
-		ID2D1SolidColorBrush* brush;
-		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(solidColor, &brush);
+		ID2D1SolidColorBrush* borderBrush;
+		hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(borderColor, &borderBrush);
 
-		// Draw filled arrow
-		m_attributes->m_bitmapRT->FillGeometry(geometry, brush);
+		if (SUCCEEDED(hr))
+		{
+			if (solid)
+			{
+				ID2D1SolidColorBrush* solidBrush;
+				hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(solidColor, &solidBrush);
+				if (SUCCEEDED(hr))
+				{
+					m_attributes->m_bitmapRT->FillGeometry(geometry, solidBrush);
+					solidBrush->Release();
+				}
+			}
 
-		// Release resources
+			m_attributes->m_bitmapRT->DrawGeometry(geometry, borderBrush, strokeWidth);
+
+			borderBrush->Release();
+
+		}
 		sink->Release();
 		geometry->Release();
-		brush->Release();
 #endif
 	}
 	
@@ -627,17 +638,68 @@ namespace Berta
 		
 	}
 
-	void Graphics::DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid)
+	void Graphics::DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(dest.X, dest.Y), radius, radius);
+
+		ID2D1SolidColorBrush* borderBrush;
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(borderColor, &borderBrush);
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		if (solid)
+		{
+			ID2D1SolidColorBrush* fillBrush;
+			hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(fillColor, &fillBrush);
+			if (FAILED(hr))
+			{
+				borderBrush->Release();
+				return;
+			}
+
+			m_attributes->m_bitmapRT->FillEllipse(ellipse, fillBrush);
+			fillBrush->Release();
+		}
+
+		m_attributes->m_bitmapRT->DrawEllipse(ellipse, borderBrush, strokeWidth);
+
+		borderBrush->Release();
 #endif
 	}
 
-	void Graphics::DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid)
+	void Graphics::DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		
+		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>((dest.X * 2 + dest.Width)>> 1), static_cast<FLOAT>((dest.Y * 2 + dest.Height) >> 1)), 
+			static_cast<FLOAT>(dest.Width >> 1), static_cast<FLOAT>(dest.Height >> 1));
+
+		ID2D1SolidColorBrush* borderBrush;
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(borderColor, &borderBrush);
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		if (solid)
+		{
+			ID2D1SolidColorBrush* fillBrush;
+			hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(fillColor, &fillBrush);
+			if (FAILED(hr))
+			{
+				borderBrush->Release();
+				return;
+			}
+
+			m_attributes->m_bitmapRT->FillEllipse(ellipse, fillBrush);
+			fillBrush->Release();
+		}
+
+		m_attributes->m_bitmapRT->DrawEllipse(ellipse, borderBrush, strokeWidth);
+
+		borderBrush->Release();
 #endif
 	}
 
@@ -646,7 +708,7 @@ namespace Berta
 		Paste(destinationHandle, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
 	}
 
-	void Graphics::Paste(API::RootBufferNativeHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
+	void Graphics::Paste(API::RootPaintNativeHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
 	{
 		Paste(destinationHandle, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
 	}
@@ -658,7 +720,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::Paste(API::RootBufferNativeHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
+	void Graphics::Paste(API::RootPaintNativeHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_bitmapRT)
@@ -667,15 +729,14 @@ namespace Berta
 		}
 
 		ID2D1Bitmap* sourceBitmap = nullptr;
-
 		if (SUCCEEDED(m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
 		{
 			auto destRect = D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height));
 			auto sourceRect = D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height));
-			destinationHandle.m_renderTarget->BeginDraw();
-			destinationHandle.m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-
-			destinationHandle.m_renderTarget->DrawBitmap
+			
+			destinationHandle.RenderTarget->BeginDraw();
+			destinationHandle.RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+			destinationHandle.RenderTarget->DrawBitmap
 			(
 				sourceBitmap,
 				destRect,
@@ -683,10 +744,10 @@ namespace Berta
 				sourceRect
 			);
 
-			auto hr = destinationHandle.m_renderTarget->EndDraw();
+			auto hr = destinationHandle.RenderTarget->EndDraw();
 			if (FAILED(hr))
 			{
-				BT_CORE_ERROR << "error paste EndDraw()" << std::endl;
+				BT_CORE_ERROR << "Error on Paste method, EndDraw()" << std::endl;
 			}
 		}
 #endif
@@ -725,7 +786,7 @@ namespace Berta
 	void Graphics::Swap(Graphics& other)
 	{
 		std::swap(m_size, other.m_size);
-		std::swap(m_nativeWindowHandle, other.m_nativeWindowHandle);
+		std::swap(m_rootPaintNativeHandle, other.m_rootPaintNativeHandle);
 		std::swap(m_dpi, other.m_dpi);
 
 		std::swap(m_attributes, other.m_attributes);

@@ -28,7 +28,7 @@ namespace Berta
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size, window->DPI, window->RootBufferHandle)
+		RootGraphics(size, window->DPI, window->RootPaintHandle)
 	{
 	}
 
@@ -104,7 +104,7 @@ namespace Berta
 				rtProps,
 				D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
 					D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
-				&window->RootBufferHandle.m_renderTarget
+				&window->RootPaintHandle.RenderTarget
 			);
 
 			if (FAILED(hr))
@@ -166,7 +166,7 @@ namespace Berta
 			window->DPIScaleFactor = parent->DPIScaleFactor;
 			window->RootWindow = parent->RootWindow;
 			window->RootHandle = parent->RootHandle;
-			window->RootBufferHandle = parent->RootBufferHandle;
+			window->RootPaintHandle = parent->RootPaintHandle;
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
@@ -256,7 +256,7 @@ namespace Berta
 		window->Renderer.GetGraphics().Release();
 		if (window->IsNative())
 		{
-			API::Dispose(window->RootBufferHandle);
+			API::Dispose(window->RootPaintHandle);
 		}
 	}
 
@@ -380,11 +380,11 @@ namespace Berta
 				child->RootWindow = window->RootWindow;
 				child->RootGraphics = window->RootGraphics;
 
-				if (child->RootBufferHandle != window->RootBufferHandle)
+				if (child->RootPaintHandle != window->RootPaintHandle)
 				{
-					child->RootBufferHandle = window->RootBufferHandle;
+					child->RootPaintHandle = window->RootPaintHandle;
 					auto& graphics = child->Renderer.GetGraphics();
-					graphics.Rebuild(child->ClientSize, window->RootBufferHandle);
+					graphics.Rebuild(child->ClientSize, window->RootPaintHandle);
 					graphics.BuildFont(child->DPI);
 				}
 			}
@@ -843,7 +843,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		if (window->Type == WindowType::Form)
 		{
-			auto hr = window->RootBufferHandle.m_renderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
+			auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
 			if (FAILED(hr))
 			{
 				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
@@ -855,13 +855,13 @@ namespace Berta
 		Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
-			newGraphics.Build(newSize, window->RootBufferHandle);
+			newGraphics.Build(newSize, window->RootPaintHandle);
 			newGraphics.BuildFont(window->DPI);
 			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 			if (window->Type == WindowType::Form)
 			{
-				newRootGraphics.Build(newSize, window->RootBufferHandle);
+				newRootGraphics.Build(newSize, window->RootPaintHandle);
 				newRootGraphics.BuildFont(window->DPI);
 				newRootGraphics.Begin();
 				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
@@ -921,15 +921,15 @@ namespace Berta
 				window->ClientSize = newRect;
 
 #ifdef BT_PLATFORM_WINDOWS
-				auto hr = window->RootBufferHandle.m_renderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
+				auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
 				if (FAILED(hr))
 				{
 					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
 				}
 #endif
 
-				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootBufferHandle);
-				window->RootGraphics->Rebuild(window->ClientSize, window->RootBufferHandle);
+				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
+				window->RootGraphics->Rebuild(window->ClientSize, window->RootPaintHandle);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
@@ -1059,7 +1059,7 @@ namespace Berta
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
-			graphics.Build(window->ClientSize, window->RootBufferHandle);
+			graphics.Build(window->ClientSize, window->RootPaintHandle);
 			graphics.BuildFont(newDPI);
 		}
 
@@ -1161,11 +1161,11 @@ namespace Berta
 			window->RootWindow = newParent->RootWindow;
 			window->RootGraphics = newParent->RootGraphics;
 
-			if (window->RootBufferHandle != newParent->RootBufferHandle)
+			if (window->RootPaintHandle != newParent->RootPaintHandle)
 			{
-				window->RootBufferHandle = newParent->RootBufferHandle;
+				window->RootPaintHandle = newParent->RootPaintHandle;
 				auto& graphics = window->Renderer.GetGraphics();
-				graphics.Rebuild(window->ClientSize, newParent->RootBufferHandle);
+				graphics.Rebuild(window->ClientSize, newParent->RootPaintHandle);
 				graphics.BuildFont(window->DPI);
 			}
 		}
