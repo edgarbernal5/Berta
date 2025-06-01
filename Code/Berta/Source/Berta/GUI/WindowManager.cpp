@@ -820,7 +820,7 @@ namespace Berta
 			if (windowToUpdate)
 			{
 				UpdateTree(windowToUpdate);
-				if (!windowToUpdate->IsBatchActive())
+				if (windowToUpdate->IsVisible() && !windowToUpdate->IsBatchActive())
 				{
 					auto position = GetAbsoluteRootPosition(windowToUpdate);
 					Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };

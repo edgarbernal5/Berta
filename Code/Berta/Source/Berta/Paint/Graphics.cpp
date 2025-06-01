@@ -702,9 +702,6 @@ namespace Berta
 		
 		m_attributes->m_bitmapRT->BeginDraw();
 		m_attributes->m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
-#ifdef BT_DEBUG
-		m_attributes->m_bitmapRT->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
-#endif
 #endif
 	}
 

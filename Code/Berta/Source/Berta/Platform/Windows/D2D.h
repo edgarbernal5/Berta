@@ -29,6 +29,7 @@ namespace Berta::DirectX
 		{
 			return m_dWriteFactory;
 		}
+
 		static D2DModule& GetInstance()
 		{
 			static D2DModule d2dModule;
@@ -39,10 +40,6 @@ namespace Berta::DirectX
 		ID2D1Factory* m_factory{ nullptr };
 		IDWriteFactory* m_dWriteFactory{ nullptr };
 	};
-
-	//D2DHandle g_d2dHandle{};
-
-	//void InitDirect2D();
 }
 #endif
 
