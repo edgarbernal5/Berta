@@ -76,10 +76,12 @@ namespace Berta
 		{
 			return;
 		}
-
+		auto savedIndex = m_module.m_interactionData.m_selectedItemIndex;
 		m_module.SelectIndex(-1);
-
-		GUI::MarkAsNeedUpdate(m_module.m_owner);
+		if (savedIndex != -1)
+		{
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
+		}
 	}
 
 	void MenuBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
