@@ -219,6 +219,9 @@
     <ClInclude Include="Source\Berta\Core\Base.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Platform\Windows\D2D.h">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

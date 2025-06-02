@@ -13,6 +13,7 @@
 #include <cmath>
 
 #if BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
 #include <comdef.h>
 #endif
 
