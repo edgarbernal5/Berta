@@ -194,8 +194,6 @@ namespace Berta
 	void MenuBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		if (!graphics.IsEnabledAliasing())
-			graphics.EnabledAliasing(true);
 
 		graphics.DrawRectangle(window->Appearance->MenuBackground, true);
 
@@ -260,12 +258,18 @@ namespace Berta
 				}
 			}
 		}
+		bool wasEnabledAliasing = graphics.IsEnabledAliasing();
+		if (!wasEnabledAliasing)
+			graphics.EnabledAliasing(true);
 
 		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 		if (m_menuBarItemRect.Width > 0)
 		{
 			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appearance->MenuBackground);
 		}
+
+		if (!wasEnabledAliasing)
+			graphics.EnabledAliasing(false);
 	}
 
 	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

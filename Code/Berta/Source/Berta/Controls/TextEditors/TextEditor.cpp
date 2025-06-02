@@ -423,7 +423,7 @@ namespace Berta
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->ClientSize.Height - 2 }, { 0 });
+			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->ClientSize.Height - 2 }, m_owner->Appearance->Foreground2nd );
 		}
 	}
 
