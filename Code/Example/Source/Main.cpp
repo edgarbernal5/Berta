@@ -391,7 +391,7 @@ int main()
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
 	Berta::Label label(form, { 10,28,75,35 }, L"Hello world!");
-	label.GetAppearance().Background = Berta::Color{ 0x0000FF };
+	label.GetAppearance().Background = Berta::Color{ 0xFF0000FF };
 
 	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
 		{
