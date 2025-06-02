@@ -262,7 +262,7 @@ namespace Berta
 	struct Color
 	{
 		Color() = default;
-		Color(uint32_t colorBGR);
+		Color(uint32_t colorABGR);
 
 		operator uint32_t() const;
 #ifdef BT_PLATFORM_WINDOWS

@@ -60,12 +60,13 @@ namespace Berta
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
 		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style = LineStyle::Solid);
-		void DrawLine(const Point& point1, const Point& point2, int lineWidth, const Color& color, LineStyle style = LineStyle::Solid);
+		void DrawLine(const Point& point1, const Point& point2, float strokeWidth, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawBeginLine(const Point& point, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawLineTo(const Point& point, const Color& color);
 
-		void DrawRectangle(const Color& color, bool solid);
-		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid);
+		void DrawRectangle(const Color& color, bool solid, float strokeWidth = 1.0f);
+		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth = 1.0f);
+		void DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth = 1.0f);
 		void DrawString(const Point& position, const std::wstring& str, const Color& color);
 		void DrawString(const Point& position, const std::string& str, const Color& color);
 
@@ -74,8 +75,6 @@ namespace Berta
 		void DrawRoundRectBox(const Rectangle& rect, const Color& color, const Color& bordercolor, bool solid);
 		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid);
 		void DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor);
-		void DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor);
-		void DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize);
 		void DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 		void DrawEllipse(const Rectangle& rect, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 

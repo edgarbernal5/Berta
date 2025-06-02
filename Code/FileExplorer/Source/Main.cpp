@@ -306,6 +306,12 @@ int main()
 		Berta::GUI::Exit();
 	});
 
+	auto& menuHelp = menuBar.PushBack(L"Help");
+	menuHelp.Append("About", [](Berta::MenuItem& item)
+	{
+			
+	});
+
 	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
 
 	tabbar.PushBack<TabExplorer>("Explorer");

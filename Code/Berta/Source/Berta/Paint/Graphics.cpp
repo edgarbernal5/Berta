@@ -223,10 +223,10 @@ namespace Berta
 
 	void Graphics::DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style)
 	{
-		DrawLine(point1, point2, 1, color, style);
+		DrawLine(point1, point2, 1.0f, color, style);
 	}
 
-	void Graphics::DrawLine(const Point& point1, const Point& point2, int lineWidth, const Color& color, LineStyle style)
+	void Graphics::DrawLine(const Point& point1, const Point& point2, float strokeWidth, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes)
@@ -249,13 +249,14 @@ namespace Berta
 
 			if (style == LineStyle::Solid)
 			{
-				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush);
+				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush, strokeWidth);
 			}
 			else
 			{
 				ID2D1StrokeStyle* strokeStyle = nullptr;
 
-				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties(
+				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties
+				(
 					D2D1_CAP_STYLE_ROUND,      // startCap
 					D2D1_CAP_STYLE_ROUND,      // endCap
 					D2D1_CAP_STYLE_FLAT,       // dashCap
@@ -264,61 +265,14 @@ namespace Berta
 					D2D1_DASH_STYLE_DASH,      // dashStyle
 					0.0f                       // dashOffset
 				);
+
 				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, nullptr, 0, &strokeStyle);
-				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush, 1.0f, strokeStyle);
+				m_attributes->m_bitmapRT->DrawLine(point1F, point2F, brush, strokeWidth, strokeStyle);
 
 				strokeStyle->Release();
 			}
 			brush->Release();
 		}
-
-		/*if (style == LineStyle::Dotted)
-		{
-			int dx = point2.X - point1.X;
-			int dy = point2.Y - point1.Y;
-
-			int absDx = abs(dx);
-			int absDy = abs(dy);
-
-			int steps = max(absDx, absDy);
-
-			float xInc = dx / static_cast<float>(steps);
-			float yInc = dy / static_cast<float>(steps);
-
-			float x = static_cast<float>(point1.X);
-			float y = static_cast<float>(point1.Y);
-
-			auto stepsWidth = steps / lineWidth;
-			for (int i = 0; i <= stepsWidth; ++i)
-			{
-				if (i % 2 == 0)
-				{
-					int xx = static_cast<int>(x + 0.5f);
-					int yy = static_cast<int>(y + 0.5f);
-					for (int ii = 0; ii < lineWidth; ii++)
-					{
-						for (int jj = 0; jj < lineWidth; jj++)
-						{
-							::SetPixel(m_attributes->m_hdc, xx + jj, yy + ii, color);
-						}
-					}
-				}
-				x += xInc * lineWidth;
-				y += yInc * lineWidth;
-			}
-		}
-		else
-		{
-			HPEN hPen = ::CreatePen(style == LineStyle::Solid ? PS_SOLID : (style == LineStyle::Dash ? PS_DASH : PS_DOT), lineWidth, color);
-
-			HPEN hOldPen = (HPEN)::SelectObject(m_attributes->m_hdc, hPen);
-
-			::MoveToEx(m_attributes->m_hdc, point1.X, point1.Y, 0);
-			::LineTo(m_attributes->m_hdc, point2.X, point2.Y);
-
-			::SelectObject(m_attributes->m_hdc, hOldPen);
-			::DeleteObject(hPen);
-		}*/
 #endif
 	}
 
@@ -334,12 +288,51 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawRectangle(const Color& color, bool solid)
+	void Graphics::DrawRectangle(const Color& color, bool solid, float strokeWidth)
 	{
-		DrawRectangle(m_size.ToRectangle(), color, solid);
+		DrawRectangle(m_size.ToRectangle(), color, solid, strokeWidth);
 	}
 
-	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid)
+	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_attributes->m_bitmapRT)
+		{
+			return;
+		}
+
+		Rectangle validRectangle;
+		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, validRectangle))
+		{
+			return;
+		}
+
+		D2D1_RECT_F d2dRect = validRectangle;
+
+		ID2D1SolidColorBrush* brush;
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
+
+		if (SUCCEEDED(hr))
+		{
+			if (solid)
+			{
+				m_attributes->m_bitmapRT->FillRectangle(&d2dRect, brush);
+			}
+			else
+			{
+				d2dRect.left += 0.5f;
+				d2dRect.top += 0.5f;
+				d2dRect.right -= 0.5f;
+				d2dRect.bottom -= 0.5f;
+
+				m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, brush);
+			}
+			brush->Release();
+		}
+#endif
+	}
+
+	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_attributes->m_bitmapRT)
@@ -355,21 +348,30 @@ namespace Berta
 
 		D2D1_RECT_F d2dRect = validRectangle;
 		
-		ID2D1SolidColorBrush* brush;
-		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(color, &brush);
+		ID2D1SolidColorBrush* borderBrush;
+		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(borderColor, &borderBrush);
 
 		if (SUCCEEDED(hr))
 		{
 			if (solid)
 			{
-				m_attributes->m_bitmapRT->FillRectangle(&d2dRect, brush);
+				ID2D1SolidColorBrush* solidBrush;
+				hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(solidColor, &solidBrush);
+				if (SUCCEEDED(hr))
+				{
+					m_attributes->m_bitmapRT->FillRectangle(&d2dRect, solidBrush);
+					solidBrush->Release();
+				}
 			}
-			else
-			{
-				m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, brush);
-			}
+			
+			d2dRect.left += 0.5f;
+			d2dRect.top += 0.5f;
+			d2dRect.right -= 0.5f;
+			d2dRect.bottom -= 0.5f;
 
-			brush->Release();
+			m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, borderBrush);
+
+			borderBrush->Release();
 		}
 #endif
 	}
@@ -537,8 +539,8 @@ namespace Berta
 		auto radiusScaled = radius * scaleFactor;
 		D2D1_ROUNDED_RECT roundedRect = D2D1::RoundedRect
 		(
-			D2D1::RectF(static_cast<FLOAT>(rect.X) + 0.5f, static_cast<FLOAT>(rect.Y + 0.5f), 
-				static_cast<FLOAT>(rect.X + rect.Width), static_cast<FLOAT>(rect.Y + rect.Height)),
+			D2D1::RectF(static_cast<FLOAT>(rect.X) + 0.5f, static_cast<FLOAT>(rect.Y + 0.5f),
+				static_cast<FLOAT>(rect.X + rect.Width) - 0.5f, static_cast<FLOAT>(rect.Y + rect.Height) - 0.5f),
 			radiusScaled,
 			radiusScaled
 		);
@@ -626,22 +628,10 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawButton(const Rectangle& rect, const Color& startColor, const Color& endColor, const Color& borderColor)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-		
-#endif
-	}
-
-	void Graphics::DrawRoundedRectWithShadow(const Rectangle& rect, int radius, int shadowSize)
-	{
-		
-	}
-
 	void Graphics::DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(dest.X, dest.Y), radius, radius);
+		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(dest.X, dest.Y), static_cast<float>(radius), static_cast<float>(radius));
 
 		ID2D1SolidColorBrush* borderBrush;
 		auto hr = m_attributes->m_bitmapRT->CreateSolidColorBrush(borderColor, &borderBrush);

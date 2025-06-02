@@ -135,12 +135,12 @@ namespace Berta
 		return os;
 	}
 
-	Color::Color(uint32_t colorBGR)
+	Color::Color(uint32_t colorABGR)
 	{
-		A = (uint8_t)((colorBGR & 0xFF000000) >> 24);
-		B = (uint8_t)((colorBGR & 0x00FF0000) >> 16);
-		G = (uint8_t)((colorBGR & 0x0000FF00) >> 8);
-		R = (uint8_t)((colorBGR & 0x000000FF));
+		A = (uint8_t)((colorABGR & 0xFF000000) >> 24);
+		B = (uint8_t)((colorABGR & 0x00FF0000) >> 16);
+		G = (uint8_t)((colorABGR & 0x0000FF00) >> 8);
+		R = (uint8_t)((colorABGR & 0x000000FF));
 	}
 
 	Color::operator uint32_t() const
