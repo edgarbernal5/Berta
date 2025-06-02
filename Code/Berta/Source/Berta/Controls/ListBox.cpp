@@ -1062,7 +1062,7 @@ namespace Berta
 		int sortedHeaderMargin = m_window->ToScale(4);
 		int arrowSortedHeaderSize = m_window->ToScale(6);
 		graphics.DrawGradientFill({ 0,0, m_window->ClientSize.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
-		graphics.DrawLine({ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, 1 }, { m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
+		graphics.DrawLine({ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, 0 }, { m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
 		
 		Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X, m_viewport.m_backgroundRect.Y };
 
