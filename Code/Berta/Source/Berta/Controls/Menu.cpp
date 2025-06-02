@@ -194,6 +194,8 @@ namespace Berta
 	void MenuBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
+		if (!graphics.IsEnabledAliasing())
+			graphics.EnabledAliasing(true);
 
 		graphics.DrawRectangle(window->Appearance->MenuBackground, true);
 

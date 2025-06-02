@@ -804,4 +804,20 @@ namespace Berta
 				
 		m_size = Size::Zero;
 	}
+
+	bool Graphics::IsEnabledAliasing()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		return m_attributes->m_bitmapRT->GetAntialiasMode() == D2D1_ANTIALIAS_MODE_ALIASED;
+#else
+		return false;
+#endif
+	}
+
+	void Graphics::EnabledAliasing(bool enabled)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		m_attributes->m_bitmapRT->SetAntialiasMode(enabled ? D2D1_ANTIALIAS_MODE_ALIASED : D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+#endif
+	}
 }

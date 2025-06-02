@@ -95,6 +95,8 @@ namespace Berta
 
 		void Swap(Graphics& other);
 		void Release();
+		bool IsEnabledAliasing();
+		void EnabledAliasing(bool enabled);
 
 		bool IsValid() const
 		{
