@@ -9,6 +9,10 @@
 
 #include <cstdint>
 
+#ifdef BT_PLATFORM_WINDOWS
+#include <d2d1.h>
+#endif
+
 namespace Berta
 {
 	struct Size;
@@ -154,6 +158,9 @@ namespace Berta
 		::RECT ToRECT() const;
 #endif
 		bool IsInside(const Point& point) const;
+#ifdef BT_PLATFORM_WINDOWS
+		bool IsInside(const D2D1_POINT_2F& pointF) const;
+#endif
 		bool IsEmpty() const
 		{
 			return Width == 0 && Height == 0;
@@ -179,6 +186,10 @@ namespace Berta
 
 		operator Size() const;
 		operator Point() const;
+#ifdef BT_PLATFORM_WINDOWS
+		operator D2D1_RECT_F() const;
+#endif
+
 	};
 
 	struct Size
@@ -250,9 +261,13 @@ namespace Berta
 	
 	struct Color
 	{
-		Color(uint32_t colorBGR);
+		Color() = default;
+		Color(uint32_t colorABGR);
 
 		operator uint32_t() const;
+#ifdef BT_PLATFORM_WINDOWS
+		operator D2D1_COLOR_F() const;
+#endif
 
 	private:
 		unsigned char R{ 255 };

@@ -32,6 +32,7 @@ namespace Berta
 	enum class DrawWindowStatus
 	{
 		None,
+		NeedUpdate,
 		Updated
 	};
 
@@ -43,6 +44,7 @@ namespace Berta
 
 		WindowType Type;
 		API::NativeWindowHandle RootHandle{};
+		API::RootPaintNativeHandle RootPaintHandle{};
 
 #if BT_DEBUG
 		std::string Name;

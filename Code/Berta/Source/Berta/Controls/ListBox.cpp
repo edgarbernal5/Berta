@@ -41,9 +41,11 @@ namespace Berta
 			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
-			Graphics selectionBox(boxSize, m_module.m_window->DPI);
+			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
+			selectionBox.Begin();
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
+			selectionBox.Flush();
 
 			Rectangle blendRect{ startPoint.X + m_module.m_scrollOffset.X, startPoint.Y + m_module.m_scrollOffset.Y, boxSize.Width, boxSize.Height };
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
@@ -106,8 +108,7 @@ namespace Berta
 		m_module.m_pressedArea = InteractionArea::None;
 		m_module.m_hoveredArea = hoveredArea;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(m_module.m_window);
+		GUI::MarkAsNeedUpdate(m_module.m_window);
 	}
 
 	void ListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -162,8 +163,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -219,15 +219,18 @@ namespace Berta
 						columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
 					}
 
-					draggingBox.Build({ columnRect.Width, columnRect.Height });
+					draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootPaintHandle);
 					draggingBox.BuildFont(m_module.m_window->DPI);
 
+					draggingBox.Begin();
 					draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
-
+					
 					Rectangle textRect = columnRect;
 					textRect.X += (int)leftMarginTextHeader + textOffset;
 					textRect.Width -= leftMarginTextHeader * 2 + textOffset;
 					m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.m_name, false, textRect, m_module.m_appearance->SelectionHighlightColor);
+					
+					draggingBox.Flush();
 				}
 				m_module.m_headers.m_mouseDraggingPosition = args.Position.X;
 				m_module.m_headers.m_isDragging = true;
@@ -341,8 +344,7 @@ namespace Berta
 		m_module.m_hoveredArea = hoveredArea;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -387,8 +389,7 @@ namespace Berta
 		m_module.m_pressedArea = InteractionArea::None;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -411,8 +412,7 @@ namespace Berta
 		m_module.m_hoveredArea = InteractionArea::None;
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_window);
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -439,19 +439,17 @@ namespace Berta
 				m_module.m_scrollBarVert->SetValue(newOffset);
 
 				m_module.m_scrollBarVert->Handle()->Renderer.Update();
-				GUI::MarkAsUpdated(m_module.m_scrollBarVert->Handle());
+				GUI::MarkAsNeedUpdate(m_module.m_scrollBarVert->Handle());
 			}
 			else
 			{
 				m_module.m_scrollOffset.X = newOffset;
 				m_module.m_scrollBarHoriz->SetValue(newOffset);
 
-				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
-				GUI::MarkAsUpdated(m_module.m_scrollBarHoriz->Handle());
+				GUI::MarkAsNeedUpdate(m_module.m_scrollBarHoriz->Handle());
 			}
 
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -553,8 +551,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 

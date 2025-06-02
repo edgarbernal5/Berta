@@ -71,10 +71,9 @@ namespace Berta
 			return;
 		}
 
-		auto window = m_control->Handle();
 		m_hoverArea = InteractionArea::None;
-		Update(graphics);
-		GUI::MarkAsUpdated(window);
+		auto window = m_control->Handle();
+		GUI::MarkAsNeedUpdate(window);
 	}
 
 	void ScrollBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -125,8 +124,7 @@ namespace Berta
 			if (m_hoverArea != newHoverArea)
 			{
 				m_hoverArea = newHoverArea;
-				Update(graphics);
-				GUI::MarkAsUpdated(window);
+				GUI::MarkAsNeedUpdate(window);
 			}
 		}
 		else if (args.ButtonState.LeftButton && m_pressedArea == InteractionArea::Scrollbox)
@@ -159,8 +157,7 @@ namespace Berta
 			m_hoverArea = DetermineHoverArea(args.Position);
 		}
 
-		Update(graphics);
-		GUI::MarkAsUpdated(window);
+		GUI::MarkAsNeedUpdate(window);
 	}
 
 	void ScrollBarReactor::SetOrientation(bool isVertical)
@@ -371,8 +368,7 @@ namespace Berta
 			m_value = newValue;
 			EmitValueChanged();
 
-			Update(window->Renderer.GetGraphics());
-			GUI::MarkAsUpdated(window);
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 

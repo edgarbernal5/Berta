@@ -80,7 +80,7 @@ namespace Berta
 
 			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor, false);
-			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)m_module.m_viewport.m_cardSize.Width, cardRect.Y + (int)thumbSize }, lineColor);
+			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSize }, { cardRect.X + (int)m_module.m_viewport.m_cardSize.Width - 1, cardRect.Y + (int)thumbSize }, lineColor);
 		}
 
 		if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
@@ -90,9 +90,11 @@ namespace Berta
 			m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 			Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
-			Graphics selectionBox(boxSize, m_module.m_window->DPI);
+			Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
+			selectionBox.Begin();
 			selectionBox.DrawRectangle(blendColor, true);
 			selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
+			selectionBox.Flush();
 
 			Rectangle blendRect{ startPoint.X, startPoint.Y + m_module.m_state.m_offset, boxSize.Width, boxSize.Height};
 			graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
@@ -149,8 +151,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -199,8 +200,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -229,8 +229,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -252,10 +251,9 @@ namespace Berta
 			m_module.m_scrollBar->SetValue(m_module.m_state.m_offset);
 
 			m_module.m_scrollBar->Handle()->Renderer.Update();
-			GUI::MarkAsUpdated(m_module.m_scrollBar->Handle());
+			GUI::MarkAsNeedUpdate(m_module.m_scrollBar->Handle());
 
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -382,8 +380,7 @@ namespace Berta
 
 		if (needUpdate)
 		{
-			Update(graphics);
-			GUI::MarkAsUpdated(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 

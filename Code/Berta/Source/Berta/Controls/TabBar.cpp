@@ -141,8 +141,7 @@ namespace Berta
 			ArgTabBar argsTabBar{ newSelectedTabItem->Id };
 			m_module.m_events->TabChanged.Emit(argsTabBar);
 
-			Update(graphics);
-			GUI::MarkAsUpdated(m_module.m_owner);
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 	}
 

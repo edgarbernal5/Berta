@@ -102,10 +102,10 @@ namespace Berta
     }
 
     ColorBuffer::Storage::Storage(PaintNativeHandle* paintHandle, const Rectangle& targetRect) :
-        m_paintHandle(paintHandle),
-        m_bytesPerLine(paintHandle->m_bytesPerLine),
-        m_buffer(paintHandle->m_bmpColorBuffer),
-        m_size(API::GetPaintHandleSize(paintHandle))
+        m_paintHandle(paintHandle)
+        //m_bytesPerLine(paintHandle->m_bytesPerLine),
+        //m_buffer(paintHandle->m_bmpColorBuffer),
+        //m_size(API::GetPaintHandleSize(paintHandle))
     {
     }
 

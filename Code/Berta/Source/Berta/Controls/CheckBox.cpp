@@ -58,24 +58,21 @@ namespace Berta
 	{
 		m_status = State::Hovered;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void CheckBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Normal;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void CheckBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_status = State::Pressed;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 
 		GUI::Capture(*m_control);
 	}
@@ -95,8 +92,7 @@ namespace Berta
 
 		GUI::ReleaseCapture(*m_control);
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void CheckBoxReactor::Module::EmitCheckedChangedEvent()

@@ -418,12 +418,12 @@ namespace Berta
 
 				SetArea(newSplitterArea);
 
-				BT_CORE_TRACE << " -- CHANGING..." << std::endl;
+				//BT_CORE_TRACE << " -- CHANGING..." << std::endl;
 				m_containerNode->CalculateAreas();
 
 				auto windowToUpdate = m_containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
 				GUI::UpdateTree(windowToUpdate);
-				BT_CORE_TRACE << " -- CHANGED..." << std::endl;
+				//BT_CORE_TRACE << " -- CHANGED..." << std::endl;
 			});
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
@@ -584,8 +584,7 @@ namespace Berta
 		}
 		m_buttonStatus = State::Pressed;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -599,8 +598,7 @@ namespace Berta
 		if (prevStatus == m_buttonStatus)
 			return;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -612,8 +610,7 @@ namespace Berta
 
 		m_mouseDownCloseButton = false;
 
-		Update(graphics);
-		GUI::MarkAsUpdated(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void DockAreaCaptionReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -735,6 +732,8 @@ namespace Berta
 
 					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();
+
+					//GUI::RefreshWindow(nativeWindow);
 				}
 			}
 			else

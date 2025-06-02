@@ -26,6 +26,9 @@ namespace Berta
 	private:
 		void ReleaseNativeObjects();
 
+#if BT_PLATFORM_WINDOWS
+		ID2D1Bitmap* m_bitmap{ nullptr };
+#endif
 		Size m_size{};
 		int m_channels{ 0 };
 		bool m_hasTransparency{ false };

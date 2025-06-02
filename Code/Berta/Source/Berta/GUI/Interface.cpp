@@ -128,6 +128,17 @@ namespace Berta::GUI
 		return window->Flags.IsEnabled;
 	}
 
+	void RefreshWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+
+		windowManager.Refresh(window);
+	}
+
 	void ResizeWindow(Window* window, const Size& newSize)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -307,9 +318,11 @@ namespace Berta::GUI
 		}
 
 		auto& graphics = window->Renderer.GetGraphics();
-		graphics.Build(window->ClientSize);
+		graphics.Build(window->ClientSize, window->RootPaintHandle);
 		graphics.BuildFont(window->DPI);
+		graphics.Begin();
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
+		graphics.Flush();
 
 		window->Renderer.Init(*control, controlReactor);
 		window->Renderer.Update();
@@ -409,7 +422,7 @@ namespace Berta::GUI
 		windowManager.UpdateTree(window, now);
 	}
 
-	void MarkAsUpdated(Window* window)
+	void MarkAsNeedUpdate(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -417,7 +430,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->DrawStatus = DrawWindowStatus::Updated;
+		window->DrawStatus = DrawWindowStatus::NeedUpdate;
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)

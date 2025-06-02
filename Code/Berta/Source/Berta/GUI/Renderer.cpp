@@ -30,7 +30,7 @@ namespace Berta
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		window->RootGraphics->Paste(window->RootHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
+		window->RootGraphics->Paste(window->RootPaintHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
 	void Renderer::Update()
@@ -43,6 +43,7 @@ namespace Berta
 		if (m_controlReactor && !m_updating && m_graphics.IsValid())
 		{
 			m_updating = true;
+			m_graphics.Begin();
 			m_controlReactor->Update(m_graphics);
 			m_graphics.Flush();
 			m_updating = false;

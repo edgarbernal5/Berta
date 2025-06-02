@@ -50,7 +50,7 @@ public:
 		Panel(parent)
 	{
 		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 });
-		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xAB20CC };
+		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xFFAB20CC };
 
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 		{

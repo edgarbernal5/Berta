@@ -61,8 +61,7 @@ namespace Berta
 		GUI::Capture(*m_control);
 
 		m_textEditor->OnMouseDown(args);
-		m_control->Handle()->Renderer.Update();
-		GUI::MarkAsUpdated(m_control->Handle());
+		GUI::MarkAsNeedUpdate(m_control->Handle());
 	}
 
 	void InputTextReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -70,8 +69,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		
 		m_textEditor->OnMouseMove(args);
-		window->Renderer.Update();
-		GUI::MarkAsUpdated(window);
+		GUI::MarkAsNeedUpdate(window);
 	}
 
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -92,8 +90,7 @@ namespace Berta
 		if (m_textEditor->OnKeyChar(args))
 		{
 			GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
-			m_control->Handle()->Renderer.Update();
-			GUI::MarkAsUpdated(m_control->Handle());
+			GUI::MarkAsNeedUpdate(m_control->Handle());
 		}
 	}
 
@@ -103,8 +100,7 @@ namespace Berta
 		if (redraw)
 		{
 			auto window = m_control->Handle();
-			window->Renderer.Update();
-			GUI::MarkAsUpdated(window);
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 
@@ -118,8 +114,7 @@ namespace Berta
 		if (m_textEditor->OnDblClick(args))
 		{
 			auto window = m_control->Handle();
-			window->Renderer.Update();
-			GUI::MarkAsUpdated(window);
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 

@@ -56,6 +56,7 @@ namespace Berta
 		void Destroy(Window* window);
 		void Dispose(Window* window);
 		void Remove(Window* window);
+		void Refresh(Window* window);
 		Window* Get(API::NativeWindowHandle nativeWindowHandle) const;
 		FormData* GetFormData(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(Window* window) const;

@@ -47,6 +47,13 @@ namespace Berta
 		return (X <= point.X && point.X <= X + static_cast<int>(Width) && Y <= point.Y && point.Y <= Y + static_cast<int>(Height));
 	}
 
+#ifdef BT_PLATFORM_WINDOWS
+	bool Rectangle::IsInside(const D2D1_POINT_2F& pointF) const
+	{
+		return (X <= pointF.x && pointF.x <= static_cast<float>(X + Width) && Y <= pointF.y && pointF.y <= static_cast<float>(Y + Height));
+	}
+#endif
+
 	bool Rectangle::Intersect(const Rectangle& other) const
 	{
 		return !(this->X + (int)this->Width <= other.X || other.X + (int)other.Width <= this->X ||
@@ -68,6 +75,13 @@ namespace Berta
 	{
 		return { X, Y };
 	}
+
+#ifdef BT_PLATFORM_WINDOWS
+	Rectangle::operator D2D1_RECT_F() const
+	{
+		return { static_cast<FLOAT>(X), static_cast<FLOAT>(Y), static_cast<FLOAT>(X + Width), static_cast<FLOAT>(Y + Height) };
+	}
+#endif
 
 	Size Size::operator-(const Size& other) const
 	{
@@ -121,12 +135,12 @@ namespace Berta
 		return os;
 	}
 
-	Color::Color(uint32_t colorBGR)
+	Color::Color(uint32_t colorABGR)
 	{
-		A = (uint8_t)((colorBGR & 0xFF000000) >> 24);
-		B = (uint8_t)((colorBGR & 0x00FF0000) >> 16);
-		G = (uint8_t)((colorBGR & 0x0000FF00) >> 8);
-		R = (uint8_t)((colorBGR & 0x000000FF));
+		A = (uint8_t)((colorABGR & 0xFF000000) >> 24);
+		B = (uint8_t)((colorABGR & 0x00FF0000) >> 16);
+		G = (uint8_t)((colorABGR & 0x0000FF00) >> 8);
+		R = (uint8_t)((colorABGR & 0x000000FF));
 	}
 
 	Color::operator uint32_t() const
@@ -135,6 +149,16 @@ namespace Berta
 		return BT_WINDOWS_ABGR(R, G, B, A);
 #endif
 		return 0;
+	}
+
+	Color::operator D2D1_COLOR_F() const
+	{
+		D2D1_COLOR_F color;
+		color.a = A / 255.0f;
+		color.r = R / 255.0f;
+		color.g = G / 255.0f;
+		color.b = B / 255.0f;
+		return color;
 	}
 
 	FormStyle FormStyle::Float()

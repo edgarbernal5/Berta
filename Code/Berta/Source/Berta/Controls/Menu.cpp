@@ -278,8 +278,7 @@ namespace Berta
 		if (changes)
 		{
 			auto window = m_control->Handle();
-			Update(graphics);
-			GUI::MarkAsUpdated(window);
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 
@@ -309,8 +308,7 @@ namespace Berta
 		if (changes)
 		{
 			auto window = m_control->Handle();
-			Update(graphics);
-			GUI::MarkAsUpdated(window);
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 

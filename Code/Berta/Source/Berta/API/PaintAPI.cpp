@@ -7,30 +7,26 @@
 #include "btpch.h"
 #include "PaintAPI.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+#endif
+
 namespace Berta
 {
-
 	PaintNativeHandle::~PaintNativeHandle()
 	{
-		m_size = Size::Zero;
-
 #ifdef BT_PLATFORM_WINDOWS
-		if (m_hdc)
+
+		if (m_bitmapRT)
 		{
-			::DeleteDC(m_hdc);
-			m_hdc = nullptr;
+			m_bitmapRT->Release();
+			m_bitmapRT = nullptr;
 		}
 
-		if (m_hBitmap)
+		if (m_textFormat)
 		{
-			::DeleteObject(m_hBitmap);
-			m_hBitmap = nullptr;
-		}
-
-		if (m_hFont)
-		{
-			::DeleteObject(m_hFont);
-			m_hFont = nullptr;
+			m_textFormat->Release();
+			m_textFormat = nullptr;
 		}
 #endif
 	}
@@ -38,10 +34,11 @@ namespace Berta
 	Size API::GetPaintHandleSize(PaintNativeHandle* handle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		::BITMAP bmp;
-		::GetObject(handle->m_hBitmap, sizeof bmp, &bmp);
+		//::BITMAP bmp;
+		//::GetObject(handle->m_hBitmap, sizeof bmp, &bmp);
 
-		return Size(static_cast<uint32_t>(bmp.bmWidth), static_cast<uint32_t>(bmp.bmHeight));
+		//return Size(static_cast<uint32_t>(bmp.bmWidth), static_cast<uint32_t>(bmp.bmHeight));
+		return {};
 #else
 		return {};
 #endif
@@ -60,23 +57,41 @@ namespace Berta
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!handle->m_hdc || wstr.size() == 0)
-		{
-			return {};
-		}
+		IDWriteTextLayout* textLayout = nullptr;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.c_str(), 
+			static_cast<UINT32>(length),
+			handle->m_textFormat,
+			FLT_MAX, FLT_MAX,
+			&textLayout
+		);
 
-		HFONT oldFont = (HFONT)::SelectObject(handle->m_hdc, handle->m_hFont);
-		::SIZE nativeSize;
-		if (::GetTextExtentPoint32(handle->m_hdc, wstr.c_str(), static_cast<int>(length), &nativeSize))
+		if (SUCCEEDED(hr))
 		{
-			::SelectObject(handle->m_hdc, oldFont);
-			return Size(nativeSize.cx, nativeSize.cy);
+			DWRITE_TEXT_METRICS metrics = {};
+			textLayout->GetMetrics(&metrics);
+
+			textLayout->Release();
+			return { static_cast<uint32_t>(std::ceilf(metrics.width)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
 		}
-		::SelectObject(handle->m_hdc, oldFont);
 
 		return {};
 #else
 		return {};
+#endif
+	}
+
+	void API::Dispose(RootPaintNativeHandle& rootHandle)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (rootHandle)
+		{
+			rootHandle.RenderTarget->Release();
+			rootHandle.RenderTarget = nullptr;
+		}
+#else
 #endif
 	}
 }

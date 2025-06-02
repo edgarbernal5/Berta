@@ -40,6 +40,7 @@ namespace Berta
 namespace Berta::StringUtils
 {
 	std::wstring Convert(const std::string& str);
+	std::string Convert(const std::wstring& str);
 
 	std::vector<std::string> Split(const std::string& str, char delimiter);
 	std::vector<std::wstring> Split(const std::wstring& str, wchar_t delimiter);

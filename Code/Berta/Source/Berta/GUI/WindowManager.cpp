@@ -11,6 +11,11 @@
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+#include <comdef.h>
+#endif
+
 #include <stack>
 
 namespace Berta
@@ -23,7 +28,7 @@ namespace Berta
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size, window->DPI)
+		RootGraphics(size, window->DPI, window->RootPaintHandle)
 	{
 	}
 
@@ -82,6 +87,32 @@ namespace Berta
 			window->DPI = windowResult.DPI;
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 
+#ifdef BT_PLATFORM_WINDOWS
+			auto rtProps = D2D1::RenderTargetProperties();
+			rtProps.dpiX = BT_APPLICATION_DPI;
+			rtProps.dpiY = BT_APPLICATION_DPI;
+
+			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
+			(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			);
+			rtProps.pixelFormat = pixelFormat;
+
+			auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateHwndRenderTarget
+			(
+				rtProps,
+				D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
+					D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
+				&window->RootPaintHandle.RenderTarget
+			);
+
+			if (FAILED(hr))
+			{
+				_com_error err(hr);
+				BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
+			}
+#endif
 			if (isNested)
 			{
 				window->Parent = parent;
@@ -135,6 +166,7 @@ namespace Berta
 			window->DPIScaleFactor = parent->DPIScaleFactor;
 			window->RootWindow = parent->RootWindow;
 			window->RootHandle = parent->RootHandle;
+			window->RootPaintHandle = parent->RootPaintHandle;
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
@@ -222,6 +254,10 @@ namespace Berta
 		}
 
 		window->Renderer.GetGraphics().Release();
+		if (window->IsNative())
+		{
+			API::Dispose(window->RootPaintHandle);
+		}
 	}
 
 	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition, const Rectangle& containerRectangle)
@@ -343,6 +379,14 @@ namespace Berta
 				child->RootHandle = window->RootHandle;
 				child->RootWindow = window->RootWindow;
 				child->RootGraphics = window->RootGraphics;
+
+				if (child->RootPaintHandle != window->RootPaintHandle)
+				{
+					child->RootPaintHandle = window->RootPaintHandle;
+					auto& graphics = child->Renderer.GetGraphics();
+					graphics.Rebuild(child->ClientSize, window->RootPaintHandle);
+					graphics.BuildFont(child->DPI);
+				}
 			}
 
 			SetParentInternal(child, newParent, deltaPosition);
@@ -497,12 +541,14 @@ namespace Berta
 		auto container = window->FindFirstPanelOrFormAncestor();
 		auto containerPosition = GetAbsoluteRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+		rootGraphics.Begin();
 		if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 		{
 			rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
 		}
 
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, containerRectangle);
+		rootGraphics.Flush();
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -536,18 +582,25 @@ namespace Berta
 
 	void WindowManager::Remove(Window* window)
 	{
-		if (window->IsNative())
+		if (!window->IsNative())
 		{
-			m_windowNativeRegistry.erase(window->RootHandle);
-			m_windowRegistry.erase(window);
-
-#if BT_DEBUG
-			//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
-#else
-			//BT_CORE_DEBUG << "    - Remove." << std::endl;
-#endif
-			//delete window; //TODO: place this deallocation in a safe place!
+			return;
 		}
+
+		m_windowNativeRegistry.erase(window->RootHandle);
+		m_windowRegistry.erase(window);
+#if BT_DEBUG
+		//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
+#else
+		//BT_CORE_DEBUG << "    - Remove." << std::endl;
+#endif
+		//delete window; //TODO: place this deallocation in a safe place!
+		
+	}
+
+	void WindowManager::Refresh(Window* window)
+	{
+		API::RefreshWindow(window->RootHandle);
 	}
 
 	Window* WindowManager::Get(API::NativeWindowHandle nativeWindowHandle) const
@@ -704,7 +757,7 @@ namespace Berta
 		{
 			window->Renderer.Update();
 			window->DrawStatus = DrawWindowStatus::Updated;
-
+			rootGraphics.Begin();
 			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{
 				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
@@ -719,6 +772,11 @@ namespace Berta
 		}
 
 		UpdateTreeInternal(window, rootGraphics, now, absolutePosition, containerRectangle);
+
+		if (now || !window->IsBatchActive())
+		{
+			rootGraphics.Flush();
+		}
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -762,7 +820,7 @@ namespace Berta
 			if (windowToUpdate)
 			{
 				UpdateTree(windowToUpdate);
-				if (!windowToUpdate->IsBatchActive())
+				if (windowToUpdate->IsVisible() && !windowToUpdate->IsBatchActive())
 				{
 					auto position = GetAbsoluteRootPosition(windowToUpdate);
 					Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
@@ -782,19 +840,32 @@ namespace Berta
 
 		window->ClientSize = newSize;
 
+#ifdef BT_PLATFORM_WINDOWS
+		if (window->Type == WindowType::Form)
+		{
+			auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+			}
+		}
+#endif
+
 		Graphics newGraphics;
 		Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
 		{
-			newGraphics.Build(newSize);
+			newGraphics.Build(newSize, window->RootPaintHandle);
 			newGraphics.BuildFont(window->DPI);
 			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 			if (window->Type == WindowType::Form)
 			{
-				newRootGraphics.Build(newSize);
+				newRootGraphics.Build(newSize, window->RootPaintHandle);
 				newRootGraphics.BuildFont(window->DPI);
+				newRootGraphics.Begin();
 				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				newRootGraphics.Flush();
 			}
 		}
 
@@ -848,8 +919,17 @@ namespace Berta
 			if (sizeChanged)
 			{
 				window->ClientSize = newRect;
-				window->Renderer.GetGraphics().Rebuild(window->ClientSize);
-				window->RootGraphics->Rebuild(window->ClientSize);
+
+#ifdef BT_PLATFORM_WINDOWS
+				auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
+				if (FAILED(hr))
+				{
+					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+				}
+#endif
+
+				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
+				window->RootGraphics->Rebuild(window->ClientSize, window->RootPaintHandle);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
@@ -979,7 +1059,7 @@ namespace Berta
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.Release();
-			graphics.Build(window->ClientSize);
+			graphics.Build(window->ClientSize, window->RootPaintHandle);
 			graphics.BuildFont(newDPI);
 		}
 
@@ -1080,6 +1160,14 @@ namespace Berta
 			window->RootHandle = newParent->RootHandle;
 			window->RootWindow = newParent->RootWindow;
 			window->RootGraphics = newParent->RootGraphics;
+
+			if (window->RootPaintHandle != newParent->RootPaintHandle)
+			{
+				window->RootPaintHandle = newParent->RootPaintHandle;
+				auto& graphics = window->Renderer.GetGraphics();
+				graphics.Rebuild(window->ClientSize, newParent->RootPaintHandle);
+				graphics.BuildFont(window->DPI);
+			}
 		}
 		window->Position = { 0,0 };
 
@@ -1097,6 +1185,7 @@ namespace Berta
 			nativePosition -= deltaPosition;
 			API::MoveWindow(window->RootHandle, nativePosition);
 		}
+
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 

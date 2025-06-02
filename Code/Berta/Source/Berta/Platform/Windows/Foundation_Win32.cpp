@@ -22,7 +22,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES2
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
