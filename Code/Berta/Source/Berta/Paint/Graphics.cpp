@@ -326,7 +326,7 @@ namespace Berta
 				d2dRect.right -= 0.5f;
 				d2dRect.bottom -= 0.5f;
 
-				m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, brush);
+				m_attributes->m_bitmapRT->DrawRectangle(&d2dRect, brush, strokeWidth);
 			}
 			brush->Release();
 		}
