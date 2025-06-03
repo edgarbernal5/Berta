@@ -361,9 +361,10 @@ namespace Berta
 #else
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
-			if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+			if (nativeWindow->Type == WindowType::RenderForm)
 			{
-				nativeWindow->CustomPaint();
+				if (nativeWindow->CustomPaint)
+					nativeWindow->CustomPaint();
 			}
 			else
 			{
