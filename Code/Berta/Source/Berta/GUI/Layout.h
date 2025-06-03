@@ -8,7 +8,9 @@
 #define BT_LAYOUT_HEADER
 
 #include "Berta/Core/BasicTypes.h"
-#include "Berta/Controls/DockPanel.h"
+#include "Berta/Controls/Docking/DockPanel.h"
+#include "Berta/GUI/EnumTypes.h"
+#include "Berta/Controls/Docking/DockIndicatorForm.h"
 
 #include <memory>
 #include <functional>
@@ -124,15 +126,6 @@ namespace Berta
         Token::Type m_token{ Token::Type::EndOfStream };
     };
 
-    enum class DockPosition
-    {
-        Up,
-        Down,
-        Left,
-        Right,
-        Tab
-    };
-
     class LayoutDockPaneEventsNotifier
     {
     public:
@@ -147,7 +140,7 @@ namespace Berta
     struct DockIndicator
     {
         DockPosition Position{ DockPosition::Tab };
-        std::unique_ptr<Form> Docker;
+        std::unique_ptr<DockIndicatorForm> Docker;
     };
 
     class Layout : public LayoutDockPaneEventsNotifier

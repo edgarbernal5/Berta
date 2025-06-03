@@ -150,10 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
+    <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h" />
     <ClInclude Include="Source\Berta\GUI\ControlDrawBatch.h" />
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h" />
     <ClInclude Include="Source\Berta\Controls\CheckBox.h" />
-    <ClInclude Include="Source\Berta\Controls\DockPanel.h" />
+    <ClInclude Include="Source\Berta\Controls\Docking\DockPanel.h" />
     <ClInclude Include="Source\Berta\Controls\Slider.h" />
     <ClInclude Include="Source\Berta\Controls\TreeBox.h" />
     <ClInclude Include="Source\Berta\Paint\DrawBatch.h" />
@@ -214,7 +215,8 @@
   <ItemGroup>
     <ClCompile Include="Source\Berta\API\PaintAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
-    <ClCompile Include="Source\Berta\Controls\DockPanel.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Docking\DockIndicatorForm.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Docking\DockPanel.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />

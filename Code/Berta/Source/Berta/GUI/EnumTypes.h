@@ -9,6 +9,15 @@
 
 namespace Berta
 {
+	enum class DockPosition
+	{
+		Up,
+		Down,
+		Left,
+		Right,
+		Tab
+	};
+
 	struct KeyboardKey
 	{
 		enum

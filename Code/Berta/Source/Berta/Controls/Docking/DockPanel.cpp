@@ -13,7 +13,7 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		graphics.DrawRectangle(window->Appearance->SelectionHighlightColor, true);
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->SelectionBorderHighlightColor, false);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->SelectionBorderHighlightColor, false, 3.0f);
 	}
 
 	DockPanel::DockPanel(Window* parent, const Rectangle& rectangle, bool visible)

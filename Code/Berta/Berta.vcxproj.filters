@@ -37,6 +37,9 @@
     <Filter Include="Source\Berta\Paint\Images">
       <UniqueIdentifier>{83b73060-42cd-4f7e-a6fd-605961c91216}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Controls\Docking">
+      <UniqueIdentifier>{43938f19-c19c-4811-b82d-5e769a10120a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -204,9 +207,6 @@
     <ClInclude Include="Source\Berta\Paint\DrawBatch.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\DockPanel.h">
-      <Filter>Source\Berta\Controls</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
@@ -221,6 +221,12 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\Platform\Windows\D2D.h">
       <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Docking\DockPanel.h">
+      <Filter>Source\Berta\Controls\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h">
+      <Filter>Source\Berta\Controls\Docking</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -356,9 +362,6 @@
     <ClCompile Include="Source\Berta\Paint\DrawBatch.cpp">
       <Filter>Source\Berta\Paint</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\DockPanel.cpp">
-      <Filter>Source\Berta\Controls</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Paint\ImageProcessor.cpp">
       <Filter>Source\Berta\Paint</Filter>
     </ClCompile>
@@ -370,6 +373,12 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Platform\Windows\D2D.cpp">
       <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Docking\DockPanel.cpp">
+      <Filter>Source\Berta\Controls\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Docking\DockIndicatorForm.cpp">
+      <Filter>Source\Berta\Controls\Docking</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
