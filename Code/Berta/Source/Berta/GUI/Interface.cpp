@@ -350,6 +350,17 @@ namespace Berta::GUI
 		window->Appearance = controlAppearance;
 	}
 
+	void SetCustomPaintCallback(Window* window, std::function<void()> callback)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window) || !window->IsNative())
+		{
+			return;
+		}
+
+		window->CustomPaint.swap(callback);
+	}
+
 	Point GetAbsolutePosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

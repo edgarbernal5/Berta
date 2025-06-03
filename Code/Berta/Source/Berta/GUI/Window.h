@@ -89,6 +89,8 @@ namespace Berta
 
 		DrawWindowStatus DrawStatus{ DrawWindowStatus::None };
 
+		std::function<void()> CustomPaint;
+
 		void Init(ControlBase* control);
 
 		//TODO: JustCtrl_AlignToDipsReturnPixels

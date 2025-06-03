@@ -51,6 +51,8 @@ namespace Berta
 		void SetEvents(Window* window, std::shared_ptr<ControlEvents> events);
 		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
 
+		void SetCustomPaintCallback(Window* window, std::function<void()> callback);
+
 		Point GetAbsolutePosition(Window* window);
 		Point GetAbsoluteRootPosition(Window* window);
 		Point GetLocalPosition(Window* window);

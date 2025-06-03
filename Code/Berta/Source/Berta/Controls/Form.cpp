@@ -59,6 +59,11 @@ namespace Berta
 		m_layout.Parse(layoutText);
 	}
 
+	void FormBase::SetCustomPaintCallback(std::function<void()> callback)
+	{
+		GUI::SetCustomPaintCallback(Handle(), callback);
+	}
+
 	Form::Form(const Size& size, const FormStyle& windowStyle, bool isRenderForm) :
 		FormBase(nullptr, size, windowStyle, false, isRenderForm)
 	{

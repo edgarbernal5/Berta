@@ -42,6 +42,8 @@ namespace Berta
 
 		void SetLayout(const std::string& layoutText);
 
+		void SetCustomPaintCallback(std::function<void()> callback);
+
 	private:
 		Layout m_layout;
 	};

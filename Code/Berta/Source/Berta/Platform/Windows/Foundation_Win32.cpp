@@ -361,7 +361,14 @@ namespace Berta
 #else
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
-			nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
+			if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+			{
+				nativeWindow->CustomPaint();
+			}
+			else
+			{
+				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
+			}
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
 
