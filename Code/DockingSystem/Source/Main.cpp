@@ -9,6 +9,7 @@
 #include <Berta/Controls/MenuBar.h>
 #include <Berta/Controls/Panel.h>
 
+#include <D3D12Lite.h>
 #include <iostream>
 
 class TabProperties : public Berta::Panel
@@ -49,8 +50,45 @@ public:
 	TabForm(Berta::Window* parent) :
 		Panel(parent)
 	{
-		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 });
-		m_nestedForm->GetAppearance().Background = Berta::Color{ 0xFFAB20CC };
+		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 }, Berta::FormStyle::Flat(), true);
+		m_nestedForm->SetCustomPaintCallback([this]()
+			{
+				m_device->BeginFrame();
+				auto& backBuffer = m_device->GetCurrentBackBuffer();
+
+				m_graphicsContext->Reset();
+				m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				m_graphicsContext->FlushBarriers();
+
+				m_graphicsContext->ClearRenderTarget(backBuffer, Color(0.3f, 0.3f, 0.8f));
+
+				m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_PRESENT);
+				m_graphicsContext->FlushBarriers();
+
+				m_device->SubmitContextWork(*m_graphicsContext);
+
+				m_device->EndFrame();
+				m_device->Present();
+			});
+
+		m_nestedForm->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+			{
+				m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
+
+				D3D12_VIEWPORT viewport;
+				viewport.TopLeftX = 0.0f;
+				viewport.TopLeftY = 0.0f;
+				viewport.Width = args.NewSize.Width;
+				viewport.Height = args.NewSize.Height;
+				viewport.MinDepth = D3D12_MIN_DEPTH;
+				viewport.MaxDepth = D3D12_MAX_DEPTH;
+
+				//m_graphicsContext->SetViewport(viewport);
+			});
+
+		auto formSize = m_nestedForm->GetSize();
+		m_device = std::make_unique<D3D12Lite::Device>(m_nestedForm->Handle()->RootHandle.Handle, D3D12Lite::Uint2{ formSize.Width, formSize.Height });
+		m_graphicsContext = m_device->CreateGraphicsContext();
 
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 		{
@@ -68,6 +106,8 @@ public:
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
 	Berta::Button m_button;
+	std::unique_ptr<D3D12Lite::Device> m_device;
+	std::unique_ptr<D3D12Lite::GraphicsContext> m_graphicsContext;
 };
 
 int main()
