@@ -364,7 +364,10 @@ namespace Berta
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				if (nativeWindow->CustomPaint)
+				{
 					nativeWindow->CustomPaint();
+					windowManager.Refresh(nativeWindow);
+				}
 			}
 			else
 			{

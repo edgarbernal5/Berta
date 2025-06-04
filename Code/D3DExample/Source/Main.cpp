@@ -34,9 +34,19 @@ int main()
 			device->Present();
 		});
 
-	form.GetEvents().Resize.Connect([&device](const Berta::ArgResize& args)
+	form.GetEvents().Resize.Connect([&device, &graphicsContext](const Berta::ArgResize& args)
 		{
-			device->WaitForIdle();
+			device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
+
+			D3D12_VIEWPORT viewport;
+			viewport.TopLeftX = 0.0f;
+			viewport.TopLeftY = 0.0f;
+			viewport.Width = args.NewSize.Width;
+			viewport.Height = args.NewSize.Height;
+			viewport.MinDepth = D3D12_MIN_DEPTH;
+			viewport.MaxDepth = D3D12_MAX_DEPTH;
+
+			graphicsContext->SetViewport(viewport);
 		});
 
 	auto formSize = form.GetSize();

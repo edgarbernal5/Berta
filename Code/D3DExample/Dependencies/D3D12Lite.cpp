@@ -1338,6 +1338,53 @@ namespace D3D12Lite
         mEndOfFrameFences[mFrameId].mGraphicsQueueFence = mGraphicsQueue->SignalFence();
     }
 
+    void Device::Resize(Uint2 newSize)
+    {
+        if (!mSwapChain)
+        {
+            return;
+        }
+
+        UINT newWidth = std::max<uint32_t>(newSize.x, 1u);
+        UINT newHeight = std::max<uint32_t>(newSize.y, 1u);
+
+        WaitForIdle();
+        
+        for (uint32_t bufferIndex = 0; bufferIndex < NUM_BACK_BUFFERS; bufferIndex++)
+        {
+            SafeRelease(mBackBuffers[bufferIndex]->mResource);
+        }
+
+        auto hr = mSwapChain->ResizeBuffers(
+            NUM_BACK_BUFFERS,
+            newWidth,
+            newHeight,
+            DXGI_FORMAT_R8G8B8A8_UNORM,
+            0u);
+
+
+        if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+        {
+        }
+
+        for (uint32_t bufferIndex = 0; bufferIndex < NUM_BACK_BUFFERS; bufferIndex++)
+        {
+            ID3D12Resource* backBufferResource = nullptr;
+
+            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+            rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+            rtvDesc.Texture2D.MipSlice = 0;
+            rtvDesc.Texture2D.PlaneSlice = 0;
+
+            AssertIfFailed(mSwapChain->GetBuffer(bufferIndex, IID_PPV_ARGS(&backBufferResource)));
+            mDevice->CreateRenderTargetView(backBufferResource, &rtvDesc, mBackBuffers[bufferIndex]->mRTVDescriptor.mCPUHandle);
+
+            mBackBuffers[bufferIndex]->mDesc = backBufferResource->GetDesc();
+            mBackBuffers[bufferIndex]->mResource = backBufferResource;
+        }
+    }
+
     void Device::CopyDescriptorsSimple(uint32_t numDescriptors, D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorRangeStart, D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptorRangeStart, D3D12_DESCRIPTOR_HEAP_TYPE descriptorType)
     {
         mDevice->CopyDescriptorsSimple(numDescriptors, destDescriptorRangeStart, srcDescriptorRangeStart, descriptorType);

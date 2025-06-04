@@ -841,7 +841,7 @@ namespace Berta
 		window->ClientSize = newSize;
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (window->Type == WindowType::Form)
+		if (window->IsNative())
 		{
 			auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
 			if (FAILED(hr))

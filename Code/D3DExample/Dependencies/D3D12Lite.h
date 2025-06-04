@@ -613,6 +613,7 @@ namespace D3D12Lite
         void BeginFrame();
         void EndFrame();
         void Present();
+        void Resize(Uint2 newSize);
 
         ID3D12Device5* GetDevice() { return mDevice; }
         RenderPassDescriptorHeap& GetSamplerHeap() { return *mSamplerRenderPassDescriptorHeap; }
