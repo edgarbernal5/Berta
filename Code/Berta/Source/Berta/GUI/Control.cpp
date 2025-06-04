@@ -43,6 +43,11 @@ namespace Berta
 		return GUI::GetParentWindow(m_handle);
 	}
 
+	void ControlBase::SetParent(Window* newParent)
+	{
+		GUI::SetParentWindow(m_handle, newParent);
+	}
+
 	Window* ControlBase::GetOwner() const
 	{
 		return GUI::GetOwnerWindow(m_handle);
