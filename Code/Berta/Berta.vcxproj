@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h" />
+    <ClInclude Include="Source\Berta\Controls\PropertyGrid.h" />
     <ClInclude Include="Source\Berta\GUI\ControlDrawBatch.h" />
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h" />
     <ClInclude Include="Source\Berta\Controls\CheckBox.h" />
@@ -217,6 +218,7 @@
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Docking\DockIndicatorForm.cpp" />
     <ClCompile Include="Source\Berta\Controls\Docking\DockPanel.cpp" />
+    <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />

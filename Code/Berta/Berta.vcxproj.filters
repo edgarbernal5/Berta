@@ -228,6 +228,9 @@
     <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h">
       <Filter>Source\Berta\Controls\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\PropertyGrid.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -379,6 +382,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Docking\DockIndicatorForm.cpp">
       <Filter>Source\Berta\Controls\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
