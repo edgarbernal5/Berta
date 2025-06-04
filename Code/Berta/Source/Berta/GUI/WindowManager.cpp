@@ -282,9 +282,9 @@ namespace Berta
 			
 			if (child->Type != WindowType::Panel)
 			{
-				if (child->Type == WindowType::Form)
+				if (child->IsNative())
 				{
-					Paint(child, true);
+					//Paint(child, true);
 					continue;
 				}
 
@@ -437,6 +437,10 @@ namespace Berta
 		if (!window->RootWindow->Batcher)
 			return;
 
+		//if (window->Type == WindowType::RenderForm)
+		//{
+		//	return;
+		//}
 		AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
 	}
 
@@ -742,6 +746,12 @@ namespace Berta
 			return;
 		}
 
+		//if (window->Type == WindowType::RenderForm && window->CustomPaint)
+		//{
+		//	API::RefreshWindow(window->RootHandle);
+		//	return;
+		//}
+
 		auto& rootGraphics = *(window->RootGraphics);
 
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();
@@ -853,13 +863,15 @@ namespace Berta
 
 		Graphics newGraphics;
 		Graphics newRootGraphics;
-		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
+		if (window->Type != WindowType::Panel)
 		{
-			newGraphics.Build(newSize, window->RootPaintHandle);
-			newGraphics.BuildFont(window->DPI);
-			//newGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
+			if (window->Type != WindowType::RenderForm)
+			{
+				newGraphics.Build(newSize, window->RootPaintHandle);
+				newGraphics.BuildFont(window->DPI);
+			}
 
-			if (window->Type == WindowType::Form)
+			if (window->IsNative())
 			{
 				newRootGraphics.Build(newSize, window->RootPaintHandle);
 				newRootGraphics.BuildFont(window->DPI);
@@ -869,11 +881,14 @@ namespace Berta
 			}
 		}
 
-		if (window->Type != WindowType::Panel && window->Type != WindowType::RenderForm)
+		if (window->Type != WindowType::Panel)
 		{
-			window->Renderer.GetGraphics().Swap(newGraphics);
+			if (window->Type != WindowType::RenderForm)
+			{
+				window->Renderer.GetGraphics().Swap(newGraphics);
+			}
 
-			if (window->Type == WindowType::Form)
+			if (window->IsNative())
 			{
 				window->RootGraphics->Swap(newRootGraphics);
 
@@ -927,8 +942,9 @@ namespace Berta
 					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
 				}
 #endif
+				if (window->Type != WindowType::RenderForm)
+					window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
 
-				window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
 				window->RootGraphics->Rebuild(window->ClientSize, window->RootPaintHandle);
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
@@ -1005,6 +1021,12 @@ namespace Berta
 	{
 		if (!window->IsVisible())
 			return;
+
+		//if (window->Type == WindowType::RenderForm && window->CustomPaint)
+		//{
+		//	API::RefreshWindow(window->RootHandle);
+		//	return;
+		//}
 
 		if (window->IsBatchActive())
 		{

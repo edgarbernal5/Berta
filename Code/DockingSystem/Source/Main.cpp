@@ -50,7 +50,7 @@ public:
 	TabForm(Berta::Window* parent) :
 		Panel(parent)
 	{
-		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,0, 200, 200 }, Berta::FormStyle::Flat(), true);
+		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,60, 200, 200 }, Berta::FormStyle::Flat(), true);
 		m_nestedForm->SetCustomPaintCallback([this]()
 			{
 				m_device->BeginFrame();
@@ -75,7 +75,7 @@ public:
 			{
 				m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
 
-				D3D12_VIEWPORT viewport;
+				/*D3D12_VIEWPORT viewport;
 				viewport.TopLeftX = 0.0f;
 				viewport.TopLeftY = 0.0f;
 				viewport.Width = args.NewSize.Width;
@@ -83,7 +83,7 @@ public:
 				viewport.MinDepth = D3D12_MIN_DEPTH;
 				viewport.MaxDepth = D3D12_MAX_DEPTH;
 
-				//m_graphicsContext->SetViewport(viewport);
+				m_graphicsContext->SetViewport(viewport);*/
 			});
 
 		auto formSize = m_nestedForm->GetSize();
@@ -95,17 +95,11 @@ public:
 			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
 		});
 
-		m_button.Create(m_nestedForm->Handle(), true, Berta::Rectangle{ 10,10,140,40 });
-		m_button.SetCaption("Nested button");
-#ifdef BT_DEBUG
-		m_button.SetDebugName("Nested button");
-#endif
 		m_nestedForm->Show();
 	}
 
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
-	Berta::Button m_button;
 	std::unique_ptr<D3D12Lite::Device> m_device;
 	std::unique_ptr<D3D12Lite::GraphicsContext> m_graphicsContext;
 };
@@ -117,10 +111,26 @@ int main()
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
+
+	menuFile.Append("New");
+	auto newSubmenu = menuFile.CreateSubMenu(0);
+	newSubmenu->Append("Tab");
+
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
 	{
 		Berta::GUI::Exit();
 	});
+
+	auto& menuWindow = menuBar.PushBack(L"Window");
+	menuWindow.Append("Load layout");
+	menuWindow.Append("Reset layout");
+	menuWindow.Append("Custom");
+	auto customSubmenu = menuWindow.CreateSubMenu(2);
+	customSubmenu->Append("One");
+	customSubmenu->Append("Two");
+	customSubmenu->AppendSeparator();
+	customSubmenu->Append("More");
+	
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");

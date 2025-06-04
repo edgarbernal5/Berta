@@ -139,6 +139,7 @@ namespace Berta
 		{
 			return;
 		}
+
 #ifdef BT_PLATFORM_WINDOWS
 
 		::LOGFONT lfText = {};
@@ -155,6 +156,11 @@ namespace Berta
 			&m_attributes->m_textFormat
 		);
 
+		if (FAILED(hr))
+		{
+			BT_CORE_ERROR << "Error building Font." << std::endl;
+			return;
+		}
 		m_attributes->m_textExtent = GetTextExtent("{}[]");
 #endif
 	}

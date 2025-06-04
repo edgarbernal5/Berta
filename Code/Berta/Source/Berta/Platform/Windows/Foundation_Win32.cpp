@@ -357,7 +357,7 @@ namespace Berta
 			Rectangle areaToUpdate;
 			areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 #endif
