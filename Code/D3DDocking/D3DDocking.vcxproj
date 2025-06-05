@@ -23,7 +23,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{2d5c09de-f4e9-4e14-b11b-63db981601df}</ProjectGuid>
-    <RootNamespace>DockingSystem</RootNamespace>
+    <RootNamespace>D3DDocking</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>D3DDocking</ProjectName>
   </PropertyGroup>

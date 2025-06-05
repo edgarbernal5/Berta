@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Source\Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\D3D12MA\D3D12MemAlloc.cpp">
+      <Filter>Dependencies\D3D12MemoryAllocator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\D3D12Lite.cpp">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC4BC5.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC6HBC7.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BCDirectCompute.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexCompress.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexCompressGPU.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexConvert.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexD3D11.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexD3D12.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexDDS.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexFlipRotate.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexHDR.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexImage.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexMipmaps.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexMisc.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexNormalMaps.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexPMAlpha.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexResize.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexTGA.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexUtil.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexWIC.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC.cpp">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\scoped.h" />
+    <ClInclude Include="..\D3DExample\Dependencies\D3D12MA\D3D12MemAlloc.h">
+      <Filter>Dependencies\D3D12MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\D3D12Lite.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_barriers.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_check_feature_support.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_core.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_default.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_pipeline_state_stream.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_property_format_table.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_render_pass.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_resource_helpers.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_root_signature.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_state_object.h">
+      <Filter>Dependencies\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\filters.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\BC.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\BCDirectCompute.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DDS.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTex.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexP.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTex.inl">
+      <Filter>Dependencies\DXTex</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{34ea32cd-fd21-49ab-8f44-e894e870ba36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{284383c2-11e9-4d85-b511-c8d7f0f62831}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\D3D12MemoryAllocator">
+      <UniqueIdentifier>{751efe3e-5e40-47fe-a518-a1cd20d73884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dxc">
+      <UniqueIdentifier>{f8303b5c-3264-46d4-af40-189d9e09e971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\d3dx12">
+      <UniqueIdentifier>{727b4602-1218-49b9-b2c5-8cf6c2e2d1da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\DXTex">
+      <UniqueIdentifier>{14e121d0-f5e8-414b-9884-1e6a180027f3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
