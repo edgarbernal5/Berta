@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{2d5c09de-f4e9-4e14-b11b-63db981601df}</ProjectGuid>
-    <RootNamespace>DockingSystem</RootNamespace>
+    <ProjectGuid>{cf1ec8db-78fd-4da1-b639-911b99bb9a7b}</ProjectGuid>
+    <RootNamespace>Properties</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>D3DDocking</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -77,8 +75,8 @@
     <IntDir>..\..\Output\$(Configuration)_$(Platform)_tmp\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>..\..\Output\$(Configuration)_$(Platform)_tmp\$(ProjectName)\</IntDir>
     <OutDir>..\..\Output\$(Configuration)_$(Platform)\$(ProjectName)\</OutDir>
+    <IntDir>..\..\Output\$(Configuration)_$(Platform)_tmp\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -115,12 +113,11 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;BT_PLATFORM_WINDOWS;BT_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>Source;..\Berta\Source;..\D3DExample\Dependencies\D3D12MA;..\D3DExample\Dependencies\d3dx12;..\D3DExample\Dependencies\DirectXTex\include;..\D3DExample\Dependencies\SimpleMath;..\D3DExample\Dependencies;..\D3DExample\Dependencies\dxc;..\D3DExample\Dependencies\DirectXTex\include\Shaders\Compiled</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Source;..\Berta\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;dxcompiler.lib;..\D3DExample\Dependencies\DirectXTex\bin\DirectXTexd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,41 +128,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;BT_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>Source;..\Berta\Source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>Source;..\Berta\Source;..\D3DExample\Dependencies\D3D12MA;..\D3DExample\Dependencies\d3dx12;..\D3DExample\Dependencies\DirectXTex\include;..\D3DExample\Dependencies\SimpleMath;..\D3DExample\Dependencies;..\D3DExample\Dependencies\dxc;..\D3DExample\Dependencies\DirectXTex\include\Shaders\Compiled</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;dxcompiler.lib;..\D3DExample\Dependencies\DirectXTex\bin\DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\D3DExample\Dependencies\D3D12Lite.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\D3D12MA\D3D12MemAlloc.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC4BC5.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BC6HBC7.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\BCDirectCompute.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexCompress.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexCompressGPU.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexConvert.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexD3D11.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexD3D12.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexDDS.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexFlipRotate.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexHDR.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexImage.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexMipmaps.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexMisc.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexNormalMaps.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexPMAlpha.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexResize.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexTGA.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexUtil.cpp" />
-    <ClCompile Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexWIC.cpp" />
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,41 +146,7 @@
       <Project>{43f596e7-94e6-4642-98c2-ac2be46955c0}</Project>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\D3DExample\Dependencies\D3D12Lite.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\D3D12MA\D3D12MemAlloc.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_barriers.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_check_feature_support.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_core.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_default.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_pipeline_state_stream.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_property_format_table.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_render_pass.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_resource_helpers.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_root_signature.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\d3dx12\d3dx12_state_object.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\BC.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\BCDirectCompute.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DDS.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTex.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexP.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\filters.h" />
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\scoped.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTex.inl" />
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets" Condition="Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.props'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Direct3D.D3D12.1.611.2\build\native\Microsoft.Direct3D.D3D12.targets'))" />
-  </Target>
 </Project>

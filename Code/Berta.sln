@@ -11,13 +11,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{02
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloWorld", "HelloWorld\HelloWorld.vcxproj", "{12BFB691-2143-4747-8D56-93E7333CAB79}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DockingSystem", "DockingSystem\DockingSystem.vcxproj", "{2D5C09DE-F4E9-4E14-B11B-63DB981601DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3DDocking", "DockingSystem\DockingSystem.vcxproj", "{2D5C09DE-F4E9-4E14-B11B-63DB981601DF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileExplorer", "FileExplorer\FileExplorer.vcxproj", "{46F2C086-2297-4824-924E-9550FC173F52}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Buttons", "Buttons\Buttons.vcxproj", "{2030C046-2859-493D-8B1F-9C149334BBBD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3DExample", "D3DExample\D3DExample.vcxproj", "{555D19E8-EF53-49AA-B2D8-8C6CB5CECB4A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Properties", "Properties\Properties.vcxproj", "{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,14 @@ Global
 		{555D19E8-EF53-49AA-B2D8-8C6CB5CECB4A}.Release|x64.Build.0 = Release|x64
 		{555D19E8-EF53-49AA-B2D8-8C6CB5CECB4A}.Release|x86.ActiveCfg = Release|Win32
 		{555D19E8-EF53-49AA-B2D8-8C6CB5CECB4A}.Release|x86.Build.0 = Release|Win32
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Debug|x64.ActiveCfg = Debug|x64
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Debug|x64.Build.0 = Debug|x64
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Debug|x86.ActiveCfg = Debug|Win32
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Debug|x86.Build.0 = Debug|Win32
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Release|x64.ActiveCfg = Release|x64
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Release|x64.Build.0 = Release|x64
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Release|x86.ActiveCfg = Release|Win32
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +104,7 @@ Global
 		{46F2C086-2297-4824-924E-9550FC173F52} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{2030C046-2859-493D-8B1F-9C149334BBBD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{555D19E8-EF53-49AA-B2D8-8C6CB5CECB4A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{CF1EC8DB-78FD-4DA1-B639-911B99BB9A7B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F08CBB3-A855-4915-B92C-C7AF043E5E5C}

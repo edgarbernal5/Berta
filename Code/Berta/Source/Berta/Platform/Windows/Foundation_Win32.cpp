@@ -415,7 +415,7 @@ namespace Berta
 
 			Size newSize{ newWidth , newHeight };
 #if BT_DEBUG
-			BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
 #endif

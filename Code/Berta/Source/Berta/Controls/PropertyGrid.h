@@ -17,6 +17,8 @@
 
 namespace Berta
 {
+	struct CategoryItem;
+
 	struct PropertyGridAppearance : public ControlAppearance
 	{
 	};
@@ -30,16 +32,50 @@ namespace Berta
 	{
 	};
 
+	class PropertyGridItem
+	{
+	public:
+	};
+
+	struct CategoryType
+	{
+		CategoryType() = default;
+		CategoryType(const std::string& name) : m_name(name) {}
+
+		std::string m_name;
+
+		std::vector<std::unique_ptr<PropertyGridItem>> m_properties;
+		bool m_isExpanded{ true };
+	};
+
 	class PropertyGridReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		
+		class ListModule
+		{
+		public:
+			ListModule();
+			CategoryType* CreateCategory(const std::string& categoryName);
+
+			std::vector<CategoryType>::iterator Begin();
+			std::vector<CategoryType>::const_iterator Begin() const;
+			std::vector<CategoryType>::iterator End();
+			std::vector<CategoryType>::const_iterator End() const;
+
+		private:
+			std::vector<CategoryType> m_categories;
+		};
 		struct Module
 		{
+			CategoryItem Append(const std::string& categoryName);
+			CategoryItem Find(const std::string& categoryName);
+			void Clear();
 
+			ListModule m_listModule;
 		};
+
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
 
@@ -49,7 +85,16 @@ namespace Berta
 
 	struct CategoryItem
 	{
+		CategoryItem() = default;
+		CategoryItem(PropertyGridReactor::Module* module, CategoryType* category) : 
+			m_module(module), m_category(category)
+		{
+		}
 
+		operator bool() const;
+
+		PropertyGridReactor::Module* m_module{ nullptr };
+		CategoryType* m_category{ nullptr };
 	};
 
 	class PropertyGrid : public Control<PropertyGridReactor, PropertyGridEvents, PropertyGridAppearance>
@@ -59,6 +104,7 @@ namespace Berta
 		PropertyGrid(Window* parent, const Rectangle& rectangle = {});
 
 		CategoryItem Append(const std::string& categoryName);
+		void Clear();
 		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
 	};
 }

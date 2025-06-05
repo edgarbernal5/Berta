@@ -130,7 +130,6 @@ int main()
 	customSubmenu->Append("Two");
 	customSubmenu->AppendSeparator();
 	customSubmenu->Append("More");
-	
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
