@@ -20,9 +20,27 @@ namespace Berta
 
 	void PropertyGridReactor::Update(Graphics& graphics)
 	{
+		auto window = m_control->Handle();
+
+		graphics.DrawRectangle(window->Appearance->BoxBackground, true);
 	}
 
 	PropertyGrid::PropertyGrid(Window* parent, const Rectangle& rectangle)
 	{
+		Create(parent, true, rectangle);
+
+#if BT_DEBUG
+		m_handle->Name = "PropertyGrid";
+#endif
+	}
+
+	CategoryItem PropertyGrid::Append(const std::string& categoryName)
+	{
+		return CategoryItem();
+	}
+
+	CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
+	{
+		return CategoryItem();
 	}
 }

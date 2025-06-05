@@ -47,6 +47,10 @@ namespace Berta
 		Module m_module;
 	};
 
+	struct CategoryItem
+	{
+
+	};
 
 	class PropertyGrid : public Control<PropertyGridReactor, PropertyGridEvents, PropertyGridAppearance>
 	{
@@ -54,7 +58,8 @@ namespace Berta
 		PropertyGrid() = default;
 		PropertyGrid(Window* parent, const Rectangle& rectangle = {});
 
-		
+		CategoryItem Append(const std::string& categoryName);
+		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
 	};
 }
 
