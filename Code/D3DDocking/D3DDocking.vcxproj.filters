@@ -75,7 +75,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\scoped.h" />
     <ClInclude Include="..\D3DExample\Dependencies\D3D12MA\D3D12MemAlloc.h">
       <Filter>Dependencies\D3D12MemoryAllocator</Filter>
     </ClInclude>
@@ -131,6 +130,9 @@
       <Filter>Dependencies\DXTex</Filter>
     </ClInclude>
     <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\DirectXTexP.h">
+      <Filter>Dependencies\DXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\D3DExample\Dependencies\DirectXTex\include\scoped.h">
       <Filter>Dependencies\DXTex</Filter>
     </ClInclude>
   </ItemGroup>
