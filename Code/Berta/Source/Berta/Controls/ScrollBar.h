@@ -16,7 +16,6 @@
 
 namespace Berta
 {
-
 	struct ArgScrollBar
 	{
 		ScrollBarUnit Value;

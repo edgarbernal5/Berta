@@ -22,7 +22,7 @@ namespace Berta
 	private:
 	};
 
-	class Panel : public Control<PanelReactor>
+	class Panel : public Control<ControlReactor>
 	{
 	public:
 		Panel() = default;

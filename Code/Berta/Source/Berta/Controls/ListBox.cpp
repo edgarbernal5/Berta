@@ -681,12 +681,10 @@ namespace Berta
 		if (m_viewport.m_needVerticalScroll)
 		{
 			m_scrollBarVert->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarVert->Handle());
 		}
 		if (m_viewport.m_needHorizontalScroll)
 		{
 			m_scrollBarHoriz->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
 		}
 
 		GUI::UpdateWindow(m_window);
@@ -760,12 +758,10 @@ namespace Berta
 		if (m_viewport.m_needVerticalScroll)
 		{
 			m_scrollBarVert->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarVert->Handle());
 		}
 		if (m_viewport.m_needHorizontalScroll)
 		{
 			m_scrollBarHoriz->Handle()->Renderer.Update();
-			//GUI::UpdateWindow(m_scrollBarHoriz->Handle());
 		}
 
 		GUI::UpdateWindow(m_window);
@@ -1119,7 +1115,7 @@ namespace Berta
 				{
 					targetHeaderPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
 				}
-				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, lineWidth, m_appearance->SelectionHighlightColor);
+				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, static_cast<float>(lineWidth), m_appearance->SelectionHighlightColor);
 
 				Graphics& draggingBox = m_headers.m_draggingBox;
 				

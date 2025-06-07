@@ -278,9 +278,6 @@
     <ClCompile Include="Source\Berta\Controls\Button.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Core\Event.cpp">
-      <Filter>Source\Berta\Core</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Controls\InputText.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>

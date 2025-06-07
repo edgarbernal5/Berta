@@ -946,11 +946,11 @@ namespace Berta
 					endPointV.Y = offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1);
 				}
 			}
-			graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
+			graphics.DrawLine(startPointV, endPointV, static_cast<float>(lineWidth), lineColor, lineStyle);
 			
 			Point startPointH{ expanderRectMidX + lineWidth * 2, nodeRect.Y + nodeHeightHalfInt };
 			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2) - lineWidth * 2, startPointH.Y};
-			graphics.DrawLine(startPointH, endPointH, lineWidth, lineColor, lineStyle);
+			graphics.DrawLine(startPointH, endPointH, static_cast<float>(lineWidth), lineColor, lineStyle);
 
 			minDepth = (std::min)(minDepth, depth);
 			++i;
@@ -981,7 +981,7 @@ namespace Berta
 				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex };
 				Point endPointV{ startPointV.X, offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1) };
 
-				graphics.DrawLine(startPointV, endPointV, lineWidth, lineColor, lineStyle);
+				graphics.DrawLine(startPointV, endPointV, static_cast<float>(lineWidth), lineColor, lineStyle);
 
 				--currentDepth;
 				parentVisible = parentVisible->parent;

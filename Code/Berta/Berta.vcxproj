@@ -239,7 +239,6 @@
     <ClCompile Include="Source\Berta\GUI\Caret.cpp" />
     <ClCompile Include="Source\Berta\Controls\InputText.cpp" />
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />
-    <ClCompile Include="Source\Berta\Core\Event.cpp" />
     <ClCompile Include="Source\Berta\Core\Timer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Window.cpp" />
