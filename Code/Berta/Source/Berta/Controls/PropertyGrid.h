@@ -21,21 +21,38 @@ namespace Berta
 
 	struct PropertyGridAppearance : public ControlAppearance
 	{
+		uint32_t CategoryHeight = 30;
 	};
 
-	struct ArgListBox
+	struct ArgPropertyGrid
 	{
-		size_t SelectedIndex{ 0 };
 	};
 
 	struct PropertyGridEvents : public ControlEvents
 	{
 	};
 
-	class PropertyGridItem
+	class PropertyGridField
 	{
 	public:
+
+		virtual std::string GetLabel() const;
+		virtual void SetLabel(const std::string& label);
+
+		virtual std::string GetValue() const;
+		virtual void SetValue(const std::string& value);
+
+		virtual std::string GetDefaultValue() const;
+		virtual void SetDefaultValue(const std::string& value);
+
+		void Update();
+	private:
+		std::string	m_label;
+		std::string	m_value;
+		std::string	m_defaultValue;
 	};
+
+	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
 
 	struct CategoryType
 	{
@@ -44,13 +61,14 @@ namespace Berta
 
 		std::string m_name;
 
-		std::vector<std::unique_ptr<PropertyGridItem>> m_properties;
+		std::vector<std::unique_ptr<PropertyGridField>> m_properties;
 		bool m_isExpanded{ true };
 	};
 
 	class PropertyGridReactor : public ControlReactor
 	{
 	public:
+		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
 		
 		class ListModule
@@ -67,6 +85,7 @@ namespace Berta
 		private:
 			std::vector<CategoryType> m_categories;
 		};
+
 		struct Module
 		{
 			CategoryItem Append(const std::string& categoryName);
@@ -74,6 +93,9 @@ namespace Berta
 			void Clear();
 
 			ListModule m_listModule;
+			Window* m_owner{ nullptr };
+			PropertyGridAppearance* m_appearance{ nullptr };
+			std::unique_ptr<ScrollBar> m_scrollBar;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -83,6 +105,25 @@ namespace Berta
 		Module m_module;
 	};
 
+	class PropertyItem
+	{
+	public:
+		PropertyItem(PropertyGridReactor::Module* module, PropertyGridField* propGridField) :
+			m_module(module), m_propGridField(propGridField)
+		{
+		}
+
+		std::string GetLabel() const;
+		PropertyItem& SetLabel(const std::string& label);
+
+		std::string GetValue() const;
+		PropertyItem& SetValue(const std::string& value, bool emit = false);
+
+	private:
+		PropertyGridReactor::Module* m_module{ nullptr };
+		PropertyGridField* m_propGridField{ nullptr };
+	};
+
 	struct CategoryItem
 	{
 		CategoryItem() = default;
@@ -90,6 +131,8 @@ namespace Berta
 			m_module(module), m_category(category)
 		{
 		}
+
+		PropertyItem Append(PropertyGridFieldPtr propGridField);
 
 		operator bool() const;
 

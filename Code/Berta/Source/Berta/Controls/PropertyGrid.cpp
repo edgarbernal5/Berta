@@ -14,9 +14,17 @@
 
 namespace Berta
 {
+	void PropertyGridReactor::Init(ControlBase& control)
+	{
+		m_control = &control;
+		m_module.m_owner = control.Handle();
+
+		m_module.m_appearance = reinterpret_cast<PropertyGridAppearance*>(m_module.m_owner->Appearance.get());
+	}
+
 	void PropertyGridReactor::Update(Graphics& graphics)
 	{
-		auto window = m_control->Handle();
+		auto window = m_module.m_owner;
 
 		graphics.DrawRectangle(window->Appearance->BoxBackground, true);
 
@@ -40,6 +48,7 @@ namespace Berta
 
 	void PropertyGrid::Clear()
 	{
+		m_reactor.GetModule().Clear();
 	}
 
 	CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
@@ -73,9 +82,12 @@ namespace Berta
 		return { };
 	}
 
+	void PropertyGridReactor::Module::Clear()
+	{
+	}
+
 	PropertyGridReactor::ListModule::ListModule()
 	{
-		m_categories.emplace_back();
 	}
 
 	CategoryType* PropertyGridReactor::ListModule::CreateCategory(const std::string& categoryName)
@@ -104,8 +116,77 @@ namespace Berta
 		return m_categories.cend();
 	}
 
+	PropertyItem CategoryItem::Append(PropertyGridFieldPtr propGridItem)
+	{
+		m_category->m_properties.emplace_back(std::move(propGridItem));
+
+		return { m_module, m_category->m_properties.back().get()};
+	}
+
 	CategoryItem::operator bool() const
 	{
 		return m_module != nullptr && m_category != nullptr;
+	}
+
+	std::string PropertyItem::GetLabel() const
+	{
+		return m_propGridField->GetLabel();
+	}
+	
+	PropertyItem& PropertyItem::SetLabel(const std::string& label)
+	{
+		return *this;
+	}
+	
+	std::string PropertyItem::GetValue() const
+	{
+		return std::string();
+	}
+	
+	PropertyItem& PropertyItem::SetValue(const std::string& value, bool emit)
+	{
+		return *this;
+	}
+
+	std::string PropertyGridField::GetLabel() const
+	{
+		return m_label;
+	}
+
+	void PropertyGridField::SetLabel(const std::string& label)
+	{
+		m_label = label;
+	}
+
+	std::string PropertyGridField::GetValue() const
+	{
+		return m_value;
+	}
+
+	void PropertyGridField::SetValue(const std::string& value)
+	{
+		if (m_value == value)
+			return;
+
+		m_value = value;
+		Update();
+	}
+
+	std::string PropertyGridField::GetDefaultValue() const
+	{
+		return m_defaultValue;
+	}
+
+	void PropertyGridField::SetDefaultValue(const std::string& value)
+	{
+		if (m_defaultValue == value)
+			return;
+
+		m_defaultValue = value;
+		Update();
+	}
+
+	void PropertyGridField::Update()
+	{
 	}
 }
