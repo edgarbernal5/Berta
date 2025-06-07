@@ -66,7 +66,7 @@ namespace Berta
 			Rectangle PanelArea{};
 
 			std::string Id;
-			Panel* PanelPtr;
+			Panel* PanelPtr{ nullptr };
 		};
 
 		struct Module

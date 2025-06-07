@@ -21,7 +21,8 @@ namespace Berta
 
 	struct PropertyGridAppearance : public ControlAppearance
 	{
-		uint32_t CategoryHeight = 30;
+		uint32_t CategoryHeight = 26u;
+		uint32_t ExpanderButtonSize = 12u;
 	};
 
 	struct ArgPropertyGrid
@@ -72,6 +73,7 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void Resize(Graphics& graphics, const ArgResize& args) override;
 		
 		class ListModule
 		{
@@ -84,8 +86,22 @@ namespace Berta
 			std::vector<CategoryType>::iterator End();
 			std::vector<CategoryType>::const_iterator End() const;
 
+			size_t Size() const
+			{
+				return m_categories.size();
+			}
 		private:
 			std::vector<CategoryType> m_categories;
+		};
+
+		struct ViewportData
+		{
+			Rectangle m_backgroundRect{};
+			bool m_needVerticalScroll{ false };
+			uint32_t m_contentSize{};
+			uint32_t m_categoryItemHeight{ 0 };
+			int m_categoryTextOffset{ 0 };
+			uint32_t m_expanderButtonSize{ 0 };
 		};
 
 		struct Module
@@ -93,7 +109,10 @@ namespace Berta
 			CategoryItem Append(const std::string& categoryName);
 			CategoryItem Find(const std::string& categoryName);
 			void Clear();
+			void CalculateViewport(ViewportData& viewportData);
 
+			Point m_scrollOffset{};
+			ViewportData m_viewport;
 			ListModule m_listModule;
 			Window* m_owner{ nullptr };
 			PropertyGridAppearance* m_appearance{ nullptr };

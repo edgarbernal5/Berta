@@ -20,6 +20,8 @@ namespace Berta
 		m_module.m_owner = control.Handle();
 
 		m_module.m_appearance = reinterpret_cast<PropertyGridAppearance*>(m_module.m_owner->Appearance.get());
+
+		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
 	void PropertyGridReactor::Update(Graphics& graphics)
@@ -27,12 +29,38 @@ namespace Berta
 		auto window = m_module.m_owner;
 
 		graphics.DrawRectangle(window->Appearance->BoxBackground, true);
+
+		Point scrollOffset = m_module.m_scrollOffset;
 		for (auto it = m_module.m_listModule.Begin(); it < m_module.m_listModule.End(); ++it)
 		{
-			//graphics.DrawString({ 0,0 }, it->m_name, m_module.m_appearance->Foreground);
+			Rectangle categoryRect{ scrollOffset.X + m_module.m_viewport.m_backgroundRect.X,
+				scrollOffset.Y + m_module.m_viewport.m_backgroundRect.Y,
+				m_module.m_viewport.m_backgroundRect.Width, m_module.m_viewport.m_categoryItemHeight };
+
+			graphics.DrawRoundRectBox(categoryRect, m_module.m_appearance->ButtonBackground, m_module.m_appearance->BoxBorderColor, true);
+			
+			Rectangle expanderRect{ scrollOffset.X + m_module.m_viewport.m_backgroundRect.X + m_module.m_viewport.m_categoryTextOffset,
+				scrollOffset.Y + m_module.m_viewport.m_backgroundRect.Y + static_cast<int>((m_module.m_viewport.m_categoryItemHeight - m_module.m_viewport.m_expanderButtonSize) >> 1),
+				m_module.m_viewport.m_expanderButtonSize, m_module.m_viewport.m_expanderButtonSize };
+
+			int arrowWidth = window->ToScale(4);
+			int arrowLength = window->ToScale(2);
+			graphics.DrawArrow(expanderRect, arrowLength, arrowWidth, it->m_isExpanded ? Graphics::ArrowDirection::Downwards: Graphics::ArrowDirection::Right, m_module.m_appearance->Foreground);
+
+			Point textOffset = { static_cast<int>(m_module.m_viewport.m_expanderButtonSize) + m_module.m_viewport.m_categoryTextOffset,static_cast<int>(m_module.m_viewport.m_categoryItemHeight) - static_cast<int>(graphics.GetTextExtent().Height) };
+			textOffset.Y >>= 1;
+
+			graphics.DrawString({ categoryRect.X + textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_module.m_appearance->Foreground);
+
+			scrollOffset.Y += categoryRect.Height;
 		}
 
 		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+	}
+
+	void PropertyGridReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
 	PropertyGrid::PropertyGrid(Window* parent, const Rectangle& rectangle)
@@ -67,7 +95,10 @@ namespace Berta
 			return category;
 		}
 
-		return { this, m_listModule.CreateCategory(categoryName) };
+		CategoryItem newCategory = { this, m_listModule.CreateCategory(categoryName) };
+		CalculateViewport(m_viewport);
+
+		return newCategory;
 	}
 
 	CategoryItem PropertyGridReactor::Module::Find(const std::string& categoryName)
@@ -87,6 +118,26 @@ namespace Berta
 
 	void PropertyGridReactor::Module::Clear()
 	{
+		CalculateViewport(m_viewport);
+	}
+
+	void PropertyGridReactor::Module::CalculateViewport(ViewportData& viewportData)
+	{
+		viewportData.m_backgroundRect = m_owner->ClientSize.ToRectangle();
+		viewportData.m_backgroundRect.X = viewportData.m_backgroundRect.Y = 1;
+		viewportData.m_backgroundRect.Width -= 2u;
+		viewportData.m_backgroundRect.Height -= 2u;
+
+		viewportData.m_categoryItemHeight = m_owner->ToScale(m_appearance->CategoryHeight);
+		viewportData.m_expanderButtonSize = m_owner->ToScale(m_appearance->ExpanderButtonSize);
+		viewportData.m_categoryTextOffset = m_owner->ToScale(4);
+		viewportData.m_contentSize = viewportData.m_categoryItemHeight * m_listModule.Size();
+
+		for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+		{
+
+		}
+		viewportData.m_needVerticalScroll = viewportData.m_contentSize > viewportData.m_backgroundRect.Height;
 	}
 
 	PropertyGridReactor::ListModule::ListModule()
@@ -158,6 +209,9 @@ namespace Berta
 
 	void PropertyGridField::SetLabel(const std::string& label)
 	{
+		if (m_label == label)
+			return;
+
 		m_label = label;
 	}
 
