@@ -38,10 +38,7 @@ namespace Berta
 
 	void Renderer::Update()
 	{
-		if (m_controlReactor && m_updating)
-		{
-			BT_CORE_WARN << " - Renderer::Update(). it is already updating... " << std::endl;
-		}
+		BT_ASSERT(!m_controlReactor || !m_updating, "Renderer Update is already updating.");
 
 		if (m_controlReactor && !m_updating && m_graphics.IsValid())
 		{
