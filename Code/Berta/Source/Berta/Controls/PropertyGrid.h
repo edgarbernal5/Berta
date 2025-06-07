@@ -47,12 +47,20 @@ namespace Berta
 		virtual std::string GetDefaultValue() const;
 		virtual void SetDefaultValue(const std::string& value);
 
+		virtual uint32_t GetSize() const
+		{
+			return m_size;
+		}
+
 		void Update();
+
 
 	private:
 		std::string	m_label;
 		std::string	m_value;
 		std::string	m_defaultValue;
+
+		uint32_t m_size{ 20 };
 	};
 
 	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;

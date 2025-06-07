@@ -53,6 +53,17 @@ namespace Berta
 			graphics.DrawString({ categoryRect.X + textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_module.m_appearance->Foreground);
 
 			scrollOffset.Y += categoryRect.Height;
+
+			for (size_t i = 0; i < it->m_properties.size(); i++)
+			{
+				auto field = it->m_properties[i].get();
+				bool fieldVisible = it->m_isExpanded;
+				if (it->m_isExpanded)
+				{
+				}
+
+				GUI::ShowWindow(nullptr, fieldVisible);
+			}
 		}
 
 		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
