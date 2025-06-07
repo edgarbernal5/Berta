@@ -35,6 +35,7 @@ namespace Berta
 	class PropertyGridField
 	{
 	public:
+		virtual ~PropertyGridField() = default;
 
 		virtual std::string GetLabel() const;
 		virtual void SetLabel(const std::string& label);
@@ -46,6 +47,7 @@ namespace Berta
 		virtual void SetDefaultValue(const std::string& value);
 
 		void Update();
+
 	private:
 		std::string	m_label;
 		std::string	m_value;

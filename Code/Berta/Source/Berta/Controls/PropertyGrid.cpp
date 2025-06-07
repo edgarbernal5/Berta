@@ -27,7 +27,10 @@ namespace Berta
 		auto window = m_module.m_owner;
 
 		graphics.DrawRectangle(window->Appearance->BoxBackground, true);
-
+		for (auto it = m_module.m_listModule.Begin(); it < m_module.m_listModule.End(); ++it)
+		{
+			//graphics.DrawString({ 0,0 }, it->m_name, m_module.m_appearance->Foreground);
+		}
 
 		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
 	}
