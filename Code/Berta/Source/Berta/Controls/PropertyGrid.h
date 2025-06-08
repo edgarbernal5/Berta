@@ -10,6 +10,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
+#include "Berta/Controls/Panel.h"
 #include "Berta/Paint/Image.h"
 
 #include <string>
@@ -33,10 +34,19 @@ namespace Berta
 	{
 	};
 
+	class FieldControlContainter : public Panel
+	{
+	public:
+		FieldControlContainter() = default;
+		FieldControlContainter(Window* parent, const Rectangle& rect = {});
+	};
+
 	class PropertyGridField
 	{
 	public:
 		virtual ~PropertyGridField() = default;
+
+		void Init(Window* parent);
 
 		virtual std::string GetLabel() const;
 		virtual void SetLabel(const std::string& label);
@@ -52,8 +62,12 @@ namespace Berta
 			return m_size;
 		}
 
+		virtual void Draw(Graphics& graph, Rectangle area);
+
 		void Update();
 
+	protected:
+		virtual void Create(Window* parent) = 0;
 
 	private:
 		std::string	m_label;
@@ -72,8 +86,9 @@ namespace Berta
 
 		std::string m_name;
 
-		std::vector<std::unique_ptr<PropertyGridField>> m_properties;
 		bool m_isExpanded{ true };
+		std::vector<std::unique_ptr<PropertyGridField>> m_properties;
+		std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
 	};
 
 	class PropertyGridReactor : public ControlReactor

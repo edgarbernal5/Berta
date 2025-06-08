@@ -161,7 +161,7 @@ namespace Berta
 			}
 		}
 
-		virtual void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible = true, bool isPanel = false)
+		virtual void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true, bool isPanel = false)
 		{
 			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);
 			m_appearance = std::make_shared<AppearanceType>();

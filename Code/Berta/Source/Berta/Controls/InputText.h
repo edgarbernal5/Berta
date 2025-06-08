@@ -54,7 +54,7 @@ namespace Berta
 	{
 	public:
 		InputText() = default;
-		InputText(Window* parent, const Rectangle& rectangle);
+		InputText(Window* parent, const Rectangle& rectangle = {});
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

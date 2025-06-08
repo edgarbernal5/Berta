@@ -15,13 +15,6 @@
 
 namespace Berta
 {
-	class PanelReactor : public ControlReactor
-	{
-	public:
-
-	private:
-	};
-
 	class Panel : public Control<ControlReactor>
 	{
 	public:

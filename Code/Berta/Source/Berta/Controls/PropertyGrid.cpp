@@ -58,11 +58,23 @@ namespace Berta
 			{
 				auto field = it->m_properties[i].get();
 				bool fieldVisible = it->m_isExpanded;
+				auto fieldContainer = it->m_fieldContainers[i].get();
+				auto fieldSize = field->GetSize();
+
 				if (it->m_isExpanded)
 				{
+					if (scrollOffset.Y + fieldSize < 0 || scrollOffset.Y - m_module.m_viewport.m_backgroundRect.Y > m_module.m_viewport.m_backgroundRect.Height)
+					{
+						fieldVisible = false;
+					}
 				}
 
-				GUI::ShowWindow(nullptr, fieldVisible);
+				if (fieldVisible)
+				{
+
+				}
+
+				GUI::ShowWindow(*fieldContainer, fieldVisible);
 			}
 		}
 
@@ -184,8 +196,16 @@ namespace Berta
 	PropertyItem CategoryItem::Append(PropertyGridFieldPtr propGridItem)
 	{
 		m_category->m_properties.emplace_back(std::move(propGridItem));
+		auto newField = m_category->m_properties.back().get();
 
-		return { m_module, m_category->m_properties.back().get()};
+		std::unique_ptr<FieldControlContainter> containerPtr(new FieldControlContainter(m_module->m_owner));
+		
+		newField->Init(containerPtr->Handle());
+		
+		m_category->m_fieldContainers.emplace_back(std::move(containerPtr));
+		
+
+		return { m_module,newField };
 	}
 
 	CategoryItem::operator bool() const
@@ -211,6 +231,11 @@ namespace Berta
 	PropertyItem& PropertyItem::SetValue(const std::string& value, bool emit)
 	{
 		return *this;
+	}
+
+	void PropertyGridField::Init(Window* parent)
+	{
+		Create(parent);
 	}
 
 	std::string PropertyGridField::GetLabel() const
@@ -254,7 +279,16 @@ namespace Berta
 		Update();
 	}
 
+	void PropertyGridField::Draw(Graphics& graph, Rectangle area)
+	{
+	}
+
 	void PropertyGridField::Update()
+	{
+	}
+
+	FieldControlContainter::FieldControlContainter(Window* parent, const Rectangle& rect) : 
+		Panel(parent, rect)
 	{
 	}
 }

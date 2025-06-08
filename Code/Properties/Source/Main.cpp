@@ -6,15 +6,28 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/PropertyGrid.h>
+#include <Berta/Controls/InputText.h>
 
 class PropertyGridFieldVector3 : public Berta::PropertyGridField
 {
+public:
 
+protected:
+	void Create(Berta::Window* parent) override;
+
+private:
+	Berta::InputText m_inputText;
 };
+
+void PropertyGridFieldVector3::Create(Berta::Window* parent)
+{
+	m_inputText.Create(parent);
+
+}
 
 int main()
 {
-	Berta::Form form(Berta::Size(950u, 850u), { true, true, true });
+	Berta::Form form(Berta::Size(850u, 750u), { true, true, true });
 	form.SetCaption("Property Grid - Example");
 
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
