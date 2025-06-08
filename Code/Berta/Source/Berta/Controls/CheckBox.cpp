@@ -39,7 +39,7 @@ namespace Berta
 			auto three = window->ToScale(3);
 			auto five = window->ToScale(5);
 			auto six = window->ToScale(6);
-			auto lineWidth = window->ToScale(2);
+			auto lineWidth = window->ToScale(2.0f);
 			
 			graphics.DrawLine({ checkBoxRect.X + one * 2, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - six },
 				{ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - three }, lineWidth,

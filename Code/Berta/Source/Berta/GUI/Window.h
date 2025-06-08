@@ -105,6 +105,11 @@ namespace Berta
 			return static_cast<int>(units * DPIScaleFactor);
 		}
 
+		float ToScale(float units) const
+		{
+			return units * DPIScaleFactor;
+		}
+
 		int ToDownwardScale(int units) const
 		{
 			return static_cast<int>(units / DPIScaleFactor);
