@@ -22,7 +22,7 @@ namespace Berta
 
 	struct PropertyGridAppearance : public ControlAppearance
 	{
-		uint32_t CategoryHeight = 26u;
+		uint32_t CategoryHeight = 22u;
 		uint32_t ExpanderButtonSize = 12u;
 	};
 
@@ -44,9 +44,15 @@ namespace Berta
 	class PropertyGridField
 	{
 	public:
+		PropertyGridField() = default;
+		PropertyGridField(const std::string& label, const std::string value = "") :
+			m_label(label), m_value(value), m_defaultValue(value)
+		{
+		}
+
 		virtual ~PropertyGridField() = default;
 
-		void Init(Window* parent);
+		virtual void Create(Window* parent) = 0;
 
 		virtual std::string GetLabel() const;
 		virtual void SetLabel(const std::string& label);
@@ -62,12 +68,12 @@ namespace Berta
 			return m_size;
 		}
 
-		virtual void Draw(Graphics& graph, Rectangle area);
+		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
 
 		void Update();
 
 	protected:
-		virtual void Create(Window* parent) = 0;
+		virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
 
 	private:
 		std::string	m_label;

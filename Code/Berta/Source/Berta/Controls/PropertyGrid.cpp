@@ -63,7 +63,7 @@ namespace Berta
 
 				if (it->m_isExpanded)
 				{
-					if (scrollOffset.Y + fieldSize < 0 || scrollOffset.Y - m_module.m_viewport.m_backgroundRect.Y > m_module.m_viewport.m_backgroundRect.Height)
+					if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_module.m_viewport.m_backgroundRect.Y > static_cast<int>(m_module.m_viewport.m_backgroundRect.Height))
 					{
 						fieldVisible = false;
 					}
@@ -71,7 +71,10 @@ namespace Berta
 
 				if (fieldVisible)
 				{
+					Rectangle fieldArea{ categoryRect.X,categoryRect.Y + scrollOffset.Y,m_module.m_viewport.m_backgroundRect.Width,fieldSize };
+					field->Draw(graphics, fieldArea, m_module.m_viewport.m_backgroundRect.Width >> 1, m_module.m_appearance->Foreground);
 
+					scrollOffset.Y += fieldSize;
 				}
 
 				GUI::ShowWindow(*fieldContainer, fieldVisible);
@@ -154,7 +157,7 @@ namespace Berta
 		viewportData.m_categoryItemHeight = m_owner->ToScale(m_appearance->CategoryHeight);
 		viewportData.m_expanderButtonSize = m_owner->ToScale(m_appearance->ExpanderButtonSize);
 		viewportData.m_categoryTextOffset = m_owner->ToScale(4);
-		viewportData.m_contentSize = viewportData.m_categoryItemHeight * m_listModule.Size();
+		viewportData.m_contentSize = viewportData.m_categoryItemHeight * static_cast<uint32_t>(m_listModule.Size());
 
 		for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 		{
@@ -200,10 +203,9 @@ namespace Berta
 
 		std::unique_ptr<FieldControlContainter> containerPtr(new FieldControlContainter(m_module->m_owner));
 		
-		newField->Init(containerPtr->Handle());
+		newField->Create(containerPtr->Handle());
 		
 		m_category->m_fieldContainers.emplace_back(std::move(containerPtr));
-		
 
 		return { m_module,newField };
 	}
@@ -231,11 +233,6 @@ namespace Berta
 	PropertyItem& PropertyItem::SetValue(const std::string& value, bool emit)
 	{
 		return *this;
-	}
-
-	void PropertyGridField::Init(Window* parent)
-	{
-		Create(parent);
 	}
 
 	std::string PropertyGridField::GetLabel() const
@@ -279,12 +276,25 @@ namespace Berta
 		Update();
 	}
 
-	void PropertyGridField::Draw(Graphics& graph, Rectangle area)
+	void PropertyGridField::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
+		Rectangle labelArea = area;
+		labelArea.Width = labelWidth;
+
+		DrawLabel(graphics, labelArea, textColor);
 	}
 
 	void PropertyGridField::Update()
 	{
+	}
+
+	void PropertyGridField::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
+	{
+		auto textExtents = graphics.GetTextExtent();
+		Point position = area;
+		position.Y += static_cast<int>((area.Height - textExtents.Height) >> 1);
+
+		graphics.DrawString(position, m_label, textColor);
 	}
 
 	FieldControlContainter::FieldControlContainter(Window* parent, const Rectangle& rect) : 
