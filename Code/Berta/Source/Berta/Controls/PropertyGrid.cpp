@@ -72,7 +72,11 @@ namespace Berta
 				if (fieldVisible)
 				{
 					Rectangle fieldArea{ categoryRect.X,categoryRect.Y + scrollOffset.Y,m_module.m_viewport.m_backgroundRect.Width,fieldSize };
-					GUI::MoveWindow(*fieldContainer, fieldArea);
+					Rectangle fieldContainerArea = fieldArea;
+					fieldContainerArea.X += fieldArea.Width >> 1;
+					fieldContainerArea.Width -= fieldArea.Width >> 1;
+
+					GUI::MoveWindow(*fieldContainer, fieldContainerArea);
 
 					field->Draw(graphics, fieldArea, m_module.m_viewport.m_backgroundRect.Width >> 1, m_module.m_appearance->Foreground);
 
