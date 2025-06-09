@@ -290,8 +290,13 @@ namespace Berta
 
 				if (now || !child->IsBatchActive())
 				{
-					child->Renderer.Update();
-					child->DrawStatus = DrawWindowStatus::Updated;
+					if (!child->Flags.isUpdating)
+					{
+						child->Flags.isUpdating = true;
+						child->Renderer.Update();
+						child->DrawStatus = DrawWindowStatus::Updated;
+						child->Flags.isUpdating = false;
+					}
 
 					if (LayoutUtils::GetIntersectionClipRect(containerRectangle, childRectangle, childRectangle))
 					{
@@ -765,8 +770,13 @@ namespace Berta
 
 		if (now || !window->IsBatchActive())
 		{
-			window->Renderer.Update();
-			window->DrawStatus = DrawWindowStatus::Updated;
+			if (!window->Flags.isUpdating)
+			{
+				window->Flags.isUpdating = true;
+				window->Renderer.Update();
+				window->Flags.isUpdating = false;
+				window->DrawStatus = DrawWindowStatus::Updated;
+			}
 			rootGraphics.Begin();
 			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
 			{

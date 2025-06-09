@@ -49,21 +49,25 @@ void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rect
 
 	if (valueRect.Width > 0)
 	{
+		auto panelSaved = valueRect;
 		auto eachSize = valueRect.Width / 3;
 		auto inputSize = eachSize - innerLabelExtents.Width * 2;
+		int x = 0;
 		for (size_t i = 0; i < 3; i++)
 		{
 			auto& input = m_inputTexts[i];
-			Berta::Rectangle inputRect = valueRect;
+			Berta::Rectangle inputRect = panelSaved;
+			inputRect.X += x;
 			graphics.DrawString({ inputRect.X, inputRect.Y }, m_inputTextLabels[i], textColor);
-			inputRect.X += innerLabelExtents.Width * 2;
+
+			inputRect.X += innerLabelExtents.Width * 2 - panelSaved.X;
+			inputRect.Y -= panelSaved.Y;
 			inputRect.Width = inputSize;
-			inputRect.X += inputSize;
 
 			input.SetArea(inputRect);
 			input.Show();
 
-			valueRect.X = inputRect.X;
+			x+= inputSize;
 		}
 	}
 }
@@ -79,6 +83,12 @@ int main()
 	categoryTransform.Append(Berta::PropertyGridFieldPtr(new PropertyGridFieldVector3("Position")));
 
 	auto categoryMesh = propertyGrid.Append("Mesh");
+
+	form.SetLayout("{HorizontalLayout {a}{b}");
+
+	auto& layout = form.GetLayout();
+	layout.Attach("a", propertyGrid);
+	layout.Apply();
 
 	form.Show();
 	form.Exec();

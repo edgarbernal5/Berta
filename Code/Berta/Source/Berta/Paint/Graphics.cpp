@@ -757,9 +757,15 @@ namespace Berta
 		{
 			return;
 		}
-		
+		m_beginStarted++;
+		if (m_beginStarted>1)
+		{
+			return;
+		}
+
 		m_attributes->m_bitmapRT->BeginDraw();
 		m_attributes->m_bitmapRT->SetTransform(D2D1::Matrix3x2F::Identity());
+
 #endif
 	}
 
@@ -770,6 +776,10 @@ namespace Berta
 		{
 			return;
 		}
+
+		m_beginStarted--;
+		if (m_beginStarted)
+			return;
 
 		auto hr = m_attributes->m_bitmapRT->EndDraw();
 		if (FAILED(hr))
@@ -809,6 +819,7 @@ namespace Berta
 		m_attributes.reset();
 				
 		m_size = Size::Zero;
+		m_beginStarted = 0;
 	}
 
 	bool Graphics::IsEnabledAliasing()

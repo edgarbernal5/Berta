@@ -113,6 +113,8 @@ namespace Berta
 		Size m_size{};
 		API::RootPaintNativeHandle m_rootPaintNativeHandle;
 		std::unique_ptr<PaintNativeHandle> m_attributes;
+
+		int m_beginStarted{ 0 };
 	};
 }
 
