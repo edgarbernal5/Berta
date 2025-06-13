@@ -36,7 +36,7 @@ namespace Berta::GUI
 
 		if (windowManager.Caption(window, caption))
 		{
-			windowManager.Update(window);
+			windowManager.Update(window, true);
 		}
 	}
 
@@ -97,7 +97,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		windowManager.Update(window);
+		windowManager.Update(window, false);
 	}
 
 	void EnableWindow(Window* window, bool isEnabled)
@@ -155,7 +155,7 @@ namespace Berta::GUI
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
 
-			windowManager.Update(windowToUpdate);
+			windowManager.Update(windowToUpdate, false);
 		}
 	}
 
@@ -187,7 +187,7 @@ namespace Berta::GUI
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
 
-			windowManager.Update(windowToUpdate);
+			windowManager.Update(windowToUpdate, false);
 		}
 
 		return hasChanged;
@@ -210,9 +210,9 @@ namespace Berta::GUI
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
 
-			if (windowToUpdate != window)
+			if (windowToUpdate != nullptr)
 			{
-				windowManager.Update(window);
+				windowManager.Update(window, false);
 			}
 		}
 
@@ -320,9 +320,9 @@ namespace Berta::GUI
 		auto& graphics = window->Renderer.GetGraphics();
 		graphics.Build(window->ClientSize, window->RootPaintHandle);
 		graphics.BuildFont(window->DPI);
-		graphics.Begin();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
-		graphics.Flush();
+		//graphics.Begin();
+		//graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
+		//graphics.Flush();
 
 		window->Renderer.Init(*control, controlReactor);
 		window->Renderer.Update();

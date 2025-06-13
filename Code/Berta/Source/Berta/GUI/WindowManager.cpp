@@ -8,6 +8,7 @@
 #include "WindowManager.h"
 
 #include "Berta/GUI/Window.h"
+#include "Berta/GUI/UIRendererCoordinator.h"
 #include "Berta/Controls/MenuBar.h"
 #include "Berta/Core/Foundation.h"
 
@@ -254,10 +255,6 @@ namespace Berta
 		}
 
 		window->Renderer.GetGraphics().Release();
-		if (window->IsNative())
-		{
-			API::Dispose(window->RootPaintHandle);
-		}
 	}
 
 	void WindowManager::UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition, const Rectangle& containerRectangle)
@@ -598,6 +595,11 @@ namespace Berta
 
 		m_windowNativeRegistry.erase(window->RootHandle);
 		m_windowRegistry.erase(window);
+
+		if (window->IsNative())
+		{
+			API::Dispose(window->RootPaintHandle);
+		}
 #if BT_DEBUG
 		//BT_CORE_DEBUG << "    - Remove. Window =" << window->Name << std::endl;
 #else
@@ -751,52 +753,7 @@ namespace Berta
 			return;
 		}
 
-		//if (window->Type == WindowType::RenderForm && window->CustomPaint)
-		//{
-		//	API::RefreshWindow(window->RootHandle);
-		//	return;
-		//}
-
-		auto& rootGraphics = *(window->RootGraphics);
-
-		Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		auto absolutePosition = GetAbsoluteRootPosition(window);
-		requestRectangle.X = absolutePosition.X;
-		requestRectangle.Y = absolutePosition.Y;
-
-		auto container = window->FindFirstPanelOrFormAncestor();
-		auto containerPosition = GetAbsoluteRootPosition(container);
-		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-
-		if (now || !window->IsBatchActive())
-		{
-			if (!window->Flags.isUpdating)
-			{
-				window->Flags.isUpdating = true;
-				window->Renderer.Update();
-				window->Flags.isUpdating = false;
-				window->DrawStatus = DrawWindowStatus::Updated;
-			}
-			rootGraphics.Begin();
-			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-			{
-				rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
-			}
-		}
-		else
-		{
-			if (LayoutUtils::GetIntersectionClipRect(containerRectangle, requestRectangle, requestRectangle))
-			{
-				AddWindowToBatch(window, requestRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
-			}
-		}
-
-		UpdateTreeInternal(window, rootGraphics, now, absolutePosition, containerRectangle);
-
-		if (now || !window->IsBatchActive())
-		{
-			rootGraphics.Flush();
-		}
+		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true);
 	}
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
@@ -885,9 +842,9 @@ namespace Berta
 			{
 				newRootGraphics.Build(newSize, window->RootPaintHandle);
 				newRootGraphics.BuildFont(window->DPI);
-				newRootGraphics.Begin();
-				newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
-				newRootGraphics.Flush();
+				//newRootGraphics.Begin();
+				//newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
+				//newRootGraphics.Flush();
 			}
 		}
 
@@ -906,7 +863,7 @@ namespace Berta
 				{
 					auto nativePosition = API::GetWindowPosition(window->RootHandle);
 					Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
-					API::MoveWindow(window->RootHandle, newArea);
+					API::ResizeWindow(window->RootHandle, newArea);
 				}
 			}
 		}
@@ -953,7 +910,9 @@ namespace Berta
 				}
 #endif
 				if (window->Type != WindowType::RenderForm)
+				{
 					window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
+				}
 
 				window->RootGraphics->Rebuild(window->ClientSize, window->RootPaintHandle);
 
@@ -1027,7 +986,7 @@ namespace Berta
 		return false;
 	}
 
-	void WindowManager::Update(Window* window)
+	void WindowManager::Update(Window* window, bool redraw, const Rectangle* updateArea)
 	{
 		if (!window->IsVisible())
 			return;

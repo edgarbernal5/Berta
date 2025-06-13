@@ -38,7 +38,7 @@ namespace Berta
 		bool operator()(BatchItem a, BatchItem b) const;
 	};
 
-	struct DrawBatcherContext
+	struct DrawBatchContext
 	{
 		Window* m_rootWindow{ nullptr };
 		std::vector<BatchItem> m_batchItemRequests;
@@ -56,8 +56,8 @@ namespace Berta
 		bool Exists(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 
 	private:
-		DrawBatcherContext& m_context;
-		static std::unordered_map<Window*, DrawBatcherContext> g_contexts;
+		DrawBatchContext& m_context;
+		static std::unordered_map<Window*, DrawBatchContext> g_contexts;
 	};
 }
 

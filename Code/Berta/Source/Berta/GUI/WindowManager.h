@@ -73,7 +73,7 @@ namespace Berta
 		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
 		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
-		void Update(Window* window);
+		void Update(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
 		void Paint(Window* window, bool doUpdate);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);

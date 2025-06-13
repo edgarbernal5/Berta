@@ -231,6 +231,7 @@
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -383,5 +384,6 @@
     <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
   </ItemGroup>
 </Project>

@@ -18,7 +18,7 @@
 
 namespace Berta
 {
-	std::unordered_map< Window*, DrawBatcherContext> DrawBatch::g_contexts;
+	std::unordered_map< Window*, DrawBatchContext> DrawBatch::g_contexts;
 
 	DrawBatch::DrawBatch(Window* rootWindow) :
 		m_context(g_contexts[rootWindow->RootWindow])
