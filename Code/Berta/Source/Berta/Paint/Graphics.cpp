@@ -128,7 +128,6 @@ namespace Berta
 				BT_CORE_ERROR << "Error creating bitmap render target." << std::endl;
 			}
 		}
-
 #endif
 	}
 
@@ -191,7 +190,7 @@ namespace Berta
 		sourceRect.Height = blendDestRectangle.Height;
 
 		Rectangle validDestRect, validSourceDest;
-		if (!LayoutUtils::GetIntersectionClipRect(sourceRect, graphicsSource.GetSize(), blendDestRectangle, GetSize(), validSourceDest, validDestRect))
+		if (!LayoutUtils::GetIntersectionRect(sourceRect, graphicsSource.GetSize(), blendDestRectangle, GetSize(), validSourceDest, validDestRect))
 			return;
 
 		ID2D1Bitmap* sourceBitmap = nullptr;
@@ -309,7 +308,7 @@ namespace Berta
 		}
 
 		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, validRectangle))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rectangle, validRectangle))
 		{
 			return;
 		}
@@ -348,7 +347,7 @@ namespace Berta
 		}
 
 		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rectangle, validRectangle))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rectangle, validRectangle))
 		{
 			return;
 		}
@@ -435,7 +434,7 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		Rectangle output;
-		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rect, output))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, output))
 		{
 			return;
 		}
@@ -537,7 +536,7 @@ namespace Berta
 		}
 
 		Rectangle output;
-		if (!LayoutUtils::GetIntersectionClipRect(GetSize().ToRectangle(), rect, output))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, output))
 		{
 			return;
 		}
@@ -730,7 +729,7 @@ namespace Berta
 		{
 			auto destRect = D2D1::RectF(static_cast<FLOAT>(dx), static_cast<FLOAT>(dy), static_cast<FLOAT>(dx + width), static_cast<FLOAT>(dy + height));
 			auto sourceRect = D2D1::RectF(static_cast<FLOAT>(sx), static_cast<FLOAT>(sy), static_cast<FLOAT>(sx + width), static_cast<FLOAT>(sy + height));
-			
+
 			destinationHandle.RenderTarget->BeginDraw();
 			destinationHandle.RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 			destinationHandle.RenderTarget->DrawBitmap

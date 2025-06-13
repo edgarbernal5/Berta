@@ -44,7 +44,7 @@ namespace Berta
 
         auto& storage = *m_storage.get();
         Rectangle validDestRect, validSourceDest;
-        if (!LayoutUtils::GetIntersectionClipRect(sourceRect, storage.m_size, destinationRect, API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
+        if (!LayoutUtils::GetIntersectionRect(sourceRect, storage.m_size, destinationRect, API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
             return;
 
         ColorBuffer destBuffer;
@@ -67,7 +67,7 @@ namespace Berta
 
         auto& storage = *m_storage.get();
         Rectangle validDestRect, validSourceDest;
-        if (!LayoutUtils::GetIntersectionClipRect(sourceRect, storage.m_size, { destinationPos.X, destinationPos.Y, sourceRect.Width, sourceRect.Height },
+        if (!LayoutUtils::GetIntersectionRect(sourceRect, storage.m_size, { destinationPos.X, destinationPos.Y, sourceRect.Width, sourceRect.Height },
             API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
         {
             return;

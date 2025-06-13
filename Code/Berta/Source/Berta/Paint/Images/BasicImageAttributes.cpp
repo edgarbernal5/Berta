@@ -105,7 +105,7 @@ namespace Berta
 		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
 
 		Rectangle validDestRect, validSourceDest;
-		if (!LayoutUtils::GetIntersectionClipRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
+		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
 		{
 			return;
 		}

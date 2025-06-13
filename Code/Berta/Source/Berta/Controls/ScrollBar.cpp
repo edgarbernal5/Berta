@@ -182,6 +182,7 @@ namespace Berta
 	void ScrollBarReactor::SetValue(ScrollBarUnit value)
 	{
 		m_value = std::clamp(value, m_min, m_max);
+		//emitir evento.
 		GUI::UpdateWindow(m_control->Handle());
 	}
 

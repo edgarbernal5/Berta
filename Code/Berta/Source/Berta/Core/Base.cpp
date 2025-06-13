@@ -96,19 +96,19 @@ namespace Berta::LayoutUtils
 		return BT_APPLICATION_DPI / static_cast<float>(dpi);
 	}
 
-	bool GetIntersectionClipRect(const Rectangle& parentRectangle, const Rectangle& childRectangle, Rectangle& output)
+	bool GetIntersectionRect(const Rectangle& r1, const Rectangle& r2, Rectangle& output)
 	{
-		if (parentRectangle.X + static_cast<int>(parentRectangle.Width) <= childRectangle.X || childRectangle.X + static_cast<int>(childRectangle.Width) <= parentRectangle.X ||
-			parentRectangle.Y + static_cast<int>(parentRectangle.Height) <= childRectangle.Y || childRectangle.Y + static_cast<int>(childRectangle.Height) <= parentRectangle.Y)
+		if (r1.X + static_cast<int>(r1.Width) <= r2.X || r2.X + static_cast<int>(r2.Width) <= r1.X ||
+			r1.Y + static_cast<int>(r1.Height) <= r2.Y || r2.Y + static_cast<int>(r2.Height) <= r1.Y)
 		{
 			return false;
 		}
 
 		// Calculate the intersection rectangle
-		int interLeft = (std::max)(parentRectangle.X, childRectangle.X);
-		int interTop = (std::max)(parentRectangle.Y, childRectangle.Y);
-		int interRight = (std::min)(parentRectangle.X + parentRectangle.Width, childRectangle.X + childRectangle.Width);
-		int interBottom = (std::min)(parentRectangle.Y + parentRectangle.Height, childRectangle.Y + childRectangle.Height);
+		int interLeft = (std::max)(r1.X, r2.X);
+		int interTop = (std::max)(r1.Y, r2.Y);
+		int interRight = (std::min)(r1.X + r1.Width, r2.X + r2.Width);
+		int interBottom = (std::min)(r1.Y + r1.Height, r2.Y + r2.Height);
 
 		// Set the intersection rectangle's position and size
 		output.X = interLeft;
@@ -120,16 +120,16 @@ namespace Berta::LayoutUtils
 	}
 
 
-	bool GetIntersectionClipRect(const Rectangle& sourceRectangle, const Size& sourceSize, const Rectangle& destRectangle, const Size& destSize, Rectangle& outputSourceRect, Rectangle& outputDestRect)
+	bool GetIntersectionRect(const Rectangle& sourceRectangle, const Size& sourceSize, const Rectangle& destRectangle, const Size& destSize, Rectangle& outputSourceRect, Rectangle& outputDestRect)
 	{
 		// Valid clip area for parent and child based on their sizes
 		Rectangle validSourceRect{ sourceSize };
-		if (!GetIntersectionClipRect(sourceRectangle, validSourceRect, outputSourceRect))
+		if (!GetIntersectionRect(sourceRectangle, validSourceRect, outputSourceRect))
 			return false;
 
 		Rectangle validDestRect{ destSize };
 		Rectangle resultDestRect;
-		if (!GetIntersectionClipRect(destRectangle, validDestRect, resultDestRect))
+		if (!GetIntersectionRect(destRectangle, validDestRect, resultDestRect))
 			return false;
 
 		// Compute proportional offset from original parent rect to output clipped rect
@@ -137,7 +137,7 @@ namespace Berta::LayoutUtils
 
 		if (Contains(outputDestRect, resultDestRect))
 		{
-			//GetIntersectionClipRect({ outputChildRect }, resultChildRect, outputChildRect);
+			//GetIntersectionRect({ outputChildRect }, resultChildRect, outputChildRect);
 		}
 		else
 		{
