@@ -19,6 +19,7 @@ namespace Berta::DirectX
 	{
 	public:
 		D2DModule();
+		~D2DModule();
 		
 		ID2D1Factory* GetFactory() const
 		{

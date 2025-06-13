@@ -5,7 +5,15 @@ namespace Berta::DirectX
 {
 	D2DModule::D2DModule()
 	{
-		HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_factory);
+		D2D1_FACTORY_OPTIONS options = {};
+#if BT_DEBUG
+		options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+		//options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
+#else
+		options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
+#endif
+
+		HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), &options, reinterpret_cast<void**>(&m_factory));
 
 		if (FAILED(hr))
 		{
@@ -21,6 +29,21 @@ namespace Berta::DirectX
 		if (FAILED(hr))
 		{
 			BT_CORE_ERROR << "Error creating D2D write factory." << std::endl;
+		}
+	}
+
+	D2DModule::~D2DModule()
+	{
+		if (m_factory)
+		{
+			m_factory->Release();
+			m_factory = nullptr;
+		}
+
+		if (m_dWriteFactory)
+		{
+			m_dWriteFactory->Release();
+			m_dWriteFactory = nullptr;
 		}
 	}
 }

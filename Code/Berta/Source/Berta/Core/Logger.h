@@ -14,9 +14,9 @@
 #include <filesystem>
 #include <mutex>
 
-//#ifndef BT_STACK_TRACER
-//#define BT_STACK_TRACER
-//#endif
+#ifndef BT_STACK_TRACER
+#define BT_STACK_TRACER2
+#endif
 
 #ifdef BT_STACK_TRACER
 #include "Berta/Core/StackTracer.h"

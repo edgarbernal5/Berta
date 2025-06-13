@@ -310,6 +310,17 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 			::RECT nativeRECT;
 			::GetWindowRect(nativeHandle.Handle, &nativeRECT);
+			HWND owner = ::GetWindow(nativeHandle.Handle, GW_OWNER);
+			HWND parent = ::GetParent(nativeHandle.Handle);
+
+			if (parent && (parent != owner))
+			{
+				::POINT pos = { nativeRECT.left, nativeRECT.top };
+				::ScreenToClient(parent, &pos);
+				nativeRECT.left = pos.x;
+				nativeRECT.top = pos.y;
+			}
+
 			::MoveWindow(nativeHandle.Handle, nativeRECT.left, nativeRECT.top, static_cast<int>(newSize.Width), static_cast<int>(newSize.Height), true);
 #else
 
