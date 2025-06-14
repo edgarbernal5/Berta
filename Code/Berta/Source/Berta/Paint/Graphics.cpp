@@ -178,7 +178,7 @@ namespace Berta
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid() || !graphicsSource.IsValid())
 		{
 			return;
 		}
@@ -206,7 +206,7 @@ namespace Berta
 	void Graphics::BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!graphicsSource.m_attributes || !graphicsSource.m_attributes->m_bitmapRT)
+		if (!IsValid() || !graphicsSource.IsValid())
 		{
 			return;
 		}
@@ -235,7 +235,7 @@ namespace Berta
 	void Graphics::DrawLine(const Point& point1, const Point& point2, float strokeWidth, const Color& color, LineStyle style)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -302,7 +302,7 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -341,7 +341,7 @@ namespace Berta
 	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -390,7 +390,7 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -530,7 +530,7 @@ namespace Berta
 	void Graphics::DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -582,7 +582,7 @@ namespace Berta
 	void Graphics::DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -719,7 +719,7 @@ namespace Berta
 	void Graphics::Paste(API::RootPaintNativeHandle destinationHandle, int dx, int dy, uint32_t width, uint32_t height, int sx, int sy) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -752,12 +752,7 @@ namespace Berta
 	void Graphics::Begin()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
-		{
-			return;
-		}
-		m_beginStarted++;
-		if (m_beginStarted>1)
+		if (!IsValid())
 		{
 			return;
 		}
@@ -771,14 +766,10 @@ namespace Berta
 	void Graphics::Flush()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_attributes->m_bitmapRT)
+		if (!IsValid())
 		{
 			return;
 		}
-
-		m_beginStarted--;
-		if (m_beginStarted)
-			return;
 
 		auto hr = m_attributes->m_bitmapRT->EndDraw();
 		if (FAILED(hr))
@@ -818,7 +809,6 @@ namespace Berta
 		m_attributes.reset();
 				
 		m_size = Size::Zero;
-		m_beginStarted = 0;
 	}
 
 	bool Graphics::IsEnabledAliasing()

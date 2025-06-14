@@ -231,7 +231,9 @@
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />
+    <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -384,6 +386,8 @@
     <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
+    <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

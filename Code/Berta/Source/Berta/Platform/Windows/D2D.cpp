@@ -8,7 +8,6 @@ namespace Berta::DirectX
 		D2D1_FACTORY_OPTIONS options = {};
 #if BT_DEBUG
 		options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
-		//options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
 #else
 		options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
 #endif

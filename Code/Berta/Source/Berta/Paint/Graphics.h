@@ -109,12 +109,9 @@ namespace Berta
 	private:
 
 		uint32_t m_dpi{ 96u };
-		uint32_t m_lastForegroundColor{ 0 };
 		Size m_size{};
 		API::RootPaintNativeHandle m_rootPaintNativeHandle;
 		std::unique_ptr<PaintNativeHandle> m_attributes;
-
-		int m_beginStarted{ 0 };
 	};
 }
 

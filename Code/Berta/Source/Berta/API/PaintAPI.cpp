@@ -16,7 +16,6 @@ namespace Berta
 	PaintNativeHandle::~PaintNativeHandle()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-
 		if (m_bitmapRT)
 		{
 			m_bitmapRT->Release();
