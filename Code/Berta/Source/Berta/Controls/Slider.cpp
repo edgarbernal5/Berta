@@ -223,7 +223,6 @@ namespace Berta
 		{
 			EmitValueChanged();
 
-			Update(window->Renderer.GetGraphics());
 			if (fromTimer)
 			{
 				GUI::UpdateWindow(window);

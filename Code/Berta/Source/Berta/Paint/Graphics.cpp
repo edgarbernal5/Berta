@@ -744,7 +744,10 @@ namespace Berta
 			if (FAILED(hr))
 			{
 				BT_CORE_ERROR << "Error on Paste method, EndDraw()" << std::endl;
+				return;
 			}
+
+			sourceBitmap->Release();
 		}
 #endif
 	}
