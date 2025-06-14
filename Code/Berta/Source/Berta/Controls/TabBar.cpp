@@ -132,11 +132,11 @@ namespace Berta
 		{
 			auto selectedTabItem = m_module.At(m_module.m_selectedTabIndex);
 
-			selectedTabItem->PanelPtr->Hide();
+			GUI::ShowWindow(selectedTabItem->PanelPtr, false);
 			m_module.SelectIndex(newSelectedIndex);
 
 			auto newSelectedTabItem = m_module.At(newSelectedIndex);
-			newSelectedTabItem->PanelPtr->Show();
+			GUI::ShowWindow(newSelectedTabItem->PanelPtr, true);
 
 			ArgTabBar argsTabBar{ newSelectedTabItem->Id };
 			m_module.m_events->TabChanged.Emit(argsTabBar);
@@ -151,13 +151,13 @@ namespace Berta
 
 		for (auto tabItem = m_module.m_panels.begin(); tabItem != m_module.m_panels.end(); ++tabItem)
 		{
-			tabItem->PanelPtr->SetArea(tabItem->PanelArea);
+			GUI::MoveWindow(tabItem->PanelPtr, tabItem->PanelArea);
 		}
 	}
 
-	void TabBarReactor::AddTab(const std::string& tabId, Panel* panel)
+	void TabBarReactor::AddTab(const std::string& tabId, Window* window)
 	{
-		if (m_module.AddTab(tabId, panel))
+		if (m_module.InsertTab(std::string::npos, tabId, window))
 		{
 			GUI::UpdateWindow(*m_control);
 		}
@@ -171,9 +171,9 @@ namespace Berta
 		}
 	}
 
-	void TabBarReactor::InsertTab(size_t position, const std::string& tabId, Panel* panel)
+	void TabBarReactor::InsertTab(size_t position, const std::string& tabId, Window* window)
 	{
-		if (m_module.InsertTab(position, tabId, panel))
+		if (m_module.InsertTab(position, tabId, window))
 		{
 			GUI::UpdateWindow(*m_control);
 		}
@@ -213,24 +213,25 @@ namespace Berta
 		m_selectedTabIndex = -1;
 		for (auto it = m_panels.begin(); it != m_panels.end(); ++it)
 		{
-			GUI::DisposeWindow(*it->PanelPtr);
+			GUI::DisposeWindow(it->PanelPtr);
 		}
 		m_panels.clear();
 
 		return needUpdate;
 	}
 
-	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Panel* panel)
+	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Window* window)
 	{
 		if (index >= m_panels.size())
 		{
-			return AddTab(tabId, panel);
+			index = m_panels.size();
 		}
 		int startIndex = static_cast<int>(index);
 
-		auto newIt = m_panels.emplace(At(index), std::move(tabId), std::move(panel));
+		GUI::SetParentWindow(window, m_owner);
+		auto newIt = m_panels.emplace(At(index), std::move(tabId), std::move(window));
 
-		UpdatePanelMoveRect(panel);
+		UpdatePanelMoveRect(window);
 
 		if (m_selectedTabIndex == -1)
 		{
@@ -239,7 +240,11 @@ namespace Berta
 		else if (m_selectedTabIndex == index)
 		{
 			++newIt;
-			newIt->PanelPtr->Hide();
+			GUI::ShowWindow(newIt->PanelPtr, false);
+		}
+		else
+		{
+			GUI::ShowWindow(newIt->PanelPtr, false);
 		}
 
 		BuildItems(startIndex);
@@ -319,13 +324,13 @@ namespace Berta
 			if (m_selectedTabIndex >= 0)
 				--current;
 		}
-		GUI::DisposeWindow(*panelPtr);
+		GUI::DisposeWindow(panelPtr);
 		if (removeSelectedIndex && m_selectedTabIndex >= 0)
 		{
 			ArgTabBar argsTabBar{ current->Id };
 			m_events->TabChanged.Emit(argsTabBar);
 
-			current->PanelPtr->Show();
+			GUI::ShowWindow(current->PanelPtr, true);
 		}
 
 		BuildItems(index);
@@ -353,7 +358,7 @@ namespace Berta
 		return m_selectedTabIndex;
 	}
 
-	void TabBarReactor::Module::UpdatePanelMoveRect(Panel* panel) const
+	void TabBarReactor::Module::UpdatePanelMoveRect(Window* window) const
 	{
 		auto tabBarItemHeight = m_owner->ToScale(m_appearance->TabBarItemHeight);
 
@@ -368,7 +373,7 @@ namespace Berta
 		{
 			rect = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
-		GUI::MoveWindow(panel->Handle(), rect);
+		GUI::MoveWindow(window, rect);
 	}
 
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
@@ -385,26 +390,14 @@ namespace Berta
 		m_reactor.Clear();
 	}
 
-	ControlBase* TabBar::PushBack2(const std::string& tabId, ControlBase* control)
+	void TabBar::Insert(size_t position, const std::string& tabId, Window* window)
 	{
-		auto controlAsPanel = dynamic_cast<Panel*>(control);
-		Panel* result = controlAsPanel;
-		if (controlAsPanel)
-		{
-			GUI::SetParentWindow(control->Handle(), this->Handle());
-		}
-		else
-		{
-			result = new Panel(this->Handle());
-#if BT_DEBUG
-			result->Handle()->Name = "Panel-" + tabId;
-#endif
-			GUI::SetParentWindow(control->Handle(), result->Handle());
-		}
+		m_reactor.InsertTab(position, tabId, window);
+	}
 
-		m_reactor.AddTab(tabId, result);
-
-		return result;
+	void TabBar::PushBack(const std::string& tabId, Window* window)
+	{
+		m_reactor.AddTab(tabId, window);
 	}
 
 	void TabBar::SetTabPosition(TabBarPosition position)
@@ -412,33 +405,14 @@ namespace Berta
 		m_reactor.SetTabPosition(position);
 	}
 
-	ControlBase* TabBar::PushBackTab(const std::string& tabId, std::function<ControlBase*(Window*)> factory)
-	{
-		auto result = factory(*this);
-#if BT_DEBUG
-		result->Handle()->Name = "Panel-" + tabId;
-#endif
-		m_reactor.AddTab(tabId, reinterpret_cast<Panel*>(result));
-
-		return result;
-	}
-
-	ControlBase* TabBar::InsertTab(size_t position, const std::string& tabId, std::function<ControlBase* (Window*)> factory)
-	{
-		auto result = factory(*this);
-		m_reactor.InsertTab(position, tabId, reinterpret_cast<Panel*>(result));
-
-		return result;
-	}
-
-	bool TabBarReactor::Module::AddTab(const std::string& tabId, Panel* panel)
+	bool TabBarReactor::Module::AddTab(const std::string& tabId, Window* window)
 	{
 		auto startIndex = m_panels.size();
 		auto& newItem = m_panels.emplace_back();
 		newItem.Id = tabId;
-		newItem.PanelPtr = panel;
+		newItem.PanelPtr = window;
 
-		UpdatePanelMoveRect(panel);
+		UpdatePanelMoveRect(window);
 
 		if (m_selectedTabIndex == -1)
 		{
@@ -446,7 +420,7 @@ namespace Berta
 		}
 		else
 		{
-			panel->Hide();
+			GUI::ShowWindow(window, false);
 		}
 		BuildItems(startIndex);
 

@@ -356,7 +356,7 @@ int main()
 	menuFile.AppendSeparator();
 	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
 		{
-			std::cout << "EXITO" << std::endl;
+			Berta::GUI::Exit();
 		});
 	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 	menuFile.SetEnabled(1, false);
@@ -433,9 +433,13 @@ int main()
 
 	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
 
-	auto tabExample1 = tabbar.PushBack<TabExample1>("Apariencia");
-	auto tabExample2 = tabbar.PushBack<TabExample2>("Player");
-	auto tabExample3 = tabbar.Insert<TabExample3>(0, "Input");
+	TabExample1 tabExample1(form);
+	TabExample2 tabExample2(form);
+	TabExample3 tabExample3(form);
+
+	tabbar.PushBack("Apariencia", tabExample1);
+	tabbar.PushBack("Player", tabExample2);
+	tabbar.Insert(0, "Input", tabExample3);
 
 
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
@@ -484,15 +488,15 @@ int main()
 		{
 			std::cout << "form > Visibility = " << args.IsVisible << std::endl;
 		});
-	tabExample1->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+	tabExample1.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
 			std::cout << "Apariencia > Visibility = " << args.IsVisible << std::endl;
 		});
-	tabExample2->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+	tabExample2.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
 			std::cout << "Tab Player > Visibility = " << args.IsVisible << std::endl;
 		});
-	tabExample3->GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
+	tabExample3.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
 			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
 		});

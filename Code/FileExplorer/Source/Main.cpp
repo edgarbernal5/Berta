@@ -314,8 +314,11 @@ int main()
 
 	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
 
-	tabbar.PushBack<TabExplorer>("Explorer");
-	tabbar.PushBack<TabImages>("Images");
+	TabExplorer tabExplorer(form);
+	TabImages tabImages(form);
+	tabbar.PushBack("Explorer", tabExplorer);
+	tabbar.PushBack("Images", tabImages);
+
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{tabBar}");
 
 	auto& layout = form.GetLayout();

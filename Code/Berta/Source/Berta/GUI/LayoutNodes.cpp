@@ -476,9 +476,9 @@ namespace Berta
 	{
 	}
 
-	void DockPaneLayoutNode::AddTab(const std::string& id, ControlBase* control)
+	void DockPaneLayoutNode::AddTab(const std::string& id, Window* window)
 	{
-		m_dockArea->AddTab(id, control);
+		m_dockArea->AddTab(id, window);
 	}
 
 	void DockPaneLayoutNode::AddPane(DockPaneLayoutNode* paneNode)
@@ -629,11 +629,11 @@ namespace Berta
 		//GUI::MarkAsUpdated(*m_control);
 	}
 
-	void DockArea::AddTab(const std::string& id, ControlBase* control)
+	void DockArea::AddTab(const std::string& id, Window* window)
 	{
 		bool isFirstTab = m_tabBar->Count() == 0;
-		auto panel = m_tabBar->PushBack2(id, control); 
-		m_tabBarPanels.push_back(panel);
+		m_tabBar->PushBack(id, window);
+		m_tabBarPanels.push_back(window);
 		if (isFirstTab)
 		{
 			m_caption->SetCaption(id);

@@ -142,10 +142,10 @@ int main()
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene", &buttonPaneScene, "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Properties", &tabProperties, "dockScene", Berta::DockPosition::Right);
-	layout.AddPaneTab("dockProp", "tab-Explorer", &buttonPaneExplorer);
-	layout.AddPaneTab("dockD3D", "tab-D3D", &tabForm, "dockScene", Berta::DockPosition::Down);
+	layout.AddPaneTab("dockScene", "tab-Scene", buttonPaneScene, "", Berta::DockPosition::Tab);
+	layout.AddPaneTab("dockProp", "tab-Properties", tabProperties, "dockScene", Berta::DockPosition::Right);
+	layout.AddPaneTab("dockProp", "tab-Explorer", buttonPaneExplorer);
+	layout.AddPaneTab("dockD3D", "tab-D3D", tabForm, "dockScene", Berta::DockPosition::Down);
 
 	layout.Apply();
 
