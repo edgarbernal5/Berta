@@ -533,7 +533,7 @@ namespace Berta
 
 	void WindowManager::Paint(Window* window, bool doUpdate)
 	{
-		if (doUpdate && !window->Flags.isUpdating)
+		/*if (doUpdate && !window->Flags.isUpdating)
 		{
 			window->Flags.isUpdating = true;
 			window->Renderer.Update();
@@ -554,7 +554,7 @@ namespace Berta
 		}
 
 		PaintInternal(window, rootGraphics, doUpdate, absolutePosition, containerRectangle);
-		rootGraphics.Flush();
+		rootGraphics.Flush();*/
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -758,18 +758,18 @@ namespace Berta
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
 	{
-		if (areaToUpdate == nullptr)
-		{
-			Rectangle requestRectangle = window->ClientSize.ToRectangle();
-			auto absolutePosition = GetAbsoluteRootPosition(window);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
+		//if (areaToUpdate == nullptr)
+		//{
+		//	Rectangle requestRectangle = window->ClientSize.ToRectangle();
+		//	auto absolutePosition = GetAbsoluteRootPosition(window);
+		//	requestRectangle.X = absolutePosition.X;
+		//	requestRectangle.Y = absolutePosition.Y;
 
-			window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
-			return;
-		}
+		//	window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+		//	return;
+		//}
 
-		window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
+		//window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -999,24 +999,25 @@ namespace Berta
 
 		if (window->IsBatchActive())
 		{
-			TryAddWindowToBatch(window);
+			TryAddWindowToBatch(window, redraw ? (DrawOperation::NeedUpdate | DrawOperation::NeedMap) : DrawOperation::NeedMap);
 		}
 		else
 		{
 			if (window->Flags.isUpdating)
 			{
 				BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
+				return;
 			}
 
-			if (!window->Flags.isUpdating)
+			if (redraw && !window->Flags.isUpdating)
 			{
 				window->Flags.isUpdating = true;
 				window->Renderer.Update();
 				window->Flags.isUpdating = false;
 			}
 
-			Paint(window, false);
-			Map(window, nullptr);
+			Paint(window, redraw);
+			Map(window, updateArea);
 		}
 	}
 

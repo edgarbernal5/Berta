@@ -67,7 +67,7 @@ void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rect
 			input.SetArea(inputRect);
 			input.Show();
 
-			x+= inputSize;
+			x += eachSize;
 		}
 	}
 }

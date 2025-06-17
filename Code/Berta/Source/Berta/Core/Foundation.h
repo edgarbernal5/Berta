@@ -90,7 +90,7 @@ namespace Berta
 					m_windowManager.TryAddWindowToBatch
 					(
 						window,
-						window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap
+						(window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap)
 					);
 				}
 				else

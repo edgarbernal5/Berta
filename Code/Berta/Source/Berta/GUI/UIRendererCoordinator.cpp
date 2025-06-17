@@ -30,54 +30,6 @@ namespace Berta
 			}
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
-
-		//
-		////if (window->Type == WindowType::RenderForm && window->CustomPaint)
-		////{
-		////	API::RefreshWindow(window->RootHandle);
-		////	return;
-		////}
-
-		//auto& rootGraphics = *(window->RootGraphics);
-
-		//Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		//auto absolutePosition = GetAbsoluteRootPosition(window);
-		//requestRectangle.X = absolutePosition.X;
-		//requestRectangle.Y = absolutePosition.Y;
-
-		//auto container = window->FindFirstPanelOrFormAncestor();
-		//auto containerPosition = GetAbsoluteRootPosition(container);
-		//Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-
-		//if (now || !window->IsBatchActive())
-		//{
-		//	if (!window->Flags.isUpdating)
-		//	{
-		//		window->Flags.isUpdating = true;
-		//		window->Renderer.Update();
-		//		window->Flags.isUpdating = false;
-		//		window->DrawStatus = DrawWindowStatus::Updated;
-		//	}
-		//	rootGraphics.Begin();
-		//	if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, requestRectangle))
-		//	{
-		//		rootGraphics.BitBlt(requestRectangle, window->Renderer.GetGraphics(), { 0,0 });
-		//	}
-		//}
-		//else
-		//{
-		//	if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, requestRectangle))
-		//	{
-		//		AddWindowToBatch(window, requestRectangle, DrawOperation::NeedUpdate | DrawOperation::NeedMap);
-		//	}
-		//}
-
-		//UpdateTreeInternal(window, rootGraphics, now, absolutePosition, containerRectangle);
-
-		//if (now || !window->IsBatchActive())
-		//{
-		//	rootGraphics.Flush();
-		//}
 	}
 
 	void UIRendererCoordinator::Map(Window* window, bool haveUpdated, bool processChildren)

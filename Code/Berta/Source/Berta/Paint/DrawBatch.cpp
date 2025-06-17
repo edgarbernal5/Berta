@@ -76,6 +76,7 @@ namespace Berta
 			if (batchItem.Target->Flags.IsDisposed)
 				continue;
 
+			batchItem.Target->Flags.isBatching = true;
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
 			{
 				batchItem.Target->Flags.isUpdating = true;
@@ -91,6 +92,7 @@ namespace Berta
 			//if there are children, paste it too!
 
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
+			batchItem.Target->Flags.isBatching = false;
 		}
 		rootGraphics.Flush();
 

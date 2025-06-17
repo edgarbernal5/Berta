@@ -97,7 +97,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		windowManager.Update(window, false);
+		windowManager.Update(window, true);
 	}
 
 	void EnableWindow(Window* window, bool isEnabled)
@@ -185,9 +185,17 @@ namespace Berta::GUI
 			if (!window->IsNative())
 			{
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
+
+				if (windowToUpdate->Flags.isUpdating)
+				{
+					/*window->Flags.isUpdating = true;
+					window->Renderer.Update();
+					window->Flags.isUpdating = false;*/
+					return hasChanged;
+				}
 			}
 
-			windowManager.Update(windowToUpdate, false);
+			windowManager.Update(windowToUpdate, true);
 		}
 
 		return hasChanged;
