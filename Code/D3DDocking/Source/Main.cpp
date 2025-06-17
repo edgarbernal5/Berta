@@ -62,6 +62,7 @@ public:
 
 				m_graphicsContext->ClearRenderTarget(backBuffer, Color(0.3f, 0.3f, 0.8f));
 
+				m_graphicsContext->SetViewport(m_viewport);
 				m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_PRESENT);
 				m_graphicsContext->FlushBarriers();
 
@@ -75,21 +76,24 @@ public:
 			{
 				m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
 
-				/*D3D12_VIEWPORT viewport;
-				viewport.TopLeftX = 0.0f;
-				viewport.TopLeftY = 0.0f;
-				viewport.Width = args.NewSize.Width;
-				viewport.Height = args.NewSize.Height;
-				viewport.MinDepth = D3D12_MIN_DEPTH;
-				viewport.MaxDepth = D3D12_MAX_DEPTH;
-
-				m_graphicsContext->SetViewport(viewport);*/
+				m_viewport.TopLeftX = 0.0f;
+				m_viewport.TopLeftY = 0.0f;
+				m_viewport.Width = args.NewSize.Width;
+				m_viewport.Height = args.NewSize.Height;
+				m_viewport.MinDepth = D3D12_MIN_DEPTH;
+				m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 			});
 
 		auto formSize = m_nestedForm->GetSize();
 		m_device = std::make_unique<D3D12Lite::Device>(m_nestedForm->Handle()->RootHandle.Handle, D3D12Lite::Uint2{ formSize.Width, formSize.Height });
 		m_graphicsContext = m_device->CreateGraphicsContext();
 
+		m_viewport.TopLeftX = 0.0f;
+		m_viewport.TopLeftY = 0.0f;
+		m_viewport.Width = formSize.Width;
+		m_viewport.Height = formSize.Height;
+		m_viewport.MinDepth = D3D12_MIN_DEPTH;
+		m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 		{
 			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
@@ -102,6 +106,8 @@ private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
 	std::unique_ptr<D3D12Lite::Device> m_device;
 	std::unique_ptr<D3D12Lite::GraphicsContext> m_graphicsContext;
+
+	D3D12_VIEWPORT m_viewport;
 };
 
 int main()

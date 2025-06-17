@@ -16,10 +16,10 @@ public:
 	{
 	}
 
-	void Create(Berta::Window* parent) override;
 	void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
 
 protected:
+	void Create(Berta::Window* parent) override;
 
 private:
 	Berta::InputText m_inputTexts[3];
@@ -74,7 +74,7 @@ void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rect
 
 int main()
 {
-	Berta::Form form(Berta::Size(850u, 750u), { true, true, true });
+	Berta::Form form(Berta::Size(750u, 650u), { true, true, true });
 	form.SetCaption("Property Grid - Example");
 
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });

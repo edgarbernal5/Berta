@@ -52,7 +52,7 @@ namespace Berta
 
 		virtual ~PropertyGridField() = default;
 
-		virtual void Create(Window* parent) = 0;
+		void Init(Window* parent);
 
 		virtual std::string GetLabel() const;
 		virtual void SetLabel(const std::string& label);
@@ -65,7 +65,7 @@ namespace Berta
 
 		virtual uint32_t GetSize() const
 		{
-			return m_size;
+			return m_parent->ToScale(m_size);
 		}
 
 		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
@@ -74,6 +74,7 @@ namespace Berta
 
 	protected:
 		virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
+		virtual void Create(Window* parent) = 0;
 
 	private:
 		std::string	m_label;
@@ -81,6 +82,7 @@ namespace Berta
 		std::string	m_defaultValue;
 
 		uint32_t m_size{ 20 };
+		Window* m_parent{ nullptr };
 	};
 
 	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;

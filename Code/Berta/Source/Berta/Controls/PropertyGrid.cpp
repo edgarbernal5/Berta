@@ -209,7 +209,7 @@ namespace Berta
 
 		std::unique_ptr<FieldControlContainter> containerPtr(new FieldControlContainter(m_module->m_owner));
 		
-		newField->Create(containerPtr->Handle());
+		newField->Init(containerPtr->Handle());
 		
 		m_category->m_fieldContainers.emplace_back(std::move(containerPtr));
 
@@ -239,6 +239,12 @@ namespace Berta
 	PropertyItem& PropertyItem::SetValue(const std::string& value, bool emit)
 	{
 		return *this;
+	}
+
+	void PropertyGridField::Init(Window* parent)
+	{
+		m_parent = parent;
+		Create(parent);
 	}
 
 	std::string PropertyGridField::GetLabel() const

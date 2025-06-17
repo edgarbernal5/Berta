@@ -19,6 +19,7 @@ namespace Berta
 		Flags.IsDisposed = false;
 		Flags.MakeActive = true;
 		Flags.isUpdating = false;
+		Flags.isBatching = false;
 		Flags.IgnoreMouseFocus = false;
 		Flags.AutoDraw = true;
 
