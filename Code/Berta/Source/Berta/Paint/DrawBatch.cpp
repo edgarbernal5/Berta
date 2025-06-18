@@ -12,7 +12,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_DRAW_BATCH_MESSAGES
-//#define BT_PRINT_DRAW_BATCH_MESSAGES
+#define BT_PRINT_DRAW_BATCH_MESSAGES
 #endif // !BT_PRINT_DRAW_BATCH_MESSAGES
 #endif
 
@@ -76,6 +76,9 @@ namespace Berta
 			if (batchItem.Target->Flags.IsDisposed)
 				continue;
 
+			std::vector<BatchChildItem> childCacheItems;
+			AddToCache(batchItem.Target, batchItem.Area, childCacheItems);
+
 			batchItem.Target->Flags.isBatching = true;
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
 			{
@@ -89,7 +92,7 @@ namespace Berta
 				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
 			}
 
-			//if there are children, paste it too!
+			PasteToChildren(batchItem.Target, rootGraphics, batchItem.Area, childCacheItems);
 
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
 			batchItem.Target->Flags.isBatching = false;
@@ -153,10 +156,145 @@ namespace Berta
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
 			if (batchItem.Target == window && batchItem.Area == areaToUpdate && batchItem.Operation == operation)
+			{
 				return true;
+			}
 		}
 
 		return false;
+	}
+
+	bool DrawBatch::Exists(Window* window, DrawOperation& outOperation)
+	{
+		outOperation = DrawOperation::None;
+		for (auto& batchItem : m_context.m_batchItemRequests)
+		{
+			if (batchItem.Target == window)
+			{
+				outOperation = batchItem.Operation;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void DrawBatch::AddToCache(Window* window, Point parentPosition, std::vector<BatchChildItem>& cache)
+	{
+		for (auto child : window->Children)
+		{
+			Rectangle childRect;
+			childRect.X = parentPosition.X + child->Position.X;
+			childRect.Y = parentPosition.Y + child->Position.Y;
+			childRect.Width = child->ClientSize.Width;
+			childRect.Height = child->ClientSize.Height;
+
+			if (child->Type != WindowType::Panel)
+				cache.emplace_back(BatchChildItem{ child , childRect });
+
+			AddToCache(child, childRect, cache);
+		}
+	}
+
+	void DrawBatch::PasteToChildren(Window* window, Graphics& rootGraphics, const Point& parentPosition, std::vector<BatchChildItem>& cache)
+	{
+		for (auto child : window->Children)
+		{
+			if (!child->Visible)
+				continue;
+
+			Rectangle childRect;
+
+			childRect.X = parentPosition.X + child->Position.X;
+			childRect.Y = parentPosition.Y + child->Position.Y;
+			childRect.Width = child->ClientSize.Width;
+			childRect.Height = child->ClientSize.Height;
+
+			if (child->Type != WindowType::Panel)
+			{
+				Rectangle oldArea;
+				GetOldAreaFromCache(oldArea, cache, child);
+
+				DrawOperation existingOperation;
+				bool existsInBatch = Exists(child, existingOperation);
+				if (oldArea != childRect || !existsInBatch)
+				{
+					//if ((!existsInBatch || !HasFlag(existingOperation, DrawOperation::NeedUpdate)) && !child->Flags.isUpdating)
+					if (!child->Flags.isUpdating)
+					{
+						child->Flags.isUpdating = true;
+						child->Renderer.Update();
+						child->Flags.isUpdating = false;
+					}
+
+					if (!existsInBatch)
+					{
+						rootGraphics.BitBlt(childRect, child->Renderer.GetGraphics(), { 0,0 });
+					}
+					else
+					{
+						Update(child, childRect, DrawOperation::NeedMap);
+					}
+				}
+				else if (existsInBatch)
+				{
+					if (!HasFlag(existingOperation, DrawOperation::NeedUpdate))
+					{
+						if (!child->Flags.isUpdating)
+						{
+							child->Flags.isUpdating = true;
+							child->Renderer.Update();
+							child->Flags.isUpdating = false;
+						}
+
+						if (!HasFlag(existingOperation, DrawOperation::NeedMap))
+						{
+							rootGraphics.BitBlt(childRect, child->Renderer.GetGraphics(), { 0,0 });
+						}
+					}
+				}
+			}
+
+			PasteToChildren(child, rootGraphics, childRect, cache);
+		}
+	}
+
+	bool DrawBatch::GetOldAreaFromCache(Rectangle& oldArea, std::vector<BatchChildItem>& cache, Window* child)
+	{
+		bool found = false;
+		for (size_t i = 0; i < cache.size(); i++)
+		{
+			if (cache[i].Target == child)
+			{
+				found = true;
+				oldArea = cache[i].Area;
+				break;
+			}
+		}
+		return found;
+	}
+
+	void DrawBatch::Update(Window* window, const Rectangle& newArea)
+	{
+		for (auto& batchItem : m_context.m_batchItemRequests)
+		{
+			if (batchItem.Target == window)
+			{
+				batchItem.Area = newArea;
+			}
+		}
+	}
+
+	void DrawBatch::Update(Window* window, const Rectangle& newArea, const DrawOperation& newOperation)
+	{
+		for (auto& batchItem : m_context.m_batchItemRequests)
+		{
+			if (batchItem.Target == window)
+			{
+				batchItem.Area = newArea;
+				batchItem.Operation = newOperation;
+			}
+		}
 	}
 
 	bool BatchItemComparer::operator()(BatchItem a, BatchItem b) const

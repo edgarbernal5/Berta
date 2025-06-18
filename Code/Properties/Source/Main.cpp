@@ -42,25 +42,28 @@ void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rect
 	Berta::PropertyGridField::Draw(graphics, area, labelWidth, textColor);
 
 	Berta::Rectangle valueRect = area;
-	auto innerLabelExtents = graphics.GetTextExtent("X");
 
 	valueRect.X += static_cast<int>(labelWidth);
 	valueRect.Width -= labelWidth;
 
 	if (valueRect.Width > 0)
 	{
+		auto innerLabelExtents = graphics.GetTextExtent("X");
+		auto innerLabelWidth = innerLabelExtents.Width * 2;
 		auto panelSaved = valueRect;
 		auto eachSize = valueRect.Width / 3;
-		auto inputSize = eachSize - innerLabelExtents.Width * 2;
+		auto inputSize = eachSize - innerLabelWidth - m_parent->ToScale(4u);
 		int x = 0;
 		for (size_t i = 0; i < 3; i++)
 		{
 			auto& input = m_inputTexts[i];
+			auto inputTextExtent = graphics.GetTextExtent(m_inputTextLabels[i]);
 			Berta::Rectangle inputRect = panelSaved;
 			inputRect.X += x;
-			graphics.DrawString({ inputRect.X, inputRect.Y }, m_inputTextLabels[i], textColor);
+			int innerLabelOffset = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
+			graphics.DrawString({ inputRect.X + innerLabelOffset, inputRect.Y }, m_inputTextLabels[i], textColor);
 
-			inputRect.X += innerLabelExtents.Width * 2 - panelSaved.X;
+			inputRect.X += innerLabelWidth - panelSaved.X;
 			inputRect.Y -= panelSaved.Y;
 			inputRect.Width = inputSize;
 

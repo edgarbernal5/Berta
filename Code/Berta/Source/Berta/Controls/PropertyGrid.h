@@ -76,13 +76,13 @@ namespace Berta
 		virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
 		virtual void Create(Window* parent) = 0;
 
+		Window* m_parent{ nullptr };
 	private:
 		std::string	m_label;
 		std::string	m_value;
 		std::string	m_defaultValue;
 
 		uint32_t m_size{ 20 };
-		Window* m_parent{ nullptr };
 	};
 
 	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;

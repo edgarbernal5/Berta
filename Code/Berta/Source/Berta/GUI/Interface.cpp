@@ -185,14 +185,6 @@ namespace Berta::GUI
 			if (!window->IsNative())
 			{
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
-
-				if (windowToUpdate->Flags.isUpdating)
-				{
-					/*window->Flags.isUpdating = true;
-					window->Renderer.Update();
-					window->Flags.isUpdating = false;*/
-					return hasChanged;
-				}
 			}
 
 			windowManager.Update(windowToUpdate, true);

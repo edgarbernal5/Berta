@@ -9,6 +9,7 @@
 
 #include "Berta/Core/Base.h"
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/Paint/Graphics.h"
 #include <vector>
 #include <unordered_map>
 
@@ -25,6 +26,11 @@ namespace Berta
 	};
 	BT_DEFINITION_FLAG_FROM_ENUM(DrawOperation);
 
+	struct BatchChildItem
+	{
+		Window* Target{ nullptr };
+		Rectangle Area{};
+	};
 	struct BatchItem
 	{
 		Window* Target{ nullptr };
@@ -54,8 +60,15 @@ namespace Berta
 
 		void AddWindow(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		bool Exists(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
+		bool Exists(Window* window, DrawOperation& outOperation);
 
 	private:
+		void AddToCache(Window* window, Point parentPosition, std::vector<BatchChildItem>& cache);
+		void PasteToChildren(Window* window, Graphics& rootGraphics, const Point& parentPosition, std::vector<BatchChildItem>& cache);
+		bool GetOldAreaFromCache(Rectangle& oldArea, std::vector<BatchChildItem>& cache, Window* child);
+		void Update(Window* window, const Rectangle& newArea);
+		void Update(Window* window, const Rectangle& newArea, const DrawOperation& newOperation);
+
 		DrawBatchContext& m_context;
 		static std::unordered_map<Window*, DrawBatchContext> g_contexts;
 	};

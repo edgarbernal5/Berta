@@ -133,7 +133,9 @@ namespace Berta
 			index += 1 + GetHierarchyIndexInternal(child, target, found);
 
 			if (found)
+			{
 				return index;
+			}
 		}
 
 		return index;

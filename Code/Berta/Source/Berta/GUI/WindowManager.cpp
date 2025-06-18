@@ -997,18 +997,18 @@ namespace Berta
 		//	return;
 		//}
 
+		if (window->Flags.isUpdating)
+		{
+			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
+			return;
+		}
+
 		if (window->IsBatchActive())
 		{
 			TryAddWindowToBatch(window, redraw ? (DrawOperation::NeedUpdate | DrawOperation::NeedMap) : DrawOperation::NeedMap);
 		}
 		else
 		{
-			if (window->Flags.isUpdating)
-			{
-				BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
-				return;
-			}
-
 			if (redraw && !window->Flags.isUpdating)
 			{
 				window->Flags.isUpdating = true;
