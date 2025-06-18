@@ -91,14 +91,7 @@ namespace Berta
 		m_module.CalculateViewport(m_module.m_viewport);
 		m_module.BuildHeaderBounds(selectedHeader);
 
-		if (m_module.UpdateScrollBars())
-		{
-			if (m_module.m_scrollBarVert)
-				m_module.m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_module.m_scrollBarHoriz)
-				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		m_module.UpdateScrollBars();
 
 		hoveredArea = m_module.DetermineHoverArea(args.Position);
 		if (hoveredArea != InteractionArea::HeaderSplitter)
@@ -678,15 +671,6 @@ namespace Berta
 			BuildListItemBounds(index);
 		}
 
-		if (m_viewport.m_needVerticalScroll)
-		{
-			m_scrollBarVert->Handle()->Renderer.Update();
-		}
-		if (m_viewport.m_needHorizontalScroll)
-		{
-			m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
-
 		GUI::UpdateWindow(m_window);
 	}
 
@@ -930,13 +914,7 @@ namespace Berta
 		m_mouseSelection.Clear();
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
-		if (UpdateScrollBars())
-		{
-			if (m_viewport.m_needHorizontalScroll)
-			{
-				m_scrollBarHoriz->Handle()->Renderer.Update();
-			}
-		}
+		UpdateScrollBars();
 
 		if (needUpdate)
 		{
@@ -1762,14 +1740,7 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleIndices();
 		
-		if (UpdateScrollBars())
-		{
-			if (m_scrollBarVert)
-				m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_scrollBarHoriz)
-				m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		UpdateScrollBars();
 		BuildHeaderBounds(m_headers.m_selectedIndex);
 	}
 

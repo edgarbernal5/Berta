@@ -200,7 +200,7 @@ namespace Berta
 	{
 		for (auto child : window->Children)
 		{
-			if (!child->Visible)
+			if (!child->Visible || child->ClientSize.IsEmpty())
 				continue;
 
 			Rectangle childRect;

@@ -94,14 +94,7 @@ namespace Berta
 				m_module.m_visibleNodes[index]->isExpanded = !m_module.m_visibleNodes[index]->isExpanded;
 				m_module.CalculateViewport(m_module.m_viewport);
 
-				if (m_module.UpdateScrollBars())
-				{
-					if (m_module.m_scrollBarVert)
-						m_module.m_scrollBarVert->Handle()->Renderer.Update();
-
-					if (m_module.m_scrollBarHoriz)
-						m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
-				}
+				m_module.UpdateScrollBars();
 				m_module.CalculateVisibleNodes();
 
 				needUpdate = true;
@@ -478,16 +471,7 @@ namespace Berta
 			m_module.CalculateViewport(m_module.m_viewport);
 			m_module.CalculateVisibleNodes();
 		}
-
-		bool updateScrollBars = m_module.UpdateScrollBars();
-		if (updateScrollBars)
-		{
-			if (m_module.m_scrollBarVert)
-				m_module.m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_module.m_scrollBarHoriz)
-				m_module.m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		m_module.UpdateScrollBars();
 
 		if (emitSelectionEvent)
 		{
@@ -791,15 +775,7 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleNodes();
 
-		bool updateScrollBars = UpdateScrollBars();
-		if (updateScrollBars)
-		{
-			if (m_scrollBarVert)
-				m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_scrollBarHoriz)
-				m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		UpdateScrollBars();
 	}
 
 	void TreeBoxReactor::Module::Draw()
@@ -1067,14 +1043,7 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
-		if (UpdateScrollBars())
-		{
-			if (m_scrollBarVert)
-				m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_scrollBarHoriz)
-				m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		UpdateScrollBars();
 		CalculateVisibleNodes();
 		m_mouseSelection.Deselect(item.m_node);
 
@@ -1087,14 +1056,7 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
-		if (UpdateScrollBars())
-		{
-			if (m_scrollBarVert)
-				m_scrollBarVert->Handle()->Renderer.Update();
-
-			if (m_scrollBarHoriz)
-				m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
+		UpdateScrollBars();
 		CalculateVisibleNodes();
 		m_mouseSelection.Deselect(item.m_node);
 
