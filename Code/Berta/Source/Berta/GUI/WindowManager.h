@@ -74,7 +74,6 @@ namespace Berta
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
 		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
 		void Update(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
-		void Paint(Window* window, bool doUpdate);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);
@@ -100,12 +99,9 @@ namespace Berta
 		void AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		void TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation);
 
-		bool GetIntersectionRect(Window* window, Rectangle& result);
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);
-		void UpdateTreeInternal(Window* window, Graphics& rootGraphics, bool now, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
-		void PaintInternal(Window* window, Graphics& rootGraphics, bool doUpdate, const Point& parentPosition = {}, const Rectangle& parentRectangle = {});
 		
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
 		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
@@ -122,6 +118,7 @@ namespace Berta
 				RedirectToChildren(redirectToChildren)
 			{}
 		};
+
 		struct CaptureData
 		{
 			Window* WindowPtr{ nullptr };
