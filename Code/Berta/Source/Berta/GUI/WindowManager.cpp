@@ -758,18 +758,18 @@ namespace Berta
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
 	{
-		//if (areaToUpdate == nullptr)
-		//{
-		//	Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		//	auto absolutePosition = GetAbsoluteRootPosition(window);
-		//	requestRectangle.X = absolutePosition.X;
-		//	requestRectangle.Y = absolutePosition.Y;
+		if (areaToUpdate == nullptr)
+		{
+			Rectangle requestRectangle = window->ClientSize.ToRectangle();
+			auto absolutePosition = GetAbsoluteRootPosition(window);
+			requestRectangle.X = absolutePosition.X;
+			requestRectangle.Y = absolutePosition.Y;
 
-		//	window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
-		//	return;
-		//}
+			window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+			return;
+		}
 
-		//window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
+		window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -1009,14 +1009,7 @@ namespace Berta
 		}
 		else
 		{
-			if (redraw && !window->Flags.isUpdating)
-			{
-				window->Flags.isUpdating = true;
-				window->Renderer.Update();
-				window->Flags.isUpdating = false;
-			}
-
-			Paint(window, redraw);
+			UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
 			Map(window, updateArea);
 		}
 	}

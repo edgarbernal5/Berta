@@ -79,7 +79,6 @@ namespace Berta
 			std::vector<BatchChildItem> childCacheItems;
 			AddToCache(batchItem.Target, batchItem.Area, childCacheItems);
 
-			batchItem.Target->Flags.isBatching = true;
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
 			{
 				batchItem.Target->Flags.isUpdating = true;
@@ -95,7 +94,6 @@ namespace Berta
 			PasteToChildren(batchItem.Target, rootGraphics, batchItem.Area, childCacheItems);
 
 			batchItem.Target->DrawStatus = DrawWindowStatus::None;
-			batchItem.Target->Flags.isBatching = false;
 		}
 		rootGraphics.Flush();
 
@@ -203,12 +201,12 @@ namespace Berta
 			if (!child->Visible || child->ClientSize.IsEmpty())
 				continue;
 
-			Rectangle childRect;
+			Rectangle currentArea;
 
-			childRect.X = parentPosition.X + child->Position.X;
-			childRect.Y = parentPosition.Y + child->Position.Y;
-			childRect.Width = child->ClientSize.Width;
-			childRect.Height = child->ClientSize.Height;
+			currentArea.X = parentPosition.X + child->Position.X;
+			currentArea.Y = parentPosition.Y + child->Position.Y;
+			currentArea.Width = child->ClientSize.Width;
+			currentArea.Height = child->ClientSize.Height;
 
 			if (child->Type != WindowType::Panel)
 			{
@@ -217,7 +215,7 @@ namespace Berta
 
 				DrawOperation existingOperation;
 				bool existsInBatch = Exists(child, existingOperation);
-				if (oldArea != childRect || !existsInBatch)
+				if (oldArea != currentArea || !existsInBatch)
 				{
 					//if ((!existsInBatch || !HasFlag(existingOperation, DrawOperation::NeedUpdate)) && !child->Flags.isUpdating)
 					if (!child->Flags.isUpdating)
@@ -229,11 +227,11 @@ namespace Berta
 
 					if (!existsInBatch)
 					{
-						rootGraphics.BitBlt(childRect, child->Renderer.GetGraphics(), { 0,0 });
+						rootGraphics.BitBlt(currentArea, child->Renderer.GetGraphics(), { 0,0 });
 					}
 					else
 					{
-						Update(child, childRect, DrawOperation::NeedMap);
+						Update(child, currentArea, DrawOperation::NeedMap);
 					}
 				}
 				else if (existsInBatch)
@@ -249,13 +247,13 @@ namespace Berta
 
 						if (!HasFlag(existingOperation, DrawOperation::NeedMap))
 						{
-							rootGraphics.BitBlt(childRect, child->Renderer.GetGraphics(), { 0,0 });
+							rootGraphics.BitBlt(currentArea, child->Renderer.GetGraphics(), { 0,0 });
 						}
 					}
 				}
 			}
 
-			PasteToChildren(child, rootGraphics, childRect, cache);
+			PasteToChildren(child, rootGraphics, currentArea, cache);
 		}
 	}
 
