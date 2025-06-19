@@ -61,11 +61,11 @@ namespace Berta
 
 #ifdef BT_PRINT_DRAW_BATCH_MESSAGES
 		BT_CORE_TRACE << "Draw Batch size = " << m_context.m_batchItemRequests.size() << ". root window=" << m_context.m_rootWindow->Name << std::endl;
-		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
+		/*for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
 		{
 			auto& item = m_context.m_batchItemRequests[i];
 			BT_CORE_TRACE << "  - batch item = " << item.Target->Name << ". flags="  << (uint32_t)item.Operation << std::endl;
-		}
+		}*/
 		std::cout << std::endl;
 #endif // BT_PRINT_DRAW_BATCH_MESSAGES
 

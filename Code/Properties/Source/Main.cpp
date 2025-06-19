@@ -16,7 +16,7 @@ public:
 	{
 	}
 
-	void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
+	virtual void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
 
 protected:
 	void Create(Berta::Window* parent) override;
@@ -83,7 +83,10 @@ int main()
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 
 	auto categoryTransform = propertyGrid.Append("Transform");
-	categoryTransform.Append(Berta::PropertyGridFieldPtr(new PropertyGridFieldVector3("Position")));
+	for (size_t i = 0; i < 50; i++)
+	{
+		categoryTransform.Append(Berta::PropertyGridFieldPtr(new PropertyGridFieldVector3("Position")));
+	}
 
 	auto categoryMesh = propertyGrid.Append("Mesh");
 

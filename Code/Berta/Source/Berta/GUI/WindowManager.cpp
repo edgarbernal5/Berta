@@ -859,7 +859,7 @@ namespace Berta
 
 		if (window->Flags.isUpdating)
 		{
-			BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
+			//BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			return;
 		}
 

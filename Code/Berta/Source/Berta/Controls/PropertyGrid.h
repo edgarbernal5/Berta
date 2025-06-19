@@ -104,6 +104,9 @@ namespace Berta
 	public:
 		void Init(ControlBase& control) override;
 		void Update(Graphics& graphics) override;
+		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		
 		class ListModule
@@ -141,6 +144,9 @@ namespace Berta
 			CategoryItem Find(const std::string& categoryName);
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
+			void CalculateContentSize(ViewportData& viewportData);
+			void UpdateScrollBar();
+			void Update(Graphics& graphics);
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;
