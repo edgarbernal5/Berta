@@ -81,6 +81,7 @@ namespace Berta
 			bool MakeActive : 1;
 			int IsDeferredCount{ 0 };
 			bool isUpdating : 1;
+			bool isBatching : 1;
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
 		}Flags;

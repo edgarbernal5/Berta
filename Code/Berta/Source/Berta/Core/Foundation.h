@@ -83,7 +83,7 @@ namespace Berta
 		bool isResizing = std::is_same_v<TArgument, ArgResize>;
 		if (window->IsVisible() && (window->DrawStatus == DrawWindowStatus::NeedUpdate || isResizing))
 		{
-			if (window->Type != WindowType::Panel)
+			if (window->Type != WindowType::Panel && (window->Type != WindowType::RenderForm || !window->CustomPaint))
 			{
 				if (window->IsBatchActive())
 				{
@@ -93,7 +93,7 @@ namespace Berta
 						(window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap)
 					);
 				}
-				else
+				else if (!window->RootWindow->Flags.isBatching)
 				{
 					m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
 				}

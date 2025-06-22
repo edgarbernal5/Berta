@@ -69,15 +69,17 @@ namespace Berta
 		std::cout << std::endl;
 #endif // BT_PRINT_DRAW_BATCH_MESSAGES
 
+		m_context.m_rootWindow->Flags.isBatching = true;
+
+		std::vector<BatchChildItem> childCacheItems;
+		AddToCache(m_context.m_batchItemRequests[0].Target, m_context.m_batchItemRequests[0].Area, childCacheItems);
+
 		rootGraphics.Begin();
 		bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
 		for (auto& batchItem : m_context.m_batchItemRequests)
 		{
 			if (batchItem.Target->Flags.IsDisposed)
 				continue;
-
-			std::vector<BatchChildItem> childCacheItems;
-			AddToCache(batchItem.Target, batchItem.Area, childCacheItems);
 
 			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
 			{
@@ -121,9 +123,10 @@ namespace Berta
 			}
 			if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
 			{
-				API::RefreshWindow(batchItem.Target->RootHandle);
+				//API::RefreshWindow(batchItem.Target->RootHandle);
 			}
 		}
+		m_context.m_rootWindow->Flags.isBatching = false;
 
 		m_context.m_rootWindow = nullptr;
 		m_context.m_batchItemRequests.clear();
@@ -217,8 +220,10 @@ namespace Berta
 				bool existsInBatch = Exists(child, existingOperation);
 				if (oldArea != currentArea || !existsInBatch)
 				{
+					bool needRefresh = oldArea.Width != currentArea.Width || oldArea.Height != currentArea.Height;
+
 					//if ((!existsInBatch || !HasFlag(existingOperation, DrawOperation::NeedUpdate)) && !child->Flags.isUpdating)
-					if (!child->Flags.isUpdating)
+					if (needRefresh && !child->Flags.isUpdating)
 					{
 						child->Flags.isUpdating = true;
 						child->Renderer.Update();
@@ -238,12 +243,12 @@ namespace Berta
 				{
 					if (!HasFlag(existingOperation, DrawOperation::NeedUpdate))
 					{
-						if (!child->Flags.isUpdating)
-						{
-							child->Flags.isUpdating = true;
-							child->Renderer.Update();
-							child->Flags.isUpdating = false;
-						}
+						//if (!child->Flags.isUpdating)
+						//{
+						//	child->Flags.isUpdating = true;
+						//	child->Renderer.Update();
+						//	child->Flags.isUpdating = false;
+						//}
 
 						if (!HasFlag(existingOperation, DrawOperation::NeedMap))
 						{
@@ -291,6 +296,7 @@ namespace Berta
 			{
 				batchItem.Area = newArea;
 				batchItem.Operation = newOperation;
+				break;
 			}
 		}
 	}

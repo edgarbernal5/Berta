@@ -187,7 +187,7 @@ namespace Berta::GUI
 				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
 			}
 
-			windowManager.Update(windowToUpdate, true);
+			windowManager.Update(windowToUpdate, false);
 		}
 
 		return hasChanged;
