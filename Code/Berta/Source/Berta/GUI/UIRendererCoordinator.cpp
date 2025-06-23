@@ -104,6 +104,12 @@ namespace Berta
 				continue;
 			}
 
+			if (child->IsNative())
+			{
+				Paint(child, (processChildren ? PaintOperation::TryUpdate : PaintOperation::None), processChildren);
+				continue;
+			}
+
 			Rectangle rect;
 			Rectangle childRect = parentRect;
 			childRect.X += child->Position.X;
@@ -128,6 +134,12 @@ namespace Berta
 			auto child = window->Children[i];
 			if (!child->Visible || (!child->Renderer.GetGraphics().IsValid()) && child->Type != WindowType::Panel)
 			{
+				continue;
+			}
+
+			if (child->IsNative())
+			{
+				Paint(child, (processChildren ? PaintOperation::TryUpdate : PaintOperation::None), processChildren);
 				continue;
 			}
 

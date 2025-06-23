@@ -851,11 +851,11 @@ namespace Berta
 		if (!window->IsVisible())
 			return;
 
-		//if (window->Type == WindowType::RenderForm && window->CustomPaint)
-		//{
-		//	API::RefreshWindow(window->RootHandle);
-		//	return;
-		//}
+		if (window->Type == WindowType::RenderForm && window->CustomPaint)
+		{
+			API::RefreshWindow(window->RootHandle);
+			return;
+		}
 
 		if (window->Flags.isUpdating)
 		{
