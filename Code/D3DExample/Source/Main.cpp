@@ -9,13 +9,17 @@
 
 int main()
 {
+	bool isResizing = false;
 	std::unique_ptr<D3D12Lite::Device> device;
 	std::unique_ptr<D3D12Lite::GraphicsContext> graphicsContext;
 
 	Berta::Form form(Berta::Size(450u, 350u), { true, true, true }, true);
 	form.SetCaption("D3D - Example");
-	form.SetCustomPaintCallback([&device, &graphicsContext]()
+	form.SetCustomPaintCallback([&device, &graphicsContext, &isResizing]()
 		{
+			/*if (isResizing)
+				return;*/
+
 			device->BeginFrame();
 			auto& backBuffer = device->GetCurrentBackBuffer();
 
@@ -34,6 +38,16 @@ int main()
 			device->Present();
 		});
 
+	form.GetEvents().EnterSizeMove.Connect([&isResizing](const Berta::ArgSizeMove& args)
+		{
+			isResizing = true;
+		});
+
+	form.GetEvents().ExitSizeMove.Connect([&isResizing](const Berta::ArgSizeMove& args)
+		{
+			isResizing = false;
+
+		});
 	form.GetEvents().Resize.Connect([&device, &graphicsContext](const Berta::ArgResize& args)
 		{
 			device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });

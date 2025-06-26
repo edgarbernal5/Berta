@@ -1353,6 +1353,11 @@ namespace D3D12Lite
         for (uint32_t bufferIndex = 0; bufferIndex < NUM_BACK_BUFFERS; bufferIndex++)
         {
             SafeRelease(mBackBuffers[bufferIndex]->mResource);
+            if (mBackBuffers[bufferIndex]->mRTVDescriptor.IsValid())
+            {
+                mRTVStagingDescriptorHeap->FreeDescriptor(mBackBuffers[bufferIndex]->mRTVDescriptor);
+                mBackBuffers[bufferIndex]->mRTVDescriptor = {};
+            }
         }
 
         auto hr = mSwapChain->ResizeBuffers(
@@ -1362,14 +1367,23 @@ namespace D3D12Lite
             DXGI_FORMAT_R8G8B8A8_UNORM,
             0u);
 
-
-        if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+        if (FAILED(hr))
         {
+            if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+            {
+                OutputDebugStringA("[D3D12Lite] Device lost on ResizeBuffers()\n");
+            }
+            else
+            {
+                AssertIfFailed(hr);
+            }
+            return;
         }
 
         for (uint32_t bufferIndex = 0; bufferIndex < NUM_BACK_BUFFERS; bufferIndex++)
         {
             ID3D12Resource* backBufferResource = nullptr;
+            AssertIfFailed(mSwapChain->GetBuffer(bufferIndex, IID_PPV_ARGS(&backBufferResource)));
 
             D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
             rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -1377,11 +1391,12 @@ namespace D3D12Lite
             rtvDesc.Texture2D.MipSlice = 0;
             rtvDesc.Texture2D.PlaneSlice = 0;
 
-            AssertIfFailed(mSwapChain->GetBuffer(bufferIndex, IID_PPV_ARGS(&backBufferResource)));
-            mDevice->CreateRenderTargetView(backBufferResource, &rtvDesc, mBackBuffers[bufferIndex]->mRTVDescriptor.mCPUHandle);
+            Descriptor newDescriptor = mRTVStagingDescriptorHeap->GetNewDescriptor();
+            mDevice->CreateRenderTargetView(backBufferResource, &rtvDesc, newDescriptor.mCPUHandle);
 
             mBackBuffers[bufferIndex]->mDesc = backBufferResource->GetDesc();
             mBackBuffers[bufferIndex]->mResource = backBufferResource;
+            mBackBuffers[bufferIndex]->mRTVDescriptor = newDescriptor;
         }
     }
 
