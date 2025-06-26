@@ -446,7 +446,7 @@ namespace Berta
 
 			if (!indicator->Docker)
 			{
-				indicator->Docker = std::make_unique<DockIndicatorForm>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize }, FormStyle::Flat());
+				indicator->Docker = std::make_unique<DockIndicatorForm>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize });
 				indicator->Docker->SetDockPosition(indicator->Position);
 				
 				if (indicator->Docker)

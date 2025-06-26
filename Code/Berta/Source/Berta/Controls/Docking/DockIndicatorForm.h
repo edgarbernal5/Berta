@@ -31,8 +31,8 @@ namespace Berta
 	class DockIndicatorForm : public Control<DockIndicatorFormReactor, FormEvents>
 	{
 	public:
-		explicit DockIndicatorForm(Window* owner, const Size& size, const FormStyle& windowStyle = { true, true, true });
-		DockIndicatorForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true });
+		explicit DockIndicatorForm(Window* owner, const Size& size, const FormStyle& windowStyle = { false, false, false, false, true, false });
+		DockIndicatorForm(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, true, false });
 
 		void SetDockPosition(DockPosition position);
 	};
