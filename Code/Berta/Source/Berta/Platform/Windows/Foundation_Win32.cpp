@@ -908,6 +908,9 @@ namespace Berta
 		case WM_DESTROY:
 		case WM_NCDESTROY:
 			return false;
+		default:
+			if ((WM_MOUSEFIRST <= message && message <= WM_MOUSELAST) || (WM_KEYFIRST <= message && message <= WM_KEYLAST))
+				return false;
 		}
 
 		result = ::DefWindowProc(hWnd, message, wParam, lParam);
