@@ -70,7 +70,7 @@ public:
 				m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 				m_isResizing = false;
 
-				OnDraw();
+				//OnDraw();
 			});
 
 		auto formSize = m_nestedForm->GetSize();

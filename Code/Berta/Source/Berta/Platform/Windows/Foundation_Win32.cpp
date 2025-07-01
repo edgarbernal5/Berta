@@ -439,11 +439,11 @@ namespace Berta
 				windowManager.UpdateTree(nativeWindow);
 				drawBatch.Flush();
 			}
-			/*if (nativeWindow->Type == WindowType::RenderForm)
+			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				nativeWindow->CustomPaint();
-				windowManager.Refresh(nativeWindow);
-			}*/
+				//windowManager.Refresh(nativeWindow);
+			}
 			wasHandled = true;
 			break;
 		}
