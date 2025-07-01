@@ -22,7 +22,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -58,11 +58,11 @@ namespace Berta
 		//https://github.com/b-sullender/WinGui/blob/main/WinGui.cpp#L363
 		::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		HINSTANCE hInstance = GetModuleInstance();
-		
+
 		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could cause flicking when window is resized.
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+		wcex.style = CS_HREDRAW | CS_VREDRAW /* | CS_OWNDC*/ | CS_DBLCLKS; // Enable double-click messages
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -282,6 +282,12 @@ namespace Berta
 		}
 		case WM_ERASEBKGND:
 		{
+			/*if (nativeWindow->Type == WindowType::RenderForm)
+			{
+				nativeWindow->RootPaintHandle.RenderTarget->BeginDraw();
+				nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f,1.0f));
+				nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
+			}*/
 			return TRUE;
 		}
 
@@ -343,7 +349,8 @@ namespace Berta
 				auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
 				if (targetWindow)
 				{
-					windowManager.UpdateTree(targetWindow);
+					windowManager.UpdateTree(targetWindow); 
+					drawBatch.Flush();
 				}
 			}
 			wasHandled = false;
@@ -423,8 +430,20 @@ namespace Berta
 			if (newWidth > 0 && newHeight > 0)
 			{
 				windowManager.Resize(nativeWindow, newSize, false);
+				////if (nativeWindow->Type == WindowType::RenderForm)
+				//{
+				//	nativeWindow->RootPaintHandle.RenderTarget->BeginDraw();
+				//	nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
+				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
+				//}
 				windowManager.UpdateTree(nativeWindow);
+				drawBatch.Flush();
 			}
+			/*if (nativeWindow->Type == WindowType::RenderForm)
+			{
+				nativeWindow->CustomPaint();
+				windowManager.Refresh(nativeWindow);
+			}*/
 			wasHandled = true;
 			break;
 		}

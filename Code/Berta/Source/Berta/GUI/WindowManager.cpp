@@ -89,30 +89,34 @@ namespace Berta
 			window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(windowResult.DPI);
 
 #ifdef BT_PLATFORM_WINDOWS
-			auto rtProps = D2D1::RenderTargetProperties();
-			rtProps.dpiX = BT_APPLICATION_DPI;
-			rtProps.dpiY = BT_APPLICATION_DPI;
-
-			D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
-			(
-				DXGI_FORMAT_B8G8R8A8_UNORM,
-				D2D1_ALPHA_MODE_PREMULTIPLIED
-			);
-			rtProps.pixelFormat = pixelFormat;
-
-			auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateHwndRenderTarget
-			(
-				rtProps,
-				D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
-					D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
-				&window->RootPaintHandle.RenderTarget
-			);
-
-			if (FAILED(hr))
+			if (!isRenderForm)
 			{
-				_com_error err(hr);
-				BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
+				auto rtProps = D2D1::RenderTargetProperties();
+				rtProps.dpiX = BT_APPLICATION_DPI;
+				rtProps.dpiY = BT_APPLICATION_DPI;
+
+				D2D1_PIXEL_FORMAT pixelFormat = D2D1::PixelFormat
+				(
+					DXGI_FORMAT_B8G8R8A8_UNORM,
+					D2D1_ALPHA_MODE_PREMULTIPLIED
+				);
+				rtProps.pixelFormat = pixelFormat;
+
+				auto hr = DirectX::D2DModule::GetInstance().GetFactory()->CreateHwndRenderTarget
+				(
+					rtProps,
+					D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
+						D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
+					&window->RootPaintHandle.RenderTarget
+				);
+
+				if (FAILED(hr))
+				{
+					_com_error err(hr);
+					BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
+				}
 			}
+			
 #endif
 			if (isNested)
 			{
@@ -678,7 +682,7 @@ namespace Berta
 		window->ClientSize = newSize;
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (window->IsNative())
+		if (window->IsNative() && window->RootPaintHandle.RenderTarget)
 		{
 			auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
 			if (FAILED(hr))
@@ -692,7 +696,7 @@ namespace Berta
 		Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel)
 		{
-			if (window->Type != WindowType::RenderForm)
+			//if (window->Type != WindowType::RenderForm)
 			{
 				newGraphics.Build(newSize, window->RootPaintHandle);
 				newGraphics.BuildFont(window->DPI);
@@ -710,7 +714,7 @@ namespace Berta
 
 		if (window->Type != WindowType::Panel)
 		{
-			if (window->Type != WindowType::RenderForm)
+			//if (window->Type != WindowType::RenderForm)
 			{
 				window->Renderer.GetGraphics().Swap(newGraphics);
 			}
@@ -760,27 +764,27 @@ namespace Berta
 
 			if (sizeChanged)
 			{
-				window->ClientSize = newRect;
-
-#ifdef BT_PLATFORM_WINDOWS
-				auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
-				if (FAILED(hr))
+				//window->ClientSize = newRect;
+				Size newSize = newRect;
+//#ifdef BT_PLATFORM_WINDOWS
+//				auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
+//				if (FAILED(hr))
+//				{
+//					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+//				}
+//#endif
+				/*if (window->Type != WindowType::RenderForm)
 				{
-					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
-				}
-#endif
-				if (window->Type != WindowType::RenderForm)
-				{
-					window->Renderer.GetGraphics().Rebuild(window->ClientSize, window->RootPaintHandle);
+					window->Renderer.GetGraphics().Rebuild(newSize, window->RootPaintHandle);
 				}
 
-				window->RootGraphics->Rebuild(window->ClientSize, window->RootPaintHandle);
+				window->RootGraphics->Rebuild(newSize, window->RootPaintHandle);*/
 
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
-				ArgResize argResize;
+				/*ArgResize argResize;
 				argResize.NewSize = window->ClientSize;
-				foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+				foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);*/
 			}
 			else
 			{

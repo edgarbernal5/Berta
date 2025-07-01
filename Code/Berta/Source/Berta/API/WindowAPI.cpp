@@ -35,7 +35,7 @@ namespace Berta
 		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
+			DWORD style = WS_SYSMENU /* | WS_CLIPCHILDREN */;
 			DWORD styleEx = WS_EX_NOPARENTNOTIFY;
 
 			if (formStyle.Minimize)
@@ -68,6 +68,11 @@ namespace Berta
 			if (formStyle.Floating)
 			{
 				styleEx |= WS_EX_TOPMOST;
+			}
+
+			if (isNested)
+			{
+				style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 			}
 
 			::POINT windowPosition = { rectangle.X, rectangle.Y };
@@ -279,7 +284,7 @@ namespace Berta
 			auto borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
 			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
-			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint);
+			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, true);
 #endif
 		}
 
@@ -301,7 +306,7 @@ namespace Berta
 				adjustedPosition.Y += (ownerRECT.top - ownerPosition.y);
 			}
 
-			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, forceRepaint);
+			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, true);
 #endif
 		}
 

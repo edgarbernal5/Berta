@@ -62,6 +62,7 @@ namespace Berta
 		bool Exists(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
 		bool Exists(Window* window, DrawOperation& outOperation);
 
+		void Flush();
 	private:
 		void AddToCache(Window* window, Point parentPosition, std::vector<BatchChildItem>& cache);
 		void PasteToChildren(Window* window, Graphics& rootGraphics, const Point& parentPosition, std::vector<BatchChildItem>& cache);

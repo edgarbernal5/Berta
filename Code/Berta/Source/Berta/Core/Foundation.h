@@ -12,6 +12,7 @@
 #include "Berta/Core/Event.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlEvents.h"
+#include "Berta/GUI/UIRendererCoordinator.h"
 
 #include <functional>
 
@@ -96,6 +97,13 @@ namespace Berta
 				else if (!window->RootWindow->Flags.isBatching)
 				{
 					m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
+					/*UIRendererCoordinator::Paint
+					(
+						window,
+						window->DrawStatus == DrawWindowStatus::NeedUpdate ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::HaveUpdated,
+						isResizing
+					);
+					m_windowManager.Map(window, nullptr);*/
 				}
 			}
 		}

@@ -155,7 +155,7 @@ namespace Berta
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 
-			if (!isRenderForm)
+			//if (!isRenderForm)
 			{
 				GUI::InitRendererReactor(this, m_reactor);
 			}

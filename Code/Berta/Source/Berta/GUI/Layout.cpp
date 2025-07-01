@@ -458,6 +458,7 @@ namespace Berta
 					indicator->Docker->SetDebugName(builder.str());
 #endif
 					indicator->Docker->Show();
+					GUI::RefreshWindow(*indicator->Docker);
 				}
 			}
 			else

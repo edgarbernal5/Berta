@@ -53,36 +53,7 @@ public:
 		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,60, 200, 200 }, Berta::FormStyle::Flat(), true);
 		m_nestedForm->SetCustomPaintCallback([this]()
 			{
-
-				//auto formSize = m_nestedForm->GetSize();
-				//if ((float)formSize.Width != m_viewport.Width || (float)formSize.Height != m_viewport.Height)
-				//{
-				//	//m_device->Resize(D3D12Lite::Uint2{ formSize.Width, formSize.Height });
-
-				//	m_viewport.Width = formSize.Width;
-				//	m_viewport.Height = formSize.Height;
-				//	std::cout << "////***/**/ CAMBIOOOOOO...." << std::endl;
-				//}
-
-				//std::cout << "////***/**/ RENDERING...." << std::endl;
-				m_device->BeginFrame();
-				auto& backBuffer = m_device->GetCurrentBackBuffer();
-
-				m_graphicsContext->Reset();
-				m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
-				m_graphicsContext->FlushBarriers();
-
-				m_graphicsContext->SetViewport(m_viewport);
-				m_graphicsContext->ClearRenderTarget(backBuffer, Color(0.3f, 0.3f, 0.8f));
-				//m_graphicsContext->ClearDepthStencilTarget(depthBuffer, 1.0f, 0);
-
-				m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_PRESENT);
-				m_graphicsContext->FlushBarriers();
-
-				m_device->SubmitContextWork(*m_graphicsContext);
-
-				m_device->EndFrame();
-				m_device->Present();
+				OnDraw();
 				//std::cout << " .... END RENDERING ////***/**/" << std::endl;
 			});
 
@@ -98,6 +69,8 @@ public:
 				m_viewport.MinDepth = D3D12_MIN_DEPTH;
 				m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 				m_isResizing = false;
+
+				OnDraw();
 			});
 
 		auto formSize = m_nestedForm->GetSize();
@@ -119,6 +92,39 @@ public:
 	}
 
 private:
+	void OnDraw()
+	{
+		//auto formSize = m_nestedForm->GetSize();
+				//if ((float)formSize.Width != m_viewport.Width || (float)formSize.Height != m_viewport.Height)
+				//{
+				//	//m_device->Resize(D3D12Lite::Uint2{ formSize.Width, formSize.Height });
+
+				//	m_viewport.Width = formSize.Width;
+				//	m_viewport.Height = formSize.Height;
+				//	std::cout << "////***/**/ CAMBIOOOOOO...." << std::endl;
+				//}
+
+				//std::cout << "////***/**/ RENDERING...." << std::endl;
+		m_device->BeginFrame();
+		auto& backBuffer = m_device->GetCurrentBackBuffer();
+
+		m_graphicsContext->Reset();
+		m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_graphicsContext->FlushBarriers();
+
+		m_graphicsContext->SetViewport(m_viewport);
+		m_graphicsContext->ClearRenderTarget(backBuffer, Color(0.3f, 0.3f, 0.8f));
+		//m_graphicsContext->ClearDepthStencilTarget(depthBuffer, 1.0f, 0);
+
+		m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_PRESENT);
+		m_graphicsContext->FlushBarriers();
+
+		m_device->SubmitContextWork(*m_graphicsContext);
+
+		m_device->EndFrame();
+		m_device->Present();
+	}
+
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
 	std::unique_ptr<D3D12Lite::Device> m_device;
 	std::unique_ptr<D3D12Lite::GraphicsContext> m_graphicsContext;
