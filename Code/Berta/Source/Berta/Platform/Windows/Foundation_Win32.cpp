@@ -60,16 +60,34 @@ namespace Berta
 		HINSTANCE hInstance = GetModuleInstance();
 
 		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could cause flicking when window is resized.
+		{
+			WNDCLASSEXW wcex = {};
+			wcex.cbSize = sizeof(WNDCLASSEXW);
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.lpfnWndProc = Foundation_WndProc;
+			wcex.hInstance = hInstance;
+			wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
+			wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+			wcex.hbrBackground = NULL;
+			wcex.lpszClassName = L"BertaInternalClass";
+			wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+
+			if (!RegisterClassExW(&wcex))
+			{
+				BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
+				return;
+			}
+		}
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
 		wcex.style = CS_HREDRAW | CS_VREDRAW /* | CS_OWNDC*/ | CS_DBLCLKS; // Enable double-click messages
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
+		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 		wcex.hbrBackground = NULL;
-		wcex.lpszClassName = L"BertaInternalClass";
-		wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+		wcex.lpszClassName = L"BertaNestedInternalClass";
+		wcex.hIconSm = NULL;
 		
 		if (!RegisterClassExW(&wcex))
 		{
@@ -83,6 +101,7 @@ namespace Berta
 		BT_CORE_TRACE << "Releasing foundation..." << std::endl;
 
 		UnregisterClass(L"BertaInternalClass", g_hModuleInstance);
+		UnregisterClass(L"BertaNestedInternalClass", g_hModuleInstance);
 		g_hModuleInstance = nullptr;
 
 		ShutdownCore();
@@ -350,7 +369,7 @@ namespace Berta
 				if (targetWindow)
 				{
 					windowManager.UpdateTree(targetWindow); 
-					drawBatch.Flush();
+					drawBatch.Flush(true);
 				}
 			}
 			wasHandled = false;
@@ -373,15 +392,16 @@ namespace Berta
 				if (nativeWindow->CustomPaint)
 				{
 					nativeWindow->CustomPaint();
-					windowManager.Refresh(nativeWindow);
+					//windowManager.Refresh(nativeWindow);
 				}
 			}
 			else
 			{
-				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);  // Copy from control's graphics to native hwnd window.
+				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
 			}
 
 			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
+			//::ValidateRect(hWnd, nullptr);
 
 			wasHandled = true;
 			break;
@@ -437,7 +457,7 @@ namespace Berta
 				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
 				//}
 				windowManager.UpdateTree(nativeWindow);
-				drawBatch.Flush();
+				drawBatch.Flush(true);
 			}
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{

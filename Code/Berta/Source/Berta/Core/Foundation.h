@@ -96,14 +96,14 @@ namespace Berta
 				}
 				else if (!window->RootWindow->Flags.isBatching)
 				{
-					m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
-					/*UIRendererCoordinator::Paint
+					//m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
+					UIRendererCoordinator::Paint
 					(
 						window,
 						window->DrawStatus == DrawWindowStatus::NeedUpdate ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::HaveUpdated,
 						isResizing
 					);
-					m_windowManager.Map(window, nullptr);*/
+					m_windowManager.Map(window, nullptr);
 				}
 			}
 		}

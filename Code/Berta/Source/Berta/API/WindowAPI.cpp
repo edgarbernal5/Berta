@@ -87,7 +87,7 @@ namespace Berta
 			HWND hwnd = ::CreateWindowEx
 			(
 				styleEx,
-				L"BertaInternalClass",
+				isNested ? L"BertaNestedInternalClass" : L"BertaInternalClass",
 				DefaultWindowTitle.data(),
 				style,
 				windowPosition.x,

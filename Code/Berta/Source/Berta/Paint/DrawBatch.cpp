@@ -84,7 +84,7 @@ namespace Berta
 		return false;
 	}
 
-	void DrawBatch::Flush()
+	void DrawBatch::Flush(bool forceManual)
 	{
 		//std::cout << ">> END.... \twindow = " << m_context.m_rootWindow->Name << std::endl;
 		if (!m_context.m_rootWindow || m_context.m_rootWindow->Flags.IsDisposed)
@@ -93,7 +93,7 @@ namespace Berta
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		auto& rootGraphics = *(m_context.m_rootWindow->RootGraphics);
 
-		if (m_context.m_rootWindow->Flags.IsDeferredCount > 0)
+		if (m_context.m_rootWindow->Flags.IsDeferredCount > 0 && !forceManual)
 			return;
 
 		m_context.m_rootWindow->RootWindow->Batcher = nullptr;
@@ -229,7 +229,7 @@ namespace Berta
 				{
 					bool needRefresh = oldArea.Width != currentArea.Width || oldArea.Height != currentArea.Height;
 
-					if (child->IsNative())
+					if (needRefresh && child->IsNative())
 					{
 						API::RefreshWindow(child->RootHandle);
 						continue;
