@@ -88,7 +88,10 @@ namespace Berta
 	{
 		//std::cout << ">> END.... \twindow = " << m_context.m_rootWindow->Name << std::endl;
 		if (!m_context.m_rootWindow || m_context.m_rootWindow->Flags.IsDisposed)
+		{
+			m_context.m_rootWindow = nullptr;
 			return;
+		}
 
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		auto& rootGraphics = *(m_context.m_rootWindow->RootGraphics);
@@ -96,11 +99,13 @@ namespace Berta
 		if (m_context.m_rootWindow->Flags.IsDeferredCount > 0 && !forceManual)
 			return;
 
-		m_context.m_rootWindow->RootWindow->Batcher = nullptr;
+		if (!forceManual)
+			m_context.m_rootWindow->RootWindow->Batcher = nullptr;
 
 		if (m_context.m_batchItemRequests.empty())
 		{
-			m_context.m_rootWindow = nullptr;
+			if(!forceManual)
+				m_context.m_rootWindow = nullptr;
 			return;
 		}
 
@@ -176,14 +181,29 @@ namespace Berta
 			{
 				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
 			}
+			
+		}
+
+		for (auto& batchItem : m_context.m_batchItemRequests)
+		{
+			if (HasFlag(batchItem.Operation, DrawOperation::MoveSize))
+			{
+				API::MoveWindow(batchItem.Target->RootHandle, batchItem.Area);
+				//API::RefreshWindow(batchItem.Target->RootHandle);
+			}
 			if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
 			{
 				API::RefreshWindow(batchItem.Target->RootHandle);
 			}
 		}
+		if (!m_context.m_rootWindow)
+			return;
+
 		m_context.m_rootWindow->Flags.isBatching = false;
 
-		m_context.m_rootWindow = nullptr;
+		if (!forceManual)
+			m_context.m_rootWindow = nullptr;
+
 		m_context.m_batchItemRequests.clear();
 	}
 

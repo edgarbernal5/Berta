@@ -80,7 +80,7 @@ namespace Berta
 		}
 		WNDCLASSEXW wcex = {};
 		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_HREDRAW | CS_VREDRAW /* | CS_OWNDC*/ | CS_DBLCLKS; // Enable double-click messages
+		wcex.style = CS_OWNDC| CS_DBLCLKS; // Enable double-click messages
 		wcex.lpfnWndProc = Foundation_WndProc;
 		wcex.hInstance = hInstance;
 		wcex.hIcon = NULL;
@@ -127,8 +127,8 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		//{WM_MOVE,			"WM_MOVE"},
-		//{WM_MOVING,			"WM_MOVING"},
+		{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
 		{WM_SIZING,			"WM_SIZING"},
 
@@ -151,7 +151,7 @@ namespace Berta
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
 
 		//{ WM_NCACTIVATE, "WM_NCACTIVATE" },
-		//{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
+		{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
 	};
 
 	//Long list.
@@ -237,7 +237,8 @@ namespace Berta
 			g_debugLastMessageId = message;
 		}
 		else {
-			//debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd << std::endl;
+			printedMessage = true;
+			debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd;
 		}
 #endif
 		LRESULT innerResult;
@@ -369,7 +370,7 @@ namespace Berta
 				if (targetWindow)
 				{
 					windowManager.UpdateTree(targetWindow); 
-					drawBatch.Flush(true);
+					//drawBatch.Flush(true);
 				}
 			}
 			wasHandled = false;
@@ -457,13 +458,14 @@ namespace Berta
 				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
 				//}
 				windowManager.UpdateTree(nativeWindow);
-				drawBatch.Flush(true);
+				//drawBatch.Flush(true);
+				if (nativeWindow->Type == WindowType::RenderForm)
+				{
+					nativeWindow->CustomPaint();
+					//windowManager.Refresh(nativeWindow);
+				}
 			}
-			if (nativeWindow->Type == WindowType::RenderForm)
-			{
-				nativeWindow->CustomPaint();
-				//windowManager.Refresh(nativeWindow);
-			}
+			
 			wasHandled = true;
 			break;
 		}
@@ -888,10 +890,10 @@ namespace Berta
 #ifdef BT_PRINT_WND_MESSAGES
 		if (it != g_debugWndMessages.end())
 		{
-			BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
+			//BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
 		}
 #endif
-
+		drawBatch.Flush();
 		if (!wasHandled)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);

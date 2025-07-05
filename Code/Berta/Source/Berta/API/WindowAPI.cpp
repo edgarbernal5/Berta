@@ -253,12 +253,24 @@ namespace Berta
 #endif
 		}
 
-		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle parentNativeHandle)
+		void SetParentWindow(NativeWindowHandle nativeHandle, NativeWindowHandle newParentHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::SetParent(nativeHandle.Handle, parentNativeHandle.Handle);
+			auto previous = ::SetParent(nativeHandle.Handle, newParentHandle.Handle);
+			//if (previous)
+			//	::PostMessage(previous, /*WM_CHANGEUISTATE*/0x0127, /*UIS_INITIALIZE*/ 3, 0);
 
-			::SetWindowPos(nativeHandle.Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			WPARAM uistateChild = LOWORD(UIS_INITIALIZE) + HIWORD(UISF_ACTIVE);
+			WPARAM uistateParent = LOWORD(UIS_INITIALIZE) + HIWORD(UISF_ACTIVE);
+
+			LRESULT lresultChild = ::SendMessage(nativeHandle.Handle, WM_CHANGEUISTATE, uistateChild, (LPARAM)0);
+			if (lresultChild != 0) {
+				printf("\n\n Child -> Change UI State Error %i", GetLastError()); 
+			}
+
+			LRESULT lresultParent = ::SendMessage(newParentHandle.Handle, WM_CHANGEUISTATE, uistateParent, (LPARAM)0);
+
+			::SetWindowPos(nativeHandle.Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOREDRAW);
 #endif
 		}
 
@@ -285,6 +297,8 @@ namespace Berta
 			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
 			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, true);
+
+			//::SetWindowPos(nativeHandle.Handle, NULL, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE);
 #endif
 		}
 
@@ -307,6 +321,10 @@ namespace Berta
 			}
 
 			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, true);
+			
+			//::SetWindowPos(nativeHandle.Handle, NULL, adjustedPosition.X, adjustedPosition.Y,
+			//	nativeRECT.right - nativeRECT.left,
+			//	nativeRECT.bottom - nativeRECT.top, SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE);
 #endif
 		}
 

@@ -23,6 +23,7 @@ namespace Berta
 		NeedUpdate = 1,
 		NeedMap = 2,
 		Refresh = 4,
+		MoveSize = 8,
 	};
 	BT_DEFINITION_FLAG_FROM_ENUM(DrawOperation);
 
