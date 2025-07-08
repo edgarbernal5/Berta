@@ -755,21 +755,24 @@ namespace Berta
 
 			if (sizeChanged)
 			{
-				//window->ClientSize = newRect;
 				Size newSize = newRect;
-//#ifdef BT_PLATFORM_WINDOWS
-//				auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
-//				if (FAILED(hr))
-//				{
-//					BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
-//				}
-//#endif
-				/*if (window->Type != WindowType::RenderForm)
-				{
-					window->Renderer.GetGraphics().Rebuild(newSize, window->RootPaintHandle);
-				}
+				//window->ClientSize = newRect;
+#ifdef BT_PLATFORM_WINDOWS
+				//if (window->RootPaintHandle.RenderTarget)
+				//{
+				//	auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
+				//	if (FAILED(hr))
+				//	{
+				//		BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+				//	}
+				//}
+#endif
+				////if (window->Type != WindowType::RenderForm)
+				//{
+				//	window->Renderer.GetGraphics().Rebuild(newSize, window->RootPaintHandle);
+				//}
 
-				window->RootGraphics->Rebuild(newSize, window->RootPaintHandle);*/
+				//window->RootGraphics->Rebuild(newSize, window->RootPaintHandle);
 				
 				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
