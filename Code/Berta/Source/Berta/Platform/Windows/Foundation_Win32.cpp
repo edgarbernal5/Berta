@@ -78,21 +78,23 @@ namespace Berta
 				return;
 			}
 		}
-		WNDCLASSEXW wcex = {};
-		wcex.cbSize = sizeof(WNDCLASSEXW);
-		wcex.style = CS_OWNDC| CS_DBLCLKS; // Enable double-click messages
-		wcex.lpfnWndProc = Foundation_WndProc;
-		wcex.hInstance = hInstance;
-		wcex.hIcon = NULL;
-		wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-		wcex.hbrBackground = NULL;
-		wcex.lpszClassName = L"BertaNestedInternalClass";
-		wcex.hIconSm = NULL;
-		
-		if (!RegisterClassExW(&wcex))
 		{
-			BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
-			return;
+			WNDCLASSEXW wcex = {};
+			wcex.cbSize = sizeof(WNDCLASSEXW);
+			wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.lpfnWndProc = Foundation_WndProc;
+			wcex.hInstance = hInstance;
+			wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
+			wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+			wcex.hbrBackground = NULL;
+			wcex.lpszClassName = L"BertaNestedInternalClass";
+			wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+
+			if (!RegisterClassExW(&wcex))
+			{
+				BT_CORE_ERROR << "RegisterClassExW Failed." << std::endl;
+				return;
+			}
 		}
 	}
 
@@ -259,7 +261,7 @@ namespace Berta
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
-				BT_CORE_DEBUG << debugBuilder.str() << " <<" << std::endl;
+				BT_CORE_DEBUG << "native is null. " << debugBuilder.str() << " <<" << std::endl;
 #endif
 			//debugBuilder << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);

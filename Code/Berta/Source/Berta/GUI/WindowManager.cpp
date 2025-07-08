@@ -303,14 +303,7 @@ namespace Berta
 		if (window->IsNative())
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			if (window->IsNested() && window->Parent->IsBatchActive())
-			{
-				AddWindowToBatch(window->Parent->RootWindow->Batcher, window, Rectangle{ nativePosition.X + delta.X, nativePosition.Y + delta.Y, window->ClientSize.Width, window->ClientSize.Height }, DrawOperation::MoveSize);
-			}
-			else
-			{
-				API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
-			}
+			API::MoveWindow(window->RootHandle, nativePosition + delta, forceRepaint);
 		}
 
 		for (size_t i = 0; i < window->Children.size(); i++)
@@ -723,9 +716,9 @@ namespace Berta
 
 				if (resizeForm)
 				{
-					auto nativePosition = API::GetWindowPosition(window->RootHandle);
-					Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
-					API::ResizeWindow(window->RootHandle, newArea);
+					//auto nativePosition = API::GetWindowPosition(window->RootHandle);
+					//Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+					API::ResizeWindow(window->RootHandle, newSize);
 				}
 			}
 		}
@@ -777,14 +770,8 @@ namespace Berta
 				}
 
 				window->RootGraphics->Rebuild(newSize, window->RootPaintHandle);*/
-				if (window->IsNested() && window->Parent->IsBatchActive())
-				{
-					AddWindowToBatch(window->Parent->RootWindow->Batcher, window, rootRect, DrawOperation::MoveSize);
-				}
-				else
-				{
-					API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
-				}
+				
+				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 
 				/*ArgResize argResize;
 				argResize.NewSize = window->ClientSize;
@@ -794,14 +781,7 @@ namespace Berta
 			{
 				auto nativePosition = API::GetWindowPosition(window->RootHandle);
 				Point newNativePosition = { rootRect.X, rootRect.Y };
-				if (window->IsNested() && window->Parent->IsBatchActive())
-				{
-					AddWindowToBatch(window->Parent->RootWindow->Batcher, window, rootRect, DrawOperation::MoveSize);
-				}
-				else
-				{
-					API::MoveWindow(window->RootHandle, newNativePosition, forceRepaint);
-				}
+				API::MoveWindow(window->RootHandle, newNativePosition, forceRepaint);
 				positionChanged = newNativePosition != nativePosition;
 			}
 		}
@@ -836,14 +816,7 @@ namespace Berta
 		if (window->IsNative())
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			if (window->IsNested() && window->Parent->IsBatchActive())
-			{
-				AddWindowToBatch(window->Parent->RootWindow->Batcher, window, Rectangle{ newPosition.X, newPosition.Y, window->ClientSize.Width, window->ClientSize.Height }, DrawOperation::MoveSize);
-			}
-			else
-			{
-				API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
-			}
+			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
 			bool positionChanged = newPosition != nativePosition;
 
 			if (!forceRepaint)

@@ -35,7 +35,7 @@ namespace Berta
 		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			DWORD style = WS_SYSMENU /* | WS_CLIPCHILDREN */;
+			DWORD style = WS_SYSMENU | WS_CLIPCHILDREN;
 			DWORD styleEx = WS_EX_NOPARENTNOTIFY;
 
 			if (formStyle.Minimize)

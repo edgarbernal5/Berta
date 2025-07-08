@@ -249,9 +249,12 @@ namespace Berta
 				{
 					bool needRefresh = oldArea.Width != currentArea.Width || oldArea.Height != currentArea.Height;
 
-					if (needRefresh && child->IsNative())
+					if (child->IsNative())
 					{
-						API::RefreshWindow(child->RootHandle);
+						if (needRefresh)
+						{
+							API::RefreshWindow(child->RootHandle);
+						}
 						continue;
 					}
 					//if ((!existsInBatch || !HasFlag(existingOperation, DrawOperation::NeedUpdate)) && !child->Flags.isUpdating)
@@ -271,12 +274,16 @@ namespace Berta
 						Update(child, currentArea, DrawOperation::NeedMap);
 					}
 				}
-				else if (existsInBatch)
+				else if (existsInBatch && !child->IsNative())
 				{
 					if (!HasFlag(existingOperation, DrawOperation::NeedMap))
 					{
 						rootGraphics.BitBlt(currentArea, child->Renderer.GetGraphics(), { 0,0 });
 					}
+				}
+				if (child->IsNative())
+				{
+					continue;
 				}
 			}
 
