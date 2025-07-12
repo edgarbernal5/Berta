@@ -111,7 +111,8 @@ private:
 		m_graphicsContext->Reset();
 		m_graphicsContext->AddBarrier(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		m_graphicsContext->FlushBarriers();
-
+		auto rtvHandle = backBuffer.mRTVDescriptor.mCPUHandle;
+		m_graphicsContext->SetTargets(1, &rtvHandle, {});
 		m_graphicsContext->SetViewport(m_viewport);
 		m_graphicsContext->ClearRenderTarget(backBuffer, Color(0.3f, 0.3f, 0.8f));
 		//m_graphicsContext->ClearDepthStencilTarget(depthBuffer, 1.0f, 0);

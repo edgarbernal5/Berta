@@ -38,6 +38,9 @@ namespace Berta
 		if (checkOpaque && checkOpaque->Flags.isUpdating)
 			return;
 
+		if (window->Type == WindowType::RenderForm)
+			return;
+
 		Rectangle rect;
 		if (!GetIntersectionRect(window, rect))
 			return;

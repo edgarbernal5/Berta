@@ -12,7 +12,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_DRAW_BATCH_MESSAGES
-#define BT_PRINT_DRAW_BATCH_MESSAGES2
+#define BT_PRINT_DRAW_BATCH_MESSAGES
 #endif // !BT_PRINT_DRAW_BATCH_MESSAGES
 #endif
 
@@ -47,7 +47,22 @@ namespace Berta
 		{
 			if (batchItem.Target == window)
 			{
-				batchItem.Area = areaToUpdate;
+				if (HasFlag(operation, DrawOperation::MoveSize))
+				{
+					if (areaToUpdate.Width == 0 && areaToUpdate.Height == 0)
+					{
+						batchItem.Area.X = areaToUpdate.X;
+						batchItem.Area.Y = areaToUpdate.Y;
+					}
+					else
+					{
+						batchItem.Area = areaToUpdate;
+					}
+				}
+				else
+				{
+					batchItem.Area = areaToUpdate;
+				}
 				batchItem.Operation = batchItem.Operation | operation;
 				return;
 			}
@@ -118,7 +133,7 @@ namespace Berta
 		std::sort(m_context.m_batchItemRequests.begin(), m_context.m_batchItemRequests.end(), comparer);
 
 #ifdef BT_PRINT_DRAW_BATCH_MESSAGES
-		BT_CORE_TRACE << "Draw Batch size = " << m_context.m_batchItemRequests.size() << ". root window=" << m_context.m_rootWindow->Name << std::endl;
+		BT_CORE_TRACE << "- Draw Batch size = " << m_context.m_batchItemRequests.size() << ". root window=" << m_context.m_rootWindow->Name << std::endl;
 		/*for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
 		{
 			auto& item = m_context.m_batchItemRequests[i];
@@ -129,76 +144,92 @@ namespace Berta
 
 		m_context.m_rootWindow->Flags.isBatching = true;
 
-		std::vector<BatchChildItem> childCacheItems;
-		AddToCache(m_context.m_batchItemRequests[0].Target, m_context.m_batchItemRequests[0].Area, childCacheItems);
-
-		rootGraphics.Begin();
-		bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
-		for (auto& batchItem : m_context.m_batchItemRequests)
+		if (m_context.m_rootWindow->Type != WindowType::RenderForm)
 		{
-			if (batchItem.Target->Flags.IsDisposed)
-				continue;
-			/*if (batchItem.Target->IsNative() && batchItem.Target->Type==WindowType::RenderForm)
-				continue;*/
+			std::vector<BatchChildItem> childCacheItems;
+			AddToCache(m_context.m_batchItemRequests[0].Target, m_context.m_batchItemRequests[0].Area, childCacheItems);
 
-			if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
+			rootGraphics.Begin();
+			bool fullMap = !m_context.m_batchItemRequests.empty() && m_context.m_batchItemRequests[0].Target->Type == WindowType::Form;
+			for (auto& batchItem : m_context.m_batchItemRequests)
 			{
-				batchItem.Target->Flags.isUpdating = true;
-				batchItem.Target->Renderer.Update();
-				batchItem.Target->Flags.isUpdating = false;
+				if (batchItem.Target->Flags.IsDisposed)
+					continue;
+				/*if (batchItem.Target->IsNative() && batchItem.Target->Type==WindowType::RenderForm)
+					continue;*/
+
+				if (HasFlag(batchItem.Operation, DrawOperation::NeedUpdate) && !batchItem.Target->Flags.isUpdating)
+				{
+					batchItem.Target->Flags.isUpdating = true;
+					batchItem.Target->Renderer.Update();
+					batchItem.Target->Flags.isUpdating = false;
+				}
+
+				if (HasFlag(batchItem.Operation, DrawOperation::NeedMap))
+				{
+					rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
+				}
+
+				PasteToChildren(batchItem.Target, rootGraphics, batchItem.Area, childCacheItems);
+
+				batchItem.Target->DrawStatus = DrawWindowStatus::None;
+			}
+			rootGraphics.Flush();
+
+			if (fullMap)
+			{
+				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, m_context.m_rootWindow->ClientSize.ToRectangle());
 			}
 
-			if (HasFlag(batchItem.Operation, DrawOperation::NeedMap))
+			//TODO: Remove this! or put an ASSERT
+			for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
 			{
-				rootGraphics.BitBlt(batchItem.Area, batchItem.Target->Renderer.GetGraphics(), { 0,0 });
+				for (size_t j = i + 1; j < m_context.m_batchItemRequests.size(); j++)
+				{
+					if (m_context.m_batchItemRequests[i].Target == m_context.m_batchItemRequests[j].Target) {
+						break;
+					}
+				}
 			}
 
-			PasteToChildren(batchItem.Target, rootGraphics, batchItem.Area, childCacheItems);
-
-			batchItem.Target->DrawStatus = DrawWindowStatus::None;
-		}
-		rootGraphics.Flush();
-
-		if (fullMap)
-		{
-			m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, m_context.m_rootWindow->ClientSize.ToRectangle());
-		}
-
-		//TODO: Remove this! or put an ASSERT
-		for (size_t i = 0; i < m_context.m_batchItemRequests.size(); i++)
-		{
-			for (size_t j = i + 1; j < m_context.m_batchItemRequests.size(); j++)
+			for (auto& batchItem : m_context.m_batchItemRequests)
 			{
-				if (m_context.m_batchItemRequests[i].Target == m_context.m_batchItemRequests[j].Target) {
-					break;
+				if (!fullMap)
+				{
+					m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
+				}
+
+			}
+
+			for (auto& batchItem : m_context.m_batchItemRequests)
+			{
+				if (HasFlag(batchItem.Operation, DrawOperation::MoveSize))
+				{
+					if (batchItem.Area.Width == 0 && batchItem.Area.Height == 0)
+					{
+						BT_CORE_TRACE << " hegiht width =0" << ". root window=" << m_context.m_rootWindow->Name << std::endl;
+						API::MoveWindow(batchItem.Target->RootHandle, Point{ batchItem.Area.X,  batchItem.Area.Y });
+					}
+					else
+					{
+						BT_CORE_TRACE << " area completa" << ". root window=" << m_context.m_rootWindow->Name << std::endl;
+						API::MoveWindow(batchItem.Target->RootHandle, batchItem.Area);
+					}
+					//API::RefreshWindow(batchItem.Target->RootHandle);
+				}
+				if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
+				{
+					API::RefreshWindow(batchItem.Target->RootHandle);
 				}
 			}
 		}
-
-		for (auto& batchItem : m_context.m_batchItemRequests)
-		{
-			if (!fullMap)
-			{
-				m_context.m_rootWindow->Renderer.Map(m_context.m_rootWindow, batchItem.Area);
-			}
-			
-		}
-
-		for (auto& batchItem : m_context.m_batchItemRequests)
-		{
-			if (HasFlag(batchItem.Operation, DrawOperation::MoveSize))
-			{
-				API::MoveWindow(batchItem.Target->RootHandle, batchItem.Area);
-				//API::RefreshWindow(batchItem.Target->RootHandle);
-			}
-			if (HasFlag(batchItem.Operation, DrawOperation::Refresh))
-			{
-				API::RefreshWindow(batchItem.Target->RootHandle);
-			}
-		}
+		
 		if (!m_context.m_rootWindow)
 			return;
-
+#ifdef BT_PRINT_DRAW_BATCH_MESSAGES
+		BT_CORE_TRACE << "- End Draw Batch size = " << m_context.m_batchItemRequests.size() << ". root window=" << m_context.m_rootWindow->Name << std::endl;
+		std::cout << std::endl;
+#endif // BT_PRINT_DRAW_BATCH_MESSAGES
 		m_context.m_rootWindow->Flags.isBatching = false;
 
 		if (!forceManual)

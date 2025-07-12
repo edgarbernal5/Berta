@@ -22,7 +22,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES2
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -463,8 +463,10 @@ namespace Berta
 				//drawBatch.Flush(true);
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
+
 					nativeWindow->CustomPaint();
-					//windowManager.Refresh(nativeWindow);
+					/*API::RefreshWindow(nativeWindow->Parent->RootHandle, true);
+					windowManager.Refresh(nativeWindow);*/
 				}
 			}
 			
@@ -490,7 +492,7 @@ namespace Berta
 
 			//This is called inside Resize method of WindowManager.
 			windowManager.UpdateTree(nativeWindow);
-
+			API::RefreshWindow(nativeWindowHandle, true);
 			wasHandled = false;
 			break;
 		}
@@ -895,7 +897,7 @@ namespace Berta
 			//BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
 		}
 #endif
-		drawBatch.Flush();
+		//drawBatch.Flush();
 		if (!wasHandled)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
