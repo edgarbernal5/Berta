@@ -380,16 +380,7 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
-			::PAINTSTRUCT ps;
-			::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
-
-			Rectangle areaToUpdate;
-			areaToUpdate.FromRECT(ps.rcPaint);
-#if BT_DEBUG
-			//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
-#else
-			BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
-#endif
+			
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				if (nativeWindow->CustomPaint)
@@ -400,11 +391,20 @@ namespace Berta
 			}
 			else
 			{
-				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
-			}
+				::PAINTSTRUCT ps;
+				::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 
-			::EndPaint(nativeWindow->RootHandle.Handle, &ps);
-			//::ValidateRect(hWnd, nullptr);
+				Rectangle areaToUpdate;
+				areaToUpdate.FromRECT(ps.rcPaint);
+#if BT_DEBUG
+				//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+#else
+				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
+#endif
+				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
+				::EndPaint(nativeWindow->RootHandle.Handle, &ps);
+				::ValidateRect(hWnd, nullptr);
+			}
 
 			wasHandled = true;
 			break;

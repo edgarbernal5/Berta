@@ -82,7 +82,7 @@ namespace Berta
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
 		void ShowNativeWindow(NativeWindowHandle nativeHandle, bool visible, bool active);
-		void RefreshWindow(NativeWindowHandle nativeHandle);
+		void RefreshWindow(NativeWindowHandle nativeHandle, bool forceEraseBackground = false);
 		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled);
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);
 		NativeWindowHandle GetOwnerWindow(NativeWindowHandle nativeHandle);
