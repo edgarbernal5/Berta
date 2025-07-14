@@ -86,25 +86,26 @@ namespace Berta
 		{
 			if (window->Type != WindowType::Panel && (window->Type != WindowType::RenderForm || !window->CustomPaint))
 			{
-				if (window->IsBatchActive())
-				{
-					m_windowManager.TryAddWindowToBatch
-					(
-						window,
-						(window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap)
-					);
-				}
-				else if (!window->RootWindow->Flags.isBatching)
-				{
-					//m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
-					UIRendererCoordinator::Paint
-					(
-						window,
-						window->DrawStatus == DrawWindowStatus::NeedUpdate ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::HaveUpdated,
-						isResizing
-					);
-					m_windowManager.Map(window, nullptr);
-				}
+				API::RefreshWindow(window->RootHandle);
+				//if (window->IsBatchActive())
+				//{
+				//	m_windowManager.TryAddWindowToBatch
+				//	(
+				//		window,
+				//		(window->DrawStatus == DrawWindowStatus::Updated ? DrawOperation::NeedMap : DrawOperation::NeedUpdate | DrawOperation::NeedMap)
+				//	);
+				//}
+				//else if (!window->RootWindow->Flags.isBatching)
+				//{
+				//	//m_windowManager.Update(window, window->DrawStatus == DrawWindowStatus::NeedUpdate);
+				//	UIRendererCoordinator::Paint
+				//	(
+				//		window,
+				//		window->DrawStatus == DrawWindowStatus::NeedUpdate ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::HaveUpdated,
+				//		isResizing
+				//	);
+				//	m_windowManager.Map(window, nullptr);
+				//}
 			}
 		}
 	}

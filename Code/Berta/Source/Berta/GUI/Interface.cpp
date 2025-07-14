@@ -317,15 +317,11 @@ namespace Berta::GUI
 			return;
 		}
 
-		auto& graphics = window->Renderer.GetGraphics();
-		graphics.Build(window->ClientSize, window->RootPaintHandle);
-		graphics.BuildFont(window->DPI);
-		graphics.Begin();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
-		graphics.Flush();
-
 		window->Renderer.Init(*control, controlReactor);
-		window->Renderer.Update();
+
+		/*auto& graphics = window->Renderer.GetGraphics();
+		graphics.Build(window->RootPaintHandle);
+		graphics.BuildFont(window->DPI);*/
 	}
 
 	void SetEvents(Window* window, std::shared_ptr<ControlEvents> events)

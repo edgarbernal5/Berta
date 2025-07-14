@@ -26,6 +26,7 @@ namespace Berta
 	public:
 		Graphics();
 		Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle);
+		Graphics(API::RootPaintNativeHandle rootPaintHandle);
 		//Graphics(const Graphics& other);
 		Graphics(Graphics&& other) noexcept;
 		~Graphics(); 
@@ -48,6 +49,7 @@ namespace Berta
 			Dotted
 		};
 
+		void Build(API::RootPaintNativeHandle rootPaintHandle);
 		void Build(const Size& size, API::RootPaintNativeHandle rootPaintHandle);
 		void BuildFont(uint32_t dpi);
 		void Rebuild(const Size& size, API::RootPaintNativeHandle rootPaintHandle);
@@ -93,6 +95,8 @@ namespace Berta
 		void Begin();
 		void Flush();
 
+		void SetTransform(const Rectangle& area);
+
 		void Swap(Graphics& other);
 		void Release();
 		bool IsEnabledAliasing();
@@ -101,13 +105,14 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_attributes != nullptr && m_attributes->m_bitmapRT;
+			return m_attributes != nullptr; //&& m_attributes->m_bitmapRT;
 #else
 			return m_attributes != nullptr;
 #endif
 		}
 	private:
 
+		int counter{ 0 };
 		uint32_t m_dpi{ 96u };
 		Size m_size{};
 		API::RootPaintNativeHandle m_rootPaintNativeHandle;

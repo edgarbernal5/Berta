@@ -22,7 +22,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -284,6 +284,7 @@ namespace Berta
 		DrawBatch drawBatch(nativeWindow);
 		Berta::Foundation::RootGuard rootGuard(nativeWindow);
 
+		//ver lecui para manejar bien los mensajes.
 		switch (message)
 		{
 		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
@@ -371,7 +372,8 @@ namespace Berta
 				auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
 				if (targetWindow)
 				{
-					windowManager.UpdateTree(targetWindow); 
+					windowManager.UpdateTree(targetWindow);
+					API::RefreshWindow(nativeWindowHandle);
 					//drawBatch.Flush(true);
 				}
 			}
@@ -380,7 +382,6 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
-			
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				if (nativeWindow->CustomPaint)
@@ -391,18 +392,20 @@ namespace Berta
 			}
 			else
 			{
-				::PAINTSTRUCT ps;
-				::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+				//::PAINTSTRUCT ps;
+				//::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 
-				Rectangle areaToUpdate;
-				areaToUpdate.FromRECT(ps.rcPaint);
-#if BT_DEBUG
-				//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
-#else
-				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
-#endif
-				nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
-				::EndPaint(nativeWindow->RootHandle.Handle, &ps);
+				//Rectangle areaToUpdate;
+				//areaToUpdate.FromRECT(ps.rcPaint);
+//#if BT_DEBUG
+//				//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+//#else
+//				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
+//#endif
+				//nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
+
+				windowManager.UpdateTree(nativeWindow);
+				//::EndPaint(nativeWindow->RootHandle.Handle, &ps);
 				::ValidateRect(hWnd, nullptr);
 			}
 
@@ -459,7 +462,8 @@ namespace Berta
 				//	nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
 				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
 				//}
-				windowManager.UpdateTree(nativeWindow);
+				//windowManager.UpdateTree(nativeWindow);
+				API::RefreshWindow(nativeWindowHandle);
 				//drawBatch.Flush(true);
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{

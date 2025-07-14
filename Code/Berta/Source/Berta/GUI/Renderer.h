@@ -39,15 +39,16 @@ namespace Berta
 		void Resize(const ArgResize& args);
 		void Move(const ArgMove& args);
 
-		Graphics& GetGraphics() { return m_graphics; }
+		Graphics& GetGraphics() { return *m_graphics; }
 
 	private:
 		template <typename TArgument>
 		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&, const TArgument&), const TArgument& args);
 
 		bool m_updating{ false };
+		ControlBase* m_control{ nullptr };
 		ControlReactor* m_controlReactor{ nullptr };
-		Graphics m_graphics;
+		Graphics* m_graphics{ nullptr };
 	};
 
 	template<typename TArgument>
@@ -58,7 +59,7 @@ namespace Berta
 			return;
 		}
 
-		((*m_controlReactor).*reactorEventPtr)(m_graphics, args);
+		((*m_controlReactor).*reactorEventPtr)(*m_graphics, args);
 	}
 }
 

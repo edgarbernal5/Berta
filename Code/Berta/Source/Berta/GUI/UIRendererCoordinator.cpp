@@ -16,6 +16,8 @@ namespace Berta
 		if (window->Flags.isUpdating && operation == PaintOperation::TryUpdate)
 			return;
 
+		auto& rootGraphics = *(window->RootGraphics);
+		rootGraphics.Begin();
 		if (operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
 			if (window->IsBatchActive())
@@ -30,6 +32,7 @@ namespace Berta
 			}
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
+		rootGraphics.Flush();
 	}
 
 	void UIRendererCoordinator::Map(Window* window, bool haveUpdated, bool processChildren)
@@ -56,13 +59,13 @@ namespace Berta
 		else
 		{
 			auto& rootGraphics = *(window->RootGraphics);
-			rootGraphics.Begin();
+			/*rootGraphics.Begin();
 			if (window->Type != WindowType::Panel)
 			{
 				rootGraphics.BitBlt(rect, window->Renderer.GetGraphics(), { 0,0 });
-			}
+			}*/
 			MapInternal(window, haveUpdated, processChildren, rect, rootGraphics);
-			rootGraphics.Flush();
+			
 		}
 	}
 
@@ -102,7 +105,7 @@ namespace Berta
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
 			auto child = window->Children[i];
-			if (!child->Visible || (!child->Renderer.GetGraphics().IsValid()) && child->Type != WindowType::Panel)
+			if (!child->Visible || (child->Type == WindowType::Panel || !child->Renderer.GetGraphics().IsValid()))
 			{
 				continue;
 			}
@@ -135,7 +138,7 @@ namespace Berta
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
 			auto child = window->Children[i];
-			if (!child->Visible || (!child->Renderer.GetGraphics().IsValid()) && child->Type != WindowType::Panel)
+			if (!child->Visible || (child->Type != WindowType::Panel && !child->Renderer.GetGraphics().IsValid()))
 			{
 				continue;
 			}
@@ -162,7 +165,7 @@ namespace Berta
 						child->Renderer.Update();
 						child->Flags.isUpdating = false;
 					}
-					rootGraphics.BitBlt(rect, child->Renderer.GetGraphics(), { 0,0 });
+					//rootGraphics.BitBlt(rect, child->Renderer.GetGraphics(), { 0,0 });
 				}
 				MapInternal(child, processChildren, processChildren, rect, rootGraphics);
 			}

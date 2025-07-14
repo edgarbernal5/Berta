@@ -104,7 +104,7 @@ namespace Berta
 	{
 		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
 
-		Rectangle validDestRect, validSourceDest;
+		/*Rectangle validDestRect, validSourceDest;
 		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
 		{
 			return;
@@ -149,7 +149,7 @@ namespace Berta
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			validSourceDest
-		);
+		);*/
 	}
 
 	void BasicImageAttributes::ReleaseNativeObjects()

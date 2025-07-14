@@ -16,7 +16,7 @@
 namespace Berta
 {
 	TextEditor::TextEditor(Window* owner) :
-		m_graphics(owner->Renderer.GetGraphics()),
+		m_graphics(*owner->RootGraphics),
 		m_owner(owner)
 	{
 		m_caret = new Caret(owner, {1,0});

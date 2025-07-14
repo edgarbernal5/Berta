@@ -32,10 +32,10 @@ namespace Berta
 
 	bool Window::IsBatchActive() const
 	{
-		if (!RootWindow)
+		//if (!RootWindow)
 			return false;
 
-		return RootWindow->Batcher != nullptr;
+		//return RootWindow->Batcher != nullptr;
 	}
 
 	Window* Window::FindFirstNonPanelAncestor() const

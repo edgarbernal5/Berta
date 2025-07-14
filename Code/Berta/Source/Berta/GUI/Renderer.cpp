@@ -15,8 +15,11 @@ namespace Berta
 {
 	void Renderer::Init(ControlBase& control, ControlReactor& controlReactor)
 	{
+		m_control = &control;
 		m_controlReactor = &controlReactor;
 		m_controlReactor->Init(control);
+
+		m_graphics = control.Handle()->RootGraphics;
 	}
 
 	void Renderer::Shutdown()
@@ -26,6 +29,7 @@ namespace Berta
 			m_controlReactor->Shutdown();
 			m_controlReactor = nullptr;
 		}
+		m_control = nullptr;
 	}
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
@@ -40,12 +44,13 @@ namespace Berta
 	{
 		BT_ASSERT(!m_controlReactor || !m_updating, "Renderer Update is already updating.");
 
-		if (m_controlReactor && !m_updating && m_graphics.IsValid())
+		if (m_controlReactor && !m_updating && m_graphics->IsValid())
 		{
 			m_updating = true;
-			m_graphics.Begin();
-			m_controlReactor->Update(m_graphics);
-			m_graphics.Flush();
+			//asumimos que el rootgraphics hizo el begindraw
+			auto area = m_control->GetArea();
+			m_graphics->SetTransform(area);
+			m_controlReactor->Update(*m_graphics);
 			m_updating = false;
 		}
 	}

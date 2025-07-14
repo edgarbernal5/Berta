@@ -29,7 +29,7 @@ namespace Berta
 
 	WindowManager::FormData::FormData(Window* window, const Size& size) :
 		WindowPtr(window),
-		RootGraphics(size, window->DPI, window->RootPaintHandle)
+		RootGraphics(window->RootPaintHandle)
 	{
 	}
 
@@ -140,6 +140,7 @@ namespace Berta
 
 			auto& rootGraphics = GetFormData(windowResult.WindowHandle)->RootGraphics;
 			window->RootGraphics = &rootGraphics;
+			rootGraphics.BuildFont(window->DPI);
 
 			return window;
 		}
@@ -258,7 +259,7 @@ namespace Berta
 			m_windowRegistry.erase(window);
 		}
 
-		window->Renderer.GetGraphics().Release();
+		//window->Renderer.GetGraphics().Release();
 	}
 
 	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
@@ -621,18 +622,18 @@ namespace Berta
 
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
 	{
-		if (areaToUpdate == nullptr)
-		{
-			Rectangle requestRectangle = window->ClientSize.ToRectangle();
-			auto absolutePosition = GetAbsoluteRootPosition(window);
-			requestRectangle.X = absolutePosition.X;
-			requestRectangle.Y = absolutePosition.Y;
+	//	if (areaToUpdate == nullptr)
+	//	{
+	//		Rectangle requestRectangle = window->ClientSize.ToRectangle();
+	//		auto absolutePosition = GetAbsoluteRootPosition(window);
+	//		requestRectangle.X = absolutePosition.X;
+	//		requestRectangle.Y = absolutePosition.Y;
 
-			window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
-			return;
-		}
+	//		window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
+	//		return;
+	//	}
 
-		window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
+	//	window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -687,24 +688,29 @@ namespace Berta
 			if (FAILED(hr))
 			{
 				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
+				return false;
 			}
+
+			window->RootPaintHandle.RenderTarget->BeginDraw();
+			window->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 1.0f));
+			window->RootPaintHandle.RenderTarget->EndDraw();
 		}
 #endif
 
-		Graphics newGraphics;
-		Graphics newRootGraphics;
+		//Graphics newGraphics;
+		//Graphics newRootGraphics;
 		if (window->Type != WindowType::Panel)
 		{
 			//if (window->Type != WindowType::RenderForm)
 			{
-				newGraphics.Build(newSize, window->RootPaintHandle);
-				newGraphics.BuildFont(window->DPI);
+				//newGraphics.Build(newSize, window->RootPaintHandle);
+				//newGraphics.BuildFont(window->DPI);
 			}
 
 			if (window->IsNative())
 			{
-				newRootGraphics.Build(newSize, window->RootPaintHandle);
-				newRootGraphics.BuildFont(window->DPI);
+				//newRootGraphics.Build(newSize, window->RootPaintHandle);
+				//newRootGraphics.BuildFont(window->DPI);
 				//newRootGraphics.Begin();
 				//newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
 				//newRootGraphics.Flush();
@@ -715,12 +721,12 @@ namespace Berta
 		{
 			//if (window->Type != WindowType::RenderForm)
 			{
-				window->Renderer.GetGraphics().Swap(newGraphics);
+				//window->Renderer.GetGraphics().Swap(newGraphics);
 			}
 
 			if (window->IsNative())
 			{
-				window->RootGraphics->Swap(newRootGraphics);
+				//window->RootGraphics->Swap(newRootGraphics);
 
 				if (resizeForm)
 				{
