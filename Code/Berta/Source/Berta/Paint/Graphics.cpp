@@ -97,9 +97,11 @@ namespace Berta
 		}
 
 		m_rootPaintNativeHandle = rootPaintHandle;
+
 #ifdef BT_PLATFORM_WINDOWS
 		if (!rootPaintHandle.RenderTarget)
 			return;
+
 		auto rtSize = rootPaintHandle.RenderTarget->GetSize();
 		m_size.Width = rtSize.width;
 		m_size.Height = rtSize.height;
@@ -186,6 +188,17 @@ namespace Berta
 		}
 		m_attributes->m_textExtent = GetTextExtent("{}[]");
 #endif
+	}
+
+	void Graphics::Rebuild(API::RootPaintNativeHandle rootPaintHandle)
+	{
+		if (m_rootPaintNativeHandle == rootPaintHandle)
+		{
+			return;
+		}
+
+		Release();
+		Build(rootPaintHandle);
 	}
 
 	void Graphics::Rebuild(const Size& size, API::RootPaintNativeHandle rootPaintHandle)
@@ -784,12 +797,7 @@ namespace Berta
 			return;
 		}*/
 
-		counter++;
-		if (counter > 1)
-			return;
-
 		m_rootPaintNativeHandle.RenderTarget->BeginDraw();
-
 #endif
 	}
 
@@ -801,9 +809,6 @@ namespace Berta
 			return;
 		}
 
-		counter--;
-		if (counter > 0)
-			return;
 		auto hr = m_rootPaintNativeHandle.RenderTarget->EndDraw();
 		if (FAILED(hr))
 		{

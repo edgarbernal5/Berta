@@ -372,9 +372,7 @@ namespace Berta
 				auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
 				if (targetWindow)
 				{
-					windowManager.UpdateTree(targetWindow);
 					API::RefreshWindow(nativeWindowHandle);
-					//drawBatch.Flush(true);
 				}
 			}
 			wasHandled = false;
@@ -406,9 +404,7 @@ namespace Berta
 				{
 					ScopedTimer scopedTimer("WM_PAINT");
 					windowManager.UpdateTree(nativeWindow);
-
 				}
-				//::EndPaint(nativeWindow->RootHandle.Handle, &ps);
 				::ValidateRect(hWnd, nullptr);
 			}
 

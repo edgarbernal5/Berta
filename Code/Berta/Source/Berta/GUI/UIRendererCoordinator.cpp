@@ -16,6 +16,9 @@ namespace Berta
 		if (window->Flags.isUpdating && operation == PaintOperation::TryUpdate)
 			return;
 
+		if (window->Type == WindowType::RenderForm)
+			return;
+
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.Begin();
 		if (operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())

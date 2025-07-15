@@ -124,4 +124,9 @@ namespace Berta
 	{
 		ProcessEvent(&ControlReactor::Move, args);
 	}
+
+	void Renderer::SetGraphics(Graphics* newGraphics)
+	{
+		m_graphics = newGraphics;
+	}
 }

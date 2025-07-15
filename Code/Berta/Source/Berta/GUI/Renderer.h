@@ -40,6 +40,7 @@ namespace Berta
 		void Move(const ArgMove& args);
 
 		Graphics& GetGraphics() { return *m_graphics; }
+		void SetGraphics(Graphics* newGraphics);
 
 	private:
 		template <typename TArgument>

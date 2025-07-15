@@ -52,6 +52,7 @@ namespace Berta
 		void Build(API::RootPaintNativeHandle rootPaintHandle);
 		void Build(const Size& size, API::RootPaintNativeHandle rootPaintHandle);
 		void BuildFont(uint32_t dpi);
+		void Rebuild(API::RootPaintNativeHandle rootPaintHandle);
 		void Rebuild(const Size& size, API::RootPaintNativeHandle rootPaintHandle);
 		void Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha);
 		void BitBlt(const Rectangle& rectDestination, const Graphics& graphicsSource, const Point& pointSource);
@@ -111,8 +112,6 @@ namespace Berta
 #endif
 		}
 	private:
-
-		int counter{ 0 };
 		uint32_t m_dpi{ 96u };
 		Size m_size{};
 		API::RootPaintNativeHandle m_rootPaintNativeHandle;

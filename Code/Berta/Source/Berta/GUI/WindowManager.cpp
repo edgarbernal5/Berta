@@ -258,8 +258,6 @@ namespace Berta
 		{
 			m_windowRegistry.erase(window);
 		}
-
-		//window->Renderer.GetGraphics().Release();
 	}
 
 	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
@@ -285,13 +283,11 @@ namespace Berta
 				child->RootHandle = window->RootHandle;
 				child->RootWindow = window->RootWindow;
 				child->RootGraphics = window->RootGraphics;
+				child->Renderer.SetGraphics(window->RootGraphics);
 
 				if (child->RootPaintHandle != window->RootPaintHandle)
 				{
 					child->RootPaintHandle = window->RootPaintHandle;
-					auto& graphics = child->Renderer.GetGraphics();
-					graphics.Rebuild(child->ClientSize, window->RootPaintHandle);
-					graphics.BuildFont(child->DPI);
 				}
 			}
 
@@ -894,7 +890,7 @@ namespace Berta
 		}
 		else
 		{
-			UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
+			//UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
 			Map(window, updateArea);
 		}
 	}
@@ -1026,13 +1022,11 @@ namespace Berta
 			window->RootHandle = newParent->RootHandle;
 			window->RootWindow = newParent->RootWindow;
 			window->RootGraphics = newParent->RootGraphics;
+			window->Renderer.SetGraphics(newParent->RootGraphics);
 
 			if (window->RootPaintHandle != newParent->RootPaintHandle)
 			{
 				window->RootPaintHandle = newParent->RootPaintHandle;
-				auto& graphics = window->Renderer.GetGraphics();
-				graphics.Rebuild(window->ClientSize, newParent->RootPaintHandle);
-				graphics.BuildFont(window->DPI);
 			}
 		}
 		window->Position = { 0,0 };
