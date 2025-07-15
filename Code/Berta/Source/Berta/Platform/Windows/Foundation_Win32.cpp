@@ -497,8 +497,6 @@ namespace Berta
 				rect->bottom - rect->top,
 				SWP_NOZORDER | SWP_NOACTIVATE);
 
-			//This is called inside Resize method of WindowManager.
-			windowManager.UpdateTree(nativeWindow);
 			API::RefreshWindow(nativeWindowHandle, true);
 			wasHandled = false;
 			break;

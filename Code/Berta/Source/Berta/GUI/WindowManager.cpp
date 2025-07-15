@@ -914,6 +914,9 @@ namespace Berta
 
 		if (window->IsNative())
 		{
+			auto& graphics = window->Renderer.GetGraphics();
+			graphics.BuildFont(newDPI);
+
 			window->BorderSize.Width = static_cast<uint32_t>(window->BorderSize.Width * scalingFactor);
 			window->BorderSize.Height = static_cast<uint32_t>(window->BorderSize.Height * scalingFactor);
 		}
@@ -924,14 +927,6 @@ namespace Berta
 		}
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
-
-		if (window->Type != WindowType::RenderForm)
-		{
-			auto& graphics = window->Renderer.GetGraphics();
-			graphics.Release();
-			graphics.Build(window->ClientSize, window->RootPaintHandle);
-			graphics.BuildFont(newDPI);
-		}
 
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle)
 		{
