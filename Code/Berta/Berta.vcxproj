@@ -149,6 +149,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\Core\ScopedTimer.h" />
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h" />
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="Source\Berta\Core\StackTracer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />
     <ClCompile Include="Source\Berta\API\PaintAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Docking\DockIndicatorForm.cpp" />

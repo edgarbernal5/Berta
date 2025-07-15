@@ -22,7 +22,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES
+#define BT_PRINT_WND_MESSAGES2
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -403,8 +403,11 @@ namespace Berta
 //				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 //#endif
 				//nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
+				{
+					ScopedTimer scopedTimer("WM_PAINT");
+					windowManager.UpdateTree(nativeWindow);
 
-				windowManager.UpdateTree(nativeWindow);
+				}
 				//::EndPaint(nativeWindow->RootHandle.Handle, &ps);
 				::ValidateRect(hWnd, nullptr);
 			}
