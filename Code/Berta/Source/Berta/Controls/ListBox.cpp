@@ -431,7 +431,7 @@ namespace Berta
 				m_module.CalculateVisibleIndices();
 				m_module.m_scrollBarVert->SetValue(newOffset);
 
-				m_module.m_scrollBarVert->Handle()->Renderer.Update();
+				//m_module.m_scrollBarVert->Handle()->Renderer.Update();
 				GUI::MarkAsNeedUpdate(m_module.m_scrollBarVert->Handle());
 			}
 			else

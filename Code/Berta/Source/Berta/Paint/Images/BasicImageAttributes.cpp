@@ -104,12 +104,13 @@ namespace Berta
 	{
 		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
 
-		/*Rectangle validDestRect, validSourceDest;
+		Rectangle validDestRect, validSourceDest;
 		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
 		{
 			return;
 		}
 
+		//TODO: cache bitmap by hwnd (a map<HWND, Bitmap>)
 		if (m_bitmap)
 		{
 			m_bitmap->Release();
@@ -119,7 +120,7 @@ namespace Berta
 		auto handle = destination.GetHandle();
 		if (!m_bitmap)
 		{
-			HRESULT hr = handle->m_bitmapRT->CreateBitmap
+			HRESULT hr = handle->RenderTarget->CreateBitmap
 			(
 				D2D1::SizeU(m_size.Width, m_size.Height),
 				static_cast<void*>(m_colorBuffer.m_storage->m_buffer),
@@ -142,14 +143,14 @@ namespace Berta
 			}
 		}
 
-		handle->m_bitmapRT->DrawBitmap
+		handle->RenderTarget->DrawBitmap
 		(
 			m_bitmap,
 			validDestRect,
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			validSourceDest
-		);*/
+		);
 	}
 
 	void BasicImageAttributes::ReleaseNativeObjects()
