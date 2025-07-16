@@ -57,12 +57,14 @@ namespace Berta
 		return true;
 	}
 
-	Window* WindowManager::CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm)
+	Window* WindowManager::CreateForm(Window* parent, bool isUnscaleRect, Rectangle rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm)
 	{
 		API::NativeWindowHandle parentHandle{};
 		if (parent)
 		{
 			parentHandle = parent->RootWindow->RootHandle;
+			rectangle.X += parent->PositionRoot.X;
+			rectangle.Y += parent->PositionRoot.Y;
 		}
 
 		Rectangle finalRect{ rectangle };
@@ -135,6 +137,12 @@ namespace Berta
 				window->Parent = nullptr;
 			}
 
+			window->PositionRoot = window->Position;
+			if (parent)
+			{
+				window->PositionRoot += parent->PositionRoot;
+			}
+
 			AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->ClientSize));
 			Add(window);
 
@@ -176,6 +184,12 @@ namespace Berta
 			window->RootGraphics = parent->RootGraphics;
 
 			parent->Children.emplace_back(window);
+		}
+
+		window->PositionRoot = window->Position;
+		if (parent)
+		{
+			window->PositionRoot += parent->PositionRoot;
 		}
 
 		Add(window);
@@ -293,6 +307,11 @@ namespace Berta
 
 			SetParentInternal(child, newParent, deltaPosition);
 		}
+
+		if (!window->IsNative())
+		{
+			window->PositionRoot -= deltaPosition;
+		}
 	}
 
 	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
@@ -301,19 +320,17 @@ namespace Berta
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			auto newPosition = nativePosition + delta;
-			if (window->Parent && window->Parent->IsBatchActive())
-			{
-				AddWindowToBatch(window->Parent->RootWindow->Batcher, window, { newPosition.X, newPosition.Y,0,0 }, DrawOperation::MoveSize);
-			}
-			else
-			{
-				API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
-			}
-		}
 
-		for (size_t i = 0; i < window->Children.size(); i++)
+			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
+		}
+		else
 		{
-			MoveInternal(window->Children[i], delta, forceRepaint);
+			window->PositionRoot += delta;
+
+			for (size_t i = 0; i < window->Children.size(); i++)
+			{
+				MoveInternal(window->Children[i], delta, forceRepaint);
+			}
 		}
 	}
 
@@ -333,79 +350,81 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
-	{
-		if (!window->RootWindow->Batcher)
-			return;
+	//TODO: clean up
+	//void WindowManager::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
+	//{
+	//	if (!window->RootWindow->Batcher)
+	//		return;
 
-		//if (window->Type == WindowType::RenderForm)
-		//{
-		//	return;
-		//}
-		AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
-	}
+	//	//if (window->Type == WindowType::RenderForm)
+	//	//{
+	//	//	return;
+	//	//}
+	//	AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
+	//}
 
-	void WindowManager::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
-	{
-		if (batch->Exists(window, areaToUpdate, operation))
-			return;
+	//void WindowManager::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
+	//{
+	//	if (batch->Exists(window, areaToUpdate, operation))
+	//		return;
 
-		batch->AddWindow(window, areaToUpdate, operation);
-	}
+	//	batch->AddWindow(window, areaToUpdate, operation);
+	//}
 
-	void WindowManager::TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation)
-	{
-		if (window == nullptr)
-		{
-			return;
-		}
+	//void WindowManager::TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation)
+	//{
+	//	/*if (window == nullptr)
+	//	{
+	//		return;
+	//	}
 
-		for (auto& child : window->Children)
-		{
-			if (!child->Visible)
-			{
-				continue;
-			}
+	//	for (auto& child : window->Children)
+	//	{
+	//		if (!child->Visible)
+	//		{
+	//			continue;
+	//		}
 
-			Rectangle newContainerRectangle = containerRectangle;
-			auto childAbsolutePosition = GetLocalPosition(child);
-			childAbsolutePosition += parentPosition;
+	//		Rectangle newContainerRectangle = containerRectangle;
+	//		auto childAbsolutePosition = GetWindowPosition(child);
+	//		childAbsolutePosition += parentPosition;
 
-			Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
-			if (child->Type != WindowType::Panel)
-			{
-				if (HasFlag(operation, DrawOperation::NeedMap) && LayoutUtils::GetIntersectionRect(containerRectangle, childRectangle, childRectangle))
-				{
-					AddWindowToBatch(child, childRectangle, DrawOperation::NeedMap);
-				}
-			}
-			else
-			{
-				newContainerRectangle = childRectangle;
-			}
-			TryAddWindowToBatchInternal(child, newContainerRectangle, childAbsolutePosition, operation);
-		}
-	}
+	//		Rectangle childRectangle{ childAbsolutePosition.X, childAbsolutePosition.Y, child->ClientSize.Width, child->ClientSize.Height };
+	//		if (child->Type != WindowType::Panel)
+	//		{
+	//			if (HasFlag(operation, DrawOperation::NeedMap) && LayoutUtils::GetIntersectionRect(containerRectangle, childRectangle, childRectangle))
+	//			{
+	//				AddWindowToBatch(child, childRectangle, DrawOperation::NeedMap);
+	//			}
+	//		}
+	//		else
+	//		{
+	//			newContainerRectangle = childRectangle;
+	//		}
+	//		TryAddWindowToBatchInternal(child, newContainerRectangle, childAbsolutePosition, operation);
+	//	}*/
+	//}
 
-	void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
-	{
-		Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		auto absolutePosition = GetAbsoluteRootPosition(window);
-		requestRectangle.X = absolutePosition.X;
-		requestRectangle.Y = absolutePosition.Y;
+	//TODO: clean up
+	//void WindowManager::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
+	//{
+	//	Rectangle requestRectangle = window->ClientSize.ToRectangle();
+	//	auto absolutePosition = GetAbsoluteRootPosition(window);
+	//	requestRectangle.X = absolutePosition.X;
+	//	requestRectangle.Y = absolutePosition.Y;
 
-		auto container = window->FindFirstPanelOrFormAncestor();
-		auto containerPosition = GetAbsoluteRootPosition(container);
-		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-		if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, requestRectangle))
-		{
-			AddWindowToBatch(window, requestRectangle, operation);
-			if (!window->Children.empty())
-			{
-				TryAddWindowToBatchInternal(window, requestRectangle, requestRectangle, operation);
-			}
-		}
-	}
+	//	auto container = window->FindFirstPanelOrFormAncestor();
+	//	auto containerPosition = GetAbsoluteRootPosition(container);
+	//	Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+	//	if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, requestRectangle))
+	//	{
+	//		AddWindowToBatch(window, requestRectangle, operation);
+	//		if (!window->Children.empty())
+	//		{
+	//			TryAddWindowToBatchInternal(window, requestRectangle, requestRectangle, operation);
+	//		}
+	//	}
+	//}
 
 	void WindowManager::GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles)
 	{
@@ -616,6 +635,7 @@ namespace Berta
 		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true);
 	}
 
+	//TODO: clean up
 	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
 	{
 	//	if (areaToUpdate == nullptr)
@@ -657,7 +677,7 @@ namespace Berta
 			if (windowToUpdate)
 			{
 				UpdateTree(windowToUpdate);
-				if (windowToUpdate->IsVisible() && !windowToUpdate->IsBatchActive())
+				if (windowToUpdate->IsVisible())
 				{
 					auto position = GetAbsoluteRootPosition(windowToUpdate);
 					Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
@@ -693,43 +713,13 @@ namespace Berta
 		}
 #endif
 
-		//Graphics newGraphics;
-		//Graphics newRootGraphics;
-		if (window->Type != WindowType::Panel)
+		
+
+		if (window->IsNative())
 		{
-			//if (window->Type != WindowType::RenderForm)
+			if (resizeForm)
 			{
-				//newGraphics.Build(newSize, window->RootPaintHandle);
-				//newGraphics.BuildFont(window->DPI);
-			}
-
-			if (window->IsNative())
-			{
-				//newRootGraphics.Build(newSize, window->RootPaintHandle);
-				//newRootGraphics.BuildFont(window->DPI);
-				//newRootGraphics.Begin();
-				//newRootGraphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true); //TODO: not sure if we have to call this here.
-				//newRootGraphics.Flush();
-			}
-		}
-
-		if (window->Type != WindowType::Panel)
-		{
-			//if (window->Type != WindowType::RenderForm)
-			{
-				//window->Renderer.GetGraphics().Swap(newGraphics);
-			}
-
-			if (window->IsNative())
-			{
-				//window->RootGraphics->Swap(newRootGraphics);
-
-				if (resizeForm)
-				{
-					//auto nativePosition = API::GetWindowPosition(window->RootHandle);
-					//Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
-					API::ResizeWindow(window->RootHandle, newSize);
-				}
+				API::ResizeWindow(window->RootHandle, newSize);
 			}
 		}
 
@@ -765,36 +755,7 @@ namespace Berta
 
 			if (sizeChanged)
 			{
-				Size newSize = newRect;
-				//window->ClientSize = newRect;
-#ifdef BT_PLATFORM_WINDOWS
-				//if (window->RootPaintHandle.RenderTarget)
-				//{
-				//	auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(window->ClientSize.Width, window->ClientSize.Height));
-				//	if (FAILED(hr))
-				//	{
-				//		BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
-				//	}
-				//}
-#endif
-				////if (window->Type != WindowType::RenderForm)
-				//{
-				//	window->Renderer.GetGraphics().Rebuild(newSize, window->RootPaintHandle);
-				//}
-
-				//window->RootGraphics->Rebuild(newSize, window->RootPaintHandle);
-				if (window->Parent && window->Parent->IsBatchActive())
-				{
-					AddWindowToBatch(window->Parent->RootWindow->Batcher, window, rootRect, DrawOperation::MoveSize);
-				}
-				else
-				{
-					API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
-				}
-
-				/*ArgResize argResize;
-				argResize.NewSize = window->ClientSize;
-				foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);*/
+				API::MoveWindow(window->RootHandle, rootRect, forceRepaint);
 			}
 			else
 			{
@@ -828,28 +789,26 @@ namespace Berta
 		return sizeChanged || positionChanged;
 	}
 
-	bool WindowManager::Move(Window* window, const Point& newPosition, bool forceRepaint)
+	bool WindowManager::Move(Window* window, Point newPosition, bool forceRepaint)
 	{
 		auto& foundation = Foundation::GetInstance();
 		
 		if (window->IsNative())
 		{
+			if (window->Owner)
+			{
+				newPosition.X += window->Owner->PositionRoot.X;
+				newPosition.Y += window->Owner->PositionRoot.Y;
+			}
+			else if (window->Parent)
+			{
+				newPosition.X += window->Parent->PositionRoot.X;
+				newPosition.Y += window->Parent->PositionRoot.Y;
+			}
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			if (window->Parent && window->Parent->IsBatchActive())
-			{
-				AddWindowToBatch(window->Parent->RootWindow->Batcher, window, { newPosition.X, newPosition.Y,0,0 }, DrawOperation::MoveSize);
-			}
-			else
-			{
-				API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
-			}
-			bool positionChanged = newPosition != nativePosition;
-
-			if (!forceRepaint)
-			{
-				//API::RefreshWindow(window->RootHandle);
-			}
-			return positionChanged;
+			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
+			
+			return newPosition != nativePosition;
 		}
 		else if (window->Position != newPosition)
 		{
@@ -884,15 +843,8 @@ namespace Berta
 			return;
 		}
 
-		if (window->IsBatchActive())
-		{
-			TryAddWindowToBatch(window, redraw ? (DrawOperation::NeedUpdate | DrawOperation::NeedMap) : DrawOperation::NeedMap);
-		}
-		else
-		{
-			//UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
-			Map(window, updateArea);
-		}
+		//UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
+		//Map(window, updateArea);
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
@@ -920,6 +872,9 @@ namespace Berta
 		{
 			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
 			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+			
+			window->PositionRoot.X = static_cast<int>(window->PositionRoot.X * scalingFactor);
+			window->PositionRoot.Y = static_cast<int>(window->PositionRoot.Y * scalingFactor);
 		}
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
@@ -968,30 +923,32 @@ namespace Berta
 		return Cursor::Default;
 	}
 
-	Point WindowManager::GetAbsolutePosition(Window* window)
-	{
-		Point position{ window->Position };
-		window = window->Parent;
-		while (window)
-		{
-			position += window->Position;
-			window = window->Parent;
-		}
-		return position;
-	}
+	//Point WindowManager::GetAbsolutePosition(Window* window)
+	//{
+	//	Point position{ window->Position };
+	//	window = window->Parent;
+	//	while (window)
+	//	{
+	//		position += window->Position;
+	//		window = window->Parent;
+	//	}
+	//	return position;
+	//}
 
 	Point WindowManager::GetAbsoluteRootPosition(Window* window)
 	{
-		Point position{};
+		return window->PositionRoot;
+
+		/*Point position{};
 		while (window && !window->IsNative())
 		{
 			position += window->Position;
 			window = window->Parent;
 		}
-		return position;
+		return position;*/
 	}
 
-	Point WindowManager::GetLocalPosition(Window* window)
+	Point WindowManager::GetWindowPosition(Window* window)
 	{
 		return window->Position;
 	}

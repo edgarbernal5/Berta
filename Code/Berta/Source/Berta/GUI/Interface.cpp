@@ -227,7 +227,7 @@ namespace Berta::GUI
 			return{};
 		}
 
-		auto position = GetAbsolutePosition(window);
+		auto position = GetAbsoluteRootPosition(window);
 		return { position.X, position.Y, window->ClientSize.Width, window->ClientSize.Height };
 	}
 
@@ -318,10 +318,6 @@ namespace Berta::GUI
 		}
 
 		window->Renderer.Init(*control, controlReactor);
-
-		/*auto& graphics = window->Renderer.GetGraphics();
-		graphics.Build(window->RootPaintHandle);
-		graphics.BuildFont(window->DPI);*/
 	}
 
 	void SetEvents(Window* window, std::shared_ptr<ControlEvents> events)
@@ -357,17 +353,6 @@ namespace Berta::GUI
 		window->CustomPaint.swap(callback);
 	}
 
-	Point GetAbsolutePosition(Window* window)
-	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (!windowManager.Exists(window))
-		{
-			return {};
-		}
-
-		return windowManager.GetAbsolutePosition(window);
-	}
-
 	Point GetAbsoluteRootPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -379,7 +364,7 @@ namespace Berta::GUI
 		return windowManager.GetAbsoluteRootPosition(window);
 	}
 
-	Point GetLocalPosition(Window* window)
+	Point GetWindowPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -387,7 +372,18 @@ namespace Berta::GUI
 			return {};
 		}
 
-		return windowManager.GetLocalPosition(window);
+		if (window->IsNative())
+		{
+			auto position = API::GetWindowPosition(window->RootHandle);
+			if (window->Owner)
+			{
+				return position - window->Owner->PositionRoot;
+			}
+
+			return position;
+		}
+
+		return windowManager.GetWindowPosition(window);
 	}
 
 	Point GetMousePositionToWindow(Window* window)
@@ -399,7 +395,7 @@ namespace Berta::GUI
 		}
 
 		auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetScreenMousePosition());
-		return mousePosition - windowManager.GetAbsolutePosition(window);
+		return mousePosition - windowManager.GetAbsoluteRootPosition(window);
 	}
 
 	Point GetScreenMousePosition()

@@ -18,7 +18,6 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
-#include "Berta/Paint/DrawBatch.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
@@ -281,7 +280,6 @@ namespace Berta
 		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
 		auto& trackEvent = rootWindowData.TrackEvent;
 
-		DrawBatch drawBatch(nativeWindow);
 		Berta::Foundation::RootGuard rootGuard(nativeWindow);
 
 		//ver lecui para manejar bien los mensajes.
@@ -461,15 +459,12 @@ namespace Berta
 				//	nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
 				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
 				//}
-				//windowManager.UpdateTree(nativeWindow);
+
 				API::RefreshWindow(nativeWindowHandle);
-				//drawBatch.Flush(true);
+
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
-
 					nativeWindow->CustomPaint();
-					/*API::RefreshWindow(nativeWindow->Parent->RootHandle, true);
-					windowManager.Refresh(nativeWindow);*/
 				}
 			}
 			

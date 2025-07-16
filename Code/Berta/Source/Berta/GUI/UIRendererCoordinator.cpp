@@ -23,16 +23,9 @@ namespace Berta
 		rootGraphics.Begin();
 		if (operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
-			if (window->IsBatchActive())
-			{
-				TryAddWindowToBatch(window, DrawOperation::NeedUpdate);
-			}
-			else
-			{
-				window->Flags.isUpdating = true;
-				window->Renderer.Update();
-				window->Flags.isUpdating = false;
-			}
+			window->Flags.isUpdating = true;
+			window->Renderer.Update();
+			window->Flags.isUpdating = false;
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
 		rootGraphics.Flush();
@@ -51,25 +44,7 @@ namespace Berta
 		if (!GetIntersectionRect(window, rect))
 			return;
 
-		if (window->IsBatchActive())
-		{
-			if (haveUpdated)
-			{
-				TryAddWindowToBatch(window, DrawOperation::NeedMap);
-				TryAddWindowToBatchInternal(window, DrawOperation::NeedMap, haveUpdated, processChildren, rect);
-			}
-		}
-		else
-		{
-			auto& rootGraphics = *(window->RootGraphics);
-			/*rootGraphics.Begin();
-			if (window->Type != WindowType::Panel)
-			{
-				rootGraphics.BitBlt(rect, window->Renderer.GetGraphics(), { 0,0 });
-			}*/
-			MapInternal(window, haveUpdated, processChildren, rect, rootGraphics);
-			
-		}
+		MapInternal(window, processChildren, rect);
 	}
 
 	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result)
@@ -86,24 +61,26 @@ namespace Berta
 		return LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, result);
 	}
 
-	void UIRendererCoordinator::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
-	{
-		Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		auto absolutePosition = GUI::GetAbsoluteRootPosition(window);
-		requestRectangle.X = absolutePosition.X;
-		requestRectangle.Y = absolutePosition.Y;
+	//TODO: clean up
+	//void UIRendererCoordinator::TryAddWindowToBatch(Window* window, const DrawOperation& operation)
+	//{
+	//	Rectangle requestRectangle = window->ClientSize.ToRectangle();
+	//	auto absolutePosition = GUI::GetAbsoluteRootPosition(window);
+	//	requestRectangle.X = absolutePosition.X;
+	//	requestRectangle.Y = absolutePosition.Y;
 
-		auto container = window->FindFirstPanelOrFormAncestor();
-		auto containerPosition = GUI::GetAbsoluteRootPosition(container);
-		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
-		Rectangle output;
-		if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, output))
-		{
-			AddWindowToBatch(window, requestRectangle, operation);
-		}
-	}
-
-	void UIRendererCoordinator::TryAddWindowToBatchInternal(Window* window, const DrawOperation& operation, bool haveUpdated, bool processChildren, const Rectangle& parentRect)
+	//	auto container = window->FindFirstPanelOrFormAncestor();
+	//	auto containerPosition = GUI::GetAbsoluteRootPosition(container);
+	//	Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+	//	Rectangle output;
+	//	if (LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, output))
+	//	{
+	//		AddWindowToBatch(window, requestRectangle, operation);
+	//	}
+	//}
+	// 
+	//TODO: clean up
+	/*void UIRendererCoordinator::TryAddWindowToBatchInternal(Window* window, const DrawOperation& operation, bool haveUpdated, bool processChildren, const Rectangle& parentRect)
 	{
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
@@ -134,9 +111,9 @@ namespace Berta
 				TryAddWindowToBatchInternal(child, operation, processChildren, processChildren, rect);
 			}
 		}
-	}
+	}*/
 
-	void UIRendererCoordinator::MapInternal(Window* window, bool haveUpdated, bool processChildren, const Rectangle& parentRect, Graphics& rootGraphics)
+	void UIRendererCoordinator::MapInternal(Window* window, bool processChildren, const Rectangle& parentRect)
 	{
 		for (size_t i = 0; i < window->Children.size(); i++)
 		{
@@ -168,30 +145,30 @@ namespace Berta
 						child->Renderer.Update();
 						child->Flags.isUpdating = false;
 					}
-					//rootGraphics.BitBlt(rect, child->Renderer.GetGraphics(), { 0,0 });
 				}
-				MapInternal(child, processChildren, processChildren, rect, rootGraphics);
+				MapInternal(child, processChildren, rect);
 			}
 		}
 	}
 
-	void UIRendererCoordinator::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
-	{
-		if (!window->RootWindow->Batcher)
-			return;
+	//TODO: clean up
+	//void UIRendererCoordinator::AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
+	//{
+	//	if (!window->RootWindow->Batcher)
+	//		return;
 
-		//if (window->Type == WindowType::RenderForm)
-		//{
-		//	return;
-		//}
-		AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
-	}
+	//	//if (window->Type == WindowType::RenderForm)
+	//	//{
+	//	//	return;
+	//	//}
+	//	AddWindowToBatch(window->RootWindow->Batcher, window, areaToUpdate, operation);
+	//}
 
-	void UIRendererCoordinator::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
-	{
-		if (batch->Exists(window, areaToUpdate, operation))
-			return;
+	//void UIRendererCoordinator::AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation)
+	//{
+	//	if (batch->Exists(window, areaToUpdate, operation))
+	//		return;
 
-		batch->AddWindow(window, areaToUpdate, operation);
-	}
+	//	batch->AddWindow(window, areaToUpdate, operation);
+	//}
 }

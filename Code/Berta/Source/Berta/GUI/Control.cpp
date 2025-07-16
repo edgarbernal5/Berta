@@ -55,7 +55,7 @@ namespace Berta
 
 	Point ControlBase::GetPosition() const
 	{
-		return GUI::GetLocalPosition(m_handle);
+		return GUI::GetWindowPosition(m_handle);
 	}
 
 	void ControlBase::SetPosition(const Point& newPosition)
@@ -65,7 +65,7 @@ namespace Berta
 
 	Rectangle ControlBase::GetArea() const
 	{
-		auto position = GUI::GetAbsolutePosition(m_handle);
+		auto position = GUI::GetAbsoluteRootPosition(m_handle);
 		auto size = GetSize();
 		return { position.X, position.Y, size.Width, size.Height };
 	}

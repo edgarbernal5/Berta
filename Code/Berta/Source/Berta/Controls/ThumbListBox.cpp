@@ -10,7 +10,6 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/EnumTypes.h"
-#include "Berta/Paint/DrawBatch.h"
 
 namespace Berta
 {
@@ -591,7 +590,7 @@ namespace Berta
 
 		if (m_scrollBar)
 		{
-			m_scrollBar->Handle()->Renderer.Update();
+			//m_scrollBar->Handle()->Renderer.Update();
 		}
 
 		GUI::UpdateWindow(m_window);
@@ -645,8 +644,8 @@ namespace Berta
 					GUI::UpdateWindow(m_window);
 				});
 		}
-
-		DrawBatch drawBatch(*m_scrollBar);
+		//TODO:
+		//DrawBatch drawBatch(*m_scrollBar);
 		m_scrollBar->SetMinMax(0, (int)(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
 		m_scrollBar->SetPageStepValue(m_viewport.m_backgroundRect.Height);
 		m_scrollBar->SetStepValue(m_viewport.m_cardSize.Height);

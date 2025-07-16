@@ -13,7 +13,6 @@
 #include <iostream>
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Paint/Graphics.h"
-#include "Berta/Paint/DrawBatch.h"
 
 namespace Berta
 {
@@ -51,7 +50,7 @@ namespace Berta
 		void Add(Window* window);
 		void AddNative(API::NativeWindowHandle nativeWindowHandle, FormData&& append);
 		bool Caption(Window* window, const std::wstring& caption);
-		Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm);
+		Window* CreateForm(Window* parent, bool isUnscaleRect, Rectangle rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm);
 		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel);
 		void Destroy(Window* window);
 		void Dispose(Window* window);
@@ -72,16 +71,15 @@ namespace Berta
 
 		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
-		bool Move(Window* window, const Point& newPosition, bool forceRepaint = true);
+		bool Move(Window* window, Point newPosition, bool forceRepaint = true);
 		void Update(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);
 
-		Point GetAbsolutePosition(Window* window);
 		Point GetAbsoluteRootPosition(Window* window);
-		Point GetLocalPosition(Window* window);
+		Point GetWindowPosition(Window* window);
 
 		void SetParent(Window* window, Window* newParent);
 
@@ -91,13 +89,8 @@ namespace Berta
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
-		void TryAddWindowToBatch(Window* window, const DrawOperation& operation = DrawOperation::NeedUpdate | DrawOperation::NeedMap);
-
 		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
 	private:
-		void AddWindowToBatch(Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
-		void AddWindowToBatch(DrawBatch* batch, Window* window, const Rectangle& areaToUpdate, const DrawOperation& operation);
-		void TryAddWindowToBatchInternal(Window* window, const Rectangle& containerRectangle, const Point& parentPosition, const DrawOperation& operation);
 
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);

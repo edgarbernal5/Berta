@@ -70,7 +70,7 @@ namespace Berta
 				styleEx |= WS_EX_TOPMOST;
 			}
 
-			//if (isNested)
+			if (isNested)
 			{
 				style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 			}

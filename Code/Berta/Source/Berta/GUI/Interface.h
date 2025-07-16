@@ -53,9 +53,8 @@ namespace Berta
 
 		void SetCustomPaintCallback(Window* window, std::function<void()> callback);
 
-		Point GetAbsolutePosition(Window* window);
 		Point GetAbsoluteRootPosition(Window* window);
-		Point GetLocalPosition(Window* window);
+		Point GetWindowPosition(Window* window);
 		Point GetMousePositionToWindow(Window* window);
 		Point GetScreenMousePosition();
 

@@ -160,7 +160,6 @@
     <ClInclude Include="Source\Berta\Controls\Docking\DockPanel.h" />
     <ClInclude Include="Source\Berta\Controls\Slider.h" />
     <ClInclude Include="Source\Berta\Controls\TreeBox.h" />
-    <ClInclude Include="Source\Berta\Paint\DrawBatch.h" />
     <ClInclude Include="Source\Berta\GUI\Layout.h" />
     <ClInclude Include="Source\Berta\GUI\LayoutNodes.h" />
     <ClInclude Include="Source\Berta\Paint\Images\BasicImageAttributes.h" />
@@ -226,7 +225,6 @@
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
-    <ClCompile Include="Source\Berta\Paint\DrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layout.cpp" />
     <ClCompile Include="Source\Berta\GUI\LayoutNodes.cpp" />
     <ClCompile Include="Source\Berta\Paint\ImageProcessor.cpp" />

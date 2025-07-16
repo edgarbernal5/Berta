@@ -55,6 +55,7 @@ namespace Berta
 		
 		Size ClientSize;
 		Point Position;
+		Point PositionRoot;
 		Size BorderSize;
 		Size MinSize;
 		Size MaxSize;
@@ -63,7 +64,6 @@ namespace Berta
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };
-		DrawBatch* Batcher{ nullptr };
 		std::shared_ptr<ControlAppearance> Appearance{ nullptr };
 		std::shared_ptr<ControlEvents> Events{ nullptr };
 		std::unique_ptr<ControlWindowInterface> ControlWindowPtr{ nullptr }; //TODO: a lo mejor debemos usar un puntero a ControlBase y eliminamos esta interfaz
@@ -135,8 +135,6 @@ namespace Berta
 		{
 			return IsNative() && !Owner && Parent;
 		}
-
-		bool IsBatchActive() const;
 
 		Window* FindFirstNonPanelAncestor() const;
 		Window* FindFirstPanelOrFormAncestor() const;

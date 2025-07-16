@@ -868,8 +868,8 @@ namespace Berta
 	void Graphics::SetTransform(const Rectangle& area)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-
 		m_rootPaintNativeHandle.RenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(static_cast<float>(area.X), static_cast<float>(area.Y)));
+
 		m_size.Width = area.Width;
 		m_size.Height = area.Height;
 #endif

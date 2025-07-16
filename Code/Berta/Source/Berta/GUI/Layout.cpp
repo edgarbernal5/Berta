@@ -10,7 +10,6 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/LayoutNodes.h"
-#include "Berta/Paint/DrawBatch.h"
 #include "Berta/Controls/Form.h"
 
 namespace Berta
@@ -160,7 +159,8 @@ namespace Berta
 		{
 			return;
 		}
-		DrawBatch drawBatch(m_parent->RootWindow);
+		//TODO:
+		//DrawBatch drawBatch(m_parent->RootWindow);
 
 		m_rootNode->SetArea(area);
 		m_rootNode->CalculateAreas();
