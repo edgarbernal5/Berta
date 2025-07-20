@@ -713,8 +713,6 @@ namespace Berta
 		}
 #endif
 
-		
-
 		if (window->IsNative())
 		{
 			if (resizeForm)
