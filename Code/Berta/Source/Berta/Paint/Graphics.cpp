@@ -874,4 +874,20 @@ namespace Berta
 		m_size.Height = area.Height;
 #endif
 	}
+
+	void Graphics::SetClipping(const Rectangle& area)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		D2D1_RECT_F clipRect = D2D1::RectF(0,0, area.Width, area.Height);
+		m_rootPaintNativeHandle.RenderTarget->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+#endif
+
+	}
+	
+	void Graphics::EndClipping()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		m_rootPaintNativeHandle.RenderTarget->PopAxisAlignedClip();
+#endif
+	}
 }

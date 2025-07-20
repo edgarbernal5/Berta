@@ -50,7 +50,10 @@ namespace Berta
 			//asumimos que el rootgraphics hizo el begindraw
 			auto area = m_control->GetArea();
 			m_graphics->SetTransform(area);
+			m_graphics->SetClipping(area);
 			m_controlReactor->Update(*m_graphics);
+			m_graphics->EndClipping();
+
 			m_updating = false;
 		}
 	}

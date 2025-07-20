@@ -97,6 +97,8 @@ namespace Berta
 		void Flush();
 
 		void SetTransform(const Rectangle& area);
+		void SetClipping(const Rectangle& area);
+		void EndClipping();
 
 		void Swap(Graphics& other);
 		void Release();

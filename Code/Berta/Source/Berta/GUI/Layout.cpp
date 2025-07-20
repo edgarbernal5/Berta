@@ -395,8 +395,6 @@ namespace Berta
 
 		for (auto& indicator : m_paneIndicators)
 		{
-			if (indicator->Docker)
-				std::cout << " hide pane. " << indicator->Docker->Handle()->Name << "." << std::endl;
 			indicator->Docker.reset();
 		}
 	}
@@ -416,7 +414,6 @@ namespace Berta
 			{
 				if (indicator->Docker)
 				{
-					std::cout << " reset pane. " << indicator->Docker->Handle()->Name << "." << std::endl;
 					indicator->Docker.reset();
 				}
 				continue;
@@ -461,7 +458,6 @@ namespace Berta
 					indicator->Docker->SetDebugName(builder.str());
 #endif
 					indicator->Docker->Show();
-					std::cout << " new pane. " << indicator->Docker->Handle()->Name << "." << std::endl;
 				}
 			}
 			else
@@ -469,7 +465,6 @@ namespace Berta
 				auto oldPosition = API::GetWindowPosition(indicator->Docker->Handle()->RootHandle);
 				if (oldPosition != position)
 				{
-					std::cout << " move pane. " << indicator->Docker->Handle()->Name << "." << std::endl;
 					indicator->Docker->SetPosition(position);
 				}
 			}
