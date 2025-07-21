@@ -299,9 +299,9 @@ namespace Berta
 				{
 					child->RootPaintHandle = window->RootPaintHandle;
 				}
-			}
 
-			SetParentInternal(child, newParent, deltaPosition);
+				SetParentInternal(child, newParent, deltaPosition);
+			}
 		}
 
 		window->PositionRoot -= deltaPosition;

@@ -108,7 +108,7 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_attributes != nullptr; //&& m_attributes->m_bitmapRT;
+			return m_attributes != nullptr && m_rootPaintNativeHandle.RenderTarget;
 #else
 			return m_attributes != nullptr;
 #endif
