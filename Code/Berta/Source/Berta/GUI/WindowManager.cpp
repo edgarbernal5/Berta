@@ -138,10 +138,6 @@ namespace Berta
 			}
 
 			window->PositionRoot = window->Position;
-			if (parent)
-			{
-				window->PositionRoot += parent->PositionRoot;
-			}
 
 			AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->ClientSize));
 			Add(window);
@@ -308,10 +304,7 @@ namespace Berta
 			SetParentInternal(child, newParent, deltaPosition);
 		}
 
-		if (!window->IsNative())
-		{
-			window->PositionRoot -= deltaPosition;
-		}
+		window->PositionRoot -= deltaPosition;
 	}
 
 	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
