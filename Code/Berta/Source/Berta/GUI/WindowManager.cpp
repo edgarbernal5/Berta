@@ -706,10 +706,6 @@ namespace Berta
 				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
 				return false;
 			}
-
-			window->RootPaintHandle.RenderTarget->BeginDraw();
-			window->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 1.0f));
-			window->RootPaintHandle.RenderTarget->EndDraw();
 		}
 #endif
 

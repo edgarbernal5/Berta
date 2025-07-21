@@ -19,7 +19,6 @@ namespace Berta
 	class Graphics;
 	struct ControlEvents;
 	struct ControlAppearance;
-	class DrawBatch;
 
 	enum class WindowType
 	{
@@ -79,7 +78,6 @@ namespace Berta
 			bool IsEnabled : 1;
 			bool IsDisposed : 1;
 			bool MakeActive : 1;
-			int IsDeferredCount{ 0 };
 			bool isUpdating : 1;
 			bool isBatching : 1;
 			bool IgnoreMouseFocus : 1;

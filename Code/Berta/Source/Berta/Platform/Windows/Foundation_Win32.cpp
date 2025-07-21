@@ -303,12 +303,6 @@ namespace Berta
 		}
 		case WM_ERASEBKGND:
 		{
-			/*if (nativeWindow->Type == WindowType::RenderForm)
-			{
-				nativeWindow->RootPaintHandle.RenderTarget->BeginDraw();
-				nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f,1.0f));
-				nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
-			}*/
 			return TRUE;
 		}
 
@@ -383,7 +377,6 @@ namespace Berta
 				if (nativeWindow->CustomPaint)
 				{
 					nativeWindow->CustomPaint();
-					//windowManager.Refresh(nativeWindow);
 				}
 			}
 			else
