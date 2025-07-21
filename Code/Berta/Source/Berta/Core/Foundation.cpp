@@ -16,11 +16,9 @@ namespace Berta
 
 	Foundation::RootGuard::RootGuard(Window* window) : m_window(window)
 	{
-		++m_window->Flags.IsDeferredCount;
 	}
 
 	Foundation::RootGuard::~RootGuard()
 	{
-		--m_window->Flags.IsDeferredCount;
 	}
 }
