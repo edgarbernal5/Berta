@@ -21,7 +21,7 @@
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
-#define BT_PRINT_WND_MESSAGES2
+#define BT_PRINT_WND_MESSAGES
 #endif // !BT_PRINT_WND_MESSAGES
 #endif
 
@@ -83,11 +83,11 @@ namespace Berta
 			wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
-			wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
+			//wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
 			wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 			wcex.hbrBackground = NULL;
 			wcex.lpszClassName = L"BertaNestedInternalClass";
-			wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+			//wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
 
 			if (!RegisterClassExW(&wcex))
 			{
@@ -122,8 +122,8 @@ namespace Berta
 	}
 
 #ifdef BT_PRINT_WND_MESSAGES
-	uint32_t g_debugLastMessageId{};
-	uint32_t g_debugLastMessageCount{0};
+	std::map<HWND, uint32_t> g_debugLastMessageId{};
+	std::map<HWND, uint32_t> g_debugLastMessageCount;
 
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
@@ -144,9 +144,9 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 
-		//{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
@@ -218,28 +218,28 @@ namespace Berta
 		auto it = g_debugWndMessages.find(message);
 		if (it != g_debugWndMessages.end())
 		{
-			if (g_debugLastMessageId != message)
+			if (g_debugLastMessageId[hWnd] != message)
 			{
-				g_debugLastMessageCount = 1;
+				g_debugLastMessageCount[hWnd] = 1;
 			}
 			else
 			{
-				++g_debugLastMessageCount;
+				++g_debugLastMessageCount[hWnd];
 			}
-			//if (g_debugLastMessageCount == 1)
+			if (g_debugLastMessageCount[hWnd] == 1)
 			{
 				printedMessage = true;
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
-			//if (g_debugLastMessageCount > 0)
-			//	g_debugLastMessageCount = 0;
+			if (g_debugLastMessageCount[hWnd] > 50)
+				g_debugLastMessageCount[hWnd] = 0;
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
-			g_debugLastMessageId = message;
+			g_debugLastMessageId[hWnd] = message;
 		}
 		else {
-			printedMessage = true;
-			debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd;
+			//printedMessage = true;
+			//debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd;
 		}
 #endif
 		LRESULT innerResult;
@@ -391,7 +391,6 @@ namespace Berta
 //#else
 //				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
 //#endif
-				//nativeWindow->Renderer.Map(nativeWindow, areaToUpdate);
 				{
 					ScopedTimer scopedTimer("WM_PAINT");
 					windowManager.UpdateTree(nativeWindow);
@@ -446,12 +445,6 @@ namespace Berta
 			if (newWidth > 0 && newHeight > 0)
 			{
 				windowManager.Resize(nativeWindow, newSize, false);
-				////if (nativeWindow->Type == WindowType::RenderForm)
-				//{
-				//	nativeWindow->RootPaintHandle.RenderTarget->BeginDraw();
-				//	nativeWindow->RootPaintHandle.RenderTarget->Clear(D2D1::ColorF(1.0f, 0.0f, 0.0f));
-				//	nativeWindow->RootPaintHandle.RenderTarget->EndDraw();
-				//}
 
 				API::RefreshWindow(nativeWindowHandle);
 
@@ -886,7 +879,7 @@ namespace Berta
 			//BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
 		}
 #endif
-		//drawBatch.Flush();
+
 		if (!wasHandled)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);

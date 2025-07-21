@@ -932,14 +932,6 @@ namespace Berta
 	Point WindowManager::GetAbsoluteRootPosition(Window* window)
 	{
 		return window->PositionRoot;
-
-		/*Point position{};
-		while (window && !window->IsNative())
-		{
-			position += window->Position;
-			window = window->Parent;
-		}
-		return position;*/
 	}
 
 	Point WindowManager::GetWindowPosition(Window* window)

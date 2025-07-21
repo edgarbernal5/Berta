@@ -53,8 +53,8 @@ namespace Berta
 		bool Visible{ false };
 		
 		Size ClientSize;
-		Point Position;
-		Point PositionRoot;
+		Point Position{};
+		Point PositionRoot{};
 		Size BorderSize;
 		Size MinSize;
 		Size MaxSize;

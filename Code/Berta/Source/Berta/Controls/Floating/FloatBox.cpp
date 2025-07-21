@@ -250,7 +250,7 @@ namespace Berta
 		GUI::MakeWindowActive(m_handle, false, this->GetParent());
 
 #if BT_DEBUG
-		SetDebugName("Float box");
+		SetDebugName("FloatBox");
 #endif
 	}
 

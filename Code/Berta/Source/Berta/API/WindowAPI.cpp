@@ -187,6 +187,10 @@ namespace Berta
 		{
 #ifdef BT_PLATFORM_WINDOWS
 			::ShowWindow(nativeHandle.Handle, visible ? (active ? SW_SHOW : SW_SHOWNA) : SW_HIDE);
+			if (visible)
+			{
+				::UpdateWindow(nativeHandle.Handle);
+			}
 #else
 #endif
 		}

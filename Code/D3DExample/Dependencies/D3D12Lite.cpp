@@ -1334,7 +1334,7 @@ namespace D3D12Lite
 
     void Device::Present()
     {
-        mSwapChain->Present(0, 0);
+        mSwapChain->Present(1, 0);
         mEndOfFrameFences[mFrameId].mGraphicsQueueFence = mGraphicsQueue->SignalFence();
     }
 

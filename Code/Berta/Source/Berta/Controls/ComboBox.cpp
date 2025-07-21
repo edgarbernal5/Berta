@@ -122,11 +122,10 @@ namespace Berta
 		if (args.ButtonState.LeftButton)
 		{
 			auto window = m_module.m_owner;
-			auto pointInScreen = GUI::GetAbsoluteRootPosition(window);
 
 			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
 			auto floatBoxHeight = window->ToScale(clampedItemsToShow * m_module.m_comboBox->GetAppearance().ComboBoxItemHeight);
-			m_module.m_floatBox = new FloatBox(window, { pointInScreen.X, pointInScreen.Y + (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
+			m_module.m_floatBox = new FloatBox(window, { 0, (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
 			m_module.m_floatBox->Init(m_module.Data);
 
 			m_module.m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
