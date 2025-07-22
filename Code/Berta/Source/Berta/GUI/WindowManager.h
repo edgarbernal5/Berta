@@ -92,6 +92,7 @@ namespace Berta
 		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
 	private:
 
+		void UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);

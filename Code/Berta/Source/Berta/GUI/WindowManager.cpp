@@ -424,7 +424,7 @@ namespace Berta
 		windowHandles.clear();
 		for (auto& item : m_windowNativeRegistry)
 		{
-			windowHandles.push_back(item.first);
+			windowHandles.emplace_back(item.first);
 		}
 	}
 
@@ -818,6 +818,12 @@ namespace Berta
 		if (window->Type == WindowType::RenderForm && window->CustomPaint)
 		{
 			API::RefreshWindow(window->RootHandle);
+			//window->CustomPaint();
+			return;
+		}
+		if (window->IsNested())
+		{
+			API::RefreshWindow(window->RootHandle);
 			return;
 		}
 
@@ -830,6 +836,7 @@ namespace Berta
 			return;
 		}
 
+		UpdateInternal(window, redraw, updateArea);
 		//UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
 		//Map(window, updateArea);
 	}
@@ -1031,6 +1038,30 @@ namespace Berta
 		if (rootReactor == m_rootMenuItemReactor)
 		{
 			m_rootMenuItemReactor = nullptr;
+		}
+	}
+
+	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
+	{
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			auto child = window->Children[i];
+			if (!child->Visible)
+				continue;
+
+			if (child->Type == WindowType::RenderForm && child->CustomPaint)
+			{
+				API::RefreshWindow(child->RootHandle);
+				//child->CustomPaint();
+				continue;
+			}
+			if (child->IsNested())
+			{
+				API::RefreshWindow(child->RootHandle);
+				continue;
+			}
+
+			UpdateInternal(child, redraw, updateArea);
 		}
 	}
 

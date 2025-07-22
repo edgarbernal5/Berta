@@ -80,7 +80,7 @@ namespace Berta
 		{
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
-			wcex.style = CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
 			//wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -110,6 +110,9 @@ namespace Berta
 
 	void Foundation::ProcessMessages()
 	{
+		auto& windowManager = GetWindowManager();
+		std::vector<API::NativeWindowHandle> allHandles;
+
 		MSG msg = { 0 };
 		while (msg.message != WM_QUIT)
 		{
@@ -117,6 +120,19 @@ namespace Berta
 			{
 				::TranslateMessage(&msg);
 				::DispatchMessage(&msg);
+			}
+			else
+			{
+				windowManager.GetNativeWindows(allHandles);
+				for (auto& handle : allHandles)
+				{
+					auto window = windowManager.Get(handle);
+					if (window->Type == WindowType::RenderForm && window->CustomPaint)
+					{
+						//window->CustomPaint();
+						API::RefreshWindow(window->RootHandle);
+					}
+				}
 			}
 		}
 	}
@@ -144,7 +160,7 @@ namespace Berta
 		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
-		{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
@@ -231,7 +247,7 @@ namespace Berta
 				printedMessage = true;
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
-			if (g_debugLastMessageCount[hWnd] > 50)
+			if (g_debugLastMessageCount[hWnd] > 0)
 				g_debugLastMessageCount[hWnd] = 0;
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
@@ -372,31 +388,25 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
+			
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
+				::PAINTSTRUCT ps;
+				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+				::FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND));
+
 				if (nativeWindow->CustomPaint)
 				{
 					nativeWindow->CustomPaint();
 				}
+				::EndPaint(hWnd, &ps);
 			}
 			else
 			{
-				//::PAINTSTRUCT ps;
-				//::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
-
-				//Rectangle areaToUpdate;
-				//areaToUpdate.FromRECT(ps.rcPaint);
-//#if BT_DEBUG
-//				//BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
-//#else
-//				BT_CORE_DEBUG << " areaToUpdate = " << areaToUpdate << std::endl;
-//#endif
-				{
-					ScopedTimer scopedTimer("WM_PAINT");
-					windowManager.UpdateTree(nativeWindow);
-				}
-				::ValidateRect(hWnd, nullptr);
+				ScopedTimer scopedTimer("WM_PAINT");
+				windowManager.UpdateTree(nativeWindow);
 			}
+			::ValidateRect(hWnd, nullptr);
 
 			wasHandled = true;
 			break;
@@ -426,7 +436,10 @@ namespace Berta
 		//	uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
 		//	
 		//	Size newSize{ newWidth , newHeight };
-
+		//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+		//	{
+		//		windowManager.Resize(nativeWindow, newSize, false);
+		//	}
 		//	wasHandled = true;
 		//	break;
 		//}
@@ -446,11 +459,13 @@ namespace Berta
 			{
 				windowManager.Resize(nativeWindow, newSize, false);
 
-				API::RefreshWindow(nativeWindowHandle);
-
-				if (nativeWindow->Type == WindowType::RenderForm)
+				if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
 				{
 					nativeWindow->CustomPaint();
+				}
+				else
+				{
+					API::RefreshWindow(nativeWindowHandle);
 				}
 			}
 			
@@ -458,6 +473,18 @@ namespace Berta
 			break;
 		}
 		//case WM_WINDOWPOSCHANGING:
+		//{
+		//	::WINDOWPOS* pwp = (::WINDOWPOS*)lParam;
+		//	Size newSize{ (uint32_t)pwp->cx , (uint32_t)pwp->cy };
+		//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+		//	{
+		//		//windowManager.Resize(nativeWindow, newSize, false);
+		//		//nativeWindow->CustomPaint();
+		//	}
+
+		//	wasHandled = true;
+		//	break;
+		//}
 		//case WM_WINDOWPOSCHANGED:
 		case WM_DPICHANGED:
 		{
