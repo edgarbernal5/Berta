@@ -628,23 +628,6 @@ namespace Berta
 		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true);
 	}
 
-	//TODO: clean up
-	void WindowManager::Map(Window* window, const Rectangle* areaToUpdate)
-	{
-	//	if (areaToUpdate == nullptr)
-	//	{
-	//		Rectangle requestRectangle = window->ClientSize.ToRectangle();
-	//		auto absolutePosition = GetAbsoluteRootPosition(window);
-	//		requestRectangle.X = absolutePosition.X;
-	//		requestRectangle.Y = absolutePosition.Y;
-
-	//		window->Renderer.Map(window, requestRectangle); // Copy from root graphics to native hwnd window.
-	//		return;
-	//	}
-
-	//	window->Renderer.Map(window, *areaToUpdate); // Copy from root graphics to native hwnd window.
-	}
-
 	void WindowManager::Show(Window* window, bool visible)
 	{
 		if (window->Visible == visible)
@@ -670,12 +653,6 @@ namespace Berta
 			if (windowToUpdate)
 			{
 				UpdateTree(windowToUpdate);
-				if (windowToUpdate->IsVisible())
-				{
-					auto position = GetAbsoluteRootPosition(windowToUpdate);
-					Rectangle areaToUpdate{ position.X, position.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
-					Map(windowToUpdate, &areaToUpdate);
-				}
 			}
 		}
 	}
@@ -702,12 +679,9 @@ namespace Berta
 		}
 #endif
 
-		if (window->IsNative())
+		if (window->IsNative() && resizeForm)
 		{
-			if (resizeForm)
-			{
-				API::ResizeWindow(window->RootHandle, newSize);
-			}
+			API::ResizeWindow(window->RootHandle, newSize);
 		}
 
 		ArgResize argResize;
@@ -817,8 +791,11 @@ namespace Berta
 	{
 		if (window->Type == WindowType::RenderForm && window->CustomPaint)
 		{
-			API::RefreshWindow(window->RootHandle);
-			//window->CustomPaint();
+			//if (redraw)
+			{
+				API::RefreshWindow(window->RootHandle);
+				//window->CustomPaint();
+			}
 			return;
 		}
 		if (window->IsNested())
@@ -836,9 +813,11 @@ namespace Berta
 			return;
 		}
 
+		if (redraw)
+		{
+			API::RefreshWindow(window->RootHandle);
+		}
 		UpdateInternal(window, redraw, updateArea);
-		//UIRendererCoordinator::Paint(window, (redraw ? UIRendererCoordinator::PaintOperation::TryUpdate : UIRendererCoordinator::PaintOperation::None), false);
-		//Map(window, updateArea);
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
