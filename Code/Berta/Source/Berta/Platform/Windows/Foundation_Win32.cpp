@@ -247,7 +247,7 @@ namespace Berta
 				printedMessage = true;
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
-			if (g_debugLastMessageCount[hWnd] > 0)
+			if (g_debugLastMessageCount[hWnd] > 50)
 				g_debugLastMessageCount[hWnd] = 0;
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
