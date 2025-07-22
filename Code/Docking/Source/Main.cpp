@@ -56,11 +56,15 @@ public:
 			{
 				m_nestedForm->SetSize(args.NewSize);
 			});
+
+		m_nestedButton.Create(*m_nestedForm, true, { 10,10,150,70 });
+		m_nestedButton.SetCaption("Nested button");
 		m_nestedForm->Show();
 	}
 
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
+	Berta::Button m_nestedButton;
 };
 
 int main()
