@@ -717,11 +717,11 @@ namespace Berta
 #endif
 
 					GUI::SetParentWindow(dockAreaWindow, nativeWindow);
-					this->SetPosition({ 0, 0 });
+					this->SetPosition({ 1, 1 });
 
 					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
 					{
-						this->SetSize({ args.NewSize.Width, args.NewSize.Height });
+						this->SetSize({ args.NewSize.Width - 1, args.NewSize.Height - 1 });
 					});
 
 					m_mouseInteraction.m_dragStartLocalPos.X -= static_cast<int>(nativeWindow->BorderSize.Width / 2) - (screenMousePos.X - m_mouseInteraction.m_dragStartPos.X);
@@ -732,8 +732,6 @@ namespace Berta
 
 					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();
-
-					//GUI::RefreshWindow(nativeWindow);
 				}
 			}
 			else

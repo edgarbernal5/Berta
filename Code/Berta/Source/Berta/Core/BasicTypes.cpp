@@ -163,7 +163,7 @@ namespace Berta
 
 	FormStyle FormStyle::Float()
 	{
-		return FormStyle{ false, false, true, false, false, false };
+		return FormStyle{ false, false, true, false, true, false };
 	}
 
 	FormStyle FormStyle::Flat()

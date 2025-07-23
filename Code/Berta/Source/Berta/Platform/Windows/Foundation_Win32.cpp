@@ -388,13 +388,21 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
-			
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				::PAINTSTRUCT ps;
 				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 				::FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND));
 
+				Rectangle areaToUpdate;
+				areaToUpdate.FromRECT(ps.rcPaint);
+#if BT_DEBUG
+				BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+				BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
+#else
+				BT_CORE_DEBUG << "   area to update " << areaToUpdate << std::endl;
+				BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << std::endl;
+#endif
 				if (nativeWindow->HasCustomPaint())
 				{
 					nativeWindow->RenderFormData.CustomPaint();
