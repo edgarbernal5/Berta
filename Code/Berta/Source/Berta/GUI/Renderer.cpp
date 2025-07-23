@@ -34,7 +34,7 @@ namespace Berta
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)
 	{
-		if (window->CustomPaint)
+		if (window->HasCustomPaint())
 			return;
 
 		window->RootGraphics->Paste(window->RootPaintHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);

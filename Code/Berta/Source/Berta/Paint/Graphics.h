@@ -14,9 +14,6 @@
 
 namespace Berta
 {
-	/*
-	* Wrapper for GDI functions.
-	*/
 	class Graphics
 	{
 	public:
@@ -108,7 +105,7 @@ namespace Berta
 		bool IsValid() const
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			return m_attributes != nullptr && m_rootPaintNativeHandle.RenderTarget;
+			return m_targetRT;
 #else
 			return m_attributes != nullptr;
 #endif
@@ -118,6 +115,10 @@ namespace Berta
 		Size m_size{};
 		API::RootPaintNativeHandle m_rootPaintNativeHandle;
 		std::unique_ptr<PaintNativeHandle> m_attributes;
+
+#ifdef BT_PLATFORM_WINDOWS
+		ID2D1RenderTarget* m_targetRT{ nullptr };
+#endif
 	};
 }
 

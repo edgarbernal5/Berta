@@ -132,4 +132,9 @@ namespace Berta
 
 		return index;
 	}
+
+	bool Window::HasCustomPaint() const
+	{
+		return Type == WindowType::RenderForm && RenderFormData.CustomPaint;
+	}
 }

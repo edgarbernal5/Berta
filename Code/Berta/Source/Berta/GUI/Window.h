@@ -88,7 +88,14 @@ namespace Berta
 
 		DrawWindowStatus DrawStatus{ DrawWindowStatus::None };
 
-		std::function<void()> CustomPaint;
+		struct RenderData
+		{
+			bool AutoRefresh{false};
+
+			std::function<void()> CustomPaint;
+		};
+		RenderData RenderFormData;
+		bool HasCustomPaint() const;
 
 		void Init(ControlBase* control);
 

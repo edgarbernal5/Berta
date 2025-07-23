@@ -350,7 +350,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->CustomPaint.swap(callback);
+		window->RenderFormData.CustomPaint.swap(callback);
 	}
 
 	Point GetAbsoluteRootPosition(Window* window)

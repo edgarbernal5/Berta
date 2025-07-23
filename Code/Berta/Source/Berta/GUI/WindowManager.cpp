@@ -789,7 +789,7 @@ namespace Berta
 
 	void WindowManager::Update(Window* window, bool redraw, const Rectangle* updateArea)
 	{
-		if (window->Type == WindowType::RenderForm && window->CustomPaint)
+		if (window->HasCustomPaint())
 		{
 			//if (redraw)
 			{
@@ -1028,7 +1028,7 @@ namespace Berta
 			if (!child->Visible)
 				continue;
 
-			if (child->Type == WindowType::RenderForm && child->CustomPaint)
+			if (child->HasCustomPaint())
 			{
 				API::RefreshWindow(child->RootHandle);
 				//child->CustomPaint();
