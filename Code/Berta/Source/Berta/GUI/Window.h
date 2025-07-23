@@ -53,8 +53,8 @@ namespace Berta
 		bool Visible{ false };
 		
 		Size ClientSize;
-		Point Position{};
-		Point PositionRoot{};
+		Point Position{};				//Local position relative to parent.
+		Point PositionRoot{};			//Absolute position relative to root window.
 		Size BorderSize;
 		Size MinSize;
 		Size MaxSize;
@@ -82,7 +82,7 @@ namespace Berta
 			bool isBatching : 1;
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
-		}Flags;
+		}Flags{0};
 
 		Window* MakeTargetWhenInactive{ nullptr };
 
@@ -90,7 +90,7 @@ namespace Berta
 
 		struct RenderData
 		{
-			bool AutoRefresh{false};
+			bool AutoRefresh{ false };
 
 			std::function<void()> CustomPaint;
 		};
