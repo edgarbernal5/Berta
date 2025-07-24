@@ -60,8 +60,9 @@ void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rect
 			auto inputTextExtent = graphics.GetTextExtent(m_inputTextLabels[i]);
 			Berta::Rectangle inputRect = panelSaved;
 			inputRect.X += x;
-			int innerLabelOffset = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
-			graphics.DrawString({ inputRect.X + innerLabelOffset, inputRect.Y }, m_inputTextLabels[i], textColor);
+			int innerLabelOffsetX = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
+			int innerLabelOffsetY = (int)((area.Height - innerLabelExtents.Height)) >> 1;
+			graphics.DrawString({ inputRect.X + innerLabelOffsetX, inputRect.Y + innerLabelOffsetY }, m_inputTextLabels[i], textColor);
 
 			inputRect.X += innerLabelWidth - panelSaved.X;
 			inputRect.Y -= panelSaved.Y;

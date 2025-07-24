@@ -884,8 +884,10 @@ namespace Berta
 	void Graphics::SetClipping(const Rectangle& area)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_rootPaintNativeHandle.RenderTarget)
+		if (!m_targetRT)
+		{
 			return;
+		}
 
 		D2D1_RECT_F clipRect = D2D1::RectF(0,0, area.Width, area.Height);
 		m_targetRT->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
@@ -896,8 +898,10 @@ namespace Berta
 	void Graphics::EndClipping()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!m_rootPaintNativeHandle.RenderTarget)
+		if (!m_targetRT)
+		{
 			return;
+		}
 
 		m_targetRT->PopAxisAlignedClip();
 #endif

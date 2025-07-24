@@ -174,6 +174,7 @@ namespace Berta
 	{
 		graphics.DrawRectangle(m_owner->Appearance->BoxBackground, true);
 
+		auto two = m_owner->ToScale(1);
 		Point scrollOffset = m_scrollOffset;
 		for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 		{
@@ -191,10 +192,10 @@ namespace Berta
 			int arrowLength = m_owner->ToScale(2);
 			graphics.DrawArrow(expanderRect, arrowLength, arrowWidth, it->m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right, m_appearance->Foreground);
 
-			Point textOffset = { static_cast<int>(m_viewport.m_expanderButtonSize) + m_viewport.m_categoryTextOffset,static_cast<int>(m_viewport.m_categoryItemHeight) - static_cast<int>(graphics.GetTextExtent().Height) };
+			Point textOffset = { expanderRect.X  + static_cast<int>(expanderRect.Width) + m_viewport.m_categoryTextOffset,static_cast<int>(m_viewport.m_categoryItemHeight) - static_cast<int>(graphics.GetTextExtent().Height) };
 			textOffset.Y >>= 1;
 
-			graphics.DrawString({ categoryRect.X + textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_appearance->Foreground);
+			graphics.DrawString({ textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_appearance->Foreground);
 
 			scrollOffset.Y += categoryRect.Height;
 
@@ -204,6 +205,7 @@ namespace Berta
 				bool fieldVisible = it->m_isExpanded;
 				auto fieldContainer = it->m_fieldContainers[i].get();
 				auto fieldSize = field->GetSize();
+
 				if (it->m_isExpanded)
 				{
 					if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_viewport.m_backgroundRect.Y > static_cast<int>(m_viewport.m_backgroundRect.Height))
@@ -214,7 +216,7 @@ namespace Berta
 
 				if (fieldVisible)
 				{
-					Rectangle fieldArea{ categoryRect.X,categoryRect.Y + scrollOffset.Y,m_viewport.m_backgroundRect.Width,fieldSize };
+					Rectangle fieldArea{ categoryRect.X,categoryRect.Y + scrollOffset.Y + two,m_viewport.m_backgroundRect.Width,fieldSize - two * 2 };
 					Rectangle fieldContainerArea = fieldArea;
 					fieldContainerArea.X += fieldArea.Width >> 1;
 					fieldContainerArea.Width -= fieldArea.Width >> 1;
@@ -224,9 +226,11 @@ namespace Berta
 					field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, m_appearance->Foreground);
 					scrollOffset.Y += fieldSize;
 				}
+
 				GUI::ShowWindow(*fieldContainer, fieldVisible);
 			}
 		}
+
 		graphics.DrawRectangle(m_owner->Appearance->BoxBorderColor, false);
 	}
 

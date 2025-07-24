@@ -82,7 +82,7 @@ namespace Berta
 		std::string	m_value;
 		std::string	m_defaultValue;
 
-		uint32_t m_size{ 20 };
+		uint32_t m_size{ 24 };
 	};
 
 	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
