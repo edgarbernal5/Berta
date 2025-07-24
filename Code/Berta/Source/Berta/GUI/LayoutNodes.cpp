@@ -701,6 +701,8 @@ namespace Berta
 				if (std::abs(m_mouseInteraction.m_dragStartPos.X - screenMousePos.X) > floatingThreshold ||
 					std::abs(m_mouseInteraction.m_dragStartPos.Y - screenMousePos.Y) > floatingThreshold)
 				{
+					GUI::ReleaseCapture(*m_caption);
+
 					auto pointInScreen = dockAreaWindow->Position;
 					auto dockAreaSize = this->GetSize();
 
@@ -729,6 +731,7 @@ namespace Berta
 					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 
 					m_nativeContainer->Show();
+					GUI::Capture(*m_caption);
 
 					m_mouseInteraction.m_hasChanged = true;
 					m_eventsNotifier->NotifyFloat();

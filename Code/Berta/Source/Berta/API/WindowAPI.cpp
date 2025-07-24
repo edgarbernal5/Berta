@@ -124,17 +124,6 @@ namespace Berta
 
 			::MoveWindow(hwnd, areaWithNonClientRect.left, areaWithNonClientRect.top, width + deltaWidth, height + deltaHeight, true);
 
-			if (formStyle.Floating)
-			{
-				::SetWindowPos
-				(
-					hwnd,
-					HWND_TOPMOST,
-					0, 0, 0, 0,
-					SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
-				);
-			}
-
 			::GetClientRect(hwnd, &clientRect);
 			::GetWindowRect(hwnd, &areaWithNonClientRect);
 
