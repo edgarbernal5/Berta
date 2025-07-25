@@ -44,7 +44,7 @@ namespace Berta
 	class ThumbListBoxReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
+		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;

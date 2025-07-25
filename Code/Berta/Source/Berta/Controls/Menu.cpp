@@ -152,9 +152,9 @@ namespace Berta
 	{
 	}
 
-	void MenuBoxReactor::Init(ControlBase& control)
+	void MenuBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
-		ControlReactor::Init(control);
+		ControlReactor::Init(control, graphics);
 		m_menuBox = reinterpret_cast<MenuBox*>(&control);
 		m_appearance = reinterpret_cast<MenuBoxAppearance*>(m_menuBox->Handle()->Appearance.get());
 

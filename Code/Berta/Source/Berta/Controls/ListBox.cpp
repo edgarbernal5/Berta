@@ -14,7 +14,7 @@
 
 namespace Berta
 {
-	void ListBoxReactor::Init(ControlBase& control)
+	void ListBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_module.m_window = control.Handle();

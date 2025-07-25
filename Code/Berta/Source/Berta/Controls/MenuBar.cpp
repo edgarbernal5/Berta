@@ -12,7 +12,7 @@
 
 namespace Berta
 {
-	void MenuBarReactor::Init(ControlBase& control)
+	void MenuBarReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_module.m_control = reinterpret_cast<MenuBar*>(&control);
 

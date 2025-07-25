@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	void FormReactor::Init(ControlBase& control)
+	void FormReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 	}

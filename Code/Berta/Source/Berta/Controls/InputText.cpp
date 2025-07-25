@@ -22,7 +22,7 @@ namespace Berta
 		}
 	}
 
-	void InputTextReactor::Init(ControlBase& control)
+	void InputTextReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_textEditor = new TextEditor(*m_control);

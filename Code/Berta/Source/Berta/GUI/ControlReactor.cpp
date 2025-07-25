@@ -11,9 +11,10 @@
 
 namespace Berta
 {
-	void ControlReactor::Init(ControlBase& control)
+	void ControlReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
+		m_graphics = graphics;
 	}
 
 	void ControlReactor::Shutdown()

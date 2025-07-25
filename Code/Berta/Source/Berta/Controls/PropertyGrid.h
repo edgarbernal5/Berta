@@ -18,20 +18,13 @@
 
 namespace Berta
 {
+	struct PropertyGridEvents;
 	struct CategoryItem;
 
 	struct PropertyGridAppearance : public ControlAppearance
 	{
 		uint32_t CategoryHeight = 22u;
 		uint32_t ExpanderButtonSize = 12u;
-	};
-
-	struct ArgPropertyGrid
-	{
-	};
-
-	struct PropertyGridEvents : public ControlEvents
-	{
 	};
 
 	class FieldControlContainter : public Panel
@@ -63,6 +56,9 @@ namespace Berta
 		virtual std::string GetDefaultValue() const;
 		virtual void SetDefaultValue(const std::string& value);
 
+		virtual bool IsEnabled() const;
+		virtual void SetEnabled(bool enabled);
+
 		virtual uint32_t GetSize() const
 		{
 			return m_parent->ToScale(m_size);
@@ -77,12 +73,15 @@ namespace Berta
 		virtual void Create(Window* parent) = 0;
 
 		Window* m_parent{ nullptr };
-	private:
+
 		std::string	m_label;
 		std::string	m_value;
 		std::string	m_defaultValue;
 
 		uint32_t m_size{ 24 };
+		bool m_enabled{ true };
+	
+	private:
 	};
 
 	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
@@ -95,6 +94,7 @@ namespace Berta
 		std::string m_name;
 
 		bool m_isExpanded{ true };
+		Rectangle m_area{};
 		std::vector<std::unique_ptr<PropertyGridField>> m_properties;
 		std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
 	};
@@ -102,8 +102,9 @@ namespace Berta
 	class PropertyGridReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
+		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
@@ -112,7 +113,7 @@ namespace Berta
 		class ListModule
 		{
 		public:
-			ListModule();
+			ListModule() = default;
 			CategoryType* CreateCategory(const std::string& categoryName);
 
 			std::vector<CategoryType>::iterator Begin();
@@ -138,15 +139,24 @@ namespace Berta
 			uint32_t m_expanderButtonSize{ 0 };
 		};
 
+		struct MouseInteraction
+		{
+			CategoryType* m_hoveredCategory{ nullptr };
+			CategoryType* m_selectedCategory{ nullptr };
+		};
+
 		struct Module
 		{
 			CategoryItem Append(const std::string& categoryName);
+			void BuildItems();
 			CategoryItem Find(const std::string& categoryName);
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateContentSize(ViewportData& viewportData);
 			void UpdateScrollBar();
-			void Update(Graphics& graphics);
+			void Update();
+
+			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;
@@ -154,6 +164,10 @@ namespace Berta
 			Window* m_owner{ nullptr };
 			PropertyGridAppearance* m_appearance{ nullptr };
 			std::unique_ptr<ScrollBar> m_scrollBar;
+
+			PropertyGridEvents* m_events{ nullptr };
+			Graphics* m_graphics{ nullptr };
+			MouseInteraction m_mouseInteraction;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -196,6 +210,17 @@ namespace Berta
 
 		PropertyGridReactor::Module* m_module{ nullptr };
 		CategoryType* m_category{ nullptr };
+	};
+
+	struct ArgPropertyGrid
+	{
+		PropertyItem Item;
+		ArgPropertyGrid(const PropertyItem& item) : Item(item) {}
+	};
+
+	struct PropertyGridEvents : public ControlEvents
+	{
+		Event<ArgPropertyGrid> PropertyChanged;
 	};
 
 	class PropertyGrid : public Control<PropertyGridReactor, PropertyGridEvents, PropertyGridAppearance>

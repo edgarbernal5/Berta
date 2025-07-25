@@ -30,7 +30,7 @@ namespace Berta
 		}
 	}
 
-	void ComboBoxReactor::Init(ControlBase& control)
+	void ComboBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_module.m_comboBox = reinterpret_cast<ComboBox*>(&control);

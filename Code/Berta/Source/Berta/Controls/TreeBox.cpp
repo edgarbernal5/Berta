@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	void TreeBoxReactor::Init(ControlBase& control)
+	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_module.m_window = control.Handle();

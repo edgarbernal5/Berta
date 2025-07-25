@@ -40,6 +40,9 @@
     <Filter Include="Source\Berta\Controls\Docking">
       <UniqueIdentifier>{43938f19-c19c-4811-b82d-5e769a10120a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Controls\Properties">
+      <UniqueIdentifier>{687882cc-17ae-4f72-ae36-b2fc6f09eeb8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -234,6 +237,15 @@
     <ClInclude Include="Source\Berta\Core\ScopedTimer.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -388,6 +400,12 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp">
       <Filter>Source\Berta\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

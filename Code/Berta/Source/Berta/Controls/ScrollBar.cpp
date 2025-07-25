@@ -17,7 +17,7 @@ namespace Berta
 	constexpr int ARROW_WIDTH = 6;
 	constexpr int ARROW_LENGTH = 3;
 
-	void ScrollBarReactor::Init(ControlBase& control)
+	void ScrollBarReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 

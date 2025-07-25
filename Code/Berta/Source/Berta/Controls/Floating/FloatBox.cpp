@@ -15,7 +15,7 @@ namespace Berta
 	{
 	}
 
-	void FloatBoxReactor::Init(ControlBase& control)
+	void FloatBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_floatBox = reinterpret_cast<FloatBox*>(&control);

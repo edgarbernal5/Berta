@@ -123,7 +123,7 @@ namespace Berta
 	public:
 		~MenuBoxReactor();
 
-		void Init(ControlBase& control) override;
+		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;

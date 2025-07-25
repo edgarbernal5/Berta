@@ -13,7 +13,7 @@
 
 namespace Berta
 {
-	void ThumbListBoxReactor::Init(ControlBase& control)
+	void ThumbListBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_module.m_appearance = reinterpret_cast<ThumbListBoxAppearance*>(control.Handle()->Appearance.get());

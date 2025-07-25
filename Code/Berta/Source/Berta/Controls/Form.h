@@ -22,7 +22,7 @@ namespace Berta
 	class FormReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control) override;
+		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 		
 	private:

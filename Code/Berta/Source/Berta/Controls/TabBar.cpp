@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	void TabBarReactor::Init(ControlBase& control)
+	void TabBarReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 		m_module.m_owner = control.Handle();
@@ -35,7 +35,6 @@ namespace Berta
 		auto tabMarginUnselected = m_module.m_owner->ToScale(4);
 		auto one = m_module.m_owner->ToScale(1);
 
-		//TODO: drawlineto
 		int lastPositionX = 0;
 		int selectedPositionX = 0;
 		int i = 0;

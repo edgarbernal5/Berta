@@ -23,7 +23,7 @@ namespace Berta
 	public:
 		~FloatBoxReactor();
 
-		void Init(ControlBase& control) override;
+		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;

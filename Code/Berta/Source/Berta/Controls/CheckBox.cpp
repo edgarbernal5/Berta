@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	void CheckBoxReactor::Init(ControlBase& control)
+	void CheckBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 

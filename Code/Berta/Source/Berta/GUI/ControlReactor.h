@@ -21,7 +21,7 @@ namespace Berta
 		ControlReactor() = default;
 		virtual ~ControlReactor() = default;
 
-		virtual void Init(ControlBase& control);
+		virtual void Init(ControlBase& control, Graphics* graphics);
 		virtual void Shutdown();
 		virtual void Update(Graphics& graphics);
 		virtual void MouseEnter(Graphics& graphics, const ArgMouse& args);
@@ -41,6 +41,7 @@ namespace Berta
 
 	protected:
 		ControlBase* m_control{ nullptr };
+		Graphics* m_graphics{ nullptr };
 	};
 }
 

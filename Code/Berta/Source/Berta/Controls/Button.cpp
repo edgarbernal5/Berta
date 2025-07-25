@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	void ButtonReactor::Init(ControlBase& control)
+	void ButtonReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 	}

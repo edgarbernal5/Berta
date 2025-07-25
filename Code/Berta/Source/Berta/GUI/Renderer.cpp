@@ -16,10 +16,10 @@ namespace Berta
 	void Renderer::Init(ControlBase& control, ControlReactor& controlReactor)
 	{
 		m_control = &control;
-		m_controlReactor = &controlReactor;
-		m_controlReactor->Init(control);
-
 		m_graphics = control.Handle()->RootGraphics;
+
+		m_controlReactor = &controlReactor;
+		m_controlReactor->Init(control, m_graphics);
 	}
 
 	void Renderer::Shutdown()
@@ -30,6 +30,7 @@ namespace Berta
 			m_controlReactor = nullptr;
 		}
 		m_control = nullptr;
+		m_graphics = nullptr;
 	}
 
 	void Renderer::Map(Window* window, const Rectangle& areaToUpdate)

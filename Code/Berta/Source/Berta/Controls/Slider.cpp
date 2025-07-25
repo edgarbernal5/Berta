@@ -15,7 +15,7 @@ namespace Berta
 	constexpr int SLIDER_TIMER_REPEAT_DELAY = 50;
 	constexpr uint32_t MIN_SCROLLBOX_SIZE = 6u;
 
-	void SliderReactor::Init(ControlBase& control)
+	void SliderReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
 
