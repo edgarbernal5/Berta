@@ -191,6 +191,7 @@ namespace Berta
 			BT_CORE_ERROR << "Error building Font." << std::endl;
 			return;
 		}
+
 		m_attributes->m_textExtent = GetTextExtent("{}[]");
 #endif
 	}
@@ -845,6 +846,11 @@ namespace Berta
 	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length)
 	{
 		return API::GetTextExtentSize(m_attributes.get(), wstr, length);
+	}
+
+	uint32_t Graphics::GetCaretHeight() const
+	{
+		return API::GetCaretHeight(m_attributes.get());
 	}
 
 	void Graphics::Release()

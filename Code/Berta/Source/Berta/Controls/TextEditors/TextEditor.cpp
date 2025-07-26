@@ -142,6 +142,7 @@ namespace Berta
 		auto contentSize = m_content.size();
 		m_shiftPressed = m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_ctrlPressed = m_ctrlPressed || args.Key == KeyboardKey::Control;
+
 		if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			MoveCaretLeft();
@@ -239,7 +240,9 @@ namespace Berta
 	{
 		size_t newCaretPosition = m_caretPosition;
 		if (newCaretPosition > 0)
+		{
 			--newCaretPosition;
+		}
 
 		if (m_ctrlPressed)
 		{
@@ -407,7 +410,8 @@ namespace Berta
 		Size contentSize = GetContentTextExtent(m_caretPosition);
 
 		bool enabled = m_owner->Flags.IsEnabled;
-		
+		auto caretHeight = m_graphics.GetCaretHeight();
+		int textOffset = (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1);
 		if (m_selectionEndPosition != m_selectionStartPosition)
 		{
 			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
@@ -415,15 +419,14 @@ namespace Berta
 			auto startTextExtent = m_graphics.GetTextExtent(m_content.substr(0, start));
 			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
 			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
-
-			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2, endTextExtent.Width, m_owner->ClientSize.Height - 4 }, m_owner->Appearance->HighlightColor, true);
-			//m_graphics.DrawString({ 2 + m_offsetView + (int)startTextExtent.Width, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, selectionText, m_owner->Appearance->HighlightTextColor);
+			
+			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2 + textOffset, endTextExtent.Width, caretHeight }, m_owner->Appearance->HighlightColor, true);
 		}
-		m_graphics.DrawString({ 2 + m_offsetView, (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1) + 1 }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
+		m_graphics.DrawString({ 2 + m_offsetView, textOffset + 1 }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 }, { 2 + m_offsetView + (int)contentSize.Width, (int)m_owner->ClientSize.Height - 2 }, m_owner->Appearance->Foreground2nd );
+			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 + textOffset }, { 2 + m_offsetView + (int)contentSize.Width, textOffset + (int)caretHeight }, m_owner->Appearance->Foreground2nd);
 		}
 	}
 

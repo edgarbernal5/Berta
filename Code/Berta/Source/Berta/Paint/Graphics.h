@@ -82,6 +82,7 @@ namespace Berta
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
+		uint32_t GetCaretHeight() const;
 
 		const API::RootPaintNativeHandle* GetHandle() const { return &m_rootPaintNativeHandle; }
 

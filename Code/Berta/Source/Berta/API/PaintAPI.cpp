@@ -9,6 +9,7 @@
 
 #ifdef BT_PLATFORM_WINDOWS
 #include "Berta/Platform/Windows/D2D.h"
+#include <wrl/client.h>
 #endif
 
 namespace Berta
@@ -73,12 +74,65 @@ namespace Berta
 			textLayout->GetMetrics(&metrics);
 
 			textLayout->Release();
-			return { static_cast<uint32_t>(std::ceilf(metrics.width)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
+			return { static_cast<uint32_t>(std::ceilf(metrics.widthIncludingTrailingWhitespace)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
 		}
 
 		return {};
 #else
 		return {};
+#endif
+	}
+
+	uint32_t API::GetCaretHeight(PaintNativeHandle* handle)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!handle->m_textFormat)
+		{
+			return 0;
+		}
+
+		WCHAR fontFamilyName[100] = {};
+		handle->m_textFormat->GetFontFamilyName(fontFamilyName, ARRAYSIZE(fontFamilyName));
+
+		Microsoft::WRL::ComPtr<IDWriteFontCollection> fontCollection;
+		if (FAILED(handle->m_textFormat->GetFontCollection(&fontCollection)))
+		{
+			return 0;
+		}
+
+		UINT32 index = 0;
+		BOOL exists = FALSE;
+		if (FAILED(fontCollection->FindFamilyName(fontFamilyName, &index, &exists)) || !exists)
+		{
+			return 0;
+		}
+
+		Microsoft::WRL::ComPtr<IDWriteFontFamily> fontFamily;
+		if (FAILED(fontCollection->GetFontFamily(index, &fontFamily)))
+		{
+			return 0;
+		}
+
+		Microsoft::WRL::ComPtr<IDWriteFont> font;
+		if (FAILED(fontFamily->GetFirstMatchingFont(
+			handle->m_textFormat->GetFontWeight(),
+			handle->m_textFormat->GetFontStretch(),
+			handle->m_textFormat->GetFontStyle(),
+			&font)))
+		{
+			return 0;
+		}
+
+		DWRITE_FONT_METRICS metrics;
+		font->GetMetrics(&metrics);
+
+		float fontSize = handle->m_textFormat->GetFontSize();
+		float ascent = static_cast<float>(metrics.ascent) * fontSize / metrics.designUnitsPerEm;
+		float descent = static_cast<float>(metrics.descent) * fontSize / metrics.designUnitsPerEm;
+
+		return static_cast<uint32_t>(ascent + descent);
+#else
+		return 0;
 #endif
 	}
 

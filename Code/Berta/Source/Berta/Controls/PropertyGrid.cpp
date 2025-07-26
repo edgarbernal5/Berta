@@ -124,7 +124,7 @@ namespace Berta
 		{
 			Rectangle categoryRect{ offset.X + m_viewport.m_backgroundRect.X,
 				offset.Y + m_viewport.m_backgroundRect.Y,
-				m_viewport.m_backgroundRect.Width, m_viewport.m_categoryItemHeight };
+				m_viewport.m_backgroundRect.Width - m_viewport.m_backgroundRect.X * 2, m_viewport.m_categoryItemHeight };
 
 			it->m_area = categoryRect;
 			offset.Y += categoryRect.Height;
@@ -272,7 +272,7 @@ namespace Berta
 
 			graphics.DrawString({ textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_appearance->Foreground);
 
-			Point scrollOffset{ 0,categoryRect.Y };
+			Point scrollOffset{ categoryRect.X,categoryRect.Y };
 			scrollOffset.Y += categoryRect.Height;
 
 			for (size_t i = 0; i < it->m_properties.size(); i++)
