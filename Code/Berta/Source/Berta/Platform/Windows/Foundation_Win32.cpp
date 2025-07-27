@@ -411,7 +411,11 @@ namespace Berta
 			}
 			else
 			{
+#if BT_DEBUG
+				ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+#else
 				ScopedTimer scopedTimer("WM_PAINT");
+#endif
 				windowManager.UpdateTree(nativeWindow);
 			}
 			::ValidateRect(hWnd, nullptr);

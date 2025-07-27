@@ -117,6 +117,7 @@ namespace Berta
 					_com_error err(hr);
 					BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
 				}
+				BT_CORE_DEBUG << " - RT Creation" << std::endl;
 			}
 			
 #endif
@@ -394,6 +395,8 @@ namespace Berta
 
 		if (window->IsNative())
 		{
+
+			BT_CORE_DEBUG << "    - RT Remove." << std::endl;
 			API::Dispose(window->RootPaintHandle);
 		}
 #if BT_DEBUG
@@ -444,7 +447,11 @@ namespace Berta
 
 	void WindowManager::Capture(Window* window, bool redirectToChildren)
 	{
+#if BT_DEBUG
+		BT_CORE_TRACE << " - Capture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
+#else
 		BT_CORE_TRACE << " - Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
+#endif
 		if (m_capture.WindowPtr == window)
 		{
 			return;
@@ -465,13 +472,18 @@ namespace Berta
 
 	void WindowManager::ReleaseCapture(Window* window)
 	{
+#if BT_DEBUG
+		BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
+#else
 		BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
+#endif
+
 		if (m_capture.WindowPtr == window)
 		{
 			m_capture.WindowPtr = nullptr;
 			if (!m_capture.PrevCaptured.empty())
 			{
-				auto& lastCaptured = m_capture.PrevCaptured.back();
+				auto lastCaptured = m_capture.PrevCaptured.back();
 				m_capture.PrevCaptured.pop_back();
 
 				if (Exists(lastCaptured.WindowPtr))
