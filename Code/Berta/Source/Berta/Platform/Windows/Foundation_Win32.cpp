@@ -466,9 +466,17 @@ namespace Berta
 #else
 			BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
 #endif
-
 			if (newWidth > 0 && newHeight > 0)
 			{
+				if (nativeWindow->RootPaintHandle.RenderTarget)
+				{
+					auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
+					if (FAILED(hr))
+					{
+						BT_CORE_ERROR << "Error while resizing HWND render target." << std::endl;
+					}
+				}
+
 				windowManager.Resize(nativeWindow, newSize, false);
 
 				if (nativeWindow->HasCustomPaint())
