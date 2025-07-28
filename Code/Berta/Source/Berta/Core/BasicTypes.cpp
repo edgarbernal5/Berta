@@ -161,9 +161,9 @@ namespace Berta
 		return color;
 	}
 
-	FormStyle FormStyle::Float()
+	FormStyle FormStyle::Float(bool sizeable)
 	{
-		return FormStyle{ false, false, true, false, true, false };
+		return FormStyle{ false, false, sizeable, false, true, false };
 	}
 
 	FormStyle FormStyle::Flat()

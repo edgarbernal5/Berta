@@ -756,7 +756,7 @@ namespace Berta
 
 	MenuBox::MenuBox(Window* parent, const Point& position)
 	{
-		Create(parent, false, { position.X, position.Y, 1, 1 }, FormStyle::Float(), false);
+		Create(parent, false, { position.X, position.Y, 1, 1 }, FormStyle::Float(false), false);
 		GUI::MakeWindowActive(m_handle, false, nullptr);
 
 #if BT_DEBUG
