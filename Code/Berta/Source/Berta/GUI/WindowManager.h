@@ -82,10 +82,6 @@ namespace Berta
 
 		void SetParent(Window* window, Window* newParent);
 
-		void SetMenu(MenuItemReactor* rootMenuItemWindow);
-		MenuItemReactor* GetMenu();
-
-		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
 		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
@@ -122,7 +118,6 @@ namespace Berta
 		std::map<API::NativeWindowHandle, FormData> m_windowNativeRegistry;
 		std::set<Window*> m_windowRegistry;
 
-		MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 		bool m_keyboardCaptured{ false };
 	};
 }

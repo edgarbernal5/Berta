@@ -8,6 +8,7 @@
 #define BT_FOUNDATION_HEADER
 
 #include "Berta/GUI/WindowManager.h"
+#include "Berta/GUI/MenuManager.h"
 #include "Berta/GUI/Renderer.h"
 #include "Berta/Core/Event.h"
 #include "Berta/GUI/Window.h"
@@ -37,6 +38,7 @@ namespace Berta
 		Foundation& operator=(const Foundation&) = delete;
 
 		WindowManager& GetWindowManager() { return m_windowManager; }
+		MenuManager& GetMenuManager() { return m_menuManager; }
 		void ProcessMessages();
 
 		template <typename TArgument>
@@ -55,6 +57,7 @@ namespace Berta
 	private:
 		static Foundation g_foundation;
 		WindowManager m_windowManager;
+		MenuManager m_menuManager;
 	};
 
 	template<typename TArgument>

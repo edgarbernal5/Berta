@@ -907,55 +907,6 @@ namespace Berta
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 
-	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)
-	{
-		m_rootMenuItemReactor = rootMenuItemWindow;
-	}
-
-	MenuItemReactor* WindowManager::GetMenu()
-	{
-		return m_rootMenuItemReactor;
-	}
-
-	void WindowManager::DisposeMenu()
-	{
-		DisposeMenu(m_rootMenuItemReactor);
-		m_rootMenuItemReactor = nullptr;
-	}
-
-	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
-	{
-		if (!rootReactor)
-		{
-			return;
-		}
-
-		std::stack<Window*> stack;
-		auto current = rootReactor;
-		while (current)
-		{
-			if (!current->IsMenuBar())
-			{
-				stack.push(current->Owner());
-			}
-
-			current = current->Next();
-		}
-
-		while (!stack.empty())
-		{
-			auto& it = stack.top();
-			stack.pop();
-
-			Dispose(it);
-		}
-
-		if (rootReactor == m_rootMenuItemReactor)
-		{
-			m_rootMenuItemReactor = nullptr;
-		}
-	}
-
 	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
 	{
 		for (size_t i = 0; i < window->Children.size(); i++)

@@ -17,7 +17,6 @@ namespace Berta
 		m_module.m_control = reinterpret_cast<MenuBar*>(&control);
 
 		m_module.m_owner = control.Handle();
-		m_module.m_rootMenuItemReactor = this;
 
 		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
 		{
@@ -124,7 +123,7 @@ namespace Berta
 				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
 				GUI::SetMenu(this);
 
-				GUI::UpdateWindow(m_module.m_owner);
+				//GUI::UpdateWindow(m_module.m_owner);
 			}
 		}
 		else
@@ -257,9 +256,9 @@ namespace Berta
 			m_interactionData.m_activeMenu = nullptr;
 			SelectIndex(-1);
 
-			m_rootMenuItemReactor->Clear();
 			GUI::UpdateWindow(*m_control);
 		};
+
 		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
 		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);
 	}

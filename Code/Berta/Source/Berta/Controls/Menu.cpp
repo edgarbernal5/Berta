@@ -11,6 +11,8 @@
 #include "Berta/Controls/Menu.h"
 #include "Berta/GUI/EnumTypes.h"
 
+#include "Berta/Core/Foundation.h"
+
 namespace Berta
 {
 #if BT_DEBUG
@@ -52,8 +54,8 @@ namespace Berta
 				m_destroyCallback();
 			}
 		});
-
-		m_menuBox->Popup();
+		
+		m_menuBox->Popup(!menuBarItem.IsEmpty());
 	}
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
@@ -754,7 +756,7 @@ namespace Berta
 
 	MenuBox::MenuBox(Window* parent, const Point& position)
 	{
-		Create(parent, false, { position.X, position.Y, 1, 1 }, { false, false, false, false, true, false }, false);
+		Create(parent, false, { position.X, position.Y, 1, 1 }, FormStyle::Float(), false);
 		GUI::MakeWindowActive(m_handle, false, nullptr);
 
 #if BT_DEBUG
@@ -791,9 +793,11 @@ namespace Berta
 		m_reactor.SetIgnoreFirstMouseUp(value);
 	}
 
-	void MenuBox::Popup()
+	void MenuBox::Popup(bool fromMenuBar)
 	{
-		GUI::Capture(m_handle);
+		//GUI::Capture(m_handle);
+		auto& menuManager = Foundation::GetInstance().GetMenuManager();
+		menuManager.ShowPopup(m_handle, GetOwner(), fromMenuBar);
 		Show();
 	}
 

@@ -75,7 +75,6 @@ namespace Berta
 			Window* m_owner{ nullptr };
 			std::vector<std::unique_ptr<MenuBarItemData>> m_items;
 			InteractionData m_interactionData;
-			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 			Point m_lastMousePosition{ -1,-1 };
 		};
 

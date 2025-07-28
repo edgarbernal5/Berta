@@ -530,25 +530,15 @@ namespace Berta::GUI
 
 	void SetMenu(MenuItemReactor* rootMenuItemWindow)
 	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		if (!windowManager.Exists(rootMenuItemWindow->Owner()))
-		{
-			return;
-		}
-
-		windowManager.SetMenu(rootMenuItemWindow);
+		
 	}
 
 	void DisposeMenu()
 	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		windowManager.DisposeMenu();
 	}
 
 	void DisposeMenu(MenuItemReactor* rootReactor)
 	{
-		auto& windowManager = Foundation::GetInstance().GetWindowManager();
-		windowManager.DisposeMenu(rootReactor);
 	}
 
 	void Exit()

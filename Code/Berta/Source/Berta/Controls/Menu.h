@@ -199,7 +199,7 @@ namespace Berta
 		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect);
 		void SetIgnoreFirstMouseUp(bool value);
 
-		void Popup();
+		void Popup(bool fromMenuBar = false);
 	private:
 #if BT_DEBUG
 		static int g_globalId;
