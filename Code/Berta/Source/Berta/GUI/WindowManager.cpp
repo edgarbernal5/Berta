@@ -601,28 +601,18 @@ namespace Berta
 		}
 		auto& foundation = Foundation::GetInstance();
 
-		window->ClientSize = newSize;
-
-#ifdef BT_PLATFORM_WINDOWS
-		if (window->IsNative() && window->RootPaintHandle.RenderTarget)
-		{
-			auto hr = window->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
-			if (FAILED(hr))
-			{
-				BT_CORE_ERROR << "error> resize hwnd render target." << std::endl;
-				return false;
-			}
-		}
-#endif
-
 		if (window->IsNative() && resizeForm)
 		{
 			API::ResizeWindow(window->RootHandle, newSize);
 		}
+		else
+		{
+			window->ClientSize = newSize;
 
-		ArgResize argResize;
-		argResize.NewSize = newSize;
-		foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+			ArgResize argResize;
+			argResize.NewSize = newSize;
+			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+		}
 
 		return true;
 	}
