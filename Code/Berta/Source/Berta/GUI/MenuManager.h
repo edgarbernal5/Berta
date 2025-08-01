@@ -17,13 +17,17 @@ namespace Berta
 	public:
 
 		bool AnyPopupActive() const;
-		
+
+		void Close(Window* popupWindow);
+		void CloseAll();
 		Window* GetActiveMenu() const;
 		Window* FindMenu(const Point& mousePosition) const;
 
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
 	private:
 		std::vector<Window*> m_popups;
+		bool m_fromMenuBar{ false };
+		Window* m_owner{ nullptr };
 	};
 }
 

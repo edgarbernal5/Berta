@@ -35,12 +35,12 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* owner, const Point& position, Menu* parentMenu, bool ignoreFirstMouseUp, Rectangle menuBarItem)
+	void Menu::ShowPopup(Window* owner, const Point& position, Menu* parentMenu, bool ignoreFirstMouseUp)
 	{
 		m_parentWindow = owner;
 
 		m_menuBox = new MenuBox(owner, position);
-		m_menuBox->Init(this, m_items, menuBarItem);
+		m_menuBox->Init(this, m_items);
 		m_menuBox->SetIgnoreFirstMouseUp(ignoreFirstMouseUp);
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
@@ -55,7 +55,7 @@ namespace Berta
 			}
 		});
 		
-		m_menuBox->Popup(!menuBarItem.IsEmpty());
+		m_menuBox->Popup(parentMenu==nullptr);
 	}
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
@@ -260,18 +260,8 @@ namespace Berta
 				}
 			}
 		}
-		bool wasEnabledAliasing = graphics.IsEnabledAliasing();
-		if (!wasEnabledAliasing)
-			graphics.EnabledAliasing(true);
 
 		graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
-		if (m_menuBarItemRect.Width > 0)
-		{
-			graphics.DrawLine({ 1,0 }, { (int)m_menuBarItemRect.Width,0 }, window->Appearance->MenuBackground);
-		}
-
-		if (!wasEnabledAliasing)
-			graphics.EnabledAliasing(false);
 	}
 
 	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -322,7 +312,7 @@ namespace Berta
 
 	void MenuBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		//BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
+		BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
 		if (m_ignoreFirstMouseUp)
 		{
 			m_ignoreFirstMouseUp = false;
@@ -774,12 +764,11 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect)
+	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items)
 	{
 		menuOwner->m_menuBox = this;
 
 		m_reactor.SetItems(items);
-		m_reactor.SetMenuBarItemRect(rect);
 		m_reactor.SetMenuOwner(menuOwner);
 
 		auto boxSize = GetMenuBoxSize();
@@ -795,7 +784,6 @@ namespace Berta
 
 	void MenuBox::Popup(bool fromMenuBar)
 	{
-		//GUI::Capture(m_handle);
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();
 		menuManager.ShowPopup(m_handle, GetOwner(), fromMenuBar);
 		Show();

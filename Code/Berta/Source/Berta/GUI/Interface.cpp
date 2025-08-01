@@ -227,7 +227,7 @@ namespace Berta::GUI
 			return{};
 		}
 
-		auto position = GetAbsoluteRootPosition(window);
+		auto position = GetWindowRootPosition(window);
 		return { position.X, position.Y, window->ClientSize.Width, window->ClientSize.Height };
 	}
 
@@ -353,7 +353,7 @@ namespace Berta::GUI
 		window->RenderFormData.CustomPaint.swap(callback);
 	}
 
-	Point GetAbsoluteRootPosition(Window* window)
+	Point GetWindowRootPosition(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -361,7 +361,7 @@ namespace Berta::GUI
 			return {};
 		}
 
-		return windowManager.GetAbsoluteRootPosition(window);
+		return windowManager.GetWindowRootPosition(window);
 	}
 
 	Point GetWindowPosition(Window* window)
@@ -395,7 +395,7 @@ namespace Berta::GUI
 		}
 
 		auto mousePosition = API::GetPointScreenToClient(window->RootHandle, API::GetScreenMousePosition());
-		return mousePosition - windowManager.GetAbsoluteRootPosition(window);
+		return mousePosition - windowManager.GetWindowRootPosition(window);
 	}
 
 	Point GetScreenMousePosition()
@@ -535,10 +535,14 @@ namespace Berta::GUI
 
 	void DisposeMenu()
 	{
+		auto& menuManager = Foundation::GetInstance().GetMenuManager();
+		menuManager.CloseAll();
 	}
 
 	void DisposeMenu(MenuItemReactor* rootReactor)
 	{
+		auto& menuManager = Foundation::GetInstance().GetMenuManager();
+		menuManager.Close(rootReactor->Owner());
 	}
 
 	void Exit()

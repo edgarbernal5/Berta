@@ -102,7 +102,7 @@ namespace Berta
 		MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
 	private:
-		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true, Rectangle menuBarItem = {});
+		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true);
 
 		Size GetMenuBoxSize(Window* parent);
 	};
@@ -150,7 +150,6 @@ namespace Berta
 		void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
 		void SetMenuOwner(Menu* menuOwner);
 		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
-		void SetMenuBarItemRect(const Rectangle& rect) { m_menuBarItemRect = rect; }
 		Size GetMenuBoxSize();
 
 	private:
@@ -175,7 +174,6 @@ namespace Berta
 		Menu* m_menuOwner{ nullptr };
 		MenuBoxAppearance* m_appearance{ nullptr };
 		bool m_ignoreFirstMouseUp{ true };
-		Rectangle m_menuBarItemRect{  };
 		std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
 		std::vector<MenuBoxItem> m_itemSizePositions;
 		Timer m_subMenuTimer;
@@ -196,7 +194,7 @@ namespace Berta
 		MenuBox(Window* parent, const Point& position);
 		~MenuBox();
 
-		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items, const Rectangle& rect);
+		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items);
 		void SetIgnoreFirstMouseUp(bool value);
 
 		void Popup(bool fromMenuBar = false);

@@ -46,17 +46,7 @@ namespace Berta
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
 
 				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, window->Appearance->Foreground);
-
-				if (m_module.IsMenuOpen())
-				{
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appearance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
-				}
-				else
-				{
-					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
-				}
+				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
 			}
 			else
 			{
@@ -91,16 +81,29 @@ namespace Berta
 		}
 
 		int selectedItem = m_module.FindItem(args.Position);
+		int prevSelectedItem = m_module.m_interactionData.m_selectedItemIndex;
 		m_module.SelectIndex(selectedItem);
 		if (selectedItem != -1)
 		{
-			m_module.OpenMenu();
-			if (m_module.IsMenuOpen())
+			if (m_module.IsMenuOpen() && prevSelectedItem == selectedItem)
 			{
-				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-				GUI::SetMenu(this);
+				GUI::DisposeMenu();
+			}
+			else
+			{
+				m_module.OpenMenu();
+				if (m_module.IsMenuOpen())
+				{
+					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
+					GUI::SetMenu(this);
+				}
 			}
 
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
+		}
+		else
+		{
+			GUI::DisposeMenu();
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 	}
@@ -123,7 +126,7 @@ namespace Berta
 				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
 				GUI::SetMenu(this);
 
-				//GUI::UpdateWindow(m_module.m_owner);
+				GUI::UpdateWindow(m_module.m_owner);
 			}
 		}
 		else
@@ -259,8 +262,7 @@ namespace Berta
 			GUI::UpdateWindow(*m_control);
 		};
 
-		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);
+		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp);
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

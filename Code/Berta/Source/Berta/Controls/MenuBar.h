@@ -66,7 +66,7 @@ namespace Berta
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
 			Menu& PushBack(const std::wstring& text);
-			void OpenMenu(bool ignoreFirstMouseUp = true);
+			void OpenMenu(bool ignoreFirstMouseUp = false);
 			void SelectIndex(int index);
 			bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
 			MenuBox* GetActiveMenuBox() const;

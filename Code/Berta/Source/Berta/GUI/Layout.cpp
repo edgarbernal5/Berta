@@ -477,7 +477,7 @@ namespace Berta
 			return false;
 
 		auto mousePosition = GUI::GetScreenMousePosition();
-		auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetAbsoluteRootPosition(m_parent));
+		auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetWindowRootPosition(m_parent));
 		Rectangle rect{ windowPosition.X, windowPosition.Y, m_parent->ClientSize.Width, m_parent->ClientSize.Height };
 
 		return rect.IsInside(mousePosition);
@@ -494,7 +494,7 @@ namespace Berta
 
 			auto mousePosition = GUI::GetScreenMousePosition();
 			auto dockerHandle = indicator->Docker->Handle();
-			auto windowPosition = GUI::GetPointClientToScreen(dockerHandle, GUI::GetAbsoluteRootPosition(dockerHandle));
+			auto windowPosition = GUI::GetPointClientToScreen(dockerHandle, GUI::GetWindowRootPosition(dockerHandle));
 			Rectangle rect{ windowPosition.X, windowPosition.Y, dockerHandle->ClientSize.Width, dockerHandle->ClientSize.Height };
 
 			if (rect.IsInside(mousePosition))
@@ -531,7 +531,7 @@ namespace Berta
 				nodeType == LayoutNodeType::DockPane)
 			{
 				auto mousePosition = GUI::GetScreenMousePosition();
-				auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetAbsoluteRootPosition(m_parent));
+				auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetWindowRootPosition(m_parent));
 				auto nodeArea = node->GetArea();
 				Rectangle rect
 				{

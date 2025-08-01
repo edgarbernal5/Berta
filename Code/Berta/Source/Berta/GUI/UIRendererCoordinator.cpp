@@ -50,12 +50,12 @@ namespace Berta
 	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result)
 	{
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();
-		auto absolutePosition = GUI::GetAbsoluteRootPosition(window);
+		auto absolutePosition = GUI::GetWindowRootPosition(window);
 		requestRectangle.X = absolutePosition.X;
 		requestRectangle.Y = absolutePosition.Y;
 
 		auto container = window->FindFirstPanelOrFormAncestor();
-		auto containerPosition = GUI::GetAbsoluteRootPosition(container);
+		auto containerPosition = GUI::GetWindowRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 
 		return LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, result);

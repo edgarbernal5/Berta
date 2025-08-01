@@ -77,12 +77,10 @@ namespace Berta
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);
 
-		Point GetAbsoluteRootPosition(Window* window);
+		Point GetWindowRootPosition(Window* window);
 		Point GetWindowPosition(Window* window);
 
 		void SetParent(Window* window, Window* newParent);
-
-		void DisposeMenu(MenuItemReactor* rootReactor);
 
 		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
 	private:
