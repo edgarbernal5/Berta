@@ -16,7 +16,10 @@ int main()
 
 	auto& fileMenu = menuBar.PushBack("File");
 	fileMenu.Append("New");
-	fileMenu.Append("Exit");
+	fileMenu.Append("Exit", [](Berta::MenuItem& item)
+		{
+			Berta::GUI::Exit();
+		});
 
 	form.Show();
 	form.Exec();
