@@ -248,9 +248,8 @@ namespace Berta
 		auto window = m_owner;
 		auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
 		m_interactionData.m_activeMenu = &itemData->menu;
-		auto pointInScreen = window->Position;
-
-		Point boxPosition = pointInScreen;
+		
+		Point boxPosition{};
 		boxPosition.X += itemData->position.X;
 		boxPosition.Y += itemData->position.Y + (int)itemData->size.Height;
 
