@@ -261,6 +261,7 @@ namespace Berta
 			GUI::UpdateWindow(*m_control);
 		};
 
+		//TODO: focus window
 		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp);
 	}
 

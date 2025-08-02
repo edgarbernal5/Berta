@@ -21,6 +21,39 @@ int main()
 			Berta::GUI::Exit();
 		});
 
+	auto newMenu = fileMenu.CreateSubMenu(0);
+	newMenu->Append("Scene");
+	newMenu->Append("Texture");
+	newMenu->AppendSeparator();
+
+	auto& editMenu = menuBar.PushBack("Edit");
+	editMenu.Append("Undo");
+	editMenu.Append("Redo");
+	editMenu.AppendSeparator();
+	editMenu.Append("Cut");
+
+	auto& helpMenu = menuBar.PushBack("Help");
+	helpMenu.Append("About");
+
+	Berta::Menu popupMenu;
+	popupMenu.Append(L"Cut", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > Cut" << std::endl;
+		});
+	popupMenu.Append(L"Copy", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > Copy" << std::endl;
+		});
+	popupMenu.Append(L"Paste", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > Paste" << std::endl;
+		});
+
+	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
+		{
+			popupMenu.ShowPopup(form.Handle(), args);
+		});
+
 	form.Show();
 	form.Exec();
 

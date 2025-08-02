@@ -55,7 +55,7 @@ namespace Berta
 			}
 		});
 		
-		m_menuBox->Popup(parentMenu==nullptr);
+		m_menuBox->Popup(false/*parentMenu == nullptr*/);
 	}
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
