@@ -102,7 +102,7 @@ namespace Berta
 		MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
 	private:
-		void ShowPopup(Window* owner, const Point& position, Menu* parentMenu = nullptr, bool ignoreFirstMouseUp = true);
+		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
 
 		Size GetMenuBoxSize(Window* parent);
 	};

@@ -20,7 +20,7 @@ namespace Berta
 
 		void Close(Window* popupWindow);
 		void CloseAll();
-		Window* GetActiveMenu() const;
+		Window* GetActiveMenu(bool fromKeyboard = false) const;
 		Window* FindMenu(const Point& mousePosition) const;
 
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);

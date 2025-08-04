@@ -150,7 +150,7 @@ namespace Berta
 		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		{WM_PAINT,			"WM_PAINT"},
+		//{WM_PAINT,			"WM_PAINT"},
 		//{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -161,6 +161,9 @@ namespace Berta
 		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
+
+		{WM_SETFOCUS,		"WM_SETFOCUS"},
+		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
 
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
@@ -422,9 +425,9 @@ namespace Berta
 			else
 			{
 #if BT_DEBUG
-				ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+				//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
 #else
-				ScopedTimer scopedTimer("WM_PAINT");
+				//ScopedTimer scopedTimer("WM_PAINT");
 #endif
 				windowManager.UpdateTree(nativeWindow);
 			}
@@ -547,6 +550,11 @@ namespace Berta
 		}
 		case WM_KILLFOCUS:
 		{
+			if (menuManager.AnyPopupActive())
+			{
+				menuManager.CloseAll();
+			}
+
 			if (rootFocusedWindow)
 			{
 				ArgFocus argFocus{ false };
@@ -821,7 +829,7 @@ namespace Berta
 			auto target = window;
 			if (menuManager.AnyPopupActive())
 			{
-				target = menuManager.GetActiveMenu();
+				target = menuManager.GetActiveMenu(true);
 			}
 			if (isKeyReleased)
 			{

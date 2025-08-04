@@ -7,7 +7,6 @@
 #include "btpch.h"
 #include "MenuManager.h"
 
-#include "Berta/Core/Foundation.h"
 #include "Berta/GUI/Interface.h"
 
 #include <stack>
@@ -62,18 +61,27 @@ namespace Berta
     void MenuManager::CloseAll()
     {
         if (m_popups.empty())
+        {
             return;
+        }
 
-        Close(m_popups[0]);
         GUI::ReleaseCapture(m_owner);
+        Close(m_popups[0]);
         m_fromMenuBar = false;
         m_owner = nullptr;
     }
 
-    Window* MenuManager::GetActiveMenu() const
+    Window* MenuManager::GetActiveMenu(bool fromKeyboard) const
     {
         if (m_popups.empty())
+        {
             return nullptr;
+        }
+
+        if (fromKeyboard && m_fromMenuBar)
+        {
+            return m_popups[0];
+        }
 
         return m_popups.back();
     }
@@ -81,15 +89,13 @@ namespace Berta
     Window* MenuManager::FindMenu(const Point& mousePosition) const
     {
 #ifdef BT_PLATFORM_WINDOWS
-        auto& windowManager = Foundation::GetInstance().GetWindowManager();
-
         for (int i = m_popups.size() - 1; i >=0 ; --i)
         {
             POINT screenToClientPoint{ mousePosition.X, mousePosition.Y };
             auto menuWindow = m_popups[i];
             ::ScreenToClient(menuWindow->RootHandle.Handle, &screenToClientPoint);
 
-            auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetWindowRootPosition(menuWindow);
+            auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - GUI::GetWindowRootPosition(menuWindow);
             if (menuWindow->ClientSize.IsInside(localPosition))
             {
                 return menuWindow;

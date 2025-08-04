@@ -528,11 +528,6 @@ namespace Berta::GUI
 		API::SendCustomMessage(window->RootWindow->RootHandle, body);
 	}
 
-	void SetMenu(MenuItemReactor* rootMenuItemWindow)
-	{
-		
-	}
-
 	void DisposeMenu()
 	{
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();

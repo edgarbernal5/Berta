@@ -35,7 +35,7 @@ namespace Berta
 		m_items.emplace_back(new Menu::Item());
 	}
 
-	void Menu::ShowPopup(Window* owner, const Point& position, Menu* parentMenu, bool ignoreFirstMouseUp)
+	void Menu::ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp)
 	{
 		m_parentWindow = owner;
 
@@ -55,7 +55,7 @@ namespace Berta
 			}
 		});
 		
-		m_menuBox->Popup(false/*parentMenu == nullptr*/);
+		m_menuBox->Popup(fromMenuBar);
 	}
 
 	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
@@ -65,21 +65,7 @@ namespace Berta
 			return;
 		}
 		auto screenPosition = args.Position;
-		ShowPopup(owner, screenPosition);
-		//m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
-		//{
-		//	//BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;			
-		//});
-		
-		//TODO: Fix this! ConnectOnce
-		/*owner->Events->Focus.ConnectOnce([&](const ArgFocus& args)
-		{
-			if (!args.Focused)
-			{
-				GUI::DisposeMenu();
-			}
-		});*/
-		GUI::SetMenu(m_menuBox->GetItemReactor());
+		ShowPopup(owner, screenPosition, false);
 	}
 
 	Menu* Menu::CreateSubMenu(std::size_t index)
@@ -112,7 +98,7 @@ namespace Berta
 		if (!m_menuBox)
 			return;
 
-		GUI::ReleaseCapture(m_menuBox->Handle());
+		//GUI::ReleaseCapture(m_menuBox->Handle());
 		m_menuBox->Dispose();
 		m_menuBox = nullptr;
 	}
@@ -287,7 +273,12 @@ namespace Berta
 			return;
 		}
 
-		if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
+		int selectedIndex = FindItem(args);
+		if (!m_control->Handle()->ClientSize.IsInside(args.Position) && selectedIndex == -1)
+		{
+			GUI::DisposeMenu();
+		}
+		else if (m_selectedIndex != -1 && m_items->at(m_selectedIndex)->m_subMenu)
 		{
 			auto subMenu = m_items->at(m_selectedIndex)->m_subMenu.get();
 			if (!subMenu->m_menuBox)
@@ -295,9 +286,10 @@ namespace Berta
 				m_subMenuTimer.Stop();
 				m_selectedSubMenuIndex = m_selectedIndex;
 				m_openedSubMenuIndex = m_selectedIndex;
-				OpenSubMenu(subMenu, m_menuOwner, m_selectedIndex);
+				OpenSubMenu(subMenu, m_menuOwner, m_selectedIndex, m_ignoreFirstMouseUp);
 			}
 		}
+		 
 	}
 
 	void MenuBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -453,7 +445,9 @@ namespace Berta
 		{
 			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 			if (selectedIndex == savedIndex)
+			{
 				break;
+			}
 
 			item = m_items->at(selectedIndex).get();
 		}
@@ -632,7 +626,7 @@ namespace Berta
 			pointInScreen.X + (int)m_control->GetSize().Width - four,
 			pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y
 		};
-		subMenu->ShowPopup(window, position, m_menuOwner, ignoreFirstMouseUp);
+		subMenu->ShowPopup(window, position, !m_menuOwner, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
 		m_next->Prev(this);
@@ -728,7 +722,6 @@ namespace Berta
 				auto tolerance = (int)(openedSubItem.m_size.Height >> 2);
 				if (args.Position.Y >= (openedSubItem.m_position.Y - tolerance) && args.Position.Y <= (openedSubItem.m_position.Y + tolerance) + (int)openedSubItem.m_size.Height)
 				{
-					BT_CORE_TRACE << "      - ...." << std::endl;
 					selectedIndex = m_openedSubMenuIndex;
 				}
 				else

@@ -537,13 +537,11 @@ namespace Berta
 		{
 			auto screenPosition = API::GetPointClientToScreen(window->RootHandle, point);
 
-			auto currentWindow = menuManager.FindMenu(screenPosition);
-			//BT_CORE_TRACE << " / menu FindItem()=" << (currentWindow ? currentWindow->Name : "nulo") << std::endl;
-			if (currentWindow)
+			auto menuWindow = menuManager.FindMenu(screenPosition);
+			if (menuWindow)
 			{
-				return currentWindow;
+				return menuWindow;
 			}
-			//return nullptr;
 		}
 
 		if (m_capture.RedirectToChildren && window->Visible && IsPointOnWindow(window, point))

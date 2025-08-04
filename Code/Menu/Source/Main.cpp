@@ -48,6 +48,20 @@ int main()
 		{
 			std::cout << "Context menu click > Paste" << std::endl;
 		});
+	popupMenu.AppendSeparator();
+	popupMenu.Append(L"Select", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > Select" << std::endl;
+		});
+	auto selectSubMenu = popupMenu.CreateSubMenu(4);
+	selectSubMenu->Append("All", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > All" << std::endl;
+		});
+	selectSubMenu->Append("None", [](Berta::MenuItem& item)
+		{
+			std::cout << "Context menu click > None" << std::endl;
+		});
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{

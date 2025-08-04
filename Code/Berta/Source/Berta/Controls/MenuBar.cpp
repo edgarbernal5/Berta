@@ -17,14 +17,6 @@ namespace Berta
 		m_module.m_control = reinterpret_cast<MenuBar*>(&control);
 
 		m_module.m_owner = control.Handle();
-
-		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
-		{
-			if (!args.Focused && m_module.IsMenuOpen())
-			{
-				GUI::DisposeMenu();
-			}
-		});
 	}
 
 	void MenuBarReactor::Update(Graphics& graphics)
@@ -95,7 +87,6 @@ namespace Berta
 				if (m_module.IsMenuOpen())
 				{
 					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-					GUI::SetMenu(this);
 				}
 			}
 
@@ -122,9 +113,8 @@ namespace Berta
 				}
 
 				m_module.SelectIndex(selectedItem);
-				m_module.OpenMenu(args.ButtonState.LeftButton);
+				m_module.OpenMenu(false);
 				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-				GUI::SetMenu(this);
 
 				GUI::UpdateWindow(m_module.m_owner);
 			}
@@ -199,8 +189,7 @@ namespace Berta
 		m_module.SelectIndex(selectedItem);
 		m_module.OpenMenu(false);
 		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-		GUI::SetMenu(this);
-
+		
 		GUI::UpdateWindow(m_module.m_owner);
 	}
 
@@ -247,6 +236,10 @@ namespace Berta
 	{
 		auto window = m_owner;
 		auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
+
+		if (m_interactionData.m_activeMenu == &itemData->menu)
+			return;
+
 		m_interactionData.m_activeMenu = &itemData->menu;
 		
 		Point boxPosition{};
@@ -262,7 +255,7 @@ namespace Berta
 		};
 
 		//TODO: focus window
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp);
+		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

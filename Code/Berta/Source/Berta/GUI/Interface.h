@@ -74,8 +74,6 @@ namespace Berta
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
-		void SetMenu(MenuItemReactor* rootMenuItemWindow);
-
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
