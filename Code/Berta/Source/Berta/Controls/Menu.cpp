@@ -45,7 +45,6 @@ namespace Berta
 
 		m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 		{
-			//BT_CORE_TRACE << "   - menu box destroy callback..." << std::endl;
 			delete m_menuBox;
 			m_menuBox = nullptr;
 
@@ -111,7 +110,7 @@ namespace Berta
 		bool hasSubmenu = false;
 		for (size_t i = 0; i < m_items.size(); i++)
 		{
-			if (m_items[i]->m_isSpearator)
+			if (m_items[i]->m_isSeparator)
 			{
 				++separators;
 			}
@@ -134,10 +133,6 @@ namespace Berta
 			2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
 			2 + itemTextPadding * 2u + (uint32_t)(m_items.size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 		};
-	}
-
-	MenuBoxReactor::~MenuBoxReactor()
-	{
 	}
 
 	void MenuBoxReactor::Init(ControlBase& control, Graphics* graphics)
@@ -190,6 +185,7 @@ namespace Berta
 		auto menuBoxItemHeight = window->ToScale(m_appearance->MenuBoxItemHeight);
 		auto menuBoxSubMenuArrowWidth = window->ToScale(m_appearance->MenuBoxSubMenuArrowWidth);
 		auto separatorHeight = window->ToScale(SeparatorHeight);
+		auto smallIconSize = window->ToScale(window->Appearance->SmallIconSize);
 
 		if (m_items)
 		{
@@ -197,7 +193,7 @@ namespace Berta
 			for (size_t i = 0; i < m_items->size(); i++)
 			{
 				auto& item = *(m_items->at(i));
-				if (item.m_isSpearator)
+				if (item.m_isSeparator)
 				{
 					int separatorCenterOffset = (separatorHeight >> 1) - 1;
 					graphics.DrawLine({ 1 + (int)menuBoxLeftPaneWidth - 4, offsetY + separatorCenterOffset + 1 }, { (int)window->ClientSize.Width - 2, offsetY + separatorCenterOffset + 1 }, window->Appearance->BoxBorderColor);
@@ -217,10 +213,7 @@ namespace Berta
 					if (item.m_image)
 					{
 						Point paneSize{ (int)menuBoxLeftPaneWidth, (int)menuBoxItemHeight };
-
-						Size scaleImageSize= item.m_image.GetSize();
-						scaleImageSize.Width = window->ToScale(scaleImageSize.Width);
-						scaleImageSize.Height = window->ToScale(scaleImageSize.Height);
+						Size scaleImageSize{ smallIconSize , smallIconSize };
 						Point imageSize{ (int)scaleImageSize.Width, (int)scaleImageSize.Height };
 						Point centerImage = paneSize - imageSize;
 						centerImage /= 2;
@@ -252,12 +245,10 @@ namespace Berta
 
 	void MenuBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 	{
-		//BT_CORE_TRACE << "   - Menu box mouse enter" << std::endl;
 	}
 
 	void MenuBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		//BT_CORE_TRACE << "   - Menu box mouse leave" << std::endl;
 		bool changes = MouseMoveInternal(args);
 		if (changes)
 		{
@@ -304,7 +295,7 @@ namespace Berta
 
 	void MenuBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
+		//BT_CORE_DEBUG << " MenuBoxReactor MouseUp(). " << m_ignoreFirstMouseUp << std::endl;
 		if (m_ignoreFirstMouseUp)
 		{
 			m_ignoreFirstMouseUp = false;
@@ -350,7 +341,7 @@ namespace Berta
 
 		GUI::DisposeMenu();
 
-		if (!item->m_isSpearator && item->m_onClick)
+		if (!item->m_isSeparator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
 			item->m_onClick(menuItem);
@@ -402,7 +393,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->m_isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
+			if (!m_items->at(i)->m_isSeparator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
 				selectedIndex = static_cast<int>(i);
 				break;
@@ -441,7 +432,7 @@ namespace Berta
 		}
 		auto savedIndex = selectedIndex;
 		auto item = m_items->at(selectedIndex).get();
-		while (selectedIndex >= 0 && (!item->m_isEnabled || item->m_isSpearator))
+		while (selectedIndex >= 0 && (!item->m_isEnabled || item->m_isSeparator))
 		{
 			selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
 			if (selectedIndex == savedIndex)
@@ -519,7 +510,7 @@ namespace Berta
 
 		GUI::DisposeMenu();
 
-		if (!item->m_isSpearator && item->m_onClick)
+		if (!item->m_isSeparator && item->m_onClick)
 		{
 			MenuItem menuItem(*item);
 			item->m_onClick(menuItem);
@@ -550,7 +541,7 @@ namespace Berta
 		{
 			auto& item = m_items->at(i);
 			auto& itemSizePosition = m_itemSizePositions.emplace_back();
-			if (item->m_isSpearator)
+			if (item->m_isSeparator)
 			{
 				itemSizePosition.m_position = position;
 				itemSizePosition.m_size = { sizeOfNormalItem , menuBoxItemHeight };
@@ -587,7 +578,7 @@ namespace Berta
 		bool hasSubmenu = false;
 		for (size_t i = 0; i < m_items->size(); i++)
 		{
-			if (m_items->at(i)->m_isSpearator)
+			if (m_items->at(i)->m_isSeparator)
 			{
 				++separators;
 			}
@@ -617,19 +608,18 @@ namespace Berta
 		auto window = m_control->Handle();
 		int two = window->ToScale(2);
 		int four = window->ToScale(4);
-		Point pointInScreen = {};
 
 		subMenu->m_parentMenu = parentMenu;
-
 		Point position
 		{
-			pointInScreen.X + (int)m_control->GetSize().Width - four,
-			pointInScreen.Y + m_itemSizePositions[selectedIndex].m_position.Y
+			(int)m_control->GetSize().Width - four,
+			m_itemSizePositions[selectedIndex].m_position.Y
 		};
 		subMenu->ShowPopup(window, position, !m_menuOwner, ignoreFirstMouseUp);
 
 		m_next = subMenu->m_menuBox->GetItemReactor();
-		m_next->Prev(this);
+		m_next->m_prev = this;
+
 		subMenu->m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& args)
 		{
 			m_openedSubMenuIndex = -1;
@@ -647,7 +637,7 @@ namespace Berta
 		for (size_t i = 0; i < m_itemSizePositions.size(); i++)
 		{
 			auto& item = m_itemSizePositions[i];
-			if (!m_items->at(i)->m_isSpearator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
+			if (!m_items->at(i)->m_isSeparator && Rectangle { item.m_position, item.m_size }.IsInside(args.Position))
 			{
 				return static_cast<int>(i);
 			}

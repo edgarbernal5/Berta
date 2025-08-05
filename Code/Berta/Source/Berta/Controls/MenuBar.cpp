@@ -236,17 +236,17 @@ namespace Berta
 	{
 		auto window = m_owner;
 		auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
-
-		if (m_interactionData.m_activeMenu == &itemData->menu)
+		auto& activeMenuPtr = m_interactionData.m_activeMenu;
+		if (activeMenuPtr == &itemData->menu)
 			return;
 
-		m_interactionData.m_activeMenu = &itemData->menu;
+		activeMenuPtr = &itemData->menu;
 		
 		Point boxPosition{};
 		boxPosition.X += itemData->position.X;
 		boxPosition.Y += itemData->position.Y + (int)itemData->size.Height;
 
-		m_interactionData.m_activeMenu->m_destroyCallback = [this]()
+		activeMenuPtr->m_destroyCallback = [this]()
 		{
 			m_interactionData.m_activeMenu = nullptr;
 			SelectIndex(-1);
@@ -255,7 +255,7 @@ namespace Berta
 		};
 
 		//TODO: focus window
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);
+		activeMenuPtr->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

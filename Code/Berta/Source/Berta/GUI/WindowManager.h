@@ -17,7 +17,6 @@
 namespace Berta
 {
 	struct Window;
-	class MenuItemReactor;
 	class ControlBase;
 
 	class WindowManager

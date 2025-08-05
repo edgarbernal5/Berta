@@ -34,6 +34,8 @@ namespace Berta
 	class MenuItemReactor
 	{
 	public:
+		friend class MenuBoxReactor;
+
 		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
 		virtual void MoveToNextItem(bool upwards) = 0;
@@ -42,10 +44,9 @@ namespace Berta
 		virtual void Select() = 0;
 		virtual void Quit() = 0;
 
-		virtual MenuItemReactor* Next() const { return m_next; }
 		virtual MenuItemReactor* Prev() const { return m_prev; }
+		virtual MenuItemReactor* Next() const { return m_next; }
 
-		virtual void Prev(MenuItemReactor* prev) { m_prev = prev; }
 		virtual void Clear()
 		{
 			m_prev = nullptr;
@@ -53,7 +54,7 @@ namespace Berta
 		}
 
 		virtual Window* Owner() const = 0;
-		virtual bool IsMenuBar() const = 0;
+
 	protected:
 		MenuItemReactor* m_next{ nullptr };
 		MenuItemReactor* m_prev{ nullptr };
@@ -63,6 +64,7 @@ namespace Berta
 
 	struct Menu
 	{
+		friend class MenuBox;
 		friend class MenuBoxReactor;
 		friend class MenuBarReactor;
 
@@ -77,34 +79,33 @@ namespace Berta
 		void SetImage(size_t index, const Image& image);
 		void SetEnabled(size_t index, bool enabled);
 
+		MenuBox* GetMenuBox() const { return m_menuBox; }
+		void CloseMenuBox();
+
 		struct Item
 		{
-			Item() : m_isSpearator(true) {}
+			Item() : m_isSeparator(true) {}
 			Item(const std::wstring& _text, ClickCallback _onClick) : 
 				m_text(_text), 
-				m_isSpearator(false),
+				m_isSeparator(false),
 				m_onClick(_onClick){}
 
 			std::wstring m_text;
-			bool m_isSpearator{ false };
+			bool m_isSeparator{ false };
 			bool m_isEnabled{ true };
 			ClickCallback m_onClick;
 			std::unique_ptr<Menu> m_subMenu;
 			Image m_image;
 		};
+	private:
+		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
+		Size GetMenuBoxSize(Window* parent);
 
 		std::vector<std::unique_ptr<Item>> m_items;
 		MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
 		DestroyCallback m_destroyCallback;
-
-		MenuBox* GetMenuBox() const { return m_menuBox; }
-		void CloseMenuBox();
-	private:
-		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
-
-		Size GetMenuBoxSize(Window* parent);
 	};
 
 	struct MenuItem
@@ -121,7 +122,7 @@ namespace Berta
 	class MenuBoxReactor : public ControlReactor, public MenuItemReactor
 	{
 	public:
-		~MenuBoxReactor();
+		~MenuBoxReactor() = default;
 
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
@@ -142,7 +143,6 @@ namespace Berta
 		bool EnterSubMenu() override;
 		void Select() override;
 		void Quit() override;
-		bool IsMenuBar() const override { return false; }
 
 		Menu* GetMenuOwner() const { return m_menuOwner; }
 
