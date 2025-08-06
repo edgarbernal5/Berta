@@ -25,7 +25,7 @@ namespace Berta
 		using TextEditorCallback = std::function<void()>;
 
 	public:
-		TextEditor(Window* owner);
+		TextEditor(Window* owner, Graphics* graphics);
 		~TextEditor();
 
 		void OnMouseEnter(const ArgMouse& args);

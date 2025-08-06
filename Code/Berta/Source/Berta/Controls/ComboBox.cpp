@@ -34,7 +34,7 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_comboBox = reinterpret_cast<ComboBox*>(&control);
-		m_module.m_textEditor = new TextEditor(*m_control);
+		m_module.m_textEditor = new TextEditor(*m_control, graphics);
 
 		auto window = m_control->Handle();
 		window->Events->Focus.Connect([&](const ArgFocus& args)
