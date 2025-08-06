@@ -25,7 +25,7 @@ int main()
 			Berta::GUI::Exit();
 		});
 	fileMenu.SetImage(0, imageImage);
-	
+
 	auto newMenu = fileMenu.CreateSubMenu(0);
 	newMenu->Append("Scene");
 	newMenu->Append("Texture");

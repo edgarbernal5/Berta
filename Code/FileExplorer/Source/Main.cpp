@@ -20,7 +20,7 @@
 class TabExplorer : public Berta::Panel
 {
 public:
-	TabExplorer(Berta::Window* parent) : 
+	TabExplorer(Berta::Window* parent) :
 		Panel(parent)
 	{
 		m_listBox.AppendHeader("Name", 200);
@@ -43,156 +43,156 @@ public:
 		}
 
 		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
-		{
-			m_listBox.Clear();
-
-			if (args.Items.size() > 1)
-				return;
-
-			auto& treeItem = args.Items[0];
-
-			auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
-
-			try
 			{
-				for (const auto& entry : std::filesystem::directory_iterator(path))
-				{
-					try
-					{
-						if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
-						{
-							auto newItem = m_listBox.Append(entry.path().filename().string());
-							newItem.SetIcon(m_folderImg);
-						}
-						else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
-							auto newItem = m_listBox.Append(entry.path().filename().string());
-							newItem.SetIcon(m_fileImg);
-						}
-					}
-					catch (...)
-					{
+				m_listBox.Clear();
 
+				if (args.Items.size() > 1)
+					return;
+
+				auto& treeItem = args.Items[0];
+
+				auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
+
+				try
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(path))
+					{
+						try
+						{
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
+								auto newItem = m_listBox.Append(entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
+							}
+							else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
+								auto newItem = m_listBox.Append(entry.path().filename().string());
+								newItem.SetIcon(m_fileImg);
+							}
+						}
+						catch (...)
+						{
+
+						}
 					}
 				}
-			}
-			catch (...)
-			{
+				catch (...)
+				{
 
-			}
-		});
+				}
+			});
 
 		m_treeBox.GetEvents().Expanded.Connect([this](const Berta::ArgTreeBox& args)
-		{
-			if (!args.IsExpanded)
-				return;
-
-			if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == "...")
 			{
-				auto path = m_treeBox.GetKeyPath(args.Item, '/') + "/";
+				if (!args.IsExpanded)
+					return;
 
-				auto child = args.Item.FirstChild();
-				m_treeBox.Erase(child);
-				for (const auto& entry : std::filesystem::directory_iterator(path))
+				if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == "...")
 				{
-					try
+					auto path = m_treeBox.GetKeyPath(args.Item, '/') + "/";
+
+					auto child = args.Item.FirstChild();
+					m_treeBox.Erase(child);
+					for (const auto& entry : std::filesystem::directory_iterator(path))
 					{
-						if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+						try
 						{
-							auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
-							newItem.SetIcon(m_folderImg);
-
-							auto subEntryPath = entry.path().string() + "/";
-							for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 							{
-								try
-								{
-									if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
-									{
-										m_treeBox.Insert(entry.path().string() + "/...", "...");
-										break;
-									}
-								}
-								catch (...)
-								{
+								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
 
+								auto subEntryPath = entry.path().string() + "/";
+								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
+								{
+									try
+									{
+										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
+										{
+											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											break;
+										}
+									}
+									catch (...)
+									{
+
+									}
 								}
 							}
 						}
-					}
-					catch (...)
-					{
+						catch (...)
+						{
 
+						}
 					}
 				}
-			}
-		});
+			});
 
 		m_listBox.GetEvents().DblClick.Connect([this](const Berta::ArgMouse& args)
-		{
-			if (m_listBox.GetSelected().empty())
-				return;
-
-			auto selected = m_listBox.GetSelected();
-			auto& first = selected.at(0);
-
-			auto treeItemSelected = m_treeBox.GetSelected().at(0);
-			auto pathTreeItemSelected = m_treeBox.GetKeyPath(treeItemSelected, '/');
-			auto newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
-			if (newSelected)
 			{
-				treeItemSelected.Expand();
-				newSelected.Select();
-				return;
-			}
+				if (m_listBox.GetSelected().empty())
+					return;
 
-			if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == "...")
-			{
-				auto path = m_treeBox.GetKeyPath(treeItemSelected, '/') + "/";
+				auto selected = m_listBox.GetSelected();
+				auto& first = selected.at(0);
 
-				auto child = treeItemSelected.FirstChild();
-				m_treeBox.Erase(child);
-				for (const auto& entry : std::filesystem::directory_iterator(path))
-				{
-					try
-					{
-						if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
-						{
-							auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
-							newItem.SetIcon(m_folderImg);
-
-							auto subEntryPath = entry.path().string() + "/";
-							for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
-							{
-								try
-								{
-									if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
-									{
-										m_treeBox.Insert(entry.path().string() + "/...", "...");
-										break;
-									}
-								}
-								catch (...)
-								{
-
-								}
-							}
-						}
-					}
-					catch (...)
-					{
-
-					}
-				}
-
-				newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+				auto treeItemSelected = m_treeBox.GetSelected().at(0);
+				auto pathTreeItemSelected = m_treeBox.GetKeyPath(treeItemSelected, '/');
+				auto newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
 				if (newSelected)
 				{
 					treeItemSelected.Expand();
 					newSelected.Select();
 					return;
 				}
-			}
-		});
+
+				if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == "...")
+				{
+					auto path = m_treeBox.GetKeyPath(treeItemSelected, '/') + "/";
+
+					auto child = treeItemSelected.FirstChild();
+					m_treeBox.Erase(child);
+					for (const auto& entry : std::filesystem::directory_iterator(path))
+					{
+						try
+						{
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
+								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
+
+								auto subEntryPath = entry.path().string() + "/";
+								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
+								{
+									try
+									{
+										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
+										{
+											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											break;
+										}
+									}
+									catch (...)
+									{
+
+									}
+								}
+							}
+						}
+						catch (...)
+						{
+
+						}
+					}
+
+					newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+					if (newSelected)
+					{
+						treeItemSelected.Expand();
+						newSelected.Select();
+						return;
+					}
+				}
+			});
 
 		m_layout.Create(*this);
 		m_layout.Parse("{{treeBox Width=40%}|{listBox}}");
@@ -224,41 +224,41 @@ public:
 		m_slider.SetMinMax(0, 4);
 
 		m_slider.GetEvents().ValueChanged.Connect([this](const Berta::ArgSlider& args)
-		{
-			uint32_t thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
+			{
+				uint32_t thumbnailSizes[5]{ 32u, 64u, 96u, 128u, 256u };
 
-			m_thumbListBox.SetThumbnailSize(thumbnailSizes[args.Value]);
-		});
+				m_thumbListBox.SetThumbnailSize(thumbnailSizes[args.Value]);
+			});
 
 		m_comboBox.GetEvents().Selected.Connect([this](const Berta::ArgComboBox& args)
-		{
-			Berta::ControlDrawBatch controlBatch(m_thumbListBox);
-			m_thumbListBox.Clear();
-
-			//m_thumbListBox.AddItem("ABC", m_folderImg);
-			//m_thumbListBox.AddItem("Program Files (x86)", m_folderImg);
-			//m_thumbListBox.AddItem("Windows", m_folderImg);
-			//m_thumbListBox.AddItem("Folder...", m_folderImg);
-				
-			m_currentPath = m_comboBox.GetText(args.SelectedIndex);
-			for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
 			{
-				try
+				Berta::ControlDrawBatch controlBatch(m_thumbListBox);
+				m_thumbListBox.Clear();
+
+				//m_thumbListBox.AddItem("ABC", m_folderImg);
+				//m_thumbListBox.AddItem("Program Files (x86)", m_folderImg);
+				//m_thumbListBox.AddItem("Windows", m_folderImg);
+				//m_thumbListBox.AddItem("Folder...", m_folderImg);
+
+				m_currentPath = m_comboBox.GetText(args.SelectedIndex);
+				for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
 				{
-					if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+					try
 					{
-						//auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
-						//m_thumbListBox.AddItem(entry.path().filename(), m_hardDriveImg);
-						m_thumbListBox.AddItem(entry.path().filename(), m_folderImg);
+						if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+						{
+							//auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+							//m_thumbListBox.AddItem(entry.path().filename(), m_hardDriveImg);
+							m_thumbListBox.AddItem(entry.path().filename(), m_folderImg);
+
+						}
+					}
+					catch (...)
+					{
 
 					}
 				}
-				catch (...)
-				{
-
-				}
-			}
-		});
+			});
 
 		DWORD drives = ::GetLogicalDrives();
 
@@ -302,15 +302,15 @@ int main()
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack("File");
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
-	{
-		Berta::GUI::Exit();
-	});
+		{
+			Berta::GUI::Exit();
+		});
 
 	auto& menuHelp = menuBar.PushBack("Help");
 	menuHelp.Append("About", [](Berta::MenuItem& item)
-	{
-			
-	});
+		{
+
+		});
 
 	Berta::TabBar tabbar(form, { 70, 250, 400, 285 });
 

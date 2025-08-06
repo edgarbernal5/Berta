@@ -80,9 +80,9 @@ int main()
 	newSubmenu->Append("Tab");
 
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
-	{
-		Berta::GUI::Exit();
-	});
+		{
+			Berta::GUI::Exit();
+		});
 
 	auto& menuWindow = menuBar.PushBack(L"Window");
 	menuWindow.Append("Load layout");
@@ -96,7 +96,7 @@ int main()
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
-	
+
 	TabForm tabForm(form);
 	TabProperties tabProperties(form);
 

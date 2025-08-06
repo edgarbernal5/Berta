@@ -44,13 +44,13 @@ public:
 		m_eraseSelectedbutton.SetDebugName("Erase Tree Button");
 #endif
 		m_eraseSelectedbutton.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
-		{
-			auto selected = m_treeBox.GetSelected();
-			if (selected.empty())
-				return;
+			{
+				auto selected = m_treeBox.GetSelected();
+				if (selected.empty())
+					return;
 
-			m_treeBox.Erase(selected[0]);
-		});
+				m_treeBox.Erase(selected[0]);
+			});
 
 		m_collapseAll.Create(*this, true, { 60,15,80,25 });
 		m_collapseAll.SetCaption(L"Collapse all");
@@ -58,9 +58,9 @@ public:
 		m_collapseAll.SetDebugName("Collapse all");
 #endif
 		m_collapseAll.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
-		{
-			m_treeBox.CollapseAll();
-		});
+			{
+				m_treeBox.CollapseAll();
+			});
 
 		m_expandAll.Create(*this, true, { 145,15,80,25 });
 		m_expandAll.SetCaption(L"Expand all");
@@ -518,18 +518,15 @@ int main()
 		{
 			std::cout << "Context sub menu click > hola 3" << std::endl;
 		});
-	
+
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
-//
+	
 	auto currentPosition = tabbar.GetPosition();
 	auto margin = tabbar.Handle()->ToScale(2);
-	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin});
-
-	//Berta::Button nestedForm(form, { 320,35, 200, 200 }, L"Button");
-	//Berta::Button buttonLayout(form, { 320,250, 200, 200 }, L"Nested");
+	tabbar.SetSize({ form.GetSize().Width - currentPosition.X - margin, form.GetSize().Height - currentPosition.Y - margin });
 
 	form.GetEvents().Resize.Connect([&tabbar](const Berta::ArgResize& args)
 		{
@@ -539,75 +536,7 @@ int main()
 
 		});
 
-
-//	Berta::Button buttonShowNested(form, { 90,120,75,25 }, L"Show");
-//#ifdef BT_DEBUG
-//	buttonShowNested.SetDebugName("buttonShowNested");
-//#endif
-//	buttonShowNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
-//		{
-//			nestedForm.Show();
-//		});
-
-	/*Berta::Button buttonHideNested(form, { 185,120,75,25 }, L"Hide");
-#ifdef BT_DEBUG
-	buttonHideNested.SetDebugName("buttonHideNested");
-#endif
-	buttonHideNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
-		{
-			nestedForm.Hide();
-		});
-
-	Berta::Button buttonInnerNested(nestedForm, { 10,15,75,25 }, L"Hello");
-#ifdef BT_DEBUG
-	buttonInnerNested.SetDebugName("buttonInnerNested");
-#endif
-	buttonInnerNested.GetEvents().Click.Connect([&nestedForm](const Berta::ArgClick& args)
-		{
-			std::cout << " -- inner nested button!" << std::endl;
-		});
-
-	Berta::Button buttonHideScrollbar(form, { 15,150,75,25 }, L"Show or Hide");
-#ifdef BT_DEBUG
-	buttonHideScrollbar.SetDebugName("buttonHideScrollbar");
-#endif
-	buttonHideScrollbar.GetEvents().Click.Connect([&scrollbar](const Berta::ArgClick& args)
-		{
-			if (scrollbar.IsVisible())
-				scrollbar.Hide();
-			else
-				scrollbar.Show();
-		});*/
-
-	////form.SetLayout("{{menuBar Height=25}{b}}");
-	//form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
-	//
-	//form.GetLayout().Attach("menuBar", menuBar);
-
-	////auto buttonPane = std::make_shared<ButtonPane>();
-	//Berta::Button buttonPaneTab(form, { 320,250, 200, 200 }, L"Scene");
-	//Berta::Button buttonPaneTab2(form, { 320,250, 200, 200 }, L"Properties");
-	//Berta::Button buttonPaneTab3(form, { 320,250, 200, 200 }, L"Explorer");
-	//
-	////buttonPaneTab.Hide();
-	////buttonPaneTab2.Hide();
-
-	////Berta::Button nestedForm(form, { 15,150,75,25 }, L"Show or Hide");
-
-	///*Berta::NestedForm nestedForm(form, { 320,35, 200, 200 });
-	//nestedForm.GetAppearance().Background = Berta::Color{ 0xAB20CC };*/
-
-	//TabForm tabForm(form);
-
-	//form.GetLayout().AddPaneTab("dockPane1", "tab-Scene", &buttonPaneTab, "", Berta::DockPosition::Tab);
-	//form.GetLayout().AddPaneTab("dockPane2", "tab-Properties", &buttonPaneTab2, "dockPane1", Berta::DockPosition::Right);
-	//form.GetLayout().AddPaneTab("dockPane2", "tab-Explorer", &buttonPaneTab3);
-	//form.GetLayout().AddPaneTab("dockPane3", "tab-D3D", &tabForm, "dockPane1", Berta::DockPosition::Down);
-
-	//form.GetLayout().Apply();
-
 	form.Show();
-	//nestedForm.Show();
 	form.Exec();
 
 	return 0;
