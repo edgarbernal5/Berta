@@ -33,7 +33,8 @@ namespace Berta
 
 	private:
 		bool m_useMinMax{ false };
-		int m_min, m_max;
+		int m_min{ 0 };
+		int m_max{ 0 };
 	};
 }
 
