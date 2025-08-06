@@ -56,6 +56,8 @@ namespace Berta
 		InputText() = default;
 		InputText(Window* parent, const Rectangle& rectangle = {});
 
+		size_t GetCaretPosition() const;
+
 		void Deselect();
 		void SelectAll();
 

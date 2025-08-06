@@ -36,8 +36,8 @@ namespace Berta
 	protected:
 		void Create(Berta::Window* parent) override;
 
-	private:
 		Berta::InputText m_inputText;
+	private:
 	};
 }
 
