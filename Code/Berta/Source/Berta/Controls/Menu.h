@@ -47,12 +47,6 @@ namespace Berta
 		virtual MenuItemReactor* Prev() const { return m_prev; }
 		virtual MenuItemReactor* Next() const { return m_next; }
 
-		virtual void Clear()
-		{
-			m_prev = nullptr;
-			m_next = nullptr;
-		}
-
 		virtual Window* Owner() const = 0;
 
 	protected:

@@ -405,7 +405,7 @@ namespace Berta
 			return false;
 		}
 
-		return (m_items->at(selectedIndex)->m_subMenu != nullptr);
+		return m_items->at(selectedIndex)->m_subMenu != nullptr;
 	}
 
 	Window* MenuBoxReactor::Owner() const
