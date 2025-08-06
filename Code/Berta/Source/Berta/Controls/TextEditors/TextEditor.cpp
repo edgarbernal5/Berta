@@ -169,12 +169,12 @@ namespace Berta
 			MoveCaretEnd();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::Backspace && contentSize > 0)
+		else if (args.Key == KeyboardKey::Backspace && m_features.isEditable && contentSize > 0)
 		{
 			DeleteBack();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::Delete && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
+		else if (args.Key == KeyboardKey::Delete && m_features.isEditable && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
 		{
 			Delete();
 			redraw = true;
@@ -386,7 +386,9 @@ namespace Berta
 			m_content.erase(start, (end - start));
 			int64_t caretPosition = m_caretPosition;
 			if (m_caretPosition == end)
+			{
 				caretPosition -= (end - start);
+			}
 
 			if (caretPosition < 0)
 			{

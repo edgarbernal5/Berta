@@ -56,6 +56,17 @@ namespace Berta
 		InputText() = default;
 		InputText(Window* parent, const Rectangle& rectangle = {});
 
+		void Deselect();
+		void SelectAll();
+
+		bool IsEditable() const;
+		void SetEditable(bool isEditable);
+
+		void SetCharFilter(std::function<bool(wchar_t)> predicate);
+
+		std::wstring GetText() const;
+		void SetText(const std::wstring& text);
+
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;

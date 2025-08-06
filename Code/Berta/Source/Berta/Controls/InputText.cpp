@@ -127,6 +127,66 @@ namespace Berta
 #endif
 	}
 
+	void InputText::Deselect()
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor && editor->Deselect())
+		{
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
+	void InputText::SelectAll()
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor && editor->SelectAll())
+		{
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
+	bool InputText::IsEditable() const
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			return editor->IsEditable();
+		}
+	}
+
+	void InputText::SetEditable(bool isEditable)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetEditable(isEditable);
+		}
+	}
+
+	void InputText::SetCharFilter(std::function<bool(wchar_t)> predicate)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetCharFilter(std::move(predicate));
+		}
+	}
+
+	std::wstring InputText::GetText() const
+	{
+		return DoOnCaption();
+	}
+
+	void InputText::SetText(const std::wstring& text)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetContent(text);
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
 	void InputText::DoOnCaption(const std::wstring& caption)
 	{
 		auto editor = GetReactor().GetEditor();
