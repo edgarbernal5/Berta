@@ -12,6 +12,16 @@
 
 namespace Berta
 {
+	std::string ControlBase::GetCaption() const
+	{
+		return StringUtils::Convert(DoOnCaption());
+	}
+
+	std::wstring ControlBase::GetCaptionW() const
+	{
+		return DoOnCaption();
+	}
+
 	void ControlBase::SetCaption(const std::wstring& caption)
 	{
 		DoOnCaption(caption);
@@ -21,11 +31,6 @@ namespace Berta
 	{
 		std::wstring wCaption = StringUtils::Convert(caption);
 		DoOnCaption(wCaption);
-	}
-
-	std::wstring ControlBase::GetCaption() const
-	{
-		return DoOnCaption();
 	}
 
 	bool ControlBase::GetEnabled() const
@@ -116,19 +121,14 @@ namespace Berta
 		m_handle->Flags.AutoDraw = autoDraw;
 	}
 
-	void ControlBase::DoOnCaption(const std::wstring& caption)
-	{
-		GUI::CaptionWindow(m_handle, caption);
-	}
-
 	std::wstring ControlBase::DoOnCaption() const
 	{
 		return GUI::CaptionWindow(m_handle);
 	}
 
-	void ControlBase::DoOnEnabled(bool enabled)
+	void ControlBase::DoOnCaption(const std::wstring& caption)
 	{
-		GUI::EnableWindow(m_handle, enabled);
+		GUI::CaptionWindow(m_handle, caption);
 	}
 
 	bool ControlBase::DoOnEnabled() const
@@ -136,14 +136,19 @@ namespace Berta
 		return GUI::EnableWindow(m_handle);
 	}
 
-	void ControlBase::DoOnSize(const Size& newSize)
+	void ControlBase::DoOnEnabled(bool enabled)
 	{
-		GUI::ResizeWindow(m_handle, newSize);
+		GUI::EnableWindow(m_handle, enabled);
 	}
 
 	Size ControlBase::DoOnSize() const
 	{
 		return GUI::SizeWindow(m_handle);
+	}
+
+	void ControlBase::DoOnSize(const Size& newSize)
+	{
+		GUI::ResizeWindow(m_handle, newSize);
 	}
 
 	void ControlBase::DoOnMove(const Point& newPoint)
