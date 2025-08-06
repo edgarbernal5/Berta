@@ -35,7 +35,7 @@ int main()
 	categoryTransform.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldString("Tag", "Blue, Green")));
 	for (size_t i = 0; i < 3; i++)
 	{
-		categoryTransform.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldVector3("Position")));
+		categoryTransform.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
 	}
 
 	auto categoryEmpty = propertyGrid.Append("Empty");

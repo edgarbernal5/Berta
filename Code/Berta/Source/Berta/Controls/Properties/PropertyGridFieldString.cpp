@@ -75,9 +75,16 @@ namespace Berta
 				}
 			});
 
-		m_inputText.GetEvents().Focus.Connect([](const ArgFocus& args)
+		m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
+				if (args.Focused)
+					return;
 
+				if (m_inputText.GetCaption() != PropertyGridField::GetValue())
+				{
+					PropertyGridField::SetValue(m_inputText.GetCaption());
+					EmitEvent();
+				}
 			});
 	}
 }

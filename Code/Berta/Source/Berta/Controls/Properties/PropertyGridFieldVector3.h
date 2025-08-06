@@ -18,7 +18,7 @@ namespace Berta
 	class PropertyGridFieldVector3 : public PropertyGridField
 	{
 	public:
-		PropertyGridFieldVector3(const std::string& label, const std::string value = "") :
+		PropertyGridFieldVector3(const std::string& label, const std::string& value) :
 			Berta::PropertyGridField(label, value)
 		{
 		}

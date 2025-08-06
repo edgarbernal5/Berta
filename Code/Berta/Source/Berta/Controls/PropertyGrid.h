@@ -37,7 +37,7 @@ namespace Berta
 
 		public:
 			PropertyGridField() = default;
-			PropertyGridField(const std::string& label, const std::string value = "") :
+			PropertyGridField(const std::string& label, const std::string& value = "") :
 				m_label(label), m_value(value), m_defaultValue(value)
 			{
 			}

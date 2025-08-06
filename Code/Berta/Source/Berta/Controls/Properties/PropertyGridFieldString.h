@@ -18,7 +18,7 @@ namespace Berta
 	class PropertyGridFieldString : public PropertyGridField
 	{
 	public:
-		PropertyGridFieldString(const std::string& label, const std::string value = "") :
+		PropertyGridFieldString(const std::string& label, const std::string& value = "") :
 			Berta::PropertyGridField(label, value)
 		{
 		}

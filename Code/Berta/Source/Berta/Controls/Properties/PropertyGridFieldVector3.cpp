@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	void PropertyGridFieldVector3::Create(Berta::Window* parent)
+	void PropertyGridFieldVector3::Create(Window* parent)
 	{
 		for (auto& input : m_inputTexts)
 		{
@@ -38,18 +38,36 @@ namespace Berta
 					}
 				});
 
-			input.GetEvents().Focus.Connect([](const ArgFocus& args)
+			input.SetCharFilter([&input](wchar_t chr)
 				{
+					auto isDigit = std::isdigit(chr);
+					auto onlyOneDot = chr == '.' && input.GetText().find('.') == std::string::npos;
 
+					return isDigit || onlyOneDot;
+				});
+
+			input.GetEvents().Focus.Connect([this](const ArgFocus& args)
+				{
+					if (args.Focused)
+						return;
+
+					auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
+					if (newValue != PropertyGridField::GetValue())
+					{
+						PropertyGridField::SetValue(newValue);
+						EmitEvent();
+					}
 				});
 		}
+
+		PropertyGridFieldVector3::SetValue(m_value);
 	}
 
-	void PropertyGridFieldVector3::Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor)
+	void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		Berta::PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
 
-		Berta::Rectangle valueRect = area;
+		Rectangle valueRect = area;
 
 		valueRect.X += static_cast<int>(labelWidth);
 		valueRect.Width -= labelWidth;
@@ -68,7 +86,7 @@ namespace Berta
 			auto& input = m_inputTexts[i];
 			auto inputTextExtent = graphics.GetTextExtent(m_inputTextLabels[i]);
 
-			Berta::Rectangle inputRect = panelSaved;
+			Rectangle inputRect = panelSaved;
 			inputRect.X += x;
 			int innerLabelOffsetX = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
 			int innerLabelOffsetY = (int)((area.Height - innerLabelExtents.Height)) >> 1;
@@ -111,6 +129,9 @@ namespace Berta
 		{
 			items.clear();
 		}
+
+		if (items.size() != 3)
+			return;
 
 		for (size_t i = 0; i < 3; ++i)
 		{
