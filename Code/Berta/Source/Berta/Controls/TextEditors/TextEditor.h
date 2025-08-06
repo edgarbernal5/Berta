@@ -40,13 +40,27 @@ namespace Berta
 		bool OnDblClick(const ArgMouse& args);
 
 		void SetValueChangedCallback(TextEditorCallback callback) { m_valueChangedCallback = callback; }
+
 		size_t GetCaretPosition() const { return m_caretPosition; }
+
 		const std::wstring& GetContent() const { return m_content; }
 		void SetContent(const std::wstring& newContent) { m_content = newContent; }
 
 		void Render();
 
+		bool IsEditable() const;
+		void SetEditable(bool isEditable);
+		void SetCharFilter(std::function<bool(wchar_t)> predicate);
+
+		bool Deselect();
+		bool SelectAll();
 	private:
+		struct Features
+		{
+			bool isEditable{ true };
+			bool isMultiLines{ true };
+		};
+
 		void ActivateCaret();
 		void DeactivateCaret();
 
@@ -84,6 +98,9 @@ namespace Berta
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
 		TextEditorCallback m_valueChangedCallback;
+
+		Features m_features;
+		std::function<bool(wchar_t)> m_predicate;
 	};
 }
 

@@ -95,16 +95,16 @@ namespace Berta
 		Slider(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
 		void SetMinMax(int min, int max);
-		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
+		void SetOrientation(bool isVertical) { GetReactor().SetOrientation(isVertical); }
 		void SetValue(int value);
 		void SetStepValue(int stepValue);
 		void SetPageStepValue(int pageStepValue);
 
-		int GetMin() const { return m_reactor.GetMin(); }
-		int GetMax() const { return m_reactor.GetMax(); }
-		int GetValue() const { return m_reactor.GetValue(); }
-		int GetStepValue() const { return m_reactor.GetStepValue(); }
-		int GetPageStepValue() const { return m_reactor.GetPageStepValue(); }
+		int GetMin() const { return GetReactor().GetMin(); }
+		int GetMax() const { return GetReactor().GetMax(); }
+		int GetValue() const { return GetReactor().GetValue(); }
+		int GetStepValue() const { return GetReactor().GetStepValue(); }
+		int GetPageStepValue() const { return GetReactor().GetPageStepValue(); }
 	};
 }
 

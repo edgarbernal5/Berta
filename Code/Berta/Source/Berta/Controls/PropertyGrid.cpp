@@ -88,12 +88,12 @@ namespace Berta
 
 	CategoryItem PropertyGrid::Append(const std::string& categoryName)
 	{
-		return m_reactor.GetModule().Append(categoryName);
+		return GetReactor().GetModule().Append(categoryName);
 	}
 
 	void PropertyGrid::Clear()
 	{
-		m_reactor.GetModule().Clear();
+		GetReactor().GetModule().Clear();
 	}
 
 	CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)

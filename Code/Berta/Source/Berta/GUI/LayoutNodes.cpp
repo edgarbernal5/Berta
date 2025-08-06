@@ -806,17 +806,17 @@ namespace Berta
 
 	void DockAreaCaption::SetPaneInfo(PaneInfo* paneInfo)
 	{
-		m_reactor.m_paneInfo = paneInfo;
+		GetReactor().m_paneInfo = paneInfo;
 	}
 
 	bool DockAreaCaption::WasPressedCloseButton() const
 	{
-		return m_reactor.m_mouseDownCloseButton;
+		return GetReactor().m_mouseDownCloseButton;
 	}
 
 	bool DockAreaCaption::HaveClickedCloseButton() const
 	{
-		return m_reactor.m_clickedCloseButton;
+		return GetReactor().m_clickedCloseButton;
 	}
 
 	DockPaneTabLayoutNode::DockPaneTabLayoutNode() :

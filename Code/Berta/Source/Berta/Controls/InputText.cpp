@@ -129,7 +129,7 @@ namespace Berta
 
 	void InputText::DoOnCaption(const std::wstring& caption)
 	{
-		auto editor = m_reactor.GetEditor();
+		auto editor = GetReactor().GetEditor();
 		if (editor)
 		{
 			editor->SetContent(caption);
@@ -138,6 +138,6 @@ namespace Berta
 
 	std::wstring InputText::DoOnCaption() const
 	{
-		return m_reactor.GetEditor()->GetContent();
+		return GetReactor().GetEditor()->GetContent();
 	}
 }

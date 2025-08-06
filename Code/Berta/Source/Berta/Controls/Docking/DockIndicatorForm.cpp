@@ -133,6 +133,6 @@ namespace Berta
 
 	void DockIndicatorForm::SetDockPosition(DockPosition position)
 	{
-		m_reactor.SetDockPosition(position);
+		GetReactor().SetDockPosition(position);
 	}
 }

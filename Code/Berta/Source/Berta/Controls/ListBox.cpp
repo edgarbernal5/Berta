@@ -1807,51 +1807,51 @@ namespace Berta
 
 	void ListBox::AppendHeader(const std::string& name, uint32_t width)
 	{
-		m_reactor.GetModule().AppendHeader(name, width);
+		GetReactor().GetModule().AppendHeader(name, width);
 	}
 
 	ListBoxItem ListBox::Append(const std::string& text)
 	{
-		return m_reactor.GetModule().Append(text);
+		return GetReactor().GetModule().Append(text);
 	}
 
 	ListBoxItem ListBox::Append(std::initializer_list<std::string> texts)
 	{
-		return m_reactor.GetModule().Append(texts);
+		return GetReactor().GetModule().Append(texts);
 	}
 
 	ListBoxItem ListBox::At(size_t index)
 	{
-		return m_reactor.GetModule().At(index);
+		return GetReactor().GetModule().At(index);
 	}
 
 	void ListBox::Clear()
 	{
-		m_reactor.GetModule().Clear();
+		GetReactor().GetModule().Clear();
 	}
 
 	void ListBox::ClearHeaders()
 	{
-		m_reactor.GetModule().ClearHeaders();
+		GetReactor().GetModule().ClearHeaders();
 	}
 
 	void ListBox::Erase(ListBoxItem item)
 	{
-		m_reactor.GetModule().Erase(item);
+		GetReactor().GetModule().Erase(item);
 	}
 
 	void ListBox::Erase(std::vector<ListBoxItem>& items)
 	{
-		m_reactor.GetModule().Erase(items);
+		GetReactor().GetModule().Erase(items);
 	}
 
 	void ListBox::EnableMultiselection(bool enabled)
 	{
-		m_reactor.GetModule().EnableMultiselection(enabled);
+		GetReactor().GetModule().EnableMultiselection(enabled);
 	}
 
 	std::vector<ListBoxItem> ListBox::GetSelected()
 	{
-		return m_reactor.GetModule().GetSelectedItems();
+		return GetReactor().GetModule().GetSelectedItems();
 	}
 }

@@ -98,7 +98,7 @@ namespace Berta
 		void PushItem(const std::string& text);
 		void PushItem(const std::wstring& text, const Image& icon);
 		void PushItem(const std::string& text, const Image& icon);
-		int GetSelectedIndex() { m_reactor.GetSelectedIndex(); }
+		int GetSelectedIndex() { GetReactor().GetSelectedIndex(); }
 		std::wstring GetText(uint32_t index);
 		void SetSelectedIndex(uint32_t index);
 

@@ -95,16 +95,16 @@ namespace Berta
 		ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical = true);
 
 		void SetMinMax(ScrollBarUnit min, ScrollBarUnit max);
-		void SetOrientation(bool isVertical) { m_reactor.SetOrientation(isVertical); }
+		void SetOrientation(bool isVertical) { GetReactor().SetOrientation(isVertical); }
 		void SetValue(ScrollBarUnit value);
 		void SetStepValue(ScrollBarUnit stepValue);
 		void SetPageStepValue(ScrollBarUnit pageStepValue);
 
-		ScrollBarUnit GetMin() const { return m_reactor.GetMin(); }
-		ScrollBarUnit GetMax() const { return m_reactor.GetMax(); }
-		ScrollBarUnit GetValue() const { return m_reactor.GetValue(); }
-		ScrollBarUnit GetStepValue() const { return m_reactor.GetStepValue(); }
-		ScrollBarUnit GetPageStepValue() const { return m_reactor.GetPageStepValue(); }
+		ScrollBarUnit GetMin() const { return GetReactor().GetMin(); }
+		ScrollBarUnit GetMax() const { return GetReactor().GetMax(); }
+		ScrollBarUnit GetValue() const { return GetReactor().GetValue(); }
+		ScrollBarUnit GetStepValue() const { return GetReactor().GetStepValue(); }
+		ScrollBarUnit GetPageStepValue() const { return GetReactor().GetPageStepValue(); }
 	};
 }
 

@@ -363,7 +363,7 @@ namespace Berta
 	Slider::Slider(Window* parent, const Rectangle& rectangle, bool isVertical)
 	{
 		Create(parent, true, rectangle);
-		m_reactor.SetOrientation(isVertical);
+		GetReactor().SetOrientation(isVertical);
 
 #if BT_DEBUG
 		m_handle->Name = "Slider";
@@ -373,7 +373,7 @@ namespace Berta
 	Slider::Slider(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical)
 	{
 		Create(parent, isUnscaleRect, rectangle);
-		m_reactor.SetOrientation(isVertical);
+		GetReactor().SetOrientation(isVertical);
 
 #if BT_DEBUG
 		m_handle->Name = "Slider";
@@ -382,21 +382,21 @@ namespace Berta
 
 	void Slider::SetMinMax(int min, int max)
 	{
-		m_reactor.SetMinMax(min, max);
+		GetReactor().SetMinMax(min, max);
 	}
 
 	void Slider::SetValue(int value)
 	{
-		m_reactor.SetValue(value);
+		GetReactor().SetValue(value);
 	}
 
 	void Slider::SetStepValue(int stepValue)
 	{
-		m_reactor.SetStepValue(stepValue);
+		GetReactor().SetStepValue(stepValue);
 	}
 
 	void Slider::SetPageStepValue(int pageStepValue)
 	{
-		m_reactor.SetPageStepValue(pageStepValue);
+		GetReactor().SetPageStepValue(pageStepValue);
 	}
 }

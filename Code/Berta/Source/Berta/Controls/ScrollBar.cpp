@@ -407,7 +407,7 @@ namespace Berta
 	ScrollBar::ScrollBar(Window* parent, const Rectangle& rectangle, bool isVertical)
 	{
 		Create(parent, true, rectangle);
-		m_reactor.SetOrientation(isVertical);
+		GetReactor().SetOrientation(isVertical);
 
 #if BT_DEBUG
 		m_handle->Name = "ScrollBar";
@@ -417,7 +417,7 @@ namespace Berta
 	ScrollBar::ScrollBar(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool isVertical)
 	{
 		Create(parent, isUnscaleRect, rectangle);
-		m_reactor.SetOrientation(isVertical);
+		GetReactor().SetOrientation(isVertical);
 
 #if BT_DEBUG
 		m_handle->Name = "ScrollBar";
@@ -426,21 +426,21 @@ namespace Berta
 
 	void ScrollBar::SetMinMax(ScrollBarUnit min, ScrollBarUnit max)
 	{
-		m_reactor.SetMinMax(min, max);
+		GetReactor().SetMinMax(min, max);
 	}
 
 	void ScrollBar::SetValue(ScrollBarUnit value)
 	{
-		m_reactor.SetValue(value);
+		GetReactor().SetValue(value);
 	}
 
 	void ScrollBar::SetStepValue(ScrollBarUnit stepValue)
 	{
-		m_reactor.SetStepValue(stepValue);
+		GetReactor().SetStepValue(stepValue);
 	}
 
 	void ScrollBar::SetPageStepValue(ScrollBarUnit pageStepValue)
 	{
-		m_reactor.SetPageStepValue(pageStepValue);
+		GetReactor().SetPageStepValue(pageStepValue);
 	}
 }

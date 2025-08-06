@@ -1556,100 +1556,100 @@ namespace Berta
 
 	void TreeBox::Clear()
 	{
-		m_reactor.GetModule().Clear();
+		GetReactor().GetModule().Clear();
 	}
 
 	void TreeBox::CollapseAll()
 	{
-		if (m_reactor.GetModule().CollapseAll())
+		if (GetReactor().GetModule().CollapseAll())
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void TreeBox::CollapseAll(TreeBoxItem item)
 	{
-		if (m_reactor.GetModule().CollapseAll(item))
+		if (GetReactor().GetModule().CollapseAll(item))
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void TreeBox::Erase(const TreeNodeHandle& key)
 	{
-		m_reactor.GetModule().Erase(key);
+		GetReactor().GetModule().Erase(key);
 	}
 
 	void TreeBox::Erase(TreeBoxItem item)
 	{
-		m_reactor.GetModule().Erase(item);
+		GetReactor().GetModule().Erase(item);
 	}
 
 	TreeBoxItem TreeBox::Find(const TreeNodeHandle& key)
 	{
-		return m_reactor.GetModule().Find(key);
+		return GetReactor().GetModule().Find(key);
 	}
 
 	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
-		auto item = m_reactor.GetModule().Insert(key, text);
+		auto item = GetReactor().GetModule().Insert(key, text);
 
 		if (item)
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 		return item;
 	}
 
 	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text)
 	{
-		auto item = m_reactor.GetModule().Insert(key, text, parent.GetHandle());
+		auto item = GetReactor().GetModule().Insert(key, text, parent.GetHandle());
 
 		if (item)
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 		return item;
 	}
 
 	void TreeBox::ExpandAll()
 	{
-		if (m_reactor.GetModule().ExpandAll())
+		if (GetReactor().GetModule().ExpandAll())
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void TreeBox::ExpandAll(TreeBoxItem item)
 	{
-		if (m_reactor.GetModule().ExpandAll(item))
+		if (GetReactor().GetModule().ExpandAll(item))
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	std::string TreeBox::GetKeyPath(TreeBoxItem item, char separator)
 	{
-		return m_reactor.GetModule().GetKeyPath(item, separator);
+		return GetReactor().GetModule().GetKeyPath(item, separator);
 	}
 
 	std::vector<TreeBoxItem> TreeBox::GetSelected()
 	{
-		return m_reactor.GetModule().GetSelected();
+		return GetReactor().GetModule().GetSelected();
 	}
 
 	void TreeBox::ShowNavigationLines(bool visible)
 	{
-		if (m_reactor.GetModule().ShowNavigationLines(visible))
+		if (GetReactor().GetModule().ShowNavigationLines(visible))
 		{
-			m_reactor.GetModule().Update();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Update();
+			GetReactor().GetModule().Draw();
 		}
 	}
 

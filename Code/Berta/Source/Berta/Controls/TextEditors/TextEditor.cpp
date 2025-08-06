@@ -128,10 +128,16 @@ namespace Berta
 
 	bool TextEditor::OnKeyChar(const ArgKeyboard& args)
 	{
-		if (std::isprint(static_cast<int>(args.Key)))
+		if (!m_features.isEditable)
+			return false;
+
+		if (!m_predicate || m_predicate(args.Key))
 		{
-			Insert(args.Key);
-			return true;
+			if (std::isprint(static_cast<int>(args.Key)))
+			{
+				Insert(args.Key);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -187,7 +193,9 @@ namespace Berta
 	{
 		m_wasDblClick = true;
 		if (m_content.empty())
+		{
 			return false;
+		}
 
 		size_t start = GetPositionNextWord(m_caretPosition, -1);
 		size_t end = GetPositionNextWord(m_caretPosition, 1);
@@ -428,6 +436,44 @@ namespace Berta
 		{
 			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 + textOffset }, { 2 + m_offsetView + (int)contentSize.Width, textOffset + (int)caretHeight }, m_owner->Appearance->Foreground2nd);
 		}
+	}
+
+	bool TextEditor::IsEditable() const
+	{
+		return m_features.isEditable;
+	}
+
+	void TextEditor::SetEditable(bool isEditable)
+	{
+		m_features.isEditable = isEditable;
+	}
+
+	void TextEditor::SetCharFilter(std::function<bool(wchar_t)> predicate)
+	{
+		m_predicate = std::move(predicate);
+	}
+
+	bool TextEditor::Deselect()
+	{
+		m_selectionStartPosition = m_selectionEndPosition = -1;
+		m_caretPosition = 0;
+
+		AdjustView();
+		return true;
+	}
+
+	bool TextEditor::SelectAll()
+	{
+		if (m_content.empty())
+		{
+			return false;
+		}
+		m_selectionStartPosition = 0;
+		m_selectionEndPosition = m_content.size();
+		m_caretPosition = m_selectionEndPosition;
+
+		AdjustView();
+		return true;
 	}
 
 	void TextEditor::AdjustView()

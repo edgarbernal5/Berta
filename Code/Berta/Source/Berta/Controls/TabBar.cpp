@@ -386,22 +386,22 @@ namespace Berta
 
 	void TabBar::Clear()
 	{
-		m_reactor.Clear();
+		GetReactor().Clear();
 	}
 
 	void TabBar::Insert(size_t position, const std::string& tabId, Window* window)
 	{
-		m_reactor.InsertTab(position, tabId, window);
+		GetReactor().InsertTab(position, tabId, window);
 	}
 
 	void TabBar::PushBack(const std::string& tabId, Window* window)
 	{
-		m_reactor.AddTab(tabId, window);
+		GetReactor().AddTab(tabId, window);
 	}
 
 	void TabBar::SetTabPosition(TabBarPosition position)
 	{
-		m_reactor.SetTabPosition(position);
+		GetReactor().SetTabPosition(position);
 	}
 
 	bool TabBarReactor::Module::AddTab(const std::string& tabId, Window* window)
@@ -429,17 +429,17 @@ namespace Berta
 	
 	size_t TabBar::Count() const
 	{
-		return m_reactor.Count();
+		return GetReactor().Count();
 	}
 
 	void TabBar::Erase(size_t index)
 	{
-		m_reactor.EraseTab(index);
+		GetReactor().EraseTab(index);
 	}
 
 	int TabBar::GetSelectedIndex() const
 	{
-		return m_reactor.GetSelectedIndex();
+		return GetReactor().GetSelectedIndex();
 	}
 
 	TabBarReactor::PanelItem::~PanelItem()

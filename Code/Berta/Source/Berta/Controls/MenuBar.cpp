@@ -328,23 +328,23 @@ namespace Berta
 
 	Menu& MenuBar::At(size_t index)
 	{
-		return m_reactor.GetModule().At(index);
+		return GetReactor().GetModule().At(index);
 	}
 
 	size_t MenuBar::GetCount() const
 	{
-		return m_reactor.GetModule().m_items.size();
+		return GetReactor().GetModule().m_items.size();
 	}
 
 	Menu& MenuBar::PushBack(const std::wstring& itemName)
 	{
-		return m_reactor.GetModule().PushBack(itemName);
+		return GetReactor().GetModule().PushBack(itemName);
 	}
 
 	Menu& MenuBar::PushBack(const std::string& itemName)
 	{
 		std::wstring wItemName = StringUtils::Convert(itemName);
 
-		return m_reactor.GetModule().PushBack(wItemName);
+		return GetReactor().GetModule().PushBack(wItemName);
 	}
 }

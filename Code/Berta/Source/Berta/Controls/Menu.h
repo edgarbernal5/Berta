@@ -197,7 +197,7 @@ namespace Berta
 		static int g_globalId;
 #endif
 
-		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&m_reactor); }
+		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&GetReactor()); }
 		Size GetMenuBoxSize();
 	};
 }

@@ -1057,75 +1057,75 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::wstring& text)
 	{
-		if (m_reactor.GetModule().AddItem(text) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(text) && IsAutoDraw())
 		{
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void ThumbListBox::AddItem(const std::string& text)
 	{
-		if (m_reactor.GetModule().AddItem(StringUtils::Convert(text)) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(StringUtils::Convert(text)) && IsAutoDraw())
 		{
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
-		if (m_reactor.GetModule().AddItem(text, thumbnail) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(text, thumbnail) && IsAutoDraw())
 		{
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void ThumbListBox::AddItem(const std::string& text, const Image& thumbnail)
 	{
-		if (m_reactor.GetModule().AddItem(StringUtils::Convert(text), thumbnail) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(StringUtils::Convert(text), thumbnail) && IsAutoDraw())
 		{
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	ThumbListBoxItem ThumbListBox::At(size_t index)
 	{
-		return m_reactor.GetModule().At(index);
+		return GetReactor().GetModule().At(index);
 	}
 
 	void ThumbListBox::Clear()
 	{
-		if (m_reactor.GetModule().Clear() && IsAutoDraw())
+		if (GetReactor().GetModule().Clear() && IsAutoDraw())
 		{
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	void ThumbListBox::Erase(size_t index)
 	{
-		m_reactor.GetModule().Erase(index);
+		GetReactor().GetModule().Erase(index);
 	}
 
 	void ThumbListBox::SetThumbnailSize(uint32_t size)
 	{
-		m_reactor.GetModule().SetThumbnailSize(size);
+		GetReactor().GetModule().SetThumbnailSize(size);
 	}
 
 	bool ThumbListBox::IsEnabledMultiselection() const
 	{
-		return m_reactor.GetModule().IsEnabledMultiselection();
+		return GetReactor().GetModule().IsEnabledMultiselection();
 	}
 
 	void ThumbListBox::EnableMultiselection(bool enabled)
 	{
-		if (m_reactor.GetModule().EnableMultiselection(enabled))
+		if (GetReactor().GetModule().EnableMultiselection(enabled))
 		{
-			m_reactor.GetModule().ClearSelection();
-			m_reactor.GetModule().Draw();
+			GetReactor().GetModule().ClearSelection();
+			GetReactor().GetModule().Draw();
 		}
 	}
 
 	std::vector<size_t> ThumbListBox::GetSelected() const
 	{
-		return m_reactor.GetModule().GetSelectedItems();
+		return GetReactor().GetModule().GetSelectedItems();
 	}
 }

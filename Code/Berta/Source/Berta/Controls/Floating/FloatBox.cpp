@@ -261,12 +261,12 @@ namespace Berta
 	bool FloatBox::OnKeyPressed(const ArgKeyboard& args)
 	{
 		bool redraw = false;
-		//m_reactor.KeyPressed(m_handle->Renderer.GetGraphics(), args);
+		//GetReactor().KeyPressed(m_handle->Renderer.GetGraphics(), args);
 		return redraw;
 	}
 
 	bool FloatBox::MoveSelectedItem(int direction)
 	{
-		return m_reactor.MoveSelectedItem(direction);
+		return GetReactor().MoveSelectedItem(direction);
 	}
 }

@@ -751,18 +751,18 @@ namespace Berta
 	{
 		menuOwner->m_menuBox = this;
 
-		m_reactor.SetItems(items);
-		m_reactor.SetMenuOwner(menuOwner);
+		GetReactor().SetItems(items);
+		GetReactor().SetMenuOwner(menuOwner);
 
 		auto boxSize = GetMenuBoxSize();
 		SetSize(boxSize);
 
-		m_reactor.BuildItems();
+		GetReactor().BuildItems();
 	}
 
 	void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
-		m_reactor.SetIgnoreFirstMouseUp(value);
+		GetReactor().SetIgnoreFirstMouseUp(value);
 	}
 
 	void MenuBox::Popup(bool fromMenuBar)
@@ -774,7 +774,7 @@ namespace Berta
 
 	Size MenuBox::GetMenuBoxSize()
 	{
-		return m_reactor.GetMenuBoxSize();
+		return GetReactor().GetMenuBoxSize();
 	}
 
 	bool MenuItem::GetEnabled() const

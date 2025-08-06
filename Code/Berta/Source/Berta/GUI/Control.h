@@ -186,6 +186,10 @@ namespace Berta
 			m_events = std::make_shared<EventsType>();
 		}
 
+		ReactorType& GetReactor() { return m_reactor; }
+		const ReactorType& GetReactor() const { return m_reactor; }
+
+	private:
 		ReactorType m_reactor;
 		std::shared_ptr<EventsType> m_events;
 		std::shared_ptr<AppearanceType> m_appearance;

@@ -68,11 +68,11 @@ namespace Berta
 		bool OnKeyPressed(const ArgKeyboard& args);
 		void Init(Float::InteractionData& state)
 		{
-			m_reactor.SetState(state);
+			GetReactor().SetState(state);
 		}
 
 		bool MoveSelectedItem(int direction);
-		FloatBoxReactor::State& GetState() { return m_reactor.GetState(); }
+		FloatBoxReactor::State& GetState() { return GetReactor().GetState(); }
 
 	private:
 	};

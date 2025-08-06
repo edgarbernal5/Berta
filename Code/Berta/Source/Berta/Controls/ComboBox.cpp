@@ -311,53 +311,53 @@ namespace Berta
 
 	void ComboBox::Clear()
 	{
-		m_reactor.Clear();
+		GetReactor().Clear();
 	}
 
 	void ComboBox::Erase(uint32_t index)
 	{
-		m_reactor.Erase(index);
+		GetReactor().Erase(index);
 	}
 
 	std::wstring ComboBox::GetText(uint32_t index)
 	{
-		return m_reactor.GetText(index);
+		return GetReactor().GetText(index);
 	}
 
 	void ComboBox::SetSelectedIndex(uint32_t index)
 	{
-		m_reactor.SetSelectedIndex(index);
+		GetReactor().SetSelectedIndex(index);
 	}
 
 	void ComboBox::PushItem(const std::wstring& text)
 	{
-		m_reactor.PushItem(text);
+		GetReactor().PushItem(text);
 	}
 
 	void ComboBox::PushItem(const std::string& text)
 	{
 		std::wstring wText = StringUtils::Convert(text);
-		m_reactor.PushItem(wText);
+		GetReactor().PushItem(wText);
 	}
 
 	void ComboBox::PushItem(const std::wstring& text, const Image& icon)
 	{
-		m_reactor.PushItem(text, icon);
+		GetReactor().PushItem(text, icon);
 	}
 
 	void ComboBox::PushItem(const std::string& text, const Image& icon)
 	{
 		std::wstring wText = StringUtils::Convert(text);
-		m_reactor.PushItem(wText, icon);
+		GetReactor().PushItem(wText, icon);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)
 	{
-		m_reactor.SetText(caption);
+		GetReactor().SetText(caption);
 	}
 
 	std::wstring ComboBox::DoOnCaption() const
 	{
-		return m_reactor.GetText();
+		return GetReactor().GetText();
 	}
 }

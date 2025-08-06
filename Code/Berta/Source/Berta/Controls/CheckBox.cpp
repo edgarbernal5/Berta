@@ -131,11 +131,11 @@ namespace Berta
 
 	bool CheckBox::IsChecked() const
 	{
-		return m_reactor.GetModule().m_isChecked;
+		return GetReactor().GetModule().m_isChecked;
 	}
 
 	void CheckBox::SetChecked(bool isChecked)
 	{
-		m_reactor.GetModule().m_isChecked = isChecked;
+		GetReactor().GetModule().m_isChecked = isChecked;
 	}
 }
