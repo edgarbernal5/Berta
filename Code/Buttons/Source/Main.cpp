@@ -17,9 +17,9 @@ int main()
 
 	Berta::Button button(form, { 15,15,150,50 }, "Click me!");
 	button.GetEvents().Click.Connect([&buttonDisabled](const Berta::ArgClick& args)
-	{
-		buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
-	});
+		{
+			buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
+		});
 
 
 	form.Show();

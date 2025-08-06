@@ -84,9 +84,9 @@ public:
 		m_viewport.MinDepth = D3D12_MIN_DEPTH;
 		m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
-		{
-			m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
-		});
+			{
+				m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+			});
 
 		m_nestedForm->Show();
 	}
@@ -147,9 +147,9 @@ int main()
 	newSubmenu->Append("Tab");
 
 	menuFile.Append("Exit", [](Berta::MenuItem& item)
-	{
-		Berta::GUI::Exit();
-	});
+		{
+			Berta::GUI::Exit();
+		});
 
 	auto& menuWindow = menuBar.PushBack(L"Window");
 	menuWindow.Append("Load layout");
@@ -163,7 +163,7 @@ int main()
 
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
-	
+
 	TabForm tabForm(form);
 	TabProperties tabProperties(form);
 
