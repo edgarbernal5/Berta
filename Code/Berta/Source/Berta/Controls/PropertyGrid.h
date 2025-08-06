@@ -18,98 +18,147 @@
 
 namespace Berta
 {
-	struct PropertyGridEvents;
-	struct CategoryItem;
-
-	struct PropertyGridAppearance : public ControlAppearance
+	namespace ReactorCore::PropertyGrid
 	{
-		uint32_t CategoryHeight = 22u;
-		uint32_t ExpanderButtonSize = 12u;
-	};
+		struct Events;
+		struct CategoryItem;
+		struct Module;
 
-	class FieldControlContainter : public Panel
-	{
-	public:
-		FieldControlContainter() = default;
-		FieldControlContainter(Window* parent, const Rectangle& rect = {});
-	};
-
-	class PropertyGridField
-	{
-	public:
-		PropertyGridField() = default;
-		PropertyGridField(const std::string& label, const std::string value = "") :
-			m_label(label), m_value(value), m_defaultValue(value)
+		struct Appearance : public ControlAppearance
 		{
-		}
+			uint32_t CategoryHeight = 22u;
+			uint32_t ExpanderButtonSize = 12u;
+		};
 
-		virtual ~PropertyGridField() = default;
-
-		void Init(Window* parent);
-
-		virtual std::string GetLabel() const;
-		virtual void SetLabel(const std::string& label);
-
-		virtual std::string GetValue() const;
-		virtual void SetValue(const std::string& value);
-
-		virtual std::string GetDefaultValue() const;
-		virtual void SetDefaultValue(const std::string& value);
-
-		virtual bool IsEnabled() const;
-		virtual void SetEnabled(bool enabled);
-
-		virtual uint32_t GetSize() const
+		class PropertyGridField
 		{
-			return m_parent->ToScale(m_size);
-		}
+		public:
+			friend struct CategoryItem;
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
+		public:
+			PropertyGridField() = default;
+			PropertyGridField(const std::string& label, const std::string value = "") :
+				m_label(label), m_value(value), m_defaultValue(value)
+			{
+			}
 
-		void Update();
+			virtual ~PropertyGridField() = default;
 
-	protected:
-		virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
-		virtual void Create(Window* parent) = 0;
+			void Init(Window* parent);
 
-		Window* m_parent{ nullptr };
+			virtual std::string GetLabel() const;
+			virtual void SetLabel(const std::string& label);
 
-		std::string	m_label;
-		std::string	m_value;
-		std::string	m_defaultValue;
+			virtual std::string GetValue() const;
+			virtual void SetValue(const std::string& value);
 
-		uint32_t m_size{ 24 };
-		bool m_enabled{ true };
-	
-	private:
-	};
+			virtual std::string GetDefaultValue() const;
+			virtual void SetDefaultValue(const std::string& value);
 
-	using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
+			virtual bool IsEnabled() const;
+			virtual void SetEnabled(bool enabled);
 
-	struct CategoryType
-	{
-		CategoryType() = default;
-		CategoryType(const std::string& name) : m_name(name) {}
+			virtual uint32_t GetSize() const
+			{
+				return m_parent->ToScale(m_size);
+			}
 
-		std::string m_name;
+			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
 
-		bool m_isExpanded{ true };
-		Rectangle m_area{};
-		std::vector<std::unique_ptr<PropertyGridField>> m_properties;
-		std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
-	};
+			void EmitEvent();
+			void Update();
 
-	class PropertyGridReactor : public ControlReactor
-	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
-		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-		void Resize(Graphics& graphics, const ArgResize& args) override;
-		
+		protected:
+			virtual void Create(Window* parent) = 0;
+			virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
+			void SetModule(Module* m_module);
+
+			Window* m_parent{ nullptr };
+
+			std::string	m_label;
+			std::string	m_value;
+			std::string	m_defaultValue;
+
+			uint32_t m_size{ 24 };
+			bool m_enabled{ true };
+
+		private:
+			Module* m_module{ nullptr };
+		};
+
+		class FieldControlContainter : public Panel
+		{
+		public:
+			FieldControlContainter() = default;
+			FieldControlContainter(Window* parent, const Rectangle& rect = {});
+		};
+
+		struct CategoryType
+		{
+			CategoryType() = default;
+			CategoryType(const std::string& name) : m_name(name) {}
+
+			std::string m_name;
+
+			bool m_isExpanded{ true };
+			Rectangle m_area{};
+			std::vector<std::unique_ptr<PropertyGridField>> m_properties;
+			std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
+		};
+
+		struct ViewportData
+		{
+			Rectangle m_backgroundRect{};
+			bool m_needVerticalScroll{ false };
+			uint32_t m_contentSize{};
+			uint32_t m_categoryItemHeight{ 0 };
+			int m_categoryTextOffset{ 0 };
+			uint32_t m_expanderButtonSize{ 0 };
+		};
+
+		struct MouseInteraction
+		{
+			CategoryType* m_hoveredCategory{ nullptr };
+			CategoryType* m_selectedCategory{ nullptr };
+		};
+
+		using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
+
+		class PropertyItem
+		{
+		public:
+			PropertyItem(Module* module, PropertyGridField* propGridField) :
+				m_module(module), m_propGridField(propGridField)
+			{
+			}
+
+			std::string GetLabel() const;
+			PropertyItem& SetLabel(const std::string& label);
+
+			std::string GetValue() const;
+			PropertyItem& SetValue(const std::string& value, bool emit = false);
+
+		private:
+			Module* m_module{ nullptr };
+			PropertyGridField* m_propGridField{ nullptr };
+		};
+
+		struct CategoryItem
+		{
+			CategoryItem() = default;
+			CategoryItem(Module* module, CategoryType* category) :
+				m_module(module), m_category(category)
+			{
+			}
+
+			PropertyItem Append(PropertyGridFieldPtr propGridFieldPtr);
+
+			operator bool() const;
+
+			Module* m_module{ nullptr };
+			CategoryType* m_category{ nullptr };
+		};
+
 		class ListModule
 		{
 		public:
@@ -129,22 +178,6 @@ namespace Berta
 			std::vector<CategoryType> m_categories;
 		};
 
-		struct ViewportData
-		{
-			Rectangle m_backgroundRect{};
-			bool m_needVerticalScroll{ false };
-			uint32_t m_contentSize{};
-			uint32_t m_categoryItemHeight{ 0 };
-			int m_categoryTextOffset{ 0 };
-			uint32_t m_expanderButtonSize{ 0 };
-		};
-
-		struct MouseInteraction
-		{
-			CategoryType* m_hoveredCategory{ nullptr };
-			CategoryType* m_selectedCategory{ nullptr };
-		};
-
 		struct Module
 		{
 			CategoryItem Append(const std::string& categoryName);
@@ -153,78 +186,66 @@ namespace Berta
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateContentSize(ViewportData& viewportData);
+			void EmitEvent(PropertyItem item) const;
 			void UpdateScrollBar();
 			void Update();
-
+			
 			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;
 			ListModule m_listModule;
 			Window* m_owner{ nullptr };
-			PropertyGridAppearance* m_appearance{ nullptr };
+			Appearance* m_appearance{ nullptr };
 			std::unique_ptr<ScrollBar> m_scrollBar;
 
-			PropertyGridEvents* m_events{ nullptr };
+			Events* m_events{ nullptr };
 			Graphics* m_graphics{ nullptr };
 			MouseInteraction m_mouseInteraction;
 		};
 
-		Module& GetModule() { return m_module; }
-		const Module& GetModule() const { return m_module; }
 
-	private:
-		Module m_module;
-	};
-
-	class PropertyItem
-	{
-	public:
-		PropertyItem(PropertyGridReactor::Module* module, PropertyGridField* propGridField) :
-			m_module(module), m_propGridField(propGridField)
+		class Reactor : public ControlReactor
 		{
-		}
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+			void Resize(Graphics& graphics, const ArgResize& args) override;
 
-		std::string GetLabel() const;
-		PropertyItem& SetLabel(const std::string& label);
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
 
-		std::string GetValue() const;
-		PropertyItem& SetValue(const std::string& value, bool emit = false);
-
-	private:
-		PropertyGridReactor::Module* m_module{ nullptr };
-		PropertyGridField* m_propGridField{ nullptr };
-	};
-
-	struct CategoryItem
-	{
-		CategoryItem() = default;
-		CategoryItem(PropertyGridReactor::Module* module, CategoryType* category) : 
-			m_module(module), m_category(category)
-		{
-		}
-
-		PropertyItem Append(PropertyGridFieldPtr propGridField);
-
-		operator bool() const;
-
-		PropertyGridReactor::Module* m_module{ nullptr };
-		CategoryType* m_category{ nullptr };
-	};
+		private:
+			Module m_module;
+		};
+	};	
 
 	struct ArgPropertyGrid
 	{
-		PropertyItem Item;
-		ArgPropertyGrid(const PropertyItem& item) : Item(item) {}
+		ReactorCore::PropertyGrid::PropertyItem Item;
+		ArgPropertyGrid(const ReactorCore::PropertyGrid::PropertyItem& item) : Item(item) {}
 	};
 
-	struct PropertyGridEvents : public ControlEvents
+	namespace ReactorCore::PropertyGrid
 	{
-		Event<ArgPropertyGrid> PropertyChanged;
-	};
+		struct Events : public ControlEvents
+		{
+			Event<ArgPropertyGrid> PropertyChanged;
+		};
+	}
 
-	class PropertyGrid : public Control<PropertyGridReactor, PropertyGridEvents, PropertyGridAppearance>
+	using PropertyGridField = ReactorCore::PropertyGrid::PropertyGridField;
+	using PropertyGridFieldPtr = ReactorCore::PropertyGrid::PropertyGridFieldPtr;
+
+	class PropertyGrid : public Control<ReactorCore::PropertyGrid::Reactor, ReactorCore::PropertyGrid::Events, ReactorCore::PropertyGrid::Appearance>
 	{
+	public:
+		using CategoryItem = ReactorCore::PropertyGrid::CategoryItem;
+
 	public:
 		PropertyGrid() = default;
 		PropertyGrid(Window* parent, const Rectangle& rectangle = {});

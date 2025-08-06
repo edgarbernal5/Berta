@@ -25,8 +25,13 @@ namespace Berta
 
 		virtual void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
 		
-		virtual void SetValue(const std::string& value) override;
 		virtual void SetEnabled(bool enabled) override;
+		virtual void SetValue(const std::string& value) override;
+
+		virtual void SetEditable(bool isEditable);
+		virtual bool IsEditable() const;
+
+		virtual void SetCharFilter(std::function<bool(wchar_t)> predicate);
 
 	protected:
 		void Create(Berta::Window* parent) override;

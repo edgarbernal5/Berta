@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "PropertyGridFieldVector3.h"
 
+#include "Berta/GUI/EnumTypes.h"
+
 namespace Berta
 {
 	void PropertyGridFieldVector3::Create(Berta::Window* parent)
@@ -17,6 +19,29 @@ namespace Berta
 #if BT_DEBUG
 			input.SetDebugName("InputText");
 #endif
+
+			input.GetEvents().Click.Connect([](const ArgClick& args)
+				{
+
+				});
+
+			input.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+				{
+					if (args.Key == KeyboardKey::Enter)
+					{
+						auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
+						if (newValue != PropertyGridField::GetValue())
+						{
+							PropertyGridField::SetValue(newValue);
+							EmitEvent();
+						}
+					}
+				});
+
+			input.GetEvents().Focus.Connect([](const ArgFocus& args)
+				{
+
+				});
 		}
 	}
 
@@ -42,6 +67,7 @@ namespace Berta
 		{
 			auto& input = m_inputTexts[i];
 			auto inputTextExtent = graphics.GetTextExtent(m_inputTextLabels[i]);
+
 			Berta::Rectangle inputRect = panelSaved;
 			inputRect.X += x;
 			int innerLabelOffsetX = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
@@ -57,6 +83,40 @@ namespace Berta
 
 			x += eachSize;
 		}
-		
+	}
+
+	void PropertyGridFieldVector3::SetEnabled(bool enabled)
+	{
+		PropertyGridField::SetEnabled(enabled);
+		for (auto& input : m_inputTexts)
+		{
+			input.SetEnabled(enabled);
+		}
+	}
+
+	void PropertyGridFieldVector3::SetValue(const std::string& value)
+	{
+		std::stringstream ss(value);
+		std::string item;
+		std::vector<float> items;
+
+		try
+		{
+			while (getline(ss, item, '/'))
+			{
+				items.push_back(item.empty() ? 0 : std::stof(item));
+			}
+		}
+		catch (...)
+		{
+			items.clear();
+		}
+
+		for (size_t i = 0; i < 3; ++i)
+		{
+			m_inputTexts[i].SetCaption(std::to_string(items[i]));
+		}
+
+		PropertyGridField::SetValue(std::to_string(items[0]) + "/" + std::to_string(items[1]) + "/" + std::to_string(items[2]));
 	}
 }
