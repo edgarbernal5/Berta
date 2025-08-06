@@ -32,7 +32,7 @@ namespace Berta
 	Foundation Foundation::g_foundation;
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
-	bool ProcessMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
+	bool IsDefaultMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
 
 	HINSTANCE g_hModuleInstance;
 	HINSTANCE GetModuleInstance()
@@ -144,14 +144,14 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		{WM_MOVE,			"WM_MOVE"},
-		{WM_MOVING,			"WM_MOVING"},
-		{WM_SIZE,			"WM_SIZE"},
-		{WM_SIZING,			"WM_SIZING"},
+		//{WM_MOVE,			"WM_MOVE"},
+		//{WM_MOVING,			"WM_MOVING"},
+		//{WM_SIZE,			"WM_SIZE"},
+		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		{WM_PAINT,			"WM_PAINT"},
-		{WM_DPICHANGED,		"WM_DPICHANGED"},
+		//{WM_PAINT,			"WM_PAINT"},
+		//{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
@@ -162,13 +162,16 @@ namespace Berta
 		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 
+		{WM_SETFOCUS,		"WM_SETFOCUS"},
+		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
+
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
 
 		//{ WM_NCACTIVATE, "WM_NCACTIVATE" },
-		{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
+		//{ WM_GETMINMAXINFO, "WM_GETMINMAXINFO" },
 	};
 
 	//Long list.
@@ -247,7 +250,7 @@ namespace Berta
 				printedMessage = true;
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
-			if (g_debugLastMessageCount[hWnd] > 50)
+			if (g_debugLastMessageCount[hWnd] > 0)
 				g_debugLastMessageCount[hWnd] = 0;
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
@@ -259,7 +262,7 @@ namespace Berta
 		}
 #endif
 		LRESULT innerResult;
-		if (ProcessMessage(hWnd, message, wParam, lParam, innerResult))
+		if (IsDefaultMessage(hWnd, message, wParam, lParam, innerResult))
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
@@ -292,9 +295,19 @@ namespace Berta
 		}
 #endif
 
+		auto rootWindowData = windowManager.GetFormData(nativeWindowHandle);
+		if (!rootWindowData)
+		{
+			return ::DefWindowProc(hWnd, message, wParam, lParam);
+		}
+
 		bool wasHandled = false;
-		auto& rootWindowData = *windowManager.GetFormData(nativeWindowHandle);
-		auto& trackEvent = rootWindowData.TrackEvent;
+		auto& menuManager = foundation.GetMenuManager();
+		auto& trackEvent = rootWindowData->TrackEvent;
+		auto rootPressedWindow = rootWindowData->Pressed;
+		auto rootHoveredWindow = rootWindowData->Hovered;
+		auto rootFocusedWindow = rootWindowData->Focused;
+		auto rootReleasedWindow = rootWindowData->Released;
 
 		Berta::Foundation::RootGuard rootGuard(nativeWindow);
 
@@ -412,9 +425,9 @@ namespace Berta
 			else
 			{
 #if BT_DEBUG
-				ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+				//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
 #else
-				ScopedTimer scopedTimer("WM_PAINT");
+				//ScopedTimer scopedTimer("WM_PAINT");
 #endif
 				windowManager.UpdateTree(nativeWindow);
 			}
@@ -527,20 +540,25 @@ namespace Berta
 		}
 		case WM_SETFOCUS:
 		{
-			if (rootWindowData.Focused)
+			if (rootFocusedWindow)
 			{
 				ArgFocus argFocus{ true };
-				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			wasHandled = false;
 			break;
 		}
 		case WM_KILLFOCUS:
 		{
-			if (rootWindowData.Focused)
+			if (menuManager.AnyPopupActive())
+			{
+				menuManager.CloseAll();
+			}
+
+			if (rootFocusedWindow)
 			{
 				ArgFocus argFocus{ false };
-				foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 			}
 			wasHandled = false;
 			break;
@@ -565,25 +583,28 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window->Flags.IsEnabled)
 			{
-				rootWindowData.Pressed = window;
+				rootPressedWindow = window;
+
+				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
 
 				ArgMouse argMouseDown;
-				argMouseDown.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
+				argMouseDown.Position = pi - windowManager.GetWindowRootPosition(window);
 				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
-				
+
 				auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
 				if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
 				{
-					if (rootWindowData.Focused != focusWindow)
+					if (rootFocusedWindow != focusWindow)
 					{
-						if (rootWindowData.Focused)
+						if (rootFocusedWindow)
 						{
 							ArgFocus argFocus{ false };
-							foundation.ProcessEvents(rootWindowData.Focused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+							foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 						}
 						if (focusWindow)
 						{
@@ -591,7 +612,7 @@ namespace Berta
 							foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 						}
 					}
-					rootWindowData.Focused = focusWindow;
+					rootFocusedWindow = focusWindow;
 				}
 			}
 			
@@ -602,125 +623,71 @@ namespace Berta
 			wasHandled = true;
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
-
-			auto menuItemReactor = windowManager.GetMenu();
-			if (menuItemReactor)
+			
+			auto window = windowManager.Find(nativeWindow, { x, y });
+			//BT_CORE_DEBUG << " - window and hovered / window " << (window != nullptr ? window->Name :"NULL") << ". hovered " << (rootWindowData.Hovered != nullptr ? rootWindowData.Hovered->Name : "NULL") << std::endl;
+			if (window && window != rootHoveredWindow)
 			{
-				//TODO: mover esta logica a MenuManager (?)
-				auto currentItemReactor = menuItemReactor;
-				do
+				if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 				{
-					auto currentWindow = currentItemReactor->Owner();
+					auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+					auto pi = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pp);
 
-					POINT screenToClientPoint{};
-					screenToClientPoint.x = x;
-					screenToClientPoint.y = y;
-					::ClientToScreen(hWnd, &screenToClientPoint);
-
-					::ScreenToClient(currentWindow->RootHandle.Handle, &screenToClientPoint);
-
-					auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - windowManager.GetAbsoluteRootPosition(currentWindow);
-					if (currentWindow->ClientSize.IsInside(localPosition))
-					{
-						if (rootWindowData.Hovered == nullptr)
-						{
-							ArgMouse argMouseEnter;
-							argMouseEnter.Position = localPosition;
-							argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-							argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-							argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
-							//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
-							foundation.ProcessEvents(currentWindow, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
-						}
-
-						ArgMouse argMouseMove;
-						argMouseMove.Position = localPosition;
-						argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
-						//BT_CORE_DEBUG << " - MENU / mouse move name " << currentWindow->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-						foundation.ProcessEvents(currentWindow, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
-
-						rootWindowData.Hovered = currentWindow;
-						break;
-					}
-					
-					currentItemReactor = currentItemReactor->Next();
-				} while (currentItemReactor);
-
-				if (currentItemReactor == nullptr && rootWindowData.Hovered)
-				{
 					ArgMouse argMouseLeave;
-					argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(rootWindowData.Hovered);
+					argMouseLeave.Position = pi - windowManager.GetWindowRootPosition(rootHoveredWindow);
 					argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << " - MENU / mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-					foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
-
-					rootWindowData.Hovered = nullptr;
+					//BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
+					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 				}
+				rootHoveredWindow = nullptr;
 			}
-			else
+
+			if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
 			{
-				auto window = windowManager.Find(nativeWindow, { x, y });
-				//BT_CORE_DEBUG << " - window and hovered / window " << (window != nullptr ? window->Name :"NULL") << ". hovered " << (rootWindowData.Hovered != nullptr ? rootWindowData.Hovered->Name : "NULL") << std::endl;
-				if (window && window != rootWindowData.Hovered)
+				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
+				Point position = pi - windowManager.GetWindowRootPosition(window);
+				if (window != rootHoveredWindow && window->ClientSize.IsInside(position))
 				{
-					if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
-					{
-						ArgMouse argMouseLeave;
-						argMouseLeave.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(rootWindowData.Hovered);
-						argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-						argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-						argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					ArgMouse argMouseEnter;
+					argMouseEnter.Position = position;
+					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						//BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
-						foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
-					}
-					rootWindowData.Hovered = nullptr;
+					//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
+					foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
+
+					rootHoveredWindow = window;
 				}
 
-				if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
+				if (rootHoveredWindow)
 				{
-					Point position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
-					if (window != rootWindowData.Hovered && window->ClientSize.IsInside(position))
-					{
-						ArgMouse argMouseEnter;
-						argMouseEnter.Position = position;
-						argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					ArgMouse argMouseMove;
+					argMouseMove.Position = position;
+					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-						//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
-						foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
-
-						rootWindowData.Hovered = window;
-					}
-
-					if (rootWindowData.Hovered)
-					{
-						ArgMouse argMouseMove;
-						argMouseMove.Position = position;
-						argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-						argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-						argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
-						//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
-						foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
-					}
-					if (!rootWindowData.IsTracking && window->ClientSize.IsInside(position))
-					{
-						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
-						trackEvent.hwndTrack = hWnd;
-						::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
-						rootWindowData.IsTracking = true;
-					}
+					//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
+					foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
+				}
+				if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
+				{
+#if BT_DEBUG
+					BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+#else
+					BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
+#endif
+					trackEvent.hwndTrack = hWnd;
+					::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
+					rootWindowData->IsTracking = true;
 				}
 			}
+			
 			break;
 		}
 		case WM_LBUTTONUP:
@@ -734,23 +701,28 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window->Flags.IsEnabled)
 			{
+				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
+				Point position = pi - windowManager.GetWindowRootPosition(window);
+
 				ArgMouse argMouseUp;
-				argMouseUp.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
+				argMouseUp.Position = position;
 				argMouseUp.ButtonState.LeftButton = message == WM_LBUTTONUP;
 				argMouseUp.ButtonState.RightButton = message == WM_RBUTTONUP;
 				argMouseUp.ButtonState.MiddleButton = message == WM_MBUTTONUP;
 
-				if (window->ClientSize.IsInside(argMouseUp.Position))
+				if (window->ClientSize.IsInside(argMouseUp.Position) && window == rootPressedWindow)
 				{
 					ArgClick argClick;
 					foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
 				}
 
+				//if (window == rootPressedWindow)
 				foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
 
-				rootWindowData.Released = rootWindowData.Pressed;
+				rootReleasedWindow = rootPressedWindow;
 			}
-			rootWindowData.Pressed = nullptr;
+			rootPressedWindow = nullptr;
 
 			break;
 		}
@@ -761,33 +733,32 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window->Flags.IsEnabled && window == rootWindowData.Released)
+			if (window && window->Flags.IsEnabled && window == rootReleasedWindow)
 			{
 				ArgMouse argMouse{};
-				argMouse.Position = Point{ x, y } - windowManager.GetAbsoluteRootPosition(window);
+				argMouse.Position = Point{ x, y } - windowManager.GetWindowRootPosition(window);
 				argMouse.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouse.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouse.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
 				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
 			}
-			rootWindowData.Released = nullptr;
-			wasHandled = true;
+			rootReleasedWindow = nullptr;
 			break;
 		}
 		case WM_MOUSELEAVE:
 		{
+			wasHandled = true;
 			//BT_CORE_DEBUG << " - mouse leave 2 / preparing... " << std::endl;
-			rootWindowData.IsTracking = false;
-			if (rootWindowData.Hovered && windowManager.Exists(rootWindowData.Hovered))
+			rootWindowData->IsTracking = false;
+			if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 			{
 				//BT_CORE_DEBUG << " - mouse leave 2 / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << ". hwnd " << hWnd << std::endl;
 				ArgMouse argMouseLeave;
-				foundation.ProcessEvents(rootWindowData.Hovered, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
+				foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
-				rootWindowData.Hovered = nullptr;
+				rootHoveredWindow = nullptr;
 			}
-			wasHandled = true;
 			break;
 		}
 		case WM_MOUSEHWHEEL:
@@ -825,7 +796,7 @@ namespace Berta
 
 			argKeyboard.Key = static_cast<wchar_t>(wParam);
 
-			auto window = rootWindowData.Focused;
+			auto window = rootFocusedWindow;
 			if (window == nullptr)
 			{
 				window = nativeWindow;
@@ -846,7 +817,7 @@ namespace Berta
 			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
 			argKeyboard.Key = static_cast<wchar_t>(wParam);
 
-			auto window = rootWindowData.Focused;
+			auto window = rootFocusedWindow;
 			if (window == nullptr)
 			{
 				window = nativeWindow;
@@ -856,10 +827,9 @@ namespace Berta
 			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 
 			auto target = window;
-			auto menuItemReactor = windowManager.GetMenu();
-			if (menuItemReactor)
+			if (menuManager.AnyPopupActive())
 			{
-				target = menuItemReactor->Owner();
+				target = menuManager.GetActiveMenu(true);
 			}
 			if (isKeyReleased)
 			{
@@ -926,7 +896,14 @@ namespace Berta
 			//BT_CORE_DEBUG << "<< WndProc message: " << it->second << ". hWnd = " << hWnd << ". window = " << nativeWindow->Name << std::endl;
 		}
 #endif
-
+		rootWindowData = windowManager.GetFormData(nativeWindowHandle);
+		if (rootWindowData)
+		{
+			rootWindowData->Focused = rootFocusedWindow;
+			rootWindowData->Hovered = rootHoveredWindow;
+			rootWindowData->Pressed = rootPressedWindow;
+			rootWindowData->Released = rootReleasedWindow;
+		}
 		if (!wasHandled)
 		{
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
@@ -935,7 +912,7 @@ namespace Berta
 		return 0;
 	}
 
-	bool ProcessMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result)
+	bool IsDefaultMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result)
 	{
 		result = 0;
 

@@ -117,7 +117,6 @@ namespace Berta
 					_com_error err(hr);
 					BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
 				}
-				BT_CORE_DEBUG << " - RT Creation" << std::endl;
 			}
 			
 #endif
@@ -258,6 +257,7 @@ namespace Berta
 		}
 
 		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		//TODO: should this be called before actual destruction?
 		if (m_capture.WindowPtr == window)
 		{
 			ReleaseCapture(m_capture.WindowPtr);
@@ -395,8 +395,6 @@ namespace Berta
 
 		if (window->IsNative())
 		{
-
-			BT_CORE_DEBUG << "    - RT Remove." << std::endl;
 			API::Dispose(window->RootPaintHandle);
 		}
 #if BT_DEBUG
@@ -535,6 +533,18 @@ namespace Berta
 			return nullptr;
 		}
 
+		auto& menuManager = Foundation::GetInstance().GetMenuManager();
+		if (menuManager.AnyPopupActive())
+		{
+			auto screenPosition = API::GetPointClientToScreen(window->RootHandle, point);
+
+			auto menuWindow = menuManager.FindMenu(screenPosition);
+			if (menuWindow)
+			{
+				return menuWindow;
+			}
+		}
+
 		if (m_capture.RedirectToChildren && window->Visible && IsPointOnWindow(window, point))
 		{
 			auto target = FindInTree(window, point);
@@ -629,13 +639,13 @@ namespace Berta
 			Rectangle rootRect = newRect;
 			if (window->Owner)
 			{
-				auto ownerPosition = GetAbsoluteRootPosition(window->Owner);
+				auto ownerPosition = GetWindowRootPosition(window->Owner);
 				rootRect.X += ownerPosition.X;
 				rootRect.Y += ownerPosition.Y;
 			}
 			else if (window->Parent)
 			{
-				auto parentPosition = GetAbsoluteRootPosition(window->Parent);
+				auto parentPosition = GetWindowRootPosition(window->Parent);
 				rootRect.X += parentPosition.X;
 				rootRect.Y += parentPosition.Y;
 			}
@@ -778,7 +788,11 @@ namespace Berta
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
-		if (window->IsNative() && window->RootHandle != nativeWindowHandle)
+		ArgResize argsResize;
+		argsResize.NewSize = window->ClientSize;
+		window->Renderer.Resize(argsResize);
+
+		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
 			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
@@ -822,19 +836,7 @@ namespace Berta
 		return Cursor::Default;
 	}
 
-	//Point WindowManager::GetAbsolutePosition(Window* window)
-	//{
-	//	Point position{ window->Position };
-	//	window = window->Parent;
-	//	while (window)
-	//	{
-	//		position += window->Position;
-	//		window = window->Parent;
-	//	}
-	//	return position;
-	//}
-
-	Point WindowManager::GetAbsoluteRootPosition(Window* window)
+	Point WindowManager::GetWindowRootPosition(Window* window)
 	{
 		return window->PositionRoot;
 	}
@@ -861,7 +863,7 @@ namespace Berta
 			}
 		}
 
-		auto deltaPosition = GUI::GetAbsoluteRootPosition(window) - GUI::GetAbsoluteRootPosition(newParent);
+		auto deltaPosition = GUI::GetWindowRootPosition(window) - GUI::GetWindowRootPosition(newParent);
 		auto oldParent = window->Parent;
 
 		window->Parent = newParent;
@@ -897,55 +899,6 @@ namespace Berta
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 
-	void WindowManager::SetMenu(MenuItemReactor* rootMenuItemWindow)
-	{
-		m_rootMenuItemReactor = rootMenuItemWindow;
-	}
-
-	MenuItemReactor* WindowManager::GetMenu()
-	{
-		return m_rootMenuItemReactor;
-	}
-
-	void WindowManager::DisposeMenu()
-	{
-		DisposeMenu(m_rootMenuItemReactor);
-		m_rootMenuItemReactor = nullptr;
-	}
-
-	void WindowManager::DisposeMenu(MenuItemReactor* rootReactor)
-	{
-		if (!rootReactor)
-		{
-			return;
-		}
-
-		std::stack<Window*> stack;
-		auto current = rootReactor;
-		while (current)
-		{
-			if (!current->IsMenuBar())
-			{
-				stack.push(current->Owner());
-			}
-
-			current = current->Next();
-		}
-
-		while (!stack.empty())
-		{
-			auto& it = stack.top();
-			stack.pop();
-
-			Dispose(it);
-		}
-
-		if (rootReactor == m_rootMenuItemReactor)
-		{
-			m_rootMenuItemReactor = nullptr;
-		}
-	}
-
 	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
 	{
 		for (size_t i = 0; i < window->Children.size(); i++)
@@ -972,7 +925,7 @@ namespace Berta
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
-		auto absolutePosition = GetAbsoluteRootPosition(window);
+		auto absolutePosition = GetWindowRootPosition(window);
 
 		Rectangle rect
 		{

@@ -65,7 +65,7 @@ namespace Berta
 
 	Rectangle ControlBase::GetArea() const
 	{
-		auto position = GUI::GetAbsoluteRootPosition(m_handle);
+		auto position = GUI::GetWindowRootPosition(m_handle);
 		
 		auto size = GetSize();
 		return { position.X, position.Y, size.Width, size.Height };

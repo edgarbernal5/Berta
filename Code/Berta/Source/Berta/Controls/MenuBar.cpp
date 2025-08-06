@@ -17,15 +17,6 @@ namespace Berta
 		m_module.m_control = reinterpret_cast<MenuBar*>(&control);
 
 		m_module.m_owner = control.Handle();
-		m_module.m_rootMenuItemReactor = this;
-
-		m_module.m_owner->Events->Focus.Connect([&](const ArgFocus& args)
-		{
-			if (!args.Focused && m_module.IsMenuOpen())
-			{
-				GUI::DisposeMenu();
-			}
-		});
 	}
 
 	void MenuBarReactor::Update(Graphics& graphics)
@@ -47,17 +38,7 @@ namespace Berta
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
 
 				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, window->Appearance->Foreground);
-
-				if (m_module.IsMenuOpen())
-				{
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, window->Appearance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X, itemData.position.Y }, { itemData.position.X, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
-					graphics.DrawLine({ itemData.position.X + (int)itemData.size.Width, itemData.position.Y }, { itemData.position.X + (int)itemData.size.Width, itemData.position.Y + (int)itemData.size.Height }, window->Appearance->BoxBorderColor);
-				}
-				else
-				{
-					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
-				}
+				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
 			}
 			else
 			{
@@ -92,16 +73,28 @@ namespace Berta
 		}
 
 		int selectedItem = m_module.FindItem(args.Position);
+		int prevSelectedItem = m_module.m_interactionData.m_selectedItemIndex;
 		m_module.SelectIndex(selectedItem);
 		if (selectedItem != -1)
 		{
-			m_module.OpenMenu();
-			if (m_module.IsMenuOpen())
+			if (m_module.IsMenuOpen() && prevSelectedItem == selectedItem)
 			{
-				m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-				GUI::SetMenu(this);
+				GUI::DisposeMenu();
+			}
+			else
+			{
+				m_module.OpenMenu();
+				if (m_module.IsMenuOpen())
+				{
+					m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
+				}
 			}
 
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
+		}
+		else
+		{
+			GUI::DisposeMenu();
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 	}
@@ -120,9 +113,8 @@ namespace Berta
 				}
 
 				m_module.SelectIndex(selectedItem);
-				m_module.OpenMenu(args.ButtonState.LeftButton);
+				m_module.OpenMenu(false);
 				m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-				GUI::SetMenu(this);
 
 				GUI::UpdateWindow(m_module.m_owner);
 			}
@@ -197,8 +189,7 @@ namespace Berta
 		m_module.SelectIndex(selectedItem);
 		m_module.OpenMenu(false);
 		m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-		GUI::SetMenu(this);
-
+		
 		GUI::UpdateWindow(m_module.m_owner);
 	}
 
@@ -245,23 +236,26 @@ namespace Berta
 	{
 		auto window = m_owner;
 		auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
-		m_interactionData.m_activeMenu = &itemData->menu;
-		auto pointInScreen = window->Position;
+		auto& activeMenuPtr = m_interactionData.m_activeMenu;
+		if (activeMenuPtr == &itemData->menu)
+			return;
 
-		Point boxPosition = pointInScreen;
+		activeMenuPtr = &itemData->menu;
+		
+		Point boxPosition{};
 		boxPosition.X += itemData->position.X;
 		boxPosition.Y += itemData->position.Y + (int)itemData->size.Height;
 
-		m_interactionData.m_activeMenu->m_destroyCallback = [this]()
+		activeMenuPtr->m_destroyCallback = [this]()
 		{
 			m_interactionData.m_activeMenu = nullptr;
 			SelectIndex(-1);
 
-			m_rootMenuItemReactor->Clear();
 			GUI::UpdateWindow(*m_control);
 		};
-		Rectangle menuBarItemRect{ 0,0,m_items[m_interactionData.m_selectedItemIndex]->size.Width, m_items[m_interactionData.m_selectedItemIndex]->size.Height };
-		m_interactionData.m_activeMenu->ShowPopup(m_owner, boxPosition, nullptr, ignoreFirstMouseUp, menuBarItemRect);
+
+		//TODO: focus window
+		activeMenuPtr->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);
 	}
 
 	void MenuBarReactor::Module::SelectIndex(int index)

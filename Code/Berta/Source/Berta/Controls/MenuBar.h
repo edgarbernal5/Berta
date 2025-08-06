@@ -36,7 +36,6 @@ namespace Berta
 		bool ExitSubMenu() override { return false; };
 		void Select() override;
 		void Quit() override;
-		bool IsMenuBar() const override { return true; }
 
 		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
 
@@ -66,7 +65,7 @@ namespace Berta
 			void BuildItems(size_t startIndex = 0);
 			int FindItem(const Point& position);
 			Menu& PushBack(const std::wstring& text);
-			void OpenMenu(bool ignoreFirstMouseUp = true);
+			void OpenMenu(bool ignoreFirstMouseUp = false);
 			void SelectIndex(int index);
 			bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
 			MenuBox* GetActiveMenuBox() const;
@@ -75,7 +74,6 @@ namespace Berta
 			Window* m_owner{ nullptr };
 			std::vector<std::unique_ptr<MenuBarItemData>> m_items;
 			InteractionData m_interactionData;
-			MenuItemReactor* m_rootMenuItemReactor{ nullptr };
 			Point m_lastMousePosition{ -1,-1 };
 		};
 

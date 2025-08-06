@@ -53,7 +53,7 @@ namespace Berta
 
 		void SetCustomPaintCallback(Window* window, std::function<void()> callback);
 
-		Point GetAbsoluteRootPosition(Window* window);
+		Point GetWindowRootPosition(Window* window);
 		Point GetWindowPosition(Window* window);
 		Point GetMousePositionToWindow(Window* window);
 		Point GetScreenMousePosition();
@@ -73,8 +73,6 @@ namespace Berta
 		Point GetPointScreenToClient(Window *window, const Point& point);
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
-
-		void SetMenu(MenuItemReactor* rootMenuItemWindow);
 
 		void DisposeMenu();
 		void DisposeMenu(MenuItemReactor* rootReactor);
