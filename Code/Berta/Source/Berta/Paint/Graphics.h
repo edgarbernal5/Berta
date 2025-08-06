@@ -75,10 +75,7 @@ namespace Berta
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
-		const Size& GetTextExtent() const 
-		{
-			return m_attributes->m_textExtent;
-		}
+		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& str);
 		Size GetTextExtent(const std::string& str);
 		Size GetTextExtent(const std::wstring& str, size_t length);
