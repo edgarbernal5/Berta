@@ -46,7 +46,7 @@ int main()
 
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
-			std::cout << "Property changed! Label = " << args.Item.GetLabel() << ". value = " << args.Item.GetValue() << std::endl;
+			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
 		});
 
 	NewPanel newPanel(form);

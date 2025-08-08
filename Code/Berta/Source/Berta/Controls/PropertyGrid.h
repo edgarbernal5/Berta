@@ -227,8 +227,8 @@ namespace Berta
 
 	struct ArgPropertyGrid
 	{
-		ReactorCore::PropertyGrid::PropertyItem Item;
-		ArgPropertyGrid(const ReactorCore::PropertyGrid::PropertyItem& item) : Item(item) {}
+		ReactorCore::PropertyGrid::PropertyItem Property;
+		ArgPropertyGrid(const ReactorCore::PropertyGrid::PropertyItem& item) : Property(item) {}
 	};
 
 	namespace ReactorCore::PropertyGrid
