@@ -418,6 +418,9 @@ namespace Berta
 	void TextEditor::Render()
 	{
 		Size contentSize = GetContentTextExtent(m_caretPosition);
+		auto one = m_owner->ToScale(1);
+		auto two = m_owner->ToScale(2);
+		auto three = m_owner->ToScale(3);
 
 		bool enabled = m_owner->Flags.IsEnabled;
 		auto caretHeight = m_graphics.GetCaretHeight();
@@ -430,13 +433,13 @@ namespace Berta
 			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
 			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
 			
-			m_graphics.DrawRectangle({ 2 + m_offsetView + (int)startTextExtent.Width , 2 + textOffset, endTextExtent.Width, caretHeight }, m_owner->Appearance->HighlightColor, true);
+			m_graphics.DrawRectangle({ two + m_offsetView + (int)startTextExtent.Width , one + textOffset, endTextExtent.Width, caretHeight }, m_owner->Appearance->HighlightColor, true);
 		}
-		m_graphics.DrawString({ 2 + m_offsetView, textOffset + 1 }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
+		m_graphics.DrawString({ two + m_offsetView, one + textOffset }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ 2 + m_offsetView + (int)contentSize.Width,3 + textOffset }, { 2 + m_offsetView + (int)contentSize.Width, textOffset + (int)caretHeight }, m_owner->Appearance->Foreground2nd);
+			m_graphics.DrawLine({ two + m_offsetView + (int)contentSize.Width, one + textOffset }, { two + m_offsetView + (int)contentSize.Width, one + textOffset + (int)caretHeight }, m_owner->Appearance->Foreground2nd);
 		}
 	}
 

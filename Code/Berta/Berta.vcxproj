@@ -151,7 +151,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringInt.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringNumber.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h" />
     <ClInclude Include="Source\Berta\Core\ScopedTimer.h" />
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
@@ -220,7 +220,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldStringInt.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp" />
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />
     <ClCompile Include="Source\Berta\API\PaintAPI.cpp" />
