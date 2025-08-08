@@ -30,7 +30,7 @@ namespace Berta
 
 		void Reactor::Update(Graphics& graphics)
 		{
-			m_module.Update();
+			m_module.Draw();
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -169,6 +169,11 @@ namespace Berta
 			m_events->PropertyChanged.Emit(args);
 		}
 
+		void Module::Update()
+		{
+			GUI::UpdateWindow(m_owner);
+		}
+
 		void Module::UpdateScrollBar()
 		{
 			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
@@ -198,7 +203,7 @@ namespace Berta
 			}
 		}
 
-		void Module::Update()
+		void Module::Draw()
 		{
 			auto& graphics = *m_graphics;
 			graphics.DrawRectangle(m_owner->Appearance->BoxBackground, true);
@@ -429,6 +434,7 @@ namespace Berta
 
 		void PropertyGridField::Update()
 		{
+			m_module->Update();
 		}
 
 		void PropertyGridField::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)

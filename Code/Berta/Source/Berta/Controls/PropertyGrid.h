@@ -186,9 +186,10 @@ namespace Berta
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateContentSize(ViewportData& viewportData);
+			void Draw();
 			void EmitEvent(PropertyItem item) const;
-			void UpdateScrollBar();
 			void Update();
+			void UpdateScrollBar();
 			
 			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
 
