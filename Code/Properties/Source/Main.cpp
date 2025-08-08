@@ -42,6 +42,7 @@ int main()
 	auto categoryMesh = propertyGrid.Append("Mesh");
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldString("Mesh ID", "71d3eed6-d363-428a-bc81-01576539b297")));
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldStringInt("Count", "0")));
+	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldCheck("Count", "0")));
 
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{

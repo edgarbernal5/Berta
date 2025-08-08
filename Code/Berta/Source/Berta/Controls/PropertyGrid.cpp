@@ -171,6 +171,9 @@ namespace Berta
 
 		void Module::Update()
 		{
+			if (!m_owner->Flags.AutoDraw)
+				return;
+
 			GUI::UpdateWindow(m_owner);
 		}
 

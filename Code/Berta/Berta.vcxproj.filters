@@ -249,6 +249,9 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringNumber.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -408,6 +411,9 @@
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
   </ItemGroup>
