@@ -25,6 +25,10 @@ namespace Berta
 
 		valueRect.X = 0;
 		valueRect.Y = 0;
+
+		auto fieldSize = GetSize();
+		valueRect.Height = fieldSize;
+		valueRect.Width = fieldSize;
 		m_checkBox.SetArea(valueRect);
 		m_checkBox.Show();
 	}
