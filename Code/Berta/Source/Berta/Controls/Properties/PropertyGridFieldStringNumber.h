@@ -54,6 +54,13 @@ namespace Berta
 			return result;
 		}
 
+		void NoMinMax()
+		{
+			m_useMinMax = false;
+			m_min = {};
+			m_max = {};
+		}
+
 		void SetMinMax(TNumber min, TNumber max)
 		{
 			m_useMinMax = true;
