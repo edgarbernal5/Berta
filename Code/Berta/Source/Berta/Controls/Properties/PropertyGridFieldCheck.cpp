@@ -31,12 +31,12 @@ namespace Berta
 
 	bool PropertyGridFieldCheck::IsChecked() const
 	{
-		return GetValue() == "1";
+		return PropertyGridField::GetValue() == "1";
 	}
 
 	void PropertyGridFieldCheck::SetCheck(bool checked)
 	{
-		SetValue(checked ? "1" : "0");
+		PropertyGridField::SetValue(checked ? "1" : "0");
 	}
 
 	void PropertyGridFieldCheck::SetEnabled(bool enabled)
