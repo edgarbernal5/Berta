@@ -41,6 +41,15 @@ namespace Berta
 
 	}
 
+	void PropertyGridFieldSelection::SetOption(uint32_t index)
+	{
+		if (index >= m_comboBox.Count())
+			return;
+
+		m_comboBox.SetSelectedIndex(index);
+		PropertyGridField::SetValue(std::to_string(index));
+	}
+
 	void PropertyGridFieldSelection::PushItem(const std::string& optionText)
 	{
 		m_comboBox.PushItem(optionText);
@@ -66,17 +75,10 @@ namespace Berta
 			{
 
 			});
-
-		m_comboBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		m_comboBox.GetEvents().Selected.Connect([this](const ArgComboBox& args)
 			{
-				if (args.Focused)
-					return;
-
-				if (m_comboBox.GetCaption() != PropertyGridField::GetValue())
-				{
-					PropertyGridField::SetValue(m_comboBox.GetCaption());
-					EmitEvent();
-				}
+				SetOption(args.SelectedIndex);
+				EmitEvent();
 			});
 	}
 }

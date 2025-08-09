@@ -247,6 +247,11 @@ namespace Berta
 		m_module.Data.m_selectedIndex = -1;
 	}
 
+	uint32_t ComboBoxReactor::Count() const
+	{
+		return static_cast<uint32_t>(m_module.Data.m_items.size());
+	}
+
 	void ComboBoxReactor::Erase(uint32_t index)
 	{
 		if (index < m_module.Data.m_items.size())
@@ -281,14 +286,14 @@ namespace Berta
 
 	void ComboBoxReactor::SetSelectedIndex(uint32_t index)
 	{
-		if (index < m_module.Data.m_items.size())
-		{
-			auto& items = m_module.Data.m_items;
-			auto& selectedIndex = m_module.Data.m_selectedIndex;
-			selectedIndex = static_cast<int>(index);
+		if (index >= m_module.Data.m_items.size())
+			return;
+		
+		auto& items = m_module.Data.m_items;
+		auto& selectedIndex = m_module.Data.m_selectedIndex;
+		selectedIndex = static_cast<int>(index);
 
-			SetText(items[selectedIndex].m_text);
-		}
+		SetText(items[selectedIndex].m_text);
 	}
 
 	void ComboBoxReactor::Module::EmitSelectionEvent(int index)
@@ -312,6 +317,11 @@ namespace Berta
 	void ComboBox::Clear()
 	{
 		GetReactor().Clear();
+	}
+
+	uint32_t ComboBox::Count() const
+	{
+		return GetReactor().Count();
 	}
 
 	void ComboBox::Erase(uint32_t index)

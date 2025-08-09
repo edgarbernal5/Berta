@@ -76,6 +76,7 @@ namespace Berta
 		};
 
 		void Clear();
+		uint32_t Count() const;
 		void Erase(uint32_t index);
 		void PushItem(const std::wstring& text);
 		void PushItem(const std::wstring& text, const Image& icon);
@@ -93,14 +94,18 @@ namespace Berta
 		ComboBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
+		uint32_t Count() const;
 		void Erase(uint32_t index);
+
 		void PushItem(const std::wstring& text);
 		void PushItem(const std::string& text);
 		void PushItem(const std::wstring& text, const Image& icon);
 		void PushItem(const std::string& text, const Image& icon);
+
 		int GetSelectedIndex() { GetReactor().GetSelectedIndex(); }
-		std::wstring GetText(uint32_t index);
 		void SetSelectedIndex(uint32_t index);
+
+		std::wstring GetText(uint32_t index);
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
