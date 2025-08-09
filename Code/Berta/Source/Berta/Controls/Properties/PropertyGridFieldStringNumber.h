@@ -31,7 +31,7 @@ namespace Berta
 	{
 	public:
 		PropertyGridFieldStringNumber(const std::string& label, const std::string& value) :
-			Berta::PropertyGridFieldString(label, value)
+			PropertyGridFieldString(label, value)
 		{
 		}
 

@@ -19,7 +19,7 @@ namespace Berta
 	{
 	public:
 		PropertyGridFieldString(const std::string& label, const std::string& value = "") :
-			Berta::PropertyGridField(label, value)
+			PropertyGridField(label, value)
 		{
 		}
 
@@ -36,7 +36,7 @@ namespace Berta
 	protected:
 		void Create(Berta::Window* parent) override;
 
-		Berta::InputText m_inputText;
+		InputText m_inputText;
 	private:
 	};
 }

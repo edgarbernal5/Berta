@@ -11,5 +11,6 @@
 #include "Berta/Controls/Properties/PropertyGridFieldStringNumber.h"
 #include "Berta/Controls/Properties/PropertyGridFieldVector3.h"
 #include "Berta/Controls/Properties/PropertyGridFieldCheck.h"
+#include "Berta/Controls/Properties/PropertyGridFieldSelection.h"
 
 #endif

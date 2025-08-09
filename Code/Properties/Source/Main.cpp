@@ -44,6 +44,11 @@ int main()
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldStringInt("Count", "0")));
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldCheck("Enabled", "0")));
 
+	std::vector<std::string> options{"None", "Material 1", "Material 2" };
+	auto pgfSelection = new Berta::PropertyGridFieldSelection("Material");
+	pgfSelection->Set(options);
+	categoryMesh.Append(Berta::PropertyGridFieldPtr(pgfSelection));
+
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
 			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
