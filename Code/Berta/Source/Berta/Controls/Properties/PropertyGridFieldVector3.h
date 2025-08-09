@@ -23,13 +23,13 @@ namespace Berta
 		{
 		}
 
-		virtual void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
+		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
 
 		void SetEnabled(bool enabled) override;
 		void SetValue(const std::string& value) override;
 
 	protected:
-		void Create(Berta::Window* parent) override;
+		void Create(Window* parent) override;
 
 	private:
 		InputText m_inputTexts[3];

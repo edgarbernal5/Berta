@@ -23,7 +23,7 @@ namespace Berta
 		{
 		}
 
-		virtual void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
+		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
 
 		virtual bool IsChecked() const;
 		virtual void SetCheck(bool checked);
@@ -32,7 +32,7 @@ namespace Berta
 		virtual void SetValue(const std::string& value) override;
 
 	protected:
-		void Create(Berta::Window* parent) override;
+		void Create(Window* parent) override;
 
 		CheckBox m_checkBox;
 	private:

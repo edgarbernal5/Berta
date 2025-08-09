@@ -150,6 +150,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />

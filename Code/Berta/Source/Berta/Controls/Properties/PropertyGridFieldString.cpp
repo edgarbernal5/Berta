@@ -11,11 +11,11 @@
 
 namespace Berta
 {
-	void PropertyGridFieldString::Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor)
+	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		Berta::PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
 
-		Berta::Rectangle valueRect = area;
+		Rectangle valueRect = area;
 
 		valueRect.X += static_cast<int>(labelWidth);
 		valueRect.Width -= labelWidth;
@@ -56,7 +56,7 @@ namespace Berta
 		m_inputText.SetCharFilter(predicate);
 	}
 
-	void PropertyGridFieldString::Create(Berta::Window* parent)
+	void PropertyGridFieldString::Create(Window* parent)
 	{
 		m_inputText.Create(parent);
 		m_inputText.SetCaption(m_value);

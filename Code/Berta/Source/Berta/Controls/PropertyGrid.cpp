@@ -369,6 +369,7 @@ namespace Berta
 		{
 			m_parent = parent;
 			Create(parent);
+			SetEnabled(IsEnabled());
 		}
 
 		std::string PropertyGridField::GetLabel() const

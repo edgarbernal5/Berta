@@ -255,6 +255,12 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

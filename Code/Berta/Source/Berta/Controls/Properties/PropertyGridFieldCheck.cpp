@@ -11,11 +11,11 @@
 
 namespace Berta
 {
-	void PropertyGridFieldCheck::Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor)
+	void PropertyGridFieldCheck::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		Berta::PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
 
-		Berta::Rectangle valueRect = area;
+		Rectangle valueRect = area;
 
 		valueRect.X += static_cast<int>(labelWidth);
 		valueRect.Width -= labelWidth;
@@ -63,7 +63,7 @@ namespace Berta
 		}
 	}
 
-	void PropertyGridFieldCheck::Create(Berta::Window* parent)
+	void PropertyGridFieldCheck::Create(Window* parent)
 	{
 		m_checkBox.Create(parent);
 		SetValue(m_value);

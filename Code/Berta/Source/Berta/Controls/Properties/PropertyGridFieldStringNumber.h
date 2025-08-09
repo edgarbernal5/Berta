@@ -7,7 +7,7 @@
 #ifndef BT_PROPERTY_GRID_FIELD_STRING_NUMBER_HEADER
 #define BT_PROPERTY_GRID_FIELD_STRING_NUMBER_HEADER
 
-#include "Berta/Controls/Properties/PropertyGridFieldString.h"
+#include "Berta/Controls/Properties/FieldNumberBase.h"
 
 #include "Berta/GUI/EnumTypes.h"
 
@@ -17,35 +17,36 @@
 
 namespace Berta
 {
-	template<typename TNumber>
+	/*template<typename TNumber>
 	struct IsIntOrUint : std::false_type {};
 
 	template<>
 	struct IsIntOrUint<int> : std::true_type {};
 
 	template<>
-	struct IsIntOrUint<unsigned int> : std::true_type {};
+	struct IsIntOrUint<unsigned int> : std::true_type {};*/
 
-	template<typename TNumber, typename = std::enable_if_t<IsIntOrUint<TNumber>::value>>
-	class PropertyGridFieldStringNumber : public PropertyGridFieldString
+	template<typename TNumber, typename = std::enable_if_t<IsNumeric<TNumber>::value>>
+	class PropertyGridFieldStringNumber : public PropertyGridFieldString, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
 	{
 	public:
-		PropertyGridFieldStringNumber(const std::string& label, const std::string& value) :
-			PropertyGridFieldString(label, value)
+		PropertyGridFieldStringNumber(const std::string& label, const std::string& value) : 
+			PropertyGridFieldString(label, value),
+			FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>()
 		{
 		}
 
-		virtual void SetValue(TNumber value)
+		virtual void SetValue(TNumber value) override
 		{
 			PropertyGridFieldString::SetValue(std::to_string(value));
 		}
 
-		virtual TNumber ToNumber() const
+		virtual TNumber ToNumber() const override
 		{
 			TNumber result{};
 			try
 			{
-				std::istringstream iss(PropertyGridField::GetValue());
+				std::istringstream iss(PropertyGridFieldString::GetValue());
 				iss >> result;
 			}
 			catch (...)
@@ -54,22 +55,8 @@ namespace Berta
 			return result;
 		}
 
-		void NoMinMax()
-		{
-			m_useMinMax = false;
-			m_min = {};
-			m_max = {};
-		}
-
-		void SetMinMax(TNumber min, TNumber max)
-		{
-			m_useMinMax = true;
-			m_min = min;
-			m_max = max;
-		}
-
 	protected:
-		void Create(Berta::Window* parent) override
+		virtual void Create(Window* parent) override
 		{
 			PropertyGridFieldString::Create(parent);
 
@@ -102,31 +89,26 @@ namespace Berta
 					return isDigit || isMinus;
 				});
 		}
-		bool ValidateUserInput(TNumber& value)
+
+		virtual bool ValidateUserInput(TNumber& outValue) override
 		{
-			TNumber result{};
 			try
 			{
 				std::istringstream iss(m_inputText.GetCaption());
-				iss >> result;
-				if (m_useMinMax)
+				iss >> outValue;
+				if (this->m_useMinMax)
 				{
-					result = std::clamp(result, m_min, m_max);
+					outValue = std::clamp(outValue, this->m_min, this->m_max);
 				}
 			}
 			catch (...)
 			{
 				return false;
 			}
-
-			value = result;
 			return true;
 		}
 
 	private:
-		bool m_useMinMax{ false };
-		TNumber m_min{ 0 };
-		TNumber m_max{ 0 };
 	};
 
 	using PropertyGridFieldStringInt = PropertyGridFieldStringNumber<int>;

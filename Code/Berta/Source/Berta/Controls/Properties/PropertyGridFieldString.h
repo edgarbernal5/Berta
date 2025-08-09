@@ -23,7 +23,7 @@ namespace Berta
 		{
 		}
 
-		virtual void Draw(Berta::Graphics& graphics, const Berta::Rectangle& area, uint32_t labelWidth, const Berta::Color& textColor) override;
+		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
 		
 		virtual void SetEnabled(bool enabled) override;
 		virtual void SetValue(const std::string& value) override;
@@ -34,7 +34,7 @@ namespace Berta
 		virtual void SetCharFilter(std::function<bool(wchar_t)> predicate);
 
 	protected:
-		void Create(Berta::Window* parent) override;
+		virtual void Create(Window* parent) override;
 
 		InputText m_inputText;
 	private:
