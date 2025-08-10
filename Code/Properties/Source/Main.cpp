@@ -53,6 +53,7 @@ int main()
 	pgfSlider->SetMinMax(0, 10);
 
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(pgfSlider));
+	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
 
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{

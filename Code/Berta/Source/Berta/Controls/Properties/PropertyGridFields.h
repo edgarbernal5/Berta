@@ -13,5 +13,6 @@
 #include "Berta/Controls/Properties/PropertyGridFieldCheck.h"
 #include "Berta/Controls/Properties/PropertyGridFieldSelection.h"
 #include "Berta/Controls/Properties/PropertyGridFieldSlider.h"
+#include "Berta/Controls/Properties/PropertyGridFieldColor.h"
 
 #endif

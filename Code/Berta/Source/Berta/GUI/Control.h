@@ -60,6 +60,8 @@ namespace Berta
 		bool IsAutoDraw() const;
 		void SetAutoDraw(bool autoDraw);
 
+		void SetBackgroundColor(const Color& newColor);
+
 #if BT_DEBUG
 		void SetDebugName(const std::string& name)
 		{

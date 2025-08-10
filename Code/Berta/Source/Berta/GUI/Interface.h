@@ -78,6 +78,8 @@ namespace Berta
 		void DisposeMenu(MenuItemReactor* rootReactor);
 
 		void Exit();
+
+		void SetBackgroundColor(Window* window, const Color& newColor);
 	}
 }
 

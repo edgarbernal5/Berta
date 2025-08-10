@@ -251,10 +251,10 @@ namespace Berta
 	{
 		struct
 		{
-			unsigned char B;
-			unsigned char G;
-			unsigned char R;
-			unsigned char A;
+			uint8_t B;
+			uint8_t G;
+			uint8_t R;
+			uint8_t A;
 		}Channels;
 		uint32_t BGRA; //Format: 0xBBGGRR
 	};
@@ -263,17 +263,21 @@ namespace Berta
 	{
 		Color() = default;
 		Color(uint32_t colorABGR);
+		Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 		operator uint32_t() const;
 #ifdef BT_PLATFORM_WINDOWS
 		operator D2D1_COLOR_F() const;
 #endif
-
+		uint8_t GetR() const { return R; }
+		uint8_t GetG() const { return G; }
+		uint8_t GetB() const { return B; }
+		uint8_t GetA() const { return A; }
 	private:
-		unsigned char R{ 255 };
-		unsigned char G{ 255 };
-		unsigned char B{ 255 };
-		unsigned char A{ 255 };
+		uint8_t R{ 255 };
+		uint8_t G{ 255 };
+		uint8_t B{ 255 };
+		uint8_t A{ 255 };
 
 		//ColorABGR Data;
 	};

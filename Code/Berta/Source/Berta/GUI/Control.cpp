@@ -121,6 +121,11 @@ namespace Berta
 		m_handle->Flags.AutoDraw = autoDraw;
 	}
 
+	void ControlBase::SetBackgroundColor(const Color& newColor)
+	{
+		GUI::SetBackgroundColor(m_handle, newColor);
+	}
+
 	std::wstring ControlBase::DoOnCaption() const
 	{
 		return GUI::CaptionWindow(m_handle);

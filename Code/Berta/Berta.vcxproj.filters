@@ -261,6 +261,9 @@
     <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -426,6 +429,9 @@
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
   </ItemGroup>

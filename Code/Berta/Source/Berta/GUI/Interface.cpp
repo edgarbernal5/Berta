@@ -551,4 +551,15 @@ namespace Berta::GUI
 			API::DestroyNativeWindow(item);
 		}
 	}
+
+	void SetBackgroundColor(Window* window, const Color& newColor)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+
+		window->Appearance->Background = newColor;
+	}
 }
