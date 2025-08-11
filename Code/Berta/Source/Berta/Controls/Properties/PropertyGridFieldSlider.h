@@ -10,6 +10,7 @@
 #include "Berta/Controls/Properties/FieldNumberBase.h"
 #include "Berta/Controls/PropertyGrid.h"
 #include "Berta/Controls/Slider.h"
+#include "Berta/Controls/InputText.h"
 
 namespace Berta
 {
@@ -37,14 +38,25 @@ namespace Berta
 
 			valueRect.X = 0;
 			valueRect.Y = 0;
+
+			auto txtValueWidth = m_parent->ToScale(60);
+			auto margin = m_parent->ToScale(4);
+			valueRect.Width -= txtValueWidth + margin;
 			m_slider.SetArea(valueRect);
 			m_slider.Show();
+
+			valueRect.X += valueRect.Width + margin;
+			valueRect.Width = txtValueWidth;
+
+			m_valueInputText.SetArea(valueRect);
+			m_valueInputText.Show();
 		}
 
 		virtual void SetEnabled(bool enabled) override
 		{
 			PropertyGridField::SetEnabled(enabled);
 			m_slider.SetEnabled(enabled);
+			m_valueInputText.SetEnabled(enabled);
 		}
 
 		void SetValue(const std::string& value) override
@@ -55,8 +67,9 @@ namespace Berta
 				std::istringstream iss(value);
 				iss >> numberValue;
 
-				m_slider.SetValue(static_cast<int>(numberValue));
 				PropertyGridField::SetValue(value);
+				m_slider.SetValue(static_cast<int>(numberValue));
+				m_valueInputText.SetText(value);
 			}
 			catch (...)
 			{
@@ -65,8 +78,10 @@ namespace Berta
 
 		void SetValue(TNumber value) override
 		{
-			PropertyGridField::SetValue(std::to_string(value));
+			auto newString = std::to_string(value);
+			PropertyGridField::SetValue(newString);
 			m_slider.SetValue(static_cast<int>(value));
+			m_valueInputText.SetText(newString);
 		}
 
 		TNumber ToNumber() const override
@@ -87,6 +102,7 @@ namespace Berta
 		{
 			FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>::SetMinMax(min, max);
 			m_slider.SetMinMax(static_cast<int>(min), static_cast<int>(max));
+			m_valueInputText.SetText(std::to_wstring(m_slider.GetValue()));
 		}
 
 	protected:
@@ -102,13 +118,81 @@ namespace Berta
 					EmitEvent();
 				});
 
+			m_valueInputText.Create(parent);
+			m_valueInputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+				{
+					if (args.Key == KeyboardKey::Enter && m_valueInputText.GetCaption() != PropertyGridField::GetValue())
+					{
+						TNumber result{};
+						if (this->ValidateUserInput(result))
+						{
+							SetValue(result);
+							EmitEvent();
+						}
+						else
+						{
+							m_valueInputText.SetCaption(m_value);
+						}
+					}
+				});
+
+			m_valueInputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+				{
+					if (args.Focused)
+						return;
+
+					TNumber result{};
+					if (this->ValidateUserInput(result))
+					{
+						SetValue(result);
+						EmitEvent();
+					}
+					else
+					{
+						m_valueInputText.SetCaption(m_value);
+					}
+				});
+
+			m_valueInputText.SetCharFilter([this](wchar_t chr)
+				{
+					auto isDigit = std::isdigit(chr);
+					auto isMinus = false;
+					if constexpr (std::is_signed_v<TNumber>)
+					{
+						isMinus = chr == '-' && m_valueInputText.GetCaretPosition() == 0 && m_valueInputText.GetCaption().find('-') == std::string::npos;
+					}
+					return isDigit || isMinus;
+				});
+
+			SetValue(m_value);
+		}
+
+	protected:
+		virtual bool ValidateUserInput(TNumber& outValue) override
+		{
+			try
+			{
+				std::istringstream iss(m_valueInputText.GetCaption());
+				iss >> outValue;
+				if (this->m_useMinMax)
+				{
+					outValue = std::clamp(outValue, this->m_min, this->m_max);
+				}
+			}
+			catch (...)
+			{
+				return false;
+			}
+			return true;
 		}
 
 	private:
 		Slider m_slider;
+		InputText m_valueInputText;
 	};
 
 	using PropertyGridFieldSliderInt = PropertyGridFieldSlider<int>;
+	using PropertyGridFieldSliderFloat = PropertyGridFieldSlider<float>;
 }
 
 #endif

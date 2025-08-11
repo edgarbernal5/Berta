@@ -197,6 +197,16 @@ namespace Berta
 		}
 	}
 
+	void InputText::SetText(const std::string& text)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetContent(text);
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
 	void InputText::DoOnCaption(const std::wstring& caption)
 	{
 		auto editor = GetReactor().GetEditor();

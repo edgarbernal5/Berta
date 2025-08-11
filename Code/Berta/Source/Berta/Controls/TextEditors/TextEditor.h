@@ -45,6 +45,7 @@ namespace Berta
 
 		const std::wstring& GetContent() const { return m_content; }
 		void SetContent(const std::wstring& newContent) { m_content = newContent; }
+		void SetContent(const std::string& newContent) { m_content = StringUtils::Convert(newContent); }
 
 		void Render();
 

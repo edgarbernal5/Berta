@@ -68,6 +68,7 @@ namespace Berta
 
 		std::wstring GetText() const;
 		void SetText(const std::wstring& text);
+		void SetText(const std::string& text);
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

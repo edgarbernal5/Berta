@@ -53,6 +53,11 @@ int main()
 	pgfSlider->SetMinMax(0, 10);
 
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(pgfSlider));
+
+	auto pgfSliderFloat = new Berta::PropertyGridFieldSliderFloat("Max Materials", "0.0");
+	pgfSliderFloat->SetMinMax(0, 15.0);
+
+	categoryMesh.Append(Berta::PropertyGridFieldPtr(pgfSliderFloat));
 	categoryMesh.Append(Berta::PropertyGridFieldPtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
 
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
