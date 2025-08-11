@@ -30,6 +30,9 @@ namespace Berta
 			uint32_t ExpanderButtonSize = 12u;
 		};
 
+		//TODO: posible refactor: cambiar el nombre a PropertyGridFieldBase o algo similar
+		// y crear otra clase con plantilla y borrar el atributo de m_value, m_defaultValue.
+		// dejar atributo de m_label;
 		class PropertyGridField
 		{
 		public:
