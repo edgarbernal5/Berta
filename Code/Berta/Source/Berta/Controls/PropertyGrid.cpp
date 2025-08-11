@@ -443,7 +443,7 @@ namespace Berta
 
 		void PropertyGridField::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
 		{
-			auto textExtents = graphics.GetTextExtent();
+			auto& textExtents = graphics.GetTextExtent();
 			Point position = area;
 			position.Y += static_cast<int>((area.Height - textExtents.Height) >> 1);
 

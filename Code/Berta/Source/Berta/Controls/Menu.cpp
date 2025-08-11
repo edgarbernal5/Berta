@@ -201,7 +201,7 @@ namespace Berta
 				}
 				else
 				{
-					auto textSize = graphics.GetTextExtent();
+					auto& textSize = graphics.GetTextExtent();
 					int center = (int)menuBoxItemHeight - (int)textSize.Height;
 					center >>= 1;
 
