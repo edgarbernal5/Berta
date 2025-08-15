@@ -59,6 +59,7 @@ int main()
 
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(pgfSliderFloat));
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
+	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringButton("Mesh file", "")));
 
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
