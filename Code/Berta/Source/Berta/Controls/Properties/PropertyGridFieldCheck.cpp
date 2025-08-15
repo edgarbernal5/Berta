@@ -13,7 +13,7 @@ namespace Berta
 {
 	void PropertyGridFieldCheck::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 		Rectangle valueRect = area;
 
@@ -35,17 +35,18 @@ namespace Berta
 
 	bool PropertyGridFieldCheck::IsChecked() const
 	{
-		return PropertyGridField::GetValue() == "1";
+		return PropertyGridFieldBase::GetValue() == "1";
 	}
 
 	void PropertyGridFieldCheck::SetCheck(bool checked)
 	{
-		PropertyGridField::SetValue(checked ? "1" : "0");
+		PropertyGridFieldBase::SetValue(checked ? "1" : "0");
+		m_checkBox.SetChecked(checked);
 	}
 
 	void PropertyGridFieldCheck::SetEnabled(bool enabled)
 	{
-		PropertyGridField::SetEnabled(enabled);
+		PropertyGridFieldBase::SetEnabled(enabled);
 		m_checkBox.SetEnabled(enabled);
 	}
 
@@ -54,12 +55,12 @@ namespace Berta
 		if (value == "T" || value == "t" || value == "true" || value == "1")
 		{
 			m_checkBox.SetChecked(true);
-			PropertyGridField::SetValue("1");
+			PropertyGridFieldBase::SetValue("1");
 		}
 		else if (value == "F" || value == "f" || value == "false" || value == "0")
 		{
 			m_checkBox.SetChecked(false);
-			PropertyGridField::SetValue("0");
+			PropertyGridFieldBase::SetValue("0");
 		}
 	}
 

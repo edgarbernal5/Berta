@@ -13,7 +13,7 @@ namespace Berta
 {
 	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 		Rectangle valueRect = area;
 
@@ -31,13 +31,13 @@ namespace Berta
 
 	void PropertyGridFieldString::SetEnabled(bool enabled)
 	{
-		PropertyGridField::SetEnabled(enabled);
+		PropertyGridFieldBase::SetEnabled(enabled);
 		m_inputText.SetEnabled(enabled);
 	}
 
 	void PropertyGridFieldString::SetValue(const std::string& value)
 	{
-		PropertyGridField::SetValue(value);
+		PropertyGridFieldBase::SetValue(value);
 		m_inputText.SetCaption(value);
 	}
 
@@ -68,9 +68,9 @@ namespace Berta
 
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{
-				if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridField::GetValue())
+				if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
 				{
-					PropertyGridField::SetValue(m_inputText.GetCaption());
+					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
 					EmitEvent();
 				}
 			});
@@ -80,9 +80,9 @@ namespace Berta
 				if (args.Focused)
 					return;
 
-				if (m_inputText.GetCaption() != PropertyGridField::GetValue())
+				if (m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
 				{
-					PropertyGridField::SetValue(m_inputText.GetCaption());
+					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
 					EmitEvent();
 				}
 			});

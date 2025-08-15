@@ -15,11 +15,11 @@
 
 namespace Berta
 {
-	class PropertyGridFieldColor : public PropertyGridField
+	class PropertyGridFieldColor : public PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldColor(const std::string& label, const std::string& value) :
-			PropertyGridField(label, value)
+			PropertyGridFieldBase(label, value)
 		{
 		}
 

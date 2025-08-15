@@ -63,7 +63,7 @@ namespace Berta
 			m_inputText.GetEvents().KeyPressed.Reset();
 			m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 				{
-					if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridField::GetValue())
+					if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
 					{
 						TNumber result{};
 						if (ValidateUserInput(result))

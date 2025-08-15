@@ -15,11 +15,11 @@
 
 namespace Berta
 {
-	class PropertyGridFieldCheck : public PropertyGridField
+	class PropertyGridFieldCheck : public PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldCheck(const std::string& label, const std::string& value) :
-			PropertyGridField(label, value)
+			PropertyGridFieldBase(label, value)
 		{
 		}
 

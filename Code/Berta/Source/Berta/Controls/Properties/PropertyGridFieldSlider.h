@@ -15,18 +15,18 @@
 namespace Berta
 {
 	template<typename TNumber, typename = std::enable_if_t<IsNumeric<TNumber>::value>>
-	class PropertyGridFieldSlider : public PropertyGridField, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
+	class PropertyGridFieldSlider : public PropertyGridFieldBase, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
 	{
 	public:
 		PropertyGridFieldSlider(const std::string& label, const std::string& value) :
-			PropertyGridField(label, value),
+			PropertyGridFieldBase(label, value),
 			FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>()
 		{
 		}
 
 		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override
 		{
-			PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+			PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 			Rectangle valueRect = area;
 
@@ -54,7 +54,7 @@ namespace Berta
 
 		virtual void SetEnabled(bool enabled) override
 		{
-			PropertyGridField::SetEnabled(enabled);
+			PropertyGridFieldBase::SetEnabled(enabled);
 			m_slider.SetEnabled(enabled);
 			m_valueInputText.SetEnabled(enabled);
 		}
@@ -67,7 +67,7 @@ namespace Berta
 				std::istringstream iss(value);
 				iss >> numberValue;
 
-				PropertyGridField::SetValue(value);
+				PropertyGridFieldBase::SetValue(value);
 				m_slider.SetValue(static_cast<int>(numberValue));
 				m_valueInputText.SetText(value);
 			}
@@ -79,7 +79,7 @@ namespace Berta
 		void SetValue(TNumber value) override
 		{
 			auto newString = std::to_string(value);
-			PropertyGridField::SetValue(newString);
+			PropertyGridFieldBase::SetValue(newString);
 			m_slider.SetValue(static_cast<int>(value));
 			m_valueInputText.SetText(newString);
 		}
@@ -89,7 +89,7 @@ namespace Berta
 			TNumber result{};
 			try
 			{
-				std::istringstream iss(PropertyGridField::GetValue());
+				std::istringstream iss(PropertyGridFieldBase::GetValue());
 				iss >> result;
 			}
 			catch (...)
@@ -121,7 +121,7 @@ namespace Berta
 			m_valueInputText.Create(parent);
 			m_valueInputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 				{
-					if (args.Key == KeyboardKey::Enter && m_valueInputText.GetCaption() != PropertyGridField::GetValue())
+					if (args.Key == KeyboardKey::Enter && m_valueInputText.GetCaption() != PropertyGridFieldBase::GetValue())
 					{
 						TNumber result{};
 						if (this->ValidateUserInput(result))

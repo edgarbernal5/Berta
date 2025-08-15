@@ -30,22 +30,19 @@ namespace Berta
 			uint32_t ExpanderButtonSize = 12u;
 		};
 
-		//TODO: posible refactor: cambiar el nombre a PropertyGridFieldBase o algo similar
-		// y crear otra clase con plantilla y borrar el atributo de m_value, m_defaultValue.
-		// dejar atributo de m_label;
-		class PropertyGridField
+		class PropertyGridFieldBase
 		{
 		public:
 			friend struct CategoryItem;
 
 		public:
-			PropertyGridField() = default;
-			PropertyGridField(const std::string& label, const std::string& value = "") :
+			PropertyGridFieldBase() = default;
+			PropertyGridFieldBase(const std::string& label, const std::string& value = "") :
 				m_label(label), m_value(value), m_defaultValue(value)
 			{
 			}
 
-			virtual ~PropertyGridField() = default;
+			virtual ~PropertyGridFieldBase() = default;
 
 			void Init(Window* parent);
 
@@ -105,7 +102,7 @@ namespace Berta
 
 			bool m_isExpanded{ true };
 			Rectangle m_area{};
-			std::vector<std::unique_ptr<PropertyGridField>> m_properties;
+			std::vector<std::unique_ptr<PropertyGridFieldBase>> m_properties;
 			std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
 		};
 
@@ -125,12 +122,12 @@ namespace Berta
 			CategoryType* m_selectedCategory{ nullptr };
 		};
 
-		using PropertyGridFieldPtr = std::unique_ptr<PropertyGridField>;
+		using PropertyGridFieldBasePtr = std::unique_ptr<PropertyGridFieldBase>;
 
 		class PropertyItem
 		{
 		public:
-			PropertyItem(Module* module, PropertyGridField* propGridField) :
+			PropertyItem(Module* module, PropertyGridFieldBase* propGridField) :
 				m_module(module), m_propGridField(propGridField)
 			{
 			}
@@ -139,11 +136,11 @@ namespace Berta
 			PropertyItem& SetLabel(const std::string& label);
 
 			std::string GetValue() const;
-			PropertyItem& SetValue(const std::string& value, bool emit = false);
+			PropertyItem& SetValue(const std::string& value, bool emitEvent = false);
 
 		private:
 			Module* m_module{ nullptr };
-			PropertyGridField* m_propGridField{ nullptr };
+			PropertyGridFieldBase* m_propGridField{ nullptr };
 		};
 
 		struct CategoryItem
@@ -154,7 +151,7 @@ namespace Berta
 			{
 			}
 
-			PropertyItem Append(PropertyGridFieldPtr propGridFieldPtr);
+			PropertyItem Append(PropertyGridFieldBasePtr propGridFieldPtr);
 
 			operator bool() const;
 
@@ -242,8 +239,8 @@ namespace Berta
 		};
 	}
 
-	using PropertyGridField = ReactorCore::PropertyGrid::PropertyGridField;
-	using PropertyGridFieldPtr = ReactorCore::PropertyGrid::PropertyGridFieldPtr;
+	using PropertyGridFieldBase = ReactorCore::PropertyGrid::PropertyGridFieldBase;
+	using PropertyGridFieldBasePtr = ReactorCore::PropertyGrid::PropertyGridFieldBasePtr;
 
 	class PropertyGrid : public Control<ReactorCore::PropertyGrid::Reactor, ReactorCore::PropertyGrid::Events, ReactorCore::PropertyGrid::Appearance>
 	{

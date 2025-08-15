@@ -13,7 +13,7 @@ namespace Berta
 {
 	void PropertyGridFieldSelection::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 		Rectangle valueRect = area;
 
@@ -31,7 +31,7 @@ namespace Berta
 
 	void PropertyGridFieldSelection::SetEnabled(bool enabled)
 	{
-		PropertyGridField::SetEnabled(enabled);
+		PropertyGridFieldBase::SetEnabled(enabled);
 		m_comboBox.SetEnabled(enabled);
 	}
 
@@ -44,7 +44,7 @@ namespace Berta
 			iss >> indexValue;
 
 			m_comboBox.SetSelectedIndex(indexValue);
-			PropertyGridField::SetValue(value);
+			PropertyGridFieldBase::SetValue(value);
 		}
 		catch (...)
 		{
@@ -57,7 +57,7 @@ namespace Berta
 			return;
 
 		m_comboBox.SetSelectedIndex(index);
-		PropertyGridField::SetValue(std::to_string(index));
+		PropertyGridFieldBase::SetValue(std::to_string(index));
 	}
 
 	void PropertyGridFieldSelection::PushItem(const std::string& optionText)

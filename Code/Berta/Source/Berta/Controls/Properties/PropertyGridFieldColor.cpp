@@ -13,7 +13,7 @@ namespace Berta
 {
 	void PropertyGridFieldColor::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 		Rectangle valueRect = area;
 
@@ -31,7 +31,7 @@ namespace Berta
 
 	void PropertyGridFieldColor::SetEnabled(bool enabled)
 	{
-		PropertyGridField::SetEnabled(enabled);
+		PropertyGridFieldBase::SetEnabled(enabled);
 		m_colorRegion.SetEnabled(enabled);
 	}
 
@@ -58,12 +58,12 @@ namespace Berta
 
 		m_color = Color(items[0], items[1], items[2], items[3]);
 		m_colorRegion.SetBackgroundColor(m_color);
-		PropertyGridField::SetValue(std::to_string(items[0]) + "," + std::to_string(items[1]) + "," + std::to_string(items[2]) + "," + std::to_string(items[3]));
+		PropertyGridFieldBase::SetValue(std::to_string(items[0]) + "," + std::to_string(items[1]) + "," + std::to_string(items[2]) + "," + std::to_string(items[3]));
 	}
 
 	void PropertyGridFieldColor::SetValue(const Color& value)
 	{
-		PropertyGridField::SetValue(std::to_string(value.GetR()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetA()));
+		PropertyGridFieldColor::SetValue(std::to_string(value.GetR()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetA()));
 	}
 
 	Color PropertyGridFieldColor::ToColor() const

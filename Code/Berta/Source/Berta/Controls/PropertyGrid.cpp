@@ -324,7 +324,7 @@ namespace Berta
 			return m_categories.cend();
 		}
 
-		PropertyItem CategoryItem::Append(PropertyGridFieldPtr propGridFieldPtr)
+		PropertyItem CategoryItem::Append(PropertyGridFieldBasePtr propGridFieldPtr)
 		{
 			m_category->m_properties.emplace_back(std::move(propGridFieldPtr));
 			auto newField = m_category->m_properties.back().get();
@@ -352,6 +352,9 @@ namespace Berta
 
 		PropertyItem& PropertyItem::SetLabel(const std::string& label)
 		{
+			m_propGridField->SetLabel(label);
+			m_module->Update();
+
 			return *this;
 		}
 
@@ -360,24 +363,30 @@ namespace Berta
 			return m_propGridField->GetValue();
 		}
 
-		PropertyItem& PropertyItem::SetValue(const std::string& value, bool emit)
+		PropertyItem& PropertyItem::SetValue(const std::string& value, bool emitEvent)
 		{
+			m_propGridField->SetValue(value);
+
+			if (emitEvent)
+			{
+				m_module->EmitEvent(*this);
+			}
 			return *this;
 		}
 
-		void PropertyGridField::Init(Window* parent)
+		void PropertyGridFieldBase::Init(Window* parent)
 		{
 			m_parent = parent;
 			Create(parent);
 			SetEnabled(IsEnabled());
 		}
 
-		std::string PropertyGridField::GetLabel() const
+		std::string PropertyGridFieldBase::GetLabel() const
 		{
 			return m_label;
 		}
 
-		void PropertyGridField::SetLabel(const std::string& label)
+		void PropertyGridFieldBase::SetLabel(const std::string& label)
 		{
 			if (m_label == label)
 				return;
@@ -385,12 +394,12 @@ namespace Berta
 			m_label = label;
 		}
 
-		std::string PropertyGridField::GetValue() const
+		std::string PropertyGridFieldBase::GetValue() const
 		{
 			return m_value;
 		}
 
-		void PropertyGridField::SetValue(const std::string& value)
+		void PropertyGridFieldBase::SetValue(const std::string& value)
 		{
 			if (m_value == value)
 				return;
@@ -399,12 +408,12 @@ namespace Berta
 			Update();
 		}
 
-		std::string PropertyGridField::GetDefaultValue() const
+		std::string PropertyGridFieldBase::GetDefaultValue() const
 		{
 			return m_defaultValue;
 		}
 
-		void PropertyGridField::SetDefaultValue(const std::string& value)
+		void PropertyGridFieldBase::SetDefaultValue(const std::string& value)
 		{
 			if (m_defaultValue == value)
 				return;
@@ -413,17 +422,17 @@ namespace Berta
 			Update();
 		}
 
-		bool PropertyGridField::IsEnabled() const
+		bool PropertyGridFieldBase::IsEnabled() const
 		{
 			return m_enabled;
 		}
 
-		void PropertyGridField::SetEnabled(bool enabled)
+		void PropertyGridFieldBase::SetEnabled(bool enabled)
 		{
 			m_enabled = enabled;
 		}
 
-		void PropertyGridField::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+		void PropertyGridFieldBase::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 		{
 			Rectangle labelArea = area;
 			labelArea.Width = labelWidth;
@@ -431,17 +440,17 @@ namespace Berta
 			DrawLabel(graphics, labelArea, textColor);
 		}
 
-		void PropertyGridField::EmitEvent()
+		void PropertyGridFieldBase::EmitEvent()
 		{
 			m_module->EmitEvent(PropertyItem{ m_module, this });
 		}
 
-		void PropertyGridField::Update()
+		void PropertyGridFieldBase::Update()
 		{
 			m_module->Update();
 		}
 
-		void PropertyGridField::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
+		void PropertyGridFieldBase::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
 		{
 			auto& textExtents = graphics.GetTextExtent();
 			Point position = area;
@@ -450,7 +459,7 @@ namespace Berta
 			graphics.DrawString(position, m_label, textColor);
 		}
 
-		void PropertyGridField::SetModule(Module* module)
+		void PropertyGridFieldBase::SetModule(Module* module)
 		{
 			m_module = module;
 		}

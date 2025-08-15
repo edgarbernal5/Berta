@@ -30,9 +30,9 @@ namespace Berta
 					if (args.Key == KeyboardKey::Enter)
 					{
 						auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
-						if (newValue != PropertyGridField::GetValue())
+						if (newValue != PropertyGridFieldBase::GetValue())
 						{
-							PropertyGridField::SetValue(newValue);
+							PropertyGridFieldBase::SetValue(newValue);
 							EmitEvent();
 						}
 					}
@@ -52,9 +52,9 @@ namespace Berta
 						return;
 
 					auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
-					if (newValue != PropertyGridField::GetValue())
+					if (newValue != PropertyGridFieldBase::GetValue())
 					{
-						PropertyGridField::SetValue(newValue);
+						PropertyGridFieldBase::SetValue(newValue);
 						EmitEvent();
 					}
 				});
@@ -65,7 +65,7 @@ namespace Berta
 
 	void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
 	{
-		PropertyGridField::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
 
 		Rectangle valueRect = area;
 
@@ -105,7 +105,7 @@ namespace Berta
 
 	void PropertyGridFieldVector3::SetEnabled(bool enabled)
 	{
-		PropertyGridField::SetEnabled(enabled);
+		PropertyGridFieldBase::SetEnabled(enabled);
 		for (auto& input : m_inputTexts)
 		{
 			input.SetEnabled(enabled);
@@ -138,6 +138,6 @@ namespace Berta
 			m_inputTexts[i].SetCaption(std::to_string(items[i]));
 		}
 
-		PropertyGridField::SetValue(std::to_string(items[0]) + "/" + std::to_string(items[1]) + "/" + std::to_string(items[2]));
+		PropertyGridFieldBase::SetValue(std::to_string(items[0]) + "/" + std::to_string(items[1]) + "/" + std::to_string(items[2]));
 	}
 }
