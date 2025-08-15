@@ -68,7 +68,10 @@ namespace Berta
 				m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded = !m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded;
 				m_module.m_mouseInteraction.m_selectedCategory = nullptr;
 
+				m_module.CalculateViewport(m_module.m_viewport);
 				m_module.BuildItems();
+				m_module.UpdateScrollBar();
+
 				GUI::UpdateWindow(m_module.m_owner);
 			}
 		}
