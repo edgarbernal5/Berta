@@ -40,10 +40,13 @@ int main()
 
 	auto categoryEmpty = propertyGrid.Append("Empty");
 	auto categoryMesh = propertyGrid.Append("Mesh");
-	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Mesh ID", "71d3eed6-d363-428a-bc81-01576539b297")));
+
+	auto meshIdProp = new Berta::PropertyGridFieldString("Mesh ID", "71d3eed6-d363-428a-bc81-01576539b297");
+	
+	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(meshIdProp)); meshIdProp->SetEditable(false);
+
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringInt("Mesh Count", "0")));
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldCheck("Enabled", "0")));
-
 	std::vector<std::string> options{"None", "Material 1", "Material 2" };
 	auto pgfSelection = new Berta::PropertyGridFieldSelection("Material");
 	pgfSelection->Set(options);

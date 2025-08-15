@@ -56,6 +56,7 @@ namespace Berta
 
 		m_button.Create(parent);
 		m_button.SetCaption(m_buttonText);
+
 		m_button.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
 				if (m_clickCallback)
