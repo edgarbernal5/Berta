@@ -77,6 +77,7 @@ namespace Berta
 		{
 			m_module.CalculateViewport(m_module.m_viewport);
 			m_module.BuildItems();
+			m_module.UpdateScrollBar();
 		}
 
 		void Module::BuildItems()
@@ -140,6 +141,10 @@ namespace Berta
 			CalculateContentSize(viewportData);
 
 			viewportData.m_needVerticalScroll = viewportData.m_contentSize > viewportData.m_backgroundRect.Height;
+			if (viewportData.m_needVerticalScroll)
+			{
+				viewportData.m_backgroundRect.Width -= m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+			}
 		}
 
 		void Module::CalculateContentSize(ViewportData& viewportData)
@@ -198,6 +203,12 @@ namespace Berta
 				{
 					GUI::MoveWindow(m_scrollBar->Handle(), scrollRect);
 				}
+
+				m_scrollBar->SetMinMax(0, (int)(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
+				m_scrollBar->SetPageStepValue(m_viewport.m_backgroundRect.Height);
+				m_scrollBar->SetStepValue(m_owner->ToScale(24));
+
+				m_scrollOffset.Y = m_scrollBar->GetValue();
 			}
 			else if (m_scrollBar)
 			{
@@ -215,8 +226,8 @@ namespace Berta
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 			{
 				Rectangle categoryRect = it->m_area;
-				categoryRect.X += m_scrollOffset.X + m_viewport.m_backgroundRect.X;
-				categoryRect.Y += m_scrollOffset.Y + m_viewport.m_backgroundRect.Y;
+				categoryRect.X += m_viewport.m_backgroundRect.X - m_scrollOffset.X;
+				categoryRect.Y += m_viewport.m_backgroundRect.Y - m_scrollOffset.Y;
 
 				bool isCategoryHovered = m_mouseInteraction.m_hoveredCategory == &(*it);
 				if (isCategoryHovered)
@@ -277,9 +288,11 @@ namespace Berta
 						GUI::MoveWindow(*fieldContainer, fieldContainerArea);
 
 						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, m_appearance->Foreground);
+					}
+					if (it->m_isExpanded)
+					{
 						scrollOffset.Y += fieldSize;
 					}
-
 					GUI::ShowWindow(*fieldContainer, fieldVisible);
 				}
 			}
