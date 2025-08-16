@@ -37,6 +37,7 @@ public:
 
 				auto newItem = m_treeBox.Insert(letter, text);
 				newItem.SetIcon(m_hardDriveImg);
+				newItem.SetUserData(letter);
 
 				m_treeBox.Insert(letter + ".../", "...");
 			}
@@ -50,7 +51,7 @@ public:
 					return;
 
 				auto& treeItem = args.Items[0];
-
+				auto userData = treeItem.GetUserData<std::string>();
 				auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
 
 				try
@@ -100,7 +101,7 @@ public:
 							{
 								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
 								newItem.SetIcon(m_folderImg);
-
+								newItem.SetUserData(entry.path().string());
 								auto subEntryPath = entry.path().string() + "/";
 								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
 								{

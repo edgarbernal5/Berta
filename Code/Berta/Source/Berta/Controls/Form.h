@@ -35,6 +35,8 @@ namespace Berta
 		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
 		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
 
+		API::NativeWindowHandle NativeHandle() const;
+
 		Layout& GetLayout()
 		{
 			return m_layout;

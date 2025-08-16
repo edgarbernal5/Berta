@@ -26,6 +26,17 @@ namespace Berta::GUI
 		return Foundation::GetInstance().GetWindowManager().CreateControl(parent, isUnscaleRect, rectangle, control, isPanel);
 	}
 
+	API::NativeWindowHandle GetNativeHandle(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return {};
+		}
+
+		return window->RootHandle;
+	}
+
 	void CaptionWindow(Window* window, const std::wstring& caption)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

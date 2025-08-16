@@ -53,6 +53,11 @@ namespace Berta
 #endif
 	}
 
+	API::NativeWindowHandle FormBase::NativeHandle() const
+	{
+		return GUI::GetNativeHandle(m_handle);
+	}
+
 	void FormBase::SetLayout(const std::string& layoutText)
 	{
 		m_layout.Create(*this);

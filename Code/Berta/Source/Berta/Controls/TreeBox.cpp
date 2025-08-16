@@ -1502,6 +1502,16 @@ namespace Berta
 		}
 	}
 
+	std::any& TreeBoxItem::UserData()
+	{
+		return m_node->userData;
+	}
+
+	const std::any& TreeBoxItem::UserData() const
+	{
+		return m_node->userData;
+	}
+
 	TreeNodeType* TreeBoxReactor::Module::GetRoot()
 	{
 		return &m_root;

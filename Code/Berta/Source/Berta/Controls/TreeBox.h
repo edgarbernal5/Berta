@@ -202,6 +202,20 @@ namespace Berta
 		{
 			m_module->SetIcon(m_node, icon);
 		}
+		
+		template<typename T>
+		const T& GetUserData() const
+		{
+			auto p = std::any_cast<T>(&UserData());
+			return *p;
+		}
+
+		template<typename T>
+		TreeBoxItem& SetUserData(T&& userData)
+		{
+			UserData() = std::forward<T>(userData);
+			return *this;
+		}
 
 		void Collapse();
 		void Expand();
@@ -230,6 +244,9 @@ namespace Berta
 
 		friend struct TreeBoxReactor::Module;
 	private:
+		std::any& UserData();
+		const std::any& UserData() const;
+		
 		TreeNodeType* m_node{ nullptr };
 		TreeBoxReactor::Module* m_module{ nullptr };
 	};

@@ -23,6 +23,7 @@ namespace Berta
 		Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm);
 		Window* CreateControl(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, ControlBase* control, bool isPanel);
 
+		API::NativeWindowHandle GetNativeHandle(Window* window);
 		void CaptionWindow(Window* window, const std::wstring& caption);
 		std::wstring CaptionWindow(Window* window);
 		void DisposeWindow(Window* window);

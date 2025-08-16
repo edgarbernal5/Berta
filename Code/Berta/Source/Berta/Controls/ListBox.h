@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <any>
 
 namespace Berta
 {
@@ -100,6 +101,7 @@ namespace Berta
 				Rectangle m_bounds;
 				bool m_isSelected{ false };
 				Image m_icon;
+				std::any m_userData;
 			};
 
 			std::vector<Item> m_items;
@@ -246,6 +248,20 @@ namespace Berta
 		void SetText(size_t columnIndex, const std::string& text);
 		std::string GetText(size_t columnIndex);
 
+		template<typename T>
+		const T& GetUserData() const
+		{
+			auto p = std::any_cast<T>(&UserData());
+			return *p;
+		}
+
+		template<typename T>
+		ListBoxItem& SetUserData(T&& userData)
+		{
+			UserData() = std::forward<T>(userData);
+			return *this;
+		}
+
 		operator bool() const
 		{
 			return m_target;
@@ -253,6 +269,9 @@ namespace Berta
 
 		friend struct ListBoxReactor::Module;
 	private:
+		std::any& UserData();
+		const std::any& UserData() const;
+
 		ListBoxReactor::List::Item* m_target{ nullptr };
 		ListBoxReactor::Module* m_module{ nullptr };
 	};

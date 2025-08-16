@@ -1796,6 +1796,16 @@ namespace Berta
 		return m_target->m_cells[columnIndex].m_text;
 	}
 
+	std::any& ListBoxItem::UserData()
+	{
+		return m_target->m_userData;
+	}
+
+	const std::any& ListBoxItem::UserData() const
+	{
+		return m_target->m_userData;
+	}
+
 	ListBox::ListBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
