@@ -36,7 +36,7 @@ namespace Berta
 
 		struct Module
 		{
-			void EmitCheckedChangedEvent();
+			void EmitCheckedChangedEvent() const;
 
 			bool m_isChecked{ false };
 			Window* m_window{ nullptr };

@@ -249,6 +249,12 @@ namespace Berta
 		std::string GetText(size_t columnIndex);
 
 		template<typename T>
+		const bool HasUserData() const
+		{
+			return std::any_cast<T>(&UserData());
+		}
+
+		template<typename T>
 		const T& GetUserData() const
 		{
 			auto p = std::any_cast<T>(&UserData());

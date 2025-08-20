@@ -202,6 +202,12 @@ namespace Berta
 		{
 			m_module->SetIcon(m_node, icon);
 		}
+
+		template<typename T>
+		const bool HasUserData() const
+		{
+			return std::any_cast<T>(&UserData());
+		}
 		
 		template<typename T>
 		const T& GetUserData() const

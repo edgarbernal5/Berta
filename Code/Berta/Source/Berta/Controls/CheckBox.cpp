@@ -94,7 +94,7 @@ namespace Berta
 		}
 	}
 
-	void CheckBoxReactor::Module::EmitCheckedChangedEvent()
+	void CheckBoxReactor::Module::EmitCheckedChangedEvent() const
 	{
 		ArgCheckBox argCheckBox{ m_isChecked };
 		m_events->CheckedChanged.Emit(argCheckBox);

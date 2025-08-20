@@ -17,6 +17,10 @@
 #include <filesystem>
 #include <Berta/GUI/ControlDrawBatch.h>
 
+struct TreeItemData
+{
+	std::string path;
+};
 class TabExplorer : public Berta::Panel
 {
 public:
@@ -37,7 +41,8 @@ public:
 
 				auto newItem = m_treeBox.Insert(letter, text);
 				newItem.SetIcon(m_hardDriveImg);
-				newItem.SetUserData(letter);
+				TreeItemData nodeData{ letter };
+				newItem.SetUserData(nodeData);
 
 				m_treeBox.Insert(letter + ".../", "...");
 			}
@@ -51,7 +56,7 @@ public:
 					return;
 
 				auto& treeItem = args.Items[0];
-				auto userData = treeItem.GetUserData<std::string>();
+				auto userData = treeItem.GetUserData<TreeItemData>();
 				auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
 
 				try
@@ -101,7 +106,8 @@ public:
 							{
 								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
 								newItem.SetIcon(m_folderImg);
-								newItem.SetUserData(entry.path().string());
+								TreeItemData itemData{ entry.path().string() };
+								newItem.SetUserData(itemData);
 								auto subEntryPath = entry.path().string() + "/";
 								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
 								{
