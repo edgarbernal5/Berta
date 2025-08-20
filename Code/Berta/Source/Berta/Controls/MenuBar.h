@@ -88,6 +88,7 @@ namespace Berta
 	class MenuBar : public Control<MenuBarReactor>
 	{
 	public:
+		MenuBar() = default;
 		MenuBar(Window* parent, const Rectangle& rectangle);
 		
 		Menu& At(size_t index);
