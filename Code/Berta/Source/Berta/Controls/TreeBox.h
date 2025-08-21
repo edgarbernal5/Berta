@@ -120,6 +120,7 @@ namespace Berta
 			void DrawTreeNodes(Graphics& graphics);
 			void DrawNavigationLines(Graphics& graphics);
 			void Init();
+			void EnableMultiselection(bool enabled);
 
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			
@@ -291,11 +292,14 @@ namespace Berta
 		TreeBoxItem Find(const TreeNodeHandle& key);
 		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
+		void DeselectAll();
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
 
 		std::string GetKeyPath(TreeBoxItem item, char separator);
 		std::vector<TreeBoxItem> GetSelected();
+
+		void EnableMultiselection(bool enabled);
 
 		void ShowNavigationLines(bool visible);
 	};

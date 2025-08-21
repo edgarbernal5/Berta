@@ -970,6 +970,12 @@ namespace Berta
 		m_root.isExpanded = true;
 	}
 
+
+	void TreeBoxReactor::Module::EnableMultiselection(bool enabled)
+	{
+		m_multiselection = enabled;
+	}
+
 	TreeNodeHandle TreeBoxReactor::Module::CleanKey(const TreeNodeHandle& key)
 	{
 		if (key.empty() || key[key.size() - 1] != '/')
@@ -1626,6 +1632,22 @@ namespace Berta
 		return item;
 	}
 
+	void TreeBox::DeselectAll()
+	{
+		auto& module = GetReactor().GetModule();
+		auto& selection = module.m_mouseSelection.m_selections;
+		if (selection.empty())
+		{
+			return;
+		}
+
+		for(auto& node : selection)
+		{
+			module.m_mouseSelection.Deselect(node);
+		}
+		module.EmitSelectionEvent();
+	}
+
 	void TreeBox::ExpandAll()
 	{
 		if (GetReactor().GetModule().ExpandAll())
@@ -1652,6 +1674,11 @@ namespace Berta
 	std::vector<TreeBoxItem> TreeBox::GetSelected()
 	{
 		return GetReactor().GetModule().GetSelected();
+	}
+
+	void TreeBox::EnableMultiselection(bool enabled)
+	{
+		GetReactor().GetModule().EnableMultiselection(enabled);
 	}
 
 	void TreeBox::ShowNavigationLines(bool visible)
