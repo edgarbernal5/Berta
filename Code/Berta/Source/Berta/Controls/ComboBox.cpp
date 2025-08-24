@@ -279,7 +279,7 @@ namespace Berta
 		m_module.Data.m_drawImages = true;
 	}
 
-	uint32_t ComboBoxReactor::GetSelectedIndex() const
+	int ComboBoxReactor::GetSelectedIndex() const
 	{
 		return m_module.Data.m_selectedIndex;
 	}

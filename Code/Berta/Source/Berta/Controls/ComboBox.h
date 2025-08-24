@@ -80,7 +80,7 @@ namespace Berta
 		void Erase(uint32_t index);
 		void PushItem(const std::wstring& text);
 		void PushItem(const std::wstring& text, const Image& icon);
-		uint32_t GetSelectedIndex() const;
+		int GetSelectedIndex() const;
 		void SetSelectedIndex(uint32_t index);
 
 	private:
@@ -102,7 +102,7 @@ namespace Berta
 		void PushItem(const std::wstring& text, const Image& icon);
 		void PushItem(const std::string& text, const Image& icon);
 
-		int GetSelectedIndex() { GetReactor().GetSelectedIndex(); }
+		int GetSelectedIndex() { return GetReactor().GetSelectedIndex(); }
 		void SetSelectedIndex(uint32_t index);
 
 		std::wstring GetText(uint32_t index);
