@@ -1634,12 +1634,13 @@ namespace Berta
 
 	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text)
 	{
-		auto item = GetReactor().GetModule().Insert(key, text, parent.GetNode());
+		auto& module = GetReactor().GetModule();
+		auto item = module.Insert(key, text, parent.GetNode());
 
 		if (item)
 		{
-			GetReactor().GetModule().Update();
-			GetReactor().GetModule().Draw();
+			module.Update();
+			module.Draw();
 		}
 		return item;
 	}
