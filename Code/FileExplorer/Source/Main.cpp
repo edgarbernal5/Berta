@@ -166,6 +166,8 @@ public:
 							{
 								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
 								newItem.SetIcon(m_folderImg);
+								TreeItemData itemData{ entry.path().string() };
+								newItem.SetUserData(itemData);
 
 								auto subEntryPath = entry.path().string() + "/";
 								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))

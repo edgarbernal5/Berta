@@ -1000,9 +1000,20 @@ namespace Berta
 		return { current, this };
 	}
 
-	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle)
+	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode)
 	{
-		return {};
+		auto cleanKey = CleanKey(key);
+		if (cleanKey.empty())
+			return {};
+
+		auto parts = StringUtils::Split(key, '/');
+		TreeNodeType* current = parentNode;
+		for (const auto& part : parts)
+		{
+			current = current->Add(part, text, current);
+		}
+
+		return { current, this };
 	}
 
 	TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
@@ -1610,19 +1621,20 @@ namespace Berta
 
 	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::string& text)
 	{
-		auto item = GetReactor().GetModule().Insert(key, text);
+		auto& module = GetReactor().GetModule();
+		auto item = module.Insert(key, text);
 
 		if (item)
 		{
-			GetReactor().GetModule().Update();
-			GetReactor().GetModule().Draw();
+			module.Update();
+			module.Draw();
 		}
 		return item;
 	}
 
 	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text)
 	{
-		auto item = GetReactor().GetModule().Insert(key, text, parent.GetHandle());
+		auto item = GetReactor().GetModule().Insert(key, text, parent.GetNode());
 
 		if (item)
 		{
@@ -1650,19 +1662,21 @@ namespace Berta
 
 	void TreeBox::ExpandAll()
 	{
-		if (GetReactor().GetModule().ExpandAll())
+		auto& module = GetReactor().GetModule();
+		if (module.ExpandAll())
 		{
-			GetReactor().GetModule().Update();
-			GetReactor().GetModule().Draw();
+			module.Update();
+			module.Draw();
 		}
 	}
 
 	void TreeBox::ExpandAll(TreeBoxItem item)
 	{
-		if (GetReactor().GetModule().ExpandAll(item))
+		auto& module = GetReactor().GetModule();
+		if (module.ExpandAll(item))
 		{
-			GetReactor().GetModule().Update();
-			GetReactor().GetModule().Draw();
+			module.Update();
+			module.Draw();
 		}
 	}
 

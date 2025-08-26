@@ -125,7 +125,7 @@ namespace Berta
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, const TreeNodeHandle& parentHandle);
+			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
 			void Erase(const TreeNodeHandle& handle);
@@ -235,6 +235,11 @@ namespace Berta
 		TreeNodeHandle& GetHandle() const
 		{
 			return m_node->key;
+		}
+
+		TreeNodeType* GetNode() const
+		{
+			return m_node;
 		}
 
 		TreeBoxItem FirstChild()
