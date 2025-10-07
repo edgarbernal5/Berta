@@ -135,6 +135,6 @@ namespace Berta
 
 	bool Window::HasCustomPaint() const
 	{
-		return Type == WindowType::RenderForm && RenderFormData.CustomPaint;
+		return Type == WindowType::RenderForm && RenderForAttributes.CustomPaint;
 	}
 }

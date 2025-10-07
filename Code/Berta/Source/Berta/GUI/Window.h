@@ -94,7 +94,7 @@ namespace Berta
 
 			std::function<void()> CustomPaint;
 		};
-		RenderFormData RenderFormData;
+		RenderFormData RenderForAttributes;
 		bool HasCustomPaint() const;
 
 		void Init(ControlBase* control);

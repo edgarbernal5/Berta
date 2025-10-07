@@ -127,7 +127,7 @@ namespace Berta
 				for (auto& handle : allHandles)
 				{
 					auto window = windowManager.Get(handle);
-					if (window->RenderFormData.AutoRefresh && window->HasCustomPaint())
+					if (window->RenderForAttributes.AutoRefresh && window->HasCustomPaint())
 					{
 						//window->CustomPaint();
 						API::RefreshWindow(window->RootHandle);
@@ -418,7 +418,7 @@ namespace Berta
 #endif
 				if (nativeWindow->HasCustomPaint())
 				{
-					nativeWindow->RenderFormData.CustomPaint();
+					nativeWindow->RenderForAttributes.CustomPaint();
 				}
 				::EndPaint(hWnd, &ps);
 			}
@@ -494,7 +494,7 @@ namespace Berta
 
 				if (nativeWindow->HasCustomPaint())
 				{
-					nativeWindow->RenderFormData.CustomPaint();
+					nativeWindow->RenderForAttributes.CustomPaint();
 				}
 				else
 				{
