@@ -134,6 +134,30 @@ private:
 	bool m_isResizing{ false };
 };
 
+class TabScene : public Berta::Panel
+{
+public:
+	TabScene(Berta::Window* parent) :
+		Panel(parent)
+	{
+		m_layout.Create(*this);
+		m_layout.Parse("{VerticalLayout {Dock dockRoot}}");
+
+		m_tabProperties = std::make_unique<TabProperties>(this->Handle());
+		m_tabForm = std::make_unique<TabForm>(this->Handle());
+
+		m_layout.AddPaneTab("panel-properties-pane", "tab-properties", *m_tabProperties, "", Berta::DockPosition::Tab);
+		m_layout.AddPaneTab("panel-pane", "tab-scene", *m_tabForm, "panel-properties-pane", Berta::DockPosition::Right);
+
+		m_layout.Apply();
+	}
+
+private:
+	Berta::Layout m_layout;
+	std::unique_ptr<TabProperties> m_tabProperties;
+	std::unique_ptr<TabForm> m_tabForm;
+};
+
 int main()
 {
 	Berta::Form form(Berta::Size(700u, 450u), { true, true, true });
@@ -161,21 +185,18 @@ int main()
 	customSubmenu->AppendSeparator();
 	customSubmenu->Append("More");
 
-	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
+	TabScene buttonPaneScene(form);
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
-
-	TabForm tabForm(form);
-	TabProperties tabProperties(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene", buttonPaneScene, "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Properties", tabProperties, "dockScene", Berta::DockPosition::Right);
-	layout.AddPaneTab("dockProp", "tab-Explorer", buttonPaneExplorer);
-	layout.AddPaneTab("dockD3D", "tab-D3D", tabForm, "dockScene", Berta::DockPosition::Down);
+	layout.AddPaneTab("dockScene", "tab-Scene-Document", buttonPaneScene, "", Berta::DockPosition::Tab);
+	//layout.AddPaneTab("dockProp", "tab-Properties", tabProperties, "dockScene", Berta::DockPosition::Right);
+	layout.AddPaneTab("dockProp", "tab-Explorer", buttonPaneExplorer, "dockScene", Berta::DockPosition::Down);
+	//layout.AddPaneTab("dockD3D", "tab-D3D", tabForm, "dockScene", Berta::DockPosition::Down);
 
 	layout.Apply();
 

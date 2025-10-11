@@ -162,6 +162,8 @@ namespace Berta
 		//TODO:
 		//DrawBatch drawBatch(m_parent->RootWindow);
 
+		area.X = 0;
+		area.Y = 0;
 		m_rootNode->SetArea(area);
 		m_rootNode->CalculateAreas();
 

@@ -682,7 +682,7 @@ namespace Berta
 			m_mouseInteraction.m_dragStarted = true;
 
 			m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
-			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) : this->GetPosition();
+			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? m_nativeContainer->GetPosition() : this->GetPosition();
 			m_mouseInteraction.m_dragStartCaptionPos = args.Position;
 
 			m_savedDPI = this->Handle()->DPI;
