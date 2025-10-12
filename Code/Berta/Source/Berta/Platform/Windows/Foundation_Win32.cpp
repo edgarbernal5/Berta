@@ -430,8 +430,8 @@ namespace Berta
 				//ScopedTimer scopedTimer("WM_PAINT");
 #endif
 				windowManager.UpdateTree(nativeWindow);
+				::ValidateRect(hWnd, nullptr);
 			}
-			::ValidateRect(hWnd, nullptr);
 
 			wasHandled = true;
 			break;
@@ -494,12 +494,12 @@ namespace Berta
 
 				if (nativeWindow->HasCustomPaint())
 				{
-					nativeWindow->RenderForAttributes.CustomPaint();
-				}
-				else
-				{
 					API::RefreshWindow(nativeWindowHandle);
 				}
+				//else
+				//{
+				//	API::RefreshWindow(nativeWindowHandle);
+				//}
 			}
 			
 			wasHandled = true;

@@ -54,7 +54,7 @@ public:
 		m_nestedForm->SetCustomPaintCallback([this]()
 			{
 				OnDraw();
-				//std::cout << " .... END RENDERING ////***/**/" << std::endl;
+				std::cout << " .... END RENDERING ////***/**/" << std::endl;
 			});
 
 		m_nestedForm->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)

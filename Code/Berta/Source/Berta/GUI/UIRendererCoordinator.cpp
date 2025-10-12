@@ -21,7 +21,7 @@ namespace Berta
 
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.Begin();
-		if (operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
+		if (window->Type != WindowType::Panel && operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
 			window->Flags.isUpdating = true;
 			window->Renderer.Update();

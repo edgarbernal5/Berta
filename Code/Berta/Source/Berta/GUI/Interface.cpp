@@ -433,7 +433,8 @@ namespace Berta::GUI
 			return;
 		}
 
-		windowManager.UpdateTree(window, now);
+		auto windowToUpdate = window->FindFirstNonPanelAncestor();
+		windowManager.UpdateTree(windowToUpdate, now);
 	}
 
 	void MarkAsNeedUpdate(Window* window)
