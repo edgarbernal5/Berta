@@ -844,16 +844,12 @@ namespace Berta
 		}
 		case WM_ENTERSIZEMOVE:
 		{
-			ArgSizeMove argSizeMove;
-			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
-			events->EnterSizeMove.Emit(argSizeMove);
+			foundation.EventEnterSizeMove(nativeWindow);
 			break;
 		}
 		case WM_EXITSIZEMOVE:
 		{
-			ArgSizeMove argSizeMove;
-			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
-			events->ExitSizeMove.Emit(argSizeMove);
+			foundation.EventExitSizeMove(nativeWindow);
 			break;
 		}
 		case WM_CLOSE:

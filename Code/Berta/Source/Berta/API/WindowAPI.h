@@ -107,6 +107,8 @@ namespace Berta
 		void SendDpiChanged(NativeWindowHandle nativeHandle, uint32_t oldDpi, uint32_t newDpi, const Rectangle& newArea);
 
 		Point GetScreenMousePosition();
+		void EnterSizeMoveWindow(NativeWindowHandle nativeHandle);
+		void ExitSizeMoveWindow(NativeWindowHandle nativeHandle);
 	}
 }
 

@@ -37,6 +37,8 @@ namespace Berta
 		Foundation(const Foundation&) = delete;
 		Foundation& operator=(const Foundation&) = delete;
 
+		static Foundation& GetInstance();
+
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		MenuManager& GetMenuManager() { return m_menuManager; }
 		void ProcessMessages();
@@ -44,7 +46,8 @@ namespace Berta
 		template <typename TArgument>
 		void ProcessEvents(Window* window, void(Renderer::* rendererEventPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args);
 
-		static Foundation& GetInstance();
+		void EventEnterSizeMove(Window* window);
+		void EventExitSizeMove(Window* window);
 
 		class RootGuard
 		{

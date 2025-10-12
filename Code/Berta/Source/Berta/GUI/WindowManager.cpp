@@ -344,6 +344,42 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::EnterSizeMoveInternal(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::EnterSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			for (auto& child : window->Children)
+			{
+				EnterSizeMoveInternal(child);
+			}
+		}
+	}
+
+	void WindowManager::ExitSizeMoveInternal(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::EnterSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			for (auto& child : window->Children)
+			{
+				ExitSizeMoveInternal(child);
+			}
+		}
+	}
+
 	void WindowManager::GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles)
 	{
 		windowHandles.clear();
@@ -353,6 +389,35 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::EnterSizeMove(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::EnterSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			EnterSizeMoveInternal(window);
+		}
+	}
+
+	void WindowManager::ExitSizeMove(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::ExitSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			ExitSizeMoveInternal(window);
+		}
+	}
 
 	void WindowManager::Dispose(Window* window)
 	{

@@ -82,6 +82,9 @@ namespace Berta
 		void SetParent(Window* window, Window* newParent);
 
 		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
+
+		void EnterSizeMove(Window* window);
+		void ExitSizeMove(Window* window);
 	private:
 
 		void UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
@@ -92,6 +95,9 @@ namespace Berta
 		void SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition);
 		void MoveInternal(Window* window, const Point& delta, bool forceRepaint);
 		void ShowInternal(Window* window, bool visible);
+		
+		void EnterSizeMoveInternal(Window* window);
+		void ExitSizeMoveInternal(Window* window);
 
 		struct CaptureHistoryData
 		{

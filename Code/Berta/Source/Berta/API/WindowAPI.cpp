@@ -481,5 +481,19 @@ namespace Berta
 			return {};
 #endif
 		}
+
+		void EnterSizeMoveWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::SendMessage(nativeHandle.Handle, WM_ENTERSIZEMOVE, 0, 0);
+#endif
+		}
+
+		void ExitSizeMoveWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::SendMessage(nativeHandle.Handle, WM_EXITSIZEMOVE, 0, 0);
+#endif
+		}
 	}
 }
