@@ -8,9 +8,217 @@
 #include <Berta/Controls/Button.h>
 #include <Berta/Controls/MenuBar.h>
 #include <Berta/Controls/Panel.h>
+#include <Berta/Controls/TreeBox.h>
+#include <Berta/Controls/ListBox.h>
 
 #include <D3D12Lite.h>
 #include <iostream>
+
+struct TreeItemData
+{
+	std::string path;
+};
+class TabExplorer : public Berta::Panel
+{
+public:
+	TabExplorer(Berta::Window* parent) :
+		Panel(parent)
+	{
+		m_listBox.AppendHeader("Name", 200);
+		m_listBox.AppendHeader("Type", 120);
+
+		DWORD drives = ::GetLogicalDrives();
+
+		for (char i = 0; i < 26; ++i)
+		{
+			if (drives & (1 << i))
+			{
+				std::string letter = std::string(1, 'A' + i) + ":/";
+				std::string text = std::string(1, 'A' + i) + ":";
+
+				auto newItem = m_treeBox.Insert(letter, text);
+				newItem.SetIcon(m_hardDriveImg);
+				TreeItemData nodeData{ letter };
+				newItem.SetUserData(nodeData);
+
+				m_treeBox.Insert(letter + ".../", "...");
+			}
+		}
+
+		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
+			{
+				m_listBox.Clear();
+
+				if (args.Items.size() > 1)
+					return;
+
+				auto& treeItem = args.Items[0];
+				auto userData = treeItem.GetUserData<TreeItemData>();
+				auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
+
+				try
+				{
+					for (const auto& entry : std::filesystem::directory_iterator(path))
+					{
+						try
+						{
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
+								auto newItem = m_listBox.Append(entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
+							}
+							else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
+								auto newItem = m_listBox.Append(entry.path().filename().string());
+								newItem.SetIcon(m_fileImg);
+							}
+						}
+						catch (...)
+						{
+
+						}
+					}
+				}
+				catch (...)
+				{
+
+				}
+			});
+
+		m_treeBox.GetEvents().Expanded.Connect([this](const Berta::ArgTreeBox& args)
+			{
+				if (!args.IsExpanded)
+					return;
+
+				if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == "...")
+				{
+					auto path = m_treeBox.GetKeyPath(args.Item, '/') + "/";
+
+					auto child = args.Item.FirstChild();
+					m_treeBox.Erase(child);
+					for (const auto& entry : std::filesystem::directory_iterator(path))
+					{
+						try
+						{
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
+								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
+								TreeItemData itemData{ entry.path().string() };
+								newItem.SetUserData(itemData);
+								auto subEntryPath = entry.path().string() + "/";
+								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
+								{
+									try
+									{
+										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
+										{
+											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											break;
+										}
+									}
+									catch (...)
+									{
+
+									}
+								}
+							}
+						}
+						catch (...)
+						{
+
+						}
+					}
+				}
+			});
+
+		m_listBox.GetEvents().DblClick.Connect([this](const Berta::ArgMouse& args)
+			{
+				if (m_listBox.GetSelected().empty())
+					return;
+
+				auto selected = m_listBox.GetSelected();
+				auto& first = selected.at(0);
+
+				auto treeItemSelected = m_treeBox.GetSelected().at(0);
+				auto pathTreeItemSelected = m_treeBox.GetKeyPath(treeItemSelected, '/');
+				auto newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+				if (newSelected)
+				{
+					treeItemSelected.Expand();
+					newSelected.Select();
+					return;
+				}
+
+				if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == "...")
+				{
+					auto path = m_treeBox.GetKeyPath(treeItemSelected, '/') + "/";
+
+					auto child = treeItemSelected.FirstChild();
+					m_treeBox.Erase(child);
+					for (const auto& entry : std::filesystem::directory_iterator(path))
+					{
+						try
+						{
+							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
+								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								newItem.SetIcon(m_folderImg);
+								TreeItemData itemData{ entry.path().string() };
+								newItem.SetUserData(itemData);
+
+								auto subEntryPath = entry.path().string() + "/";
+								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
+								{
+									try
+									{
+										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
+										{
+											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											break;
+										}
+									}
+									catch (...)
+									{
+
+									}
+								}
+							}
+						}
+						catch (...)
+						{
+
+						}
+					}
+
+					newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+					if (newSelected)
+					{
+						treeItemSelected.Expand();
+						newSelected.Select();
+						return;
+					}
+				}
+			});
+
+		m_layout.Create(*this);
+		m_layout.Parse("{{treeBox Width=40%}|{listBox}}");
+
+		m_layout.Attach("treeBox", m_treeBox);
+		m_layout.Attach("listBox", m_listBox);
+		m_layout.Apply();
+	}
+
+private:
+	Berta::TreeBox m_treeBox{ *this };
+	Berta::ListBox m_listBox{ *this };
+
+	Berta::Image m_folderImg{ "..\\..\\Resources\\Icons\\Folder 2 128.png" };
+	Berta::Image m_folderOpenImg{ "..\\..\\Resources\\Icons\\Folder 128.png" };
+	Berta::Image m_fileImg{ "..\\..\\Resources\\Icons\\File 128.png" };
+	Berta::Image m_hardDriveImg{ "..\\..\\Resources\\Icons\\Hard drive 3 128.png" };
+
+	Berta::Layout m_layout;
+};
 
 class TabProperties : public Berta::Panel
 {
@@ -186,7 +394,7 @@ int main()
 	customSubmenu->Append("More");
 
 	TabScene buttonPaneScene(form);
-	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
+	TabExplorer buttonPaneExplorer(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
