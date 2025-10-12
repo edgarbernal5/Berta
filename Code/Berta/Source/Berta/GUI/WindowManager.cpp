@@ -368,7 +368,7 @@ namespace Berta
 		{
 			if (window->Visible)
 			{
-				API::EnterSizeMoveWindow(window->RootHandle);
+				API::ExitSizeMoveWindow(window->RootHandle);
 			}
 		}
 		else
