@@ -220,8 +220,13 @@ namespace Berta
 						Rectangle destRect{ { 1 + centerImage.X + (int)itemTextPadding, offsetY + centerImage.Y }, scaleImageSize };
 						item.m_image.Paste(item.m_image.GetSize().ToRectangle(), graphics, destRect);
 					}
-					graphics.DrawString({ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center}, item.m_text, item.m_isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
-					
+					auto textPosition = Point{ 1 + (int)(menuBoxLeftPaneWidth + itemTextPadding), offsetY + center };
+					graphics.DrawString(textPosition, item.m_text, item.m_isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
+					if (item.m_isEnabled && item.m_accessKey)
+					{
+						GUI::DrawAccessKeyUnderline(graphics, item.m_text, item.m_accessKey, item.m_accessKeyPosition, textPosition, window->Appearance->Foreground);
+					}
+
 					if (item.m_subMenu)
 					{
 						int arrowWidth = window->ToScale(4);

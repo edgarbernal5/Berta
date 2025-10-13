@@ -81,6 +81,10 @@ namespace Berta
 		void Exit();
 
 		void SetBackgroundColor(Window* window, const Color& newColor);
+
+		//TODO: mover estas funciones a otro namespace/archivo/clase
+		std::wstring GetAccessKeyText(const std::wstring& text, wchar_t& accessKey, std::size_t* accessKeyPosition);
+		void DrawAccessKeyUnderline(Graphics& graphics, const std::wstring& wstr, wchar_t accessKey, std::size_t accessKeyPosition, const Point& position, const Color& color);
 	}
 }
 

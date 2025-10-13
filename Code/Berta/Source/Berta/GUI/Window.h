@@ -90,7 +90,7 @@ namespace Berta
 
 		struct RenderFormData
 		{
-			bool AutoRefresh{ false };
+			bool AutoRefresh{ true };
 
 			std::function<void()> CustomPaint;
 		};

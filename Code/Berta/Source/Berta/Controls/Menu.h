@@ -82,7 +82,10 @@ namespace Berta
 			Item(const std::wstring& _text, ClickCallback _onClick) : 
 				m_text(_text), 
 				m_isSeparator(false),
-				m_onClick(_onClick){}
+				m_onClick(_onClick)
+			{
+				m_text = GUI::GetAccessKeyText(_text, m_accessKey, &m_accessKeyPosition);
+			}
 
 			std::wstring m_text;
 			bool m_isSeparator{ false };
@@ -90,6 +93,8 @@ namespace Berta
 			ClickCallback m_onClick;
 			std::unique_ptr<Menu> m_subMenu;
 			Image m_image;
+			wchar_t m_accessKey{ 0 };
+			std::size_t	m_accessKeyPosition{ 0 };
 		};
 	private:
 		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);

@@ -44,6 +44,7 @@ namespace Berta
 			{
 				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 			}
+			GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, { itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, window->Appearance->Foreground);
 		}
 	}
 
@@ -310,8 +311,12 @@ namespace Berta
 
 	Menu& MenuBarReactor::Module::PushBack(const std::wstring& text)
 	{
+		wchar_t accessKey;
+		std::size_t accessKeyPosition;
+		auto transformedText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
+
 		auto startIndex = m_items.size();
-		auto& newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ text });
+		auto& newItem = m_items.emplace_back(new MenuBarReactor::MenuBarItemData{ transformedText, accessKey, accessKeyPosition });
 		BuildItems(startIndex);
 
 		return newItem->menu;

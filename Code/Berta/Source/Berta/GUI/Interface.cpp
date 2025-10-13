@@ -574,4 +574,65 @@ namespace Berta::GUI
 
 		window->Appearance->Background = newColor;
 	}
+
+	std::wstring GetAccessKeyText(const std::wstring& text, wchar_t &accessKey, std::size_t* accessKeyPosition)
+	{
+		accessKey = 0;
+		if (accessKeyPosition)
+		{
+			*accessKeyPosition = std::wstring::npos;
+		}
+
+		std::wstring result;
+		result.reserve(text.size());
+
+		for (std::size_t i = 0; i < text.size(); ++i)
+		{
+			if (text[i] == L'&')
+			{
+				if (i + 1 < text.size())
+				{
+					if (text[i + 1] == L'&')
+					{
+						result.push_back(L'&');
+						++i;
+					}
+					else if (accessKey == 0)
+					{
+						accessKey = text[i + 1];
+						if (accessKeyPosition)
+						{
+							*accessKeyPosition = result.size();
+						}
+					}
+				}
+			}
+			else
+			{
+				result.push_back(text[i]);
+			}
+		}
+
+		return result;
+	}
+
+	void DrawAccessKeyUnderline(Graphics& graphics, const std::wstring& wstr, wchar_t accessKey, std::size_t accessKeyPosition, const Point& position, const Color& color)
+	{
+		if (!accessKey)
+		{
+			return;
+		}
+		if (accessKeyPosition == std::wstring::npos || accessKeyPosition >= wstr.size())
+		{
+			return;
+		}
+
+		auto textSize = graphics.GetTextExtent(wstr.substr(0, accessKeyPosition + 1));
+		auto accessKeyTextSize = graphics.GetTextExtent(std::wstring{ wstr[accessKeyPosition] });
+
+		auto underlineStart = Point{ position.X + static_cast<int>(textSize.Width - accessKeyTextSize.Width), position.Y + static_cast<int>(accessKeyTextSize.Height) - 2 };
+		auto underlineEnd = Point{ underlineStart.X + static_cast<int>(accessKeyTextSize.Width), underlineStart.Y };
+
+		graphics.DrawLine(underlineStart, underlineEnd, color);
+	}
 }

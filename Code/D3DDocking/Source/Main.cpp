@@ -372,7 +372,7 @@ int main()
 	form.SetCaption("Docking system - Example");
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
-	auto& menuFile = menuBar.PushBack(L"File");
+	auto& menuFile = menuBar.PushBack(L"&File");
 
 	menuFile.Append("New");
 	auto newSubmenu = menuFile.CreateSubMenu(0);
@@ -383,15 +383,18 @@ int main()
 			Berta::GUI::Exit();
 		});
 
-	auto& menuWindow = menuBar.PushBack(L"Window");
+	auto& menuWindow = menuBar.PushBack(L"W&indow");
 	menuWindow.Append("Load layout");
 	menuWindow.Append("Reset layout");
 	menuWindow.Append("Custom");
 	auto customSubmenu = menuWindow.CreateSubMenu(2);
-	customSubmenu->Append("One");
-	customSubmenu->Append("Two");
+	customSubmenu->Append("O&ne");
+	customSubmenu->Append("Tw&o");
 	customSubmenu->AppendSeparator();
 	customSubmenu->Append("More");
+
+	auto& helpMenu = menuBar.PushBack(L"Help");
+	helpMenu.Append("About");
 
 	TabScene buttonPaneScene(form);
 	TabExplorer buttonPaneExplorer(form);

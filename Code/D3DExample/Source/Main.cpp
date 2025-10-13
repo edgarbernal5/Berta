@@ -36,6 +36,7 @@ int main()
 
 			device->EndFrame();
 			device->Present();
+			std::cout << " .... END RENDERING ////***/**/" << std::endl;
 		});
 
 	form.GetEvents().EnterSizeMove.Connect([&isResizing](const Berta::ArgSizeMove& args)

@@ -43,10 +43,17 @@ namespace Berta
 
 		struct MenuBarItemData
 		{
-			MenuBarItemData(const std::wstring& _text) :text(_text) {}
+			MenuBarItemData(const std::wstring& _text, wchar_t _accessKey, std::size_t _accessKeyPosition) :
+				text(_text),
+				accessKey(_accessKey),
+				accessKeyPosition(_accessKeyPosition)
+			{
+			}
 
 			Menu menu;
 			std::wstring text;
+			wchar_t accessKey;
+			std::size_t accessKeyPosition;
 			Size size;
 			Point position;
 			Size center;
