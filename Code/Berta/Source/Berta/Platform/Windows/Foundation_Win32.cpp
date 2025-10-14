@@ -647,15 +647,18 @@ namespace Berta
 				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
 				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
 				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+				if (window != rootHoveredWindow)
 				{
-					ArgMouse argMouseEnter;
-					argMouseEnter.Position = position;
-					argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					if (window->ClientSize.IsInside(position))
+					{
+						ArgMouse argMouseEnter;
+						argMouseEnter.Position = position;
+						argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
-
+						foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
+					}
 					rootHoveredWindow = window;
 				}
 
@@ -672,9 +675,9 @@ namespace Berta
 				if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
 				{
 #if BT_DEBUG
-					BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+					//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 #else
-					BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
+					//BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
 #endif
 					trackEvent.hwndTrack = hWnd;
 					::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
