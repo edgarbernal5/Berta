@@ -62,6 +62,7 @@ namespace Berta
 
 		void Capture(Window* window, bool redirectToChildren);
 		void ReleaseCapture(Window* window);
+		Window* GetCaptureWindow() const;
 
 		Window* Find(Window* window, const Point& point);
 		void UpdateTree(Window* window, bool now = false);

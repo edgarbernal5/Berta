@@ -44,13 +44,13 @@ namespace Berta
 
 	bool Rectangle::IsInside(const Point& point) const
 	{
-		return (X <= point.X && point.X <= X + static_cast<int>(Width) && Y <= point.Y && point.Y <= Y + static_cast<int>(Height));
+		return (X <= point.X && point.X < X + static_cast<int>(Width) && Y <= point.Y && point.Y < Y + static_cast<int>(Height));
 	}
 
 #ifdef BT_PLATFORM_WINDOWS
 	bool Rectangle::IsInside(const D2D1_POINT_2F& pointF) const
 	{
-		return (X <= pointF.x && pointF.x <= static_cast<float>(X + Width) && Y <= pointF.y && pointF.y <= static_cast<float>(Y + Height));
+		return (X <= pointF.x && pointF.x < static_cast<float>(X + Width) && Y <= pointF.y && pointF.y < static_cast<float>(Y + Height));
 	}
 #endif
 

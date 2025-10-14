@@ -581,6 +581,11 @@ namespace Berta
 		//BT_CORE_TRACE << "ReleaseCapture / m_capture.PrevCaptured size = " << m_capture.PrevCaptured.size() << std::endl;
 	}
 
+	Window* WindowManager::GetCaptureWindow() const
+	{
+		return m_capture.WindowPtr;
+	}
+
 	Window* WindowManager::Find(Window* window, const Point& point)
 	{
 		if (window == nullptr || !window->Visible)
@@ -795,10 +800,10 @@ namespace Berta
 			//if (redraw)
 			{
 				API::RefreshWindow(window->RootHandle);
-				//window->CustomPaint();
 			}
 			return;
 		}
+
 		if (window->IsNested())
 		{
 			API::RefreshWindow(window->RootHandle);
@@ -975,7 +980,6 @@ namespace Berta
 			if (child->HasCustomPaint())
 			{
 				API::RefreshWindow(child->RootHandle);
-				//child->CustomPaint();
 				continue;
 			}
 			if (child->IsNested())

@@ -33,16 +33,17 @@ namespace Berta
 		{
 			auto& itemData = *(items[i]);
 
+			auto textPosition = Point{ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height };
 			if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
 			{
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
 
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, window->Appearance->Foreground);
+				graphics.DrawString(textPosition, itemData.text, window->Appearance->Foreground);
 				graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
 			}
 			else
 			{
-				graphics.DrawString({ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
+				graphics.DrawString(textPosition, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 			}
 			GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, { itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, window->Appearance->Foreground);
 		}

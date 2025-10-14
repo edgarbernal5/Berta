@@ -343,7 +343,6 @@ namespace Berta
 		{
 			ArgActivated argActivated{};
 			argActivated.IsActivated = wParam ? true : false;
-			//BT_CORE_TRACE << "    IsActivated = " << argActivated.IsActivated << ". " << hWnd << std::endl;
 			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
 			events->Activated.Emit(argActivated);
 
@@ -410,11 +409,11 @@ namespace Berta
 				Rectangle areaToUpdate;
 				areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
-				BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
-				BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
+				//BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+				//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
 #else
-				BT_CORE_DEBUG << "   area to update " << areaToUpdate << std::endl;
-				BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << std::endl;
+				//BT_CORE_DEBUG << "   area to update " << areaToUpdate << std::endl;
+				//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << std::endl;
 #endif
 				if (nativeWindow->HasCustomPaint())
 				{
@@ -585,11 +584,11 @@ namespace Berta
 			{
 				rootPressedWindow = window;
 
-				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
+				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
 
 				ArgMouse argMouseDown;
-				argMouseDown.Position = pi - windowManager.GetWindowRootPosition(window);
+				argMouseDown.Position = pointToClient - windowManager.GetWindowRootPosition(window);
 				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
@@ -625,21 +624,19 @@ namespace Berta
 			int y = ((int)(short)HIWORD(lParam));
 			
 			auto window = windowManager.Find(nativeWindow, { x, y });
-			//BT_CORE_DEBUG << " - window and hovered / window " << (window != nullptr ? window->Name :"NULL") << ". hovered " << (rootWindowData.Hovered != nullptr ? rootWindowData.Hovered->Name : "NULL") << std::endl;
 			if (window && window != rootHoveredWindow)
 			{
 				if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 				{
-					auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-					auto pi = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pp);
+					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+					auto pointToClient = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pointToScreen);
 
 					ArgMouse argMouseLeave;
-					argMouseLeave.Position = pi - windowManager.GetWindowRootPosition(rootHoveredWindow);
+					argMouseLeave.Position = pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow);
 					argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
 					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << " - mouse leave / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << std::endl;
 					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 				}
 				rootHoveredWindow = nullptr;
@@ -647,10 +644,9 @@ namespace Berta
 
 			if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
 			{
-				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
-				Point position = pi - windowManager.GetWindowRootPosition(window);
-				if (window != rootHoveredWindow && window->ClientSize.IsInside(position))
+				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
 				{
 					ArgMouse argMouseEnter;
 					argMouseEnter.Position = position;
@@ -658,7 +654,6 @@ namespace Berta
 					argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << " - mouse enter / name " << window->Name << ".hovered " << rootWindowData.Hovered << std::endl;
 					foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
 
 					rootHoveredWindow = window;
@@ -672,7 +667,6 @@ namespace Berta
 					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-					//BT_CORE_DEBUG << " - window. MouseMove " << window->Name << std::endl;
 					foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
 				}
 				if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
@@ -701,9 +695,9 @@ namespace Berta
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window->Flags.IsEnabled)
 			{
-				auto pp = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pi = API::GetPointScreenToClient(window->RootHandle, pp);
-				Point position = pi - windowManager.GetWindowRootPosition(window);
+				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
 
 				ArgMouse argMouseUp;
 				argMouseUp.Position = position;
@@ -749,11 +743,9 @@ namespace Berta
 		case WM_MOUSELEAVE:
 		{
 			wasHandled = true;
-			//BT_CORE_DEBUG << " - mouse leave 2 / preparing... " << std::endl;
 			rootWindowData->IsTracking = false;
 			if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 			{
-				//BT_CORE_DEBUG << " - mouse leave 2 / name " << rootWindowData.Hovered->Name << ". hovered " << rootWindowData.Hovered << ". hwnd " << hWnd << std::endl;
 				ArgMouse argMouseLeave;
 				foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
@@ -769,12 +761,9 @@ namespace Berta
 			int wheelDelta = ((int)(short)HIWORD(wParam));
 			int x = ((int)(short)LOWORD(lParam));
 			int y = ((int)(short)HIWORD(lParam));
-			POINT screenToClientPoint{};
-			screenToClientPoint.x = x;
-			screenToClientPoint.y = y;
-			::ScreenToClient(hWnd, &screenToClientPoint);
+			auto screenToClientPoint = API::GetPointScreenToClient(nativeWindow->RootHandle, { x, y });
 
-			auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.x), static_cast<int>(screenToClientPoint.y) });
+			auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.X), static_cast<int>(screenToClientPoint.Y) });
 			if (window)
 			{
 				ArgWheel argWheel{};
