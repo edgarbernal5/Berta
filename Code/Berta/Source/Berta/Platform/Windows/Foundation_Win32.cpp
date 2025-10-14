@@ -680,7 +680,7 @@ namespace Berta
 					//BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
 #endif
 					trackEvent.hwndTrack = hWnd;
-					::TrackMouseEvent(&trackEvent); //Keep track of mouse position to Emit WM_MOUSELEAVE message.
+					::TrackMouseEvent(&trackEvent);
 					rootWindowData->IsTracking = true;
 				}
 			}
@@ -714,7 +714,6 @@ namespace Berta
 					foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
 				}
 
-				//if (window == rootPressedWindow)
 				foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
 
 				rootReleasedWindow = rootPressedWindow;
