@@ -10,6 +10,7 @@
 namespace Berta
 {
 #define BT_WINDOWS_ABGR(r, g, b, a)	((uint32_t)(a)<<24 | (uint32_t)(b)<<16 | (uint32_t)(g)<<8 | (uint32_t)(r))
+#define BT_WINDOWS_BGR(r, g, b)	((uint32_t)(b)<<16 | (uint32_t)(g)<<8 | (uint32_t)(r))
 
 	const Size Size::Zero = { 0,0 };
 
@@ -149,6 +150,11 @@ namespace Berta
 		G = g;
 		B = b;
 		A = a;
+	}
+
+	uint32_t Color::ToBGR() const
+	{
+		return BT_WINDOWS_BGR(R, G, B);
 	}
 
 	Color::operator uint32_t() const

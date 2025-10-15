@@ -265,6 +265,7 @@ namespace Berta
 		Color(uint32_t colorABGR);
 		Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
+		uint32_t ToBGR() const;
 		operator uint32_t() const;
 #ifdef BT_PLATFORM_WINDOWS
 		operator D2D1_COLOR_F() const;
