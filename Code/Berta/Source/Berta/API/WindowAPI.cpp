@@ -202,6 +202,14 @@ namespace Berta
 #endif
 		}
 
+		void ValidateWindow(NativeWindowHandle nativeHandle, const Rectangle& area)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			RECT rect = area.ToRECT();
+			::ValidateRect(nativeHandle.Handle, &rect);
+#endif
+		}
+
 		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture)
 		{
 #ifdef BT_PLATFORM_WINDOWS
