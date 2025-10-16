@@ -798,10 +798,10 @@ namespace Berta
 	void Graphics::Begin()
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		/*if (!IsValid())
+		if (!IsValid())
 		{
 			return;
-		}*/
+		}
 
 		m_targetRT->BeginDraw();
 #endif
