@@ -138,7 +138,7 @@ namespace Berta
 
 	bool ControlBase::DoOnEnabled() const
 	{
-		return GUI::EnableWindow(m_handle);
+		return GUI::IsEnableWindow(m_handle);
 	}
 
 	void ControlBase::DoOnEnabled(bool enabled)

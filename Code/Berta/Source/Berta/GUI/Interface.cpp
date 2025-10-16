@@ -128,7 +128,7 @@ namespace Berta::GUI
 		}
 	}
 
-	bool EnableWindow(Window* window)
+	bool IsEnableWindow(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))

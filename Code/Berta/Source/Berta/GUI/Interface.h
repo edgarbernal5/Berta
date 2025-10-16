@@ -31,7 +31,7 @@ namespace Berta
 		bool IsWindowVisible(Window* window);
 		void UpdateWindow(Window* window);
 		void EnableWindow(Window* window, bool isEnabled);
-		bool EnableWindow(Window* window);
+		bool IsEnableWindow(Window* window);
 
 		void RefreshWindow(Window* window);
 		void ResizeWindow(Window* window, const Size& newSize);
