@@ -424,11 +424,12 @@ namespace Berta
 			else
 			{
 #if BT_DEBUG
-				//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+				ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
 #else
 				//ScopedTimer scopedTimer("WM_PAINT");
 #endif
 				windowManager.UpdateTree(nativeWindow);
+				nativeWindow->Flags.isBatching = false;
 				::ValidateRect(hWnd, nullptr);
 			}
 
@@ -469,16 +470,13 @@ namespace Berta
 		//}
 		case WM_SIZE:
 		{
-			uint32_t newWidth = (uint32_t)LOWORD(lParam);
-			uint32_t newHeight = (uint32_t)HIWORD(lParam);
-
-			Size newSize{ newWidth , newHeight };
+			Size newSize{ (uint32_t)LOWORD(lParam) , (uint32_t)HIWORD(lParam) };
 #if BT_DEBUG
 			//BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
 #else
 			BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
 #endif
-			if (newWidth > 0 && newHeight > 0)
+			if (newSize.Width > 0 && newSize.Height > 0)
 			{
 				if (nativeWindow->RootPaintHandle.RenderTarget)
 				{

@@ -702,6 +702,7 @@ namespace Berta
 		auto& foundation = Foundation::GetInstance();
 
 		bool positionChanged = false;
+
 		bool sizeChanged = window->ClientSize != newRect;
 
 		if (window->IsNative())
@@ -821,7 +822,11 @@ namespace Berta
 
 		if (redraw)
 		{
-			API::RefreshWindow(window->RootHandle);
+			if (!window->RootWindow->Flags.isBatching)
+			{
+				window->RootWindow->Flags.isBatching = true;
+				API::RefreshWindow(window->RootHandle);
+			}
 		}
 		UpdateInternal(window, redraw, updateArea);
 	}
