@@ -404,7 +404,10 @@ namespace Berta
 			{
 				::PAINTSTRUCT ps;
 				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
-				::FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND));
+
+				HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
+				::FillRect(hdc, &ps.rcPaint, hBrush);
+				::DeleteObject(hBrush);
 
 				Rectangle areaToUpdate;
 				areaToUpdate.FromRECT(ps.rcPaint);
