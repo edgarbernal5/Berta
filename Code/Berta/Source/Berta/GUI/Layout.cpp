@@ -198,16 +198,16 @@ namespace Berta
 		m_parent = window;
 
 		m_parent->Events->Resize.Connect([this](const ArgResize& args)
-		{
-			//TODO: add this same logic to visibility event?!
-			if (m_rootNode)
 			{
-				m_rootNode->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
-				m_rootNode->CalculateAreas();
-			}
+				//TODO: add this same logic to visibility event?!
+				if (m_rootNode)
+				{
+					m_rootNode->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
+					m_rootNode->CalculateAreas();
+				}
 
-			//Print();
-		});
+				//Print();
+			});
 	}
 
 	void Layout::Parse(const std::string& source)

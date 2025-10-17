@@ -850,28 +850,30 @@ namespace Berta
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
+		window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
+		window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+
 		if (window->IsNative())
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.BuildFont(newDPI);
 
-			window->BorderSize.Width = static_cast<uint32_t>(window->BorderSize.Width * scalingFactor);
-			window->BorderSize.Height = static_cast<uint32_t>(window->BorderSize.Height * scalingFactor);
+			window->PositionRoot = window->Position;
 		}
 		else
 		{
-			window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
-			window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
-			
-			window->PositionRoot.X = static_cast<int>(window->PositionRoot.X * scalingFactor);
-			window->PositionRoot.Y = static_cast<int>(window->PositionRoot.Y * scalingFactor);
+			window->PositionRoot = window->Position;
+			if (window->Parent)
+			{
+				window->PositionRoot += window->Parent->PositionRoot;
+			}
 		}
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
-		/*ArgResize argsResize;
+		ArgResize argsResize;
 		argsResize.NewSize = window->ClientSize;
-		window->Renderer.Resize(argsResize);*/
+		window->Renderer.Resize(argsResize);
 
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{

@@ -474,7 +474,7 @@ namespace Berta
 	{
 	}
 
-	void DockPaneLayoutNode::AddTab(const std::string& id, Window* window)
+	void DockPaneLayoutNode::AddTab(const std::string& id, Window* window) const
 	{
 		m_dockArea->AddTab(id, window);
 	}

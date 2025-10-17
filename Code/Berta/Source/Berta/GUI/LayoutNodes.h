@@ -480,7 +480,7 @@ namespace Berta
     public:
         DockPaneLayoutNode();
 
-        void AddTab(const std::string& id, Window* window);
+        void AddTab(const std::string& id, Window* window) const;
         void AddPane(DockPaneLayoutNode* paneNode);
         void AddWindow(Window* window) override;
         void CalculateAreas() override;
