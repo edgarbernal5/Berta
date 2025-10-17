@@ -165,6 +165,7 @@
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h" />
     <ClInclude Include="Source\Berta\GUI\ControlDrawBatch.h" />
     <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />
+    <ClInclude Include="Source\Berta\Paint\DrawBatchActivator.h" />
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h" />
     <ClInclude Include="Source\Berta\Controls\CheckBox.h" />
     <ClInclude Include="Source\Berta\Controls\Docking\DockPanel.h" />
@@ -243,6 +244,7 @@
     <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layout.cpp" />
     <ClCompile Include="Source\Berta\GUI\LayoutNodes.cpp" />
+    <ClCompile Include="Source\Berta\Paint\DrawBatchActivator.cpp" />
     <ClCompile Include="Source\Berta\Paint\ImageProcessor.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\BasicImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Controls\ListBox.cpp" />

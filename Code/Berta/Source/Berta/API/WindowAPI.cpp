@@ -202,6 +202,14 @@ namespace Berta
 #endif
 		}
 
+		void RefreshWindow(NativeWindowHandle nativeHandle, const Rectangle& area, bool forceEraseBackground)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			RECT rect = area.ToRECT();
+			::InvalidateRect(nativeHandle.Handle, &rect, forceEraseBackground ? TRUE : FALSE);
+#endif
+		}
+
 		void ValidateWindow(NativeWindowHandle nativeHandle, const Rectangle& area)
 		{
 #ifdef BT_PLATFORM_WINDOWS

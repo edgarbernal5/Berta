@@ -91,7 +91,11 @@ namespace Berta
 		bool isResizing = std::is_same_v<TArgument, ArgResize>;
 		if (window->IsVisible() && (window->DrawStatus == DrawWindowStatus::NeedUpdate || isResizing))
 		{
-			if (window->Type != WindowType::Panel/* && (window->Type != WindowType::RenderForm || !window->RenderForAttributes.CustomPaint)*/)
+			if (window->IsBatching())
+			{
+				window->MarkForBatching();
+			}
+			else
 			{
 				API::RefreshWindow(window->RootHandle);
 			}

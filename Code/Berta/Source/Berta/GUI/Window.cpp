@@ -19,7 +19,7 @@ namespace Berta
 		Flags.IsDisposed = false;
 		Flags.MakeActive = true;
 		Flags.isUpdating = false;
-		Flags.isBatching = false;
+		//Flags.isBatching = false;
 		Flags.IgnoreMouseFocus = false;
 		Flags.AutoDraw = true;
 
@@ -104,6 +104,19 @@ namespace Berta
 		}
 
 		return GetHierarchyIndexInternal(root, const_cast<Window*>(this), found);
+	}
+
+	bool Window::IsBatching() const
+	{
+		if (!RootWindow)
+			return false;
+
+		return RootWindow->DrawBatch != nullptr;
+	}
+
+	void Window::MarkForBatching()
+	{
+		RootWindow->Flags.isQueuingBatch = true;
 	}
 
 	int Window::GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const

@@ -11,6 +11,7 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/LayoutNodes.h"
 #include "Berta/Controls/Form.h"
+#include "Berta/Paint/DrawBatchActivator.h"
 
 namespace Berta
 {
@@ -160,12 +161,16 @@ namespace Berta
 			return;
 		}
 		//TODO:
-		//DrawBatch drawBatch(m_parent->RootWindow);
+		DrawBatchActivator drawBatch(m_parent->RootWindow);
 
 		m_rootNode->SetArea(area.ToRectangle());
 		m_rootNode->CalculateAreas();
 
-		GUI::UpdateTree(m_parent);
+		auto windowToUpdate = m_parent->FindFirstNonPanelAncestor();
+		if (windowToUpdate)
+		{
+			GUI::UpdateWindow(windowToUpdate);
+		}
 	}
 
 	void Layout::Attach(const std::string& fieldId, Window* window)

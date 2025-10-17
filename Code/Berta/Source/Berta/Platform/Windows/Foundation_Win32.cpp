@@ -18,6 +18,7 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
+#include "Berta/Paint/DrawBatchActivator.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
@@ -129,7 +130,6 @@ namespace Berta
 					auto window = windowManager.Get(handle);
 					if (window->RenderForAttributes.AutoRefresh && window->HasCustomPaint())
 					{
-						//window->CustomPaint();
 						API::RefreshWindow(window->RootHandle);
 					}
 				}
@@ -309,6 +309,7 @@ namespace Berta
 		auto rootFocusedWindow = rootWindowData->Focused;
 		auto rootReleasedWindow = rootWindowData->Released;
 
+		DrawBatchActivator drawBatch(nativeWindow);
 		Berta::Foundation::RootGuard rootGuard(nativeWindow);
 
 		//ver lecui para manejar bien los mensajes.
@@ -423,16 +424,18 @@ namespace Berta
 					nativeWindow->RenderForAttributes.CustomPaint();
 				}
 				::EndPaint(hWnd, &ps);
+				//::BeginPaint() already validated the update area.
 			}
 			else
 			{
 #if BT_DEBUG
-				ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+				//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
 #else
 				//ScopedTimer scopedTimer("WM_PAINT");
 #endif
 				windowManager.UpdateTree(nativeWindow);
-				nativeWindow->Flags.isBatching = false;
+
+				//nativeWindow->Flags.isBatching = false;
 				::ValidateRect(hWnd, nullptr);
 			}
 

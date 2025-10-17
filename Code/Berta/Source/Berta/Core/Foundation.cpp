@@ -14,12 +14,15 @@ namespace Berta
 		return g_foundation;
 	}
 
-	Foundation::RootGuard::RootGuard(Window* window) : m_window(window)
+	Foundation::RootGuard::RootGuard(Window* window) :
+		m_window(window)
 	{
+		++m_window->DeferredCounter;
 	}
 
 	Foundation::RootGuard::~RootGuard()
 	{
+		--m_window->DeferredCounter;
 	}
 
 	void Foundation::EventEnterSizeMove(Window* window)

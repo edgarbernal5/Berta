@@ -19,6 +19,7 @@ namespace Berta
 	class Graphics;
 	struct ControlEvents;
 	struct ControlAppearance;
+	class DrawBatchActivator;
 
 	enum class WindowType
 	{
@@ -81,10 +82,14 @@ namespace Berta
 			bool IsDisposed : 1;
 			bool MakeActive : 1;
 			bool isUpdating : 1;
-			bool isBatching : 1;
+			//bool isBatching : 1;
+			bool isQueuingBatch : 1;
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
 		}Flags{0};
+
+		int DeferredCounter{ 0 };
+		DrawBatchActivator* DrawBatch{ nullptr };
 
 		Window* MakeTargetWhenInactive{ nullptr };
 
@@ -150,6 +155,9 @@ namespace Berta
 		bool IsAncestorOf(Window* window) const;
 
 		int GetHierarchyIndex() const;
+
+		bool IsBatching() const;
+		void MarkForBatching();
 
 	private:
 		int GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const;

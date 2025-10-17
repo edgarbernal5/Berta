@@ -520,17 +520,19 @@ namespace Berta
 			return;
 		}
 
-		if (Exists(window))
+		if (!window || !Exists(window))
 		{
-			API::CaptureWindow(window->RootHandle, true);
-
-			if (m_capture.WindowPtr)
-			{
-				m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr, m_capture.RedirectToChildren);
-			}
-			m_capture.WindowPtr = window;
-			m_capture.RedirectToChildren = redirectToChildren;
+			return;
 		}
+
+		API::CaptureWindow(window->RootHandle, true);
+
+		if (m_capture.WindowPtr)
+		{
+			m_capture.PrevCaptured.emplace_back(m_capture.WindowPtr, m_capture.RedirectToChildren);
+		}
+		m_capture.WindowPtr = window;
+		m_capture.RedirectToChildren = redirectToChildren;
 	}
 
 	void WindowManager::ReleaseCapture(Window* window)
@@ -668,7 +670,7 @@ namespace Berta
 			auto windowToUpdate = window->FindFirstNonPanelAncestor();
 			if (windowToUpdate)
 			{
-				UpdateTree(windowToUpdate);
+				Update(windowToUpdate, true);
 			}
 		}
 	}
@@ -798,7 +800,7 @@ namespace Berta
 	{
 		if (window->HasCustomPaint())
 		{
-			//if (redraw)
+			if (redraw)
 			{
 				API::RefreshWindow(window->RootHandle);
 			}
@@ -807,7 +809,8 @@ namespace Berta
 
 		if (window->IsNested())
 		{
-			API::RefreshWindow(window->RootHandle);
+			if (redraw)
+				API::RefreshWindow(window->RootHandle);
 			return;
 		}
 
@@ -822,9 +825,12 @@ namespace Berta
 
 		if (redraw)
 		{
-			if (!window->RootWindow->Flags.isBatching)
+			if (window->IsBatching())
 			{
-				window->RootWindow->Flags.isBatching = true;
+				window->MarkForBatching();
+			}
+			else
+			{
 				API::RefreshWindow(window->RootHandle);
 			}
 		}
@@ -863,9 +869,9 @@ namespace Berta
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
-		ArgResize argsResize;
+		/*ArgResize argsResize;
 		argsResize.NewSize = window->ClientSize;
-		window->Renderer.Resize(argsResize);
+		window->Renderer.Resize(argsResize);*/
 
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{
@@ -984,12 +990,14 @@ namespace Berta
 
 			if (child->HasCustomPaint())
 			{
-				API::RefreshWindow(child->RootHandle);
+				if (redraw)
+					API::RefreshWindow(child->RootHandle);
 				continue;
 			}
 			if (child->IsNested())
 			{
-				API::RefreshWindow(child->RootHandle);
+				if (redraw)
+					API::RefreshWindow(child->RootHandle);
 				continue;
 			}
 

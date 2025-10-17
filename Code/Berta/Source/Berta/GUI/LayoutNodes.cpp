@@ -418,12 +418,10 @@ namespace Berta
 
 				SetArea(newSplitterArea);
 
-				//BT_CORE_TRACE << " -- CHANGING..." << std::endl;
+				BT_CORE_TRACE << " -- CHANGING..." << std::endl;
 				m_containerNode->CalculateAreas();
 
-				auto windowToUpdate = m_containerNode->GetParentWindow()->FindFirstNonPanelAncestor();
-				GUI::UpdateTree(windowToUpdate);
-				//BT_CORE_TRACE << " -- CHANGED..." << std::endl;
+				BT_CORE_TRACE << " -- CHANGED..." << std::endl;
 			});
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)
