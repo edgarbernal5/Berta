@@ -420,8 +420,10 @@ namespace Berta
 
 				BT_CORE_TRACE << " -- CHANGING..." << std::endl;
 				m_containerNode->CalculateAreas();
-
 				BT_CORE_TRACE << " -- CHANGED..." << std::endl;
+
+				API::RefreshWindow(m_parentWindow->RootHandle);
+				::UpdateWindow(m_parentWindow->RootHandle.Handle);
 			});
 
 			m_splitter->GetEvents().MouseUp.Connect([this](const ArgMouse& args)

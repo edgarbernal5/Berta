@@ -189,16 +189,13 @@ namespace Berta
 			{
 				::UpdateWindow(nativeHandle.Handle);
 			}
-#else
 #endif
 		}
 
 		void RefreshWindow(NativeWindowHandle nativeHandle, bool forceEraseBackground)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			RECT rect;
-			::GetClientRect(nativeHandle.Handle, &rect);
-			::InvalidateRect(nativeHandle.Handle, &rect, forceEraseBackground ? TRUE : FALSE);
+			::InvalidateRect(nativeHandle.Handle, nullptr, forceEraseBackground ? TRUE : FALSE);
 #endif
 		}
 
