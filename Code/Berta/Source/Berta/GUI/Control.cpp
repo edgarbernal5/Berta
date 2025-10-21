@@ -126,6 +126,11 @@ namespace Berta
 		GUI::SetBackgroundColor(m_handle, newColor);
 	}
 
+	void ControlBase::MakeActive(bool activated, Window* makeTargetWhenInactive)
+	{
+		GUI::MakeWindowActive(m_handle, activated, makeTargetWhenInactive);
+	}
+
 	std::wstring ControlBase::DoOnCaption() const
 	{
 		return GUI::CaptionWindow(m_handle);

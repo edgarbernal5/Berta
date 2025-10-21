@@ -64,5 +64,7 @@ namespace Berta
 					m_clickCallback(this);
 				}
 			});
+
+		m_button.MakeActive(false, m_inputText);
 	}
 }

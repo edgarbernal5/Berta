@@ -25,7 +25,6 @@ namespace Berta
 		bool enabled = m_control->GetEnabled();
 		auto backgroundRect = window->ClientSize.ToRectangle();
 		auto leftTextMargin = window->ToScale(3);
-		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
 
 		auto checkboxHeight = window->ToScale(window->Appearance->CheckboxHeight);
 		Rectangle checkBoxRect{ 0, static_cast<int>((window->ClientSize.Height - checkboxHeight) >> 1),checkboxHeight, checkboxHeight };

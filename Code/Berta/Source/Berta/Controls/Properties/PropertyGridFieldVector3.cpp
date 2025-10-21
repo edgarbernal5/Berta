@@ -49,7 +49,10 @@ namespace Berta
 			input.GetEvents().Focus.Connect([this](const ArgFocus& args)
 				{
 					if (args.Focused)
+					{
+						EmitSelectionEvent();
 						return;
+					}
 
 					auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
 					if (newValue != PropertyGridFieldBase::GetValue())

@@ -74,5 +74,14 @@ namespace Berta
 				SetCheck(args.IsChecked);
 				EmitEvent();
 			});
+
+		m_checkBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+			{
+				if (args.Focused)
+				{
+					EmitSelectionEvent();
+					return;
+				}
+			});
 	}
 }

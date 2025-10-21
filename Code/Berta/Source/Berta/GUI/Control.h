@@ -62,6 +62,8 @@ namespace Berta
 
 		void SetBackgroundColor(const Color& newColor);
 
+		void MakeActive(bool activated, Window* makeTargetWhenInactive);
+
 #if BT_DEBUG
 		void SetDebugName(const std::string& name)
 		{

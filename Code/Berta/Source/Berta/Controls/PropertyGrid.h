@@ -66,6 +66,7 @@ namespace Berta
 			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
 
 			void EmitEvent();
+			void EmitSelectionEvent();
 			void Update();
 
 		protected:
@@ -126,6 +127,9 @@ namespace Berta
 
 		class PropertyItem
 		{
+		public:
+			friend struct Module;
+
 		public:
 			PropertyItem(Module* module, PropertyGridFieldBase* propGridField) :
 				m_module(module), m_propGridField(propGridField)
@@ -188,6 +192,7 @@ namespace Berta
 			void CalculateContentSize(ViewportData& viewportData);
 			void Draw();
 			void EmitEvent(PropertyItem item) const;
+			void EmitSelectionEvent(PropertyItem item);
 			void Update();
 			void UpdateScrollBar();
 			
@@ -203,6 +208,7 @@ namespace Berta
 			Events* m_events{ nullptr };
 			Graphics* m_graphics{ nullptr };
 			MouseInteraction m_mouseInteraction;
+			PropertyGridFieldBase* m_lastPropertySelected{ nullptr };
 		};
 
 
@@ -236,6 +242,7 @@ namespace Berta
 		struct Events : public ControlEvents
 		{
 			Event<ArgPropertyGrid> PropertyChanged;
+			Event<ArgPropertyGrid> SelectionChanged;
 		};
 	}
 

@@ -85,6 +85,16 @@ namespace Berta
 			{
 
 			});
+
+		m_comboBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+			{
+				if (args.Focused)
+				{
+					EmitSelectionEvent();
+					return;
+				}
+			});
+
 		m_comboBox.GetEvents().Selected.Connect([this](const ArgComboBox& args)
 			{
 				SetOption(args.SelectedIndex);

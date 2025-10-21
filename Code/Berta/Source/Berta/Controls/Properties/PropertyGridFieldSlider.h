@@ -139,10 +139,13 @@ namespace Berta
 			m_valueInputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
 				{
 					if (args.Focused)
+					{
+						EmitSelectionEvent();
 						return;
+					}
 
 					TNumber result{};
-					if (this->ValidateUserInput(result))
+					if (this->ValidateUserInput(result) && m_valueInputText.GetCaption() != PropertyGridFieldBase::GetValue())
 					{
 						SetValue(result);
 						EmitEvent();
@@ -163,6 +166,8 @@ namespace Berta
 					}
 					return isDigit || isMinus;
 				});
+
+			m_slider.MakeActive(false, m_valueInputText);
 
 			SetValue(m_value);
 		}

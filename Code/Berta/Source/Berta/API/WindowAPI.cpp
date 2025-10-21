@@ -473,7 +473,7 @@ namespace Berta
 		void SendDpiChanged(NativeWindowHandle nativeHandle, uint32_t oldDpi, uint32_t newDpi, const Rectangle& newArea)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			::RECT rect;
+			::RECT rect{};
 			rect.left = newArea.X;
 			rect.right = newArea.X + newArea.Width;
 			rect.top = newArea.Y;

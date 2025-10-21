@@ -21,7 +21,6 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 		auto backgroundRect = window->ClientSize.ToRectangle();
-		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->Background : window->Appearance->ButtonDisabledBackground, true);
 
 		auto color = window->Appearance->Background;
 		if (!enabled)

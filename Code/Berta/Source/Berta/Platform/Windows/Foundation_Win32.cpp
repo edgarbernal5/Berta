@@ -310,7 +310,7 @@ namespace Berta
 		auto rootReleasedWindow = rootWindowData->Released;
 
 		DrawBatchActivator drawBatch(nativeWindow);
-		Berta::Foundation::RootGuard rootGuard(nativeWindow);
+		Foundation::RootGuard rootGuard(nativeWindow);
 
 		//ver lecui para manejar bien los mensajes.
 		switch (message)

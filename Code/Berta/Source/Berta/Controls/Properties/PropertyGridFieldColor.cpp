@@ -88,6 +88,15 @@ namespace Berta
 				}
 			});
 
+		m_colorRegion.GetEvents().Focus.Connect([this](const ArgFocus& args)
+			{
+				if (args.Focused)
+				{
+					EmitSelectionEvent();
+					return;
+				}
+			});
+
 		PropertyGridFieldColor::SetValue(m_value);
 	}
 }

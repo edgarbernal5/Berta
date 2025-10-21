@@ -57,7 +57,7 @@ int main()
 
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(pgfSlider));
 
-	auto pgfSliderFloat = new Berta::PropertyGridFieldSliderFloat("Max Materials", "0.0");
+	auto pgfSliderFloat = new Berta::PropertyGridFieldSliderFloat("Max Materials Float", "0.0");
 	pgfSliderFloat->SetMinMax(0, 15.0);
 
 	categoryMesh.Append(Berta::PropertyGridFieldBasePtr(pgfSliderFloat));
@@ -67,6 +67,12 @@ int main()
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
 			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
+		});
+
+
+	propertyGrid.GetEvents().SelectionChanged.Connect([](const Berta::ArgPropertyGrid& args)
+		{
+			std::cout << "Selection changed! Label = " << args.Property.GetLabel() << std::endl;
 		});
 
 	NewPanel newPanel(form);

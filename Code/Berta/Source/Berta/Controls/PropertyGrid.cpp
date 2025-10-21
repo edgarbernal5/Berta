@@ -128,6 +128,8 @@ namespace Berta
 		void Module::Clear()
 		{
 			CalculateViewport(m_viewport);
+
+			m_lastPropertySelected = nullptr;
 		}
 
 		void Module::CalculateViewport(ViewportData& viewportData)
@@ -175,6 +177,17 @@ namespace Berta
 		{
 			ArgPropertyGrid args(item);
 			m_events->PropertyChanged.Emit(args);
+		}
+
+		void Module::EmitSelectionEvent(PropertyItem item)
+		{
+			if (m_lastPropertySelected == item.m_propGridField)
+				return;
+
+			ArgPropertyGrid args(item);
+			m_events->SelectionChanged.Emit(args);
+
+			m_lastPropertySelected = item.m_propGridField;
 		}
 
 		void Module::Update()
@@ -273,6 +286,7 @@ namespace Berta
 					auto fieldContainer = it->m_fieldContainers[i].get();
 					auto fieldSize = field->GetSize();
 
+					bool isSelected = field == m_lastPropertySelected;
 					if (it->m_isExpanded)
 					{
 						if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_viewport.m_backgroundRect.Y > static_cast<int>(m_viewport.m_backgroundRect.Height))
@@ -290,7 +304,7 @@ namespace Berta
 
 						GUI::MoveWindow(*fieldContainer, fieldContainerArea);
 
-						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, m_appearance->Foreground);
+						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->SelectionHighlightColor : m_appearance->Foreground);
 					}
 					if (it->m_isExpanded)
 					{
@@ -459,6 +473,11 @@ namespace Berta
 		void PropertyGridFieldBase::EmitEvent()
 		{
 			m_module->EmitEvent(PropertyItem{ m_module, this });
+		}
+
+		void PropertyGridFieldBase::EmitSelectionEvent()
+		{
+			m_module->EmitSelectionEvent(PropertyItem{ m_module, this });
 		}
 
 		void PropertyGridFieldBase::Update()

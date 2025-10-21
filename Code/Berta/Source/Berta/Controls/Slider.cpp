@@ -31,7 +31,6 @@ namespace Berta
 	{
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
 
 		auto trackRect = GetSliderTrackRect();
 		graphics.DrawRoundRectBox(trackRect, 2, window->Appearance->ButtonBackground, window->Appearance->BoxBorderColor, true);
