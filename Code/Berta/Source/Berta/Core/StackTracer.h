@@ -7,6 +7,9 @@
 #ifndef BT_STACK_TRACER_HEADER
 #define BT_STACK_TRACER_HEADER
 
+#if BT_PLATFORM_WINDOWS
+#include <Windows.h>
+#endif
 #include <string>
 
 namespace Berta
