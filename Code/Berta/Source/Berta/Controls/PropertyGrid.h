@@ -121,6 +121,7 @@ namespace Berta
 		{
 			CategoryType* m_hoveredCategory{ nullptr };
 			CategoryType* m_selectedCategory{ nullptr };
+			PropertyGridFieldBase* m_lastPropertySelected{ nullptr };
 		};
 
 		using PropertyGridFieldBasePtr = std::unique_ptr<PropertyGridFieldBase>;
@@ -197,6 +198,7 @@ namespace Berta
 			void UpdateScrollBar();
 			
 			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
+			PropertyGridFieldBase* GetCategoryPropertyOnMouse(const Point& mousePosition);
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;
@@ -208,7 +210,6 @@ namespace Berta
 			Events* m_events{ nullptr };
 			Graphics* m_graphics{ nullptr };
 			MouseInteraction m_mouseInteraction;
-			PropertyGridFieldBase* m_lastPropertySelected{ nullptr };
 		};
 
 

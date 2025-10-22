@@ -45,7 +45,21 @@ namespace Berta
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
 			auto category = m_module.GetCategoryOnMouse(args.Position);
+			bool needRefresh = category != m_module.m_mouseInteraction.m_selectedCategory;
 			m_module.m_mouseInteraction.m_selectedCategory = category;
+			PropertyGridFieldBase* lastPropertySelected = nullptr;
+
+			if (!category)
+			{
+				lastPropertySelected = m_module.GetCategoryPropertyOnMouse(args.Position);
+			}
+			needRefresh |= m_module.m_mouseInteraction.m_lastPropertySelected != lastPropertySelected;
+			m_module.m_mouseInteraction.m_lastPropertySelected = lastPropertySelected;
+
+			if (needRefresh)
+			{
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+			}
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -129,7 +143,7 @@ namespace Berta
 		{
 			CalculateViewport(m_viewport);
 
-			m_lastPropertySelected = nullptr;
+			m_mouseInteraction.m_lastPropertySelected = nullptr;
 		}
 
 		void Module::CalculateViewport(ViewportData& viewportData)
@@ -181,13 +195,13 @@ namespace Berta
 
 		void Module::EmitSelectionEvent(PropertyItem item)
 		{
-			if (m_lastPropertySelected == item.m_propGridField)
+			if (m_mouseInteraction.m_lastPropertySelected == item.m_propGridField)
 				return;
 
 			ArgPropertyGrid args(item);
 			m_events->SelectionChanged.Emit(args);
 
-			m_lastPropertySelected = item.m_propGridField;
+			m_mouseInteraction.m_lastPropertySelected = item.m_propGridField;
 		}
 
 		void Module::Update()
@@ -286,7 +300,7 @@ namespace Berta
 					auto fieldContainer = it->m_fieldContainers[i].get();
 					auto fieldSize = field->GetSize();
 
-					bool isSelected = field == m_lastPropertySelected;
+					bool isSelected = field == m_mouseInteraction.m_lastPropertySelected;
 					if (it->m_isExpanded)
 					{
 						if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_viewport.m_backgroundRect.Y > static_cast<int>(m_viewport.m_backgroundRect.Height))
@@ -304,7 +318,7 @@ namespace Berta
 
 						GUI::MoveWindow(*fieldContainer, fieldContainerArea);
 
-						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->SelectionHighlightColor : m_appearance->Foreground);
+						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->Red : m_appearance->Foreground);
 					}
 					if (it->m_isExpanded)
 					{
@@ -324,6 +338,34 @@ namespace Berta
 			{
 				if (it->m_area.IsInside(offsetPosition))
 					return &(*it);
+			}
+			return nullptr;
+		}
+
+		PropertyGridFieldBase* Module::GetCategoryPropertyOnMouse(const Point& mousePosition)
+		{
+			Point offsetPosition = mousePosition + m_scrollOffset;
+			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			{
+				Rectangle categoryRect = it->m_area;
+
+				Point scrollOffset{ categoryRect.X,categoryRect.Y };
+				scrollOffset.Y += categoryRect.Height;
+
+				if (!it->m_isExpanded)
+					continue;
+
+				for (size_t i = 0; i < it->m_properties.size(); i++)
+				{
+					auto field = it->m_properties[i].get();
+					auto fieldSize = field->GetSize();
+					if (mousePosition.Y >= scrollOffset.Y && mousePosition.Y < scrollOffset.Y + static_cast<int>(fieldSize))
+					{
+						return field;
+					}
+
+					scrollOffset.Y += fieldSize;
+				}
 			}
 			return nullptr;
 		}
