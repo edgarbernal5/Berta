@@ -60,6 +60,7 @@ namespace Berta
 	{
 		m_inputText.Create(parent);
 		m_inputText.SetCaption(m_value);
+		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
 
 		m_inputText.GetEvents().Click.Connect([](const ArgClick& args)
 			{

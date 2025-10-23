@@ -19,6 +19,7 @@ namespace Berta
 #if BT_DEBUG
 			input.SetDebugName("InputText");
 #endif
+			input.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
 
 			input.GetEvents().Click.Connect([](const ArgClick& args)
 				{

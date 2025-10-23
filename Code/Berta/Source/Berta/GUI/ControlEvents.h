@@ -44,7 +44,15 @@ namespace Berta
 
 	struct ArgFocus
 	{
+		enum class Reason
+		{
+			Native,
+			Tabstop,
+			MousePress
+		};
+
 		bool Focused;
+		Reason FocusReason{ Reason::Native };
 	};
 
     struct ArgKeyboard

@@ -10,6 +10,7 @@
 #include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
+#include "Berta/Controls/TextEditors/TextEditorBase.h"
 
 namespace Berta
 {
@@ -70,6 +71,7 @@ namespace Berta
 		void SetText(const std::wstring& text);
 		void SetText(const std::string& text);
 
+		void SetFocusBehavior(TextFocusBehavior behavior);
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;

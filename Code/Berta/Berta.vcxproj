@@ -224,6 +224,7 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
     <ClInclude Include="Source\Berta\Core\StackTracer.h" />
+    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />

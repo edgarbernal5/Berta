@@ -74,14 +74,17 @@ namespace Berta
 
 	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		m_textEditor->OnMouseUp(args);
 		GUI::ReleaseCapture(*m_control);
+		m_textEditor->OnMouseUp(args);
 	}
 
 	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)
 	{
 		auto window = m_control->Handle();
-		m_textEditor->OnFocus(args);
+		if (m_textEditor->OnFocus(args))
+		{
+			GUI::MarkAsNeedUpdate(window);
+		}
 	}
 
 	void InputTextReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
@@ -204,6 +207,15 @@ namespace Berta
 		{
 			editor->SetContent(text);
 			GUI::UpdateWindow(m_handle);
+		}
+	}
+
+	void InputText::SetFocusBehavior(TextFocusBehavior behavior)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetBehavior(behavior);
 		}
 	}
 

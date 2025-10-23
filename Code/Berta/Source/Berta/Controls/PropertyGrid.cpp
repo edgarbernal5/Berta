@@ -351,6 +351,7 @@ namespace Berta
 
 				Point scrollOffset{ categoryRect.X,categoryRect.Y };
 				scrollOffset.Y += categoryRect.Height;
+				scrollOffset.Y -= m_scrollOffset.Y;
 
 				if (!it->m_isExpanded)
 					continue;
@@ -474,7 +475,9 @@ namespace Berta
 		void PropertyGridFieldBase::SetValue(const std::string& value)
 		{
 			if (m_value == value)
+			{
 				return;
+			}
 
 			m_value = value;
 			Update();

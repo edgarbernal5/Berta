@@ -588,17 +588,6 @@ namespace Berta
 			{
 				rootPressedWindow = window;
 
-				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-
-				ArgMouse argMouseDown;
-				argMouseDown.Position = pointToClient - windowManager.GetWindowRootPosition(window);
-				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
-
-				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
-
 				auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
 				if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
 				{
@@ -611,12 +600,23 @@ namespace Berta
 						}
 						if (focusWindow)
 						{
-							ArgFocus argFocus{ true };
+							ArgFocus argFocus{ true, ArgFocus::Reason::MousePress };
 							foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 						}
 					}
 					rootFocusedWindow = focusWindow;
 				}
+
+				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+
+				ArgMouse argMouseDown;
+				argMouseDown.Position = pointToClient - windowManager.GetWindowRootPosition(window);
+				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
 			}
 			
 			break;

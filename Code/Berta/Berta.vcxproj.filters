@@ -270,6 +270,9 @@
     <ClInclude Include="Source\Berta\Paint\DrawBatchActivator.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

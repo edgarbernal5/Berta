@@ -10,6 +10,7 @@
 #include <string>
 #include <functional>
 
+#include "Berta/Controls/TextEditors/TextEditorBase.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"
 #include "Berta/Core/Timer.h"
@@ -33,7 +34,7 @@ namespace Berta
 		void OnMouseDown(const ArgMouse& args);
 		void OnMouseMove(const ArgMouse& args);
 		void OnMouseUp(const ArgMouse& args);
-		void OnFocus(const ArgFocus& args);
+		bool OnFocus(const ArgFocus& args);
 		bool OnKeyChar(const ArgKeyboard& args);
 		bool OnKeyPressed(const ArgKeyboard& args);
 		bool OnKeyReleased(const ArgKeyboard& args);
@@ -52,6 +53,10 @@ namespace Berta
 		bool IsEditable() const;
 		void SetEditable(bool isEditable);
 		void SetCharFilter(std::function<bool(wchar_t)> predicate);
+		void SetBehavior(TextFocusBehavior behavior)
+		{
+			m_selection.Behavior = behavior;
+		}
 
 		bool Deselect();
 		bool SelectAll();
@@ -60,6 +65,15 @@ namespace Berta
 		{
 			bool isEditable{ true };
 			bool isMultiLines{ true };
+		};
+
+		struct Selection
+		{
+			int64_t m_selectionStartPosition{ -1 };
+			int64_t m_selectionEndPosition{ -1 };
+			bool m_isSelecting{ false };
+			bool m_ignoreMouseDown{ false };
+			TextFocusBehavior Behavior{ TextFocusBehavior::None };
 		};
 
 		void ActivateCaret();
@@ -83,9 +97,7 @@ namespace Berta
 
 		Graphics& m_graphics;
 		size_t m_caretPosition{ 0 };
-		int64_t m_selectionStartPosition{ -1 };
-		int64_t m_selectionEndPosition{ -1 };
-		bool isSelecting{ false };
+		Selection m_selection;
 		int m_offsetView{ 0 };
 		std::wstring m_content;
 		bool m_shiftPressed{ false };

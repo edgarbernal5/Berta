@@ -51,34 +51,40 @@ namespace Berta
 
 	void TextEditor::OnMouseDown(const ArgMouse& args)
 	{
+		if (m_selection.m_ignoreMouseDown)
+		{
+			return;
+		}
 		if (m_content.size() == 0)
 		{
 			return;
 		}
 		m_selectionMousePosition = args.Position;
-		isSelecting = true;
+		m_selection.m_isSelecting = true;
 		if (m_shiftPressed)
 		{
-			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
-			if (m_selectionStartPosition == -1)
-				m_selectionStartPosition = m_caretPosition;
+			m_selection.m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+			if (m_selection.m_selectionStartPosition == -1)
+			{
+				m_selection.m_selectionStartPosition = m_caretPosition;
+			}
 
-			m_caretPosition = m_selectionEndPosition;
+			m_caretPosition = m_selection.m_selectionEndPosition;
 		}
 		else
 		{
-			m_selectionStartPosition = GetPositionUnderMouse(args.Position);
-			m_selectionEndPosition = m_selectionStartPosition;
-			m_caretPosition = m_selectionStartPosition;
+			m_selection.m_selectionStartPosition = GetPositionUnderMouse(args.Position);
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition;
+			m_caretPosition = m_selection.m_selectionStartPosition;
 		}
 	}
 
 	void TextEditor::OnMouseMove(const ArgMouse& args)
 	{
-		if (isSelecting)
+		if (m_selection.m_isSelecting)
 		{
-			m_selectionEndPosition = GetPositionUnderMouse(args.Position);
-			m_caretPosition = m_selectionEndPosition;
+			m_selection.m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+			m_caretPosition = m_selection.m_selectionEndPosition;
 		}
 		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > (int)m_owner->ClientSize.Width || args.Position.X < 0))
 		{
@@ -94,6 +100,11 @@ namespace Berta
 
 	void TextEditor::OnMouseUp(const ArgMouse& args)
 	{
+		if (m_selection.m_ignoreMouseDown)
+		{
+			m_selection.m_ignoreMouseDown = false;
+			return;
+		}
 		m_selectionTimer.Stop();
 		if (m_wasDblClick)
 		{
@@ -104,32 +115,60 @@ namespace Berta
 		{
 			return;
 		}
-		m_selectionEndPosition = GetPositionUnderMouse(args.Position);
-		if (m_selectionStartPosition != m_selectionEndPosition)
+		m_selection.m_selectionEndPosition = GetPositionUnderMouse(args.Position);
+		if (m_selection.m_selectionStartPosition != m_selection.m_selectionEndPosition)
 		{
-			m_caretPosition = m_selectionEndPosition;
+			m_caretPosition = m_selection.m_selectionEndPosition;
 		}
 
-		isSelecting = false;
+		m_selection.m_isSelecting = false;
 	}
 
-	void TextEditor::OnFocus(const ArgFocus& args)
+	bool TextEditor::OnFocus(const ArgFocus& args)
 	{
+		bool needUpdate = false;
 		if (args.Focused)
 		{
+			bool selectAll = false;
+			switch (m_selection.Behavior)
+			{
+			case TextFocusBehavior::Select:
+				selectAll = true;
+				break;
+			case TextFocusBehavior::SelectOnClick:
+				selectAll = args.FocusReason == ArgFocus::Reason::MousePress;
+				break;
+			default:
+				break;
+			}
+
+			if (selectAll)
+			{
+				needUpdate = true;
+				SelectAll();
+
+				m_selection.m_ignoreMouseDown = args.FocusReason == ArgFocus::Reason::MousePress;
+			}
+
 			ActivateCaret();
+			return needUpdate;
 		}
-		else
+
+		if (m_selection.Behavior != TextFocusBehavior::None)
 		{
-			DeactivateCaret();
-			isSelecting = false;
+			Deselect();
 		}
+		DeactivateCaret();
+		m_selection.m_isSelecting = false;
+		return needUpdate;
 	}
 
 	bool TextEditor::OnKeyChar(const ArgKeyboard& args)
 	{
 		if (!m_features.isEditable)
+		{
 			return false;
+		}
 
 		if (!m_predicate || m_predicate(args.Key))
 		{
@@ -149,12 +188,12 @@ namespace Berta
 		m_shiftPressed = m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_ctrlPressed = m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-		if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selectionStartPosition != m_selectionEndPosition))
+		if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selection.m_selectionStartPosition != m_selection.m_selectionEndPosition))
 		{
 			MoveCaretLeft();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::ArrowRight && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
+		else if (args.Key == KeyboardKey::ArrowRight && (m_caretPosition < contentSize || m_selection.m_selectionStartPosition != m_selection.m_selectionEndPosition))
 		{
 			MoveCaretRight();
 			redraw = true;
@@ -174,7 +213,7 @@ namespace Berta
 			DeleteBack();
 			redraw = true;
 		}
-		else if (args.Key == KeyboardKey::Delete && m_features.isEditable && (m_caretPosition < contentSize || m_selectionStartPosition != m_selectionEndPosition))
+		else if (args.Key == KeyboardKey::Delete && m_features.isEditable && (m_caretPosition < contentSize || m_selection.m_selectionStartPosition != m_selection.m_selectionEndPosition))
 		{
 			Delete();
 			redraw = true;
@@ -200,8 +239,8 @@ namespace Berta
 		size_t start = GetPositionNextWord(m_caretPosition, -1);
 		size_t end = GetPositionNextWord(m_caretPosition, 1);
 
-		m_selectionStartPosition = start;
-		m_selectionEndPosition = end;
+		m_selection.m_selectionStartPosition = start;
+		m_selection.m_selectionEndPosition = end;
 		m_caretPosition = end;
 		return true;
 	}
@@ -218,10 +257,10 @@ namespace Berta
 
 	void TextEditor::Insert(wchar_t chr)
 	{
-		if (m_selectionEndPosition != m_selectionStartPosition)
+		if (m_selection.m_selectionEndPosition != m_selection.m_selectionStartPosition)
 		{
-			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
-			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+			auto start = (std::min)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
+			auto end = (std::max)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
 
 			m_content.erase(start, (end - start));
 			
@@ -233,7 +272,7 @@ namespace Berta
 			m_content.insert(m_caretPosition, 1, chr);
 			++m_caretPosition;
 
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		else
 		{
@@ -259,15 +298,15 @@ namespace Berta
 		}
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
+			if (m_selection.m_selectionStartPosition == -1 && m_selection.m_selectionEndPosition == -1)
 			{
-				m_selectionStartPosition = m_caretPosition;
+				m_selection.m_selectionStartPosition = m_caretPosition;
 			}
-			m_selectionEndPosition = newCaretPosition;
+			m_selection.m_selectionEndPosition = newCaretPosition;
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -279,15 +318,15 @@ namespace Berta
 
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
+			if (m_selection.m_selectionStartPosition == -1 && m_selection.m_selectionEndPosition == -1)
 			{
-				m_selectionStartPosition = m_caretPosition;
+				m_selection.m_selectionStartPosition = m_caretPosition;
 			}
-			m_selectionEndPosition = newCaretPosition;
+			m_selection.m_selectionEndPosition = newCaretPosition;
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -307,15 +346,15 @@ namespace Berta
 		}
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
+			if (m_selection.m_selectionStartPosition == -1 && m_selection.m_selectionEndPosition == -1)
 			{
-				m_selectionStartPosition = m_caretPosition;
+				m_selection.m_selectionStartPosition = m_caretPosition;
 			}
-			m_selectionEndPosition = newCaretPosition;
+			m_selection.m_selectionEndPosition = newCaretPosition;
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -327,15 +366,15 @@ namespace Berta
 
 		if (m_shiftPressed)
 		{
-			if (m_selectionStartPosition == -1 && m_selectionEndPosition == -1)
+			if (m_selection.m_selectionStartPosition == -1 && m_selection.m_selectionEndPosition == -1)
 			{
-				m_selectionStartPosition = m_caretPosition;
+				m_selection.m_selectionStartPosition = m_caretPosition;
 			}
-			m_selectionEndPosition = newCaretPosition;
+			m_selection.m_selectionEndPosition = newCaretPosition;
 		}
 		else
 		{
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		m_caretPosition = newCaretPosition;
 		AdjustView();
@@ -343,10 +382,10 @@ namespace Berta
 
 	void TextEditor::Delete()
 	{
-		if (m_selectionEndPosition != m_selectionStartPosition)
+		if (m_selection.m_selectionEndPosition != m_selection.m_selectionStartPosition)
 		{
-			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
-			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+			auto start = (std::min)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
+			auto end = (std::max)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
 
 			m_content.erase(start, (end - start));
 			int64_t caretPosition = static_cast<int64_t>(m_caretPosition);
@@ -362,7 +401,7 @@ namespace Berta
 				m_caretPosition = caretPosition;
 			}
 
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		else
 		{
@@ -374,13 +413,13 @@ namespace Berta
 
 	void TextEditor::DeleteBack()
 	{
-		if (m_caretPosition == 0 && m_selectionEndPosition == m_selectionStartPosition)
+		if (m_caretPosition == 0 && m_selection.m_selectionEndPosition == m_selection.m_selectionStartPosition)
 			return;
 
-		if (m_selectionEndPosition != m_selectionStartPosition)
+		if (m_selection.m_selectionEndPosition != m_selection.m_selectionStartPosition)
 		{
-			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
-			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+			auto start = (std::min)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
+			auto end = (std::max)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
 
 			std::wstring stringToDelete{ m_content.data() + start, m_content.data() + end };
 			m_content.erase(start, (end - start));
@@ -404,7 +443,7 @@ namespace Berta
 				if (m_offsetView > 0) m_offsetView = 0;
 			}
 
-			m_selectionEndPosition = m_selectionStartPosition = -1;
+			m_selection.m_selectionEndPosition = m_selection.m_selectionStartPosition = -1;
 		}
 		else
 		{
@@ -425,10 +464,10 @@ namespace Berta
 		bool enabled = m_owner->Flags.IsEnabled;
 		auto caretHeight = m_graphics.GetCaretHeight();
 		int textOffset = (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1);
-		if (m_selectionEndPosition != m_selectionStartPosition)
+		if (m_selection.m_selectionEndPosition != m_selection.m_selectionStartPosition)
 		{
-			auto start = (std::min)(m_selectionStartPosition, m_selectionEndPosition);
-			auto end = (std::max)(m_selectionStartPosition, m_selectionEndPosition);
+			auto start = (std::min)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
+			auto end = (std::max)(m_selection.m_selectionStartPosition, m_selection.m_selectionEndPosition);
 			auto startTextExtent = m_graphics.GetTextExtent(m_content.substr(0, start));
 			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
 			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
@@ -460,7 +499,7 @@ namespace Berta
 
 	bool TextEditor::Deselect()
 	{
-		m_selectionStartPosition = m_selectionEndPosition = -1;
+		m_selection.m_selectionStartPosition = m_selection.m_selectionEndPosition = -1;
 		m_caretPosition = 0;
 
 		AdjustView();
@@ -473,9 +512,9 @@ namespace Berta
 		{
 			return false;
 		}
-		m_selectionStartPosition = 0;
-		m_selectionEndPosition = m_content.size();
-		m_caretPosition = m_selectionEndPosition;
+		m_selection.m_selectionStartPosition = 0;
+		m_selection.m_selectionEndPosition = m_content.size();
+		m_caretPosition = m_selection.m_selectionEndPosition;
 
 		AdjustView();
 		return true;
