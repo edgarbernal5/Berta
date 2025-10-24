@@ -132,6 +132,7 @@ namespace Berta
 			friend struct Module;
 
 		public:
+			PropertyItem() = default;
 			PropertyItem(Module* module, PropertyGridFieldBase* propGridField) :
 				m_module(module), m_propGridField(propGridField)
 			{
