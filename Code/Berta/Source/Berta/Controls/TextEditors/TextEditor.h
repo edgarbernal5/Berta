@@ -69,8 +69,8 @@ namespace Berta
 
 		struct Selection
 		{
-			int64_t m_selectionStartPosition{ -1 };
-			int64_t m_selectionEndPosition{ -1 };
+			int64_t m_startPosition{ -1 };
+			int64_t m_endPosition{ -1 };
 			bool m_isSelecting{ false };
 			bool m_ignoreMouseDown{ false };
 			TextFocusBehavior Behavior{ TextFocusBehavior::None };

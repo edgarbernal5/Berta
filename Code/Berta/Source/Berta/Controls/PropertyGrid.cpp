@@ -588,4 +588,9 @@ namespace Berta
 	{
 		return { nullptr,nullptr };
 	}
+
+	PropertyGrid::CategoryItem PropertyGrid::Find(const std::string& categoryName)
+	{
+		return GetReactor().GetModule().Find(categoryName);
+	}
 }

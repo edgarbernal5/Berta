@@ -254,6 +254,7 @@ namespace Berta
 	{
 	public:
 		using CategoryItem = ReactorCore::PropertyGrid::CategoryItem;
+		using PropertyItem = ReactorCore::PropertyGrid::PropertyItem;
 
 	public:
 		PropertyGrid() = default;
@@ -262,6 +263,7 @@ namespace Berta
 		CategoryItem Append(const std::string& categoryName);
 		void Clear();
 		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
+		CategoryItem Find(const std::string& categoryName);
 	};
 }
 
