@@ -144,6 +144,9 @@ namespace Berta
 			std::string GetValue() const;
 			PropertyItem& SetValue(const std::string& value, bool emitEvent = false);
 
+			bool IsEnabled() const;
+			PropertyItem& SetEnabled(bool enabled);
+
 		private:
 			Module* m_module{ nullptr };
 			PropertyGridFieldBase* m_propGridField{ nullptr };

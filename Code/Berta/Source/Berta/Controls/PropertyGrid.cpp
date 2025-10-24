@@ -447,6 +447,17 @@ namespace Berta
 			return *this;
 		}
 
+		bool PropertyItem::IsEnabled() const
+		{
+			return m_propGridField->IsEnabled();
+		}
+
+		PropertyItem& PropertyItem::SetEnabled(bool enabled)
+		{
+			m_propGridField->SetEnabled(enabled);
+			return *this;
+		}
+
 		void PropertyGridFieldBase::Init(Window* parent)
 		{
 			m_parent = parent;
