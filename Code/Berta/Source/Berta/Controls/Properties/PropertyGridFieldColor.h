@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldColor : public PropertyGridFieldBase
+	class PropertyGridFieldColor : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldColor(const std::string& label, const std::string& value) :

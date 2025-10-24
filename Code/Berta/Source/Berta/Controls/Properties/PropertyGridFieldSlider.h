@@ -15,7 +15,7 @@
 namespace Berta
 {
 	template<typename TNumber, typename = std::enable_if_t<IsNumeric<TNumber>::value>>
-	class PropertyGridFieldSlider : public PropertyGridFieldBase, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
+	class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
 	{
 	public:
 		PropertyGridFieldSlider(const std::string& label, const std::string& value) :

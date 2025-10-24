@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldCheck : public PropertyGridFieldBase
+	class PropertyGridFieldCheck : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldCheck(const std::string& label, const std::string& value) :

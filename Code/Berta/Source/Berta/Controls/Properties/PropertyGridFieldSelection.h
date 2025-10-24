@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldSelection : public PropertyGridFieldBase
+	class PropertyGridFieldSelection : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldSelection(const std::string& label) :

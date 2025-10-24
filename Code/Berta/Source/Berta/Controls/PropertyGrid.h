@@ -247,14 +247,13 @@ namespace Berta
 		};
 	}
 
-	using PropertyGridFieldBase = ReactorCore::PropertyGrid::PropertyGridFieldBase;
-	using PropertyGridFieldBasePtr = ReactorCore::PropertyGrid::PropertyGridFieldBasePtr;
-
 	class PropertyGrid : public Control<ReactorCore::PropertyGrid::Reactor, ReactorCore::PropertyGrid::Events, ReactorCore::PropertyGrid::Appearance>
 	{
 	public:
 		using CategoryItem = ReactorCore::PropertyGrid::CategoryItem;
 		using PropertyItem = ReactorCore::PropertyGrid::PropertyItem;
+		using PropertyGridFieldBase = ReactorCore::PropertyGrid::PropertyGridFieldBase;
+		using PropertyGridFieldBasePtr = ReactorCore::PropertyGrid::PropertyGridFieldBasePtr;
 
 	public:
 		PropertyGrid() = default;

@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldVector3 : public PropertyGridFieldBase
+	class PropertyGridFieldVector3 : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		PropertyGridFieldVector3(const std::string& label, const std::string& value) :
