@@ -87,11 +87,11 @@ namespace Berta
 			Module* m_module{ nullptr };
 		};
 
-		class FieldControlContainter : public Panel
+		class FieldControlContainer : public Panel
 		{
 		public:
-			FieldControlContainter() = default;
-			FieldControlContainter(Window* parent, const Rectangle& rect = {});
+			FieldControlContainer() = default;
+			FieldControlContainer(Window* parent, const Rectangle& rect = {});
 		};
 
 		struct CategoryType
@@ -104,7 +104,7 @@ namespace Berta
 			bool m_isExpanded{ true };
 			Rectangle m_area{};
 			std::vector<std::unique_ptr<PropertyGridFieldBase>> m_properties;
-			std::vector<std::unique_ptr<FieldControlContainter>> m_fieldContainers;
+			std::vector<std::unique_ptr<FieldControlContainer>> m_fieldContainers;
 		};
 
 		struct ViewportData
@@ -146,7 +146,8 @@ namespace Berta
 
 			bool IsEnabled() const;
 			PropertyItem& SetEnabled(bool enabled);
-
+			
+			PropertyGridFieldBase* GetPropertyFieldPtr() const { return m_propGridField; }
 		private:
 			Module* m_module{ nullptr };
 			PropertyGridFieldBase* m_propGridField{ nullptr };

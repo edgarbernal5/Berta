@@ -26,7 +26,7 @@ namespace Berta
 	{
 		uint32_t ExpanderButtonSize = 12u;
 		uint32_t DepthWidthMultiplier = 20u;
-		uint32_t TreeItemHeight = 20;
+		uint32_t TreeItemHeight = 20u;
 	};
 
 	struct TreeNodeType
@@ -205,7 +205,7 @@ namespace Berta
 		}
 
 		template<typename T>
-		const bool HasUserData() const
+		bool HasUserData() const
 		{
 			return std::any_cast<T>(&UserData());
 		}

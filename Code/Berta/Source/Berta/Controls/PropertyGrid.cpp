@@ -117,7 +117,7 @@ namespace Berta
 						auto field = it->m_properties[i].get();
 						auto fieldSize = field->GetSize();
 
-						offset.Y += fieldSize;
+						offset.Y += static_cast<int>(fieldSize);
 					}
 				}
 				offset.Y += one;
@@ -177,8 +177,6 @@ namespace Berta
 					for (size_t i = 0; i < it->m_properties.size(); i++)
 					{
 						auto field = it->m_properties[i].get();
-						bool fieldVisible = it->m_isExpanded;
-						auto fieldContainer = it->m_fieldContainers[i].get();
 						auto fieldSize = field->GetSize();
 
 						viewportData.m_contentSize += fieldSize;
@@ -402,7 +400,7 @@ namespace Berta
 			m_category->m_properties.emplace_back(std::move(propGridFieldPtr));
 			auto newField = m_category->m_properties.back().get();
 
-			std::unique_ptr<FieldControlContainter> containerPtr(new FieldControlContainter(m_module->m_owner));
+			std::unique_ptr<FieldControlContainer> containerPtr(new FieldControlContainer(m_module->m_owner));
 			newField->SetModule(m_module);
 			newField->Init(containerPtr->Handle());
 
@@ -555,7 +553,7 @@ namespace Berta
 			m_module = module;
 		}
 
-		FieldControlContainter::FieldControlContainter(Window* parent, const Rectangle& rect) :
+		FieldControlContainer::FieldControlContainer(Window* parent, const Rectangle& rect) :
 			Panel(parent, rect)
 		{
 		}

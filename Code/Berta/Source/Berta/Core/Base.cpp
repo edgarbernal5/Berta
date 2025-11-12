@@ -88,7 +88,7 @@ namespace Berta::LayoutUtils
 {
 	float CalculateDPIScaleFactor(uint32_t dpi)
 	{
-		return static_cast<float>(dpi / BT_APPLICATION_DPI);
+		return static_cast<float>(dpi) / BT_APPLICATION_DPI;
 	}
 
 	float CalculateDownwardDPIScaleFactor(uint32_t dpi)

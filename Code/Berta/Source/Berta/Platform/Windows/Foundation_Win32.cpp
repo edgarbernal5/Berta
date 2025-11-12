@@ -401,6 +401,7 @@ namespace Berta
 		}
 		case WM_PAINT:
 		{
+			//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
 			if (nativeWindow->Type == WindowType::RenderForm)
 			{
 				::PAINTSTRUCT ps;
