@@ -137,6 +137,8 @@ namespace Berta
 				m_module(module), m_propGridField(propGridField)
 			{
 			}
+			
+			operator bool() const;
 
 			std::string GetLabel() const;
 			PropertyItem& SetLabel(const std::string& label);
@@ -148,6 +150,7 @@ namespace Berta
 			PropertyItem& SetEnabled(bool enabled);
 			
 			PropertyGridFieldBase* GetPropertyFieldPtr() const { return m_propGridField; }
+
 		private:
 			Module* m_module{ nullptr };
 			PropertyGridFieldBase* m_propGridField{ nullptr };

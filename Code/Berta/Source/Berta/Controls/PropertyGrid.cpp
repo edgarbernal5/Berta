@@ -423,6 +423,11 @@ namespace Berta
 			return m_module != nullptr && m_category != nullptr;
 		}
 
+		PropertyItem::operator bool() const
+		{
+			return m_module && m_propGridField;
+		}
+
 		std::string PropertyItem::GetLabel() const
 		{
 			return m_propGridField->GetLabel();
