@@ -24,7 +24,7 @@ namespace Berta
 		if (window->Type != WindowType::Panel && operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
 			window->Flags.isUpdating = true;
-			window->Renderer.Update();
+			window->Renderer.Update(window->ClientSize.ToRectangle());
 			window->Flags.isUpdating = false;
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
@@ -35,11 +35,15 @@ namespace Berta
 	{
 		auto checkOpaque = window->FindFirstNonPanelAncestor();
 		if (checkOpaque && checkOpaque->Flags.isUpdating)
+		{
 			return;
+		}
 
 		if (window->Type == WindowType::RenderForm)
+		{
 			return;
-
+		}
+		
 		Rectangle rect;
 		if (!GetIntersectionRect(window, rect))
 			return;
@@ -77,24 +81,22 @@ namespace Berta
 				continue;
 			}
 
-			Rectangle rect;
 			Rectangle childRect = parentRect;
 			childRect.X += child->Position.X;
 			childRect.Y += child->Position.Y;
 			childRect.Width = child->ClientSize.Width;
 			childRect.Height = child->ClientSize.Height;
-			if (LayoutUtils::GetIntersectionRect(childRect, parentRect, rect))
+			
+			Rectangle clipRect;
+			if (LayoutUtils::GetIntersectionRect(childRect, parentRect, clipRect))
 			{
-				if (child->Type != WindowType::Panel)
+				if (child->Type != WindowType::Panel && processChildren && !child->Flags.isUpdating)
 				{
-					if (processChildren && !child->Flags.isUpdating)
-					{
-						child->Flags.isUpdating = true;
-						child->Renderer.Update();
-						child->Flags.isUpdating = false;
-					}
+					child->Flags.isUpdating = true;
+					child->Renderer.Update(clipRect);
+					child->Flags.isUpdating = false;
 				}
-				MapInternal(child, processChildren, rect);
+				MapInternal(child, processChildren, clipRect);
 			}
 		}
 	}

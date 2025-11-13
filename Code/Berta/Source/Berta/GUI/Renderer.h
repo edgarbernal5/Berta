@@ -22,8 +22,8 @@ namespace Berta
 		void Init(ControlBase& control, ControlReactor& controlReactor);
 		void Shutdown();
 		void Map(Window* window, const Rectangle& areaToUpdate);
-		void Update();
-
+		void Update(const Rectangle& clipRect);
+		
 		void MouseEnter(const ArgMouse& args);
 		void MouseLeave(const ArgMouse& args);
 		void MouseDown(const ArgMouse& args);

@@ -182,7 +182,6 @@ namespace Berta
 
 				if (redrawScrollbar)
 				{
-					m_scrollBar->Handle()->Renderer.Update();
 					GUI::UpdateWindow(m_scrollBar->Handle());
 				}
 			}

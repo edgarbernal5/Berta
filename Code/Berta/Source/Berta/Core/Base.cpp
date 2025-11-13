@@ -107,8 +107,8 @@ namespace Berta::LayoutUtils
 		// Calculate the intersection rectangle
 		int interLeft = (std::max)(r1.X, r2.X);
 		int interTop = (std::max)(r1.Y, r2.Y);
-		int interRight = (std::min)(r1.X + r1.Width, r2.X + r2.Width);
-		int interBottom = (std::min)(r1.Y + r1.Height, r2.Y + r2.Height);
+		int interRight = (std::min)(r1.X + static_cast<int>(r1.Width), r2.X + static_cast<int>(r2.Width));
+		int interBottom = (std::min)(r1.Y + static_cast<int>(r1.Height), r2.Y + static_cast<int>(r2.Height));
 
 		// Set the intersection rectangle's position and size
 		output.X = interLeft;
@@ -125,12 +125,16 @@ namespace Berta::LayoutUtils
 		// Valid clip area for parent and child based on their sizes
 		Rectangle validSourceRect{ sourceSize };
 		if (!GetIntersectionRect(sourceRectangle, validSourceRect, outputSourceRect))
+		{
 			return false;
+		}
 
 		Rectangle validDestRect{ destSize };
 		Rectangle resultDestRect;
 		if (!GetIntersectionRect(destRectangle, validDestRect, resultDestRect))
+		{
 			return false;
+		}
 
 		// Compute proportional offset from original parent rect to output clipped rect
 		Scale(sourceRectangle, outputSourceRect, destRectangle, outputDestRect);
@@ -152,14 +156,14 @@ namespace Berta::LayoutUtils
 
 	void Scale(const Rectangle& destScaled, const Rectangle& scaled, const Rectangle& destRect, Rectangle& output)
 	{
-		double rateX = (double)(scaled.X - destScaled.X) / (double)(destScaled.Width);
-		double rateY = (double)(scaled.Y - destScaled.Y) / (double)(destScaled.Height);
+		double rateX = static_cast<double>(scaled.X - destScaled.X) / static_cast<double>(destScaled.Width);
+		double rateY = static_cast<double>(scaled.Y - destScaled.Y) / static_cast<double>(destScaled.Height);
 
 		output.X = static_cast<int>(rateX * destRect.Width) + destRect.X;
 		output.Y = static_cast<int>(rateY * destRect.Height) + destRect.Y;
 
-		output.Width = static_cast<uint32_t>((double)scaled.Width / (double)(destScaled.Width) * destRect.Width);
-		output.Height = static_cast<uint32_t>((double)scaled.Height / (double)(destScaled.Height) * destRect.Height);
+		output.Width = static_cast<uint32_t>(static_cast<double>(scaled.Width) / static_cast<double>(destScaled.Width) * destRect.Width);
+		output.Height = static_cast<uint32_t>(static_cast<double>(scaled.Height) / static_cast<double>(destScaled.Height) * destRect.Height);
 	}
 
 	bool Contains(const Rectangle& rect1, const Rectangle& rect2)

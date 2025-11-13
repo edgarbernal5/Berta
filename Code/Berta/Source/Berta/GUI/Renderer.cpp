@@ -41,7 +41,7 @@ namespace Berta
 		window->RootGraphics->Paste(window->RootPaintHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
-	void Renderer::Update()
+	void Renderer::Update(const Rectangle& clipRect)
 	{
 		BT_ASSERT(!m_controlReactor || !m_updating, "Renderer Update is already updating.");
 
@@ -49,9 +49,14 @@ namespace Berta
 		{
 			m_updating = true;
 			//asumimos que el rootgraphics hizo el begindraw
-			auto area = m_control->GetArea();
-			m_graphics->SetTransform(area);
-			m_graphics->SetClipping(area);
+			auto absoluteArea = m_control->GetArea();
+			m_graphics->SetTransform(absoluteArea);
+
+			Rectangle relativeClipRect = clipRect;
+			relativeClipRect.X -= absoluteArea.X;
+			relativeClipRect.Y -= absoluteArea.Y;
+			
+			m_graphics->SetClipping(relativeClipRect);
 			m_controlReactor->Update(*m_graphics);
 			m_graphics->EndClipping();
 

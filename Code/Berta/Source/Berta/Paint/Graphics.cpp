@@ -427,7 +427,7 @@ namespace Berta
 
 	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color)
 	{
-		if (wstr.size() == 0)
+		if (wstr.empty())
 		{
 			return;
 		}
@@ -833,17 +833,17 @@ namespace Berta
 		std::swap(m_attributes, other.m_attributes);
 	}
 
-	Size Graphics::GetTextExtent(const std::wstring& wstr)
+	Size Graphics::GetTextExtent(const std::wstring& wstr) const
 	{
 		return API::GetTextExtentSize(m_attributes.get(), wstr);
 	}
 
-	Size Graphics::GetTextExtent(const std::string& str)
+	Size Graphics::GetTextExtent(const std::string& str) const
 	{
 		return API::GetTextExtentSize(m_attributes.get(), str);
 	}
 
-	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length)
+	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length) const
 	{
 		return API::GetTextExtentSize(m_attributes.get(), wstr, length);
 	}
@@ -895,10 +895,15 @@ namespace Berta
 			return;
 		}
 
-		D2D1_RECT_F clipRect = D2D1::RectF(0,0, area.Width, area.Height);
+		D2D1_RECT_F clipRect = D2D1::RectF
+		(
+			static_cast<float>(area.X), 
+			static_cast<float>(area.Y), 
+			static_cast<float>(area.X + area.Width), 
+			static_cast<float>(area.Y + area.Height)
+		);
 		m_targetRT->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 #endif
-
 	}
 	
 	void Graphics::EndClipping()

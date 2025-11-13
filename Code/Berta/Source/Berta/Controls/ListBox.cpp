@@ -739,15 +739,6 @@ namespace Berta
 			BuildListItemBounds(minIndex);
 		}
 
-		if (m_viewport.m_needVerticalScroll)
-		{
-			m_scrollBarVert->Handle()->Renderer.Update();
-		}
-		if (m_viewport.m_needHorizontalScroll)
-		{
-			m_scrollBarHoriz->Handle()->Renderer.Update();
-		}
-
 		GUI::UpdateWindow(m_window);
 	}
 
@@ -798,7 +789,7 @@ namespace Berta
 	void ListBoxReactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor)
 	{
 		auto textExtent = graphics.GetTextExtent(str);
-		if (boxBounds.X + (int)textExtent.Width < 0)
+		if (boxBounds.X + static_cast<int>(textExtent.Width) < 0)
 		{
 			return;
 		}
@@ -814,9 +805,9 @@ namespace Berta
 		{
 			auto subStr = str.substr(0, i);// +"...";
 			auto subTextExtent = graphics.GetTextExtent(subStr).Width;
-			if ((int)(subTextExtent + ellipsisTextExtent) <= (int)boxBounds.Width - 2)
+			if (static_cast<int>(subTextExtent + ellipsisTextExtent) <= static_cast<int>(boxBounds.Width) - 2)
 			{
-				graphics.DrawString({ boxBounds.X, boxBounds.Y + ((int)(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", textColor);
+				graphics.DrawString({ boxBounds.X, boxBounds.Y + (static_cast<int>(boxBounds.Height - textExtent.Height) >> 1) }, subStr + "...", textColor);
 				break;
 			}
 		}

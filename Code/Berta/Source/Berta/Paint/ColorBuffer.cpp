@@ -42,7 +42,7 @@ namespace Berta
         if (!destHandle || !m_storage)
             return;
 
-        auto& storage = *m_storage.get();
+        auto& storage = *m_storage;
         Rectangle validDestRect, validSourceDest;
         if (!LayoutUtils::GetIntersectionRect(sourceRect, storage.m_size, destinationRect, API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
             return;

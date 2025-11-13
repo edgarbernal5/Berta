@@ -141,8 +141,10 @@ namespace Berta
 
 		void Module::Clear()
 		{
+			m_listModule.Clear();
 			CalculateViewport(m_viewport);
-
+			UpdateScrollBar();
+			
 			m_mouseInteraction.m_lastPropertySelected = nullptr;
 		}
 
@@ -393,6 +395,11 @@ namespace Berta
 		std::vector<CategoryType>::const_iterator ListModule::End() const
 		{
 			return m_categories.cend();
+		}
+
+		void ListModule::Clear()
+		{
+			m_categories.clear();
 		}
 
 		PropertyItem CategoryItem::Append(PropertyGridFieldBasePtr propGridFieldPtr)

@@ -42,8 +42,8 @@ namespace Berta
 		graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
 
 		auto caption = m_control->GetCaption();
-		Point textExtent = graphics.GetTextExtent(caption);
-		Point windowSize = window->ClientSize;
+		const Point textExtent = graphics.GetTextExtent(caption);
+		const Point windowSize = window->ClientSize;
 		auto center = windowSize - textExtent;
 		center /= 2;
 		graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);

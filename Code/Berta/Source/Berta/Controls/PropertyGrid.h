@@ -180,6 +180,8 @@ namespace Berta
 			std::vector<CategoryType>::iterator End();
 			std::vector<CategoryType>::const_iterator End() const;
 
+			void Clear();
+			
 			size_t Size() const
 			{
 				return m_categories.size();

@@ -7,6 +7,7 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/PropertyGrid.h>
 #include <Berta/Controls/InputText.h>
+#include <Berta/Controls/Button.h>
 
 #include <Berta/Controls/Properties/PropertyGridFields.h>
 
@@ -75,13 +76,20 @@ int main()
 			std::cout << "Selection changed! Label = " << args.Property.GetLabel() << std::endl;
 		});
 
+	Berta::Button buttonClear(form, {15,15,120,35}, "Clear");
+	buttonClear.GetEvents().Click.Connect([&propertyGrid](const Berta::ArgClick& args)
+	{
+		propertyGrid.Clear();
+	});
+	
 	NewPanel newPanel(form);
 
-	form.SetLayout("{HorizontalLayout {a}{b}");
+	form.SetLayout("{HorizontalLayout {VerticalLayout {VerticalLayout {e}{a}}{VerticalLayout {d}{c}}}{b}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("a", propertyGrid);
 	layout.Attach("b", newPanel);
+	layout.Attach("c", buttonClear);
 	layout.Apply();
 
 	form.Show();
