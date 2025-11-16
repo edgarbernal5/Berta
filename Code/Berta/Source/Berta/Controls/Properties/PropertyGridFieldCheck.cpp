@@ -69,6 +69,11 @@ namespace Berta
 		m_checkBox.Create(parent);
 		SetValue(m_value);
 
+		m_checkBox.GetEvents().Click.Connect([this](const ArgClick& args)
+			{
+				ScrollToView();
+			});
+		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
 			{
 				SetCheck(args.IsChecked);

@@ -78,7 +78,7 @@ namespace Berta
 		return *this;
 	}
 
-	Graphics& Graphics::operator=(Graphics&& other)
+	Graphics& Graphics::operator=(Graphics&& other) noexcept
 	{
 		if (this != &other)
 		{
@@ -887,7 +887,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::SetClipping(const Rectangle& area)
+	void Graphics::SetClipping(const Rectangle& area) const
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!m_targetRT)

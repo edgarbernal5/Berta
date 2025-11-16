@@ -60,6 +60,10 @@ namespace Berta
 		{
 			PropertyGridFieldString::Create(parent);
 
+			m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
+				{
+					ScrollToView();
+				});
 			m_inputText.GetEvents().KeyPressed.Reset();
 			m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 				{

@@ -82,6 +82,7 @@ namespace Berta
 
 		m_colorRegion.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
+				ScrollToView();
 				if (m_clickCallback)
 				{
 					m_clickCallback(this);

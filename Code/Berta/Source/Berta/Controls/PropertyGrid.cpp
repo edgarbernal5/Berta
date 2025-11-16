@@ -350,25 +350,79 @@ namespace Berta
 				Rectangle categoryRect = it->m_area;
 
 				Point scrollOffset{ categoryRect.X,categoryRect.Y };
-				scrollOffset.Y += categoryRect.Height;
+				scrollOffset.Y += static_cast<int>(categoryRect.Height);
 				scrollOffset.Y -= m_scrollOffset.Y;
 
 				if (!it->m_isExpanded)
+				{
 					continue;
+				}
 
 				for (size_t i = 0; i < it->m_properties.size(); i++)
 				{
 					auto field = it->m_properties[i].get();
-					auto fieldSize = field->GetSize();
-					if (mousePosition.Y >= scrollOffset.Y && mousePosition.Y < scrollOffset.Y + static_cast<int>(fieldSize))
+					auto fieldSizeInt = static_cast<int>(field->GetSize());
+					if (mousePosition.Y >= scrollOffset.Y && mousePosition.Y < scrollOffset.Y + fieldSizeInt)
 					{
 						return field;
 					}
 
-					scrollOffset.Y += fieldSize;
+					scrollOffset.Y += fieldSizeInt;
 				}
 			}
 			return nullptr;
+		}
+
+		void Module::ScrollToView(PropertyGridFieldBase* propGridField)
+		{
+			Point position = -m_scrollOffset;
+			bool found = false;
+			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			{
+				Rectangle categoryRect = it->m_area;
+
+				Point scrollOffset{ categoryRect.X,categoryRect.Y };
+				scrollOffset.Y += static_cast<int>(categoryRect.Height);
+				position.Y += scrollOffset.Y;
+
+				if (!it->m_isExpanded)
+				{
+					continue;
+				}
+
+				for (size_t i = 0; i < it->m_properties.size(); i++)
+				{
+					auto field = it->m_properties[i].get();
+					if (field == propGridField)
+					{
+						found = true;
+						break;
+					}
+					
+					position.Y += static_cast<int>(field->GetSize());
+				}
+				
+				if (found)
+				{
+					break;
+				}
+			}
+
+			bool needUpdate=false;
+			if (found)
+			{
+				if (position.Y < 0 && position.Y + static_cast<int>(propGridField->GetSize()> 0))
+				{
+					m_scrollBar->SetValue(-position.Y);
+					m_scrollOffset.Y = m_scrollBar->GetValue();
+					needUpdate = true;
+				}
+			}
+			
+			if (needUpdate)
+			{
+				GUI::UpdateWindow(m_owner);
+			}
 		}
 
 		CategoryType* ListModule::CreateCategory(const std::string& categoryName)
@@ -544,6 +598,11 @@ namespace Berta
 		void PropertyGridFieldBase::EmitSelectionEvent()
 		{
 			m_module->EmitSelectionEvent(PropertyItem{ m_module, this });
+		}
+
+		void PropertyGridFieldBase::ScrollToView()
+		{
+			m_module->ScrollToView(this);
 		}
 
 		void PropertyGridFieldBase::Update()

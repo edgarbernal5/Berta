@@ -21,9 +21,9 @@ namespace Berta
 #endif
 			input.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
 
-			input.GetEvents().Click.Connect([](const ArgClick& args)
+			input.GetEvents().Click.Connect([this](const ArgClick& args)
 				{
-
+					ScrollToView();
 				});
 
 			input.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)

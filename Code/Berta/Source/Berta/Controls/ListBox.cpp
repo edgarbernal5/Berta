@@ -1484,24 +1484,24 @@ namespace Berta
 			return false;
 		}
 
-		Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y + (int)m_viewport.m_innerMargin + (int)(m_viewport.m_itemHeightWithMargin * lastLocalSelectedIndex),
+		Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y + static_cast<int>(m_viewport.m_innerMargin) + static_cast<int>(m_viewport.m_itemHeightWithMargin * lastLocalSelectedIndex),
 			m_viewport.m_backgroundRect.Width, 
 			m_viewport.m_itemHeight
 		};
 
-		if (itemBounds.Y >= 0 && itemBounds.Y + (int)itemBounds.Height <= (int)m_viewport.m_backgroundRect.Height)
+		if (itemBounds.Y >= 0 && itemBounds.Y + static_cast<int>(itemBounds.Height) <= static_cast<int>(m_viewport.m_backgroundRect.Height))
 		{
 			return false;
 		}
 
 		auto offsetAdjustment = 0;
-		if (itemBounds.Y + (int)itemBounds.Height >= (int)m_viewport.m_backgroundRect.Height)
+		if (itemBounds.Y + static_cast<int>(itemBounds.Height) >= static_cast<int>(m_viewport.m_backgroundRect.Height))
 		{
-			offsetAdjustment = itemBounds.Y + (int)(itemBounds.Height - m_viewport.m_backgroundRect.Height + m_viewport.m_innerMargin);
+			offsetAdjustment = itemBounds.Y + static_cast<int>(itemBounds.Height - m_viewport.m_backgroundRect.Height + m_viewport.m_innerMargin);
 		}
 		else
 		{
-			offsetAdjustment = itemBounds.Y - (int)m_viewport.m_innerMargin;
+			offsetAdjustment = itemBounds.Y - static_cast<int>(m_viewport.m_innerMargin);
 		}
 		m_scrollOffset.Y = std::clamp(m_scrollOffset.Y + offsetAdjustment, m_scrollBarVert->GetMin(), m_scrollBarVert->GetMax());
 		CalculateVisibleIndices();

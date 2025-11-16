@@ -62,9 +62,9 @@ namespace Berta
 		m_inputText.SetCaption(m_value);
 		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
 
-		m_inputText.GetEvents().Click.Connect([](const ArgClick& args)
+		m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
-
+				ScrollToView();
 			});
 
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)

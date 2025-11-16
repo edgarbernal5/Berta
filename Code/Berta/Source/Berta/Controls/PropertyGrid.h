@@ -67,6 +67,7 @@ namespace Berta
 
 			void EmitEvent();
 			void EmitSelectionEvent();
+			void ScrollToView();
 			void Update();
 
 		protected:
@@ -209,6 +210,7 @@ namespace Berta
 			
 			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
 			PropertyGridFieldBase* GetCategoryPropertyOnMouse(const Point& mousePosition);
+			void ScrollToView(PropertyGridFieldBase* propGridField);
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;

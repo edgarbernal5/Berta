@@ -23,13 +23,13 @@ namespace Berta
 	public:
 		Graphics();
 		Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle);
-		Graphics(API::RootPaintNativeHandle rootPaintHandle);
+		explicit Graphics(API::RootPaintNativeHandle rootPaintHandle);
 		//Graphics(const Graphics& other);
 		Graphics(Graphics&& other) noexcept;
 		~Graphics(); 
 		
 		Graphics& operator=(const Graphics& other);
-		Graphics& operator=(Graphics&& other);
+		Graphics& operator=(Graphics&& other) noexcept;
 
 		enum class ArrowDirection
 		{
@@ -92,7 +92,7 @@ namespace Berta
 		void Flush();
 
 		void SetTransform(const Rectangle& area);
-		void SetClipping(const Rectangle& area);
+		void SetClipping(const Rectangle& area) const;
 		void EndClipping();
 
 		void Swap(Graphics& other);

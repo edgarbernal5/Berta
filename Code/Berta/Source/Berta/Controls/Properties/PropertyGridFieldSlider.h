@@ -110,6 +110,10 @@ namespace Berta
 		{
 			m_slider.Create(parent);
 
+			m_slider.GetEvents().Click.Connect([this](const ArgClick& args)
+			{
+				ScrollToView();
+			});
 			m_slider.GetEvents().ValueChanged.Connect([this](const ArgSlider& args)
 				{
 					TNumber result = static_cast<TNumber>(args.Value);

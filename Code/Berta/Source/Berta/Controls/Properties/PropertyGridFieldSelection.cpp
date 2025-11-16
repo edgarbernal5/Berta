@@ -81,9 +81,9 @@ namespace Berta
 		m_comboBox.Create(parent);
 		m_comboBox.SetCaption(m_value);
 
-		m_comboBox.GetEvents().Click.Connect([](const ArgClick& args)
+		m_comboBox.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
-
+				ScrollToView();
 			});
 
 		m_comboBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
