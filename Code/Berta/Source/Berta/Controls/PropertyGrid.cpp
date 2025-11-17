@@ -375,15 +375,15 @@ namespace Berta
 
 		void Module::ScrollToView(PropertyGridFieldBase* propGridField)
 		{
-			Point position = -m_scrollOffset;
+			Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y,
+				m_viewport.m_backgroundRect.Width, 
+				0
+			};
 			bool found = false;
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 			{
-				Rectangle categoryRect = it->m_area;
-
-				Point scrollOffset{ categoryRect.X,categoryRect.Y };
-				scrollOffset.Y += static_cast<int>(categoryRect.Height);
-				position.Y += scrollOffset.Y;
+				const Rectangle& category_rect = it->m_area;
+				itemBounds.Y += static_cast<int>(category_rect.Height);
 
 				if (!it->m_isExpanded)
 				{
@@ -395,11 +395,12 @@ namespace Berta
 					auto field = it->m_properties[i].get();
 					if (field == propGridField)
 					{
+						itemBounds.Height = field->GetSize();
 						found = true;
 						break;
 					}
 					
-					position.Y += static_cast<int>(field->GetSize());
+					itemBounds.Y += static_cast<int>(field->GetSize());
 				}
 				
 				if (found)
@@ -407,22 +408,29 @@ namespace Berta
 					break;
 				}
 			}
+			
+			if (itemBounds.Y >= 0 && itemBounds.Y +  static_cast<int>(itemBounds.Height) <= static_cast<int>(m_viewport.m_backgroundRect.Height))
+			{
+				return;
+			}
 
-			bool needUpdate=false;
 			if (found)
 			{
-				if (position.Y < 0 && position.Y + static_cast<int>(propGridField->GetSize()> 0))
+				auto offsetAdjustment = 0;
+				if (itemBounds.Y + static_cast<int>(itemBounds.Height) >= static_cast<int>(m_viewport.m_backgroundRect.Height))
 				{
-					m_scrollBar->SetValue(-position.Y);
-					m_scrollOffset.Y = m_scrollBar->GetValue();
-					needUpdate = true;
+					offsetAdjustment = itemBounds.Y + static_cast<int>(itemBounds.Height - m_viewport.m_backgroundRect.Height);
 				}
+				else
+				{
+					offsetAdjustment = itemBounds.Y;
+				}
+				m_scrollOffset.Y = std::clamp(m_scrollOffset.Y + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
+		
+				m_scrollBar->SetValue(m_scrollOffset.Y);
 			}
 			
-			if (needUpdate)
-			{
-				GUI::UpdateWindow(m_owner);
-			}
+			GUI::UpdateWindow(m_owner);
 		}
 
 		CategoryType* ListModule::CreateCategory(const std::string& categoryName)

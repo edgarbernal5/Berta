@@ -1527,7 +1527,7 @@ namespace Berta
 		}
 	}
 
-	Berta::ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
+	ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		if (!m_window->ClientSize.IsInside(mousePosition))
@@ -1535,7 +1535,7 @@ namespace Berta
 			return InteractionArea::None;
 		}
 
-		if (mousePosition.Y <= (int)headerHeight)
+		if (mousePosition.Y <= static_cast<int>(headerHeight))
 		{
 			Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollOffset.X, 0 };
 
@@ -1711,7 +1711,6 @@ namespace Berta
 		}
 		const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
 		m_headers.m_mouseDownOffset = m_scrollOffset.X + mousePosition.X - (int)m_window->ToScale(m_headers.m_items[headerIndex].m_bounds.X + m_headers.m_items[headerIndex].m_bounds.Width + iconWidth);
-		
 	}
 
 	void ListBoxReactor::Module::UpdateHeadersSize(const Point& mousePosition)
