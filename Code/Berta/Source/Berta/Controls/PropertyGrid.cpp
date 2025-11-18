@@ -480,8 +480,10 @@ namespace Berta
 
 			m_category->m_fieldContainers.emplace_back(std::move(containerPtr));
 
+			m_module->CalculateViewport(m_module->m_viewport);
 			m_module->BuildItems();
-
+			m_module->UpdateScrollBar();
+			
 			return { m_module, newField };
 		}
 
@@ -653,6 +655,7 @@ namespace Berta
 			CategoryItem newCategory = { this, m_listModule.CreateCategory(categoryName) };
 			CalculateViewport(m_viewport);
 			BuildItems();
+			UpdateScrollBar();
 
 			return newCategory;
 		}
