@@ -375,6 +375,11 @@ namespace Berta
 
 		void Module::ScrollToView(PropertyGridFieldBase* propGridField)
 		{
+            if (!m_scrollBar)
+            {
+                return;
+            }
+            
 			Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y,
 				m_viewport.m_backgroundRect.Width, 
 				0
