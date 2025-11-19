@@ -38,7 +38,7 @@ namespace Berta
 		void SetEnabled(bool enabled);
 
 		Window* GetParent() const;
-		void SetParent(Window* newParent);
+		void SetParent(Window* newParent) const;
 
 		Window* GetOwner() const;
 
@@ -53,12 +53,12 @@ namespace Berta
 
 		bool IsVisible() const;
 
-		void Show();
-		void Hide();
-		void Dispose();
+		void Show() const;
+		void Hide() const;
+		void Dispose() const;
 
 		bool IsAutoDraw() const;
-		void SetAutoDraw(bool autoDraw);
+		void SetAutoDraw(bool autoDraw) const;
 
 		void SetBackgroundColor(const Color& newColor);
 

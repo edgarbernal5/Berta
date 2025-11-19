@@ -86,17 +86,17 @@ namespace Berta
 		m_attributes->Open(filepath);
 	}
 
-	void Image::Paste(Graphics& destination, const Point& positionDestination)
+	void Image::Paste(Graphics& destination, const Point& positionDestination) const
 	{
 		Paste(Rectangle{ GetSize() }, destination, positionDestination);
 	}
 
-	void Image::Paste(Graphics& destination, const Rectangle& destinationRect)
+	void Image::Paste(Graphics& destination, const Rectangle& destinationRect) const
 	{
 		Paste(Rectangle{ GetSize() }, destination, destinationRect);
 	}
 
-	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
+	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const
 	{
 		if (!m_attributes)
 		{
@@ -106,7 +106,7 @@ namespace Berta
 		m_attributes->Paste(destination, positionDestination);
 	}
 
-	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
+	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) const
 	{
 		if (!m_attributes)
 		{

@@ -1187,7 +1187,7 @@ namespace Berta
 					cellOffset += headerWidthInt;
 					continue;
 				}
-				else if (cellOffset - m_scrollOffset.X >= (int)m_viewport.m_backgroundRect.Width)
+				if (cellOffset - m_scrollOffset.X >= (int)m_viewport.m_backgroundRect.Width)
 				{
 					break;
 				}
@@ -1218,16 +1218,10 @@ namespace Berta
 			(std::max)(m_mouseSelection.m_startPosition.Y, m_mouseSelection.m_endPosition.Y)
 		};
 
-		if (startPoint.Y < m_viewport.m_backgroundRect.Y - m_scrollOffset.Y)
-		{
-			startPoint.Y = m_viewport.m_backgroundRect.Y - m_scrollOffset.Y;
-		}
-		if (startPoint.X < m_viewport.m_backgroundRect.X - m_scrollOffset.X)
-		{
-			startPoint.X = m_viewport.m_backgroundRect.X - m_scrollOffset.X;
-		}
+		startPoint.Y = (std::max)(startPoint.Y, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y);
+		startPoint.X = (std::max)(startPoint.X, m_viewport.m_backgroundRect.X - m_scrollOffset.X);
 
-		boxSize = { (uint32_t)(endPoint.X - startPoint.X), (uint32_t)(endPoint.Y - startPoint.Y) };
+		boxSize = { static_cast<uint32_t>(endPoint.X - startPoint.X), static_cast<uint32_t>(endPoint.Y - startPoint.Y) };
 	}
 
 	bool ListBoxReactor::Module::SetHoveredListItem(List::Item* index)
@@ -1305,7 +1299,7 @@ namespace Berta
 		std::sort(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), compare);
 	}
 
-	int ListBoxReactor::Module::GetListItemIndex(List::Item* item)
+	int ListBoxReactor::Module::GetListItemIndex(List::Item* item) const
 	{
 		for (size_t i = 0; i < m_list.m_items.size(); i++)
 		{
@@ -1527,7 +1521,7 @@ namespace Berta
 		}
 	}
 
-	ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
+	ListBoxReactor::InteractionArea ListBoxReactor::Module::DetermineHoverArea(const Point& mousePosition) const
 	{
 		auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 		if (!m_window->ClientSize.IsInside(mousePosition))
@@ -1564,7 +1558,7 @@ namespace Berta
 				{
 					return InteractionArea::HeaderSplitter;
 				}
-				else if (mousePosition.X >= headerOffset.X &&
+				if (mousePosition.X >= headerOffset.X &&
 					mousePosition.X < headerOffset.X + headerWidthInt - splitterThreshold)
 				{
 					return InteractionArea::Header;
@@ -1577,8 +1571,8 @@ namespace Berta
 		}
 
 		if (m_viewport.m_needVerticalScroll && m_viewport.m_needHorizontalScroll && 
-			mousePosition.X >= (int)(m_viewport.m_backgroundRect.Width) &&
-			mousePosition.Y >= (int)(m_viewport.m_backgroundRect.Height))
+			mousePosition.X >= static_cast<int>(m_viewport.m_backgroundRect.Width) &&
+			mousePosition.Y >= static_cast<int>(m_viewport.m_backgroundRect.Height))
 		{
 			return InteractionArea::None;
 		}
@@ -1659,7 +1653,7 @@ namespace Berta
 		}
 	}
 
-	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition, bool splitter)
+	int ListBoxReactor::Module::GetHeaderAtMousePosition(const Point& mousePosition, bool splitter) const
 	{
 		auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 		auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
@@ -1685,12 +1679,12 @@ namespace Berta
 			if (splitter && mousePosition.X >= headerOffset.X + headerWidthInt - splitterThreshold &&
 				mousePosition.X <= headerOffset.X + headerWidthInt + splitterThreshold)
 			{
-				return (int)i;
+				return static_cast<int>(i);
 			}
-			else if (!splitter && mousePosition.X >= headerOffset.X &&
+			if (!splitter && mousePosition.X >= headerOffset.X &&
 				mousePosition.X < headerOffset.X + headerWidthInt)
 			{
-				return (int)i;
+				return static_cast<int>(i);
 			}
 
 			headerOffset.X += headerWidthInt;
@@ -1707,7 +1701,7 @@ namespace Berta
 		{
 			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
-			iconWidth += listItemIconSize + listItemIconMargin * 2u;
+			iconWidth += static_cast<int>(listItemIconSize + listItemIconMargin * 2u);
 		}
 		const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
 		m_headers.m_mouseDownOffset = m_scrollOffset.X + mousePosition.X - (int)m_window->ToScale(m_headers.m_items[headerIndex].m_bounds.X + m_headers.m_items[headerIndex].m_bounds.Width + iconWidth);
@@ -1767,7 +1761,7 @@ namespace Berta
 		bool needUpdate = m_target->m_cells[columnIndex].m_text != text;
 
 		m_target->m_cells[columnIndex].m_text = text;
-		if (m_module->m_headers.m_sortedHeaderIndex == columnIndex)
+		if (m_module->m_headers.m_sortedHeaderIndex == static_cast<int>(columnIndex))
 		{
 			m_module->SortHeader(m_module->m_headers.m_sorted[m_module->m_headers.m_sortedHeaderIndex], m_module->m_headers.isAscendingOrdering);
 		}
@@ -1778,10 +1772,10 @@ namespace Berta
 		}
 	}
 
-	std::string ListBoxItem::GetText(size_t columnIndex)
+	std::string ListBoxItem::GetText(size_t columnIndex) const
 	{
 		if (columnIndex >= m_module->m_headers.m_items.size())
-			return std::string();
+			return {};
 
 		return m_target->m_cells[columnIndex].m_text;
 	}

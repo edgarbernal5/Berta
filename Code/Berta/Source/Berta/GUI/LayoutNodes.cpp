@@ -522,6 +522,10 @@ namespace Berta
 		m_dockLayoutEvents->NotifyMove(this);
 	}
 
+	void DockPaneLayoutNode::NotifyMoveStarted()
+	{
+	}
+
 	void DockPaneLayoutNode::NotifyMoveStopped()
 	{
 		m_dockLayoutEvents->NotifyMoveStopped(this);
@@ -782,7 +786,7 @@ namespace Berta
 		});
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
-		m_tabBar->SetTabPosition(TabBarPosition::Bottom);
+		m_tabBar->SetTabBarPosition(TabBarPosition::Bottom);
 
 		m_tabBar->GetEvents().TabChanged.Connect([this](const ArgTabBar& args)
 		{

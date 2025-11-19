@@ -59,7 +59,7 @@ namespace Berta
 
 		void DoScrollStep(bool fromTimer = false);
 		void EmitValueChanged();
-		inline bool isScrollable() const { return m_min != m_max; }
+		bool isScrollable() const { return m_min != m_max; }
 
 		void UpdateSliderBoxValue(int position);
 		InteractionArea DetermineHoverArea(const Point& position) const;

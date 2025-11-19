@@ -59,7 +59,7 @@ namespace Berta
 		{
 			struct ItemData
 			{
-				ItemData() {}
+				ItemData() = default;
 				ItemData(const std::string& name, uint32_t width) : m_name(name)
 				{
 					m_bounds.Width = width;
@@ -109,7 +109,7 @@ namespace Berta
 			bool m_drawImages{ false };
 		};
 
-		enum class InteractionArea
+		enum class InteractionArea : uint8_t
 		{
 			None,
 			Header,
@@ -175,7 +175,7 @@ namespace Berta
 			void Erase(std::vector<ListBoxItem>& items);
 			void EnableMultiselection(bool enabled);
 			bool UpdateScrollBars();
-			InteractionArea DetermineHoverArea(const Point& mousePosition);
+			InteractionArea DetermineHoverArea(const Point& mousePosition) const;
 
 			bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
 			void SelectItem(List::Item* index);
@@ -191,7 +191,7 @@ namespace Berta
 
 			std::vector<ListBoxItem> GetSelectedItems();
 
-			int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter);
+			int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter) const;
 
 			void StartHeadersSizing(const Point& mousePosition);
 			void UpdateHeadersSize(const Point& mousePosition);
@@ -210,7 +210,7 @@ namespace Berta
 			void StopDragOrSortHeader();
 			void SortHeader(size_t headerIndex, bool ascending);
 
-			int GetListItemIndex(List::Item* item);
+			int GetListItemIndex(List::Item* item) const;
 
 			Headers m_headers;
 			List m_list;
@@ -246,10 +246,10 @@ namespace Berta
 
 		void SetIcon(const Image& image);
 		void SetText(size_t columnIndex, const std::string& text);
-		std::string GetText(size_t columnIndex);
+		std::string GetText(size_t columnIndex) const;
 
 		template<typename T>
-		const bool HasUserData() const
+		bool HasUserData() const
 		{
 			return std::any_cast<T>(&UserData());
 		}
@@ -268,7 +268,7 @@ namespace Berta
 			return *this;
 		}
 
-		operator bool() const
+		explicit operator bool() const
 		{
 			return m_target;
 		}

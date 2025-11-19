@@ -48,10 +48,10 @@ namespace Berta
 		Size GetSize() const { return m_attributes->GetSize(); }
 
 		void Open(const std::string& filepath);
-		void Paste(Graphics& destination, const Point& positionDestination);
-		void Paste(Graphics& destination, const Rectangle& destinationRect);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination);
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect);
+		void Paste(Graphics& destination, const Point& positionDestination) const;
+		void Paste(Graphics& destination, const Rectangle& destinationRect) const;
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const;
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) const;
 
 	private:
 		std::shared_ptr<AbstractImageAttributes> m_attributes;

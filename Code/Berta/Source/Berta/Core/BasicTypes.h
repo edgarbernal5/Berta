@@ -293,6 +293,20 @@ namespace Berta
 	};
 
 	using ScrollBarUnit = int;
+	
+	enum class HorizontalAlign : uint8_t
+	{
+		Left, 
+		Center, 
+		Right
+	};
+
+	enum class VerticalAlign : uint8_t
+	{
+		Top,
+		Center, 
+		Bottom
+	};
 }
 
 #endif

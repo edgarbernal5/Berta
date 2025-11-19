@@ -108,7 +108,7 @@ namespace Berta
 					m_viewport.m_backgroundRect.Width - m_viewport.m_backgroundRect.X * 2, m_viewport.m_categoryItemHeight };
 
 				it->m_area = categoryRect;
-				offset.Y += categoryRect.Height;
+				offset.Y += static_cast<int>(categoryRect.Height);
 
 				if (it->m_isExpanded)
 				{
@@ -234,7 +234,7 @@ namespace Berta
 					GUI::MoveWindow(m_scrollBar->Handle(), scrollRect);
 				}
 
-				m_scrollBar->SetMinMax(0, (int)(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
+				m_scrollBar->SetMinMax(0, static_cast<int>(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
 				m_scrollBar->SetPageStepValue(m_viewport.m_backgroundRect.Height);
 				m_scrollBar->SetStepValue(m_owner->ToScale(24));
 
@@ -313,13 +313,14 @@ namespace Berta
 					{
 						Rectangle fieldArea{ scrollOffset.X + one, scrollOffset.Y + one,m_viewport.m_backgroundRect.Width - one * 2,fieldSize - one * 2 };
 						Rectangle fieldContainerArea = fieldArea;
-						fieldContainerArea.X += fieldArea.Width >> 1;
+						fieldContainerArea.X += static_cast<int>(fieldArea.Width >> 1);
 						fieldContainerArea.Width -= fieldArea.Width >> 1;
 
 						GUI::MoveWindow(*fieldContainer, fieldContainerArea);
 
 						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->Red : m_appearance->Foreground);
 					}
+					
 					if (it->m_isExpanded)
 					{
 						scrollOffset.Y += fieldSize;
@@ -344,7 +345,6 @@ namespace Berta
 
 		PropertyGridFieldBase* Module::GetCategoryPropertyOnMouse(const Point& mousePosition)
 		{
-			Point offsetPosition = mousePosition + m_scrollOffset;
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 			{
 				Rectangle categoryRect = it->m_area;
@@ -387,8 +387,8 @@ namespace Berta
 			bool found = false;
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 			{
-				const Rectangle& category_rect = it->m_area;
-				itemBounds.Y += static_cast<int>(category_rect.Height);
+				const Rectangle& categoryRect = it->m_area;
+				itemBounds.Y += static_cast<int>(categoryRect.Height);
 
 				if (!it->m_isExpanded)
 				{
@@ -421,7 +421,7 @@ namespace Berta
 
 			if (found)
 			{
-				auto offsetAdjustment = 0;
+				int offsetAdjustment;
 				if (itemBounds.Y + static_cast<int>(itemBounds.Height) >= static_cast<int>(m_viewport.m_backgroundRect.Height))
 				{
 					offsetAdjustment = itemBounds.Y + static_cast<int>(itemBounds.Height - m_viewport.m_backgroundRect.Height);

@@ -48,7 +48,7 @@ namespace Berta
 		return GUI::GetParentWindow(m_handle);
 	}
 
-	void ControlBase::SetParent(Window* newParent)
+	void ControlBase::SetParent(Window* newParent) const
 	{
 		GUI::SetParentWindow(m_handle, newParent);
 	}
@@ -96,17 +96,17 @@ namespace Berta
 		return GUI::IsWindowVisible(m_handle);
 	}
 
-	void ControlBase::Show()
+	void ControlBase::Show() const
 	{
 		GUI::ShowWindow(m_handle, true);
 	}
 
-	void ControlBase::Hide()
+	void ControlBase::Hide() const
 	{
 		GUI::ShowWindow(m_handle, false);
 	}
 
-	void ControlBase::Dispose()
+	void ControlBase::Dispose() const
 	{
 		GUI::DisposeWindow(m_handle);
 	}
@@ -116,7 +116,7 @@ namespace Berta
 		return m_handle->Flags.AutoDraw;
 	}
 
-	void ControlBase::SetAutoDraw(bool autoDraw)
+	void ControlBase::SetAutoDraw(bool autoDraw) const
 	{
 		m_handle->Flags.AutoDraw = autoDraw;
 	}

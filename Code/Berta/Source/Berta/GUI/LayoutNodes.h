@@ -399,6 +399,7 @@ namespace Berta
 
         virtual void NotifyFloat() = 0;
         virtual void NotifyMove() = 0;
+        virtual void NotifyMoveStarted() = 0;
         virtual void NotifyMoveStopped() = 0;
         virtual void RequestClose() = 0;
     };
@@ -487,6 +488,7 @@ namespace Berta
 
         void NotifyFloat() override;
         void NotifyMove() override;
+        void NotifyMoveStarted() override;
         void NotifyMoveStopped() override;
         void RequestClose() override;
 

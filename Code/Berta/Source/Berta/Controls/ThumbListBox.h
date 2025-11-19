@@ -138,7 +138,7 @@ namespace Berta
 			std::vector<size_t> GetSelectedItems() const;
 			bool EnsureVisibility(int lastSelectedIndex);
 
-			void UpdatedThumbnail(ItemType& item);
+			void UpdateItem(const ItemType& item) const;
 
 			std::vector<ItemType> m_items;
 			uint32_t m_thumbnailSize{ 96u };
@@ -172,6 +172,7 @@ namespace Berta
 		{
 		}
 
+		void SetText(const std::wstring& text);
 		void SetIcon(const Image& image);
 	private:
 		ThumbListBoxReactor::Module::ItemType& m_target;

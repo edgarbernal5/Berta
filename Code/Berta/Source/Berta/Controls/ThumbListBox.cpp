@@ -849,7 +849,7 @@ namespace Berta
 		if (wholeExtent.Width < cardRect.Width)
 		{
 			Point targetSub{ cardRect.X, cardRect.Y };
-			targetSub.X += (int)(cardRect.Width - wholeExtent.Width) >> 1;
+			targetSub.X += static_cast<int>(cardRect.Width - wholeExtent.Width) >> 1;
 			graphics.DrawString(targetSub, item.m_text, m_appearance->Foreground);
 			return;
 		}
@@ -869,7 +869,7 @@ namespace Berta
 					if (subExtent.Width + offset.X < cardRect.Width)
 					{
 						Point targetSub{ offset.X + cardRect.X, offset.Y + cardRect.Y};
-						targetSub.X += (int)(cardRect.Width - subExtent.Width) >> 1;
+						targetSub.X += static_cast<int>(cardRect.Width - subExtent.Width) >> 1;
 						graphics.DrawString(targetSub, word.substr(0, j), m_appearance->Foreground);
 
 						offset.X += subExtent.Width;
@@ -880,7 +880,7 @@ namespace Berta
 			else
 			{
 				Point targetSub{ offset.X + cardRect.X, offset.Y + cardRect.Y };
-				targetSub.X += (int)(cardRect.Width - wordExtent.Width) >> 1;
+				targetSub.X += static_cast<int>(cardRect.Width - wordExtent.Width) >> 1;
 				graphics.DrawString(targetSub, word, m_appearance->Foreground);
 				offset.Y += wordExtent.Height;
 
@@ -962,7 +962,7 @@ namespace Berta
 		return true;
 	}
 
-	void ThumbListBoxReactor::Module::UpdatedThumbnail(ItemType& item)
+	void ThumbListBoxReactor::Module::UpdateItem(const ItemType& item) const
 	{
 		auto itemBounds = item.m_bounds;
 		itemBounds.Y -= m_state.m_offset;
@@ -977,7 +977,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::BuildItems()
 	{
-		int innerMarginInt = (int)m_viewport.m_innerMargin;
+		int innerMarginInt = static_cast<int>(m_viewport.m_innerMargin);
 		Point offset{ m_viewport.m_backgroundRect.X, m_viewport.m_backgroundRect.Y };
 		for (size_t i = 0, k = 1; i < m_items.size(); i++, ++k)
 		{
@@ -1027,13 +1027,22 @@ namespace Berta
 		m_alreadySelected.clear();
 	}
 
+	void ThumbListBoxItem::SetText(const std::wstring& text)
+	{
+		if (m_target.m_text == text)
+		return;
+
+		m_target.m_text = text;
+		m_module.UpdateItem(m_target);
+	}
+
 	void ThumbListBoxItem::SetIcon(const Image& image)
 	{
 		if (m_target.m_thumbnail == image)
 			return;
 
 		m_target.m_thumbnail = image;
-		m_module.UpdatedThumbnail(m_target);
+		m_module.UpdateItem(m_target);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
@@ -1084,9 +1093,10 @@ namespace Berta
 
 	void ThumbListBox::Clear()
 	{
-		if (GetReactor().GetModule().Clear() && IsAutoDraw())
+		auto& module = GetReactor().GetModule();
+		if (module.Clear() && IsAutoDraw())
 		{
-			GetReactor().GetModule().Draw();
+			module.Draw();
 		}
 	}
 
@@ -1107,10 +1117,11 @@ namespace Berta
 
 	void ThumbListBox::EnableMultiselection(bool enabled)
 	{
-		if (GetReactor().GetModule().EnableMultiselection(enabled))
+		auto& module = GetReactor().GetModule();
+		if (module.EnableMultiselection(enabled))
 		{
-			GetReactor().GetModule().ClearSelection();
-			GetReactor().GetModule().Draw();
+			module.ClearSelection();
+			module.Draw();
 		}
 	}
 

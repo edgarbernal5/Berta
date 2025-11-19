@@ -136,5 +136,6 @@ namespace Berta
 	void CheckBox::SetChecked(bool isChecked)
 	{
 		GetReactor().GetModule().m_isChecked = isChecked;
+		GUI::UpdateWindow(m_handle);
 	}
 }

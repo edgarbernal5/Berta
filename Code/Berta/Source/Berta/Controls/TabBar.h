@@ -125,7 +125,7 @@ namespace Berta
 
 		void Insert(size_t position, const std::string& tabId, Window* window);
 		void PushBack(const std::string& tabId, Window* window);
-		void SetTabPosition(TabBarPosition position);
+		void SetTabBarPosition(TabBarPosition position);
 
 	private:
 		

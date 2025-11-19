@@ -288,6 +288,10 @@ namespace Berta
 		}
 	}
 
+	void Layout::NotifyMoveStarted(DockPaneLayoutNode* node)
+	{
+	}
+
 	void Layout::NotifyMoveStopped(DockPaneLayoutNode* paneNode)
 	{
 		m_lockPaneIndicators = false;

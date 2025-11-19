@@ -399,7 +399,7 @@ namespace Berta
 		GetReactor().AddTab(tabId, window);
 	}
 
-	void TabBar::SetTabPosition(TabBarPosition position)
+	void TabBar::SetTabBarPosition(TabBarPosition position)
 	{
 		GetReactor().SetTabPosition(position);
 	}

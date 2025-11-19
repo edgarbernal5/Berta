@@ -133,6 +133,7 @@ namespace Berta
 
         virtual void NotifyFloat(DockPaneLayoutNode* node) = 0;
         virtual void NotifyMove(DockPaneLayoutNode* node) = 0;
+        virtual void NotifyMoveStarted(DockPaneLayoutNode* node) = 0;
         virtual void NotifyMoveStopped(DockPaneLayoutNode* node) = 0;
         virtual void RequestClose(DockPaneLayoutNode* node) = 0;
     };
@@ -161,6 +162,7 @@ namespace Berta
 
         void NotifyFloat(DockPaneLayoutNode* node) override;
         void NotifyMove(DockPaneLayoutNode* node) override;
+        void NotifyMoveStarted(DockPaneLayoutNode* node) override;
         void NotifyMoveStopped(DockPaneLayoutNode* node) override;
         void RequestClose(DockPaneLayoutNode* node) override;
 
