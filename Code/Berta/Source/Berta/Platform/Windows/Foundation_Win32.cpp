@@ -31,16 +31,16 @@ namespace Berta
 {
 	Foundation Foundation::g_foundation;
 
-	static LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 	bool IsDefaultMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
 
-	static HINSTANCE g_hModuleInstance;
+	HINSTANCE g_hModuleInstance;
 
-	static HINSTANCE GetModuleInstance()
+	HINSTANCE GetModuleInstance()
 	{
 		if (g_hModuleInstance == nullptr)
 		{
-			g_hModuleInstance = GetModuleHandle(nullptr);
+			g_hModuleInstance = ::GetModuleHandle(nullptr);
 		}
 
 		return g_hModuleInstance;
@@ -229,6 +229,26 @@ namespace Berta
 	//};
 #endif
 
+	static void InitArgs(ArgMouse& args, const Point& position, WPARAM wParam)
+	{
+		args.Position = position;
+		args.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
+		args.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
+		args.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+
+		args.AltPressed = ::GetKeyState(VK_MENU) < 0;
+	}
+	
+	static void InitArgs(ArgMouse& args, const Point& position, uint32_t message)
+	{
+		args.Position = position;
+		args.ButtonState.LeftButton = message == WM_LBUTTONUP;
+		args.ButtonState.RightButton = message == WM_RBUTTONUP;
+		args.ButtonState.MiddleButton = message == WM_MBUTTONUP;
+
+		args.AltPressed = ::GetKeyState(VK_MENU) < 0;
+	}
+	
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 	{
 #ifdef BT_PRINT_WND_MESSAGES
@@ -610,12 +630,9 @@ namespace Berta
 
 				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
 				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-
+				
 				ArgMouse argMouseDown;
-				argMouseDown.Position = pointToClient - windowManager.GetWindowRootPosition(window);
-				argMouseDown.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouseDown.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouseDown.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+				InitArgs(argMouseDown,pointToClient - windowManager.GetWindowRootPosition(window), wParam);
 
 				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
 			}
@@ -636,11 +653,8 @@ namespace Berta
 					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
 					auto pointToClient = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pointToScreen);
 
-					ArgMouse argMouseLeave;
-					argMouseLeave.Position = pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow);
-					argMouseLeave.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseLeave.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseLeave.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					ArgMouse argMouseLeave;					
+					InitArgs(argMouseLeave,pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow), wParam);
 
 					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 				}
@@ -657,10 +671,7 @@ namespace Berta
 					if (window->ClientSize.IsInside(position))
 					{
 						ArgMouse argMouseEnter;
-						argMouseEnter.Position = position;
-						argMouseEnter.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-						argMouseEnter.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-						argMouseEnter.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+						InitArgs(argMouseEnter,position, wParam);
 
 						foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
 					}
@@ -670,10 +681,7 @@ namespace Berta
 				if (rootHoveredWindow)
 				{
 					ArgMouse argMouseMove;
-					argMouseMove.Position = position;
-					argMouseMove.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-					argMouseMove.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-					argMouseMove.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+					InitArgs(argMouseMove,position, wParam);
 
 					foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
 				}
@@ -708,10 +716,8 @@ namespace Berta
 				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
 
 				ArgMouse argMouseUp;
-				argMouseUp.Position = position;
-				argMouseUp.ButtonState.LeftButton = message == WM_LBUTTONUP;
-				argMouseUp.ButtonState.RightButton = message == WM_RBUTTONUP;
-				argMouseUp.ButtonState.MiddleButton = message == WM_MBUTTONUP;
+				InitArgs(argMouseUp, position, message);
+				
 
 				if (window->ClientSize.IsInside(argMouseUp.Position) && window == rootPressedWindow)
 				{
@@ -737,10 +743,7 @@ namespace Berta
 			if (window && window->Flags.IsEnabled && window == rootReleasedWindow)
 			{
 				ArgMouse argMouse{};
-				argMouse.Position = Point{ x, y } - windowManager.GetWindowRootPosition(window);
-				argMouse.ButtonState.LeftButton = (wParam & MK_LBUTTON) != 0;
-				argMouse.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
-				argMouse.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
+				InitArgs(argMouse,Point{ x, y } - windowManager.GetWindowRootPosition(window), wParam);
 
 				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
 			}

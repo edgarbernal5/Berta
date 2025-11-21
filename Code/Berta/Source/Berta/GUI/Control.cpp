@@ -133,6 +133,17 @@ namespace Berta
 
 	void ControlBase::Focus()
 	{
+		GUI::FocusWindow(m_handle);
+	}
+
+	void ControlBase::Capture(bool redirectToChildren)
+	{
+		GUI::Capture(m_handle, redirectToChildren);
+	}
+
+	void ControlBase::ReleaseCapture()
+	{
+		GUI::ReleaseCapture(m_handle);
 	}
 
 	std::wstring ControlBase::DoOnCaption() const

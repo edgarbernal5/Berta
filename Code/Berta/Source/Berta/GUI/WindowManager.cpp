@@ -419,15 +419,31 @@ namespace Berta
 		}
 	}
 
-	void WindowManager::Focus(Window* window, ArgFocus::Reason reason)
+	void WindowManager::Focus(Window* window, const ArgFocus::Reason reason)
 	{
 		auto& formData = *GetFormData(window->RootHandle);
-		auto previousFocused= formData.Focused;
+		auto& previousFocused= formData.Focused;
 		
 		if (previousFocused == window)
+		{
 			return;
+		}
+
+		auto& foundation = Foundation::GetInstance();
+		if (previousFocused)
+		{
+			ArgFocus argFocus;
+			argFocus.Focused = false;
+			argFocus.FocusReason = reason;
+			foundation.ProcessEvents(previousFocused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+		}
 		
+		previousFocused = window;
 		
+		ArgFocus argFocus;
+		argFocus.Focused = true;
+		argFocus.FocusReason = reason;
+		foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 	}
 
 	void WindowManager::Dispose(Window* window)

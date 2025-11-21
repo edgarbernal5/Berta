@@ -508,5 +508,24 @@ namespace Berta
 			::SendMessage(nativeHandle.Handle, WM_EXITSIZEMOVE, 0, 0);
 #endif
 		}
+
+		NativeWindowHandle GetFocusWindow()
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			return {::GetFocus()};
+#else
+			return {};
+#endif
+		}
+
+		void SetFocusWindow(NativeWindowHandle nativeWindowHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (nativeWindowHandle && nativeWindowHandle.Handle != ::GetFocus())
+			{
+				::SetFocus(nativeWindowHandle.Handle);
+			}
+#endif
+		}
 	}
 }

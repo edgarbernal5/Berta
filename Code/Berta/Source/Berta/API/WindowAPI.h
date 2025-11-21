@@ -37,6 +37,16 @@ namespace Berta
 				return Handle != other.Handle;
 			}
 
+			/*constexpr bool operator==(const HWND& other) const
+			{
+				return Handle == other;
+			}
+
+			constexpr bool operator!=(const HWND& other) const
+			{
+				return Handle != other;
+			}*/
+
 			operator bool () const { return Handle != nullptr; }
 #else
 			constexpr bool operator<(const NativeWindowHandle& other) const
@@ -111,6 +121,9 @@ namespace Berta
 		Point GetScreenMousePosition();
 		void EnterSizeMoveWindow(NativeWindowHandle nativeHandle);
 		void ExitSizeMoveWindow(NativeWindowHandle nativeHandle);
+
+		NativeWindowHandle GetFocusWindow();
+		void SetFocusWindow(NativeWindowHandle nativeWindowHandle);
 	}
 }
 

@@ -65,6 +65,9 @@ namespace Berta
 		void MakeActive(bool activated, Window* makeTargetWhenInactive);
 		void Focus();
 
+		void Capture(bool redirectToChildren);
+		void ReleaseCapture();
+		
 #if BT_DEBUG
 		void SetDebugName(const std::string& name)
 		{
