@@ -131,6 +131,10 @@ namespace Berta
 		GUI::MakeWindowActive(m_handle, activated, makeTargetWhenInactive);
 	}
 
+	void ControlBase::Focus()
+	{
+	}
+
 	std::wstring ControlBase::DoOnCaption() const
 	{
 		return GUI::CaptionWindow(m_handle);
@@ -143,7 +147,7 @@ namespace Berta
 
 	bool ControlBase::DoOnEnabled() const
 	{
-		return GUI::IsEnableWindow(m_handle);
+		return GUI::IsWindowEnabled(m_handle);
 	}
 
 	void ControlBase::DoOnEnabled(bool enabled)

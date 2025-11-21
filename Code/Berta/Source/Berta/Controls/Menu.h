@@ -35,6 +35,9 @@ namespace Berta
 	{
 	public:
 		friend class MenuBoxReactor;
+		
+	public:
+		virtual ~MenuItemReactor() = default;
 
 		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 

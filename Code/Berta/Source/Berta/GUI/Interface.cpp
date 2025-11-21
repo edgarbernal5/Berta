@@ -128,7 +128,7 @@ namespace Berta::GUI
 		}
 	}
 
-	bool IsEnableWindow(Window* window)
+	bool IsWindowEnabled(Window* window)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -256,6 +256,17 @@ namespace Berta::GUI
 		}
 		window->Flags.MakeActive = active;
 		window->MakeTargetWhenInactive = makeTargetWhenInactive;
+	}
+
+	void FocusWindow(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		windowManager.Focus(window, ArgFocus::Reason::General);
 	}
 
 	Window* GetParentWindow(Window* window)

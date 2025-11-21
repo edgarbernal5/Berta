@@ -13,7 +13,6 @@
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlEvents.h"
-#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Platform/Windows/Messages.h"
 
 #include "Berta/Controls/Menu.h"
@@ -32,15 +31,16 @@ namespace Berta
 {
 	Foundation Foundation::g_foundation;
 
-	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 	bool IsDefaultMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
 
-	HINSTANCE g_hModuleInstance;
-	HINSTANCE GetModuleInstance()
+	static HINSTANCE g_hModuleInstance;
+
+	static HINSTANCE GetModuleInstance()
 	{
 		if (g_hModuleInstance == nullptr)
 		{
-			g_hModuleInstance = GetModuleHandle(NULL);
+			g_hModuleInstance = GetModuleHandle(nullptr);
 		}
 
 		return g_hModuleInstance;

@@ -419,6 +419,17 @@ namespace Berta
 		}
 	}
 
+	void WindowManager::Focus(Window* window, ArgFocus::Reason reason)
+	{
+		auto& formData = *GetFormData(window->RootHandle);
+		auto previousFocused= formData.Focused;
+		
+		if (previousFocused == window)
+			return;
+		
+		
+	}
+
 	void WindowManager::Dispose(Window* window)
 	{
 		if (window->Flags.IsDisposed)

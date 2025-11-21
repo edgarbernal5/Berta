@@ -11,6 +11,8 @@
 #include <set>
 #include <string>
 #include <iostream>
+
+#include "ControlEvents.h"
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Paint/Graphics.h"
 
@@ -86,6 +88,8 @@ namespace Berta
 
 		void EnterSizeMove(Window* window);
 		void ExitSizeMove(Window* window);
+
+		void Focus(Window* window, ArgFocus::Reason reason);
 	private:
 
 		void UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea = nullptr);

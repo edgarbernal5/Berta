@@ -46,13 +46,13 @@ namespace Berta
 	{
 		enum class Reason
 		{
-			Native,
+			General,
 			Tabstop,
 			MousePress
 		};
 
 		bool Focused;
-		Reason FocusReason{ Reason::Native };
+		Reason FocusReason{ Reason::General };
 	};
 
     struct ArgKeyboard

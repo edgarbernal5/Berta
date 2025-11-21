@@ -31,7 +31,7 @@ namespace Berta
 		bool IsWindowVisible(Window* window);
 		void UpdateWindow(Window* window);
 		void EnableWindow(Window* window, bool isEnabled);
-		bool IsEnableWindow(Window* window);
+		bool IsWindowEnabled(Window* window);
 
 		void RefreshWindow(Window* window);
 		void ResizeWindow(Window* window, const Size& newSize);
@@ -41,7 +41,8 @@ namespace Berta
 		Rectangle AreaWindow(Window* window);
 
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
-
+		void FocusWindow(Window* window);
+		
 		Window* GetParentWindow(Window* window);
 		Window* GetOwnerWindow(Window* window);
 
