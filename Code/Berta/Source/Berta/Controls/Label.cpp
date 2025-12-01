@@ -11,11 +11,23 @@
 
 namespace Berta
 {
+	void LabelReactor::Init(ControlBase& control, Graphics* graphics)
+	{
+		ControlReactor::Init(control, graphics);
+		
+		m_module.m_owner = control.Handle();
+	}
+
 	void LabelReactor::Update(Graphics& graphics)
 	{
-		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->Background, true);
-		graphics.DrawString({ 0,0 }, m_control->GetCaption(), window->Appearance->Foreground);
+		auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
+		graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
+		graphics.DrawString(clientRect, m_control->GetCaption(), m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap);
+	}
+
+	void LabelReactor::Module::Update()
+	{
+		GUI::UpdateWindow(m_owner);
 	}
 
 	Label::Label(Window* parent, const Rectangle& rectangle, const std::wstring& text)
@@ -36,5 +48,17 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "Label";
 #endif
+	}
+
+	bool Label::IsWordWrap() const
+	{
+		return GetReactor().GetModule().m_isWordWrap;
+	}
+
+	void Label::SetWordWrap(bool wordWrap)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_isWordWrap = wordWrap;
+		module.Update();
 	}
 }

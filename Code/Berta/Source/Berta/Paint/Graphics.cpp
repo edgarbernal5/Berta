@@ -444,6 +444,22 @@ namespace Berta
 		ID2D1SolidColorBrush* brush;
 		m_targetRT->CreateSolidColorBrush(color,
 			&brush);
+		
+		IDWriteTextLayout* textLayout = nullptr;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.c_str(), 
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			FLT_MAX, FLT_MAX,
+			&textLayout
+		);
+		
+		if (FAILED(hr))
+		{
+			return;
+		}
 
 		m_targetRT->DrawText
 		(
@@ -453,6 +469,7 @@ namespace Berta
 			d2dRect,
 			brush
 		);
+		textLayout->Release();
 
 		brush->Release();
 #endif
@@ -463,7 +480,7 @@ namespace Berta
 		DrawString(position, StringUtils::Convert(str), color);
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color)
+	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap)
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -471,10 +488,6 @@ namespace Berta
 		}
 		
 #ifdef BT_PLATFORM_WINDOWS
-		
-		ID2D1SolidColorBrush* brush;
-		m_targetRT->CreateSolidColorBrush(color,
-			&brush);
 		
 		IDWriteTextLayout* textLayout = nullptr;
 		
@@ -489,9 +502,14 @@ namespace Berta
 
 		if (FAILED(hr))
 		{
-			brush->Release();
 			return;
 		}
+
+		ID2D1SolidColorBrush* brush;
+		m_targetRT->CreateSolidColorBrush(color,
+			&brush);
+
+		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WHOLE_WORD : DWRITE_WORD_WRAPPING_NO_WRAP);
 		
 		m_targetRT->DrawTextLayout
 		(
@@ -505,9 +523,9 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color)
+	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap)
 	{
-		DrawString(area, StringUtils::Convert(str), color);
+		DrawString(area, StringUtils::Convert(str), color, wordWrap);
 	}
 
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor)

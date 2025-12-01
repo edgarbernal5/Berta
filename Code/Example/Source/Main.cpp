@@ -390,13 +390,9 @@ int main()
 		});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
-	Berta::Label label(form, { 10,28,75,35 }, L"Hello world!");
+	Berta::Label label(form, { 10,28,75,35 }, L"Hello world! Hello World! Hello World!");
 	label.GetAppearance().Background = Berta::Color{ 0xFF0000FF };
-
-	label.GetEvents().MouseMove.Connect([](const Berta::ArgMouse& args)
-		{
-			//std::cout << "LABEL>mouse move" << std::endl;
-		});
+	label.SetWordWrap(true);
 
 	Berta::InputText inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
