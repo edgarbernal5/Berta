@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "Interface.h"
 
+#include <utility>
+
 #include "Berta/API/WindowAPI.h"
 #include "Berta/Core/Foundation.h"
 #include "Berta/GUI/Control.h"
@@ -330,7 +332,7 @@ namespace Berta::GUI
 		windowManager.ReleaseCapture(window);
 	}
 
-	void InitRendererReactor(ControlBase* control, ControlReactor& controlReactor)
+	void InitRendererReactor(ControlBase* control, ControlReactor& reactor)
 	{
 		auto window = control->Handle();
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -339,7 +341,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->Renderer.Init(*control, controlReactor);
+		window->Renderer.Init(*control, reactor);
 	}
 
 	void SetEvents(Window* window, std::shared_ptr<ControlEvents> events)
@@ -350,10 +352,10 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->Events = events;
+		window->Events = std::move(events);
 	}
 
-	void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance)
+	void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> appearance)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -361,7 +363,7 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->Appearance = controlAppearance;
+		window->Appearance = std::move(appearance);
 	}
 
 	void SetCustomPaintCallback(Window* window, std::function<void()> callback)

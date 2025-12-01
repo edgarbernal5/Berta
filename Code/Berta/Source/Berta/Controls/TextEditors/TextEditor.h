@@ -93,7 +93,7 @@ namespace Berta
 		size_t GetPositionUnderMouse(const Point& mousePosition) const;
 		size_t GetPositionNextWord(int64_t currentPosition, int direction) const;
 
-		void EmitValueChanged();
+		void EmitValueChanged() const;
 
 		Graphics& m_graphics;
 		size_t m_caretPosition{ 0 };

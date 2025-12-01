@@ -34,7 +34,7 @@ namespace Berta
 	{
 	public:
 		Image() = default;
-		Image(const std::string& filepath);
+		explicit Image(const std::string& filepath);
 		Image(const Image& other);
 		Image(Image&& other) noexcept;
 		~Image();

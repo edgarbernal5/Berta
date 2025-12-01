@@ -530,7 +530,7 @@ namespace Berta
 		return m_windowRegistry.find(window) != m_windowRegistry.end();
 	}
 
-	uint32_t WindowManager::NativeWindowCount()
+	uint32_t WindowManager::NativeWindowCount() const
 	{
 		return static_cast<uint32_t>(m_windowNativeRegistry.size());
 	}
@@ -807,7 +807,8 @@ namespace Berta
 			
 			return newPosition != nativePosition;
 		}
-		else if (window->Position != newPosition)
+		
+		if (window->Position != newPosition)
 		{
 			Point delta{ newPosition.X - window->Position.X, newPosition.Y - window->Position.Y };
 			window->Position = newPosition;
@@ -831,7 +832,7 @@ namespace Berta
 		if (window->HasCustomPaint())
 		{
 			API::RefreshWindow(window->RootHandle);
-			//UpdateWindow(window->RootHandle.Handle);
+			//::UpdateWindow(window->RootHandle.Handle);
 			
 			return;
 		}
@@ -857,7 +858,7 @@ namespace Berta
 		else*/
 		{
 			API::RefreshWindow(window->RootHandle);
-			//UpdateWindow(window->RootHandle.Handle);
+			//::UpdateWindow(window->RootHandle.Handle);
 		}
 		UpdateInternal(window, redraw, updateArea);
 	}

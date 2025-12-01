@@ -60,7 +60,7 @@ namespace Berta
 		Window* Get(API::NativeWindowHandle nativeWindowHandle) const;
 		FormData* GetFormData(API::NativeWindowHandle nativeWindowHandle);
 		bool Exists(Window* window) const;
-		uint32_t NativeWindowCount();
+		uint32_t NativeWindowCount() const;
 
 		void Capture(Window* window, bool redirectToChildren);
 		void ReleaseCapture(Window* window);

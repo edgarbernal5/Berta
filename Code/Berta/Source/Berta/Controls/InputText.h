@@ -30,7 +30,7 @@ namespace Berta
 	class InputTextReactor : public ControlReactor
 	{
 	public:
-		~InputTextReactor();
+		~InputTextReactor() override;
 
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
@@ -72,6 +72,7 @@ namespace Berta
 		void SetText(const std::string& text);
 
 		void SetFocusBehavior(TextFocusBehavior behavior);
+		
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;

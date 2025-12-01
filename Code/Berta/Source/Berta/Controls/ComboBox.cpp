@@ -189,8 +189,9 @@ namespace Berta
 		{
 			if (args.Key == KeyboardKey::ArrowUp)
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, (int)(m_module.Data.m_items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty()) {
+				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
+				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+				{
 					m_module.Data.m_selectedIndex = newIndex;
 					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
 					m_module.EmitSelectionEvent(newIndex);
@@ -199,8 +200,9 @@ namespace Berta
 			}
 			if (args.Key == KeyboardKey::ArrowDown)
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, (int)(m_module.Data.m_items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty()) {
+				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
+				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+				{
 					m_module.Data.m_selectedIndex = newIndex;
 					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
 					m_module.EmitSelectionEvent(newIndex);

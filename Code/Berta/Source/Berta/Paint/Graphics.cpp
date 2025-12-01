@@ -427,17 +427,12 @@ namespace Berta
 
 	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color)
 	{
-		if (wstr.empty())
+		if (wstr.empty() || !IsValid())
 		{
 			return;
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (!IsValid())
-		{
-			return;
-		}
-
 		auto textSize = GetTextExtent(wstr);
 
 		D2D1_RECT_F d2dRect;
@@ -467,7 +462,54 @@ namespace Berta
 	{
 		DrawString(position, StringUtils::Convert(str), color);
 	}
-	
+
+	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color)
+	{
+		if (wstr.empty() || !IsValid())
+		{
+			return;
+		}
+		
+#ifdef BT_PLATFORM_WINDOWS
+		
+		ID2D1SolidColorBrush* brush;
+		m_targetRT->CreateSolidColorBrush(color,
+			&brush);
+		
+		IDWriteTextLayout* textLayout = nullptr;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.c_str(), 
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			static_cast<FLOAT>(area.Width), static_cast<FLOAT>(area.Height),
+			&textLayout
+		);
+
+		if (FAILED(hr))
+		{
+			brush->Release();
+			return;
+		}
+		
+		m_targetRT->DrawTextLayout
+		(
+			D2D1_POINT_2F {static_cast<FLOAT>(area.X), static_cast<FLOAT>(area.Y)},
+			textLayout,
+			brush
+		);
+		
+		brush->Release();
+		textLayout->Release();
+#endif
+	}
+
+	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color)
+	{
+		DrawString(area, StringUtils::Convert(str), color);
+	}
+
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor)
 	{
 		DrawArrow(rect, arrowLength, arrowWidth, direction, borderColor, false, borderColor);
@@ -483,9 +525,9 @@ namespace Berta
 		}
 
 		D2D1_POINT_2F p1, p2, p3;
-		Point center{};
-		center.X = (rect.X * 2 + rect.Width) >> 1;
-		center.Y = (rect.Y * 2 + rect.Height) >> 1;
+		Point center;
+		center.X = (rect.X * 2 + static_cast<int>(rect.Width)) >> 1;
+		center.Y = (rect.Y * 2 + static_cast<int>(rect.Height)) >> 1;
 
 		switch (direction)
 		{
@@ -515,7 +557,9 @@ namespace Berta
 		}
 
 		if (!output.IsInside(p1) && !output.IsInside(p2) && !output.IsInside(p3))
+		{
 			return;
+		}
 
 		ID2D1PathGeometry* geometry = nullptr;
 		ID2D1GeometrySink* sink = nullptr;

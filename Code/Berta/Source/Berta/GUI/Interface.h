@@ -49,9 +49,9 @@ namespace Berta
 		void Capture(Window* window, bool redirectToChildren = false);
 		void ReleaseCapture(Window* window);
 
-		void InitRendererReactor(ControlBase* window, ControlReactor& controlReactor);
+		void InitRendererReactor(ControlBase* window, ControlReactor& reactor);
 		void SetEvents(Window* window, std::shared_ptr<ControlEvents> events);
-		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> controlAppearance);
+		void SetAppearance(Window* window, std::shared_ptr<ControlAppearance> appearance);
 
 		void SetCustomPaintCallback(Window* window, std::function<void()> callback);
 

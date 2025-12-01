@@ -165,6 +165,7 @@ namespace Berta
 		{
 			return editor->IsEditable();
 		}
+		return false;
 	}
 
 	void InputText::SetEditable(bool isEditable)

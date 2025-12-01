@@ -1669,7 +1669,7 @@ namespace Berta
 			{
 				headerWidth += listItemIconSize + listItemIconMargin * 2u;
 			}
-			auto headerWidthInt = (int)headerWidth;
+			const auto headerWidthInt = static_cast<int>(headerWidth);
 			if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.m_backgroundRect.Width)
 			{
 				headerOffset.X += headerWidthInt;
@@ -1712,9 +1712,9 @@ namespace Berta
 		const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
 		auto& headerBounds = m_headers.m_items[headerIndex].m_bounds;
 		auto newWidth = m_window->ToDownwardScale(m_scrollOffset.X + mousePosition.X - m_headers.m_mouseDownOffset - m_window->ToScale(headerBounds.X));
-		int iconWidth = 0;
 		if (m_list.m_drawImages && m_headers.m_selectedIndex == 0)
 		{
+			int iconWidth = 0;
 			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 			iconWidth += listItemIconSize + listItemIconMargin * 2u;

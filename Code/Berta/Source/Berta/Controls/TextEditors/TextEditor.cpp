@@ -83,16 +83,16 @@ namespace Berta
 	{
 		if (m_selection.m_isSelecting)
 		{
-			m_selection.m_endPosition = GetPositionUnderMouse(args.Position);
+			m_selection.m_endPosition = static_cast<int64_t>(GetPositionUnderMouse(args.Position));
 			m_caretPosition = m_selection.m_endPosition;
 		}
-		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > (int)m_owner->ClientSize.Width || args.Position.X < 0))
+		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
 		{
 			m_selectionTimer.SetInterval(300);
 			m_selectionTimer.Start();
 			m_selectionDirection = args.Position.X < 0;
 		}
-		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > (int)m_owner->ClientSize.Width || args.Position.X < 0))
+		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
 		{
 			m_selectionTimer.Stop();
 		}
@@ -111,11 +111,11 @@ namespace Berta
 			m_wasDblClick = false;
 			return;
 		}
-		if (m_content.size() == 0)
+		if (m_content.empty())
 		{
 			return;
 		}
-		m_selection.m_endPosition = GetPositionUnderMouse(args.Position);
+		m_selection.m_endPosition = static_cast<int64_t>(GetPositionUnderMouse(args.Position));
 		if (m_selection.m_startPosition != m_selection.m_endPosition)
 		{
 			m_caretPosition = m_selection.m_endPosition;
@@ -524,17 +524,17 @@ namespace Berta
 	{
 		auto contentSizeAtCaret = GetContentTextExtent(m_caretPosition);
 		auto contentSize = GetContentTextExtent(m_content.size());
-		auto& ownerSize = m_graphics.GetSize();
+		const auto& ownerSize = m_owner->ClientSize;
 
 		constexpr int adjustment = 4;
-		bool needAdjustment = m_offsetView + (int)contentSize.Width  < (int)ownerSize.Width - adjustment || m_offsetView + (int)contentSizeAtCaret.Width < 0 || m_offsetView + (int)contentSizeAtCaret.Width > (int)ownerSize.Width - adjustment;
+		bool needAdjustment = m_offsetView + static_cast<int>(contentSize.Width)  < static_cast<int>(ownerSize.Width) - adjustment || m_offsetView + (int)contentSizeAtCaret.Width < 0 || m_offsetView + (int)contentSizeAtCaret.Width > (int)ownerSize.Width - adjustment;
 		if (needAdjustment)
 		{
-			if (m_offsetView + (int)contentSize.Width < (int)ownerSize.Width - adjustment)
+			if (m_offsetView + static_cast<int>(contentSize.Width) < static_cast<int>(ownerSize.Width) - adjustment)
 			{
 				m_offsetView = static_cast<int>(ownerSize.Width - contentSizeAtCaret.Width) - adjustment;
 			}
-			else if (m_offsetView + (int)contentSizeAtCaret.Width < 0)
+			else if (m_offsetView + static_cast<int>(contentSizeAtCaret.Width) < 0)
 			{
 				m_offsetView = -static_cast<int>(contentSizeAtCaret.Width) + adjustment;
 			}
@@ -542,22 +542,18 @@ namespace Berta
 			{
 				m_offsetView = static_cast<int>(ownerSize.Width - contentSizeAtCaret.Width) - adjustment;
 			}
-			m_offsetView = std::clamp(m_offsetView, -(int)contentSize.Width, 0);
+			m_offsetView = std::clamp(m_offsetView, -static_cast<int>(contentSize.Width), 0);
 		}
 	}
 
 	Size TextEditor::GetContentTextExtent(size_t position) const
 	{
-		Size contentSize;
 		if (position == 0)
 		{
-			contentSize = { 0, m_graphics.GetTextExtent().Height };
+			return { 0, m_graphics.GetTextExtent().Height };
 		}
-		else
-		{
-			contentSize = m_graphics.GetTextExtent(m_content, position);
-		}
-		return contentSize;
+		
+		return  m_graphics.GetTextExtent(m_content, position);
 	}
 
 	size_t TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
@@ -568,7 +564,7 @@ namespace Berta
 		for (size_t i = 0; i <= m_content.size(); i++)
 		{
 			auto letterSize = m_graphics.GetTextExtent(m_content.substr(0, i));
-			auto abs = std::abs((int)letterSize.Width - mousePosition.X + m_offsetView);
+			auto abs = std::abs(static_cast<int>(letterSize.Width) - mousePosition.X + m_offsetView);
 			if (abs < nearest)
 			{
 				nearest = abs;
@@ -580,7 +576,7 @@ namespace Berta
 
 	size_t TextEditor::GetPositionNextWord(int64_t currentPosition, int direction) const
 	{
-		if (m_content.size() == 0)
+		if (m_content.empty())
 		{
 			return currentPosition; //0
 		}
@@ -614,13 +610,13 @@ namespace Berta
 			p += direction;
 		}
 		while (p >= 0 && p < contentSize);
-		
-		if (p < 0) p = 0;
-		
+
+		p = std::max<int64_t>(p, 0);
+
 		return p;
 	}
 
-	void TextEditor::EmitValueChanged()
+	void TextEditor::EmitValueChanged() const
 	{
 		if (m_valueChangedCallback)
 		{
