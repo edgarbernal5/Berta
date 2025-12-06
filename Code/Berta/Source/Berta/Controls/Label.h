@@ -23,8 +23,10 @@ namespace Berta
 		{
 			void Update();
 			
-			bool m_isWordWrap{false};
-			Window* m_owner{nullptr};
+			bool m_isWordWrap{ false };
+			HorizontalAlign m_horizontalAlign{ HorizontalAlign::Left };
+			VerticalAlign m_verticalAlignment{ VerticalAlign::Top };
+			Window* m_owner{ nullptr };
 		};
 		
 		Module& GetModule() { return m_module; }
@@ -43,6 +45,9 @@ namespace Berta
 		
 		bool IsWordWrap() const;
 		void SetWordWrap(bool wordWrap);
+		
+		void SetHorizontalAlignment(HorizontalAlign horizontalAlignment);
+		void SetVerticalAlignment(VerticalAlign verticalAlignment);
 	};
 }
 

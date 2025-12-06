@@ -514,7 +514,7 @@ namespace Berta
 		return nullptr;
 	}
 
-	Berta::WindowManager::FormData* WindowManager::GetFormData(API::NativeWindowHandle nativeWindowHandle)
+	WindowManager::FormData* WindowManager::GetFormData(API::NativeWindowHandle nativeWindowHandle)
 	{
 		auto it = m_windowNativeRegistry.find(nativeWindowHandle);
 		if (it != m_windowNativeRegistry.end())

@@ -78,9 +78,11 @@ namespace Berta
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
-		Size GetTextExtent(const std::wstring& str) const;
+		Size GetTextExtent(const std::wstring& wstr) const;
 		Size GetTextExtent(const std::string& str) const;
-		Size GetTextExtent(const std::wstring& str, size_t length) const;
+		Size GetTextExtent(const std::wstring& wstr, size_t length) const;
+		Size GetTextExtent(const std::wstring& wstr, const Rectangle& area) const;
+		Size GetTextExtent(const std::string& str, const Rectangle& area) const;
 		uint32_t GetCaretHeight() const;
 
 		const API::RootPaintNativeHandle* GetHandle() const { return &m_rootPaintNativeHandle; }

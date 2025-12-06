@@ -21,7 +21,11 @@ namespace Berta
 	void LabelReactor::Update(Graphics& graphics)
 	{
 		auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
+		auto caption = m_control->GetCaption();
+		auto rect = graphics.GetTextExtent(caption, clientRect);
 		graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
+		
+		
 		graphics.DrawString(clientRect, m_control->GetCaption(), m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap);
 	}
 
@@ -59,6 +63,20 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		module.m_isWordWrap = wordWrap;
+		module.Update();
+	}
+
+	void Label::SetHorizontalAlignment(HorizontalAlign horizontalAlignment)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_horizontalAlign = horizontalAlignment;
+		module.Update();
+	}
+
+	void Label::SetVerticalAlignment(VerticalAlign verticalAlignment)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_verticalAlignment = verticalAlignment;
 		module.Update();
 	}
 }

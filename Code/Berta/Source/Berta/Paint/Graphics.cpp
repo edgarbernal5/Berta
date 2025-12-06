@@ -510,7 +510,7 @@ namespace Berta
 			&brush);
 
 		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WHOLE_WORD : DWRITE_WORD_WRAPPING_NO_WRAP);
-		
+		//textLayout->SetTextAlignment()
 		m_targetRT->DrawTextLayout
 		(
 			D2D1_POINT_2F {static_cast<FLOAT>(area.X), static_cast<FLOAT>(area.Y)},
@@ -908,6 +908,16 @@ namespace Berta
 	Size Graphics::GetTextExtent(const std::wstring& wstr, size_t length) const
 	{
 		return API::GetTextExtentSize(m_attributes.get(), wstr, length);
+	}
+
+	Size Graphics::GetTextExtent(const std::wstring& wstr, const Rectangle& area) const
+	{
+		return API::GetTextExtentSize(m_attributes.get(), area, wstr);
+	}
+
+	Size Graphics::GetTextExtent(const std::string& str, const Rectangle& area) const
+	{
+		return API::GetTextExtentSize(m_attributes.get(), area, str);
 	}
 
 	uint32_t Graphics::GetCaretHeight() const
