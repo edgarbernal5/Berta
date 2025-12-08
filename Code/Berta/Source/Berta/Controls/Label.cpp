@@ -21,12 +21,11 @@ namespace Berta
 	void LabelReactor::Update(Graphics& graphics)
 	{
 		auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
-		auto caption = m_control->GetCaption();
+		auto caption = m_control->GetCaptionW();
 		auto rect = graphics.GetTextExtent(caption, clientRect);
 		graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
 		
-		
-		graphics.DrawString(clientRect, m_control->GetCaption(), m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap);
+		graphics.DrawString(clientRect, caption, m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap, m_module.m_horizontalAlign, m_module.m_verticalAlignment);
 	}
 
 	void LabelReactor::Module::Update()

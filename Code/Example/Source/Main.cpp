@@ -390,10 +390,12 @@ int main()
 		});
 	menuBar.SetSize({ form.GetSize().Width, menuBar.GetSize().Height });
 
-	Berta::Label label(form, { 10,28,75,35 }, L"Hello world! Hello World! Hello World!");
+	Berta::Label label(form, { 10,28,75,65 }, L"Hello world! Hello!");
 	label.GetAppearance().Background = Berta::Color{ 0xFF0000FF };
 	label.SetWordWrap(true);
-
+	label.SetHorizontalAlignment(Berta::HorizontalAlign::Center);
+	label.SetVerticalAlignment(Berta::VerticalAlign::Top);
+	
 	Berta::InputText inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
 	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)

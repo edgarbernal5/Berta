@@ -480,7 +480,7 @@ namespace Berta
 		DrawString(position, StringUtils::Convert(str), color);
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap)
+	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign)
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -509,8 +509,13 @@ namespace Berta
 		m_targetRT->CreateSolidColorBrush(color,
 			&brush);
 
-		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WHOLE_WORD : DWRITE_WORD_WRAPPING_NO_WRAP);
-		//textLayout->SetTextAlignment()
+		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
+		textLayout->SetTextAlignment(horizontalAlign == HorizontalAlign::Left ? DWRITE_TEXT_ALIGNMENT_LEADING : 
+			(horizontalAlign == HorizontalAlign::Center ? DWRITE_TEXT_ALIGNMENT_CENTER : DWRITE_TEXT_ALIGNMENT_TRAILING));
+		
+		textLayout->SetParagraphAlignment(verticalAlign == VerticalAlign::Top ? DWRITE_PARAGRAPH_ALIGNMENT_NEAR : 
+			(verticalAlign == VerticalAlign::Center ? DWRITE_PARAGRAPH_ALIGNMENT_CENTER : DWRITE_PARAGRAPH_ALIGNMENT_FAR));
+		
 		m_targetRT->DrawTextLayout
 		(
 			D2D1_POINT_2F {static_cast<FLOAT>(area.X), static_cast<FLOAT>(area.Y)},
