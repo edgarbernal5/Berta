@@ -456,12 +456,20 @@ namespace Berta
 
 	void TextEditor::Render()
 	{
+		/*
+		*
+		auto window = m_control->Handle();
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
+
+		 */
+		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
+		
 		Size contentSize = GetContentTextExtent(m_caretPosition);
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
 		auto three = m_owner->ToScale(3);
 
-		bool enabled = m_owner->Flags.IsEnabled;
+		bool enabled = GUI::IsWindowEnabled(m_owner);
 		auto caretHeight = m_graphics.GetCaretHeight();
 		int textOffset = (static_cast<int>(m_graphics.GetSize().Height - contentSize.Height) >> 1);
 		if (m_selection.m_endPosition != m_selection.m_startPosition)
@@ -472,14 +480,19 @@ namespace Berta
 			std::wstring selectionText{ m_content.data() + start, m_content.data() + end };
 			auto endTextExtent = m_graphics.GetTextExtent(selectionText);
 			
-			m_graphics.DrawRectangle({ two + m_offsetView + (int)startTextExtent.Width , one + textOffset, endTextExtent.Width, caretHeight }, m_owner->Appearance->HighlightColor, true);
+			m_graphics.DrawRectangle({ two + m_offsetView + static_cast<int>(startTextExtent.Width) , one + textOffset, endTextExtent.Width, caretHeight }, m_owner->Appearance->HighlightColor, true);
 		}
 		m_graphics.DrawString({ two + m_offsetView, one + textOffset }, m_content, enabled ? m_owner->Appearance->Foreground : m_owner->Appearance->BoxBorderDisabledColor);
 
 		if (m_caret->IsVisible())
 		{
-			m_graphics.DrawLine({ two + m_offsetView + (int)contentSize.Width, one + textOffset }, { two + m_offsetView + (int)contentSize.Width, one + textOffset + (int)caretHeight }, m_owner->Appearance->Foreground2nd);
+			m_graphics.DrawLine({ two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset }, { two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
 		}
+		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor, false);
+		/*
+		 *
+		
+		 */
 	}
 
 	bool TextEditor::IsEditable() const
@@ -622,5 +635,10 @@ namespace Berta
 		{
 			m_valueChangedCallback();
 		}
+	}
+
+	Color TextEditor::GetBackgroundColor() const
+	{
+		return GUI::IsWindowEnabled(m_owner) ? GUI::GetBackgroundColor(m_owner) : GUI::GetBackgroundColor(m_owner);
 	}
 }

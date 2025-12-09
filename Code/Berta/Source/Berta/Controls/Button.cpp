@@ -67,13 +67,14 @@ namespace Berta
 	{
 		m_status = State::Pressed;
 
-		GUI::MarkAsNeedUpdate(*m_control);
-
 		GUI::Capture(*m_control);
+		GUI::MarkAsNeedUpdate(*m_control);
 	}
 
 	void ButtonReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
+		GUI::ReleaseCapture(*m_control);
+		
 		if (m_control->Handle()->ClientSize.IsInside(args.Position))
 		{
 			m_status = State::Hovered;
@@ -82,8 +83,6 @@ namespace Berta
 		{
 			m_status = State::Normal;
 		}
-
-		GUI::ReleaseCapture(*m_control);
 
 		GUI::MarkAsNeedUpdate(*m_control);
 	}

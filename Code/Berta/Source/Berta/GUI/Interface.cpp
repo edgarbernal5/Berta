@@ -577,6 +577,17 @@ namespace Berta::GUI
 		}
 	}
 
+	Color GetBackgroundColor(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return {};
+		}
+
+		return window->Appearance->Background;
+	}
+
 	void SetBackgroundColor(Window* window, const Color& newColor)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

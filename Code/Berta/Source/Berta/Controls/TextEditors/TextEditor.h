@@ -94,6 +94,8 @@ namespace Berta
 		size_t GetPositionNextWord(int64_t currentPosition, int direction) const;
 
 		void EmitValueChanged() const;
+		
+		Color GetBackgroundColor() const;
 
 		Graphics& m_graphics;
 		size_t m_caretPosition{ 0 };

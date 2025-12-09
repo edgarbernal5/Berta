@@ -11,11 +11,10 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/TextEditors/TextEditorBase.h"
+#include "Berta/Controls/TextEditors/TextEditor.h"
 
 namespace Berta
 {
-	class TextEditor;
-
 	struct ArgTextChanged
 	{
 		//ArgTextChanged(std::wstring& value):NewValue(value){}
@@ -30,8 +29,6 @@ namespace Berta
 	class InputTextReactor : public ControlReactor
 	{
 	public:
-		~InputTextReactor() override;
-
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 		
@@ -46,9 +43,9 @@ namespace Berta
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 		void DblClick(Graphics& graphics, const ArgMouse& args) override;;
 
-		TextEditor* GetEditor() const { return m_textEditor; }
+		TextEditor* GetEditor() const;
 	private:
-		TextEditor* m_textEditor{ nullptr };
+		std::unique_ptr<TextEditor> m_textEditor{ nullptr };
 	};
 
 	class InputText : public Control<InputTextReactor, InputTextEvents>

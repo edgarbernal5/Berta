@@ -81,6 +81,7 @@ namespace Berta
 
 		void Exit();
 
+		Color GetBackgroundColor(Window* window);
 		void SetBackgroundColor(Window* window, const Color& newColor);
 
 		//TODO: mover estas funciones a otro namespace/archivo/clase

@@ -9,23 +9,13 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
-#include "Berta/Controls/TextEditors/TextEditor.h"
 
 namespace Berta
 {
-	InputTextReactor::~InputTextReactor()
-	{
-		if (m_textEditor)
-		{
-			delete m_textEditor;
-			m_textEditor = nullptr;
-		}
-	}
-
 	void InputTextReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
-		m_textEditor = new TextEditor(*m_control, graphics);
+		m_textEditor = std::make_unique<TextEditor>(*m_control, graphics);
 
 		m_textEditor->SetValueChangedCallback([this]()
 		{
@@ -37,13 +27,7 @@ namespace Berta
 
 	void InputTextReactor::Update(Graphics& graphics)
 	{
-		auto window = m_control->Handle();
-		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
-
 		m_textEditor->Render();
-		
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -119,6 +103,11 @@ namespace Berta
 			auto window = m_control->Handle();
 			GUI::MarkAsNeedUpdate(window);
 		}
+	}
+
+	TextEditor* InputTextReactor::GetEditor() const
+	{
+		return m_textEditor.get();
 	}
 
 	InputText::InputText(Window* parent, const Rectangle& rectangle)
