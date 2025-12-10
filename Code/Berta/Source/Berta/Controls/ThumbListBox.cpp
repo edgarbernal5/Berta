@@ -872,7 +872,7 @@ namespace Berta
 						targetSub.X += static_cast<int>(cardRect.Width - subExtent.Width) >> 1;
 						graphics.DrawString(targetSub, word.substr(0, j), m_appearance->Foreground);
 
-						offset.X += subExtent.Width;
+						offset.X += static_cast<int>(subExtent.Width);
 						break;
 					}
 				}
@@ -882,7 +882,7 @@ namespace Berta
 				Point targetSub{ offset.X + cardRect.X, offset.Y + cardRect.Y };
 				targetSub.X += static_cast<int>(cardRect.Width - wordExtent.Width) >> 1;
 				graphics.DrawString(targetSub, word, m_appearance->Foreground);
-				offset.Y += wordExtent.Height;
+				offset.Y += static_cast<int>(wordExtent.Height);
 
 				offset.X = 0;
 			}

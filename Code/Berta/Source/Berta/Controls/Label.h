@@ -13,30 +13,33 @@
 
 namespace Berta
 {
-	class LabelReactor : public ControlReactor
+	namespace ReactorCore::Label
 	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		struct Module
+		class Reactor : public ControlReactor
 		{
-			void Update();
-			
-			bool m_isWordWrap{ false };
-			HorizontalAlign m_horizontalAlign{ HorizontalAlign::Left };
-			VerticalAlign m_verticalAlignment{ VerticalAlign::Top };
-			Window* m_owner{ nullptr };
-		};
-		
-		Module& GetModule() { return m_module; }
-		const Module& GetModule() const { return m_module; }
-		
-	private:
-		Module m_module;
-	};
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
 
-	class Label : public Control<LabelReactor>
+			struct Module
+			{
+				void Update();
+				
+				bool m_isWordWrap{ false };
+				HorizontalAlign m_horizontalAlign{ HorizontalAlign::Left };
+				VerticalAlign m_verticalAlignment{ VerticalAlign::Top };
+				Window* m_owner{ nullptr };
+			};
+			
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
+			
+		private:
+			Module m_module;
+		};
+	}
+
+	class Label : public Control<ReactorCore::Label::Reactor>
 	{
 	public:
 		Label() = default;

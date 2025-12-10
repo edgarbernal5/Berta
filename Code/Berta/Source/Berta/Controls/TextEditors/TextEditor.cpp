@@ -489,10 +489,6 @@ namespace Berta
 			m_graphics.DrawLine({ two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset }, { two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
 		}
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor, false);
-		/*
-		 *
-		
-		 */
 	}
 
 	bool TextEditor::IsEditable() const
@@ -639,6 +635,6 @@ namespace Berta
 
 	Color TextEditor::GetBackgroundColor() const
 	{
-		return GUI::IsWindowEnabled(m_owner) ? GUI::GetBackgroundColor(m_owner) : GUI::GetBackgroundColor(m_owner);
+		return GUI::IsWindowEnabled(m_owner) ? m_owner->Appearance->BoxBackground :m_owner->Appearance->BoxPressedBackground;
 	}
 }

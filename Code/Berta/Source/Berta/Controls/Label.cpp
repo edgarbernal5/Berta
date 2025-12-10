@@ -11,28 +11,30 @@
 
 namespace Berta
 {
-	void LabelReactor::Init(ControlBase& control, Graphics* graphics)
+	namespace ReactorCore::Label
 	{
-		ControlReactor::Init(control, graphics);
-		
-		m_module.m_owner = control.Handle();
-	}
+		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		{
+			ControlReactor::Init(control, graphics);
+			
+			m_module.m_owner = control.Handle();
+		}
 
-	void LabelReactor::Update(Graphics& graphics)
-	{
-		auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
-		auto caption = m_control->GetCaptionW();
-		auto rect = graphics.GetTextExtent(caption, clientRect);
-		graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
-		
-		graphics.DrawString(clientRect, caption, m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap, m_module.m_horizontalAlign, m_module.m_verticalAlignment);
-	}
+		void Reactor::Update(Graphics& graphics)
+		{
+			auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
+			auto caption = m_control->GetCaptionW();
+			graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
+			
+			graphics.DrawString(clientRect, caption, m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap, m_module.m_horizontalAlign, m_module.m_verticalAlignment);
+		}
 
-	void LabelReactor::Module::Update()
-	{
-		GUI::UpdateWindow(m_owner);
+		void Reactor::Module::Update()
+		{
+			GUI::UpdateWindow(m_owner);
+		}
 	}
-
+	
 	Label::Label(Window* parent, const Rectangle& rectangle, const std::wstring& text)
 	{
 		Create(parent, true, rectangle);

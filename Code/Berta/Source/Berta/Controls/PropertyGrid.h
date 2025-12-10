@@ -224,7 +224,6 @@ namespace Berta
 			MouseInteraction m_mouseInteraction;
 		};
 
-
 		class Reactor : public ControlReactor
 		{
 		public:
