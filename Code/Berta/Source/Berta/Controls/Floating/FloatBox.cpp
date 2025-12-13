@@ -20,7 +20,7 @@ namespace Berta
 		m_control = &control;
 		m_floatBox = reinterpret_cast<FloatBox*>(&control);
 
-		m_comboBoxAppearance = reinterpret_cast<ComboboxAppearance*>(m_floatBox->GetOwner()->Appearance.get());
+		m_comboBoxAppearance = reinterpret_cast<ReactorCore::ComboBox::Appearance*>(m_floatBox->GetOwner()->Appearance.get());
 	}
 
 	void FloatBoxReactor::Update(Graphics& graphics)

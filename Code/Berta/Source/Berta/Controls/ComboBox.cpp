@@ -15,298 +15,301 @@
 
 namespace Berta
 {
-	ComboBoxReactor::~ComboBoxReactor()
+	namespace ReactorCore::ComboBox
 	{
-		if (m_module.m_textEditor)
+		Reactor::~Reactor()
 		{
-			delete m_module.m_textEditor;
-			m_module.m_textEditor = nullptr;
-		}
-
-		if (m_module.m_floatBox)
-		{
-			delete m_module.m_floatBox;
-			m_module.m_floatBox = nullptr;
-		}
-	}
-
-	void ComboBoxReactor::Init(ControlBase& control, Graphics* graphics)
-	{
-		m_control = &control;
-		m_module.m_comboBox = reinterpret_cast<ComboBox*>(&control);
-		m_module.m_textEditor = new TextEditor(*m_control, graphics);
-
-		auto window = m_control->Handle();
-		window->Events->Focus.Connect([&](const ArgFocus& args)
-		{
-			if (!args.Focused && m_module.m_floatBox)
+			if (m_module.m_textEditor)
 			{
-				m_module.m_floatBox->Dispose();
+				delete m_module.m_textEditor;
+				m_module.m_textEditor = nullptr;
 			}
-		});
-		m_module.m_owner = window;
-	}
 
-	void ComboBoxReactor::Update(Graphics& graphics)
-	{
-		auto window = m_control->Handle();
-		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->ClientSize.ToRectangle();
-
-		if (m_module.m_status == State::Normal)
-		{
-			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
-		}
-		else if (m_module.m_status == State::Hovered)
-		{
-			graphics.DrawRectangle(backgroundRect, window->Appearance->BoxHightlightBackground, true);
-		}
-
-		//m_textEditor->Render();
-
-		auto textItemHeight = graphics.GetTextExtent().Height;
-		Point textPosition{ 3,static_cast<int>(window->ClientSize.Height - textItemHeight) >> 1 };
-		if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
-		{
-			auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
-			auto iconMargin = window->ToScale(3u);
-			textPosition.X += (int)(iconSize + iconMargin * 2u);
-
-			auto& icon = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_icon;
-			if (icon)
+			if (m_module.m_floatBox)
 			{
-				auto iconSourceSize = icon.GetSize();
-				auto positionY = (window->ClientSize.Height - iconSize) >> 1;
-				icon.Paste(graphics, { 3, (int)positionY, iconSize , iconSize });
-			}
-		}
-		graphics.DrawString(textPosition, m_module.m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
-
-		auto buttonSize = window->ToScale(m_module.m_comboBox->GetAppearance().ButtonSize);
-
-		graphics.DrawRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background, true);
-
-		int arrowWidth = window->ToScale(4);
-		int arrowLength = window->ToScale(2);
-		graphics.DrawArrow({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1, buttonSize, window->ClientSize.Height },
-			arrowLength, 
-			arrowWidth, 
-			Graphics::ArrowDirection::Downwards,
-			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
-			true,
-			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
-
-		graphics.DrawLine({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1 },
-			{ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
-			enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
-
-		graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
-	}
-
-	void ComboBoxReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
-	{
-		m_module.m_status = State::Hovered;
-
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
-
-	void ComboBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
-	{
-		m_module.m_status = State::Normal;
-
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
-
-	void ComboBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
-	{
-		if (args.ButtonState.LeftButton)
-		{
-			auto window = m_module.m_owner;
-
-			auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
-			auto floatBoxHeight = window->ToScale(clampedItemsToShow * m_module.m_comboBox->GetAppearance().ComboBoxItemHeight);
-			m_module.m_floatBox = new FloatBox(window, { 0, (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
-			m_module.m_floatBox->Init(m_module.Data);
-
-			m_module.m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
-			{
-				int selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
-
 				delete m_module.m_floatBox;
 				m_module.m_floatBox = nullptr;
+			}
+		}
 
-				if (m_module.Data.m_isSelected && selectedIndex != m_module.Data.m_selectedIndex && !m_module.Data.m_items.empty())
+		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		{
+			m_control = &control;
+			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(&control);
+			m_module.m_textEditor = new TextEditor(*m_control, graphics);
+
+			auto window = m_control->Handle();
+			window->Events->Focus.Connect([&](const ArgFocus& args)
+			{
+				if (!args.Focused && m_module.m_floatBox)
 				{
-					m_module.Data.m_selectedIndex = selectedIndex;
-					m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
-					//TODO:
-					//DrawBatch drawBatch(m_module.m_owner);
-
-					m_module.EmitSelectionEvent(selectedIndex);
-
-					GUI::UpdateWindow(*m_control);
+					m_module.m_floatBox->Dispose();
 				}
 			});
-
-			GUI::Capture(m_module.m_floatBox->Handle(), true);
-			m_module.m_floatBox->Show();
+			m_module.m_owner = window;
 		}
-	}
 
-	void ComboBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
-	{
-		bool redraw = false;
-		if (m_module.m_floatBox)
+		void Reactor::Update(Graphics& graphics)
 		{
-			if (args.Key == KeyboardKey::ArrowUp)
+			auto window = m_control->Handle();
+			bool enabled = m_control->GetEnabled();
+			auto backgroundRect = window->ClientSize.ToRectangle();
+
+			if (m_module.m_status == State::Normal)
 			{
-				if (m_module.m_floatBox->MoveSelectedItem(-1))
-				{
-					redraw = true;
-				}
+				graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
+			}
+			else if (m_module.m_status == State::Hovered)
+			{
+				graphics.DrawRectangle(backgroundRect, window->Appearance->BoxHightlightBackground, true);
 			}
 
-			if (args.Key == KeyboardKey::ArrowDown)
+			//m_textEditor->Render();
+
+			auto textItemHeight = graphics.GetTextExtent().Height;
+			Point textPosition{ 3,static_cast<int>(window->ClientSize.Height - textItemHeight) >> 1 };
+			if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
 			{
-				if (m_module.m_floatBox->MoveSelectedItem(1))
+				auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
+				auto iconMargin = window->ToScale(3u);
+				textPosition.X += (int)(iconSize + iconMargin * 2u);
+
+				auto& icon = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_icon;
+				if (icon)
 				{
-					redraw = true;
+					auto iconSourceSize = icon.GetSize();
+					auto positionY = (window->ClientSize.Height - iconSize) >> 1;
+					icon.Paste(graphics, { 3, (int)positionY, iconSize , iconSize });
 				}
 			}
-			if (args.Key == KeyboardKey::Enter)
+			graphics.DrawString(textPosition, m_module.m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
+
+			auto buttonSize = window->ToScale(m_module.m_comboBox->GetAppearance().ButtonSize);
+
+			graphics.DrawRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background, true);
+
+			int arrowWidth = window->ToScale(4);
+			int arrowLength = window->ToScale(2);
+			graphics.DrawArrow({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1, buttonSize, window->ClientSize.Height },
+				arrowLength, 
+				arrowWidth, 
+				Graphics::ArrowDirection::Downwards,
+				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
+				true,
+				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
+
+			graphics.DrawLine({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1 },
+				{ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
+				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
+
+			graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		}
+
+		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
+		{
+			m_module.m_status = State::Hovered;
+
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
+
+		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+		{
+			m_module.m_status = State::Normal;
+
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
+
+		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+		{
+			if (args.ButtonState.LeftButton)
 			{
-				if (m_module.m_floatBox->GetState().m_selectedIndex >= 0 && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.m_items.size())
+				auto window = m_module.m_owner;
+
+				auto clampedItemsToShow = static_cast<uint32_t>((std::min)(m_module.Data.m_items.size(), m_module.Data.m_maxItemsToDisplay));
+				auto floatBoxHeight = window->ToScale(clampedItemsToShow * m_module.m_comboBox->GetAppearance().ComboBoxItemHeight);
+				m_module.m_floatBox = new FloatBox(window, { 0, (int)window->ClientSize.Height, window->ClientSize.Width, floatBoxHeight + 2u });
+				m_module.m_floatBox->Init(m_module.Data);
+
+				m_module.m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 				{
-					m_module.Data.m_selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
-					m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
-					m_module.m_floatBox->Dispose();
-					m_module.EmitSelectionEvent(m_module.Data.m_selectedIndex);
-					redraw = true;
-				}
+					int selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
+
+					delete m_module.m_floatBox;
+					m_module.m_floatBox = nullptr;
+
+					if (m_module.Data.m_isSelected && selectedIndex != m_module.Data.m_selectedIndex && !m_module.Data.m_items.empty())
+					{
+						m_module.Data.m_selectedIndex = selectedIndex;
+						m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
+						//TODO:
+						//DrawBatch drawBatch(m_module.m_owner);
+
+						m_module.EmitSelectionEvent(selectedIndex);
+
+						GUI::UpdateWindow(*m_control);
+					}
+				});
+
+				GUI::Capture(m_module.m_floatBox->Handle(), true);
+				m_module.m_floatBox->Show();
 			}
 		}
-		else
+
+		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			if (args.Key == KeyboardKey::ArrowUp)
+			bool redraw = false;
+			if (m_module.m_floatBox)
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+				if (args.Key == KeyboardKey::ArrowUp)
 				{
-					m_module.Data.m_selectedIndex = newIndex;
-					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
-					m_module.EmitSelectionEvent(newIndex);
-					redraw = true;
+					if (m_module.m_floatBox->MoveSelectedItem(-1))
+					{
+						redraw = true;
+					}
+				}
+
+				if (args.Key == KeyboardKey::ArrowDown)
+				{
+					if (m_module.m_floatBox->MoveSelectedItem(1))
+					{
+						redraw = true;
+					}
+				}
+				if (args.Key == KeyboardKey::Enter)
+				{
+					if (m_module.m_floatBox->GetState().m_selectedIndex >= 0 && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.m_items.size())
+					{
+						m_module.Data.m_selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
+						m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
+						m_module.m_floatBox->Dispose();
+						m_module.EmitSelectionEvent(m_module.Data.m_selectedIndex);
+						redraw = true;
+					}
 				}
 			}
-			if (args.Key == KeyboardKey::ArrowDown)
+			else
 			{
-				int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
-				if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+				if (args.Key == KeyboardKey::ArrowUp)
 				{
-					m_module.Data.m_selectedIndex = newIndex;
-					m_module.m_text = m_module.Data.m_items[newIndex].m_text;
-					m_module.EmitSelectionEvent(newIndex);
-					redraw = true;
+					int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
+					if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+					{
+						m_module.Data.m_selectedIndex = newIndex;
+						m_module.m_text = m_module.Data.m_items[newIndex].m_text;
+						m_module.EmitSelectionEvent(newIndex);
+						redraw = true;
+					}
 				}
+				if (args.Key == KeyboardKey::ArrowDown)
+				{
+					int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
+					if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+					{
+						m_module.Data.m_selectedIndex = newIndex;
+						m_module.m_text = m_module.Data.m_items[newIndex].m_text;
+						m_module.EmitSelectionEvent(newIndex);
+						redraw = true;
+					}
+				}
+			}
+			if (redraw)
+			{
+				auto window = m_control->Handle();
+				GUI::MarkAsNeedUpdate(window);
 			}
 		}
-		if (redraw)
+
+		std::wstring Reactor::GetText(uint32_t index) const
 		{
+			return m_module.Data.m_items[index].m_text;
+		}
+
+		std::wstring Reactor::GetText() const
+		{
+			return m_module.m_text;
+		}
+
+		void Reactor::SetText(const std::wstring& text)
+		{
+			m_module.m_text = text;
+			//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
+			//{
+			//	if (m_interactionData.m_items[i] == m_text)
+			//	{
+			//		m_interactionData.m_selectedIndex = (int)i;
+			//		break;
+			//	}
+			//}
+
 			auto window = m_control->Handle();
 			GUI::MarkAsNeedUpdate(window);
 		}
-	}
 
-	std::wstring ComboBoxReactor::GetText(uint32_t index) const
-	{
-		return m_module.Data.m_items[index].m_text;
-	}
-
-	std::wstring ComboBoxReactor::GetText() const
-	{
-		return m_module.m_text;
-	}
-
-	void ComboBoxReactor::SetText(const std::wstring& text)
-	{
-		m_module.m_text = text;
-		//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
-		//{
-		//	if (m_interactionData.m_items[i] == m_text)
-		//	{
-		//		m_interactionData.m_selectedIndex = (int)i;
-		//		break;
-		//	}
-		//}
-
-		auto window = m_control->Handle();
-		GUI::MarkAsNeedUpdate(window);
-	}
-
-	void ComboBoxReactor::Clear()
-	{
-		m_module.Data.m_items.clear();
-		m_module.Data.m_selectedIndex = -1;
-	}
-
-	uint32_t ComboBoxReactor::Count() const
-	{
-		return static_cast<uint32_t>(m_module.Data.m_items.size());
-	}
-
-	void ComboBoxReactor::Erase(uint32_t index)
-	{
-		if (index < m_module.Data.m_items.size())
+		void Reactor::Clear()
 		{
-			auto& items = m_module.Data.m_items;
-			auto& selectedIndex = m_module.Data.m_selectedIndex;
-			items.erase(items.begin() + index);
-			if (selectedIndex >= static_cast<int>(items.size()))
-			{
-				selectedIndex = static_cast<int>(items.size()) - 1;
+			m_module.Data.m_items.clear();
+			m_module.Data.m_selectedIndex = -1;
+		}
 
-				SetText(items[selectedIndex].m_text);
+		uint32_t Reactor::Count() const
+		{
+			return static_cast<uint32_t>(m_module.Data.m_items.size());
+		}
+
+		void Reactor::Erase(uint32_t index)
+		{
+			if (index < m_module.Data.m_items.size())
+			{
+				auto& items = m_module.Data.m_items;
+				auto& selectedIndex = m_module.Data.m_selectedIndex;
+				items.erase(items.begin() + index);
+				if (selectedIndex >= static_cast<int>(items.size()))
+				{
+					selectedIndex = static_cast<int>(items.size()) - 1;
+
+					SetText(items[selectedIndex].m_text);
+				}
 			}
 		}
+
+		void Reactor::PushItem(const std::wstring& text)
+		{
+			m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text });
+		}
+
+		void Reactor::PushItem(const std::wstring& text, const Image& icon)
+		{
+			m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text, icon });
+			m_module.Data.m_drawImages = true;
+		}
+
+		int Reactor::GetSelectedIndex() const
+		{
+			return m_module.Data.m_selectedIndex;
+		}
+
+		void Reactor::SetSelectedIndex(uint32_t index)
+		{
+			if (index >= m_module.Data.m_items.size())
+				return;
+			
+			auto& items = m_module.Data.m_items;
+			auto& selectedIndex = m_module.Data.m_selectedIndex;
+			selectedIndex = static_cast<int>(index);
+
+			SetText(items[selectedIndex].m_text);
+		}
+
+		void Reactor::Module::EmitSelectionEvent(int index)
+		{
+			ArgComboBox argComboBox{};
+			argComboBox.SelectedIndex = index;
+
+			auto events = dynamic_cast<Events*>(m_owner->Events.get());
+			events->Selected.Emit(argComboBox);
+		}
 	}
-
-	void ComboBoxReactor::PushItem(const std::wstring& text)
-	{
-		m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text });
-	}
-
-	void ComboBoxReactor::PushItem(const std::wstring& text, const Image& icon)
-	{
-		m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text, icon });
-		m_module.Data.m_drawImages = true;
-	}
-
-	int ComboBoxReactor::GetSelectedIndex() const
-	{
-		return m_module.Data.m_selectedIndex;
-	}
-
-	void ComboBoxReactor::SetSelectedIndex(uint32_t index)
-	{
-		if (index >= m_module.Data.m_items.size())
-			return;
-		
-		auto& items = m_module.Data.m_items;
-		auto& selectedIndex = m_module.Data.m_selectedIndex;
-		selectedIndex = static_cast<int>(index);
-
-		SetText(items[selectedIndex].m_text);
-	}
-
-	void ComboBoxReactor::Module::EmitSelectionEvent(int index)
-	{
-		ArgComboBox argComboBox{};
-		argComboBox.SelectedIndex = index;
-
-		auto events = dynamic_cast<ComboboxEvents*>(m_owner->Events.get());
-		events->Selected.Emit(argComboBox);
-	}
-
+	
 	ComboBox::ComboBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);

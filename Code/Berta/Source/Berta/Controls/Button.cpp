@@ -11,82 +11,85 @@
 
 namespace Berta
 {
-	void ButtonReactor::Init(ControlBase& control, Graphics* graphics)
+	namespace ReactorCore::Button
 	{
-		m_control = &control;
-	}
-
-	void ButtonReactor::Update(Graphics& graphics)
-	{
-		auto window = m_control->Handle();
-		bool enabled = m_control->GetEnabled();
-		auto backgroundRect = window->ClientSize.ToRectangle();
-
-		auto color = window->Appearance->Background;
-		if (!enabled)
+		void Reactor::Init(ControlBase& control, Graphics* graphics)
 		{
-			color = window->Appearance->ButtonDisabledBackground;
+			m_control = &control;
 		}
-		else if (m_status == State::Normal)
+
+		void Reactor::Update(Graphics& graphics)
 		{
-			color = window->Appearance->ButtonBackground;
+			auto window = m_control->Handle();
+			bool enabled = m_control->GetEnabled();
+			auto backgroundRect = window->ClientSize.ToRectangle();
+
+			auto color = window->Appearance->Background;
+			if (!enabled)
+			{
+				color = window->Appearance->ButtonDisabledBackground;
+			}
+			else if (m_status == State::Normal)
+			{
+				color = window->Appearance->ButtonBackground;
+			}
+			else if (m_status == State::Hovered)
+			{
+				color = window->Appearance->ButtonHighlightBackground;
+			}
+			else if (m_status == State::Pressed)
+			{
+				color = window->Appearance->ButtonPressedBackground;
+			}
+			graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
+
+			auto caption = m_control->GetCaption();
+			const Point textExtent = graphics.GetTextExtent(caption);
+			const Point windowSize = window->ClientSize;
+			auto center = windowSize - textExtent;
+			center /= 2;
+			graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 		}
-		else if (m_status == State::Hovered)
-		{
-			color = window->Appearance->ButtonHighlightBackground;
-		}
-		else if (m_status == State::Pressed)
-		{
-			color = window->Appearance->ButtonPressedBackground;
-		}
-		graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
 
-		auto caption = m_control->GetCaption();
-		const Point textExtent = graphics.GetTextExtent(caption);
-		const Point windowSize = window->ClientSize;
-		auto center = windowSize - textExtent;
-		center /= 2;
-		graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
-	}
-
-	void ButtonReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
-	{
-		m_status = State::Hovered;
-
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
-
-	void ButtonReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
-	{
-		m_status = State::Normal;
-
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
-
-	void ButtonReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
-	{
-		m_status = State::Pressed;
-
-		GUI::Capture(*m_control);
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
-
-	void ButtonReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
-	{
-		GUI::ReleaseCapture(*m_control);
-		
-		if (m_control->Handle()->ClientSize.IsInside(args.Position))
+		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 		{
 			m_status = State::Hovered;
+
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
-		else
+
+		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
 			m_status = State::Normal;
+
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 
-		GUI::MarkAsNeedUpdate(*m_control);
-	}
+		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+		{
+			m_status = State::Pressed;
 
+			GUI::Capture(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
+
+		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+		{
+			GUI::ReleaseCapture(*m_control);
+			
+			if (m_control->Handle()->ClientSize.IsInside(args.Position))
+			{
+				m_status = State::Hovered;
+			}
+			else
+			{
+				m_status = State::Normal;
+			}
+
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
+	}
+	
 	Button::Button(Window* parent, const Rectangle& rectangle, const std::string& text)
 	{
 		Create(parent, true, rectangle);

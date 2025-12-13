@@ -13,51 +13,59 @@
 
 namespace Berta
 {
+	namespace ReactorCore::CheckBox
+	{
+		struct Events;
+		
+		class Reactor : public ControlReactor
+		{
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+
+			struct Module
+			{
+				void EmitCheckedChangedEvent() const;
+
+				bool m_isChecked{ false };
+				Window* m_window{ nullptr };
+				Events* m_events{ nullptr };
+			};
+
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
+
+		private:
+			enum class State
+			{
+				Normal,
+				Pressed,
+				Hovered
+			};
+			State m_status{ State::Normal };
+			Module m_module;
+		};
+	}
+	
 	struct ArgCheckBox
 	{
 		bool IsChecked{ false };
 	};
-
-	struct CheckBoxEvents : public ControlEvents
+	
+	namespace ReactorCore::CheckBox
 	{
-		Event<ArgCheckBox> CheckedChanged;
-	};
-
-	class CheckBoxReactor : public ControlReactor
-	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-
-		struct Module
+		struct Events : public ControlEvents
 		{
-			void EmitCheckedChangedEvent() const;
-
-			bool m_isChecked{ false };
-			Window* m_window{ nullptr };
-			CheckBoxEvents* m_events{ nullptr };
+			Event<ArgCheckBox> CheckedChanged;
 		};
+	}
 
-		Module& GetModule() { return m_module; }
-		const Module& GetModule() const { return m_module; }
-
-	private:
-		enum class State
-		{
-			Normal,
-			Pressed,
-			Hovered
-		};
-		State m_status{ State::Normal };
-		Module m_module;
-	};
-
-	class CheckBox : public Control<CheckBoxReactor, CheckBoxEvents>
+	class CheckBox : public Control<ReactorCore::CheckBox::Reactor, ReactorCore::CheckBox::Events>
 	{
 	public:
 		CheckBox() = default;

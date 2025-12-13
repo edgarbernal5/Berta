@@ -373,10 +373,10 @@ namespace Berta
 
 		case WM_NCACTIVATE:
 			return ::DefWindowProc(hWnd, message, wParam, -1);	//DefWindowProc won't repaint the window border if lParam (normally a HRGN) is - 1.
-																//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+																		//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
 		case WM_GETMINMAXINFO:
 		{
-			::MINMAXINFO* pMinMax = (::MINMAXINFO*)lParam;
+			auto pMinMax = reinterpret_cast<::MINMAXINFO*>(lParam);
 			bool changed = false;
 			if (!nativeWindow->MinSize.IsEmpty())
 			{
@@ -718,7 +718,6 @@ namespace Berta
 				ArgMouse argMouseUp;
 				InitArgs(argMouseUp, position, message);
 				
-
 				if (window->ClientSize.IsInside(argMouseUp.Position) && window == rootPressedWindow)
 				{
 					ArgClick argClick;

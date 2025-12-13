@@ -13,28 +13,31 @@
 
 namespace Berta
 {
-	class ButtonReactor : public ControlReactor
+	namespace ReactorCore::Button
 	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-
-	private:
-		enum class State
+		class Reactor : public ControlReactor
 		{
-			Normal,
-			Pressed,
-			Hovered
-		};
-		State m_status{ State::Normal };
-	};
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
 
-	class Button : public Control<ButtonReactor>
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+
+		private:
+			enum class State
+			{
+				Normal,
+				Pressed,
+				Hovered
+			};
+			State m_status{ State::Normal };
+		};
+	}
+	
+	class Button : public Control<ReactorCore::Button::Reactor>
 	{
 	public:
 		Button() = default;

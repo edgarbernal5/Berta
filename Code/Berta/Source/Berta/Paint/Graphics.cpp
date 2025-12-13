@@ -506,8 +506,7 @@ namespace Berta
 		}
 
 		ID2D1SolidColorBrush* brush;
-		m_targetRT->CreateSolidColorBrush(color,
-			&brush);
+		m_targetRT->CreateSolidColorBrush(color, &brush);
 
 		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
 		textLayout->SetTextAlignment(horizontalAlign == HorizontalAlign::Left ? DWRITE_TEXT_ALIGNMENT_LEADING : 

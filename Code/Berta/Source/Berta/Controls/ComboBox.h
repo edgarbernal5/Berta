@@ -18,76 +18,82 @@ namespace Berta
 	class TextEditor;
 	class FloatBox;
 	class ComboBox;
-
-	struct ComboboxAppearance : public ControlAppearance
+	
+	namespace ReactorCore::ComboBox
 	{
-		uint32_t ButtonSize = 18;
-		uint32_t ComboBoxItemHeight = 20;
-	};
+		struct Appearance : public ControlAppearance
+		{
+			uint32_t ButtonSize = 18;
+			uint32_t ComboBoxItemHeight = 20;
+		};
+
+		class Reactor : public ControlReactor
+		{
+		public:
+			~Reactor() override;
+
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+
+			std::wstring GetText(uint32_t index) const;
+			std::wstring GetText() const;
+			void SetText(const std::wstring& text);
+
+			enum class State
+			{
+				Normal,
+				Pressed,
+				Hovered
+			};
+
+			struct Module
+			{
+				Float::InteractionData Data;
+
+				Window* m_owner{ nullptr };
+				TextEditor* m_textEditor{ nullptr };
+				std::wstring m_text;
+
+				State m_status{ State::Normal };
+
+				FloatBox* m_floatBox{ nullptr };
+				Berta::ComboBox* m_comboBox{ nullptr };
+
+				void EmitSelectionEvent(int index);
+			};
+
+			void Clear();
+			uint32_t Count() const;
+			void Erase(uint32_t index);
+			void PushItem(const std::wstring& text);
+			void PushItem(const std::wstring& text, const Image& icon);
+			int GetSelectedIndex() const;
+			void SetSelectedIndex(uint32_t index);
+
+		private:
+			Module m_module;
+		};
+	}
 
 	struct ArgComboBox
 	{
 		int SelectedIndex;
 	};
 
-	struct ComboboxEvents : public ControlEvents
+	namespace ReactorCore::ComboBox
 	{
-		Event<ArgComboBox>	Selected;
-	};
-
-	class ComboBoxReactor : public ControlReactor
-	{
-	public:
-		~ComboBoxReactor();
-
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
-		std::wstring GetText(uint32_t index) const;
-		std::wstring GetText() const;
-		void SetText(const std::wstring& text);
-
-		enum class State
+		struct Events : public ControlEvents
 		{
-			Normal,
-			Pressed,
-			Hovered
+			Event<ArgComboBox>	Selected;
 		};
-
-		struct Module
-		{
-			Float::InteractionData Data;
-
-			Window* m_owner{ nullptr };
-			TextEditor* m_textEditor{ nullptr };
-			std::wstring m_text;
-
-			State m_status{ State::Normal };
-
-			FloatBox* m_floatBox{ nullptr };
-			ComboBox* m_comboBox{ nullptr };
-
-			void EmitSelectionEvent(int index);
-		};
-
-		void Clear();
-		uint32_t Count() const;
-		void Erase(uint32_t index);
-		void PushItem(const std::wstring& text);
-		void PushItem(const std::wstring& text, const Image& icon);
-		int GetSelectedIndex() const;
-		void SetSelectedIndex(uint32_t index);
-
-	private:
-		Module m_module;
-	};
-
-	class ComboBox : public Control<ComboBoxReactor, ComboboxEvents, ComboboxAppearance>
+	}
+	
+	class ComboBox : public Control<ReactorCore::ComboBox::Reactor, ReactorCore::ComboBox::Events, ReactorCore::ComboBox::Appearance>
 	{
 	public:
 		ComboBox() = default;

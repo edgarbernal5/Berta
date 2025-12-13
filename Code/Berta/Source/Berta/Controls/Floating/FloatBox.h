@@ -16,7 +16,11 @@
 namespace Berta
 {
 	class FloatBox;
-	struct ComboboxAppearance;
+
+	namespace ReactorCore::ComboBox
+	{
+		struct Appearance;
+	}
 
 	class FloatBoxReactor : public ControlReactor
 	{
@@ -50,7 +54,7 @@ namespace Berta
 		void UpdateScrollBar();
 
 		FloatBox* m_floatBox{ nullptr };
-		ComboboxAppearance* m_comboBoxAppearance{ nullptr };
+		ReactorCore::ComboBox::Appearance* m_comboBoxAppearance{ nullptr };
 
 		Float::InteractionData* m_interactionData{ nullptr };
 		State m_state;
