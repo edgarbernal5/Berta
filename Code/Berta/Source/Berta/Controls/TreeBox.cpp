@@ -62,6 +62,32 @@ namespace Berta
 		}
 	}
 
+	void TreeBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_module.m_pressedArea != InteractionArea::Node)
+			return;
+		
+		auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
+		auto nodeHeightInt = static_cast<int>(nodeHeight);
+
+		auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
+		int index = positionY / nodeHeightInt;
+		index -= m_module.m_viewport.m_startingVisibleIndex;
+
+		auto visibleNode = m_module.m_visibleNodes[index];
+		if (!visibleNode->firstChild)
+			return;
+		
+		visibleNode->isExpanded = !visibleNode->isExpanded;
+		m_module.CalculateViewport(m_module.m_viewport);
+
+		m_module.UpdateScrollBars();
+		m_module.CalculateVisibleNodes();
+		
+		m_module.EmitExpansionEvent(visibleNode);
+		GUI::MarkAsNeedUpdate(m_module.m_window);
+	}
+
 	void TreeBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
 		bool needUpdate = m_module.m_mouseSelection.m_hoveredNode != nullptr;
