@@ -12,102 +12,105 @@
 
 namespace Berta
 {
-	void InputTextReactor::Init(ControlBase& control, Graphics* graphics)
+	namespace ReactorCore::InputText
 	{
-		m_control = &control;
-		m_textEditor = std::make_unique<TextEditor>(*m_control, graphics);
-
-		m_textEditor->SetValueChangedCallback([this]()
+		void Reactor::Init(ControlBase& control, Graphics* graphics)
 		{
-			ArgTextChanged args;
-			args.NewValue = m_textEditor->GetContent();
-			reinterpret_cast<InputTextEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(args);
-		});
-	}
+			m_control = &control;
+			m_textEditor = std::make_unique<TextEditor>(*m_control, graphics);
 
-	void InputTextReactor::Update(Graphics& graphics)
-	{
-		m_textEditor->Render();
-	}
-
-	void InputTextReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
-	{
-		GUI::ChangeCursor(*m_control, Cursor::IBeam);
-	}
-
-	void InputTextReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
-	{
-		GUI::ChangeCursor(*m_control, Cursor::Default);
-	}
-
-	void InputTextReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
-	{
-		GUI::Capture(*m_control);
-
-		m_textEditor->OnMouseDown(args);
-		GUI::MarkAsNeedUpdate(m_control->Handle());
-	}
-
-	void InputTextReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
-	{
-		auto window = m_control->Handle();
-		
-		m_textEditor->OnMouseMove(args);
-		GUI::MarkAsNeedUpdate(window);
-	}
-
-	void InputTextReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
-	{
-		GUI::ReleaseCapture(*m_control);
-		m_textEditor->OnMouseUp(args);
-	}
-
-	void InputTextReactor::Focus(Graphics& graphics, const ArgFocus& args)
-	{
-		auto window = m_control->Handle();
-		if (m_textEditor->OnFocus(args))
-		{
-			GUI::MarkAsNeedUpdate(window);
+			m_textEditor->SetValueChangedCallback([this]()
+			{
+				ArgTextChanged args;
+				args.NewValue = m_textEditor->GetContent();
+				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
+			});
 		}
-	}
 
-	void InputTextReactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
-	{
-		BT_CORE_DEBUG << "key char: " << (int)args.Key << ". " << std::endl;
-		if (m_textEditor->OnKeyChar(args))
+		void Reactor::Update(Graphics& graphics)
 		{
-			GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
+			m_textEditor->Render();
+		}
+
+		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
+		{
+			GUI::ChangeCursor(*m_control, Cursor::IBeam);
+		}
+
+		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+		{
+			GUI::ChangeCursor(*m_control, Cursor::Default);
+		}
+
+		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+		{
+			GUI::Capture(*m_control);
+
+			m_textEditor->OnMouseDown(args);
 			GUI::MarkAsNeedUpdate(m_control->Handle());
 		}
-	}
 
-	void InputTextReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
-	{
-		bool redraw = m_textEditor->OnKeyPressed(args);
-		if (redraw)
+		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
 			auto window = m_control->Handle();
+		
+			m_textEditor->OnMouseMove(args);
 			GUI::MarkAsNeedUpdate(window);
 		}
-	}
 
-	void InputTextReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
-	{
-		m_textEditor->OnKeyReleased(args);
-	}
+		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+		{
+			GUI::ReleaseCapture(*m_control);
+			m_textEditor->OnMouseUp(args);
+		}
 
-	void InputTextReactor::DblClick(Graphics& graphics, const ArgMouse& args)
-	{
-		if (m_textEditor->OnDblClick(args))
+		void Reactor::Focus(Graphics& graphics, const ArgFocus& args)
 		{
 			auto window = m_control->Handle();
-			GUI::MarkAsNeedUpdate(window);
+			if (m_textEditor->OnFocus(args))
+			{
+				GUI::MarkAsNeedUpdate(window);
+			}
 		}
-	}
 
-	TextEditor* InputTextReactor::GetEditor() const
-	{
-		return m_textEditor.get();
+		void Reactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
+		{
+			BT_CORE_DEBUG << "key char: " << (int)args.Key << ". " << std::endl;
+			if (m_textEditor->OnKeyChar(args))
+			{
+				GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
+				GUI::MarkAsNeedUpdate(m_control->Handle());
+			}
+		}
+
+		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
+		{
+			bool redraw = m_textEditor->OnKeyPressed(args);
+			if (redraw)
+			{
+				auto window = m_control->Handle();
+				GUI::MarkAsNeedUpdate(window);
+			}
+		}
+
+		void Reactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
+		{
+			m_textEditor->OnKeyReleased(args);
+		}
+
+		void Reactor::DblClick(Graphics& graphics, const ArgMouse& args)
+		{
+			if (m_textEditor->OnDblClick(args))
+			{
+				auto window = m_control->Handle();
+				GUI::MarkAsNeedUpdate(window);
+			}
+		}
+
+		TextEditor* Reactor::GetEditor() const
+		{
+			return m_textEditor.get();
+		}
 	}
 
 	InputText::InputText(Window* parent, const Rectangle& rectangle)

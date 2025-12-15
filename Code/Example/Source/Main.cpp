@@ -398,7 +398,7 @@ int main()
 	
 	Berta::InputText inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
-	inputText.GetEvents().ValueChanged.Connect([](const Berta::ArgTextChanged& args)
+	inputText.GetEvents().TextChanged.Connect([](const Berta::ArgTextChanged& args)
 		{
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
 		});

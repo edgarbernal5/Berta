@@ -9,7 +9,7 @@
 
 namespace Berta
 {
-	enum class TextFocusBehavior
+	enum class TextFocusBehavior : uint8_t
 	{
 		None,
 		Select,

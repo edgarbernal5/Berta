@@ -15,40 +15,48 @@
 
 namespace Berta
 {
+	namespace ReactorCore::InputText
+	{
+		struct Events;
+
+		class Reactor : public ControlReactor
+		{
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+		
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+			void Focus(Graphics& graphics, const ArgFocus& args) override;
+			void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
+			void DblClick(Graphics& graphics, const ArgMouse& args) override;;
+
+			TextEditor* GetEditor() const;
+		private:
+			std::unique_ptr<TextEditor> m_textEditor{ nullptr };
+		};
+	}
+		
 	struct ArgTextChanged
 	{
 		//ArgTextChanged(std::wstring& value):NewValue(value){}
 		std::wstring NewValue;
 	};
-
-	struct InputTextEvents : public ControlEvents
+	
+	namespace ReactorCore::InputText
 	{
-		Event<ArgTextChanged> ValueChanged;
-	};
-
-	class InputTextReactor : public ControlReactor
-	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-		
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
-		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-		void Focus(Graphics& graphics, const ArgFocus& args) override;
-		void KeyChar(Graphics& graphics, const ArgKeyboard& args) override;
-		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
-		void DblClick(Graphics& graphics, const ArgMouse& args) override;;
-
-		TextEditor* GetEditor() const;
-	private:
-		std::unique_ptr<TextEditor> m_textEditor{ nullptr };
-	};
-
-	class InputText : public Control<InputTextReactor, InputTextEvents>
+		struct Events : public ControlEvents
+		{
+			Event<ArgTextChanged> TextChanged;
+		};
+	}
+	
+	class InputText : public Control<ReactorCore::InputText::Reactor, ReactorCore::InputText::Events>
 	{
 	public:
 		InputText() = default;

@@ -69,7 +69,7 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-		enum class InteractionArea
+		enum class InteractionArea : uint8_t
 		{
 			None,
 			Node,

@@ -11,19 +11,22 @@
 
 namespace Berta
 {
-	void FormReactor::Init(ControlBase& control, Graphics* graphics)
+	namespace ReactorCore::Form
 	{
-		m_control = &control;
-	}
+		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		{
+			m_control = &control;
+		}
 
-	void FormReactor::Update(Graphics& graphics)
-	{
+		void Reactor::Update(Graphics& graphics)
+		{
 #if BT_DEBUG
-		//BT_CORE_TRACE << "  - Form::Update | window=" << m_control->Handle()->Name << ". hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
+			//BT_CORE_TRACE << "  - Form::Update | window=" << m_control->Handle()->Name << ". hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #else
-		BT_CORE_TRACE << "  - Form::Update. hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
+			BT_CORE_TRACE << "  - Form::Update. hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #endif
-		graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
+			graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
+		}
 	}
 
 	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)

@@ -456,18 +456,11 @@ namespace Berta
 
 	void TextEditor::Render()
 	{
-		/*
-		*
-		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
-
-		 */
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
 		
 		Size contentSize = GetContentTextExtent(m_caretPosition);
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
-		auto three = m_owner->ToScale(3);
 
 		bool enabled = GUI::IsWindowEnabled(m_owner);
 		auto caretHeight = m_graphics.GetCaretHeight();

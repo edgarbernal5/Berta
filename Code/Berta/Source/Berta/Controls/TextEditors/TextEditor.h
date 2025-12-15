@@ -40,7 +40,7 @@ namespace Berta
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgMouse& args);
 
-		void SetValueChangedCallback(TextEditorCallback callback) { m_valueChangedCallback = callback; }
+		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
 
 		size_t GetCaretPosition() const { return m_caretPosition; }
 

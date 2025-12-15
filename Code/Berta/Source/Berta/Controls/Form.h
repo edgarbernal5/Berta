@@ -18,17 +18,20 @@
 namespace Berta
 {
 	class ControlBase;
-
-	class FormReactor : public ControlReactor
+	
+	namespace ReactorCore::Form
 	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
+		class Reactor : public ControlReactor
+		{
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
 		
-	private:
-	};
-
-	class FormBase : public Control<FormReactor, FormEvents>
+		private:
+		};
+	}
+	
+	class FormBase : public Control<ReactorCore::Form::Reactor, FormEvents>
 	{
 	public:
 		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
