@@ -21,49 +21,24 @@ namespace Berta
 	constexpr uint32_t SeparatorHeight = 3;
 
 	class MenuBox;
-
-	struct MenuBoxAppearance : public ControlAppearance
-	{
-		uint32_t MenuBarItemHeight = 18;
-		uint32_t MenuBoxLeftPaneWidth = 32;
-		uint32_t MenuBoxItemHeight = 20;
-		uint32_t MenuBoxSubMenuArrowWidth = 20;
-		uint32_t MenuBoxShortcutWidth = 20;
-	};
-
-	class MenuItemReactor
-	{
-	public:
-		friend class MenuBoxReactor;
-		
-	public:
-		virtual ~MenuItemReactor() = default;
-
-		virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
-
-		virtual void MoveToNextItem(bool upwards) = 0;
-		virtual bool ExitSubMenu() = 0;
-		virtual bool EnterSubMenu() = 0;
-		virtual void Select() = 0;
-		virtual void Quit() = 0;
-
-		virtual MenuItemReactor* Prev() const { return m_prev; }
-		virtual MenuItemReactor* Next() const { return m_next; }
-
-		virtual Window* Owner() const = 0;
-
-	protected:
-		MenuItemReactor* m_next{ nullptr };
-		MenuItemReactor* m_prev{ nullptr };
-	};
-
+	struct Menu;
 	struct MenuItem;
-
+	
+	namespace ReactorCore::MenuBar
+	{
+		class Reactor;
+	}
+	
+	namespace ReactorCore::MenuBox
+	{
+		class Reactor;
+	}
+	
 	struct Menu
 	{
-		friend class MenuBox;
-		friend class MenuBoxReactor;
-		friend class MenuBarReactor;
+		friend class Berta::MenuBox;
+		friend class ReactorCore::MenuBox::Reactor;
+		friend class ReactorCore::MenuBar::Reactor;
 
 		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
@@ -76,7 +51,7 @@ namespace Berta
 		void SetImage(size_t index, const Image& image);
 		void SetEnabled(size_t index, bool enabled);
 
-		MenuBox* GetMenuBox() const { return m_menuBox; }
+		Berta::MenuBox* GetMenuBox() const { return m_menuBox; }
 		void CloseMenuBox();
 
 		struct Item
@@ -104,12 +79,12 @@ namespace Berta
 		Size GetMenuBoxSize(Window* parent);
 
 		std::vector<std::unique_ptr<Item>> m_items;
-		MenuBox* m_menuBox{ nullptr };
+		Berta::MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
 		DestroyCallback m_destroyCallback;
 	};
-
+	
 	struct MenuItem
 	{
 		MenuItem(Menu::Item& target) : m_target(target) {}
@@ -120,77 +95,116 @@ namespace Berta
 	private:
 		Menu::Item& m_target;
 	};
-
-	class MenuBoxReactor : public ControlReactor, public MenuItemReactor
-	{
-	public:
-		~MenuBoxReactor() = default;
-
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
-		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-
-		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
-		bool OnClickSubMenu(const ArgMouse& args) override;
-		Window* Owner() const override;
-
-		void MoveToNextItem(bool upwards) override;
-		bool ExitSubMenu() override;
-		bool EnterSubMenu() override;
-		void Select() override;
-		void Quit() override;
-
-		Menu* GetMenuOwner() const { return m_menuOwner; }
-
-		void BuildItems();
-		void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
-		void SetMenuOwner(Menu* menuOwner);
-		void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
-		Size GetMenuBoxSize();
-
-	private:
-		struct MenuBoxItem
+	namespace ReactorCore::MenuBox
+	{		
+		struct Appearance : public ControlAppearance
 		{
-			Point m_position;
-			Size m_size;
-		};
-		enum SubMenuAction
-		{
-			None,
-			Open,
-			Close
+			uint32_t MenuBarItemHeight = 18;
+			uint32_t MenuBoxLeftPaneWidth = 32;
+			uint32_t MenuBoxItemHeight = 20;
+			uint32_t MenuBoxSubMenuArrowWidth = 20;
+			uint32_t MenuBoxShortcutWidth = 20;
 		};
 
-		void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
-		int FindItem(const ArgMouse& args);
-		bool MouseMoveInternal(const ArgMouse& args);
-		MenuItemReactor* GetLastMenuItem() const;
+		class MenuItemReactor
+		{
+		public:
+			friend class ReactorCore::MenuBox::Reactor;
+		
+		public:
+			virtual ~MenuItemReactor() = default;
 
-		MenuBox* m_menuBox{ nullptr };
-		Menu* m_menuOwner{ nullptr };
-		MenuBoxAppearance* m_appearance{ nullptr };
-		bool m_ignoreFirstMouseUp{ true };
-		std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
-		std::vector<MenuBoxItem> m_itemSizePositions;
-		Timer m_subMenuTimer;
-		int m_selectedIndex{ -1 };
-		int m_selectedSubMenuIndex{ -1 };
-		int m_openedSubMenuIndex{ -1 };
-		SubMenuAction m_subMenuAction{ SubMenuAction::None };
-	};
+			virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
 
-	class MenuBox : public Control<MenuBoxReactor, FormEvents, MenuBoxAppearance>
+			virtual void MoveToNextItem(bool upwards) = 0;
+			virtual bool ExitSubMenu() = 0;
+			virtual bool EnterSubMenu() = 0;
+			virtual void Select() = 0;
+			virtual void Quit() = 0;
+
+			virtual MenuItemReactor* Prev() const { return m_prev; }
+			virtual MenuItemReactor* Next() const { return m_next; }
+
+			virtual Window* Owner() const = 0;
+
+		protected:
+			MenuItemReactor* m_next{ nullptr };
+			MenuItemReactor* m_prev{ nullptr };
+		};
+		
+		class Reactor : public ControlReactor, public MenuItemReactor
+		{
+		public:
+			~Reactor() = default;
+
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+
+			bool OnClickSubMenu(const ArgMouse& args) override;
+			Window* Owner() const override;
+
+			void MoveToNextItem(bool upwards) override;
+			bool ExitSubMenu() override;
+			bool EnterSubMenu() override;
+			void Select() override;
+			void Quit() override;
+
+			Menu* GetMenuOwner() const { return m_menuOwner; }
+
+			void BuildItems();
+			void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
+			void SetMenuOwner(Menu* menuOwner);
+			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
+			Size GetMenuBoxSize();
+
+		private:
+			struct MenuBoxItem
+			{
+				Point m_position;
+				Size m_size;
+			};
+			enum SubMenuAction : uint8_t
+			{
+				None,
+				Open,
+				Close
+			};
+
+			void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
+			int FindItem(const ArgMouse& args);
+			bool MouseMoveInternal(const ArgMouse& args);
+			MenuItemReactor* GetLastMenuItem() const;
+
+			Berta::MenuBox* m_menuBox{ nullptr };
+			Menu* m_menuOwner{ nullptr };
+			Appearance* m_appearance{ nullptr };
+			bool m_ignoreFirstMouseUp{ true };
+			std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
+			std::vector<MenuBoxItem> m_itemSizePositions;
+			Timer m_subMenuTimer;
+			int m_selectedIndex{ -1 };
+			int m_selectedSubMenuIndex{ -1 };
+			int m_openedSubMenuIndex{ -1 };
+		};
+	}
+
+	class MenuBox : public Control<ReactorCore::MenuBox::Reactor, FormEvents, ReactorCore::MenuBox::Appearance>
 	{
 	public:
+		using MenuItem = Berta::MenuItem;
+		using MenuItemReactor = ReactorCore::MenuBox::MenuItemReactor;
+		
 		friend struct Menu;
-		friend class MenuBoxReactor;
-		friend class MenuBarReactor;
+		friend class ReactorCore::MenuBox::Reactor;
+		friend class ReactorCore::MenuBar::Reactor;
 
 	public:
 		MenuBox(Window* parent, const Point& position);
@@ -205,7 +219,7 @@ namespace Berta
 		static int g_globalId;
 #endif
 
-		MenuItemReactor* GetItemReactor() const { return (MenuItemReactor*)(&GetReactor()); }
+		MenuItemReactor* GetItemReactor() { return &GetReactor(); }
 		Size GetMenuBoxSize();
 	};
 }

@@ -16,8 +16,12 @@ namespace Berta
 	class ControlBase;
 	class ControlReactor;
 	struct ControlEvents;
-	class MenuItemReactor;
 
+	namespace ReactorCore::MenuBox
+	{
+		class MenuItemReactor;
+	}
+	
 	namespace GUI
 	{
 		Window* CreateForm(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, ControlBase* control, bool isRenderForm);
@@ -77,7 +81,7 @@ namespace Berta
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
 		void DisposeMenu();
-		void DisposeMenu(MenuItemReactor* rootReactor);
+		void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor);
 
 		void Exit();
 

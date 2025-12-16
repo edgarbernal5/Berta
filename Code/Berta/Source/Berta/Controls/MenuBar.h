@@ -17,82 +17,85 @@ namespace Berta
 {
 	class MenuBar;
 
-	class MenuBarReactor : public ControlReactor, public MenuItemReactor
+	namespace ReactorCore::MenuBar
 	{
-	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
-		void Update(Graphics& graphics) override;
-
-		void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
-		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
-		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
-		void Resize(Graphics& graphics, const ArgResize& args) override;
-
-		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
-		void MoveToNextItem(bool upwards) override;
-		bool EnterSubMenu() override { return false; };
-		bool ExitSubMenu() override { return false; };
-		void Select() override;
-		void Quit() override;
-
-		bool OnClickSubMenu(const ArgMouse& args) override { return false; }
-
-		Window* Owner() const override;
-
-		struct MenuBarItemData
+		class Reactor : public ControlReactor, public ReactorCore::MenuBox::MenuItemReactor
 		{
-			MenuBarItemData(const std::wstring& _text, wchar_t _accessKey, std::size_t _accessKeyPosition) :
-				text(_text),
-				accessKey(_accessKey),
-				accessKeyPosition(_accessKeyPosition)
+		public:
+			void Init(ControlBase& control, Graphics* graphics) override;
+			void Update(Graphics& graphics) override;
+
+			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
+			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+			void Resize(Graphics& graphics, const ArgResize& args) override;
+
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
+
+			void MoveToNextItem(bool upwards) override;
+			bool EnterSubMenu() override { return false; };
+			bool ExitSubMenu() override { return false; };
+			void Select() override;
+			void Quit() override;
+
+			bool OnClickSubMenu(const ArgMouse& args) override { return false; }
+
+			Window* Owner() const override;
+
+			struct MenuBarItemData
 			{
-			}
+				MenuBarItemData(std::wstring _text, wchar_t _accessKey, std::size_t _accessKeyPosition) :
+					text(std::move(_text)),
+					accessKey(_accessKey),
+					accessKeyPosition(_accessKeyPosition)
+				{
+				}
 
-			Menu menu;
-			std::wstring text;
-			wchar_t accessKey;
-			std::size_t accessKeyPosition;
-			Size size;
-			Point position;
-			Size center;
-			bool isEnabled{ true };
+				Menu menu;
+				std::wstring text;
+				wchar_t accessKey;
+				std::size_t accessKeyPosition;
+				Size size;
+				Point position;
+				Size center;
+				bool isEnabled{ true };
+			};
+
+			struct InteractionData
+			{
+				int		m_selectedItemIndex{ -1 };
+				Menu*	m_activeMenu{ nullptr };
+			};
+
+			struct Module
+			{
+				Menu& At(size_t index);
+				void BuildItems(size_t startIndex = 0);
+				int FindItem(const Point& position) const;
+				Menu& PushBack(const std::wstring& text);
+				void OpenMenu(bool ignoreFirstMouseUp = false);
+				void SelectIndex(int index);
+				bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
+				Berta::MenuBox* GetActiveMenuBox() const;
+
+				Berta::MenuBar* m_control{ nullptr };
+				Window* m_owner{ nullptr };
+				std::vector<std::unique_ptr<MenuBarItemData>> m_items;
+				InteractionData m_interactionData;
+				Point m_lastMousePosition{ -1,-1 };
+			};
+
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
+
+		private:
+			MenuItemReactor* GetLastMenuItem() const;
+			Module m_module;
 		};
+	}
 
-		struct InteractionData
-		{
-			int		m_selectedItemIndex{ -1 };
-			Menu*	m_activeMenu{ nullptr };
-		};
-
-		struct Module
-		{
-			Menu& At(size_t index);
-			void BuildItems(size_t startIndex = 0);
-			int FindItem(const Point& position);
-			Menu& PushBack(const std::wstring& text);
-			void OpenMenu(bool ignoreFirstMouseUp = false);
-			void SelectIndex(int index);
-			bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
-			MenuBox* GetActiveMenuBox() const;
-
-			MenuBar* m_control{ nullptr };
-			Window* m_owner{ nullptr };
-			std::vector<std::unique_ptr<MenuBarItemData>> m_items;
-			InteractionData m_interactionData;
-			Point m_lastMousePosition{ -1,-1 };
-		};
-
-		Module& GetModule() { return m_module; }
-		const Module& GetModule() const { return m_module; }
-
-	private:
-		MenuItemReactor* GetLastMenuItem() const;
-		Module m_module;
-	};
-
-	class MenuBar : public Control<MenuBarReactor>
+	class MenuBar : public Control<ReactorCore::MenuBar::Reactor>
 	{
 	public:
 		MenuBar() = default;

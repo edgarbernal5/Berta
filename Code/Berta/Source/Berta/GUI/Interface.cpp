@@ -559,7 +559,7 @@ namespace Berta::GUI
 		menuManager.CloseAll();
 	}
 
-	void DisposeMenu(MenuItemReactor* rootReactor)
+	void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor)
 	{
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();
 		menuManager.Close(rootReactor->Owner());
