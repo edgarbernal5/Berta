@@ -26,6 +26,8 @@ namespace Berta
 			uint32_t ButtonSize = 18;
 			uint32_t ComboBoxItemHeight = 20;
 		};
+		
+		class ItemProxy;
 
 		class Reactor : public ControlReactor
 		{
@@ -64,7 +66,8 @@ namespace Berta
 				FloatBox* m_floatBox{ nullptr };
 				Berta::ComboBox* m_comboBox{ nullptr };
 
-				void EmitSelectionEvent(int index);
+				void EmitSelectionEvent(int index) const;
+				void UpdateItem(size_t index);
 			};
 
 			void Clear();
@@ -78,6 +81,26 @@ namespace Berta
 		private:
 			Module m_module;
 		};
+		
+		class ItemProxy
+		{
+		public:
+			ItemProxy() = default;
+			ItemProxy(size_t index, Reactor::Module* module) : m_index(index), m_module(module)
+			{
+			}
+			
+			void SetText(const std::wstring& text);
+			void SetImage(const Image& icon);
+			
+			operator bool() const
+			{
+				return m_module != nullptr;
+			}
+		private:
+			size_t m_index{ 0 };
+			Reactor::Module* m_module{ nullptr };
+		};
 	}
 
 	struct ArgComboBox
@@ -89,29 +112,33 @@ namespace Berta
 	{
 		struct Events : public ControlEvents
 		{
-			Event<ArgComboBox>	Selected;
+			Event<ArgComboBox> Selected;
 		};
 	}
 	
 	class ComboBox : public Control<ReactorCore::ComboBox::Reactor, ReactorCore::ComboBox::Events, ReactorCore::ComboBox::Appearance>
 	{
 	public:
+		using ItemProxy = ReactorCore::ComboBox::ItemProxy;
+		
+	public:
 		ComboBox() = default;
 		ComboBox(Window* parent, const Rectangle& rectangle = {});
 
+		ItemProxy At(uint32_t index);
 		void Clear();
 		uint32_t Count() const;
 		void Erase(uint32_t index);
 
-		void PushItem(const std::wstring& text);
-		void PushItem(const std::string& text);
-		void PushItem(const std::wstring& text, const Image& icon);
-		void PushItem(const std::string& text, const Image& icon);
+		void PushBack(const std::wstring& text);
+		void PushBack(const std::string& text);
+		void PushBack(const std::wstring& text, const Image& icon);
+		void PushBack(const std::string& text, const Image& icon);
 
 		int GetSelectedIndex() { return GetReactor().GetSelectedIndex(); }
 		void SetSelectedIndex(uint32_t index);
 
-		std::wstring GetText(uint32_t index);
+		std::wstring GetText() const;
 
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

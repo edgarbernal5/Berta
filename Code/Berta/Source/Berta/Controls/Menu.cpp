@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "Menu.h"
 
+#include <utility>
+
 #include "Berta/GUI/Interface.h"
 #include "Berta/Controls/Menu.h"
 #include "Berta/GUI/EnumTypes.h"
@@ -22,12 +24,12 @@ namespace Berta
 	void Menu::Append(const std::string& text, ClickCallback onClick)
 	{
 		std::wstring wstr(text.begin(), text.end());
-		auto& newItem = m_items.emplace_back(new Menu::Item{ wstr , onClick });
+		auto& newItem = m_items.emplace_back(new Menu::Item{ wstr , std::move(onClick)});
 	}
 
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
-		auto& newItem = m_items.emplace_back(new Menu::Item{ text , onClick });
+		auto& newItem = m_items.emplace_back(new Menu::Item{ text , std::move(onClick)});
 	}
 
 	void Menu::AppendSeparator()
@@ -102,7 +104,7 @@ namespace Berta
 		m_menuBox = nullptr;
 	}
 
-	Size Menu::GetMenuBoxSize(Window* parent)
+	Size Menu::GetMenuBoxSize(Window* parent) const
 	{
 		uint32_t separators = 0;
 		uint32_t maxWidth = 0;
@@ -133,6 +135,7 @@ namespace Berta
 			2 + itemTextPadding * 2u + static_cast<uint32_t>(m_items.size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 		};
 	}
+	
 	namespace ReactorCore::MenuBox
 	{
 		void Reactor::Init(ControlBase& control, Graphics* graphics)

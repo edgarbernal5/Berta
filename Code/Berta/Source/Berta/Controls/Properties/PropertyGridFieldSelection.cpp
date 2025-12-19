@@ -62,7 +62,7 @@ namespace Berta
 
 	void PropertyGridFieldSelection::PushItem(const std::string& optionText)
 	{
-		m_comboBox.PushItem(optionText);
+		m_comboBox.PushBack(optionText);
 	}
 
 	void PropertyGridFieldSelection::Set(const std::vector<std::string>& options, bool clear)
@@ -72,7 +72,7 @@ namespace Berta
 
 		for (auto& itemText : options)
 		{
-			m_comboBox.PushItem(itemText);
+			m_comboBox.PushBack(itemText);
 		}
 	}
 

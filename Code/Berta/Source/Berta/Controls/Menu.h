@@ -74,9 +74,10 @@ namespace Berta
 			wchar_t m_accessKey{ 0 };
 			std::size_t	m_accessKeyPosition{ 0 };
 		};
+		
 	private:
 		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
-		Size GetMenuBoxSize(Window* parent);
+		Size GetMenuBoxSize(Window* parent) const;
 
 		std::vector<std::unique_ptr<Item>> m_items;
 		Berta::MenuBox* m_menuBox{ nullptr };
@@ -92,9 +93,11 @@ namespace Berta
 		bool GetEnabled() const;
 		void SetEnabled(bool isEnabled);
 		void SetText(const std::wstring& text);
+		
 	private:
 		Menu::Item& m_target;
 	};
+	
 	namespace ReactorCore::MenuBox
 	{		
 		struct Appearance : public ControlAppearance

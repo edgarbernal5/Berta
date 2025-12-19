@@ -79,7 +79,7 @@ namespace Berta
 				{
 					auto iconSourceSize = icon.GetSize();
 					auto positionY = (window->ClientSize.Height - iconSize) >> 1;
-					icon.Paste(graphics, { 3, (int)positionY, iconSize , iconSize });
+					icon.Paste(graphics, { 3, static_cast<int>(positionY), iconSize , iconSize });
 				}
 			}
 			graphics.DrawString(textPosition, m_module.m_text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
@@ -274,12 +274,12 @@ namespace Berta
 
 		void Reactor::PushItem(const std::wstring& text)
 		{
-			m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text });
+			m_module.Data.m_items.emplace_back(Float::InteractionData::ItemType{ text });
 		}
 
 		void Reactor::PushItem(const std::wstring& text, const Image& icon)
 		{
-			m_module.Data.m_items.push_back(Float::InteractionData::ItemType{ text, icon });
+			m_module.Data.m_items.emplace_back(Float::InteractionData::ItemType{ text, icon });
 			m_module.Data.m_drawImages = true;
 		}
 
@@ -300,13 +300,37 @@ namespace Berta
 			SetText(items[selectedIndex].m_text);
 		}
 
-		void Reactor::Module::EmitSelectionEvent(int index)
+		void ItemProxy::SetText(const std::wstring& text)
+		{
+			if (m_module->Data.m_items.at(m_index).m_text == text)
+				return;
+			
+			m_module->Data.m_items.at(m_index).m_text = text;
+			m_module->UpdateItem(m_index);
+		}
+
+		void ItemProxy::SetImage(const Image& icon)
+		{
+			if (m_module->Data.m_items.at(m_index).m_icon == icon)
+				return;
+			
+			m_module->Data.m_items.at(m_index).m_icon = icon;
+			m_module->UpdateItem(m_index);
+		}
+
+		void Reactor::Module::EmitSelectionEvent(int index) const
 		{
 			ArgComboBox argComboBox{};
 			argComboBox.SelectedIndex = index;
 
 			auto events = dynamic_cast<Events*>(m_owner->Events.get());
 			events->Selected.Emit(argComboBox);
+		}
+
+		void Reactor::Module::UpdateItem(size_t index)
+		{
+			
+			GUI::UpdateWindow(m_owner);
 		}
 	}
 	
@@ -317,6 +341,11 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "ComboBox";
 #endif
+	}
+
+	ComboBox::ItemProxy ComboBox::At(uint32_t index)
+	{
+		return {};
 	}
 
 	void ComboBox::Clear()
@@ -334,9 +363,9 @@ namespace Berta
 		GetReactor().Erase(index);
 	}
 
-	std::wstring ComboBox::GetText(uint32_t index)
+	std::wstring ComboBox::GetText() const
 	{
-		return GetReactor().GetText(index);
+		return DoOnCaption();
 	}
 
 	void ComboBox::SetSelectedIndex(uint32_t index)
@@ -344,23 +373,23 @@ namespace Berta
 		GetReactor().SetSelectedIndex(index);
 	}
 
-	void ComboBox::PushItem(const std::wstring& text)
+	void ComboBox::PushBack(const std::wstring& text)
 	{
 		GetReactor().PushItem(text);
 	}
 
-	void ComboBox::PushItem(const std::string& text)
+	void ComboBox::PushBack(const std::string& text)
 	{
 		std::wstring wText = StringUtils::Convert(text);
 		GetReactor().PushItem(wText);
 	}
 
-	void ComboBox::PushItem(const std::wstring& text, const Image& icon)
+	void ComboBox::PushBack(const std::wstring& text, const Image& icon)
 	{
 		GetReactor().PushItem(text, icon);
 	}
 
-	void ComboBox::PushItem(const std::string& text, const Image& icon)
+	void ComboBox::PushBack(const std::string& text, const Image& icon)
 	{
 		std::wstring wText = StringUtils::Convert(text);
 		GetReactor().PushItem(wText, icon);

@@ -249,7 +249,7 @@ public:
 				//m_thumbListBox.AddItem("Windows", m_folderImg);
 				//m_thumbListBox.AddItem("Folder...", m_folderImg);
 
-				m_currentPath = m_comboBox.GetText(args.SelectedIndex);
+				m_currentPath = m_comboBox.GetText();
 				for (const auto& entry : std::filesystem::directory_iterator(m_currentPath))
 				{
 					try
@@ -278,7 +278,7 @@ public:
 				std::string letter = std::string(1, 'A' + i) + ":/";
 				std::string text = std::string(1, 'A' + i) + ":";
 
-				m_comboBox.PushItem(letter, m_hardDriveImg);
+				m_comboBox.PushBack(letter, m_hardDriveImg);
 			}
 		}
 
