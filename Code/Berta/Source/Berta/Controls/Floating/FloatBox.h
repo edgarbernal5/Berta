@@ -40,9 +40,9 @@ namespace Berta
 
 		struct State
 		{
-			int m_hoveredIndex{ -1 };
-			int m_selectedIndex{ -1 };
-			int m_offset;
+			std::optional<size_t> m_hoveredIndex = std::nullopt;
+			std::optional<size_t> m_selectedIndex = std::nullopt;
+			int m_offset { 0 };
 		};
 
 		State& GetState() {	return m_state; }
@@ -67,7 +67,7 @@ namespace Berta
 	{
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);
-		~FloatBox();
+		~FloatBox() = default;
 
 		bool OnKeyPressed(const ArgKeyboard& args);
 		void Init(Float::InteractionData& state)

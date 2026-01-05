@@ -416,7 +416,7 @@ int main()
 	}
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
 		{
-			std::cout << "ComboBox > Selected: " << args.SelectedIndex << std::endl;
+			std::cout << "ComboBox > Selected: " << args.SelectedIndex.value() << std::endl;
 		});
 
 	Berta::ScrollBar scrollbar(form, { 10, 200, 20, 150 }, true);

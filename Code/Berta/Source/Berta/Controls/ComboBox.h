@@ -7,11 +7,13 @@
 #ifndef BT_COMBO_BOX_HEADER
 #define BT_COMBO_BOX_HEADER
 
-#include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/Floating/InteractionData.h"
 #include "Berta/Paint/Image.h"
+
+#include <optional>
+#include <string>
 
 namespace Berta
 {
@@ -42,11 +44,7 @@ namespace Berta
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-			std::wstring GetText(uint32_t index) const;
-			std::wstring GetText() const;
-			void SetText(const std::wstring& text);
-
-			enum class State
+			enum class State : uint8_t
 			{
 				Normal,
 				Pressed,
@@ -55,6 +53,25 @@ namespace Berta
 
 			struct Module
 			{
+				Float::InteractionData::ItemType& At(size_t index);
+				void Clear();
+				size_t Count() const;
+				void Erase(size_t index);
+				void PushBack(const std::wstring& text);
+				void PushBack(const std::wstring& text, const Image& icon);
+				std::optional<size_t> GetSelectedIndex() const;
+				void SetSelectedIndex(std::optional<size_t> index);
+				
+				std::wstring GetText(size_t index) const;
+				std::wstring GetText() const;
+				void SetText(const std::wstring& text);
+				
+				void EmitSelectionEvent(std::optional<size_t> index) const;
+				void UpdateItem(size_t index);
+				
+				bool IsEditable() const;
+				void SetEditable(bool editable);
+				
 				Float::InteractionData Data;
 
 				Window* m_owner{ nullptr };
@@ -65,19 +82,11 @@ namespace Berta
 
 				FloatBox* m_floatBox{ nullptr };
 				Berta::ComboBox* m_comboBox{ nullptr };
-
-				void EmitSelectionEvent(int index) const;
-				void UpdateItem(size_t index);
+				bool m_isEditable{ false };
 			};
 
-			void Clear();
-			uint32_t Count() const;
-			void Erase(uint32_t index);
-			void PushItem(const std::wstring& text);
-			void PushItem(const std::wstring& text, const Image& icon);
-			int GetSelectedIndex() const;
-			void SetSelectedIndex(uint32_t index);
-
+			const Module& GetModule() const { return m_module; }
+			Module& GetModule() { return m_module; }
 		private:
 			Module m_module;
 		};
@@ -105,7 +114,7 @@ namespace Berta
 
 	struct ArgComboBox
 	{
-		int SelectedIndex;
+		std::optional<size_t> SelectedIndex;
 	};
 
 	namespace ReactorCore::ComboBox
@@ -125,27 +134,28 @@ namespace Berta
 		ComboBox() = default;
 		ComboBox(Window* parent, const Rectangle& rectangle = {});
 
-		ItemProxy At(uint32_t index);
+		ItemProxy At(size_t index);
 		void Clear();
-		uint32_t Count() const;
-		void Erase(uint32_t index);
+		size_t Count() const;
+		void Erase(size_t index);
 
 		void PushBack(const std::wstring& text);
 		void PushBack(const std::string& text);
 		void PushBack(const std::wstring& text, const Image& icon);
 		void PushBack(const std::string& text, const Image& icon);
 
-		int GetSelectedIndex() { return GetReactor().GetSelectedIndex(); }
-		void SetSelectedIndex(uint32_t index);
+		std::optional<size_t> GetSelectedIndex() { return GetReactor().GetModule().GetSelectedIndex(); }
+		// Allows user to deselect by passing std::nullopt
+		void SetSelectedIndex(std::optional<size_t> index);
 
 		std::wstring GetText() const;
 
+		bool isEditable() const { return GetReactor().GetModule().IsEditable(); }
+		void SetEditable(bool editable);
+		
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;
-
-	private:
-		bool m_isEditable{ false };
 	};
 }
 

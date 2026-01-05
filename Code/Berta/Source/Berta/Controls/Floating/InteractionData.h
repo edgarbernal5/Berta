@@ -7,6 +7,7 @@
 #ifndef BT_INTERCTION_DATA_HEADER
 #define BT_INTERCTION_DATA_HEADER
 
+#include <optional>
 #include <string>
 #include <vector>
 #include "Berta/Paint/Image.h"
@@ -24,7 +25,7 @@ namespace Berta::Float
 		bool m_drawImages{ false };
 
 		size_t m_maxItemsToDisplay = 5;
-		int m_selectedIndex{ -1 };
+		std::optional<size_t> m_selectedIndex = std::nullopt;
 		bool m_isSelected{ false };
 	};
 }

@@ -51,13 +51,13 @@ namespace Berta
 		}
 	}
 
-	void PropertyGridFieldSelection::SetOption(uint32_t index)
+	void PropertyGridFieldSelection::SetOption(std::optional<size_t> index)
 	{
-		if (index >= m_comboBox.Count())
+		if (index && index >= m_comboBox.Count())
 			return;
 
 		m_comboBox.SetSelectedIndex(index);
-		PropertyGridFieldBase::SetValue(std::to_string(index));
+		PropertyGridFieldBase::SetValue(std::to_string(*index));
 	}
 
 	void PropertyGridFieldSelection::PushItem(const std::string& optionText)

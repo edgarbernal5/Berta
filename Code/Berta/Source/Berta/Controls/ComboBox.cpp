@@ -68,16 +68,16 @@ namespace Berta
 
 			auto textItemHeight = graphics.GetTextExtent().Height;
 			Point textPosition{ 3,static_cast<int>(window->ClientSize.Height - textItemHeight) >> 1 };
-			if (m_module.Data.m_drawImages && m_module.Data.m_selectedIndex != -1)
+			auto selectedIndex = m_module.GetSelectedIndex();
+			if (m_module.Data.m_drawImages && selectedIndex)
 			{
 				auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
 				auto iconMargin = window->ToScale(3u);
 				textPosition.X += (int)(iconSize + iconMargin * 2u);
-
-				auto& icon = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_icon;
+				
+				auto& icon = m_module.Data.m_items[*selectedIndex].m_icon;
 				if (icon)
 				{
-					auto iconSourceSize = icon.GetSize();
 					auto positionY = (window->ClientSize.Height - iconSize) >> 1;
 					icon.Paste(graphics, { 3, static_cast<int>(positionY), iconSize , iconSize });
 				}
@@ -132,19 +132,18 @@ namespace Berta
 
 				m_module.m_floatBox->GetEvents().Destroy.Connect([this](const ArgDestroy& argDestroy)
 				{
-					int selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
-
+					std::optional<size_t> selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
+					
 					delete m_module.m_floatBox;
 					m_module.m_floatBox = nullptr;
 
-					if (m_module.Data.m_isSelected && selectedIndex != m_module.Data.m_selectedIndex && !m_module.Data.m_items.empty())
+					if (m_module.Data.m_isSelected && selectedIndex && !m_module.Data.m_items.empty())
 					{
-						m_module.Data.m_selectedIndex = selectedIndex;
-						m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
+						m_module.SetSelectedIndex(selectedIndex);
 						//TODO:
 						//DrawBatch drawBatch(m_module.m_owner);
 
-						m_module.EmitSelectionEvent(selectedIndex);
+						//m_module.EmitSelectionEvent(selectedIndex);
 
 						GUI::UpdateWindow(*m_control);
 					}
@@ -158,6 +157,11 @@ namespace Berta
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
 			bool redraw = false;
+			auto currentIndex = m_module.GetSelectedIndex();
+			size_t itemCount = m_module.Count();
+			
+			if (itemCount == 0) return;
+			
 			if (m_module.m_floatBox)
 			{
 				if (args.Key == KeyboardKey::ArrowUp)
@@ -177,12 +181,14 @@ namespace Berta
 				}
 				if (args.Key == KeyboardKey::Enter)
 				{
-					if (m_module.m_floatBox->GetState().m_selectedIndex >= 0 && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.m_items.size())
+					if (m_module.m_floatBox->GetState().m_selectedIndex.has_value() && m_module.m_floatBox->GetState().m_selectedIndex < m_module.Data.m_items.size())
 					{
-						m_module.Data.m_selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
-						m_module.m_text = m_module.Data.m_items[m_module.Data.m_selectedIndex].m_text;
+						auto selectedIndex=m_module.m_floatBox->GetState().m_selectedIndex;
+						//m_module.Data.m_selectedIndex = m_module.m_floatBox->GetState().m_selectedIndex;
+						//m_module.m_text = m_module.Data.m_items[*m_module.Data.m_selectedIndex].m_text;
 						m_module.m_floatBox->Dispose();
-						m_module.EmitSelectionEvent(m_module.Data.m_selectedIndex);
+						m_module.SetSelectedIndex(selectedIndex);
+						//m_module.EmitSelectionEvent(m_module.Data.m_selectedIndex);
 						redraw = true;
 					}
 				}
@@ -191,27 +197,26 @@ namespace Berta
 			{
 				if (args.Key == KeyboardKey::ArrowUp)
 				{
-					int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex - 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
-					if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+					// If nothing selected, pick the first. If selected, decrement if > 0.
+					size_t newIndex = currentIndex ? (*currentIndex > 0 ? *currentIndex - 1 : 0) : 0;
+					if (newIndex != currentIndex) 
 					{
-						m_module.Data.m_selectedIndex = newIndex;
-						m_module.m_text = m_module.Data.m_items[newIndex].m_text;
-						m_module.EmitSelectionEvent(newIndex);
+						m_module.SetSelectedIndex(newIndex);
 						redraw = true;
 					}
 				}
 				if (args.Key == KeyboardKey::ArrowDown)
 				{
-					int newIndex = (std::max)(0, (std::min)(m_module.Data.m_selectedIndex + 1, static_cast<int>(m_module.Data.m_items.size()) - 1));
-					if (m_module.Data.m_selectedIndex != newIndex && !m_module.Data.m_items.empty())
+					// If nothing selected, pick first. If selected, increment if < max.
+					size_t newIndex = currentIndex ? (std::min<size_t>(*currentIndex + 1, itemCount - 1)) : 0;
+					if (newIndex != currentIndex)
 					{
-						m_module.Data.m_selectedIndex = newIndex;
-						m_module.m_text = m_module.Data.m_items[newIndex].m_text;
-						m_module.EmitSelectionEvent(newIndex);
+						m_module.SetSelectedIndex(newIndex);
 						redraw = true;
 					}
 				}
 			}
+			
 			if (redraw)
 			{
 				auto window = m_control->Handle();
@@ -219,19 +224,24 @@ namespace Berta
 			}
 		}
 
-		std::wstring Reactor::GetText(uint32_t index) const
+		std::wstring Reactor::Module::GetText(size_t index) const
 		{
-			return m_module.Data.m_items[index].m_text;
+			return Data.m_items[index].m_text;
 		}
 
-		std::wstring Reactor::GetText() const
+		std::wstring Reactor::Module::GetText() const
 		{
-			return m_module.m_text;
+			return m_text;
 		}
 
-		void Reactor::SetText(const std::wstring& text)
+		void Reactor::Module::SetText(const std::wstring& text)
 		{
-			m_module.m_text = text;
+			if (m_text == text)
+			{
+				return;
+			}
+			
+			m_text = text;
 			//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
 			//{
 			//	if (m_interactionData.m_items[i] == m_text)
@@ -241,63 +251,87 @@ namespace Berta
 			//	}
 			//}
 
-			auto window = m_control->Handle();
-			GUI::MarkAsNeedUpdate(window);
+			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
-		void Reactor::Clear()
+		Float::InteractionData::ItemType& Reactor::Module::At(size_t index)
 		{
-			m_module.Data.m_items.clear();
-			m_module.Data.m_selectedIndex = -1;
+			return Data.m_items[index];
 		}
 
-		uint32_t Reactor::Count() const
+		void Reactor::Module::Clear()
 		{
-			return static_cast<uint32_t>(m_module.Data.m_items.size());
+			Data.m_items.clear();
+			SetSelectedIndex(std::nullopt); // Explicitly clear selection
 		}
 
-		void Reactor::Erase(uint32_t index)
+		size_t Reactor::Module::Count() const
 		{
-			if (index < m_module.Data.m_items.size())
+			return Data.m_items.size();
+		}
+
+		void Reactor::Module::Erase(size_t index)
+		{
+			if (index >= Data.m_items.size())
 			{
-				auto& items = m_module.Data.m_items;
-				auto& selectedIndex = m_module.Data.m_selectedIndex;
-				items.erase(items.begin() + index);
-				if (selectedIndex >= static_cast<int>(items.size()))
-				{
-					selectedIndex = static_cast<int>(items.size()) - 1;
-
-					SetText(items[selectedIndex].m_text);
-				}
-			}
-		}
-
-		void Reactor::PushItem(const std::wstring& text)
-		{
-			m_module.Data.m_items.emplace_back(Float::InteractionData::ItemType{ text });
-		}
-
-		void Reactor::PushItem(const std::wstring& text, const Image& icon)
-		{
-			m_module.Data.m_items.emplace_back(Float::InteractionData::ItemType{ text, icon });
-			m_module.Data.m_drawImages = true;
-		}
-
-		int Reactor::GetSelectedIndex() const
-		{
-			return m_module.Data.m_selectedIndex;
-		}
-
-		void Reactor::SetSelectedIndex(uint32_t index)
-		{
-			if (index >= m_module.Data.m_items.size())
 				return;
+			}
 			
-			auto& items = m_module.Data.m_items;
-			auto& selectedIndex = m_module.Data.m_selectedIndex;
-			selectedIndex = static_cast<int>(index);
+			auto& items = Data.m_items;
+			items.erase(items.begin() + index);
+				
+			auto current = GetSelectedIndex();
+			if (!current)
+			{
+				return;
+			}
+			if (Data.m_items.empty())
+			{
+				SetSelectedIndex(std::nullopt);
+			}
+			else if (*current >= Data.m_items.size())
+			{
+				// Adjust selection to the new last item if the old one was deleted
+				SetSelectedIndex(Data.m_items.size() - 1);
+			}
+			/*if (selectedIndex >= static_cast<int64_t>(items.size()))
+			{
+				selectedIndex = static_cast<int64_t>(items.size()) - 1;
 
-			SetText(items[selectedIndex].m_text);
+				SetText(items[selectedIndex].m_text);
+			}*/
+		}
+
+		void Reactor::Module::PushBack(const std::wstring& text)
+		{
+			Data.m_items.emplace_back(Float::InteractionData::ItemType{ text });
+		}
+
+		void Reactor::Module::PushBack(const std::wstring& text, const Image& icon)
+		{
+			Data.m_items.emplace_back(Float::InteractionData::ItemType{ text, icon });
+			Data.m_drawImages = true;
+		}
+
+		std::optional<size_t> Reactor::Module::GetSelectedIndex() const
+		{
+			return Data.m_selectedIndex;
+		}
+
+		void Reactor::Module::SetSelectedIndex(std::optional<size_t> index)
+		{
+			auto& selectedIndex = Data.m_selectedIndex;
+			if (index && *index >= Count())
+			{
+				selectedIndex = std::nullopt;
+			}
+			else
+			{
+				selectedIndex = index;
+			}
+			
+			SetText(selectedIndex.has_value() ? Data.m_items[*selectedIndex].m_text : L"");
+			EmitSelectionEvent(selectedIndex);
 		}
 
 		void ItemProxy::SetText(const std::wstring& text)
@@ -318,9 +352,9 @@ namespace Berta
 			m_module->UpdateItem(m_index);
 		}
 
-		void Reactor::Module::EmitSelectionEvent(int index) const
+		void Reactor::Module::EmitSelectionEvent(std::optional<size_t> index) const
 		{
-			ArgComboBox argComboBox{};
+			ArgComboBox argComboBox;
 			argComboBox.SelectedIndex = index;
 
 			auto events = dynamic_cast<Events*>(m_owner->Events.get());
@@ -329,8 +363,17 @@ namespace Berta
 
 		void Reactor::Module::UpdateItem(size_t index)
 		{
-			
 			GUI::UpdateWindow(m_owner);
+		}
+
+		bool Reactor::Module::IsEditable() const
+		{
+			return m_isEditable;
+		}
+
+		void Reactor::Module::SetEditable(bool editable)
+		{
+			m_isEditable = editable;
 		}
 	}
 	
@@ -343,24 +386,29 @@ namespace Berta
 #endif
 	}
 
-	ComboBox::ItemProxy ComboBox::At(uint32_t index)
+	ComboBox::ItemProxy ComboBox::At(size_t index)
 	{
+		auto& module = GetReactor().GetModule();
+		if (index < module.Count())
+		{
+			return {index, &module};	
+		}
 		return {};
 	}
 
 	void ComboBox::Clear()
 	{
-		GetReactor().Clear();
+		GetReactor().GetModule().Clear();
 	}
 
-	uint32_t ComboBox::Count() const
+	size_t ComboBox::Count() const
 	{
-		return GetReactor().Count();
+		return GetReactor().GetModule().Count();
 	}
 
-	void ComboBox::Erase(uint32_t index)
+	void ComboBox::Erase(size_t index)
 	{
-		GetReactor().Erase(index);
+		GetReactor().GetModule().Erase(index);
 	}
 
 	std::wstring ComboBox::GetText() const
@@ -368,40 +416,45 @@ namespace Berta
 		return DoOnCaption();
 	}
 
-	void ComboBox::SetSelectedIndex(uint32_t index)
+	void ComboBox::SetSelectedIndex(std::optional<size_t> index)
 	{
-		GetReactor().SetSelectedIndex(index);
+		GetReactor().GetModule().SetSelectedIndex(index);
 	}
 
 	void ComboBox::PushBack(const std::wstring& text)
 	{
-		GetReactor().PushItem(text);
+		GetReactor().GetModule().PushBack(text);
 	}
 
 	void ComboBox::PushBack(const std::string& text)
 	{
 		std::wstring wText = StringUtils::Convert(text);
-		GetReactor().PushItem(wText);
+		GetReactor().GetModule().PushBack(wText);
 	}
 
 	void ComboBox::PushBack(const std::wstring& text, const Image& icon)
 	{
-		GetReactor().PushItem(text, icon);
+		GetReactor().GetModule().PushBack(text, icon);
 	}
 
 	void ComboBox::PushBack(const std::string& text, const Image& icon)
 	{
 		std::wstring wText = StringUtils::Convert(text);
-		GetReactor().PushItem(wText, icon);
+		GetReactor().GetModule().PushBack(wText, icon);
+	}
+
+	void ComboBox::SetEditable(bool editable)
+	{
+		GetReactor().GetModule().SetEditable(editable);
 	}
 
 	void ComboBox::DoOnCaption(const std::wstring& caption)
 	{
-		GetReactor().SetText(caption);
+		GetReactor().GetModule().SetText(caption);
 	}
 
 	std::wstring ComboBox::DoOnCaption() const
 	{
-		return GetReactor().GetText();
+		return GetReactor().GetModule().GetText();
 	}
 }

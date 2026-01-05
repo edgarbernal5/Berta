@@ -27,7 +27,7 @@ namespace Berta
 		
 		virtual void SetEnabled(bool enabled) override;
 		virtual void SetValue(const std::string& value) override;
-		virtual void SetOption(uint32_t index);
+		virtual void SetOption(std::optional<size_t> index);
 
 		virtual void PushItem(const std::string& optionText);
 		virtual void Set(const std::vector<std::string> & options, bool clear = true);
