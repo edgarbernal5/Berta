@@ -29,31 +29,31 @@ namespace Berta
 		
 		private:
 		};
-	}
-	
-	class FormBase : public Control<ReactorCore::Form::Reactor, FormEvents>
-	{
-	public:
-		explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
-		FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
-		FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
-
-		API::NativeWindowHandle NativeHandle() const;
-
-		Layout& GetLayout()
+		
+		class FormBase : public Control<ReactorCore::Form::Reactor, FormEvents>
 		{
-			return m_layout;
-		}
+		public:
+			explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
+			FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
+			FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
 
-		void SetLayout(const std::string& layoutText);
+			API::NativeWindowHandle NativeHandle() const;
 
-		void SetCustomPaintCallback(std::function<void()> callback);
+			Layout& GetLayout()
+			{
+				return m_layout;
+			}
 
-	private:
-		Layout m_layout;
-	};
+			void SetLayout(const std::string& layoutText);
 
-	class Form : public FormBase
+			void SetCustomPaintCallback(std::function<void()> callback);
+
+		private:
+			Layout m_layout;
+		};
+	}
+
+	class Form : public ReactorCore::Form::FormBase
 	{
 	public:
 		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
@@ -65,7 +65,7 @@ namespace Berta
 	private:
 	};
 
-	class NestedForm : public FormBase
+	class NestedForm : public ReactorCore::Form::FormBase
 	{
 	public:
 		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false }, bool isRenderForm = false);

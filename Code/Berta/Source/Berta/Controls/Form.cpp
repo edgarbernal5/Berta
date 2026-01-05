@@ -27,49 +27,49 @@ namespace Berta
 #endif
 			graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
 		}
-	}
-
-	FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
-	{
-		Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested, isRenderForm);
-
-#if BT_DEBUG
-		m_handle->Name = "Form";
-#endif
-	}
-
-	FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
-	{
-		Create(owner, false, rectangle, windowStyle, isNested, isRenderForm);
+		
+		FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
+		{
+			Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested, isRenderForm);
 
 #if BT_DEBUG
-		m_handle->Name = "Form";
+			m_handle->Name = "Form";
 #endif
-	}
+		}
 
-	FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
-	{
-		Create(owner, isUnscaleRect, rectangle, windowStyle, isNested, isRenderForm);
+		FormBase::FormBase(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
+		{
+			Create(owner, false, rectangle, windowStyle, isNested, isRenderForm);
 
 #if BT_DEBUG
-		m_handle->Name = "Form";
+			m_handle->Name = "Form";
 #endif
-	}
+		}
 
-	API::NativeWindowHandle FormBase::NativeHandle() const
-	{
-		return GUI::GetNativeHandle(m_handle);
-	}
+		FormBase::FormBase(Window* owner, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
+		{
+			Create(owner, isUnscaleRect, rectangle, windowStyle, isNested, isRenderForm);
 
-	void FormBase::SetLayout(const std::string& layoutText)
-	{
-		m_layout.Create(*this);
-		m_layout.Parse(layoutText);
-	}
+#if BT_DEBUG
+			m_handle->Name = "Form";
+#endif
+		}
 
-	void FormBase::SetCustomPaintCallback(std::function<void()> callback)
-	{
-		GUI::SetCustomPaintCallback(Handle(), callback);
+		API::NativeWindowHandle FormBase::NativeHandle() const
+		{
+			return GUI::GetNativeHandle(m_handle);
+		}
+
+		void FormBase::SetLayout(const std::string& layoutText)
+		{
+			m_layout.Create(*this);
+			m_layout.Parse(layoutText);
+		}
+
+		void FormBase::SetCustomPaintCallback(std::function<void()> callback)
+		{
+			GUI::SetCustomPaintCallback(Handle(), callback);
+		}
 	}
 
 	Form::Form(const Size& size, const FormStyle& windowStyle, bool isRenderForm) :

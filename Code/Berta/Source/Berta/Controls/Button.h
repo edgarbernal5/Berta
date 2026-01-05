@@ -27,7 +27,7 @@ namespace Berta
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 
 		private:
-			enum class State
+			enum class State : uint8_t
 			{
 				Normal,
 				Pressed,

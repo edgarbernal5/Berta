@@ -10,9 +10,6 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 
-#include <string>
-#include <vector>
-
 namespace Berta
 {
 	class Panel : public Control<ControlReactor>

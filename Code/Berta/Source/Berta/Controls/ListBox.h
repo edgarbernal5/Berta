@@ -202,7 +202,7 @@ namespace Berta
 				void StopDragOrSortHeader();
 				void SortHeader(size_t headerIndex, bool ascending);
 
-				int GetListItemIndex(List::Item* item) const;
+				int GetListItemIndex(const List::Item* item) const;
 
 				Headers m_headers;
 				List m_list;

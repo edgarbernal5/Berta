@@ -83,8 +83,8 @@ namespace Berta
 		if (this != &other)
 		{
 			m_attributes = std::move(other.m_attributes);
-			m_dpi = std::move(other.m_dpi);
-			m_size = std::move(other.m_size);
+			m_dpi = other.m_dpi;
+			m_size = other.m_size;
 		}
 
 		return *this;
@@ -105,9 +105,9 @@ namespace Berta
 
 		m_targetRT = rootPaintHandle.RenderTarget;
 
-		auto rtSize = rootPaintHandle.RenderTarget->GetSize();
-		m_size.Width = rtSize.width;
-		m_size.Height = rtSize.height;
+		auto [width, height] = rootPaintHandle.RenderTarget->GetSize();
+		m_size.Width = static_cast<uint32_t>(width);
+		m_size.Height = static_cast<uint32_t>(height);
 #endif
 	}
 

@@ -67,7 +67,8 @@ public:
 								auto newItem = m_listBox.Append(entry.path().filename().string());
 								newItem.SetIcon(m_folderImg);
 							}
-							else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry)) {
+							else if (!std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
+							{
 								auto newItem = m_listBox.Append(entry.path().filename().string());
 								newItem.SetIcon(m_fileImg);
 							}

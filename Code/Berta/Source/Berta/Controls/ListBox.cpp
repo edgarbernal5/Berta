@@ -1301,7 +1301,7 @@ namespace Berta
 			std::sort(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), compare);
 		}
 
-		int Reactor::Module::GetListItemIndex(List::Item* item) const
+		int Reactor::Module::GetListItemIndex(const List::Item* item) const
 		{
 			for (size_t i = 0; i < m_list.m_items.size(); i++)
 			{
@@ -1316,7 +1316,7 @@ namespace Berta
 		bool Reactor::Module::HandleMultiSelection(List::Item* item, const ArgMouse& args)
 		{
 			bool needUpdate = false;
-			auto absoluteIndex = GetListItemIndex(item);
+			const auto absoluteIndex = GetListItemIndex(item);
 			if (!m_mouseSelection.m_pivotItem)
 			{
 				m_mouseSelection.m_pivotItem = item;

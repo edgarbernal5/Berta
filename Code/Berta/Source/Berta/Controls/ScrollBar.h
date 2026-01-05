@@ -50,7 +50,7 @@ namespace Berta
 		ScrollBarUnit GetPageStepValue() const { return m_pageStep; }
 
 	private:
-		enum class InteractionArea
+		enum class InteractionArea : uint8_t
 		{
 			None,
 			Button1,
