@@ -15,6 +15,51 @@ namespace Berta
 		Select,
 		SelectOnClick
 	};
+	
+	struct TextPosition
+	{
+		size_t line = 0;
+		size_t column = 0;
+
+		bool operator==(const TextPosition& other) const
+		{
+			return line == other.line && column == other.column;
+		}
+
+		bool operator!=(const TextPosition& other) const
+		{
+			return !(*this == other);
+		}
+
+		bool operator<(const TextPosition& other) const
+		{
+			if (line != other.line) return line < other.line;
+			return column < other.column;
+		}
+
+		bool operator>(const TextPosition& other) const
+		{
+			return other < *this;
+		}
+
+		bool operator<=(const TextPosition& other) const
+		{
+			return !(*this > other);
+		}
+
+		bool operator>=(const TextPosition& other) const
+		{
+			return !(*this < other);
+		}
+	};
+	
+	struct VisualLine
+	{
+		size_t logicalLineIndex;
+		size_t charStart;
+		size_t charLength;
+		float y; // Posición vertical absoluta
+	};
 }
 
 #endif

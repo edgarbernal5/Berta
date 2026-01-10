@@ -44,7 +44,7 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
-			GUI::Capture(*m_control);
+			//GUI::Capture(*m_control); //moved into text editor
 
 			m_textEditor->OnMouseDown(args);
 			GUI::MarkAsNeedUpdate(m_control->Handle());
@@ -60,7 +60,7 @@ namespace Berta
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			GUI::ReleaseCapture(*m_control);
+			//GUI::ReleaseCapture(*m_control); //moved into text editor
 			m_textEditor->OnMouseUp(args);
 		}
 
@@ -127,7 +127,7 @@ namespace Berta
 		auto editor = GetReactor().GetEditor();
 		if (editor)
 		{
-			return editor->GetCaretPosition();
+			
 		}
 		return 0;
 	}

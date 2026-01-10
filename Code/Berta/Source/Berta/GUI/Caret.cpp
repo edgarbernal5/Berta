@@ -48,9 +48,21 @@ namespace Berta
 	void Caret::Deactivate()
 	{
 		m_visible = false;
-
-		GUI::UpdateWindow(m_owner);
-
 		m_timer.Stop();
+		
+		GUI::UpdateWindow(m_owner);
+	}
+
+	void Caret::SetPosition(const Point& position)
+	{
+		if (m_position == position)
+			return;
+		
+		m_position = position;
+		
+		if (m_visible)
+		{
+			GUI::UpdateWindow(m_owner);
+		}
 	}
 }

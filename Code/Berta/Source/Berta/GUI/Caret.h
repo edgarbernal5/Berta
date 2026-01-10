@@ -24,12 +24,14 @@ namespace Berta
 		void Show(bool visible);
 		void Deactivate();
 
-		bool IsVisible() { return m_timer.IsRunning() && m_visible; }
+		bool IsVisible() const { return m_timer.IsRunning() && m_visible; }
+		void SetPosition(const Point& position);
 	private:
 		bool m_visible{ false };
 		Window* m_owner{ nullptr };
 		Size m_size{};
 		Timer m_timer;
+		Point m_position;
 	};
 }
 

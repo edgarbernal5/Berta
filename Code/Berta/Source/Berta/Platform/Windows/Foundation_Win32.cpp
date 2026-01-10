@@ -286,7 +286,9 @@ namespace Berta
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
+			{
 				BT_CORE_DEBUG << debugBuilder.str() << " <<" << std::endl;
+			}
 #endif
 			return innerResult;
 		}
@@ -299,7 +301,9 @@ namespace Berta
 		{
 #ifdef BT_PRINT_WND_MESSAGES
 			if (printedMessage)
+			{
 				BT_CORE_DEBUG << "native is null. " << debugBuilder.str() << " <<" << std::endl;
+			}
 #endif
 			//debugBuilder << " *** native is null (" << message << ") .hWnd = " << hWnd << std::endl;
 			return ::DefWindowProc(hWnd, message, wParam, lParam);
@@ -466,8 +470,8 @@ namespace Berta
 		//case WM_MOVING:
 		case WM_MOVE:
 		{
-			int x = (int)(short)LOWORD(lParam);
-			int y = (int)(short)HIWORD(lParam);
+			int x = static_cast<short>(LOWORD(lParam));
+			int y = static_cast<short>(HIWORD(lParam));
 #if BT_DEBUG
 			//BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
 #else
@@ -601,8 +605,8 @@ namespace Berta
 		case WM_RBUTTONDOWN:
 		{
 			wasHandled = true;
-			int x = ((int)(short)LOWORD(lParam));
-			int y = ((int)(short)HIWORD(lParam));
+			int x = static_cast<short>(LOWORD(lParam));
+			int y = static_cast<short>(HIWORD(lParam));
 
 			auto window = windowManager.Find(nativeWindow, { x, y });
 			if (window && window->Flags.IsEnabled)

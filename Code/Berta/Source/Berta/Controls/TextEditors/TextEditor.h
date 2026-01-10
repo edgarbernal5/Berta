@@ -13,6 +13,7 @@
 #include "Berta/Controls/TextEditors/TextEditorBase.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"
+//#include "Berta/GUI/Caret.h"
 #include "Berta/Core/Timer.h"
 
 namespace Berta
@@ -28,7 +29,7 @@ namespace Berta
 	public:
 		TextEditor(Window* owner, Graphics* graphics);
 		~TextEditor();
-
+		
 		void OnMouseEnter(const ArgMouse& args);
 		void OnMouseLeave(const ArgMouse& args);
 		void OnMouseDown(const ArgMouse& args);
@@ -42,16 +43,18 @@ namespace Berta
 
 		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
 
-		size_t GetCaretPosition() const { return m_caretPosition; }
-
 		const std::wstring& GetContent() const { return m_content; }
-		void SetContent(const std::wstring& newContent) { m_content = newContent; }
-		void SetContent(const std::string& newContent) { m_content = StringUtils::Convert(newContent); }
+		void SetContent(const std::wstring& newContent);
+		void SetContent(const std::string& newContent);
 
 		void Render();
 
 		bool IsEditable() const;
 		void SetEditable(bool isEditable);
+		
+		void SetMultiline(bool enable);
+		void SetWordWrap(bool enable);
+		
 		void SetCharFilter(std::function<bool(wchar_t)> predicate);
 		void SetBehavior(TextFocusBehavior behavior)
 		{
@@ -65,42 +68,65 @@ namespace Berta
 		{
 			bool isEditable{ true };
 			bool isMultiLines{ true };
+			bool wordWrap{ true };
 		};
 
 		struct Selection
 		{
-			int64_t m_startPosition{ -1 };
-			int64_t m_endPosition{ -1 };
+			TextPosition m_startPosition{ 0, 0 };
+			TextPosition m_endPosition{ 0, 0 };
 			bool m_isSelecting{ false };
 			bool m_ignoreMouseDown{ false };
 			TextFocusBehavior Behavior{ TextFocusBehavior::None };
+
+			bool IsEmpty() const { return m_startPosition == m_endPosition; }
+			TextPosition Min() const { return (m_startPosition < m_endPosition) ? m_startPosition : m_endPosition; }
+			TextPosition Max() const { return (m_startPosition > m_endPosition) ? m_startPosition : m_endPosition; }
+			void Reset(TextPosition position) { m_startPosition = m_endPosition = position; }
 		};
 
 		void ActivateCaret();
 		void DeactivateCaret();
 
-		void Insert(wchar_t chr);
+		void InsertChar(wchar_t chr);
 
-		void MoveCaretLeft();
-		void MoveCaretHome();
-		void MoveCaretRight();
-		void MoveCaretEnd();
-		void Delete();
-		void DeleteBack();
-
+		void MoveCaretLeft(bool select);
+		void MoveCaretHome(bool select);
+		void MoveCaretRight(bool select);
+		void MoveCaretEnd(bool select);
+		
+		void MoveCaretUp(bool select);
+		void MoveCaretDown(bool select);
+		
+		void HandleDelete();
+		void HandleBackspace();
+		void HandleEnter();
+		
+		void DeleteRange(TextPosition start, TextPosition end);
+		
+		size_t GetVisualLineIndexFromPos(TextPosition position) const;
+		float GetLineHeight() const;
+		
+		void EnsureCaretVisible();
+		void UpdateCaretPhysicalPosition(float lh);
+		
 		void AdjustView();
 		Size GetContentTextExtent(size_t position = 0) const;
-		size_t GetPositionUnderMouse(const Point& mousePosition) const;
-		size_t GetPositionNextWord(int64_t currentPosition, int direction) const;
+		TextPosition GetPositionUnderMouse(const Point& mousePosition) const;
+		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
 
+		void RecomputeWordWrap();
 		void EmitValueChanged() const;
 		
 		Color GetBackgroundColor() const;
 
-		Graphics& m_graphics;
-		size_t m_caretPosition{ 0 };
+		std::vector<std::wstring> m_lines{ L"" };
+		std::vector<VisualLine> m_visualLines;
+		TextPosition m_caretPos;
 		Selection m_selection;
-		int m_offsetView{ 0 };
+		
+		Graphics& m_graphics;
+		Point m_offsetView{ 0, 0 };
 		std::wstring m_content;
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };

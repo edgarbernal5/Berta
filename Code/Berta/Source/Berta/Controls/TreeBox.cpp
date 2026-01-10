@@ -262,7 +262,7 @@ namespace Berta
 		bool needUpdate = false;
 		bool recalculateVisibleNodes = false;
 		bool emitSelectionEvent = false;
-		bool emitCollaspedEvent = false;
+		bool emitCollapsedEvent = false;
 		auto nodeHeightInt = static_cast<int>(m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight));
 
 		if (args.Key == KeyboardKey::ArrowLeft && m_module.m_mouseSelection.m_selectedNode)
@@ -273,7 +273,7 @@ namespace Berta
 
 				recalculateVisibleNodes = true;
 				needUpdate = true;
-				emitCollaspedEvent = true;
+				emitCollapsedEvent = true;
 			}
 			else if (m_module.m_mouseSelection.m_selectedNode->parent != &m_module.m_root)
 			{
@@ -303,7 +303,7 @@ namespace Berta
 
 				recalculateVisibleNodes = true;
 				needUpdate = true;
-				emitCollaspedEvent = true;
+				emitCollapsedEvent = true;
 			}
 			else if (m_module.m_mouseSelection.m_selectedNode->firstChild)
 			{
@@ -504,7 +504,7 @@ namespace Berta
 			m_module.EmitSelectionEvent();
 		}
 
-		if (emitCollaspedEvent)
+		if (emitCollapsedEvent)
 		{
 			m_module.EmitExpansionEvent(m_module.m_mouseSelection.m_selectedNode);
 		}
