@@ -402,7 +402,15 @@ int main()
 		{
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
 		});
-
+	
+	Berta::InputText inputTextMultiline(form, { 350,28,250,95 });
+	inputTextMultiline.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputTextMultiline.SetMultiLine(true);
+	
+	Berta::InputText inputTextWordWrap(form, { 350,125,250,95 });
+	inputTextWordWrap.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputTextWordWrap.SetWordWrap(true);
+	
 	Berta::ComboBox comboBox(form, { 110,55,200,25 });
 	for (size_t i = 0; i < 2; i++)
 	{

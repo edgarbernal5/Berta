@@ -25,6 +25,8 @@ namespace Berta
 		void Deactivate();
 
 		bool IsVisible() const { return m_timer.IsRunning() && m_visible; }
+		
+		Point GetPosition() const { return m_position; }
 		void SetPosition(const Point& position);
 	private:
 		bool m_visible{ false };

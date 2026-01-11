@@ -70,6 +70,9 @@ namespace Berta
 		bool IsEditable() const;
 		void SetEditable(bool isEditable);
 
+		void SetMultiLine(bool enabled);
+		void SetWordWrap(bool enabled);
+		
 		void SetCharFilter(std::function<bool(wchar_t)> predicate);
 
 		std::wstring GetText() const;

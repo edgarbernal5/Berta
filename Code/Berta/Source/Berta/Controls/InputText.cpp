@@ -169,6 +169,26 @@ namespace Berta
 		}
 	}
 
+	void InputText::SetMultiLine(bool enabled)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetMultiline(enabled);
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
+	void InputText::SetWordWrap(bool enabled)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetWordWrap(enabled);
+			GUI::UpdateWindow(m_handle);
+		}
+	}
+
 	void InputText::SetCharFilter(std::function<bool(wchar_t)> predicate)
 	{
 		auto editor = GetReactor().GetEditor();

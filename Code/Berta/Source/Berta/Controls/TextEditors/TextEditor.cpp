@@ -40,7 +40,7 @@ namespace Berta
 		if (m_caret)
 		{
 			delete m_caret;
-			m_caret=nullptr;
+			m_caret = nullptr;
 		}
 	}
 
@@ -82,17 +82,19 @@ namespace Berta
 	{
 		if (m_selection.m_isSelecting)
 		{
-			m_selection.m_endPosition = GetPositionUnderMouse(args.Position);
-		}
-		if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
-		{
-			m_selectionTimer.SetInterval(300);
-			m_selectionTimer.Start();
-			m_selectionDirection = args.Position.X < 0;
-		}
-		else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
-		{
-			m_selectionTimer.Stop();
+			TextPosition newPosition = GetPositionUnderMouse(args.Position);
+			m_selection.m_endPosition = newPosition;
+			
+			if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
+			{
+				m_selectionTimer.SetInterval(300);
+				m_selectionTimer.Start();
+				m_selectionDirection = args.Position.X < 0;
+			}
+			else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
+			{
+				m_selectionTimer.Stop();
+			}
 		}
 	}
 
@@ -186,8 +188,10 @@ namespace Berta
 		switch (args.Key)
 		{
 		case KeyboardKey::ArrowLeft:
-			if (m_ctrlPressed) m_selection.m_endPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
-			else MoveCaretLeft(m_shiftPressed);
+			if (m_ctrlPressed)
+				m_selection.m_endPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
+			else 
+				MoveCaretLeft(m_shiftPressed);
 			if (!m_shiftPressed && !m_ctrlPressed) m_selection.m_startPosition = m_selection.m_endPosition;
 			break;
 
@@ -195,6 +199,18 @@ namespace Berta
 			if (m_ctrlPressed) m_selection.m_endPosition = GetPositionNextWord(m_selection.m_endPosition, 1);
 			else MoveCaretRight(m_shiftPressed);
 			if (!m_shiftPressed && !m_ctrlPressed) m_selection.m_startPosition = m_selection.m_endPosition;
+			break;
+		
+		case KeyboardKey::ArrowUp:
+			MoveCaretUp(m_shiftPressed);
+			break;
+		
+		case KeyboardKey::ArrowDown:
+			MoveCaretDown(m_shiftPressed);
+			break;
+			
+		case KeyboardKey::Enter:
+			HandleEnter();
 			break;
 
 		//case KeyboardKey::A:
@@ -217,37 +233,6 @@ namespace Berta
 			HandleBackspace();
 			break;
 		}
-		/*if (args.Key == KeyboardKey::ArrowLeft && (m_caretPosition > 0 || m_selection.m_startPosition != m_selection.m_endPosition))
-		{
-			MoveCaretLeft(m_shiftPressed);
-			redraw = true;
-		}
-		else if (args.Key == KeyboardKey::ArrowRight && (m_caretPosition < contentSize || m_selection.m_startPosition != m_selection.m_endPosition))
-		{
-			MoveCaretRight(m_shiftPressed);
-			redraw = true;
-		}
-		else if (args.Key == KeyboardKey::Home)
-		{
-			MoveCaretHome();
-			redraw = true;
-		}
-		else if (args.Key == KeyboardKey::End)
-		{
-			MoveCaretEnd();
-			redraw = true;
-		}
-		else if (args.Key == KeyboardKey::Backspace && m_features.isEditable && contentSize > 0)
-		{
-			HandleBackspace();
-			redraw = true;
-		}
-		else if (args.Key == KeyboardKey::Delete && m_features.isEditable && (m_caretPosition < contentSize || m_selection.m_startPosition != m_selection.m_endPosition))
-		{
-			HandleDelete();
-			redraw = true;
-		}
-		return redraw;*/
 		return true;
 	}
 
@@ -268,17 +253,19 @@ namespace Berta
 		
 		TextPosition clickPos = GetPositionUnderMouse(args.Position);
 		const std::wstring& line = m_lines[clickPos.line];
-		if (line.empty()) return true;
+		if (line.empty())
+			return true;
 
 		size_t start = clickPos.column;
 		size_t end = clickPos.column;
 
-		// Expandir hacia la izquierda
-		while (start > 0 && iswalnum(line[start - 1])) {
+		while (start > 0 && iswalnum(line[start - 1]))
+		{
 			start--;
 		}
-		// Expandir hacia la derecha
-		while (end < line.size() && iswalnum(line[end])) {
+		
+		while (end < line.size() && iswalnum(line[end]))
+		{
 			end++;
 		}
 
@@ -313,14 +300,26 @@ namespace Berta
 		{
 			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
 		}
-		
+		TextPosition& position = m_selection.m_endPosition;
 		auto& currentLine = m_lines[m_selection.m_endPosition.line];
     
-		currentLine.insert(m_selection.m_endPosition.column, 1, chr);
-
-		// 3. Avanzar el cursor una posición a la derecha
-		m_selection.m_endPosition.column++;
-		m_selection.m_startPosition = m_selection.m_endPosition; // Resetear selección
+		if (chr == L'\n')
+		{
+			std::wstring remainder = currentLine.substr(position.column);
+			currentLine = currentLine.substr(0, position.column);
+        
+			m_lines.insert(m_lines.begin() + position.line + 1, remainder);
+        
+			position.line++;
+			position.column = 0;
+		}
+		else
+		{
+			currentLine.insert(position.column, 1, chr);
+			position.column++;
+		}
+		RecomputeWordWrap();
+		m_selection.m_startPosition = position;
 		
 		//AdjustView();
 		EmitValueChanged();
@@ -328,71 +327,33 @@ namespace Berta
 
 	void TextEditor::MoveCaretLeft(bool select)
 	{
-		TextPosition& pos = m_selection.m_endPosition;
+		TextPosition& position = m_selection.m_endPosition;
 
-		if (pos.column > 0)
+		if (position.column > 0)
 		{
-			// Movimiento normal a la izquierda
-			pos.column--;
+			position.column--;
 		}
-		else if (pos.line > 0)
+		else if (position.line > 0)
 		{
-			// Salto a la línea superior (al final de esta)
-			pos.line--;
-			pos.column = m_lines[pos.line].size();
-		}
-
-		// Si no estamos seleccionando, el inicio de la selección sigue al cursor
-		if (!select) 
-		{
-			m_selection.m_startPosition = pos;
+			position.line--;
+			position.column = m_lines[position.line].size();
 		}
 		
-		/*size_t newCaretPosition = m_caretPosition;
-		if (newCaretPosition > 0)
+		if (!select) 
 		{
-			--newCaretPosition;
+			m_selection.m_startPosition = position;
 		}
-
-		if (m_ctrlPressed)
-		{
-			size_t ctrlPos = GetPositionNextWord(m_caretPosition - 1, -1);
-			newCaretPosition = ctrlPos;
-		}
-		if (m_shiftPressed)
-		{
-			if (m_selection.m_startPosition == -1 && m_selection.m_endPosition == -1)
-			{
-				m_selection.m_startPosition = m_caretPosition;
-			}
-			m_selection.m_endPosition = newCaretPosition;
-		}
-		else
-		{
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
-		}
-		m_caretPosition = newCaretPosition;
-		AdjustView();*/
 	}
 
 	void TextEditor::MoveCaretHome(bool select)
 	{
-		/*size_t newCaretPosition = 0;
+		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart;
 
-		if (m_shiftPressed)
+		if (!select)
 		{
-			if (m_selection.m_startPosition == -1 && m_selection.m_endPosition == -1)
-			{
-				m_selection.m_startPosition = m_caretPosition;
-			}
-			m_selection.m_endPosition = newCaretPosition;
+			m_selection.m_startPosition = m_selection.m_endPosition;
 		}
-		else
-		{
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
-		}
-		m_caretPosition = newCaretPosition;
-		AdjustView();*/
 	}
 
 	void TextEditor::MoveCaretRight(bool select)
@@ -402,12 +363,10 @@ namespace Berta
 
 		if (pos.column < currentLine.size())
 		{
-			// Movimiento normal a la derecha
 			pos.column++;
 		}
 		else if (pos.line + 1 < m_lines.size())
 		{
-			// Salto al inicio de la siguiente línea
 			pos.line++;
 			pos.column = 0;
 		}
@@ -416,50 +375,17 @@ namespace Berta
 		{
 			m_selection.m_startPosition = pos;
 		}
-		/*size_t newCaretPosition = m_caretPosition;
-
-		if (newCaretPosition < m_content.size())
-			++newCaretPosition;
-
-		if (m_ctrlPressed)
-		{
-			size_t ctrlPos = GetPositionNextWord(m_caretPosition, 1);
-			newCaretPosition = ctrlPos;
-		}
-		if (m_shiftPressed)
-		{
-			if (m_selection.m_startPosition == -1 && m_selection.m_endPosition == -1)
-			{
-				m_selection.m_startPosition = m_caretPosition;
-			}
-			m_selection.m_endPosition = newCaretPosition;
-		}
-		else
-		{
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
-		}
-		m_caretPosition = newCaretPosition;
-		AdjustView();*/
 	}
 
 	void TextEditor::MoveCaretEnd(bool select)
 	{
-		/*size_t newCaretPosition = m_content.size();
+		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart + m_visualLines[vIdx].charLength;
 
-		if (m_shiftPressed)
+		if (!select)
 		{
-			if (m_selection.m_startPosition == -1 && m_selection.m_endPosition == -1)
-			{
-				m_selection.m_startPosition = m_caretPosition;
-			}
-			m_selection.m_endPosition = newCaretPosition;
+			m_selection.m_startPosition = m_selection.m_endPosition;
 		}
-		else
-		{
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
-		}
-		m_caretPosition = newCaretPosition;
-		AdjustView();*/
 	}
 
 	void TextEditor::MoveCaretUp(bool select)
@@ -489,144 +415,105 @@ namespace Berta
 			m_selection.m_endPosition.line = targetV.logicalLineIndex;
 			m_selection.m_endPosition.column = targetV.charStart + (std::min)(offset, targetV.charLength);
 		}
-		if (!select) m_selection.m_startPosition = m_selection.m_endPosition;
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
 		AdjustView();
 	}
 
 	void TextEditor::HandleDelete()
 	{
-		/*if (m_selection.m_endPosition != m_selection.m_startPosition)
+		if (!m_selection.IsEmpty())
 		{
-			auto start = (std::min)(m_selection.m_startPosition, m_selection.m_endPosition);
-			auto end = (std::max)(m_selection.m_startPosition, m_selection.m_endPosition);
-
-			m_content.erase(start, (end - start));
-			int64_t caretPosition = static_cast<int64_t>(m_caretPosition);
-			if (m_caretPosition == end)
-				caretPosition -= (end - start);
-
-			if (caretPosition < 0)
-			{
-				m_caretPosition = m_content.size();
-			}
-			else
-			{
-				m_caretPosition = caretPosition;
-			}
-
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
+			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+			return;
 		}
-		else
+		TextPosition& position = m_selection.m_endPosition;
+		auto& currentLine = m_lines[position.line];
+
+		if (position.column < currentLine.size())
 		{
-			m_content.erase(m_caretPosition, 1);
+			currentLine.erase(position.column, 1);
 		}
-		AdjustView();
-		EmitValueChanged();*/
+		else if (position.line + 1 < m_lines.size())
+		{
+			m_lines[position.line] += m_lines[position.line + 1];
+			m_lines.erase(m_lines.begin() + position.line + 1);
+		}
+
+		m_selection.m_startPosition = position;
+		//AdjustView();
+		//EmitValueChanged();
 	}
 
 	void TextEditor::HandleBackspace()
 	{
-		if (m_caretPos.column > 0)
+		if (!m_selection.IsEmpty())
 		{
-			m_lines[m_caretPos.line].erase(m_caretPos.column - 1, 1);
-			m_caretPos.column--;
-		} 
-		else if (m_caretPos.line > 0)
-		{
-			// Unir con la línea de arriba
-			size_t prevLineIdx = m_caretPos.line - 1;
-			m_caretPos.column = m_lines[prevLineIdx].size(); // Guardar posición de unión
-        
-			m_lines[prevLineIdx] += m_lines[m_caretPos.line];
-			m_lines.erase(m_lines.begin() + m_caretPos.line);
-        
-			m_caretPos.line = prevLineIdx;
+			DeleteRange(m_selection.Min(), m_selection.Max());
+			return;
 		}
 		
-		/*if (m_caretPosition == 0 && m_selection.m_endPosition == m_selection.m_startPosition)
-			return;
-
-		if (m_selection.m_endPosition != m_selection.m_startPosition)
+		TextPosition& pos = m_selection.m_endPosition;
+		if (pos.column == 0 && pos.line > 0)
 		{
-			auto start = (std::min)(m_selection.m_startPosition, m_selection.m_endPosition);
-			auto end = (std::max)(m_selection.m_startPosition, m_selection.m_endPosition);
-
-			std::wstring stringToDelete{ m_content.data() + start, m_content.data() + end };
-			m_content.erase(start, (end - start));
-			int64_t caretPosition = m_caretPosition;
-			if (m_caretPosition == end)
-			{
-				caretPosition -= (end - start);
-			}
-
-			if (caretPosition < 0)
-			{
-				m_caretPosition = static_cast<uint32_t>(m_content.size());
-			}
-			else
-			{
-				m_caretPosition = caretPosition;
-			}
-			if (m_offsetView < 0)
-			{
-				m_offsetView += m_graphics.GetTextExtent(stringToDelete).Width;
-				if (m_offsetView > 0) m_offsetView = 0;
-			}
-
-			m_selection.m_endPosition = m_selection.m_startPosition = -1;
+			size_t targetLine = pos.line - 1;
+			size_t newCol = m_lines[targetLine].size();
+        
+			m_lines[targetLine] += m_lines[pos.line];
+			m_lines.erase(m_lines.begin() + pos.line);
+        
+			pos.line = targetLine;
+			pos.column = newCol;
+        
+			RecomputeWordWrap();
 		}
-		else
+		else if (pos.column > 0)
 		{
-			m_content.erase(m_caretPosition - 1, 1);
-			--m_caretPosition;
+			m_lines[pos.line].erase(pos.column - 1, 1);
+			pos.column--;
 		}
-		AdjustView();
-		EmitValueChanged();*/
+		else if (pos.line > 0)
+		{
+			size_t prevLine = pos.line - 1;
+			pos.column = m_lines[prevLine].size();
+			m_lines[prevLine] += m_lines[pos.line];
+			m_lines.erase(m_lines.begin() + pos.line);
+			pos.line = prevLine;
+		}
+		m_selection.m_startPosition = pos;
 	}
 
 	void TextEditor::HandleEnter()
 	{
-		if (!m_features.isMultiLines) return;
+		if (!m_features.isMultiLines)
+			return;
 
-		auto& currentLine = m_lines[m_caretPos.line];
-		std::wstring remainingText = currentLine.substr(m_caretPos.column);
-    
-		// Cortamos la línea actual
-		currentLine.erase(m_caretPos.column);
-    
-		// Insertamos nueva línea justo debajo
-		m_lines.insert(m_lines.begin() + m_caretPos.line + 1, remainingText);
-    
-		// Movemos el caret al inicio de la nueva línea
-		m_caretPos.line++;
-		m_caretPos.column = 0;
+		InsertChar(L'\n');
 	}
 
 	void TextEditor::DeleteRange(TextPosition start, TextPosition end)
 	{
-		if (start == end) return;
+		if (start == end)
+			return;
 
-		// Aseguramos que start sea el menor
-		if (end < start) std::swap(start, end);
+		if (end < start)
+			std::swap(start, end);
 
-		if (start.line == end.line) {
-			// Borrado en la misma línea
+		if (start.line == end.line)
+		{
 			m_lines[start.line].erase(start.column, end.column - start.column);
 		} 
-		else {
-			// Borrado multilínea
-			// 1. Conservamos el inicio de la primera línea y el final de la última
+		else
+		{
 			std::wstring head = m_lines[start.line].substr(0, start.column);
 			std::wstring tail = m_lines[end.line].substr(end.column);
 
-			// 2. La línea de inicio ahora contiene la unión de ambos extremos
 			m_lines[start.line] = head + tail;
-
-			// 3. Eliminamos todas las líneas que quedaron en medio y la línea final original
 			m_lines.erase(m_lines.begin() + start.line + 1, m_lines.begin() + end.line + 1);
 		}
 
-		// El cursor siempre queda donde empezó el borrado
 		m_selection.Reset(start);
 	}
 
@@ -635,11 +522,12 @@ namespace Berta
 		for (size_t i = 0; i < m_visualLines.size(); ++i)
 		{
 			const auto& vl = m_visualLines[i];
-			if (vl.logicalLineIndex == position.line && position.column >= vl.charStart && position.column <= vl.charStart + vl.charLength) {
-				// Evitar quedarse atrapado al final de una línea visual envuelta
+			if (vl.logicalLineIndex == position.line && position.column >= vl.charStart && position.column <= vl.charStart + vl.charLength)
+			{
 				if (position.column == vl.charStart + vl.charLength && i + 1 < m_visualLines.size())
 				{
-					if (m_visualLines[i+1].logicalLineIndex == position.line) continue;
+					if (m_visualLines[i+1].logicalLineIndex == position.line) 
+						continue;
 				}
 				return i;
 			}
@@ -652,38 +540,26 @@ namespace Berta
 		return static_cast<float>(m_graphics.GetTextExtent("Ay").Height);
 	}
 
-	void TextEditor::EnsureCaretVisible()
-	{
-	}
-
-	void TextEditor::UpdateCaretPhysicalPosition(float lh)
-	{
-		auto& p = m_selection.m_endPosition;
-		int x = (int)m_graphics.GetTextExtent(m_lines[p.line].substr(0, p.column)).Width;
-		int y = (int)(p.line * lh) - m_offsetView.Y;
-		m_caret->SetPosition({x, y});
-		(y < 0 || y + lh > m_owner->ClientSize.Height) ? m_caret->Deactivate() : m_caret->Activate();
-	}
-
 	void TextEditor::SetContent(const std::wstring& newContent)
 	{
 		m_content = newContent;
 		m_lines.clear();
     
-		// Si el texto está vacío, garantizamos al menos una línea vacía
 		if (m_content.empty())
 		{
 			m_lines.push_back(L"");
 		}
 		else
 		{
-			// Splitting del texto por saltos de línea (\n o \r\n)
 			std::size_t start = 0, end;
 			while ((end = m_content.find(L'\n', start)) != std::wstring::npos)
 			{
 				std::wstring line = m_content.substr(start, end - start);
-				// Limpiar \r si existe (estilo Windows)
-				if (!line.empty() && line.back() == L'\r') line.pop_back();
+				
+				if (!line.empty() && line.back() == L'\r')
+				{
+					line.pop_back();
+				}
 				m_lines.push_back(line);
 				start = end + 1;
 			}
@@ -705,8 +581,11 @@ namespace Berta
 	{
 		bool enabled = GUI::IsWindowEnabled(m_owner);
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
+		
 		auto clientSize = m_owner->ClientSize;
 		float lineHeight = GetLineHeight();
+		auto one = m_owner->ToScale(1);
+		auto two = m_owner->ToScale(2);
 		
 		TextPosition s = m_selection.Min();
 		TextPosition e = m_selection.Max();
@@ -714,14 +593,15 @@ namespace Berta
 		for (const auto& vl : m_visualLines)
 		{
 			float drawY = vl.y - m_offsetView.Y;
-			if (drawY + lineHeight < 0 || drawY > clientSize.Height) 
+			if (drawY + lineHeight < 0 || drawY > clientSize.Height)
+			{
 				continue;
+			}
 			
 			std::wstring fragment = m_lines[vl.logicalLineIndex].substr(vl.charStart, vl.charLength);
-			
+			float drawX = -static_cast<float>(m_offsetView.X);
 			if (s != e && vl.logicalLineIndex >= s.line && vl.logicalLineIndex <= e.line)
 			{
-				// Calcular dónde empieza y termina la selección DENTRO de este fragmento
 				size_t selStartInV = (vl.logicalLineIndex == s.line) ? (std::max)(vl.charStart, s.column) : vl.charStart;
 				size_t selEndInV = (vl.logicalLineIndex == e.line) ? (std::min)(vl.charStart + vl.charLength, e.column) : (vl.charStart + vl.charLength);
 
@@ -732,13 +612,22 @@ namespace Berta
 					m_graphics.DrawRectangle(Rectangle{(int)x1, (int)drawY, (uint32_t)w, (uint32_t)lineHeight}, Color(0, 120, 215, 128), true);
 				}
 			}
-			m_graphics.DrawString({ 0, (int)drawY }, fragment, m_owner->Appearance->Foreground);
+			m_graphics.DrawString({ two, (int)drawY + two }, fragment, m_owner->Appearance->Foreground);
+			
+			//Caret
+			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
+				m_selection.m_endPosition.column >= vl.charStart && 
+				m_selection.m_endPosition.column <= vl.charStart + vl.charLength)
+			{
+				float caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
+				m_caret->SetPosition({ (int)(drawX + caretX), (int)drawY });
+			}
 		}
-		//UpdateCaretPhysicalPosition(lineHeight);
 		
 		if (m_caret->IsVisible())
 		{
-			//m_graphics.DrawLine({ two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset }, { two + m_offsetView + static_cast<int>(contentSize.Width), one + textOffset + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
+			auto caretHeight= m_graphics.GetCaretHeight();
+			m_graphics.DrawLine({ two + m_caret->GetPosition().X, one +  + m_caret->GetPosition().Y }, { two +  + m_caret->GetPosition().X, one +  + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
 		}
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor, false);
 	}
@@ -755,12 +644,19 @@ namespace Berta
 
 	void TextEditor::SetMultiline(bool enable)
 	{
+		if (m_features.isMultiLines == enable)
+			return;
+		
 		m_features.isMultiLines = enable;
 	}
 
 	void TextEditor::SetWordWrap(bool enable)
 	{
+		if (m_features.wordWrap == enable)
+			return;
+		
 		m_features.wordWrap = enable;
+		RecomputeWordWrap();
 	}
 
 	void TextEditor::SetCharFilter(std::function<bool(wchar_t)> predicate)
@@ -770,7 +666,10 @@ namespace Berta
 
 	bool TextEditor::Deselect()
 	{
-		if (m_selection.IsEmpty()) return false;
+		if (m_selection.IsEmpty())
+		{
+			return false;
+		}
 		m_selection.Reset(m_selection.m_endPosition);
 		
 		return true;
@@ -820,30 +719,35 @@ namespace Berta
 
 	TextPosition TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
-		int relativeY = mousePosition.Y - m_offsetView.Y;
-		size_t lineIdx = (relativeY < 0) ? 0 : static_cast<size_t>(relativeY / GetLineHeight());
+		float lineHeight = GetLineHeight();
     
-		if (lineIdx >= m_lines.size()) 
-			lineIdx = m_lines.size() - 1;
+		float worldX = static_cast<float>(mousePosition.X + m_offsetView.X);
+		float worldY = static_cast<float>(mousePosition.Y + m_offsetView.Y);
 
-		// 2. Determinar la columna basándonos en X
-		const std::wstring& lineText = m_lines[lineIdx];
-		size_t bestCol = 0;
-		int minDiff = (std::numeric_limits<int>::max)();
-
-		for (size_t i = 0; i <= lineText.size(); ++i)
+		for (const auto& vl : m_visualLines)
 		{
-			auto extent = m_graphics.GetTextExtent(lineText.substr(0, i));
-			int diff = std::abs(static_cast<int>(extent.Width) + m_offsetView.X - mousePosition.X);
-			if (diff < minDiff)
+			if (worldY >= vl.y && worldY < vl.y + lineHeight)
 			{
-				minDiff = diff;
-				bestCol = i;
-			} else {
-				break; // Optimización: si la diferencia empieza a crecer, ya pasamos el punto
+				const std::wstring& line = m_lines[vl.logicalLineIndex];
+				std::wstring fragment = line.substr(vl.charStart, vl.charLength);
+            
+				size_t bestCol = 0;
+				float minDistance = 999999.0f;
+            
+				for (size_t i = 0; i <= fragment.size(); ++i)
+				{
+					float width = m_graphics.GetTextExtent(fragment.substr(0, i)).Width;
+					float dist = std::abs(width - worldX);
+					if (dist < minDistance)
+					{
+						minDistance = dist;
+						bestCol = i;
+					}
+				}
+				return { vl.logicalLineIndex, vl.charStart + bestCol };
 			}
 		}
-		return { lineIdx, bestCol };
+		return { m_lines.size() - 1, m_lines.back().size() };
 	}
 
 	TextPosition TextEditor::GetPositionNextWord(TextPosition currentPosition, int direction) const
@@ -854,40 +758,47 @@ namespace Berta
 		}
 
 		const std::wstring& line = m_lines[currentPosition.line];
-		if (direction > 0) // Hacia la derecha
+		if (direction > 0)
 		{
-			if (currentPosition.column >= line.size()) {
-				// Si estamos al final de la línea, saltar al inicio de la siguiente
-				if (currentPosition.line + 1 < m_lines.size()) 
+			if (currentPosition.column >= line.size())
+				{
+				if (currentPosition.line + 1 < m_lines.size())
+				{
 					return { currentPosition.line + 1, 0 };
+				}
+				
 				return currentPosition;
 			}
         
 			size_t p = currentPosition.column;
-			// Saltar espacios iniciales
-			while (p < line.size() && iswspace(line[p])) p++;
-			// Saltar caracteres de palabra
-			while (p < line.size() && !iswspace(line[p])) p++;
-        
-			return { currentPosition.line, p };
-		}
-		else // Hacia la izquierda
-		{
-			if (currentPosition.column == 0) {
-				// Si estamos al inicio, saltar al final de la anterior
-				if (currentPosition.line > 0) 
-					return { currentPosition.line - 1, m_lines[currentPosition.line - 1].size() };
-				return currentPosition;
-			}
+			while (p < line.size() && iswspace(line[p])) 
+				p++;
 
-			size_t p = currentPosition.column;
-			// Retroceder espacios
-			while (p > 0 && iswspace(line[p - 1])) p--;
-			// Retroceder palabra
-			while (p > 0 && !iswspace(line[p - 1])) p--;
+			while (p < line.size() && !iswspace(line[p])) 
+				p++;
         
 			return { currentPosition.line, p };
 		}
+		
+		if (currentPosition.column == 0)
+		{
+			if (currentPosition.line > 0)
+			{
+				return { currentPosition.line - 1, m_lines[currentPosition.line - 1].size() };
+			}
+			
+			return currentPosition;
+		}
+
+		size_t p = currentPosition.column;
+		while (p > 0 && iswspace(line[p - 1]))
+			p--;
+		
+		while (p > 0 && !iswspace(line[p - 1]))
+			p--;
+    
+		return { currentPosition.line, p };
+		
 	}
 
 	void TextEditor::RecomputeWordWrap()
@@ -904,7 +815,6 @@ namespace Berta
 			{
 			const std::wstring& lineText = m_lines[i];
         
-			// Caso línea vacía (un \n solitario)
 			if (lineText.empty())
 			{
 				m_visualLines.push_back({ i, 0, 0, currentY });
@@ -923,8 +833,7 @@ namespace Berta
 				while (start < lineText.size())
 				{
 					size_t count = 0;
-					// Medición progresiva: buscamos cuánto texto cabe
-					// Nota: Un editor pro usaría búsqueda binaria aquí para velocidad
+					// TODO: Binary search
 					while (start + count < lineText.size())
 					{
 						float w = m_graphics.GetTextExtent(lineText.substr(start, count + 1)).Width;

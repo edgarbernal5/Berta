@@ -67,8 +67,8 @@ namespace Berta
 		struct Features
 		{
 			bool isEditable{ true };
-			bool isMultiLines{ true };
-			bool wordWrap{ true };
+			bool isMultiLines{ false };
+			bool wordWrap{ false };
 		};
 
 		struct Selection
@@ -107,9 +107,6 @@ namespace Berta
 		size_t GetVisualLineIndexFromPos(TextPosition position) const;
 		float GetLineHeight() const;
 		
-		void EnsureCaretVisible();
-		void UpdateCaretPhysicalPosition(float lh);
-		
 		void AdjustView();
 		Size GetContentTextExtent(size_t position = 0) const;
 		TextPosition GetPositionUnderMouse(const Point& mousePosition) const;
@@ -122,7 +119,6 @@ namespace Berta
 
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
-		TextPosition m_caretPos;
 		Selection m_selection;
 		
 		Graphics& m_graphics;
