@@ -47,6 +47,7 @@ namespace Berta
 		void SetContent(const std::wstring& newContent);
 		void SetContent(const std::string& newContent);
 
+		void SetEditorArea(const Rectangle& area);
 		void Render();
 
 		bool IsEditable() const;
@@ -104,8 +105,9 @@ namespace Berta
 		
 		void DeleteRange(TextPosition start, TextPosition end);
 		
+		
 		size_t GetVisualLineIndexFromPos(TextPosition position) const;
-		float GetLineHeight() const;
+		uint32_t GetLineHeight() const;
 		
 		void AdjustView();
 		Size GetContentTextExtent(size_t position = 0) const;
@@ -120,6 +122,7 @@ namespace Berta
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
 		Selection m_selection;
+		Rectangle m_editorArea;
 		
 		Graphics& m_graphics;
 		Point m_offsetView{ 0, 0 };

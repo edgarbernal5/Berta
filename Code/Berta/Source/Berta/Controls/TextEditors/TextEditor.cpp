@@ -85,13 +85,13 @@ namespace Berta
 			TextPosition newPosition = GetPositionUnderMouse(args.Position);
 			m_selection.m_endPosition = newPosition;
 			
-			if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
+			if (args.ButtonState.LeftButton && !m_selectionTimer.IsRunning() && (args.Position.X > static_cast<int>(m_editorArea.Width) || args.Position.X < 0))
 			{
 				m_selectionTimer.SetInterval(300);
 				m_selectionTimer.Start();
 				m_selectionDirection = args.Position.X < 0;
 			}
-			else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > static_cast<int>(m_owner->ClientSize.Width) || args.Position.X < 0))
+			else if (args.ButtonState.LeftButton && m_selectionTimer.IsRunning() && !(args.Position.X > static_cast<int>(m_editorArea.Width) || args.Position.X < 0))
 			{
 				m_selectionTimer.Stop();
 			}
@@ -189,16 +189,22 @@ namespace Berta
 		{
 		case KeyboardKey::ArrowLeft:
 			if (m_ctrlPressed)
-				m_selection.m_endPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
-			else 
+			{
+				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
+				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
+			}
+			else
 				MoveCaretLeft(m_shiftPressed);
-			if (!m_shiftPressed && !m_ctrlPressed) m_selection.m_startPosition = m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::ArrowRight:
-			if (m_ctrlPressed) m_selection.m_endPosition = GetPositionNextWord(m_selection.m_endPosition, 1);
-			else MoveCaretRight(m_shiftPressed);
-			if (!m_shiftPressed && !m_ctrlPressed) m_selection.m_startPosition = m_selection.m_endPosition;
+			if (m_ctrlPressed)
+			{
+				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, 1);
+				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
+			}
+			else
+				MoveCaretRight(m_shiftPressed);
 			break;
 		
 		case KeyboardKey::ArrowUp:
@@ -254,7 +260,9 @@ namespace Berta
 		TextPosition clickPos = GetPositionUnderMouse(args.Position);
 		const std::wstring& line = m_lines[clickPos.line];
 		if (line.empty())
+		{
 			return true;
+		}
 
 		size_t start = clickPos.column;
 		size_t end = clickPos.column;
@@ -339,7 +347,7 @@ namespace Berta
 			position.column = m_lines[position.line].size();
 		}
 		
-		if (!select) 
+		if (!select)
 		{
 			m_selection.m_startPosition = position;
 		}
@@ -391,7 +399,8 @@ namespace Berta
 	void TextEditor::MoveCaretUp(bool select)
 	{
 		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		if (vIdx > 0) {
+		if (vIdx > 0)
+		{
 			const auto& currentV = m_visualLines[vIdx];
 			const auto& targetV = m_visualLines[vIdx - 1];
 			size_t offset = m_selection.m_endPosition.column - currentV.charStart;
@@ -399,7 +408,10 @@ namespace Berta
 			m_selection.m_endPosition.line = targetV.logicalLineIndex;
 			m_selection.m_endPosition.column = targetV.charStart + (std::min)(offset, targetV.charLength);
 		}
-		if (!select) m_selection.m_startPosition = m_selection.m_endPosition;
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
 		AdjustView();
 	}
 
@@ -535,9 +547,9 @@ namespace Berta
 		return 0;
 	}
 
-	float TextEditor::GetLineHeight() const
+	uint32_t TextEditor::GetLineHeight() const
 	{
-		return static_cast<float>(m_graphics.GetTextExtent("Ay").Height);
+		return m_graphics.GetTextExtent("Ay").Height;
 	}
 
 	void TextEditor::SetContent(const std::wstring& newContent)
@@ -576,14 +588,18 @@ namespace Berta
 	{
 		SetContent(StringUtils::Convert(newContent));
 	}
+	
+	void TextEditor::SetEditorArea(const Rectangle& area)
+	{
+		m_editorArea = area;
+	}
 
 	void TextEditor::Render()
 	{
 		bool enabled = GUI::IsWindowEnabled(m_owner);
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
 		
-		auto clientSize = m_owner->ClientSize;
-		float lineHeight = GetLineHeight();
+		auto lineHeight = GetLineHeight();
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
 		
@@ -592,14 +608,14 @@ namespace Berta
 		
 		for (const auto& vl : m_visualLines)
 		{
-			float drawY = vl.y - m_offsetView.Y;
-			if (drawY + lineHeight < 0 || drawY > clientSize.Height)
+			const int drawY = static_cast<int>(vl.y) - m_offsetView.Y;
+			if (drawY + lineHeight < 0 || drawY > static_cast<int>(m_editorArea.Height))
 			{
 				continue;
 			}
 			
 			std::wstring fragment = m_lines[vl.logicalLineIndex].substr(vl.charStart, vl.charLength);
-			float drawX = -static_cast<float>(m_offsetView.X);
+			int drawX = -m_offsetView.X;
 			if (s != e && vl.logicalLineIndex >= s.line && vl.logicalLineIndex <= e.line)
 			{
 				size_t selStartInV = (vl.logicalLineIndex == s.line) ? (std::max)(vl.charStart, s.column) : vl.charStart;
@@ -607,27 +623,27 @@ namespace Berta
 
 				if (selStartInV < selEndInV)
 				{
-					float x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
-					float w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
-					m_graphics.DrawRectangle(Rectangle{(int)x1, (int)drawY, (uint32_t)w, (uint32_t)lineHeight}, Color(0, 120, 215, 128), true);
+					auto x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
+					auto w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
+					m_graphics.DrawRectangle(Rectangle{static_cast<int>(x1), drawY, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128), true);
 				}
 			}
-			m_graphics.DrawString({ two, (int)drawY + two }, fragment, m_owner->Appearance->Foreground);
+			m_graphics.DrawString({ m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
 			
 			//Caret
 			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
 				m_selection.m_endPosition.column >= vl.charStart && 
 				m_selection.m_endPosition.column <= vl.charStart + vl.charLength)
 			{
-				float caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
-				m_caret->SetPosition({ (int)(drawX + caretX), (int)drawY });
+				auto caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
+				m_caret->SetPosition({ drawX + static_cast<int>(caretX), drawY });
 			}
 		}
 		
 		if (m_caret->IsVisible())
 		{
 			auto caretHeight= m_graphics.GetCaretHeight();
-			m_graphics.DrawLine({ two + m_caret->GetPosition().X, one +  + m_caret->GetPosition().Y }, { two +  + m_caret->GetPosition().X, one +  + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
+			m_graphics.DrawLine({ m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y +  m_caret->GetPosition().Y }, { m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
 		}
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor, false);
 	}
@@ -692,10 +708,10 @@ namespace Berta
 	void TextEditor::AdjustView()
 	{
 		auto lineHeight = GetLineHeight();
-		int viewHeight = m_owner->ClientSize.Height;
+		auto viewHeight = m_editorArea.Height;
     
 		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		float caretY = m_visualLines[vIdx].y;
+		auto caretY = m_visualLines[vIdx].y;
 
 		if (caretY + lineHeight - m_offsetView.Y > viewHeight)
 		{
@@ -719,25 +735,25 @@ namespace Berta
 
 	TextPosition TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
-		float lineHeight = GetLineHeight();
+		auto lineHeight = GetLineHeight();
     
-		float worldX = static_cast<float>(mousePosition.X + m_offsetView.X);
-		float worldY = static_cast<float>(mousePosition.Y + m_offsetView.Y);
+		auto worldX = mousePosition.X + m_offsetView.X;
+		auto worldY = mousePosition.Y + m_offsetView.Y;
 
 		for (const auto& vl : m_visualLines)
 		{
-			if (worldY >= vl.y && worldY < vl.y + lineHeight)
+			if (worldY >= static_cast<int>(vl.y) && worldY < static_cast<int>(vl.y + lineHeight))
 			{
 				const std::wstring& line = m_lines[vl.logicalLineIndex];
 				std::wstring fragment = line.substr(vl.charStart, vl.charLength);
             
 				size_t bestCol = 0;
-				float minDistance = 999999.0f;
+				size_t minDistance = 999999;
             
 				for (size_t i = 0; i <= fragment.size(); ++i)
 				{
-					float width = m_graphics.GetTextExtent(fragment.substr(0, i)).Width;
-					float dist = std::abs(width - worldX);
+					auto width = m_graphics.GetTextExtent(fragment.substr(0, i)).Width;
+					size_t dist = std::abs(static_cast<int>(width) - worldX);
 					if (dist < minDistance)
 					{
 						minDistance = dist;
@@ -804,12 +820,14 @@ namespace Berta
 	void TextEditor::RecomputeWordWrap()
 	{
 		m_visualLines.clear();
-		if (m_lines.empty()) 
+		if (m_lines.empty())
+		{
 			return;
+		}
 
-		float maxWidth = static_cast<float>(m_owner->ClientSize.Width) - 10.0f;
+		auto maxWidth = m_editorArea.Width - 10u;
 		auto lineHeight = GetLineHeight();
-		float currentY = 0;
+		uint32_t currentY = 0;
 
 		for (size_t i = 0; i < m_lines.size(); ++i)
 			{
@@ -836,8 +854,11 @@ namespace Berta
 					// TODO: Binary search
 					while (start + count < lineText.size())
 					{
-						float w = m_graphics.GetTextExtent(lineText.substr(start, count + 1)).Width;
-						if (w > maxWidth && count > 0) break; 
+						auto w = m_graphics.GetTextExtent(lineText.substr(start, count + 1)).Width;
+						if (w > maxWidth && count > 0)
+						{
+							break;
+						}
 						count++;
 					}
 

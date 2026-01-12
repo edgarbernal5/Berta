@@ -80,6 +80,7 @@ namespace Berta
 
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
+		bool IsWindowBorderless(Window* window);
 		void DisposeMenu();
 		void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor);
 

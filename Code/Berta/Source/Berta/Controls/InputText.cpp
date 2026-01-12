@@ -19,6 +19,7 @@ namespace Berta
 			m_control = &control;
 			m_textEditor = std::make_unique<TextEditor>(*m_control, graphics);
 
+			m_textEditor->SetEditorArea(GetEditorArea());
 			m_textEditor->SetValueChangedCallback([this]()
 			{
 				ArgTextChanged args;
@@ -107,9 +108,29 @@ namespace Berta
 			}
 		}
 
+		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
+		{
+			m_textEditor->SetEditorArea(GetEditorArea());
+		}
+
 		TextEditor* Reactor::GetEditor() const
 		{
 			return m_textEditor.get();
+		}
+
+		Rectangle Reactor::GetEditorArea() const
+		{
+			auto area = m_control->GetSize().ToRectangle();
+			if (!GUI::IsWindowBorderless(m_control->Handle()))
+			{
+				area.X = area.Y = 2;
+				if (area.Width > 4) area.Width -= 4;
+				else area.Width = 0;
+				
+				if (area.Height > 4) area.Height -= 4;
+				else area.Height = 0;
+			}
+			return area;
 		}
 	}
 

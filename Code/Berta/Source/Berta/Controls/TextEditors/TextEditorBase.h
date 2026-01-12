@@ -58,7 +58,7 @@ namespace Berta
 		size_t logicalLineIndex;
 		size_t charStart;
 		size_t charLength;
-		float y; // Posición vertical absoluta
+		uint32_t y; // Posición vertical absoluta
 	};
 }
 

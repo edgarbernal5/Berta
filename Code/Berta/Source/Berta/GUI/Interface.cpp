@@ -553,6 +553,17 @@ namespace Berta::GUI
 		API::SendCustomMessage(window->RootWindow->RootHandle, body);
 	}
 
+	bool IsWindowBorderless(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return false;
+		}
+		
+		return window->Flags.Borderless;
+	}
+
 	void DisposeMenu()
 	{
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();

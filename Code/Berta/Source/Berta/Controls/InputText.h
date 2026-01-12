@@ -35,9 +35,11 @@ namespace Berta
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 			void DblClick(Graphics& graphics, const ArgMouse& args) override;
+			void Resize(Graphics& graphics, const ArgResize& args) override;
 
 			TextEditor* GetEditor() const;
 		private:
+			Rectangle GetEditorArea() const;
 			std::unique_ptr<TextEditor> m_textEditor{ nullptr };
 		};
 	}
