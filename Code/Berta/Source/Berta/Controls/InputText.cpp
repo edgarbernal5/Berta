@@ -143,16 +143,6 @@ namespace Berta
 #endif
 	}
 
-	size_t InputText::GetCaretPosition() const
-	{
-		auto editor = GetReactor().GetEditor();
-		if (editor)
-		{
-			
-		}
-		return 0;
-	}
-
 	void InputText::Deselect()
 	{
 		auto editor = GetReactor().GetEditor();

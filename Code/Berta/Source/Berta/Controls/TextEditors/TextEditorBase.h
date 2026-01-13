@@ -33,7 +33,9 @@ namespace Berta
 
 		bool operator<(const TextPosition& other) const
 		{
-			if (line != other.line) return line < other.line;
+			if (line != other.line)
+				return line < other.line;
+			
 			return column < other.column;
 		}
 

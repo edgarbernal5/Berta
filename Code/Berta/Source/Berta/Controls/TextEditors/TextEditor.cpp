@@ -192,6 +192,7 @@ namespace Berta
 			{
 				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
 				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
+				AdjustView();
 			}
 			else
 				MoveCaretLeft(m_shiftPressed);
@@ -202,6 +203,7 @@ namespace Berta
 			{
 				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, 1);
 				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
+				AdjustView();
 			}
 			else
 				MoveCaretRight(m_shiftPressed);
@@ -307,6 +309,7 @@ namespace Berta
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+			m_selection.Reset(m_selection.m_startPosition);
 		}
 		TextPosition& position = m_selection.m_endPosition;
 		auto& currentLine = m_lines[m_selection.m_endPosition.line];
@@ -351,6 +354,8 @@ namespace Berta
 		{
 			m_selection.m_startPosition = position;
 		}
+		
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretHome(bool select)
@@ -362,6 +367,7 @@ namespace Berta
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
 		}
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretRight(bool select)
@@ -383,6 +389,7 @@ namespace Berta
 		{
 			m_selection.m_startPosition = pos;
 		}
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretEnd(bool select)
@@ -394,6 +401,7 @@ namespace Berta
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
 		}
+		AdjustView();
 	}
 
 	void TextEditor::MoveCaretUp(bool select)
@@ -439,6 +447,7 @@ namespace Berta
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+			RecomputeWordWrap();
 			return;
 		}
 		TextPosition& position = m_selection.m_endPosition;
@@ -464,6 +473,9 @@ namespace Berta
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.Min(), m_selection.Max());
+			RecomputeWordWrap();
+			AdjustView();
+			EmitValueChanged();
 			return;
 		}
 		
@@ -478,8 +490,6 @@ namespace Berta
         
 			pos.line = targetLine;
 			pos.column = newCol;
-        
-			RecomputeWordWrap();
 		}
 		else if (pos.column > 0)
 		{
@@ -495,6 +505,9 @@ namespace Berta
 			pos.line = prevLine;
 		}
 		m_selection.m_startPosition = pos;
+		RecomputeWordWrap();
+		AdjustView();
+		EmitValueChanged();
 	}
 
 	void TextEditor::HandleEnter()
@@ -628,7 +641,7 @@ namespace Berta
 					m_graphics.DrawRectangle(Rectangle{static_cast<int>(x1), drawY, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128), true);
 				}
 			}
-			m_graphics.DrawString({ m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
+			m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
 			
 			//Caret
 			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
@@ -707,19 +720,40 @@ namespace Berta
 
 	void TextEditor::AdjustView()
 	{
-		auto lineHeight = GetLineHeight();
-		auto viewHeight = m_editorArea.Height;
+		auto lineHeight = static_cast<int>(GetLineHeight());
+		auto viewHeight = static_cast<int>(m_editorArea.Height);
+		auto viewWidth = static_cast<int>(m_editorArea.Width);
     
 		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		auto caretY = m_visualLines[vIdx].y;
+		const auto& vl = m_visualLines[vIdx];
+		int caretY = static_cast<int>(vl.y);
 
 		if (caretY + lineHeight - m_offsetView.Y > viewHeight)
 		{
-			m_offsetView.Y = static_cast<int>(caretY + lineHeight - viewHeight);
+			m_offsetView.Y = caretY + lineHeight - viewHeight;
 		}
 		else if (caretY - m_offsetView.Y < 0)
 		{
-			m_offsetView.Y = static_cast<int>(caretY);
+			m_offsetView.Y = caretY;
+		}
+		
+		if (!m_features.wordWrap)
+		{
+			std::wstring textToCaret = m_lines[vl.logicalLineIndex].substr(vl.charStart, m_selection.m_endPosition.column - vl.charStart);
+			int caretX = static_cast<int>(m_graphics.GetTextExtent(textToCaret).Width);
+
+			if (caretX > m_offsetView.X + viewWidth)
+			{
+				m_offsetView.X = caretX - viewWidth;
+			}
+			else if (caretX - m_offsetView.X < 0)
+			{
+				m_offsetView.X = caretX;
+			}
+		}
+		else
+		{
+			m_offsetView.X = 0;
 		}
 	}
 
@@ -830,7 +864,7 @@ namespace Berta
 		uint32_t currentY = 0;
 
 		for (size_t i = 0; i < m_lines.size(); ++i)
-			{
+		{
 			const std::wstring& lineText = m_lines[i];
         
 			if (lineText.empty())
@@ -841,7 +875,7 @@ namespace Berta
 			}
 
 			if (!m_features.wordWrap)
-				{
+			{
 				m_visualLines.push_back({ i, 0, lineText.size(), currentY });
 				currentY += lineHeight;
 			}

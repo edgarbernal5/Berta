@@ -105,7 +105,6 @@ namespace Berta
 		
 		void DeleteRange(TextPosition start, TextPosition end);
 		
-		
 		size_t GetVisualLineIndexFromPos(TextPosition position) const;
 		uint32_t GetLineHeight() const;
 		

@@ -396,19 +396,20 @@ int main()
 	label.SetHorizontalAlignment(Berta::HorizontalAlign::Center);
 	label.SetVerticalAlignment(Berta::VerticalAlign::Top);
 	
+	std::wstring textLong = L"Hola. Este es un texto muy largo para probar el desarrollo de un editor de texto que estoy desarrollando con GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. Gracias";
 	Berta::InputText inputText(form, { 110,28,200,25 });
-	inputText.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputText.SetCaption(textLong);
 	inputText.GetEvents().TextChanged.Connect([](const Berta::ArgTextChanged& args)
 		{
 			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
 		});
 	
 	Berta::InputText inputTextMultiline(form, { 350,28,250,95 });
-	inputTextMultiline.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputTextMultiline.SetCaption(textLong);
 	inputTextMultiline.SetMultiLine(true);
 	
 	Berta::InputText inputTextWordWrap(form, { 350,125,250,95 });
-	inputTextWordWrap.SetCaption(L"Hola edgar como estas espero que estes muy bien vale. saludos");
+	inputTextWordWrap.SetCaption(textLong);
 	inputTextWordWrap.SetWordWrap(true);
 	
 	Berta::ComboBox comboBox(form, { 110,55,200,25 });
@@ -446,8 +447,7 @@ int main()
 	tabbar.PushBack("Apariencia", tabExample1);
 	tabbar.PushBack("Player", tabExample2);
 	tabbar.Insert(0, "Input", tabExample3);
-
-
+	
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
 #ifdef BT_DEBUG
 	button2.SetDebugName("button2");
