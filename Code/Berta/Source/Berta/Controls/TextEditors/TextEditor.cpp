@@ -859,7 +859,7 @@ namespace Berta
 			return;
 		}
 
-		auto maxWidth = m_editorArea.Width - 10u;
+		const uint32_t maxWidth = (m_editorArea.Width > 15) ? m_editorArea.Width - 10 : 5;
 		auto lineHeight = GetLineHeight();
 		uint32_t currentY = 0;
 
@@ -884,16 +884,24 @@ namespace Berta
 				size_t start = 0;
 				while (start < lineText.size())
 				{
-					size_t count = 0;
-					// TODO: Binary search
-					while (start + count < lineText.size())
+					size_t low = 1;
+					size_t high = lineText.size() - start;
+					size_t count = 1;
+					
+					while (low <= high)
 					{
-						auto w = m_graphics.GetTextExtent(lineText.substr(start, count + 1)).Width;
-						if (w > maxWidth && count > 0)
+						size_t mid = low + (high - low) / 2;
+						auto w = m_graphics.GetTextExtent(lineText.substr(start, mid)).Width;
+
+						if (w <= maxWidth)
 						{
-							break;
+							count = mid;
+							low = mid + 1;
 						}
-						count++;
+						else
+						{
+							high = mid - 1;
+						}
 					}
 
 					m_visualLines.push_back({ i, start, count, currentY });
