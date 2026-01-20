@@ -88,7 +88,7 @@ namespace Berta
 					auto isMinus = false;
 					if constexpr (std::is_signed_v<TNumber>)
 					{
-						isMinus = chr == '-' && m_inputText.GetCaretPosition() == 0 && m_inputText.GetCaption().find('-') == std::string::npos;
+						isMinus = chr == '-' && m_inputText.GetCaretPosition().column == 0 && m_inputText.GetCaption().find('-') == std::string::npos;
 					}
 					return isDigit || isMinus;
 				});

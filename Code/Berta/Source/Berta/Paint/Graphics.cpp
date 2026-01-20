@@ -17,11 +17,6 @@
 #include <comdef.h>
 #endif
 
-// Define M_PI if it's not already defined
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #ifdef BT_DEBUG
 #define BT_GRAPHICS_DEBUG_ERROR_MESSAGES
 #endif
@@ -425,7 +420,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color)
+	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color) const
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -475,12 +470,62 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
+	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color) const
 	{
 		DrawString(position, StringUtils::Convert(str), color);
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign)
+	void Graphics::DrawString(const Point& position, std::wstring_view wstr, const Color& color) const
+	{
+		if (wstr.empty() || !IsValid())
+		{
+			return;
+		}
+
+#ifdef BT_PLATFORM_WINDOWS
+		auto textSize = GetTextExtent(wstr);
+
+		D2D1_RECT_F d2dRect;
+		d2dRect.left = static_cast<FLOAT>(position.X);
+		d2dRect.top = static_cast<FLOAT>(position.Y);
+		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width);
+		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height);
+
+		ID2D1SolidColorBrush* brush;
+		m_targetRT->CreateSolidColorBrush(color,
+			&brush);
+		
+		IDWriteTextLayout* textLayout = nullptr;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.data(), 
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			FLT_MAX, FLT_MAX,
+			&textLayout
+		);
+		
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		m_targetRT->DrawText
+		(
+			wstr.data(),
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			d2dRect,
+			brush
+		);
+		textLayout->Release();
+
+		brush->Release();
+#endif
+	}
+
+	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign) const
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -527,7 +572,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap)
+	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap) const
 	{
 		DrawString(area, StringUtils::Convert(str), color, wordWrap);
 	}
@@ -922,6 +967,11 @@ namespace Berta
 	Size Graphics::GetTextExtent(const std::string& str, const Rectangle& area) const
 	{
 		return API::GetTextExtentSize(m_attributes.get(), area, str);
+	}
+
+	Size Graphics::GetTextExtent(std::wstring_view wstr) const
+	{
+		return API::GetTextExtentSize(m_attributes.get(), wstr);
 	}
 
 	uint32_t Graphics::GetCaretHeight() const

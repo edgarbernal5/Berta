@@ -897,9 +897,9 @@ namespace Berta
 		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
-		/*ArgResize argsResize;
+		ArgResize argsResize;
 		argsResize.NewSize = window->ClientSize;
-		window->Renderer.Resize(argsResize);*/
+		window->Renderer.Resize(argsResize);
 
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{

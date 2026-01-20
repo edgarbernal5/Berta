@@ -23,7 +23,7 @@ namespace Berta
 			m_textEditor->SetValueChangedCallback([this]()
 			{
 				ArgTextChanged args;
-				args.NewValue = m_textEditor->GetContent();
+				//args.NewValue = m_textEditor->GetContent();
 				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
 			});
 		}
@@ -111,6 +111,7 @@ namespace Berta
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
 		{
 			m_textEditor->SetEditorArea(GetEditorArea());
+			m_textEditor->OnResize(args);
 		}
 
 		TextEditor* Reactor::GetEditor() const
@@ -123,11 +124,13 @@ namespace Berta
 			auto area = m_control->GetSize().ToRectangle();
 			if (!GUI::IsWindowBorderless(m_control->Handle()))
 			{
-				area.X = area.Y = 2;
-				if (area.Width > 4) area.Width -= 4;
+				auto one = m_control->Handle()->ToScale(1);
+				
+				area.X = area.Y = one;
+				if (area.Width > one * 2) area.Width -= one * 2;
 				else area.Width = 0;
 				
-				if (area.Height > 4) area.Height -= 4;
+				if (area.Height > one * 2) area.Height -= one * 2;
 				else area.Height = 0;
 			}
 			return area;
@@ -141,6 +144,16 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "InputText";
 #endif
+	}
+
+	TextPosition InputText::GetCaretPosition() const
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			return editor->GetEndPosition();
+		}
+		return {};
 	}
 
 	void InputText::Deselect()

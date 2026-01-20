@@ -83,8 +83,8 @@ namespace Berta
 				uint32_t m_cardMargin{ 0 };
 				uint32_t m_cardMarginHalf{ 0 };
 
-				int m_startingVisibleIndex{ -1 };
-				int m_endingVisibleIndex{ -1 };
+				int m_startingVisibleIndex{ 0 };
+				int m_endingVisibleIndex{ 0 };
 			};
 
 			struct MouseSelection

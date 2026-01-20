@@ -72,8 +72,8 @@ namespace Berta
 		{
 			DWRITE_TEXT_METRICS metrics = {};
 			textLayout->GetMetrics(&metrics);
-
 			textLayout->Release();
+			
 			return { static_cast<uint32_t>(std::ceilf(metrics.widthIncludingTrailingWhitespace)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
 		}
 
@@ -111,8 +111,8 @@ namespace Berta
 		{
 			DWRITE_TEXT_METRICS metrics = {};
 			textLayout->GetMetrics(&metrics);
-
 			textLayout->Release();
+			
 			return { static_cast<uint32_t>(std::ceilf(metrics.widthIncludingTrailingWhitespace)), static_cast<uint32_t>(std::ceilf(metrics.height)) };
 		}
 
@@ -121,11 +121,38 @@ namespace Berta
 		return {};
 #endif
 	}
+	Size API::GetTextExtentSize(PaintNativeHandle* handle, std::wstring_view wstr)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (wstr.empty()) return {};
+
+		IDWriteTextLayout* textLayout = nullptr;
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.data(), 
+			static_cast<UINT32>(wstr.size()),
+			handle->m_textFormat,
+			FLT_MAX, FLT_MAX,
+			&textLayout
+		);
+
+		if (SUCCEEDED(hr))
+		{
+			DWRITE_TEXT_METRICS metrics = {};
+			textLayout->GetMetrics(&metrics);
+			textLayout->Release();
+			
+			return { static_cast<uint32_t>(std::ceilf(metrics.widthIncludingTrailingWhitespace)), 
+					 static_cast<uint32_t>(std::ceilf(metrics.height)) };
+		}
+#endif
+		return {};
+	}
 
 	uint32_t API::GetCaretHeight(PaintNativeHandle* handle)
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		if (!handle->m_textFormat)
+		if (!handle || !handle->m_textFormat)
 		{
 			return 0;
 		}

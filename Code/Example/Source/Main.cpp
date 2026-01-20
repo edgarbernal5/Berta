@@ -396,12 +396,12 @@ int main()
 	label.SetHorizontalAlignment(Berta::HorizontalAlign::Center);
 	label.SetVerticalAlignment(Berta::VerticalAlign::Top);
 	
-	std::wstring textLong = L"Hola. Este es un texto muy largo para probar el desarrollo de un editor de texto que estoy desarrollando con GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. Gracias";
+	std::wstring textLong = L"Hola. Este es un texto muy largo para probar el desarrollo de un editor de texto que estoy desarrollando con GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. No tengo más nada que decir, pero escribiré muchas cosas con acentos y un texto largo vacío sin sentido solo para alcanzar el máximo de caracteres posibles de Mercadolibre y dejar una buena impresión sin impresora. Gracias";
 	Berta::InputText inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(textLong);
-	inputText.GetEvents().TextChanged.Connect([](const Berta::ArgTextChanged& args)
+	inputText.GetEvents().TextChanged.Connect([&inputText](const Berta::ArgTextChanged& args)
 		{
-			std::cout << "inputText > ValueChanged: " << std::string(args.NewValue.begin(), args.NewValue.end()) << std::endl;
+			std::wcout << "inputText > ValueChanged: " << inputText.GetText() << std::endl;
 		});
 	
 	Berta::InputText inputTextMultiline(form, { 350,28,250,95 });

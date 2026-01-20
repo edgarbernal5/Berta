@@ -62,10 +62,11 @@ namespace Berta
 		void DrawRectangle(const Color& color, bool solid, float strokeWidth = 1.0f);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth = 1.0f);
 		void DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth = 1.0f);
-		void DrawString(const Point& position, const std::wstring& wstr, const Color& color);
-		void DrawString(const Point& position, const std::string& str, const Color& color);
-		void DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap = false, HorizontalAlign horizontalAlign = HorizontalAlign::Left, VerticalAlign verticalAlign = VerticalAlign::Top);
-		void DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap = false);
+		void DrawString(const Point& position, const std::wstring& wstr, const Color& color) const;
+		void DrawString(const Point& position, const std::string& str, const Color& color) const;
+		void DrawString(const Point& position, std::wstring_view wstr, const Color& color) const;
+		void DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap = false, HorizontalAlign horizontalAlign = HorizontalAlign::Left, VerticalAlign verticalAlign = VerticalAlign::Top) const;
+		void DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap = false) const;
 		
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor);
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor = {}, float strokeWidth = 1.0f);
@@ -77,12 +78,15 @@ namespace Berta
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
+		
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }
 		Size GetTextExtent(const std::wstring& wstr) const;
 		Size GetTextExtent(const std::string& str) const;
 		Size GetTextExtent(const std::wstring& wstr, size_t length) const;
 		Size GetTextExtent(const std::wstring& wstr, const Rectangle& area) const;
 		Size GetTextExtent(const std::string& str, const Rectangle& area) const;
+		Size GetTextExtent(std::wstring_view wstr) const;
+		
 		uint32_t GetCaretHeight() const;
 
 		const API::RootPaintNativeHandle* GetHandle() const { return &m_rootPaintNativeHandle; }

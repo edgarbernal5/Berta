@@ -149,6 +149,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h" />
@@ -227,6 +228,7 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.cpp" />

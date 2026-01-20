@@ -166,7 +166,7 @@ namespace Berta
 					auto isMinus = false;
 					if constexpr (std::is_signed_v<TNumber>)
 					{
-						isMinus = chr == '-' && m_valueInputText.GetCaretPosition() == 0 && m_valueInputText.GetCaption().find('-') == std::string::npos;
+						isMinus = chr == '-' && m_valueInputText.GetCaretPosition().column == 0 && m_valueInputText.GetCaption().find('-') == std::string::npos;
 					}
 					return isDigit || isMinus;
 				});

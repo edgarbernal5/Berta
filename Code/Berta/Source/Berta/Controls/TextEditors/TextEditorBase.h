@@ -60,7 +60,12 @@ namespace Berta
 		size_t logicalLineIndex;
 		size_t charStart;
 		size_t charLength;
-		uint32_t y; // Posición vertical absoluta
+		uint32_t y;
+		
+		VisualLine(size_t li, size_t cs, size_t cl, uint32_t py) : 
+			logicalLineIndex(li), charStart(cs), charLength(cl), y(py)
+		{
+		}
 	};
 }
 

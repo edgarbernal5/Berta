@@ -47,7 +47,7 @@ namespace Berta
 	struct ArgTextChanged
 	{
 		//ArgTextChanged(std::wstring& value):NewValue(value){}
-		std::wstring NewValue;
+		//std::wstring NewValue;
 	};
 	
 	namespace ReactorCore::InputText
@@ -64,6 +64,8 @@ namespace Berta
 		InputText() = default;
 		InputText(Window* parent, const Rectangle& rectangle = {});
 
+		TextPosition GetCaretPosition() const;
+		
 		void Deselect();
 		void SelectAll();
 

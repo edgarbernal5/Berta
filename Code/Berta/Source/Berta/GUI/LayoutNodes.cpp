@@ -566,9 +566,9 @@ namespace Berta
 		auto two = window->ToScale(2);
 		graphics.DrawRoundRectBox(m_buttonRect, color, window->Appearance->BoxBorderColor, true);
 
-		auto x = L"x";
+		std::wstring x = L"x";
 		Point textExtent = graphics.GetTextExtent(x);
-		Point windowSize{ (int)m_buttonRect.Width, (int)m_buttonRect.Height };
+		Point windowSize{ static_cast<int>(m_buttonRect.Width), static_cast<int>(m_buttonRect.Height) };
 		auto center = windowSize - textExtent;
 		center /= 2;
 		center.Y -= two;
@@ -578,7 +578,9 @@ namespace Berta
 	void DockAreaCaptionReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		if (!m_paneInfo->ShouldShowCloseButton())
+		{
 			return;
+		}
 
 		m_mouseDownCloseButton = m_buttonRect.IsInside(args.Position) && args.ButtonState.LeftButton;
 		m_clickedCloseButton = false;

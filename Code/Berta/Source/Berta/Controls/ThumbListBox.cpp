@@ -495,17 +495,17 @@ namespace Berta
 		if (m_items.empty() || !m_scrollBar)
 		{
 			m_viewport.m_startingVisibleIndex = 0;
-			m_viewport.m_endingVisibleIndex = (int)m_items.size();
+			m_viewport.m_endingVisibleIndex = static_cast<int>(m_items.size());
 			return;
 		}
 
-		int viewportHeight = (int)(m_viewport.m_backgroundRect.Height);
-		int cardSizeHeightWithMargin = (int)(m_viewport.m_cardSizeWithMargin.Height);
+		int viewportHeight = static_cast<int>(m_viewport.m_backgroundRect.Height);
+		int cardSizeHeightWithMargin = static_cast<int>(m_viewport.m_cardSizeWithMargin.Height);
 		int startRow = m_state.m_offset / cardSizeHeightWithMargin;
 		int endRow = 1 + (m_state.m_offset + viewportHeight) / cardSizeHeightWithMargin;
 
 		m_viewport.m_startingVisibleIndex = startRow * m_viewport.m_totalCardsInRow;
-		m_viewport.m_endingVisibleIndex = (std::min)(endRow * (int)m_viewport.m_totalCardsInRow, (int)m_items.size());
+		m_viewport.m_endingVisibleIndex = (std::min)(endRow * static_cast<int>(m_viewport.m_totalCardsInRow), static_cast<int>(m_items.size()));
 	}
 
 	void ThumbListBoxReactor::Module::CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize)

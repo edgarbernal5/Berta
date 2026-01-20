@@ -69,12 +69,15 @@ namespace Berta
 		};
 
 		Size GetPaintHandleSize(PaintNativeHandle* handle);
+		
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::string& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr, size_t length);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const Rectangle& area, const std::wstring& wstr);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const Rectangle& area, const std::string& str);
 		Size GetTextExtentSize(PaintNativeHandle* handle, const Rectangle& area, const std::wstring& wstr, size_t length);
+		Size GetTextExtentSize(PaintNativeHandle* handle, std::wstring_view wstr);
+		
 		uint32_t GetCaretHeight(PaintNativeHandle* handle);
 
 		void Dispose(RootPaintNativeHandle& rootHandle);

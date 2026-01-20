@@ -320,7 +320,7 @@ namespace Berta
 
 		void Reactor::Module::SetSelectedIndex(std::optional<size_t> index)
 		{
-			auto& selectedIndex = Data.m_selectedIndex;
+			std::optional<size_t> selectedIndex;
 			if (index && *index >= Count())
 			{
 				selectedIndex = std::nullopt;
@@ -329,7 +329,10 @@ namespace Berta
 			{
 				selectedIndex = index;
 			}
+			if (selectedIndex == Data.m_selectedIndex)
+				return;
 			
+			Data.m_selectedIndex = selectedIndex;
 			SetText(selectedIndex.has_value() ? Data.m_items[*selectedIndex].m_text : L"");
 			EmitSelectionEvent(selectedIndex);
 		}

@@ -549,7 +549,7 @@ namespace Berta
 		//case WM_WINDOWPOSCHANGED:
 		case WM_DPICHANGED:
 		{
-			uint32_t newDPI = (uint32_t)HIWORD(wParam);
+			uint32_t newDPI = HIWORD(wParam);
 			windowManager.ChangeDPI(nativeWindow, newDPI, nativeWindow->RootHandle);
 
 			auto rect = reinterpret_cast<const RECT*>(lParam);
@@ -792,9 +792,9 @@ namespace Berta
 			wasHandled = true;
 
 			ArgKeyboard argKeyboard{};
-			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
-			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
-			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
+			argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
+			argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+			argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
 
 			argKeyboard.Key = static_cast<wchar_t>(wParam);
 
@@ -814,9 +814,9 @@ namespace Berta
 		case WM_SYSKEYUP:
 		{
 			ArgKeyboard argKeyboard{};
-			argKeyboard.ButtonState.Alt = (0 != (::GetKeyState(VK_MENU) & 0x80));
-			argKeyboard.ButtonState.Ctrl = (0 != (::GetKeyState(VK_CONTROL) & 0x80));
-			argKeyboard.ButtonState.Shift = (0 != (::GetKeyState(VK_SHIFT) & 0x80));
+			argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
+			argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+			argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
 			argKeyboard.Key = static_cast<wchar_t>(wParam);
 
 			auto window = rootFocusedWindow;

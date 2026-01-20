@@ -40,13 +40,19 @@ namespace Berta
 		bool OnKeyPressed(const ArgKeyboard& args);
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgMouse& args);
+		void OnResize(ArgResize args);
 
 		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
 
-		const std::wstring& GetContent() const { return m_content; }
+		std::wstring GetContent() const;
 		void SetContent(const std::wstring& newContent);
 		void SetContent(const std::string& newContent);
-
+		std::wstring GetSelectedText() const;
+		
+		void Copy();
+		void Cut();
+		void Paste();
+		
 		void SetEditorArea(const Rectangle& area);
 		void Render();
 
@@ -61,9 +67,12 @@ namespace Berta
 		{
 			m_selection.Behavior = behavior;
 		}
+		
+		TextPosition GetEndPosition() const;
 
 		bool Deselect();
 		bool SelectAll();
+
 	private:
 		struct Features
 		{
@@ -109,10 +118,10 @@ namespace Berta
 		uint32_t GetLineHeight() const;
 		
 		void AdjustView();
-		Size GetContentTextExtent(size_t position = 0) const;
 		TextPosition GetPositionUnderMouse(const Point& mousePosition) const;
 		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
 
+		Size GetContentTextExtent() const;
 		void RecomputeWordWrap();
 		void EmitValueChanged() const;
 		
@@ -125,17 +134,18 @@ namespace Berta
 		
 		Graphics& m_graphics;
 		Point m_offsetView{ 0, 0 };
-		std::wstring m_content;
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };
 		bool m_wasDblClick{ false };
 
 		Point m_selectionMousePosition;
+		Point m_lastMousePosition;
 		Timer m_selectionTimer;
-		bool m_selectionDirection{ false };
-
+		Point m_selectionDirection{ 0,0 };
+		uint32_t m_cachedMaxWidth { 0 };
 		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
+		
 		TextEditorCallback m_valueChangedCallback;
 
 		Features m_features;
