@@ -8,6 +8,7 @@
 #include "TextEditor.h"
 
 #include <algorithm>
+#include <cwctype>
 
 #include "Berta/API/PlatformAPI.h"
 #include "Berta/GUI/Caret.h"
@@ -217,7 +218,7 @@ namespace Berta
 
 		if (!m_predicate || m_predicate(args.Key))
 		{
-			if (std::isprint(static_cast<int>(args.Key)))
+			if (std::iswprint(args.Key))
 			{
 				InsertChar(args.Key);
 				return true;
@@ -366,13 +367,14 @@ namespace Berta
 		m_caret->Deactivate();
 	}
 
-	void TextEditor::InsertChar(wchar_t chr)
+	void TextEditor::InsertChar(const wchar_t chr)
 	{
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
 			m_selection.Reset(m_selection.m_startPosition);
 		}
+		
 		TextPosition& position = m_selection.m_endPosition;
 		auto& currentLine = m_lines[m_selection.m_endPosition.line];
     
@@ -968,8 +970,9 @@ namespace Berta
 		{
 			if (world.Y >= static_cast<int>(vl.y) && world.Y < static_cast<int>(vl.y + lineHeight))
 			{
-				const std::wstring& line = m_lines[vl.logicalLineIndex];
-				std::wstring fragment = line.substr(vl.charStart, vl.charLength);
+				//const std::wstring& line = m_lines[vl.logicalLineIndex];
+				const std::wstring_view line = m_lines[vl.logicalLineIndex];
+				std::wstring_view fragment = line.substr(vl.charStart, vl.charLength);
             
 				size_t bestCol = 0;
 				size_t minDistance = 999999;
