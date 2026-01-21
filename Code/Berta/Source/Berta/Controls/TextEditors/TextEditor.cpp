@@ -119,8 +119,8 @@ namespace Berta
 		if (m_selection.m_isSelecting)
 		{
 			TextPosition newPosition = GetPositionUnderMouse(args.Position);
-			auto savedPosition=m_selection.m_endPosition;
 			m_selection.m_endPosition = newPosition;
+			
 			if (args.ButtonState.LeftButton)
 			{
 				bool selectionTimerRunning = m_selectionTimer.IsRunning();
@@ -139,8 +139,6 @@ namespace Berta
 					m_selectionDirection = {0, 0};
 					m_selectionTimer.Stop();
 				}
-				if (selectionTimerRunning)
-					m_selection.m_endPosition =savedPosition;
 			}
 		}
 		
@@ -958,39 +956,72 @@ namespace Berta
 
 	TextPosition TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
-		auto lineHeight = GetLineHeight();
-		auto world = mousePosition + m_offsetView;
-
-		if (world.Y < m_editorArea.Y)
+		if (m_visualLines.empty())
 		{
-			world.Y = 0;
+			return { 0, 0 };
 		}
+
+		int localY = mousePosition.Y - static_cast<int>(m_editorArea.Y) + m_offsetView.Y;
+		int localX = mousePosition.X - static_cast<int>(m_editorArea.X) + m_offsetView.X;
 		
+		auto lineHeight = GetLineHeight();
+		const VisualLine* targetVL = &m_visualLines.back();
+
 		for (const auto& vl : m_visualLines)
 		{
-			if (world.Y >= static_cast<int>(vl.y) && world.Y < static_cast<int>(vl.y + lineHeight))
+			if (localY >= static_cast<int>(vl.y) && localY < static_cast<int>(vl.y + lineHeight))
 			{
-				//const std::wstring& line = m_lines[vl.logicalLineIndex];
-				const std::wstring_view line = m_lines[vl.logicalLineIndex];
-				std::wstring_view fragment = line.substr(vl.charStart, vl.charLength);
-            
-				size_t bestCol = 0;
-				size_t minDistance = 999999;
-            
-				for (size_t i = 0; i <= fragment.size(); ++i)
-				{
-					auto width = m_graphics.GetTextExtent(fragment.substr(0, i)).Width;
-					size_t dist = std::abs(static_cast<int>(width) - world.X);
-					if (dist < minDistance)
-					{
-						minDistance = dist;
-						bestCol = i;
-					}
-				}
-				return { vl.logicalLineIndex, vl.charStart + bestCol };
+				targetVL = &vl;
+				break;
 			}
 		}
-		return { m_lines.size() - 1, m_lines.back().size() };
+
+		/*if (world.Y < m_editorArea.Y)
+		{
+			world.Y = 0;
+		}*/
+		
+		const std::wstring& lineText = m_lines[targetVL->logicalLineIndex];
+		if (lineText.empty())
+		{
+			return { targetVL->logicalLineIndex, 0 };
+		}
+
+		size_t low = 0;
+		size_t high = targetVL->charLength;
+		size_t foundOffset = 0;
+
+		std::wstring_view visualPart = std::wstring_view(lineText).substr(targetVL->charStart, targetVL->charLength);
+
+		while (low <= high)
+		{
+			size_t mid = low + (high - low) / 2;
+			uint32_t width = m_graphics.GetTextExtent(visualPart.substr(0, mid)).Width;
+
+			if (width <= static_cast<uint32_t>(localX))
+			{
+				foundOffset = mid;
+				low = mid + 1;
+			}
+			else
+			{
+				high = mid - 1;
+			}
+		}
+
+		if (foundOffset < targetVL->charLength)
+		{
+			uint32_t widthBefore = m_graphics.GetTextExtent(visualPart.substr(0, foundOffset)).Width;
+			uint32_t widthAfter = m_graphics.GetTextExtent(visualPart.substr(0, foundOffset + 1)).Width;
+			uint32_t halfChar = widthBefore + (widthAfter - widthBefore) / 2;
+
+			if (static_cast<uint32_t>(localX) > halfChar)
+			{
+				foundOffset++;
+			}
+		}
+
+		return { targetVL->logicalLineIndex, targetVL->charStart + foundOffset };
 	}
 
 	TextPosition TextEditor::GetPositionNextWord(TextPosition currentPosition, int direction) const
