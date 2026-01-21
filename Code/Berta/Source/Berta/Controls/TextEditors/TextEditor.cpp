@@ -967,6 +967,8 @@ namespace Berta
 		auto lineHeight = GetLineHeight();
 		const VisualLine* targetVL = &m_visualLines.back();
 
+		localY = std::max<int>(localY, 0);
+
 		for (const auto& vl : m_visualLines)
 		{
 			if (localY >= static_cast<int>(vl.y) && localY < static_cast<int>(vl.y + lineHeight))
@@ -975,11 +977,6 @@ namespace Berta
 				break;
 			}
 		}
-
-		/*if (world.Y < m_editorArea.Y)
-		{
-			world.Y = 0;
-		}*/
 		
 		const std::wstring& lineText = m_lines[targetVL->logicalLineIndex];
 		if (lineText.empty())
