@@ -234,25 +234,11 @@ namespace Berta
 		switch (args.Key)
 		{
 		case KeyboardKey::ArrowLeft:
-			if (m_ctrlPressed)
-			{
-				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, -1);
-				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
-				AdjustView();
-			}
-			else
-				MoveCaretLeft(m_shiftPressed);
+			MoveCaretLeft(m_ctrlPressed, m_shiftPressed);
 			break;
 
 		case KeyboardKey::ArrowRight:
-			if (m_ctrlPressed)
-			{
-				auto nextWordPosition = GetPositionNextWord(m_selection.m_endPosition, 1);
-				m_selection.m_startPosition = m_selection.m_endPosition = nextWordPosition;
-				AdjustView();
-			}
-			else
-				MoveCaretRight(m_shiftPressed);
+			MoveCaretRight(m_ctrlPressed, m_shiftPressed);
 			break;
 		
 		case KeyboardKey::ArrowUp:
@@ -285,7 +271,7 @@ namespace Berta
 
 		case KeyboardKey::Delete:
 			HandleDelete();
-			break;
+			return true;
 
 		case KeyboardKey::Backspace:
 			HandleBackspace();
@@ -395,13 +381,20 @@ namespace Berta
 		EmitValueChanged();
 	}
 
-	void TextEditor::MoveCaretLeft(bool select)
+	void TextEditor::MoveCaretLeft(bool wordJump, bool select)
 	{
 		TextPosition& position = m_selection.m_endPosition;
 
 		if (position.column > 0)
 		{
-			position.column--;
+			if (wordJump)
+			{
+				position = GetPositionNextWord(m_selection.m_endPosition, -1);
+			}
+			else
+			{
+				position.column--;
+			}
 		}
 		else if (position.line > 0)
 		{
@@ -429,24 +422,31 @@ namespace Berta
 		AdjustView();
 	}
 
-	void TextEditor::MoveCaretRight(bool select)
+	void TextEditor::MoveCaretRight(bool wordJump, bool select)
 	{
-		TextPosition& pos = m_selection.m_endPosition;
-		const std::wstring& currentLine = m_lines[pos.line];
+		TextPosition& position = m_selection.m_endPosition;
+		const std::wstring& currentLine = m_lines[position.line];
 
-		if (pos.column < currentLine.size())
+		if (position.column < currentLine.size())
 		{
-			pos.column++;
+			if (wordJump)
+			{
+				position = GetPositionNextWord(position, 1);
+			}
+			else
+			{
+				position.column++;
+			}
 		}
-		else if (pos.line + 1 < m_lines.size())
+		else if (position.line + 1 < m_lines.size())
 		{
-			pos.line++;
-			pos.column = 0;
+			position.line++;
+			position.column = 0;
 		}
 
 		if (!select)
 		{
-			m_selection.m_startPosition = pos;
+			m_selection.m_startPosition = position;
 		}
 		AdjustView();
 	}
@@ -523,8 +523,9 @@ namespace Berta
 		}
 
 		m_selection.m_startPosition = position;
-		//AdjustView();
-		//EmitValueChanged();
+		RecomputeWordWrap();
+		AdjustView();
+		EmitValueChanged();
 	}
 
 	void TextEditor::HandleBackspace()
@@ -1019,60 +1020,104 @@ namespace Berta
 
 	TextPosition TextEditor::GetPositionNextWord(TextPosition currentPosition, int direction) const
 	{
-		if (m_lines.empty())
+		if (m_visualLines.empty())
 		{
 			return currentPosition;
 		}
 
-		const std::wstring& line = m_lines[currentPosition.line];
+		size_t vIdx = GetVisualLineIndexFromPos(currentPosition);
+		TextPosition pos = currentPosition;
+
 		if (direction > 0)
 		{
-			if (currentPosition.column >= line.size())
+			while (vIdx < m_visualLines.size())
 			{
-				if (currentPosition.line + 1 < m_lines.size())
+				const auto& vl = m_visualLines[vIdx];
+				const std::wstring& lineText = m_lines[vl.logicalLineIndex];
+				size_t endLimit = vl.charStart + vl.charLength;
+
+				if (pos.column >= endLimit)
 				{
-					return { currentPosition.line + 1, 0 };
+					vIdx++;
+					if (vIdx < m_visualLines.size())
+					{
+						pos.line = m_visualLines[vIdx].logicalLineIndex;
+						pos.column = m_visualLines[vIdx].charStart;
+
+						if (m_visualLines[vIdx].charLength == 0)
+						{
+							continue;
+						}
+					} 
+					else
+					{
+						break;
+					}
 				}
-				
-				return currentPosition;
-			}
-        
-			size_t p = currentPosition.column;
-			while (p < line.size() && iswspace(line[p]))
-			{
-				p++;
-			}
 
-			while (p < line.size() && !iswspace(line[p]))
-			{
-				p++;
+				size_t p = pos.column;
+
+				while (p < endLimit && iswspace(lineText[p]))
+				{
+					p++;
+				}
+
+				if (p < endLimit)
+				{
+					while (p < endLimit && !iswspace(lineText[p]))
+					{
+						p++;
+					}
+					return { vl.logicalLineIndex, p };
+				}
+				pos.column = endLimit;
 			}
-        
-			return { currentPosition.line, p };
 		}
-		
-		if (currentPosition.column == 0)
+		else 
 		{
-			if (currentPosition.line > 0)
+			while (true)
 			{
-				return { currentPosition.line - 1, m_lines[currentPosition.line - 1].size() };
+				const auto& vl = m_visualLines[vIdx];
+				const std::wstring& lineText = m_lines[vl.logicalLineIndex];
+				size_t startLimit = vl.charStart;
+
+				if (pos.column <= startLimit)
+				{
+					if (vIdx > 0)
+					{
+						vIdx--;
+						pos.line = m_visualLines[vIdx].logicalLineIndex;
+						pos.column = m_visualLines[vIdx].charStart + m_visualLines[vIdx].charLength;
+						if (m_visualLines[vIdx].charLength == 0)
+						{
+							continue;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				size_t p = pos.column;
+				while (p > startLimit && iswspace(lineText[p - 1]))
+				{
+					p--;
+				}
+				if (p > startLimit)
+				{
+					while (p > startLimit && !iswspace(lineText[p - 1]))
+					{
+						p--;
+					}
+					return { vl.logicalLineIndex, p };
+				}
+
+				pos.column = startLimit;
 			}
-			
-			return currentPosition;
 		}
 
-		size_t p = currentPosition.column;
-		while (p > 0 && iswspace(line[p - 1]))
-		{
-			p--;
-		}
-		
-		while (p > 0 && !iswspace(line[p - 1]))
-		{
-			p--;
-		}
-    
-		return { currentPosition.line, p };
+		return pos;
 	}
 
 	Size TextEditor::GetContentTextExtent() const

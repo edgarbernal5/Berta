@@ -100,9 +100,9 @@ namespace Berta
 
 		void InsertChar(wchar_t chr);
 
-		void MoveCaretLeft(bool select);
+		void MoveCaretLeft(bool wordJump, bool select);
 		void MoveCaretHome(bool select);
-		void MoveCaretRight(bool select);
+		void MoveCaretRight(bool wordJump, bool select);
 		void MoveCaretEnd(bool select);
 		
 		void MoveCaretUp(bool select);
