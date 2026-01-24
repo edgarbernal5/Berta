@@ -11,7 +11,7 @@
 
 namespace Berta::Platform
 {
-    void GetClipboardText(std::wstring& output);
+    bool GetClipboardText(std::wstring& output);
     bool SetClipboardText(const std::wstring& text, API::NativeWindowHandle owner);
 }
 

@@ -101,7 +101,7 @@ namespace Berta
 		m_selectionMousePosition = args.Position;
 		TextPosition clickedPos = GetPositionUnderMouse(args.Position);
 		
-		m_selection.m_isSelecting = true;
+		m_selection.m_isSelecting = args.ButtonState.LeftButton;
 		if (m_shiftPressed)
 		{
 			m_selection.m_endPosition = clickedPos;
@@ -121,24 +121,21 @@ namespace Berta
 			TextPosition newPosition = GetPositionUnderMouse(args.Position);
 			m_selection.m_endPosition = newPosition;
 			
-			if (args.ButtonState.LeftButton)
+			bool selectionTimerRunning = m_selectionTimer.IsRunning();
+			bool insideEditorArea = m_editorArea.IsInside(args.Position);
+			if (!selectionTimerRunning && !insideEditorArea)
 			{
-				bool selectionTimerRunning = m_selectionTimer.IsRunning();
-				bool insideEditorArea = m_editorArea.IsInside(args.Position);
-				if (!selectionTimerRunning && !insideEditorArea)
-				{
-					std::cout << "start timmeerr. mouse pos = " << args.Position <<". area="<<m_editorArea << std::endl;
-					m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
-					m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
-					m_selectionTimer.SetInterval(90);
-					m_selectionTimer.Start();
-				}
-				else if (selectionTimerRunning && insideEditorArea)
-				{
-					std::cout << "stop timmeerr" << std::endl;
-					m_selectionDirection = {0, 0};
-					m_selectionTimer.Stop();
-				}
+				std::cout << "start timmeerr. mouse pos = " << args.Position <<". area="<<m_editorArea << std::endl;
+				m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
+				m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
+				m_selectionTimer.SetInterval(90);
+				m_selectionTimer.Start();
+			}
+			else if (selectionTimerRunning && insideEditorArea)
+			{
+				std::cout << "stop timmeerr" << std::endl;
+				m_selectionDirection = {0, 0};
+				m_selectionTimer.Stop();
 			}
 		}
 		
@@ -687,24 +684,24 @@ namespace Berta
 
 	std::wstring TextEditor::GetSelectedText() const
 	{
-		TextPosition s = m_selection.Min();
-		TextPosition e = m_selection.Max();
+		TextPosition start = m_selection.Min();
+		TextPosition end = m_selection.Max();
 
-		if (s == e)
+		if (start == end)
 		{
 			return L"";
 		}
 		
 		std::wstring result;
-		for (size_t i = s.line; i <= e.line; ++i)
+		for (size_t i = start.line; i <= end.line; ++i)
 		{
 			std::wstring_view lineView = m_lines[i];
-			size_t startCol = (i == s.line) ? s.column : 0;
-			size_t endCol = (i == e.line) ? e.column : lineView.size();
+			size_t startCol = (i == start.line) ? start.column : 0;
+			size_t endCol = (i == end.line) ? end.column : lineView.size();
 
 			result += lineView.substr(startCol, endCol - startCol);
 
-			if (i < e.line)
+			if (i < end.line)
 			{
 				result += L"\r\n";
 			}
@@ -735,8 +732,7 @@ namespace Berta
 	void TextEditor::Paste()
 	{
 		std::wstring clipboardText;
-		Platform::GetClipboardText(clipboardText);
-		if (clipboardText.empty())
+		if (!Platform::GetClipboardText(clipboardText) || clipboardText.empty())
 		{
 			return;
 		}
@@ -961,8 +957,8 @@ namespace Berta
 			return { 0, 0 };
 		}
 
-		int localY = mousePosition.Y - static_cast<int>(m_editorArea.Y) + m_offsetView.Y;
 		int localX = mousePosition.X - static_cast<int>(m_editorArea.X) + m_offsetView.X;
+		int localY = mousePosition.Y - static_cast<int>(m_editorArea.Y) + m_offsetView.Y;
 		
 		auto lineHeight = GetLineHeight();
 		const VisualLine* targetVL = &m_visualLines.back();

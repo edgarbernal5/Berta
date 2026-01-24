@@ -9,7 +9,7 @@
 
 namespace Berta::Platform
 {
-    void GetClipboardText(std::wstring& output)
+    bool GetClipboardText(std::wstring& output)
     {
 #ifdef BT_PLATFORM_WINDOWS
         if(::OpenClipboard(::GetFocus()))
@@ -18,22 +18,24 @@ namespace Berta::Platform
             if (hData == nullptr)
             {
                 ::CloseClipboard();
-                return;
+                return false;
             }
             
             wchar_t* pszText = static_cast<wchar_t*>(::GlobalLock(hData));
             if (pszText == nullptr)
             {
                 ::CloseClipboard();
-                return;
+                return false;
             }
 
             output = pszText;
             ::GlobalUnlock(hData);
             ::CloseClipboard();
+            return true;
         }
+        return false;
 #else
-       
+        return false;
 #endif
     }
 
