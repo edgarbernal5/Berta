@@ -462,7 +462,8 @@ namespace Berta
 			static_cast<UINT32>(wstr.size()),
 			m_attributes->m_textFormat,
 			d2dRect,
-			brush
+			brush,
+			D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT | D2D1_DRAW_TEXT_OPTIONS_NO_SNAP
 		);
 		textLayout->Release();
 

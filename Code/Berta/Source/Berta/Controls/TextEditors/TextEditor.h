@@ -122,13 +122,24 @@ namespace Berta
 		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
 
 		Size GetContentTextExtent() const;
+		
 		void RecomputeWordWrap();
+		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList);
+		void UpdateLinesIncremental(size_t startLine, int lineCountDelta);
+		size_t GetFirstVisibleVisualLine() const;
+		
 		void EmitValueChanged() const;
 		
 		Color GetBackgroundColor() const;
+		
+		uint32_t GetCharWidthW(wchar_t c);
+		uint32_t GetStringWidth(std::wstring_view text);
+		void ClearFontCache() { m_charWidthCache.clear(); }
 
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
+		std::unordered_map<wchar_t, uint32_t> m_charWidthCache; //TODO: mover esto a una clase
+		
 		Selection m_selection;
 		Rectangle m_editorArea;
 		

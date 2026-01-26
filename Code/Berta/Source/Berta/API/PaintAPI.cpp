@@ -64,7 +64,7 @@ namespace Berta
 			wstr.c_str(), 
 			static_cast<UINT32>(length),
 			handle->m_textFormat,
-			FLT_MAX, FLT_MAX,
+			10000.0f, 10000.0f,
 			&textLayout
 		);
 
@@ -121,6 +121,7 @@ namespace Berta
 		return {};
 #endif
 	}
+	
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, std::wstring_view wstr)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -156,7 +157,11 @@ namespace Berta
 		{
 			return 0;
 		}
-
+		if (handle->m_metricsCached)
+		{
+			return static_cast<uint32_t>(handle->m_lineHeight);
+		}
+		
 		WCHAR fontFamilyName[100] = {};
 		handle->m_textFormat->GetFontFamilyName(fontFamilyName, ARRAYSIZE(fontFamilyName));
 
@@ -193,10 +198,14 @@ namespace Berta
 		font->GetMetrics(&metrics);
 
 		float fontSize = handle->m_textFormat->GetFontSize();
-		float ascent = static_cast<float>(metrics.ascent) * fontSize / metrics.designUnitsPerEm;
+		handle->m_ascent = static_cast<float>(metrics.ascent) * fontSize / metrics.designUnitsPerEm;
 		float descent = static_cast<float>(metrics.descent) * fontSize / metrics.designUnitsPerEm;
+		float lineGap = static_cast<float>(metrics.lineGap) * fontSize / metrics.designUnitsPerEm;
 
-		return static_cast<uint32_t>(ascent + descent);
+		handle->m_lineHeight = ceil(handle->m_ascent + descent + lineGap);
+		handle->m_metricsCached=true;
+		
+		return static_cast<uint32_t>(handle->m_lineHeight);
 #else
 		return 0;
 #endif

@@ -13,6 +13,7 @@ namespace Berta
 #define BT_WINDOWS_BGR(r, g, b)	((uint32_t)(b)<<16 | (uint32_t)(g)<<8 | (uint32_t)(r))
 
 	const Size Size::Zero = { 0,0 };
+	const SizeF SizeF::Zero = { 0.0f,0.0f };
 
 	Rectangle::Rectangle(int x, int y, uint32_t width, uint32_t height) :
 		X(x),
@@ -134,6 +135,30 @@ namespace Berta
 	{
 		os << "{ Width=" << size.Width << "; Height=" << size.Height << "}";
 		return os;
+	}
+	
+	SizeF SizeF::operator-(const SizeF& other) const
+	{
+		return { Width - other.Width, Height - other.Height };
+	}
+
+	SizeF SizeF::operator*(float scalar) const
+	{
+		return {scalar * Width, scalar * Height};
+	}
+
+	SizeF& SizeF::operator*=(float scalar) noexcept
+	{
+		Width *= scalar;
+		Height *= scalar;
+		return *this;
+	}
+
+	SizeF& SizeF::operator/=(float scalar) noexcept
+	{
+		Width /= scalar;
+		Height /= scalar;
+		return *this;
 	}
 
 	Color::Color(uint32_t colorABGR)

@@ -19,6 +19,10 @@ namespace Berta
 		ID2D1BitmapRenderTarget* m_bitmapRT{ nullptr };
 		IDWriteTextFormat* m_textFormat{ nullptr };
 		Size m_textExtent;
+		
+		float m_lineHeight { 0 };
+		float m_ascent { 0 };
+		bool m_metricsCached { false };
 #else
 #endif
 

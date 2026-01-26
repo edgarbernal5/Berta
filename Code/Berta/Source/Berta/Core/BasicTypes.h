@@ -218,7 +218,7 @@ namespace Berta
 			return (Width != rhs.Width) || (Height != rhs.Height);
 		}
 
-		Size operator-(const Size& size) const;
+		Size operator-(const Size& other) const;
 		Size operator*(float scalar) const;
 		Size& operator*= (uint32_t scalar) noexcept;
 		Size& operator*= (float scalar) noexcept;
@@ -234,6 +234,40 @@ namespace Berta
 		static const Size Zero;
 	};
 
+	struct SizeF
+	{
+		float Width{ 0 };
+		float Height{ 0 };
+
+		SizeF() = default;
+		SizeF(float width, float height) : 
+			Width(width), Height(height)
+		{
+		}
+
+		bool IsEmpty() const
+		{
+			return Width == 0.0f && Height == 0.0f ;
+		}
+
+		bool operator==(const SizeF& rhs) const
+		{
+			return (Width == rhs.Width) && (Height == rhs.Height);
+		}
+
+		bool operator!=(const SizeF& rhs) const
+		{
+			return (Width != rhs.Width) || (Height != rhs.Height);
+		}
+
+		SizeF operator-(const SizeF& other) const;
+		SizeF operator*(float scalar) const;
+		SizeF& operator*= (float scalar) noexcept;
+		SizeF& operator/= (float scalar) noexcept;
+		
+		static const SizeF Zero;
+	};
+	
 	struct FormStyle
 	{
 		static FormStyle Float(bool sizeable = true);

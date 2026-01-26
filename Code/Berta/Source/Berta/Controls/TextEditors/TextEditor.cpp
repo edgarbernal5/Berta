@@ -131,11 +131,19 @@ namespace Berta
 				m_selectionTimer.SetInterval(90);
 				m_selectionTimer.Start();
 			}
-			else if (selectionTimerRunning && insideEditorArea)
+			else if (selectionTimerRunning)
 			{
-				std::cout << "stop timmeerr" << std::endl;
-				m_selectionDirection = {0, 0};
-				m_selectionTimer.Stop();
+				if (insideEditorArea)
+				{
+					std::cout << "stop timmeerr" << std::endl;
+					m_selectionDirection = {0, 0};
+					m_selectionTimer.Stop();
+				}
+				else
+				{
+					m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
+					m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
+				}
 			}
 		}
 		
@@ -235,24 +243,27 @@ namespace Berta
 		{
 		case KeyboardKey::ArrowLeft:
 			MoveCaretLeft(m_ctrlPressed, m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::ArrowRight:
 			MoveCaretRight(m_ctrlPressed, m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
 		case KeyboardKey::ArrowUp:
 			MoveCaretUp(m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
 		case KeyboardKey::ArrowDown:
 			MoveCaretDown(m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 			
 		case KeyboardKey::Enter:
 			HandleEnter();
 			break;
-			
 			
 		//case KeyboardKey::A:
 		//	break;
@@ -271,15 +282,16 @@ namespace Berta
 
 		case KeyboardKey::Delete:
 			HandleDelete();
-			return true;
+			redraw = true;
+			break;
 
 		case KeyboardKey::Backspace:
 			HandleBackspace();
+			redraw = true;
 			break;
 		}
 		
-		return savedStartPosition != m_selection.m_startPosition || 
-			savedEndPosition != m_selection.m_endPosition;
+		return redraw;
 	}
 
 	bool TextEditor::OnKeyReleased(const ArgKeyboard& args)
@@ -365,6 +377,7 @@ namespace Berta
 			currentLine = currentLine.substr(0, position.column);
         
 			m_lines.insert(m_lines.begin() + position.line + 1, remainder);
+			UpdateLinesIncremental(position.line, 1);
         
 			position.line++;
 			position.column = 0;
@@ -372,12 +385,13 @@ namespace Berta
 		else
 		{
 			currentLine.insert(position.column, 1, chr);
+			UpdateLinesIncremental(position.line, 0);
 			position.column++;
 		}
-		RecomputeWordWrap();
+		//RecomputeWordWrap();
 		m_selection.m_startPosition = position;
 		
-		//AdjustView();
+		AdjustView();
 		EmitValueChanged();
 	}
 
@@ -473,8 +487,9 @@ namespace Berta
 			size_t offset = m_selection.m_endPosition.column - currentV.charStart;
         
 			m_selection.m_endPosition.line = targetV.logicalLineIndex;
-			m_selection.m_endPosition.column = targetV.charStart + (std::min)(offset, targetV.charLength);
+			m_selection.m_endPosition.column = targetV.charStart + std::min<size_t>(offset, targetV.charLength);
 		}
+		
 		if (!select)
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
@@ -507,22 +522,30 @@ namespace Berta
 		{
 			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
 			RecomputeWordWrap();
+			AdjustView();
+			EmitValueChanged();
 			return;
 		}
 		TextPosition& position = m_selection.m_endPosition;
 		auto& currentLine = m_lines[position.line];
-
+		bool changed = false;
 		if (position.column < currentLine.size())
 		{
 			currentLine.erase(position.column, 1);
+			changed = true;
 		}
 		else if (position.line + 1 < m_lines.size())
 		{
 			m_lines[position.line] += m_lines[position.line + 1];
 			m_lines.erase(m_lines.begin() + position.line + 1);
+			changed = true;
 		}
 
 		m_selection.m_startPosition = position;
+		if (!changed)
+		{
+			return;
+		}
 		RecomputeWordWrap();
 		AdjustView();
 		EmitValueChanged();
@@ -539,6 +562,7 @@ namespace Berta
 			return;
 		}
 		
+		bool changed = false;
 		TextPosition& pos = m_selection.m_endPosition;
 		if (pos.column == 0 && pos.line > 0)
 		{
@@ -547,14 +571,18 @@ namespace Berta
         
 			m_lines[targetLine] += m_lines[pos.line];
 			m_lines.erase(m_lines.begin() + pos.line);
+			UpdateLinesIncremental(targetLine, -1); // Incremental!
         
 			pos.line = targetLine;
 			pos.column = newColumn;
+			changed = true;
 		}
 		else if (pos.column > 0)
 		{
 			m_lines[pos.line].erase(pos.column - 1, 1);
+			UpdateLinesIncremental(pos.line, 0);
 			pos.column--;
+			changed = true;
 		}
 		else if (pos.line > 0)
 		{
@@ -563,8 +591,14 @@ namespace Berta
 			m_lines[prevLine] += m_lines[pos.line];
 			m_lines.erase(m_lines.begin() + pos.line);
 			pos.line = prevLine;
+			changed = true;
 		}
 		m_selection.m_startPosition = pos;
+		
+		if (!changed)
+		{
+			return;
+		}
 		RecomputeWordWrap();
 		AdjustView();
 		EmitValueChanged();
@@ -610,10 +644,32 @@ namespace Berta
 
 	size_t TextEditor::GetVisualLineIndexFromPos(TextPosition position) const
 	{
-		for (size_t i = 0; i < m_visualLines.size(); ++i)
+		if (m_visualLines.empty())
+		{
+			return 0;
+		}
+		//binary search
+		const auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), position.line,
+			[](const VisualLine& vl, size_t lineIdx)
+			{
+				return vl.logicalLineIndex < lineIdx;
+			});
+		
+		if (it == m_visualLines.end() || it->logicalLineIndex != position.line)
+		{
+			return m_visualLines.size() - 1;
+		}
+
+		size_t firstVisualOfLogical = std::distance(m_visualLines.begin(), it);
+		for (size_t i = firstVisualOfLogical; i < m_visualLines.size(); ++i)
 		{
 			const auto& vl = m_visualLines[i];
-			if (vl.logicalLineIndex == position.line && position.column >= vl.charStart && position.column <= vl.charStart + vl.charLength)
+			if (vl.logicalLineIndex != position.line)
+			{
+				break;
+			}
+
+			if (position.column >= vl.charStart && position.column <= vl.charStart + vl.charLength)
 			{
 				if (position.column == vl.charStart + vl.charLength && i + 1 < m_visualLines.size())
 				{
@@ -625,7 +681,8 @@ namespace Berta
 				return i;
 			}
 		}
-		return 0;
+
+		return firstVisualOfLogical;
 	}
 
 	uint32_t TextEditor::GetLineHeight() const
@@ -635,12 +692,11 @@ namespace Berta
 
 	std::wstring TextEditor::GetContent() const
 	{
-		std::wstring content;
 		if (m_lines.empty())
 		{
-			return content;
+			return L"";
 		}
-		content = m_lines[0];
+		std::wstring content = m_lines[0];
 		for (size_t i = 1; i < m_lines.size(); ++i)
 		{
 			content += L"\r\n" + m_lines[i];
@@ -790,16 +846,28 @@ namespace Berta
 		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
 		
 		auto lineHeight = GetLineHeight();
+		int viewportTop = m_offsetView.Y;
+		int viewportBottom = m_offsetView.Y + static_cast<int>(m_editorArea.Height);
+
+		size_t firstLine = GetFirstVisibleVisualLine();
+		
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
 		
 		TextPosition s = m_selection.Min();
 		TextPosition e = m_selection.Max();
 		
-		for (const auto& vl : m_visualLines)
+		for (size_t i = firstLine; i < m_visualLines.size(); ++i)
 		{
+			const auto& vl = m_visualLines[i];
+			const int vlPosY = static_cast<int>(vl.y) ;
+			if (vlPosY > viewportBottom)
+			{
+				break; 
+			}
+			
 			const int drawX = -m_offsetView.X;
-			const int drawY = static_cast<int>(vl.y) - m_offsetView.Y;
+			const int drawY = vlPosY - viewportTop + m_editorArea.Y;
 			if (drawY + static_cast<int>(lineHeight) < m_editorArea.Y || drawY > static_cast<int>(m_editorArea.Height) + m_editorArea.Y)
 			{
 				continue;
@@ -855,6 +923,7 @@ namespace Berta
 			return;
 		
 		m_features.isMultiLines = enable;
+		RecomputeWordWrap();
 	}
 
 	void TextEditor::SetWordWrap(bool enable)
@@ -1131,71 +1200,122 @@ namespace Berta
 	{
 		m_visualLines.clear();
 		m_cachedMaxWidth = 0;
-		if (m_lines.empty())
-		{
+		uint32_t currentY = 0;
+
+		for (size_t i = 0; i < m_lines.size(); ++i) {
+			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines);
+		}
+    
+		if (m_features.wordWrap) m_cachedMaxWidth = m_editorArea.Width;
+	}
+
+	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset,
+		std::vector<VisualLine>& outList)
+	{
+		const std::wstring& line = m_lines[logicalIndex];
+		auto lineHeight = GetLineHeight();
+		const uint32_t maxWidthLimit = (m_editorArea.Width > 15) ? m_editorArea.Width - 10 : 5;
+
+		if (line.empty()) {
+			outList.emplace_back(logicalIndex, 0, 0, yOffset);
+			yOffset += lineHeight;
 			return;
 		}
 
-		const uint32_t maxWidthLimit = (m_editorArea.Width > 15) ? m_editorArea.Width - 10 : 5;
-		auto lineHeight = GetLineHeight();
-		uint32_t currentY = 0;
-
-		for (size_t i = 0; i < m_lines.size(); ++i)
-		{
-			std::wstring_view lineView = m_lines[i];
-			
-			if (!m_features.wordWrap)
-			{
-				uint32_t lineWidth = m_graphics.GetTextExtent(lineView).Width;
-				m_cachedMaxWidth = std::max<uint32_t>(lineWidth, m_cachedMaxWidth);
-			}
-			if (lineView.empty())
-			{
-				m_visualLines.emplace_back(i, 0, 0, currentY);
-				currentY += lineHeight;
-				continue;
-			}
-
-			if (!m_features.wordWrap)
-			{
-				m_visualLines.emplace_back(i, 0, lineView.size(), currentY);
-				currentY += lineHeight;
-			}
-			else
-			{
-				size_t start = 0;
-				while (start < lineView.size())
-				{
-					size_t low = 1;
-					size_t high = lineView.size() - start;
-					size_t count = 1;
-					
-					while (low <= high)
+		if (!m_features.wordWrap) {
+			outList.emplace_back(logicalIndex, 0, line.size(), yOffset);
+			yOffset += lineHeight;
+		} else {
+			size_t start = 0;
+			while (start < line.size()) {
+				size_t low = 1, high = line.size() - start, count = 1;
+				while (low <= high) {
+					size_t mid = low + (high - low) / 2;
+					if (GetStringWidth(line.substr(start, mid)) <= maxWidthLimit)
 					{
-						size_t mid = low + (high - low) / 2;
-						auto width = m_graphics.GetTextExtent(lineView.substr(start, mid)).Width;
-
-						if (width <= maxWidthLimit)
-						{
-							count = mid;
-							low = mid + 1;
-						}
-						else
-						{
-							high = mid - 1;
-						}
+						count = mid;
+						low = mid + 1;
 					}
-
-					m_visualLines.emplace_back(i, start, count, currentY);
-					currentY += lineHeight;
-					start += count;
+					else
+					{
+						high = mid - 1;
+					}
 				}
+				outList.emplace_back(logicalIndex, start, count, yOffset);
+				yOffset += lineHeight;
+				start += count;
 			}
 		}
-		if (m_features.wordWrap)
+	}
+
+	void TextEditor::UpdateLinesIncremental(size_t startLine, int lineCountDelta)
+	{
+		if (m_lines.empty()) return;
+
+		// (O(log N))
+		auto itStart = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), startLine,
+			[](const VisualLine& vl, size_t idx) { return vl.logicalLineIndex < idx; });
+
+		size_t firstVisualIdx = std::distance(m_visualLines.begin(), itStart);
+
+		// 2. Si se añadieron o quitaron líneas (Enter/Backspace), actualizamos índices posteriores
+		if (lineCountDelta != 0)
 		{
-			m_cachedMaxWidth = m_editorArea.Width;
+			for (size_t i = firstVisualIdx; i < m_visualLines.size(); ++i)
+			{
+				m_visualLines[i].logicalLineIndex += lineCountDelta;
+			}
 		}
+
+		// 3. Obtener el Y donde empezaba la línea para calcular el desplazamiento después
+		uint32_t oldY = (itStart != m_visualLines.end()) ? itStart->y : 
+					   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+
+		// 4. Determinar cuántas líneas lógicas procesar (si es Enter, la actual y la nueva)
+		size_t linesToUpdate = (lineCountDelta > 0) ? 1 + lineCountDelta : 1;
+    
+		// Borrar los fragmentos visuales antiguos de las líneas afectadas
+		auto itEnd = itStart;
+		while (itEnd != m_visualLines.end() && itEnd->logicalLineIndex < (startLine + linesToUpdate)) {
+			itEnd++;
+		}
+		m_visualLines.erase(itStart, itEnd);
+
+		// 5. Generar nuevos fragmentos para el rango afectado
+		std::vector<VisualLine> newVisuals;
+		uint32_t currentY = oldY;
+		for (size_t i = 0; i < linesToUpdate; ++i) {
+			if (startLine + i < m_lines.size()) {
+				ComputeVisualLinesForLogicalLine(startLine + i, currentY, newVisuals);
+			}
+		}
+
+		// 6. Insertar los nuevos fragmentos en el vector visual
+		m_visualLines.insert(m_visualLines.begin() + firstVisualIdx, newVisuals.begin(), newVisuals.end());
+
+		// 7. Ajustar el Y de todas las líneas que quedaron por debajo
+		int yDelta = static_cast<int>(currentY) - static_cast<int>(oldY);
+		if (yDelta != 0) {
+			for (size_t i = firstVisualIdx + newVisuals.size(); i < m_visualLines.size(); ++i) {
+				m_visualLines[i].y += yDelta;
+			}
+		}
+	}
+
+	size_t TextEditor::GetFirstVisibleVisualLine() const
+	{
+		if (m_visualLines.empty()) return 0;
+
+		// Buscamos la primera línea cuya coordenada Y + Altura sea >= al scroll actual
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), m_offsetView.Y,
+			[this](const VisualLine& vl, int scrollY) {
+				return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
+			});
+
+		if (it == m_visualLines.end()) 
+			return m_visualLines.size() - 1;
+		
+		return std::distance(m_visualLines.begin(), it);
 	}
 
 	void TextEditor::EmitValueChanged() const
@@ -1209,5 +1329,30 @@ namespace Berta
 	Color TextEditor::GetBackgroundColor() const
 	{
 		return GUI::IsWindowEnabled(m_owner) ? m_owner->Appearance->BoxBackground :m_owner->Appearance->BoxPressedBackground;
+	}
+
+	uint32_t TextEditor::GetCharWidthW(wchar_t c)
+	{
+		auto it = m_charWidthCache.find(c);
+		if (it != m_charWidthCache.end())
+		{
+			return it->second;
+		}
+
+		uint32_t width = m_graphics.GetTextExtent(std::wstring(1, c)).Width;
+		m_charWidthCache[c] = width;
+		
+		return width;
+	}
+
+	uint32_t TextEditor::GetStringWidth(std::wstring_view text)
+	{
+		//return m_graphics.GetTextExtent(text).Width;
+		uint32_t totalWidth = 0;
+		for (wchar_t c : text)
+		{
+			totalWidth += GetCharWidthW(c);
+		}
+		return totalWidth;
 	}
 }
