@@ -202,8 +202,8 @@ namespace Berta
 		float descent = static_cast<float>(metrics.descent) * fontSize / metrics.designUnitsPerEm;
 		float lineGap = static_cast<float>(metrics.lineGap) * fontSize / metrics.designUnitsPerEm;
 
-		handle->m_lineHeight = ceil(handle->m_ascent + descent + lineGap);
-		handle->m_metricsCached=true;
+		handle->m_lineHeight = std::ceil(handle->m_ascent + descent + lineGap);
+		handle->m_metricsCached = true;
 		
 		return static_cast<uint32_t>(handle->m_lineHeight);
 #else

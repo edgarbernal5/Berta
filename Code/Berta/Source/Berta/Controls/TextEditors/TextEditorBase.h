@@ -7,6 +7,11 @@
 #ifndef BT_TEXT_EDITOR_BASE_HEADER
 #define BT_TEXT_EDITOR_BASE_HEADER
 
+#if BT_PLATFORM_WINDOWS
+#include <wrl/client.h>
+#include "Berta/Platform/Windows/D2D.h"
+#endif
+
 namespace Berta
 {
 	enum class TextFocusBehavior : uint8_t
@@ -61,6 +66,10 @@ namespace Berta
 		size_t charStart;
 		size_t charLength;
 		uint32_t y;
+		
+#if BT_PLATFORM_WINDOWS
+		mutable Microsoft::WRL::ComPtr<IDWriteTextLayout> layout = nullptr;
+#endif
 		
 		VisualLine(size_t li, size_t cs, size_t cl, uint32_t py) : 
 			logicalLineIndex(li), charStart(cs), charLength(cl), y(py)

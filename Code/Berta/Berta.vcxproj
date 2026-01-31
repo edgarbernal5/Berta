@@ -219,6 +219,7 @@
     <ClInclude Include="Source\Berta\Paint\ColorBuffer.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\D2D.h" />
     <ClInclude Include="Source\Berta\Platform\Windows\Messages.h" />
+    <ClInclude Include="Source\Berta\Platform\Windows\ResourceCache.h" />
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\GUI\Control.h" />
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
@@ -282,6 +283,7 @@
     <ClCompile Include="Source\Berta\Controls\Form.cpp" />
     <ClCompile Include="Source\Berta\Core\Log.cpp" />
     <ClCompile Include="Source\Berta\Core\Logger.cpp" />
+    <ClCompile Include="Source\Berta\Platform\Windows\ResourceCache.cpp" />
     <ClCompile Include="Source\btpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

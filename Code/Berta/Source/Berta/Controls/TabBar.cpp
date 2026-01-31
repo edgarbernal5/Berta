@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "TabBar.h"
 
+#include <algorithm>
+
 #include "Berta/GUI/Interface.h"
 
 namespace Berta
@@ -221,10 +223,7 @@ namespace Berta
 
 	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Window* window)
 	{
-		if (index >= m_panels.size())
-		{
-			index = m_panels.size();
-		}
+		index = std::min<size_t>(index, m_panels.size());
 		int startIndex = static_cast<int>(index);
 
 		GUI::SetParentWindow(window, m_owner);
@@ -264,15 +263,15 @@ namespace Berta
 		Point tabPositionOffset{};
 		if (m_tabPosition == TabBarPosition::Bottom)
 		{
-			tabPositionOffset.Y = m_owner->ClientSize.Height - tabBarItemHeight;
+			tabPositionOffset.Y = m_owner->ClientSize.Height > tabBarItemHeight ? static_cast<int>(m_owner->ClientSize.Height - tabBarItemHeight) : 0 ;
 		}
 
-		int newWidth = (std::max)(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
-		int newHeight = (std::max)(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
+		int newWidth = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
+		int newHeight =  std::max<int>(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
 		Rectangle panelTabArea;
 		if (m_tabPosition == TabBarPosition::Top)
 		{
-			panelTabArea = { 2, (int)tabBarItemHeight + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
+			panelTabArea = { 2, static_cast<int>(tabBarItemHeight) + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
 		else
 		{
@@ -291,7 +290,7 @@ namespace Berta
 			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(current->Id);
 			Size itemSize{ textSize.Width + tabPadding, tabBarItemHeight };
 
-			Point center{ (int)itemSize.Width - (int)textSize.Width, (int)itemSize.Height - (int)textSize.Height };
+			Point center{ static_cast<int>(itemSize.Width) - static_cast<int>(textSize.Width), static_cast<int>(itemSize.Height) - static_cast<int>(textSize.Height) };
 			center >>= 1;
 
 			Point itemPos = offset + tabPositionOffset;

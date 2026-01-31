@@ -326,12 +326,6 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawLineTo(const Point& point, const Color& color)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-#endif
-	}
-
 	void Graphics::DrawRectangle(const Color& color, bool solid, float strokeWidth)
 	{
 		DrawRectangle(m_size.ToRectangle(), color, solid, strokeWidth);
@@ -561,12 +555,27 @@ namespace Berta
 		textLayout->SetParagraphAlignment(verticalAlign == VerticalAlign::Top ? DWRITE_PARAGRAPH_ALIGNMENT_NEAR : 
 			(verticalAlign == VerticalAlign::Center ? DWRITE_PARAGRAPH_ALIGNMENT_CENTER : DWRITE_PARAGRAPH_ALIGNMENT_FAR));
 		
-		m_targetRT->DrawTextLayout
+		D2D1_RECT_F d2dRect;
+		d2dRect.left = static_cast<FLOAT>(area.X);
+		d2dRect.top = static_cast<FLOAT>(area.Y);
+		d2dRect.right = static_cast<FLOAT>(area.X + area.Width);
+		d2dRect.bottom = static_cast<FLOAT>(area.Y + area.Height);
+		
+		m_targetRT->DrawText
+		(
+			wstr.c_str(),
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			d2dRect,
+			brush,
+			D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT | D2D1_DRAW_TEXT_OPTIONS_NO_SNAP
+		);
+		/*m_targetRT->DrawTextLayout
 		(
 			D2D1_POINT_2F {static_cast<FLOAT>(area.X), static_cast<FLOAT>(area.Y)},
 			textLayout,
 			brush
-		);
+		);*/
 		
 		brush->Release();
 		textLayout->Release();

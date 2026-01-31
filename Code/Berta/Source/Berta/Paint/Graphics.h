@@ -57,7 +57,6 @@ namespace Berta
 		void DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawLine(const Point& point1, const Point& point2, float strokeWidth, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawBeginLine(const Point& point, const Color& color, LineStyle style = LineStyle::Solid);
-		void DrawLineTo(const Point& point, const Color& color);
 
 		void DrawRectangle(const Color& color, bool solid, float strokeWidth = 1.0f);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth = 1.0f);

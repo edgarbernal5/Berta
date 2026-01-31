@@ -294,12 +294,6 @@ namespace Berta
 				// Adjust selection to the new last item if the old one was deleted
 				SetSelectedIndex(Data.m_items.size() - 1);
 			}
-			/*if (selectedIndex >= static_cast<int64_t>(items.size()))
-			{
-				selectedIndex = static_cast<int64_t>(items.size()) - 1;
-
-				SetText(items[selectedIndex].m_text);
-			}*/
 		}
 
 		void Reactor::Module::PushBack(const std::wstring& text)

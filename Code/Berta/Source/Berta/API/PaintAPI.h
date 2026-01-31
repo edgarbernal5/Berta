@@ -32,6 +32,13 @@ namespace Berta
 		PaintNativeHandle(const PaintNativeHandle&) = delete;
 		PaintNativeHandle& operator=(const PaintNativeHandle&) = delete;
 	};
+	
+	struct TextPaintNativeHandle
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		IDWriteTextLayout* m_textLayout{ nullptr };
+#endif
+	};
 
 	namespace API
 	{

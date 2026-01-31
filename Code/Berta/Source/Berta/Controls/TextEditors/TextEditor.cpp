@@ -849,7 +849,7 @@ namespace Berta
 		int viewportTop = m_offsetView.Y;
 		int viewportBottom = m_offsetView.Y + static_cast<int>(m_editorArea.Height);
 
-		size_t firstLine = GetFirstVisibleVisualLine();
+		size_t firstLineIndex = GetFirstVisibleVisualLine();
 		
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
@@ -857,10 +857,10 @@ namespace Berta
 		TextPosition s = m_selection.Min();
 		TextPosition e = m_selection.Max();
 		
-		for (size_t i = firstLine; i < m_visualLines.size(); ++i)
+		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
 		{
 			const auto& vl = m_visualLines[i];
-			const int vlPosY = static_cast<int>(vl.y) ;
+			const int vlPosY = static_cast<int>(vl.y);
 			if (vlPosY > viewportBottom)
 			{
 				break; 
@@ -1231,7 +1231,7 @@ namespace Berta
 				size_t low = 1, high = line.size() - start, count = 1;
 				while (low <= high) {
 					size_t mid = low + (high - low) / 2;
-					if (GetStringWidth(line.substr(start, mid)) <= maxWidthLimit)
+					if (static_cast<uint32_t>( std::ceilf(GetStringWidth(line.substr(start, mid)))) <= maxWidthLimit)
 					{
 						count = mid;
 						low = mid + 1;
@@ -1250,15 +1250,20 @@ namespace Berta
 
 	void TextEditor::UpdateLinesIncremental(size_t startLine, int lineCountDelta)
 	{
-		if (m_lines.empty()) return;
+		if (m_lines.empty())
+		{
+			return;
+		}
 
 		// (O(log N))
 		auto itStart = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), startLine,
-			[](const VisualLine& vl, size_t idx) { return vl.logicalLineIndex < idx; });
+			[](const VisualLine& vl, size_t idx)
+			{
+				return vl.logicalLineIndex < idx;
+			});
 
 		size_t firstVisualIdx = std::distance(m_visualLines.begin(), itStart);
 
-		// 2. Si se añadieron o quitaron líneas (Enter/Backspace), actualizamos índices posteriores
 		if (lineCountDelta != 0)
 		{
 			for (size_t i = firstVisualIdx; i < m_visualLines.size(); ++i)
@@ -1267,36 +1272,35 @@ namespace Berta
 			}
 		}
 
-		// 3. Obtener el Y donde empezaba la línea para calcular el desplazamiento después
 		uint32_t oldY = (itStart != m_visualLines.end()) ? itStart->y : 
 					   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
 
-		// 4. Determinar cuántas líneas lógicas procesar (si es Enter, la actual y la nueva)
 		size_t linesToUpdate = (lineCountDelta > 0) ? 1 + lineCountDelta : 1;
     
-		// Borrar los fragmentos visuales antiguos de las líneas afectadas
 		auto itEnd = itStart;
-		while (itEnd != m_visualLines.end() && itEnd->logicalLineIndex < (startLine + linesToUpdate)) {
+		while (itEnd != m_visualLines.end() && itEnd->logicalLineIndex < (startLine + linesToUpdate))
+		{
 			itEnd++;
 		}
 		m_visualLines.erase(itStart, itEnd);
 
-		// 5. Generar nuevos fragmentos para el rango afectado
 		std::vector<VisualLine> newVisuals;
 		uint32_t currentY = oldY;
-		for (size_t i = 0; i < linesToUpdate; ++i) {
-			if (startLine + i < m_lines.size()) {
+		for (size_t i = 0; i < linesToUpdate; ++i)
+		{
+			if (startLine + i < m_lines.size())
+			{
 				ComputeVisualLinesForLogicalLine(startLine + i, currentY, newVisuals);
 			}
 		}
 
-		// 6. Insertar los nuevos fragmentos en el vector visual
 		m_visualLines.insert(m_visualLines.begin() + firstVisualIdx, newVisuals.begin(), newVisuals.end());
 
-		// 7. Ajustar el Y de todas las líneas que quedaron por debajo
 		int yDelta = static_cast<int>(currentY) - static_cast<int>(oldY);
-		if (yDelta != 0) {
-			for (size_t i = firstVisualIdx + newVisuals.size(); i < m_visualLines.size(); ++i) {
+		if (yDelta != 0)
+		{
+			for (size_t i = firstVisualIdx + newVisuals.size(); i < m_visualLines.size(); ++i)
+			{
 				m_visualLines[i].y += yDelta;
 			}
 		}
@@ -1306,14 +1310,16 @@ namespace Berta
 	{
 		if (m_visualLines.empty()) return 0;
 
-		// Buscamos la primera línea cuya coordenada Y + Altura sea >= al scroll actual
 		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), m_offsetView.Y,
-			[this](const VisualLine& vl, int scrollY) {
+			[this](const VisualLine& vl, int scrollY)
+			{
 				return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
 			});
 
-		if (it == m_visualLines.end()) 
+		if (it == m_visualLines.end())
+		{
 			return m_visualLines.size() - 1;
+		}
 		
 		return std::distance(m_visualLines.begin(), it);
 	}

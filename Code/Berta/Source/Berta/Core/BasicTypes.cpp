@@ -128,7 +128,7 @@ namespace Berta
 
 	Size::operator Point() const
 	{
-		return { (int)Width, (int)Height };
+		return { static_cast<int>(Width), static_cast<int>(Height) };
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Size& size)
