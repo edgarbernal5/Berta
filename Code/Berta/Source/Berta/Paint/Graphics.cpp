@@ -33,6 +33,7 @@ namespace Berta
 		m_dpi(dpi)
 	{
 		Build(size, rootPaintHandle);
+
 	}
 
 	Graphics::Graphics(API::RootPaintNativeHandle rootPaintHandle) :
@@ -50,6 +51,9 @@ namespace Berta
 		m_dpi(other.m_dpi),
 		m_size(other.m_size),
 		m_rootPaintNativeHandle(other.m_rootPaintNativeHandle),
+#ifdef BT_PLATFORM_WINDOWS
+		m_resourceCache(other.m_resourceCache),
+#endif
 		m_targetRT(other.m_targetRT)
 	{
 		other.m_attributes.reset(new PaintNativeHandle());
@@ -103,6 +107,8 @@ namespace Berta
 		auto [width, height] = rootPaintHandle.RenderTarget->GetSize();
 		m_size.Width = static_cast<uint32_t>(width);
 		m_size.Height = static_cast<uint32_t>(height);
+
+		m_resourceCache = ResourceCache(m_targetRT);
 #endif
 	}
 
@@ -153,6 +159,7 @@ namespace Berta
 
 			m_targetRT = m_attributes->m_bitmapRT;
 		}
+		m_resourceCache = ResourceCache(m_targetRT);
 #endif
 	}
 
@@ -278,10 +285,8 @@ namespace Berta
 			return;
 		}
 
-		ID2D1SolidColorBrush* brush;
-		auto hr = m_targetRT->CreateSolidColorBrush(color, &brush);
-
-		if (SUCCEEDED(hr))
+		auto brush = m_resourceCache.GetBrush(color);
+		if (brush)
 		{
 			D2D1_POINT_2F point1F;
 			point1F.x = static_cast<FLOAT>(point1.X) + 0.5f;
@@ -315,7 +320,6 @@ namespace Berta
 
 				strokeStyle->Release();
 			}
-			brush->Release();
 		}
 #endif
 	}
@@ -347,10 +351,9 @@ namespace Berta
 
 		D2D1_RECT_F d2dRect = validRectangle;
 
-		ID2D1SolidColorBrush* brush;
-		auto hr = m_targetRT->CreateSolidColorBrush(color, &brush);
+		auto brush = m_resourceCache.GetBrush(color);
 
-		if (SUCCEEDED(hr))
+		if (brush)
 		{
 			if (solid)
 			{
@@ -365,7 +368,6 @@ namespace Berta
 
 				m_targetRT->DrawRectangle(&d2dRect, brush, strokeWidth);
 			}
-			brush->Release();
 		}
 #endif
 	}
@@ -386,19 +388,15 @@ namespace Berta
 
 		D2D1_RECT_F d2dRect = validRectangle;
 		
-		ID2D1SolidColorBrush* borderBrush;
-		auto hr = m_targetRT->CreateSolidColorBrush(borderColor, &borderBrush);
-
-		if (SUCCEEDED(hr))
+		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		if (borderBrush)
 		{
 			if (solid)
 			{
-				ID2D1SolidColorBrush* solidBrush;
-				hr = m_targetRT->CreateSolidColorBrush(solidColor, &solidBrush);
-				if (SUCCEEDED(hr))
+				auto solidBrush = m_resourceCache.GetBrush(solidColor);
+				if (solidBrush)
 				{
 					m_targetRT->FillRectangle(&d2dRect, solidBrush);
-					solidBrush->Release();
 				}
 			}
 			
@@ -408,13 +406,11 @@ namespace Berta
 			d2dRect.bottom -= 0.5f;
 
 			m_targetRT->DrawRectangle(&d2dRect, borderBrush);
-
-			borderBrush->Release();
 		}
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color) const
+	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color) 
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -429,10 +425,8 @@ namespace Berta
 		d2dRect.top = static_cast<FLOAT>(position.Y);
 		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width);
 		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height);
-
-		ID2D1SolidColorBrush* brush;
-		m_targetRT->CreateSolidColorBrush(color,
-			&brush);
+		
+		auto brush = m_resourceCache.GetBrush(color);
 		
 		IDWriteTextLayout* textLayout = nullptr;
 		
@@ -460,17 +454,15 @@ namespace Berta
 			D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT | D2D1_DRAW_TEXT_OPTIONS_NO_SNAP
 		);
 		textLayout->Release();
-
-		brush->Release();
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color) const
+	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
 	{
 		DrawString(position, StringUtils::Convert(str), color);
 	}
 
-	void Graphics::DrawString(const Point& position, std::wstring_view wstr, const Color& color) const
+	void Graphics::DrawString(const Point& position, std::wstring_view wstr, const Color& color)
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -486,9 +478,7 @@ namespace Berta
 		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width);
 		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height);
 
-		ID2D1SolidColorBrush* brush;
-		m_targetRT->CreateSolidColorBrush(color,
-			&brush);
+		auto brush = m_resourceCache.GetBrush(color);
 		
 		IDWriteTextLayout* textLayout = nullptr;
 		
@@ -515,12 +505,10 @@ namespace Berta
 			brush
 		);
 		textLayout->Release();
-
-		brush->Release();
 #endif
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign) const
+	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign)
 	{
 		if (wstr.empty() || !IsValid())
 		{
@@ -545,9 +533,8 @@ namespace Berta
 			return;
 		}
 
-		ID2D1SolidColorBrush* brush;
-		m_targetRT->CreateSolidColorBrush(color, &brush);
-
+		auto brush = m_resourceCache.GetBrush(color);
+		
 		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
 		textLayout->SetTextAlignment(horizontalAlign == HorizontalAlign::Left ? DWRITE_TEXT_ALIGNMENT_LEADING : 
 			(horizontalAlign == HorizontalAlign::Center ? DWRITE_TEXT_ALIGNMENT_CENTER : DWRITE_TEXT_ALIGNMENT_TRAILING));
@@ -577,14 +564,32 @@ namespace Berta
 			brush
 		);*/
 		
-		brush->Release();
 		textLayout->Release();
 #endif
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap) const
+	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap)
 	{
 		DrawString(area, StringUtils::Convert(str), color, wordWrap);
+	}
+
+	void Graphics::DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color)
+	{
+		if (!handle.IsValid()) return;
+
+#ifdef BT_PLATFORM_WINDOWS
+		auto brush = m_resourceCache.GetBrush(color);
+		if (brush)
+		{
+			m_targetRT->DrawTextLayout
+			(
+				D2D1::Point2F(static_cast<float>(origin.X), static_cast<float>(origin.Y)),
+				handle.m_textLayout,
+				brush,
+				D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
+			);
+		}
+#endif
 	}
 
 	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor)
@@ -660,26 +665,19 @@ namespace Berta
 		sink->EndFigure(D2D1_FIGURE_END_CLOSED);
 		sink->Close();
 
-		ID2D1SolidColorBrush* borderBrush;
-		hr = m_targetRT->CreateSolidColorBrush(borderColor, &borderBrush);
-
-		if (SUCCEEDED(hr))
+		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		if (borderBrush)
 		{
 			if (solid)
 			{
-				ID2D1SolidColorBrush* solidBrush;
-				hr = m_targetRT->CreateSolidColorBrush(solidColor, &solidBrush);
-				if (SUCCEEDED(hr))
+				auto solidBrush = m_resourceCache.GetBrush(solidColor);
+				if (solidBrush)
 				{
 					m_targetRT->FillGeometry(geometry, solidBrush);
-					solidBrush->Release();
 				}
 			}
 
 			m_targetRT->DrawGeometry(geometry, borderBrush, strokeWidth);
-
-			borderBrush->Release();
-
 		}
 		sink->Release();
 		geometry->Release();
@@ -715,16 +713,14 @@ namespace Berta
 			radiusScaled
 		);
 
-		ID2D1SolidColorBrush* brush;
-		auto hr = m_targetRT->CreateSolidColorBrush(color, &brush);
-		if (FAILED(hr))
+		auto brush = m_resourceCache.GetBrush(color);
+		if (!brush)
 		{
 			return;
 		}
 
-		ID2D1SolidColorBrush* brushBorder;
-		hr = m_targetRT->CreateSolidColorBrush(bordercolor, &brushBorder);
-		if (SUCCEEDED(hr))
+		auto brushBorder = m_resourceCache.GetBrush(bordercolor);
+		if (brushBorder)
 		{
 			if (solid)
 			{
@@ -736,10 +732,7 @@ namespace Berta
 
 				m_targetRT->DrawRoundedRectangle(&roundedRect, brushBorder);
 			}
-			brushBorder->Release();
 		}
-
-		brush->Release();
 #endif
 	}
 
@@ -803,30 +796,24 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(dest.X, dest.Y), static_cast<float>(radius), static_cast<float>(radius));
 
-		ID2D1SolidColorBrush* borderBrush;
-		auto hr = m_targetRT->CreateSolidColorBrush(borderColor, &borderBrush);
-		if (FAILED(hr))
+		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		if (!borderBrush)
 		{
 			return;
 		}
 
 		if (solid)
 		{
-			ID2D1SolidColorBrush* fillBrush;
-			hr = m_targetRT->CreateSolidColorBrush(fillColor, &fillBrush);
-			if (FAILED(hr))
+			auto fillBrush = m_resourceCache.GetBrush(fillColor);
+			if (!fillBrush)
 			{
-				borderBrush->Release();
 				return;
 			}
 
 			m_targetRT->FillEllipse(ellipse, fillBrush);
-			fillBrush->Release();
 		}
 
 		m_targetRT->DrawEllipse(ellipse, borderBrush, strokeWidth);
-
-		borderBrush->Release();
 #endif
 	}
 
@@ -836,30 +823,24 @@ namespace Berta
 		D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(static_cast<FLOAT>((dest.X * 2 + dest.Width)>> 1), static_cast<FLOAT>((dest.Y * 2 + dest.Height) >> 1)), 
 			static_cast<FLOAT>(dest.Width >> 1), static_cast<FLOAT>(dest.Height >> 1));
 
-		ID2D1SolidColorBrush* borderBrush;
-		auto hr = m_targetRT->CreateSolidColorBrush(borderColor, &borderBrush);
-		if (FAILED(hr))
+		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		if (!borderBrush)
 		{
 			return;
 		}
 
 		if (solid)
 		{
-			ID2D1SolidColorBrush* fillBrush;
-			hr = m_targetRT->CreateSolidColorBrush(fillColor, &fillBrush);
-			if (FAILED(hr))
+			auto fillBrush = m_resourceCache.GetBrush(fillColor);
+			if (!fillBrush)
 			{
-				borderBrush->Release();
 				return;
 			}
 
 			m_targetRT->FillEllipse(ellipse, fillBrush);
-			fillBrush->Release();
 		}
 
 		m_targetRT->DrawEllipse(ellipse, borderBrush, strokeWidth);
-
-		borderBrush->Release();
 #endif
 	}
 

@@ -23,11 +23,16 @@ namespace Berta
         }
 
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
-        m_targetRT->CreateSolidColorBrush
+        auto hr = m_targetRT->CreateSolidColorBrush
         (
             D2D1::ColorF(color.GetR() / 255.0f, color.GetG() / 255.0f, color.GetB() / 255.0f, color.GetA() / 255.0f),
             &brush
         );
+        
+        if (FAILED(hr))
+        {
+            return nullptr;
+        }
     
         m_brushCache[color] = brush;
         return brush.Get();

@@ -12,6 +12,10 @@
 #include "Berta/API/WindowAPI.h"
 #include "Berta/API/PaintAPI.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/ResourceCache.h"
+#endif
+
 namespace Berta
 {
 	class Graphics
@@ -61,11 +65,13 @@ namespace Berta
 		void DrawRectangle(const Color& color, bool solid, float strokeWidth = 1.0f);
 		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth = 1.0f);
 		void DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth = 1.0f);
-		void DrawString(const Point& position, const std::wstring& wstr, const Color& color) const;
-		void DrawString(const Point& position, const std::string& str, const Color& color) const;
-		void DrawString(const Point& position, std::wstring_view wstr, const Color& color) const;
-		void DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap = false, HorizontalAlign horizontalAlign = HorizontalAlign::Left, VerticalAlign verticalAlign = VerticalAlign::Top) const;
-		void DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap = false) const;
+		void DrawString(const Point& position, const std::wstring& wstr, const Color& color);
+		void DrawString(const Point& position, const std::string& str, const Color& color);
+		void DrawString(const Point& position, std::wstring_view wstr, const Color& color);
+		void DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap = false, HorizontalAlign horizontalAlign = HorizontalAlign::Left, VerticalAlign verticalAlign = VerticalAlign::Top);
+		void DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap = false);
+		
+		void DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color);
 		
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor);
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor = {}, float strokeWidth = 1.0f);
@@ -123,6 +129,7 @@ namespace Berta
 
 #ifdef BT_PLATFORM_WINDOWS
 		ID2D1RenderTarget* m_targetRT{ nullptr };
+		ResourceCache m_resourceCache;
 #endif
 	};
 }

@@ -37,7 +37,19 @@ namespace Berta
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		IDWriteTextLayout* m_textLayout{ nullptr };
+		
+		bool IsValid() const { return m_textLayout != nullptr; }
+		operator bool() const
+		{
+			return m_textLayout != nullptr;
+		}
+#else
+		operator bool() const
+		{
+			return false;
+		}
 #endif
+		
 	};
 
 	namespace API
