@@ -1202,36 +1202,44 @@ namespace Berta
 		m_cachedMaxWidth = 0;
 		uint32_t currentY = 0;
 
-		for (size_t i = 0; i < m_lines.size(); ++i) {
+		for (size_t i = 0; i < m_lines.size(); ++i)
+		{
 			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines);
 		}
     
 		if (m_features.wordWrap) m_cachedMaxWidth = m_editorArea.Width;
 	}
 
-	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset,
-		std::vector<VisualLine>& outList)
+	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList)
 	{
 		const std::wstring& line = m_lines[logicalIndex];
 		auto lineHeight = GetLineHeight();
 		const uint32_t maxWidthLimit = (m_editorArea.Width > 15) ? m_editorArea.Width - 10 : 5;
 
-		if (line.empty()) {
+		if (line.empty())
+		{
 			outList.emplace_back(logicalIndex, 0, 0, yOffset);
 			yOffset += lineHeight;
 			return;
 		}
 
-		if (!m_features.wordWrap) {
+		if (!m_features.wordWrap)
+		{
+			m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, m_graphics.GetTextExtent(line).Width);
+			//m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line)))));
 			outList.emplace_back(logicalIndex, 0, line.size(), yOffset);
 			yOffset += lineHeight;
-		} else {
+		}
+		else
+		{
 			size_t start = 0;
-			while (start < line.size()) {
+			while (start < line.size())
+			{
 				size_t low = 1, high = line.size() - start, count = 1;
-				while (low <= high) {
+				while (low <= high)
+				{
 					size_t mid = low + (high - low) / 2;
-					if (static_cast<uint32_t>( std::ceilf(GetStringWidth(line.substr(start, mid)))) <= maxWidthLimit)
+					if (static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line.substr(start, mid))))) <= maxWidthLimit)
 					{
 						count = mid;
 						low = mid + 1;
