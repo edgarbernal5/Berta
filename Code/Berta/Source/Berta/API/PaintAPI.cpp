@@ -7,11 +7,6 @@
 #include "btpch.h"
 #include "PaintAPI.h"
 
-#ifdef BT_PLATFORM_WINDOWS
-#include "Berta/Platform/Windows/D2D.h"
-#include <wrl/client.h>
-#endif
-
 namespace Berta
 {
 	PaintNativeHandle::~PaintNativeHandle()

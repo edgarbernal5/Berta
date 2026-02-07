@@ -7,6 +7,7 @@
 #ifndef BT_TEXT_EDITOR_BASE_HEADER
 #define BT_TEXT_EDITOR_BASE_HEADER
 
+#include "Berta/API/PaintAPI.h"
 #if BT_PLATFORM_WINDOWS
 #include <wrl/client.h>
 #include "Berta/Platform/Windows/D2D.h"
@@ -68,7 +69,7 @@ namespace Berta
 		uint32_t y;
 		
 #if BT_PLATFORM_WINDOWS
-		mutable Microsoft::WRL::ComPtr<IDWriteTextLayout> layout = nullptr;
+		mutable TextPaintNativeHandle m_textHandle;
 #endif
 		
 		VisualLine(size_t li, size_t cs, size_t cl, uint32_t py) : 

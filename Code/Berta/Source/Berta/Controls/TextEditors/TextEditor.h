@@ -60,7 +60,7 @@ namespace Berta
 		void SetEditable(bool isEditable);
 		
 		void SetMultiline(bool enable);
-		void SetWordWrap(bool enable);
+		void SetWordWrap(bool enabled);
 		
 		void SetCharFilter(std::function<bool(wchar_t)> predicate);
 		void SetBehavior(TextFocusBehavior behavior)
@@ -127,6 +127,9 @@ namespace Berta
 		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList);
 		void UpdateLinesIncremental(size_t startLine, int lineCountDelta);
 		size_t GetFirstVisibleVisualLine() const;
+		
+		void EnsureLayout(const VisualLine& vl) const;
+		void InvalidateLayoutsForLogicalLine(size_t logicalIndex);
 		
 		void EmitValueChanged() const;
 		

@@ -575,8 +575,11 @@ namespace Berta
 
 	void Graphics::DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color)
 	{
-		if (!handle.IsValid()) return;
-
+		if (!handle.IsValid())
+		{
+			return;
+		}
+		
 #ifdef BT_PLATFORM_WINDOWS
 		auto brush = m_resourceCache.GetBrush(color);
 		if (brush)
@@ -584,7 +587,7 @@ namespace Berta
 			m_targetRT->DrawTextLayout
 			(
 				D2D1::Point2F(static_cast<float>(origin.X), static_cast<float>(origin.Y)),
-				handle.m_textLayout,
+				handle.m_textLayout.Get(),
 				brush,
 				D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
 			);

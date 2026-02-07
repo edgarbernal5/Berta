@@ -121,6 +121,16 @@ namespace Berta
 			return m_attributes != nullptr;
 #endif
 		}
+		
+		PaintNativeHandle* GetNativeHandle() const
+		{
+			if (!IsValid())
+			{
+				return nullptr;
+			}
+			
+			return m_attributes.get();
+		}
 	private:
 		uint32_t m_dpi{ 96u };
 		Size m_size{};

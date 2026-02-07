@@ -11,6 +11,11 @@
 #include "Berta/Core/Base.h"
 #include "Berta/Core/BasicTypes.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+#include <wrl/client.h>
+#endif
+
 namespace Berta
 {
 	struct PaintNativeHandle
@@ -36,17 +41,25 @@ namespace Berta
 	struct TextPaintNativeHandle
 	{
 #ifdef BT_PLATFORM_WINDOWS
-		IDWriteTextLayout* m_textLayout{ nullptr };
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> m_textLayout{ nullptr };
 		
 		bool IsValid() const { return m_textLayout != nullptr; }
 		operator bool() const
 		{
 			return m_textLayout != nullptr;
 		}
+		void Release()
+		{
+			m_textLayout.Reset();
+		}
 #else
+		bool IsValid() const { return false; }
 		operator bool() const
 		{
 			return false;
+		}
+		void Release()
+		{
 		}
 #endif
 		

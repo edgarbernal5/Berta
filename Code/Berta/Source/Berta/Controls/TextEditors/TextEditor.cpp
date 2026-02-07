@@ -17,6 +17,10 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/EnumTypes.h"
 
+#ifdef BT_PLATFORM_WINDOWS
+#include "Berta/Platform/Windows/D2D.h"
+#endif
+
 namespace Berta
 {
 	TextEditor::TextEditor(Window* owner, Graphics* graphics) :
@@ -263,6 +267,7 @@ namespace Berta
 			
 		case KeyboardKey::Enter:
 			HandleEnter();
+			redraw = true;
 			break;
 			
 		//case KeyboardKey::A:
@@ -319,12 +324,17 @@ namespace Berta
 		size_t start = clickPos.column;
 		size_t end = clickPos.column;
 
-		while (start > 0 && iswalnum(line[start - 1]))
+		auto isWordChar = [](wchar_t ch)
+		{ 
+			return std::iswalnum(ch) || ch == L'_'; 
+		};
+		bool clickingOnWord = (clickPos.column < line.size()) ? isWordChar(line[clickPos.column]) : false;
+		while (start > 0 && isWordChar(line[start - 1]) == clickingOnWord)
 		{
 			start--;
 		}
-		
-		while (end < line.size() && iswalnum(line[end]))
+
+		while (end < line.size() && isWordChar(line[end]) == clickingOnWord)
 		{
 			end++;
 		}
@@ -388,7 +398,6 @@ namespace Berta
 			UpdateLinesIncremental(position.line, 0);
 			position.column++;
 		}
-		//RecomputeWordWrap();
 		m_selection.m_startPosition = position;
 		
 		AdjustView();
@@ -854,8 +863,8 @@ namespace Berta
 		auto one = m_owner->ToScale(1);
 		auto two = m_owner->ToScale(2);
 		
-		TextPosition s = m_selection.Min();
-		TextPosition e = m_selection.Max();
+		TextPosition startPosition = m_selection.Min();
+		TextPosition endPosition = m_selection.Max();
 		
 		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
 		{
@@ -875,10 +884,10 @@ namespace Berta
 			
 			std::wstring_view fragment = std::wstring_view(m_lines[vl.logicalLineIndex]).substr(vl.charStart, vl.charLength);
 			
-			if (s != e && vl.logicalLineIndex >= s.line && vl.logicalLineIndex <= e.line)
+			if (startPosition != endPosition && vl.logicalLineIndex >= startPosition.line && vl.logicalLineIndex <= endPosition.line)
 			{
-				size_t selStartInV = (vl.logicalLineIndex == s.line) ? (std::max)(vl.charStart, s.column) : vl.charStart;
-				size_t selEndInV = (vl.logicalLineIndex == e.line) ? (std::min)(vl.charStart + vl.charLength, e.column) : (vl.charStart + vl.charLength);
+				size_t selStartInV = (vl.logicalLineIndex == startPosition.line) ? (std::max)(vl.charStart, startPosition.column) : vl.charStart;
+				size_t selEndInV = (vl.logicalLineIndex == endPosition.line) ? (std::min)(vl.charStart + vl.charLength, endPosition.column) : (vl.charStart + vl.charLength);
 
 				if (selStartInV < selEndInV)
 				{
@@ -887,7 +896,12 @@ namespace Berta
 					m_graphics.DrawRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128), true);
 				}
 			}
-			m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
+			EnsureLayout(vl);
+			if (vl.m_textHandle)
+			{
+				m_graphics.DrawTextLayout(vl.m_textHandle, { drawX + m_editorArea.X, drawY + m_editorArea.Y }, m_owner->Appearance->Foreground);
+			}
+			//m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
 			
 			//Caret
 			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
@@ -920,18 +934,30 @@ namespace Berta
 	void TextEditor::SetMultiline(bool enable)
 	{
 		if (m_features.isMultiLines == enable)
+		{
 			return;
+		}
 		
 		m_features.isMultiLines = enable;
+		for(auto& vl : m_visualLines)
+		{
+			vl.m_textHandle.Release();
+		}
 		RecomputeWordWrap();
 	}
 
-	void TextEditor::SetWordWrap(bool enable)
+	void TextEditor::SetWordWrap(bool enabled)
 	{
-		if (m_features.wordWrap == enable)
+		if (m_features.wordWrap == enabled)
+		{
 			return;
+		}
 		
-		m_features.wordWrap = enable;
+		m_features.wordWrap = enabled;
+		for(auto& vl : m_visualLines)
+		{
+			vl.m_textHandle.Release();
+		}
 		RecomputeWordWrap();
 	}
 
@@ -1026,13 +1052,56 @@ namespace Berta
 		{
 			return { 0, 0 };
 		}
-
-		int localX = mousePosition.X - static_cast<int>(m_editorArea.X) + m_offsetView.X;
-		int localY = mousePosition.Y - static_cast<int>(m_editorArea.Y) + m_offsetView.Y;
 		
+		int relativeY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
 		auto lineHeight = GetLineHeight();
-		const VisualLine* targetVL = &m_visualLines.back();
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), relativeY,
+			[lineHeight](const VisualLine& vl, int y)
+			{
+				return static_cast<int>(vl.y) + static_cast<int>(lineHeight) < y;
+			});
+		
+		if (it == m_visualLines.end())
+		{
+			it = std::prev(m_visualLines.end());
+		}
+#ifdef BT_PLATFORM_WINDOWS
+		const auto& vl = *it;
+		float localX = static_cast<float>(mousePosition.X - m_editorArea.X + m_offsetView.X);
+		float localY = static_cast<float>(relativeY - vl.y);
 
+		EnsureLayout(vl);
+		if (!vl.m_textHandle.IsValid())
+		{
+			return { vl.logicalLineIndex, vl.charStart };
+		}
+		
+		BOOL isTrailingHit;
+		BOOL isInside;
+		DWRITE_HIT_TEST_METRICS metrics;
+		
+		vl.m_textHandle.m_textLayout->HitTestPoint
+		(
+			localX,
+			localY,
+			&isTrailingHit, // Si clicamos en la mitad derecha del carácter
+			&isInside,      // Si el clic cayó realmente sobre el texto
+			&metrics
+		);
+		
+		size_t finalColumn = vl.charStart + metrics.textPosition;
+		if (isTrailingHit)
+		{
+			finalColumn++;
+		}
+		finalColumn = std::min<size_t>(finalColumn, m_lines[vl.logicalLineIndex].size());
+
+		return { vl.logicalLineIndex, finalColumn };
+#else
+		
+		int localX = mousePosition.X - m_editorArea.X + m_offsetView.X;
+		int localY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
+		
 		localY = std::max<int>(localY, 0);
 
 		for (const auto& vl : m_visualLines)
@@ -1085,6 +1154,7 @@ namespace Berta
 		}
 
 		return { targetVL->logicalLineIndex, targetVL->charStart + foundOffset };
+#endif
 	}
 
 	TextPosition TextEditor::GetPositionNextWord(TextPosition currentPosition, int direction) const
@@ -1330,6 +1400,58 @@ namespace Berta
 		}
 		
 		return std::distance(m_visualLines.begin(), it);
+	}
+
+	void TextEditor::EnsureLayout(const VisualLine& vl) const
+	{
+		if (vl.m_textHandle.IsValid())
+		{
+			return;
+		}
+
+		const std::wstring& fullLine = m_lines[vl.logicalLineIndex];
+    
+		if (fullLine.empty() && vl.charLength == 0)
+		{
+			return;
+		}
+
+		auto nativeAttr = m_graphics.GetNativeHandle(); // PaintNativeHandle*
+		if (!nativeAttr || !nativeAttr->m_textFormat)
+		{
+			return;
+		}
+
+#ifdef BT_PLATFORM_WINDOWS
+		float layoutWidth = m_features.wordWrap ? static_cast<float>(m_editorArea.Width) : 1000000.0f; 
+		float layoutHeight = static_cast<float>(GetLineHeight());
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			fullLine.c_str() + vl.charStart,
+			static_cast<UINT32>(vl.charLength),
+			nativeAttr->m_textFormat,
+			layoutWidth,
+			layoutHeight,
+			&vl.m_textHandle.m_textLayout
+		);
+
+		if (FAILED(hr))
+		{
+			BT_CORE_ERROR << "Failed! Ensure layout with line " << vl.logicalLineIndex << std::endl;
+		}
+#endif
+	}
+
+	void TextEditor::InvalidateLayoutsForLogicalLine(size_t logicalIndex)
+	{
+		for (auto& vl : m_visualLines)
+		{
+			if (vl.logicalLineIndex == logicalIndex)
+			{
+				vl.m_textHandle.Release();
+			}
+		}
 	}
 
 	void TextEditor::EmitValueChanged() const
