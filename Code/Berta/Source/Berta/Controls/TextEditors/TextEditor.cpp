@@ -387,14 +387,16 @@ namespace Berta
 			currentLine = currentLine.substr(0, position.column);
         
 			m_lines.insert(m_lines.begin() + position.line + 1, remainder);
+			InvalidateLayoutsForLogicalLine(position.line);
 			UpdateLinesIncremental(position.line, 1);
-        
+			
 			position.line++;
 			position.column = 0;
 		}
 		else
 		{
 			currentLine.insert(position.column, 1, chr);
+			InvalidateLayoutsForLogicalLine(position.line);
 			UpdateLinesIncremental(position.line, 0);
 			position.column++;
 		}
@@ -677,17 +679,18 @@ namespace Berta
 			{
 				break;
 			}
-
-			if (position.column >= vl.charStart && position.column <= vl.charStart + vl.charLength)
+			if (position.column >= m_visualLines[i].charStart && 
+						position.column < m_visualLines[i].charStart + m_visualLines[i].charLength)
 			{
-				if (position.column == vl.charStart + vl.charLength && i + 1 < m_visualLines.size())
-				{
-					if (m_visualLines[i + 1].logicalLineIndex == position.line)
-					{
-						continue;
-					}
-				}
 				return i;
+			}
+        
+			if (position.column == m_visualLines[i].charStart + m_visualLines[i].charLength)
+			{
+				if (i + 1 == m_visualLines.size() || m_visualLines[i + 1].logicalLineIndex != position.line)
+				{
+					return i;
+				}
 			}
 		}
 
@@ -1299,31 +1302,61 @@ namespace Berta
 			//m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line)))));
 			outList.emplace_back(logicalIndex, 0, line.size(), yOffset);
 			yOffset += lineHeight;
+			return;
 		}
-		else
+#ifdef BT_PLATFORM_WINDOWS
+		auto nativeAttr = m_graphics.GetNativeHandle();
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> tempLayout;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout(
+			line.c_str(),
+			static_cast<UINT32>(line.size()),
+			nativeAttr->m_textFormat,
+			static_cast<float>(m_editorArea.Width),
+			static_cast<float>(lineHeight),
+			&tempLayout
+		);
+
+		if (SUCCEEDED(hr))
 		{
-			size_t start = 0;
-			while (start < line.size())
+			uint32_t actualLineCount = 0;
+			tempLayout->GetLineMetrics(nullptr, 0, &actualLineCount);
+
+			std::vector<DWRITE_LINE_METRICS> metrics(actualLineCount);
+			tempLayout->GetLineMetrics(metrics.data(), actualLineCount, &actualLineCount);
+
+			size_t currentPos = 0;
+			for (const auto& lineMetric : metrics)
 			{
-				size_t low = 1, high = line.size() - start, count = 1;
-				while (low <= high)
-				{
-					size_t mid = low + (high - low) / 2;
-					if (static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line.substr(start, mid))))) <= maxWidthLimit)
-					{
-						count = mid;
-						low = mid + 1;
-					}
-					else
-					{
-						high = mid - 1;
-					}
-				}
-				outList.emplace_back(logicalIndex, start, count, yOffset);
+				outList.emplace_back(logicalIndex, currentPos, lineMetric.length, yOffset);
+            
+				currentPos += lineMetric.length;
 				yOffset += lineHeight;
-				start += count;
 			}
 		}
+#else
+		size_t start = 0;
+		while (start < line.size())
+		{
+			size_t low = 1, high = line.size() - start, count = 1;
+			while (low <= high)
+			{
+				size_t mid = low + (high - low) / 2;
+				if (static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line.substr(start, mid))))) <= maxWidthLimit)
+				{
+					count = mid;
+					low = mid + 1;
+				}
+				else
+				{
+					high = mid - 1;
+				}
+			}
+			outList.emplace_back(logicalIndex, start, count, yOffset);
+			yOffset += lineHeight;
+			start += count;
+		}
+#endif
 	}
 
 	void TextEditor::UpdateLinesIncremental(size_t startLine, int lineCountDelta)
@@ -1335,59 +1368,54 @@ namespace Berta
 
 		// (O(log N))
 		auto itStart = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), startLine,
+		[](const VisualLine& vl, size_t idx)
+		{
+			return vl.logicalLineIndex < idx;
+		});
+
+		size_t visualStartIndex = std::distance(m_visualLines.begin(), itStart);
+
+		size_t affectedEndLine = startLine + (lineCountDelta < 0 ? -lineCountDelta : 0);
+		auto itEnd = std::lower_bound(itStart, m_visualLines.end(), affectedEndLine + 1,
 			[](const VisualLine& vl, size_t idx)
 			{
 				return vl.logicalLineIndex < idx;
 			});
 
-		size_t firstVisualIdx = std::distance(m_visualLines.begin(), itStart);
-
-		if (lineCountDelta != 0)
-		{
-			for (size_t i = firstVisualIdx; i < m_visualLines.size(); ++i)
-			{
-				m_visualLines[i].logicalLineIndex += lineCountDelta;
-			}
-		}
-
-		uint32_t oldY = (itStart != m_visualLines.end()) ? itStart->y : 
-					   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
-
-		size_t linesToUpdate = (lineCountDelta > 0) ? 1 + lineCountDelta : 1;
+		uint32_t originalYStart = (itStart != m_visualLines.end()) ? itStart->y : 
+								   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
     
-		auto itEnd = itStart;
-		while (itEnd != m_visualLines.end() && itEnd->logicalLineIndex < (startLine + linesToUpdate))
-		{
-			itEnd++;
-		}
+		uint32_t nextLineYBefore = (itEnd != m_visualLines.end()) ? itEnd->y : 
+									(m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+
 		m_visualLines.erase(itStart, itEnd);
 
 		std::vector<VisualLine> newVisuals;
-		uint32_t currentY = oldY;
-		for (size_t i = 0; i < linesToUpdate; ++i)
+		uint32_t runningY = originalYStart;
+		size_t lastLineToCompute = startLine + (lineCountDelta > 0 ? lineCountDelta : 0);
+
+		for (size_t i = startLine; i <= lastLineToCompute; ++i)
 		{
-			if (startLine + i < m_lines.size())
-			{
-				ComputeVisualLinesForLogicalLine(startLine + i, currentY, newVisuals);
-			}
+			ComputeVisualLinesForLogicalLine(i, runningY, newVisuals);
 		}
 
-		m_visualLines.insert(m_visualLines.begin() + firstVisualIdx, newVisuals.begin(), newVisuals.end());
+		m_visualLines.insert(m_visualLines.begin() + visualStartIndex, newVisuals.begin(), newVisuals.end());
 
-		int yDelta = static_cast<int>(currentY) - static_cast<int>(oldY);
-		if (yDelta != 0)
+		int heightDelta = static_cast<int>(runningY) - static_cast<int>(nextLineYBefore);
+
+		for (size_t i = visualStartIndex + newVisuals.size(); i < m_visualLines.size(); ++i)
 		{
-			for (size_t i = firstVisualIdx + newVisuals.size(); i < m_visualLines.size(); ++i)
-			{
-				m_visualLines[i].y += yDelta;
-			}
+			m_visualLines[i].y += heightDelta;
+			m_visualLines[i].logicalLineIndex += lineCountDelta;
 		}
 	}
 
 	size_t TextEditor::GetFirstVisibleVisualLine() const
 	{
-		if (m_visualLines.empty()) return 0;
-
+		if (m_visualLines.empty())
+		{
+			return 0;
+		}
 		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), m_offsetView.Y,
 			[this](const VisualLine& vl, int scrollY)
 			{
