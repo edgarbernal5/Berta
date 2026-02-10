@@ -105,8 +105,7 @@ namespace Berta
 		void MoveCaretRight(bool wordJump, bool select);
 		void MoveCaretEnd(bool select);
 		
-		void MoveCaretUp(bool select);
-		void MoveCaretDown(bool select);
+		void MoveCaretVertically(int direction, bool select);
 		
 		void HandleDelete();
 		void HandleBackspace();
@@ -120,7 +119,8 @@ namespace Berta
 		void AdjustView();
 		TextPosition GetPositionUnderMouse(const Point& mousePosition) const;
 		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
-
+		Point GetPointFromPosition(TextPosition pos) const;
+		
 		Size GetContentTextExtent() const;
 		
 		void RecomputeWordWrap();

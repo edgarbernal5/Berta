@@ -256,12 +256,12 @@ namespace Berta
 			break;
 		
 		case KeyboardKey::ArrowUp:
-			MoveCaretUp(m_shiftPressed);
+			MoveCaretVertically(-1, m_shiftPressed);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
 		case KeyboardKey::ArrowDown:
-			MoveCaretDown(m_shiftPressed);
+			MoveCaretVertically(1, m_shiftPressed);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 			
@@ -488,38 +488,36 @@ namespace Berta
 		AdjustView();
 	}
 
-	void TextEditor::MoveCaretUp(bool select)
+	void TextEditor::MoveCaretVertically(int direction, bool select)
 	{
-		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		if (vIdx > 0)
-		{
-			const auto& currentV = m_visualLines[vIdx];
-			const auto& targetV = m_visualLines[vIdx - 1];
-			size_t offset = m_selection.m_endPosition.column - currentV.charStart;
-        
-			m_selection.m_endPosition.line = targetV.logicalLineIndex;
-			m_selection.m_endPosition.column = targetV.charStart + std::min<size_t>(offset, targetV.charLength);
-		}
-		
-		if (!select)
-		{
-			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
+		size_t currentVlIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+    
+		if (direction < 0 && currentVlIdx == 0) return;
+		if (direction > 0 && currentVlIdx + 1 >= m_visualLines.size())
+			return;
 
-	void TextEditor::MoveCaretDown(bool select)
-	{
-		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		if (vIdx + 1 < m_visualLines.size())
-		{
-			const auto& currentV = m_visualLines[vIdx];
-			const auto& targetV = m_visualLines[vIdx + 1];
-			size_t offset = m_selection.m_endPosition.column - currentV.charStart;
+		size_t targetVlIdx = currentVlIdx + direction;
+		const auto& targetVl = m_visualLines[targetVlIdx];
 
-			m_selection.m_endPosition.line = targetV.logicalLineIndex;
-			m_selection.m_endPosition.column = targetV.charStart + (std::min)(offset, targetV.charLength);
+		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
+		float targetX = (float)(currentPt.X - m_editorArea.X + m_offsetView.X);
+
+		EnsureLayout(targetVl);
+    
+		BOOL isTrailingHit, isInside;
+		DWRITE_HIT_TEST_METRICS metrics;
+
+#ifdef BT_PLATFORM_WINDOWS
+		if (targetVl.m_textHandle.IsValid()) {
+			targetVl.m_textHandle.m_textLayout->HitTestPoint(
+				targetX, 0, &isTrailingHit, &isInside, &metrics
+			);
+
+			m_selection.m_endPosition.line = targetVl.logicalLineIndex;
+			m_selection.m_endPosition.column = targetVl.charStart + metrics.textPosition;
+			if (isTrailingHit) m_selection.m_endPosition.column++;
 		}
+#endif
 		if (!select)
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
@@ -1262,6 +1260,39 @@ namespace Berta
 		return pos;
 	}
 
+	Point TextEditor::GetPointFromPosition(TextPosition pos) const
+	{
+		size_t vlIdx = GetVisualLineIndexFromPos(pos);
+		const auto& vl = m_visualLines[vlIdx];
+		
+		EnsureLayout(vl);
+
+		float localX = 0.0f;
+		float localY = 0.0f;
+
+		if (vl.m_textHandle.IsValid())
+		{
+			DWRITE_HIT_TEST_METRICS metrics;
+			uint32_t relativePos = static_cast<uint32_t>(pos.column - vl.charStart);
+
+#ifdef BT_PLATFORM_WINDOWS
+			vl.m_textHandle.m_textLayout->HitTestTextPosition
+			(
+				relativePos,
+				FALSE,
+				&localX,
+				&localY,
+				&metrics
+			);
+#endif
+		}
+
+		int x = m_editorArea.X - m_offsetView.X + static_cast<int>(localX);
+		int y = m_editorArea.Y - m_offsetView.Y + static_cast<int>(vl.y);
+
+		return { x, y };
+	}
+
 	Size TextEditor::GetContentTextExtent() const
 	{
 		uint32_t totalHeight = static_cast<uint32_t>(m_visualLines.size() * GetLineHeight());
@@ -1299,7 +1330,6 @@ namespace Berta
 		if (!m_features.wordWrap)
 		{
 			m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, m_graphics.GetTextExtent(line).Width);
-			//m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, static_cast<uint32_t>(std::ceilf(static_cast<float>(GetStringWidth(line)))));
 			outList.emplace_back(logicalIndex, 0, line.size(), yOffset);
 			yOffset += lineHeight;
 			return;
@@ -1308,7 +1338,8 @@ namespace Berta
 		auto nativeAttr = m_graphics.GetNativeHandle();
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> tempLayout;
 		
-		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout(
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
 			line.c_str(),
 			static_cast<UINT32>(line.size()),
 			nativeAttr->m_textFormat,
@@ -1444,13 +1475,13 @@ namespace Berta
 			return;
 		}
 
-		auto nativeAttr = m_graphics.GetNativeHandle(); // PaintNativeHandle*
+#ifdef BT_PLATFORM_WINDOWS
+		auto nativeAttr = m_graphics.GetNativeHandle();
 		if (!nativeAttr || !nativeAttr->m_textFormat)
 		{
 			return;
 		}
 
-#ifdef BT_PLATFORM_WINDOWS
 		float layoutWidth = m_features.wordWrap ? static_cast<float>(m_editorArea.Width) : 1000000.0f; 
 		float layoutHeight = static_cast<float>(GetLineHeight());
 		

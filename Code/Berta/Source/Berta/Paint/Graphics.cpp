@@ -220,6 +220,26 @@ namespace Berta
 		Build(size, rootPaintHandle);
 	}
 
+	void Graphics::CreateTextLayout(const wchar_t* wstr, UINT32 length, uint32_t width, uint32_t height)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> tempLayout;
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr,
+			length,
+			m_attributes->m_textFormat,
+			static_cast<float>(width),
+			static_cast<float>(height),
+			&tempLayout
+		);
+		
+		if (SUCCEEDED(hr))
+		{
+		}
+#endif
+	}
+
 	void Graphics::Blend(const Rectangle& blendDestRectangle, const Graphics& graphicsSource, const Point& pointSource, double alpha)
 	{
 #ifdef BT_PLATFORM_WINDOWS
@@ -236,7 +256,9 @@ namespace Berta
 
 		Rectangle validDestRect, validSourceDest;
 		if (!LayoutUtils::GetIntersectionRect(sourceRect, graphicsSource.GetSize(), blendDestRectangle, GetSize(), validSourceDest, validDestRect))
+		{
 			return;
+		}
 
 		ID2D1Bitmap* sourceBitmap = nullptr;
 		if (SUCCEEDED(graphicsSource.m_attributes->m_bitmapRT->GetBitmap(&sourceBitmap)))
