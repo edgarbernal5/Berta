@@ -72,6 +72,9 @@ namespace Berta
 
 		bool Deselect();
 		bool SelectAll();
+		
+		void LoadFile(const std::string& path);
+		void SaveFile(const std::string& path) const;
 
 	private:
 		struct Features
@@ -100,12 +103,11 @@ namespace Berta
 
 		void InsertChar(wchar_t chr);
 
-		void MoveCaretLeft(bool wordJump, bool select);
 		void MoveCaretHome(bool select);
-		void MoveCaretRight(bool wordJump, bool select);
 		void MoveCaretEnd(bool select);
 		
 		void MoveCaretVertically(int direction, bool select);
+		void MoveCaretHorizontal(int direction, bool wordJump, bool select);
 		
 		void HandleDelete();
 		void HandleBackspace();

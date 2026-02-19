@@ -146,6 +146,9 @@ namespace Berta
 		explicit Rectangle(const Size& s);
 		explicit Rectangle(const Point& p, const Size& s);
 
+		int Bottom() const noexcept;
+		int Right() const noexcept;
+		
 #ifdef BT_PLATFORM_WINDOWS
 		void FromRECT(const ::RECT& rect)
 		{

@@ -14,7 +14,7 @@ namespace Berta
 {
 	std::string ControlBase::GetCaption() const
 	{
-		return StringUtils::Convert(DoOnCaption());
+		return StringUtils::WideToUTF8(DoOnCaption());
 	}
 
 	std::wstring ControlBase::GetCaptionW() const
@@ -29,7 +29,7 @@ namespace Berta
 
 	void ControlBase::SetCaption(const std::string& caption)
 	{
-		std::wstring wCaption = StringUtils::Convert(caption);
+		std::wstring wCaption = StringUtils::UTF8ToWide(caption);
 		DoOnCaption(wCaption);
 	}
 

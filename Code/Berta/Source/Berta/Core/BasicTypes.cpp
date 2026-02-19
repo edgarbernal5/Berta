@@ -37,6 +37,16 @@ namespace Berta
 	{
 	}
 
+	int Rectangle::Bottom() const noexcept
+	{
+		return Y + static_cast<int>(Height);
+	}
+
+	int Rectangle::Right() const noexcept
+	{
+		return X + static_cast<int>(Width);
+	}
+
 #ifdef BT_PLATFORM_WINDOWS
 	::RECT Rectangle::ToRECT() const
 	{

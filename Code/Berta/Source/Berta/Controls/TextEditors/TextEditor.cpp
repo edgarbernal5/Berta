@@ -246,12 +246,12 @@ namespace Berta
 		switch (args.Key)
 		{
 		case KeyboardKey::ArrowLeft:
-			MoveCaretLeft(m_ctrlPressed, m_shiftPressed);
+			MoveCaretHorizontal(-1,m_ctrlPressed, m_shiftPressed);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::ArrowRight:
-			MoveCaretRight(m_ctrlPressed, m_shiftPressed);
+			MoveCaretHorizontal(1,m_ctrlPressed, m_shiftPressed);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
@@ -406,35 +406,6 @@ namespace Berta
 		EmitValueChanged();
 	}
 
-	void TextEditor::MoveCaretLeft(bool wordJump, bool select)
-	{
-		TextPosition& position = m_selection.m_endPosition;
-
-		if (position.column > 0)
-		{
-			if (wordJump)
-			{
-				position = GetPositionNextWord(m_selection.m_endPosition, -1);
-			}
-			else
-			{
-				position.column--;
-			}
-		}
-		else if (position.line > 0)
-		{
-			position.line--;
-			position.column = m_lines[position.line].size();
-		}
-		
-		if (!select)
-		{
-			m_selection.m_startPosition = position;
-		}
-		
-		AdjustView();
-	}
-
 	void TextEditor::MoveCaretHome(bool select)
 	{
 		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
@@ -443,35 +414,6 @@ namespace Berta
 		if (!select)
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
-
-	void TextEditor::MoveCaretRight(bool wordJump, bool select)
-	{
-		TextPosition& position = m_selection.m_endPosition;
-		const std::wstring& currentLine = m_lines[position.line];
-
-		if (position.column < currentLine.size())
-		{
-			if (wordJump)
-			{
-				position = GetPositionNextWord(position, 1);
-			}
-			else
-			{
-				position.column++;
-			}
-		}
-		else if (position.line + 1 < m_lines.size())
-		{
-			position.line++;
-			position.column = 0;
-		}
-
-		if (!select)
-		{
-			m_selection.m_startPosition = position;
 		}
 		AdjustView();
 	}
@@ -500,7 +442,7 @@ namespace Berta
 		const auto& targetVl = m_visualLines[targetVlIdx];
 
 		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
-		float targetX = (float)(currentPt.X - m_editorArea.X + m_offsetView.X);
+		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + m_offsetView.X);
 
 		EnsureLayout(targetVl);
     
@@ -508,16 +450,84 @@ namespace Berta
 		DWRITE_HIT_TEST_METRICS metrics;
 
 #ifdef BT_PLATFORM_WINDOWS
-		if (targetVl.m_textHandle.IsValid()) {
-			targetVl.m_textHandle.m_textLayout->HitTestPoint(
+		if (targetVl.m_textHandle.IsValid())
+		{
+			targetVl.m_textHandle.m_textLayout->HitTestPoint
+			(
 				targetX, 0, &isTrailingHit, &isInside, &metrics
 			);
 
 			m_selection.m_endPosition.line = targetVl.logicalLineIndex;
 			m_selection.m_endPosition.column = targetVl.charStart + metrics.textPosition;
-			if (isTrailingHit) m_selection.m_endPosition.column++;
+			if (isTrailingHit)
+			{
+				m_selection.m_endPosition.column++;
+			}
 		}
 #endif
+		
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
+		AdjustView();
+	}
+
+	void TextEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)
+	{
+		TextPosition& position = m_selection.m_endPosition;
+		const std::wstring& line = m_lines[position.line];
+
+		if (direction > 0)
+		{
+			if (position.column < line.size())
+			{
+				if (IS_HIGH_SURROGATE(line[position.column]) && 
+					position.column + 1 < line.size() && 
+					IS_LOW_SURROGATE(line[position.column + 1]))
+				{
+					position.column += 2;
+				}
+				else if (wordJump)
+				{
+					position = GetPositionNextWord(m_selection.m_endPosition, direction);
+				}
+				else
+				{
+					position.column += 1;
+				}
+			}
+			else if (position.line + 1 < m_lines.size())
+			{
+				position.line++;
+				position.column = 0;
+			}
+		}
+		else
+		{
+			if (position.column > 0)
+			{
+				if (IS_LOW_SURROGATE(line[position.column - 1]) && 
+					position.column > 1 && 
+					IS_HIGH_SURROGATE(line[position.column - 2]))
+				{
+					position.column -= 2;
+				}
+				else if (wordJump)
+				{
+					position = GetPositionNextWord(m_selection.m_endPosition, direction);
+				}
+				else
+				{
+					position.column -= 1;
+				}
+			}
+			else if (position.line > 0)
+			{
+				position.line--;
+				position.column = m_lines[position.line].size();
+			}
+		}
 		if (!select)
 		{
 			m_selection.m_startPosition = m_selection.m_endPosition;
@@ -535,9 +545,11 @@ namespace Berta
 			EmitValueChanged();
 			return;
 		}
+		
 		TextPosition& position = m_selection.m_endPosition;
 		auto& currentLine = m_lines[position.line];
 		bool changed = false;
+		
 		if (position.column < currentLine.size())
 		{
 			currentLine.erase(position.column, 1);
@@ -555,6 +567,7 @@ namespace Berta
 		{
 			return;
 		}
+		
 		RecomputeWordWrap();
 		AdjustView();
 		EmitValueChanged();
@@ -573,6 +586,7 @@ namespace Berta
 		
 		bool changed = false;
 		TextPosition& pos = m_selection.m_endPosition;
+		
 		if (pos.column == 0 && pos.line > 0)
 		{
 			size_t targetLine = pos.line - 1;
@@ -746,7 +760,7 @@ namespace Berta
 
 	void TextEditor::SetContent(const std::string& newContent)
 	{
-		SetContent(StringUtils::Convert(newContent));
+		SetContent(StringUtils::UTF8ToWide(newContent));
 	}
 
 	std::wstring TextEditor::GetSelectedText() const
@@ -994,6 +1008,62 @@ namespace Berta
     
 		AdjustView();
 		return true;
+	}
+
+	void TextEditor::LoadFile(const std::string& path)
+	{
+		std::ifstream file(path, std::ios::binary);
+		if (!file.is_open())
+		{
+			return;
+		}
+
+		std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    
+		std::string_view view(content);
+		if (view.size() >= 3 && static_cast<unsigned char>(view[0]) == 0xEF && static_cast<unsigned char>(view[1]) == 0xBB && static_cast<unsigned char>(view[2]) == 0xBF)
+		{
+			view.remove_prefix(3);
+		}
+
+		std::wstring wContent = StringUtils::UTF8ToWide(std::string(view));
+
+		m_lines.clear();
+		std::size_t start = 0, end;
+		while ((end = wContent.find_first_of(L"\r\n", start)) != std::wstring::npos)
+		{
+			m_lines.push_back(wContent.substr(start, end - start));
+			if (wContent[end] == L'\r' && end + 1 < wContent.size() && wContent[end + 1] == L'\n')
+			{
+				start = end + 2;
+			}
+			else
+			{
+				start = end + 1;
+			}
+		}
+		m_lines.push_back(wContent.substr(start));
+
+		RecomputeWordWrap();
+		m_selection.Reset({ 0, 0 });
+	}
+
+	void TextEditor::SaveFile(const std::string& path) const
+	{
+		std::wstring fullContent;
+		for (size_t i = 0; i < m_lines.size(); ++i)
+		{
+			fullContent += m_lines[i];
+			if (i < m_lines.size() - 1)
+			{
+				fullContent += L"\r\n";
+			}
+		}
+
+		std::string utf8Content = StringUtils::WideToUTF8(fullContent);
+
+		std::ofstream file(path, std::ios::binary);
+		file.write(utf8Content.c_str(), utf8Content.size());
 	}
 
 	void TextEditor::AdjustView()
