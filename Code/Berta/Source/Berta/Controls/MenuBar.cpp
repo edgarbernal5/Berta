@@ -35,8 +35,8 @@ namespace Berta
 			{
 				auto& itemData = *(items[i]);
 
-				auto textPosition = Point{ itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height };
-				if (m_module.m_interactionData.m_selectedItemIndex == (int)i)
+				auto textPosition = Point{ itemData.position.X + static_cast<int>(itemData.center.Width), itemData.position.Y + static_cast<int>(itemData.center.Height) };
+				if (m_module.m_interactionData.m_selectedItemIndex == static_cast<int>(i))
 				{
 					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
 
@@ -352,7 +352,7 @@ namespace Berta
 
 	Menu& MenuBar::PushBack(const std::string& itemName)
 	{
-		std::wstring wItemName = StringUtils::Convert(itemName);
+		std::wstring wItemName = StringUtils::UTF8ToWide(itemName);
 
 		return GetReactor().GetModule().PushBack(wItemName);
 	}

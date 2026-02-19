@@ -29,28 +29,30 @@ namespace Berta
 
 namespace Berta::StringUtils
 {
-	std::wstring Convert(const std::string& str)
+	std::wstring UTF8ToWide(const std::string& utf8Str)
 	{
-		/*
-		
-		if (str.empty()) return std::wstring();
-
-		int tamanoNecesario = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-		std::wstring resultado(tamanoNecesario, L'\0');
-		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &resultado[0], tamanoNecesario);
-
-		// Elimina el caracter nulo final
-		resultado.pop_back();
-		return resultado;
-		*/
-		std::wstring wstr(str.begin(), str.end());
-		return wstr;
+		if (utf8Str.empty())
+		{
+			return L"";
+		}
+		int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), static_cast<int>(utf8Str.size()), nullptr, 0);
+		std::wstring wstrTo(sizeNeeded, 0);
+	
+		MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), static_cast<int>(utf8Str.size()), wstrTo.data(), sizeNeeded);
+		return wstrTo;
 	}
 
-	std::string Convert(const std::wstring& wstr)
+	std::string WideToUTF8(const std::wstring& wstr)
 	{
-		std::string str(wstr.begin(), wstr.end());
-		return str;
+		if (wstr.empty())
+		{
+			return "";
+		}
+		int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr);
+		std::string strTo(sizeNeeded, 0);
+		
+		WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.size()), strTo.data(), sizeNeeded, nullptr, nullptr);
+		return strTo;
 	}
 
 	std::vector<std::string> Split(const std::string& str, char delimiter)

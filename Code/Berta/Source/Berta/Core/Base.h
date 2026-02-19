@@ -39,8 +39,8 @@ namespace Berta
 
 namespace Berta::StringUtils
 {
-	std::wstring Convert(const std::string& str);
-	std::string Convert(const std::wstring& str);
+	std::wstring UTF8ToWide(const std::string& utf8Str);
+	std::string WideToUTF8(const std::wstring& wstr);
 
 	std::vector<std::string> Split(const std::string& str, char delimiter);
 	std::vector<std::wstring> Split(const std::wstring& str, wchar_t delimiter);

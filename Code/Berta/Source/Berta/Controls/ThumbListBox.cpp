@@ -635,7 +635,7 @@ namespace Berta
 		}
 		//TODO:
 		//DrawBatch drawBatch(*m_scrollBar);
-		m_scrollBar->SetMinMax(0, (int)(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
+		m_scrollBar->SetMinMax(0, static_cast<int>(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
 		m_scrollBar->SetPageStepValue(m_viewport.m_backgroundRect.Height);
 		m_scrollBar->SetStepValue(m_viewport.m_cardSize.Height);
 
@@ -1064,7 +1064,7 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::string& text)
 	{
-		if (GetReactor().GetModule().AddItem(StringUtils::Convert(text)) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(StringUtils::UTF8ToWide(text)) && IsAutoDraw())
 		{
 			GetReactor().GetModule().Draw();
 		}
@@ -1080,7 +1080,7 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::string& text, const Image& thumbnail)
 	{
-		if (GetReactor().GetModule().AddItem(StringUtils::Convert(text), thumbnail) && IsAutoDraw())
+		if (GetReactor().GetModule().AddItem(StringUtils::UTF8ToWide(text), thumbnail) && IsAutoDraw())
 		{
 			GetReactor().GetModule().Draw();
 		}

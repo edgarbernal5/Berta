@@ -374,7 +374,6 @@ namespace Berta
 		D2D1_RECT_F d2dRect = validRectangle;
 
 		auto brush = m_resourceCache.GetBrush(color);
-
 		if (brush)
 		{
 			if (solid)
@@ -481,7 +480,7 @@ namespace Berta
 
 	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
 	{
-		DrawString(position, StringUtils::Convert(str), color);
+		DrawString(position, StringUtils::UTF8ToWide(str), color);
 	}
 
 	void Graphics::DrawString(const Point& position, std::wstring_view wstr, const Color& color)
@@ -592,7 +591,7 @@ namespace Berta
 
 	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap)
 	{
-		DrawString(area, StringUtils::Convert(str), color, wordWrap);
+		DrawString(area, StringUtils::UTF8ToWide(str), color, wordWrap);
 	}
 
 	void Graphics::DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color)
@@ -946,7 +945,7 @@ namespace Berta
 		if (FAILED(hr))
 		{
 			_com_error err(hr);
-			BT_CORE_ERROR << "Error Bitmap EndDraw(). err.ErrorMessage() = " << StringUtils::Convert(err.ErrorMessage()) << std::endl;
+			BT_CORE_ERROR << "Error Bitmap EndDraw(). err.ErrorMessage() = " << StringUtils::WideToUTF8(err.ErrorMessage()) << std::endl;
 		}
 #endif
 	}

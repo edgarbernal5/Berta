@@ -41,7 +41,7 @@ namespace Berta
 
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const std::string& wstr)
 	{
-		return GetTextExtentSize(handle, StringUtils::Convert(wstr));
+		return GetTextExtentSize(handle, StringUtils::UTF8ToWide(wstr));
 	}
 
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const std::wstring& wstr)
@@ -85,7 +85,7 @@ namespace Berta
 
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const Rectangle& area, const std::string& str)
 	{
-		return GetTextExtentSize(handle, area, StringUtils::Convert(str), str.size());
+		return GetTextExtentSize(handle, area, StringUtils::UTF8ToWide(str), str.size());
 	}
 
 	Size API::GetTextExtentSize(PaintNativeHandle* handle, const Rectangle& area, const std::wstring& wstr, size_t length)

@@ -324,7 +324,9 @@ namespace Berta
 				selectedIndex = index;
 			}
 			if (selectedIndex == Data.m_selectedIndex)
+			{
 				return;
+			}
 			
 			Data.m_selectedIndex = selectedIndex;
 			SetText(selectedIndex.has_value() ? Data.m_items[*selectedIndex].m_text : L"");
@@ -334,7 +336,9 @@ namespace Berta
 		void ItemProxy::SetText(const std::wstring& text)
 		{
 			if (m_module->Data.m_items.at(m_index).m_text == text)
+			{
 				return;
+			}
 			
 			m_module->Data.m_items.at(m_index).m_text = text;
 			m_module->UpdateItem(m_index);
@@ -343,7 +347,9 @@ namespace Berta
 		void ItemProxy::SetImage(const Image& icon)
 		{
 			if (m_module->Data.m_items.at(m_index).m_icon == icon)
+			{
 				return;
+			}
 			
 			m_module->Data.m_items.at(m_index).m_icon = icon;
 			m_module->UpdateItem(m_index);
@@ -425,7 +431,7 @@ namespace Berta
 
 	void ComboBox::PushBack(const std::string& text)
 	{
-		std::wstring wText = StringUtils::Convert(text);
+		std::wstring wText = StringUtils::UTF8ToWide(text);
 		GetReactor().GetModule().PushBack(wText);
 	}
 
@@ -436,7 +442,7 @@ namespace Berta
 
 	void ComboBox::PushBack(const std::string& text, const Image& icon)
 	{
-		std::wstring wText = StringUtils::Convert(text);
+		std::wstring wText = StringUtils::UTF8ToWide(text);
 		GetReactor().GetModule().PushBack(wText, icon);
 	}
 
