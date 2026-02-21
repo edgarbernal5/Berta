@@ -23,11 +23,9 @@ namespace Berta
 			m_module.m_window = control.Handle();
 
 			m_module.m_appearance = reinterpret_cast<ReactorCore::ListBox::Appearance*>(m_module.m_window->Appearance.get());
-			m_module.m_scrollableView = std::make_unique<ScrollableView>(control.Handle());
-			m_module.m_scrollableView->SetOnScrollChange([this]() {
-				 GUI::MarkAsNeedUpdate(m_module.m_window);
-			});
-			m_module.CalculateViewport(m_module.m_viewport);
+			
+			m_module.InitScrollableView();
+			m_module.UpdateScrollData();
 		}
 
 		void Reactor::Update(Graphics& graphics)
@@ -295,8 +293,8 @@ namespace Berta
 					m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
 
 					Rectangle visibleRect = m_module.m_scrollableView->GetVisibleRect();
-					size_t startIndex = visibleRect.Y / m_module.m_viewport.m_itemHeight;
-					size_t endIndex = std::min<size_t>(m_module.m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / m_module.m_viewport.m_itemHeight) + 1);
+					size_t startIndex = visibleRect.Y / m_module.m_viewport.m_itemHeightWithMargin;
+					size_t endIndex = std::min<size_t>(m_module.m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / m_module.m_viewport.m_itemHeightWithMargin) + 1);
 			
 					needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
 					if (boxSize.Width > 0 && boxSize.Height > 0)
@@ -886,26 +884,31 @@ namespace Berta
 
 		void Reactor::Module::UpdateScrollData()
 		{
-			if (!m_scrollableView) return;
-
-			// 1. Informamos el tamaño total del control al ScrollableView
+			if (!m_scrollableView)
+			{
+				return;
+			}
+			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 			m_scrollableView->SetViewSize(m_window->ClientSize);
-
-			// 2. Calculamos el tamaño total real del CONTENIDO
+			m_scrollableView->SetViewPadding(headerHeight, 0, 0, 0);
+			
 			Size contentSize;
         
-			// El ancho es la suma de todas las cabeceras
-			contentSize.Width = 0;
+			contentSize.Width = m_viewport.m_columnOffsetStartOff;
 			for (const auto& header : m_headers.m_items)
 			{
-				contentSize.Width += header.m_bounds.Width;
+				auto headerWidth = m_window->ToScale(header.m_bounds.Width);
+				contentSize.Width += headerWidth;
 			}
 
-			// La altura es: (Cantidad de items * Altura del item) + Altura de cabeceras
-			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 			contentSize.Height = static_cast<uint32_t>(m_list.m_items.size()) * (m_viewport.m_itemHeightWithMargin) + headerHeight;
 
-			// 3. Le pasamos las dimensiones al motor geométrico
+			if (m_list.m_drawImages)
+			{
+				auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
+				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
+				contentSize.Width += listItemIconSize + listItemIconMargin * 2u;
+			}
 			m_scrollableView->SetContentSize(contentSize);
 		}
 
@@ -1025,29 +1028,36 @@ namespace Berta
 			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 			auto scrollOffset = m_scrollableView->GetScrollOffset();
-
 			Point listOffset{ m_viewport.m_backgroundRect.X + static_cast<int>(m_viewport.m_columnOffsetStartOff) - scrollOffset.X, m_viewport.m_backgroundRect.Y - scrollOffset.Y };
-		
+			
+			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
+			
 			auto& itemHeight = m_viewport.m_itemHeight;
 			auto& itemHeightWithMargin = m_viewport.m_itemHeightWithMargin;
 			auto leftMarginListItemText = m_window->ToScale(3u);
-
-			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
-
-			// Math pura O(1)
-			size_t startIndex = visibleRect.Y / itemHeight;
-			size_t endIndex = std::min<size_t>(m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / itemHeight) + 1);
+			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
+			int listVisibleY = std::max<int>(0, visibleRect.Y - static_cast<int>(headerHeight));
+			
+			size_t startIndex = listVisibleY / itemHeightWithMargin;
+			size_t endIndex = std::min<size_t>(m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / itemHeightWithMargin) + 1);
+			
+			Rectangle itemRect = m_scrollableView->GetClientArea();
+			itemRect.Height = itemHeight;
+			itemRect.Width = m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff;
 			
 			for (size_t i = startIndex; i < endIndex; i++)
 			{
 				auto absoluteIndex = m_list.m_sortedIndexes[i];
 				auto& item = m_list.m_items[absoluteIndex];
+				itemRect.Y = (i * itemHeightWithMargin) - visibleRect.Y + headerHeight + m_viewport.m_innerMargin;
+				itemRect.X = static_cast<int>(m_viewport.m_columnOffsetStartOff) + m_scrollableView->GetClientArea().X - visibleRect.X;
 				int cellOffset = 0;
 
 				bool isLastSelected = &item == m_mouseSelection.m_selectedItem;
 				bool isHovered = m_mouseSelection.m_hoveredItem == &item;
 				bool isSelected = item.m_isSelected;
-				Rectangle itemRect{ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight };
+				//Rectangle itemRect{ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight };
+				
 				if (isSelected)
 				{
 					auto lineColor = enabled ? (isLastSelected ? m_appearance->Foreground2nd : (isSelected ? m_appearance->BoxBorderHighlightColor : m_appearance->BoxBorderColor)) : m_appearance->BoxBorderDisabledColor;
@@ -1384,39 +1394,28 @@ namespace Berta
 			m_mouseSelection.m_selectedItem = item;
 		}
 
-		bool Reactor::Module::EnsureVisibility(int lastLocalSelectedIndex)
+		bool Reactor::Module::EnsureVisibility(int itemIndex)
 		{
-			if (!m_scrollBarVert)
+			if (itemIndex >= m_list.m_items.size() || !m_scrollableView)
 			{
 				return false;
 			}
 
-			auto scrollOffset = m_scrollableView->GetScrollOffset();
-			Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - scrollOffset.Y + static_cast<int>(m_viewport.m_innerMargin) + static_cast<int>(m_viewport.m_itemHeightWithMargin * lastLocalSelectedIndex),
-				m_viewport.m_backgroundRect.Width, 
-				m_viewport.m_itemHeight
-			};
+			auto itemHeight = static_cast<int>(m_viewport.m_itemHeightWithMargin);
+			int headerHeight = static_cast<int>(m_appearance->HeadersHeight);
 
-			if (itemBounds.Y >= 0 && itemBounds.Y + static_cast<int>(itemBounds.Height) <= static_cast<int>(m_viewport.m_backgroundRect.Height))
+			Rectangle targetBounds;
+			targetBounds.X = 0; 
+			targetBounds.Y = (itemIndex * itemHeight) + headerHeight;
+			targetBounds.Width = 10;
+			targetBounds.Height = itemHeight;
+
+			bool scrollChanged = m_scrollableView->EnsureVisibility(targetBounds);
+			if (scrollChanged)
 			{
-				return false;
+				GUI::MarkAsNeedUpdate(m_window);
 			}
-
-			auto offsetAdjustment = 0;
-			if (itemBounds.Y + static_cast<int>(itemBounds.Height) >= static_cast<int>(m_viewport.m_backgroundRect.Height))
-			{
-				offsetAdjustment = itemBounds.Y + static_cast<int>(itemBounds.Height - m_viewport.m_backgroundRect.Height + m_viewport.m_innerMargin);
-			}
-			else
-			{
-				offsetAdjustment = itemBounds.Y - static_cast<int>(m_viewport.m_innerMargin);
-			}
-			scrollOffset.Y = std::clamp(scrollOffset.Y + offsetAdjustment, m_scrollBarVert->GetMin(), m_scrollBarVert->GetMax());
-
-			m_scrollBarVert->SetValue(scrollOffset.Y);
-
-			GUI::UpdateWindow(m_scrollBarVert->Handle());
-			return true;
+			return scrollChanged;
 		}
 
 		void Reactor::Module::PerformRangeSelection(List::Item* pressedItem)

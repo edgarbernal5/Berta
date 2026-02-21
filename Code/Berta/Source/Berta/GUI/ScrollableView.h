@@ -37,25 +37,19 @@ namespace Berta
 		~ScrollableView() = default;
 		
 		void SetContentSize(const Size& size);
-		void SetViewSize(const Size& size); // Tamaño del control contenedor
-		void SetScrollStep(int vertical, int horizontal);
+		void SetViewSize(const Size& size);
+		void SetViewPadding(int top, int bottom = 0, int left = 0, int right = 0);
 		
+		void SetScrollStep(int vertical, int horizontal);
 		void SetOnScrollChange(OnScrollCallback callback);
 		
 		void CalculateViewport();
 		void HandleMouseWheel(const ArgWheel& args);
         
-		// Auto-scroll para asegurar que un rectángulo en el espacio absoluto sea visible
 		bool EnsureVisibility(const Rectangle& targetBounds); 
-
-		// --- Getters para el Renderizado ---
-        
-		// Retorna el área útil donde el control puede dibujar (excluyendo scrollbars)
+		
 		Rectangle GetClientArea() const { return m_viewportRect; } 
-        
-		// EL MÉTODO CLAVE: Retorna {OffsetX, OffsetY, ClientWidth, ClientHeight}
 		Rectangle GetVisibleRect() const; 
-        
 		Point GetScrollOffset() const { return m_scrollOffset; }
 		
 	private:
@@ -71,6 +65,11 @@ namespace Berta
 		Size m_fullViewSize{ 0, 0 }; 
 		Rectangle m_viewportRect{ 0, 0, 0, 0 }; 
 
+		struct Padding
+		{
+			int Top = 0, Bottom = 0, Left = 0, Right = 0;
+		} m_viewPadding;
+		
 		Point m_scrollOffset{ 0, 0 };
 		Size m_scrollStep{ 20, 20 }; 
 

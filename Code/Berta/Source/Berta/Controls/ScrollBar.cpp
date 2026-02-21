@@ -169,20 +169,26 @@ namespace Berta
 	{
 		m_min = (std::min)(min, max);
 		m_max = (std::max)(min, max);
-		//auto oldValue = m_value;
+		auto oldValue = m_value;
 		m_value = std::clamp(m_value, m_min, m_max);
 
-		//if (oldValue != m_value)
-		//{
-		//	EmitValueChanged();
-		//}
+		if (oldValue != m_value)
+		{
+			EmitValueChanged();
+		}
 		GUI::UpdateWindow(m_control->Handle());
 	}
 
 	void ScrollBarReactor::SetValue(ScrollBarUnit value)
 	{
-		m_value = std::clamp(value, m_min, m_max);
-		//emitir evento.
+		auto newValue = std::clamp(value, m_min, m_max);
+		if (newValue == m_value)
+		{
+			return;
+		}
+			
+		m_value = newValue;
+		EmitValueChanged();
 		GUI::UpdateWindow(m_control->Handle());
 	}
 

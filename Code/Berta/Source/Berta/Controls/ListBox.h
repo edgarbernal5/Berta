@@ -210,8 +210,6 @@ namespace Berta
 				InteractionArea m_pressedArea{ InteractionArea::None };
 
 				std::unique_ptr<ScrollableView> m_scrollableView;
-				std::unique_ptr<ScrollBar> m_scrollBarVert;
-				std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 				MouseSelection m_mouseSelection;
 				ViewportData m_viewport;
 				Window* m_window{ nullptr };
