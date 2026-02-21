@@ -11,6 +11,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
+#include "Berta/GUI/ScrollableView.h"
 
 #include <string>
 #include <vector>
@@ -121,9 +122,6 @@ namespace Berta
 				uint32_t m_itemHeightWithMargin{ 0 };
 
 				uint32_t m_columnOffsetStartOff{ 0 };
-
-				int m_startingVisibleIndex{ -1 };
-				int m_endingVisibleIndex{ -1 };
 			};
 
 			struct MouseSelection
@@ -159,14 +157,13 @@ namespace Berta
 				void Clear();
 				void ClearHeaders();
 				void CalculateViewport(ViewportData& viewportData);
-				void CalculateVisibleIndices();
 				void BuildHeaderBounds(size_t startIndex = 0);
 				void BuildListItemBounds(size_t startIndex = 0);
 
 				void Erase(ListBoxItem item);
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
-				bool UpdateScrollBars();
+				void UpdateScrollData();
 				InteractionArea DetermineHoverArea(const Point& mousePosition) const;
 
 				bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
@@ -204,13 +201,15 @@ namespace Berta
 
 				int GetListItemIndex(const List::Item* item) const;
 
+				void InitScrollableView();
+				
 				Headers m_headers;
 				List m_list;
 
 				InteractionArea m_hoveredArea{ InteractionArea::None };
 				InteractionArea m_pressedArea{ InteractionArea::None };
 
-				Point m_scrollOffset{};
+				std::unique_ptr<ScrollableView> m_scrollableView;
 				std::unique_ptr<ScrollBar> m_scrollBarVert;
 				std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 				MouseSelection m_mouseSelection;
