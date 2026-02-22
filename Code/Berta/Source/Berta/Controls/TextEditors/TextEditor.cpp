@@ -279,10 +279,12 @@ namespace Berta
 
 		case KeyboardKey::Home:
 			MoveCaretHome(m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::End:
 			MoveCaretEnd(m_shiftPressed);
+			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::Delete:
