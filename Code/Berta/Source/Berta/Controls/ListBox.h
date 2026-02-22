@@ -12,10 +12,13 @@
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 #include "Berta/GUI/ScrollableView.h"
+#include "Berta/GUI/SelectionController.h"
+#include "Berta/GUI/LassoSelection.h"
 
 #include <string>
 #include <vector>
 #include <any>
+#include <unordered_set>
 
 namespace Berta
 {
@@ -48,20 +51,43 @@ namespace Berta
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-			struct Headers
+			struct HeaderController
 			{
 				struct ItemData
 				{
 					ItemData() = default;
-					ItemData(const std::string& name, uint32_t width) : m_name(name)
+					ItemData(const std::string& text, uint32_t width) :
+						Text(text),
+						Width(width)
 					{
-						m_bounds.Width = width;
 					}
 
-					std::string m_name;
-					Rectangle m_bounds;
+					std::string Text;
+					uint32_t Width;
 				};
 
+				HeaderController() = default;
+
+				void Init(Window* owner);
+
+				void Append(const std::string& name, uint32_t width);
+				void Clear();
+				const std::vector<ItemData>& GetHeaders() const { return m_headers; }
+				uint32_t GetTotalWidth() const;
+
+				void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
+
+				bool OnMouseDown(const ArgMouse& args, int xOffset);
+				bool OnMouseMove(const ArgMouse& args, int xOffset);
+				bool OnMouseUp(const ArgMouse& args);
+				bool OnMouseLeave();
+
+				bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
+
+			private:
+				bool IsOverDivider(int mouseX, int xOffset, int& outIndex) const;
+
+				Window* m_owner { nullptr };
 				Graphics m_draggingBox;
 				int m_mouseDownOffset{ 0 };
 				int m_mouseDraggingPosition{ 0 };
@@ -70,7 +96,17 @@ namespace Berta
 				int m_sortedHeaderIndex{ -1 };
 				bool isAscendingOrdering{ true };
 				bool m_isDragging{ false };
-				std::vector<ItemData> m_items;
+
+				struct ResizeState
+				{
+					bool m_isResizing{ false };
+					int m_columnIndex{ -1 };
+					int m_startX{ 0 };
+					uint32_t m_startWidth{ 0 };
+					bool m_isHoveringDivider{ false };
+				} m_resizeInteraction;
+				
+				std::vector<ItemData> m_headers;
 
 				std::vector<size_t> m_sorted;
 			};
@@ -202,10 +238,18 @@ namespace Berta
 				int GetListItemIndex(const List::Item* item) const;
 
 				void InitScrollableView();
-				
-				Headers m_headers;
-				List m_list;
 
+				void ProcessLassoIntersection();
+				void UpdateSelectionRange(int startIndex, int endIndex);
+				void SetItemSelected(size_t index, bool selected);
+				
+				HeaderController m_headers;
+				List m_list;
+				LassoSelection m_lassoSelection;
+				SelectionController m_selectionController;
+
+				std::unordered_set<int> m_preLassoSelection;
+				
 				InteractionArea m_hoveredArea{ InteractionArea::None };
 				InteractionArea m_pressedArea{ InteractionArea::None };
 

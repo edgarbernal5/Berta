@@ -23,6 +23,8 @@ namespace Berta
 			m_module.m_window = control.Handle();
 
 			m_module.m_appearance = reinterpret_cast<ReactorCore::ListBox::Appearance*>(m_module.m_window->Appearance.get());
+
+			m_module.m_headers.Init(m_module.m_window);
 			
 			m_module.InitScrollableView();
 			m_module.UpdateScrollData();
@@ -84,11 +86,11 @@ namespace Berta
 			maxCellWidth += leftMarginTextHeader * 2u;
 
 			auto newWidth = (std::max)(maxCellWidth, LISTBOX_MIN_HEADER_WIDTH);
-			bool needUpdate = newWidth != m_module.m_headers.m_items[selectedHeader].m_bounds.Width;
+			bool needUpdate = newWidth != m_module.m_headers.m_headers[selectedHeader].m_bounds.Width;
 			if (!needUpdate)
 				return;
 
-			m_module.m_headers.m_items[selectedHeader].m_bounds.Width = newWidth;
+			m_module.m_headers.m_headers[selectedHeader].m_bounds.Width = newWidth;
 			m_module.CalculateViewport(m_module.m_viewport);
 			m_module.BuildHeaderBounds(selectedHeader);
 
@@ -117,7 +119,39 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
-			m_module.m_pressedArea = m_module.m_hoveredArea;
+			auto scrollOffset = m_module.m_scrollableView->GetVisibleRect();
+
+			if (m_module.m_headers.OnMouseDown(args, scrollOffset.X))
+			{
+				return;
+			}
+
+			int headerHeight = static_cast<int>(m_module.m_appearance->HeadersHeight);
+			int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
+			
+			size_t clickedIndex = absoluteY / m_module.m_appearance->ListItemHeight;
+
+			if (clickedIndex < m_module.m_list.m_items.size())
+			{
+				bool isCtrl = m_module.m_ctrlPressed;
+				bool isShift = m_module.m_shiftPressed;
+
+				if (m_module.m_selectionController.Select(clickedIndex, isCtrl, isShift, m_module.m_list.m_items.size()))
+				{
+					// Disparar evento a los usuarios de Berta
+					//GUI::InvokeEvent(m_module.m_events->Selected, { clickedIndex });
+					GUI::MarkAsNeedUpdate(m_module.m_window);
+				}
+			}
+			else
+			{
+				// Clic en el espacio vacío: Iniciar recuadro de selección (Lasso) si lo deseas
+				m_module.m_lassoSelection.Start(args.Position);
+				m_module.m_selectionController.SaveSnapshot();
+				GUI::Capture(m_module.m_window);
+			}
+			
+			/*m_module.m_pressedArea = m_module.m_hoveredArea;
 			bool needUpdate = false;
 
 			if (m_module.m_pressedArea == InteractionArea::List)
@@ -146,24 +180,68 @@ namespace Berta
 					needUpdate = m_module.ClearSingleSelection();
 				}
 			}
-			else if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
+			else if (m_module.m_pressedArea == InteractionArea::HeaderSplitter || m_module.m_pressedArea == InteractionArea::Header)
 			{
-				m_module.StartHeadersSizing(args.Position);
-			}
-			else if (m_module.m_pressedArea == InteractionArea::Header)
-			{
-				m_module.StartSelectingHeader(args.Position);
+				m_module.m_headers.OnMouseDown(args, m_module.m_scrollableView->GetVisibleRect().X);
 			}
 
 			if (needUpdate)
 			{
 				GUI::MarkAsNeedUpdate(m_module.m_window);
-			}
+			}*/
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
-			auto hoveredArea = args.ButtonState.NoButtonsPressed() ? m_module.DetermineHoverArea(args.Position) : m_module.m_pressedArea;
+			auto scrollOffset = m_module.m_scrollableView->GetVisibleRect();
+
+			// 1. DELEGACIÓN AL HEADER (Cambio de cursores, arrastre de columnas)
+			if (m_module.m_headers.OnMouseMove(args, scrollOffset.X))
+			{
+				// Si el usuario está arrastrando una columna, el ancho total cambia.
+				// Hay que avisarle al ScrollableView para que actualice la barra horizontal.
+				if (m_module.m_headers.IsResizing())
+				{
+					m_module.UpdateScrollData();
+				}
+				return;
+			}
+
+			// 2. DELEGACIÓN AL LASSO SELECTION (Si el usuario está arrastrando el recuadro)
+			if (m_module.m_lassoSelection.IsActive())
+			{
+				if (m_module.m_lassoSelection.Update(args.Position))
+				{
+					m_module.ProcessLassoIntersection();
+					GUI::MarkAsNeedUpdate(m_module.m_window);
+				}
+				return;
+			}
+			
+
+			int headerHeight = static_cast<int>(m_module.m_appearance->HeadersHeight);
+
+			if (args.Position.Y > headerHeight)
+			{
+				int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
+				int hoveredIndex = absoluteY / m_module.m_appearance->ListItemHeight;
+
+				if (hoveredIndex >= 0 && hoveredIndex < m_module.m_list.m_items.size())
+				{
+					if (m_module.m_hoveredIndex != hoveredIndex)
+					{
+						m_module.m_hoveredIndex = hoveredIndex;
+						GUI::MarkAsNeedUpdate(m_module.m_window); // Repintar para mostrar el efecto Hover
+					}
+				}
+				else if (m_module.m_mouseSelection.m_hoveredIndex != -1)
+				{
+					//m_module.m_hoveredIndex = -1; // Ratón en área vacía
+					GUI::MarkAsNeedUpdate(m_module.m_window);
+				}
+			}
+			
+			/*auto hoveredArea = args.ButtonState.NoButtonsPressed() ? m_module.DetermineHoverArea(args.Position) : m_module.m_pressedArea;
 			bool needUpdate = false;
 			auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
 			
@@ -204,7 +282,7 @@ namespace Berta
 						auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
 
 						const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
-						const auto& header = m_module.m_headers.m_items[headerIndex];
+						const auto& header = m_module.m_headers.m_headers[headerIndex];
 						Graphics& draggingBox = m_module.m_headers.m_draggingBox;
 						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.m_bounds.Width), headerHeight };
 						uint32_t textOffset = 0;
@@ -223,7 +301,7 @@ namespace Berta
 						Rectangle textRect = columnRect;
 						textRect.X += (int)leftMarginTextHeader + textOffset;
 						textRect.Width -= leftMarginTextHeader * 2 + textOffset;
-						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.m_name, false, textRect, m_module.m_appearance->SelectionHighlightColor);
+						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Text, false, textRect, m_module.m_appearance->SelectionHighlightColor);
 					
 						draggingBox.Flush();
 					}
@@ -236,7 +314,7 @@ namespace Berta
 					if (targetHeaderIndex != -1)
 					{
 						const auto& headerIndex = m_module.m_headers.m_sorted[targetHeaderIndex];
-						const auto& headerItem = m_module.m_headers.m_items[headerIndex];
+						const auto& headerItem = m_module.m_headers.m_headers[headerIndex];
 						auto headerPosX = m_module.m_window->ToScale(headerItem.m_bounds.X);
 						auto headerWidth = (int)m_module.m_window->ToScale(headerItem.m_bounds.Width);
 						if (targetHeaderIndex == 0 && m_module.m_list.m_drawImages)
@@ -259,7 +337,7 @@ namespace Berta
 					}
 					else
 					{
-						targetHeaderIndex = static_cast<int>(m_module.m_headers.m_items.size());
+						targetHeaderIndex = static_cast<int>(m_module.m_headers.m_headers.size());
 					}
 					m_module.m_headers.m_draggingTargetIndex = targetHeaderIndex;
 					needUpdate = true;
@@ -344,12 +422,29 @@ namespace Berta
 			if (needUpdate)
 			{
 				GUI::MarkAsNeedUpdate(m_module.m_window);
-			}
+			}*/
 		}
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			bool needUpdate = false;
+			// 1. Liberar Header (Si estaba redimensionando)
+			if (m_module.m_headers.OnMouseUp(args))
+			{
+				return;
+			}
+
+			// 2. Liberar Lasso Selection (Si estaba seleccionando)
+			/*
+			if (m_module.m_lassoSelection.IsActive())
+			{
+				m_module.m_lassoSelection.End();
+				GUI::ReleaseMouse(m_control->Handle());
+				GUI::MarkAsNeedUpdate(m_module.m_window);
+				return;
+			}
+			*/
+			
+			/*bool needUpdate = false;
 
 			if (m_module.m_pressedArea == InteractionArea::HeaderSplitter &&
 				m_module.DetermineHoverArea(args.Position) != InteractionArea::HeaderSplitter)
@@ -390,11 +485,22 @@ namespace Berta
 			{
 				GUI::MarkAsNeedUpdate(*m_control);
 			}
+			*/
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
-			if (args.ButtonState.NoButtonsPressed() && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
+			// Restaurar el cursor a la normalidad si se quedó atascado en el Header
+			m_module.m_headers.OnMouseLeave();
+
+			// Quitar la iluminación del ítem
+			if (m_module.m_hoveredIndex != -1)
+			{
+				m_module.m_hoveredIndex = -1;
+				GUI::MarkAsNeedUpdate(m_module.m_window);
+			}
+			
+			/*if (args.ButtonState.NoButtonsPressed() && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
 			{
 				GUI::ChangeCursor(m_module.m_window, Cursor::Default);
 			}
@@ -413,6 +519,7 @@ namespace Berta
 			{
 				GUI::MarkAsNeedUpdate(m_module.m_window);
 			}
+			*/
 		}
 
 		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
@@ -531,6 +638,174 @@ namespace Berta
 			if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 		}
 
+		void Reactor::HeaderController::Init(Window* owner)
+		{
+			m_owner = owner;
+		}
+
+		void Reactor::HeaderController::Append(const std::string& name, uint32_t width)
+		{
+			m_headers.emplace_back(name, std::max<uint32_t>(width, LISTBOX_MIN_HEADER_WIDTH));
+		}
+
+		void Reactor::HeaderController::Clear()
+		{
+			m_headers.clear();
+			m_resizeInteraction = {};
+		}
+
+		uint32_t Reactor::HeaderController::GetTotalWidth() const
+		{
+			uint32_t total = 0;
+			for (const auto& h : m_headers)
+			{
+				total += h.Width;
+			}
+			return total;
+		}
+
+		void Reactor::HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset)
+		{
+			if (m_headers.empty())
+			{
+				return;
+			}
+
+			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
+			int headerHeight = appearance->HeadersHeight;
+			int currentX = -visibleRect.X; // Aplicar offset del scroll horizontal
+
+			// Dibujar el fondo base de toda la franja de cabeceras
+			Rectangle fullHeaderRect = { 0, 0, m_owner->ClientSize.Width, static_cast<uint32_t>(headerHeight) };
+			//graphics.DrawRectangle(fullHeaderRect, appearance->BoxBackground);
+
+			for (size_t i = 0; i < m_headers.size(); ++i)
+			{
+				const auto& header = m_headers[i];
+            
+				// Clipping manual: solo dibujamos si está dentro de la ventana
+				if (currentX + static_cast<int>(header.Width) > 0 && currentX < m_owner->ClientSize.Width)
+				{
+					Rectangle headerRect = { currentX, 0, header.Width, static_cast<uint32_t>(headerHeight) };
+                
+					// Texto de la cabecera (con padding izquierdo)
+					Point textPos = { currentX + 6, (int)(headerHeight - graphics.GetTextExtent().Height) / 2 };
+					graphics.DrawString(textPos, header.Text, appearance->Foreground);
+
+					// Dibujar el separador vertical derecho
+					Point p1 = { currentX + static_cast<int>(header.Width) - 1, 4 };
+					Point p2 = { currentX + static_cast<int>(header.Width) - 1, headerHeight - 4 };
+					graphics.DrawLine(p1, p2, appearance->BoxBorderColor);
+				}
+            
+				currentX += header.Width;
+			}
+
+			// Línea horizontal inferior que separa las cabeceras de la lista
+			//graphics.DrawLine({0, headerHeight - 1}, {m_owner->ClientSize.Width, headerHeight - 1}, m_appearance->BorderColor);
+		}
+
+		bool Reactor::HeaderController::OnMouseDown(const ArgMouse& args, int xOffset)
+		{
+			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
+			if (args.Position.Y > appearance->HeadersHeight) return false;
+
+			int colIndex = -1;
+			if (IsOverDivider(args.Position.X, xOffset, colIndex))
+			{
+				m_resizeInteraction.m_isResizing = true;
+				m_resizeInteraction.m_columnIndex = colIndex;
+				m_resizeInteraction.m_startX = args.Position.X;
+				m_resizeInteraction.m_startWidth = m_headers[colIndex].Width;
+            
+				GUI::Capture(m_owner);
+				return true;
+			}
+        
+			return false;
+		}
+
+		bool Reactor::HeaderController::OnMouseMove(const ArgMouse& args, int xOffset)
+		{
+			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
+			if (m_resizeInteraction.m_isResizing)
+			{
+				int deltaX = args.Position.X - m_resizeInteraction.m_startX;
+				int newWidth = static_cast<int>(m_resizeInteraction.m_startWidth) + deltaX;
+            
+				// Aplicar clamp respetando el ancho mínimo
+				m_headers[m_resizeInteraction.m_columnIndex].Width = std::max<uint32_t>(LISTBOX_MIN_HEADER_WIDTH, newWidth);
+            
+				GUI::MarkAsNeedUpdate(m_owner);
+				return true;
+			}
+
+			// 2. Lógica de Hover (Cambio de Cursor)
+			if (args.Position.Y <= appearance->HeadersHeight)
+			{
+				int dummyIndex;
+				bool overDivider = IsOverDivider(args.Position.X, xOffset, dummyIndex);
+            
+				if (overDivider && !m_resizeInteraction.m_isHoveringDivider)
+				{
+					//GUI::SetCursor(m_window, CursorType::SizeWE); // Cursor de ajuste horizontal
+					m_resizeInteraction.m_isHoveringDivider = true;
+				}
+				else if (!overDivider && m_resizeInteraction.m_isHoveringDivider)
+				{
+					//GUI::SetCursor(m_window, CursorType::Arrow);
+					m_resizeInteraction.m_isHoveringDivider = false;
+				}
+				return true; // Estamos sobre las cabeceras, consumimos el evento
+			}
+			else if (m_resizeInteraction.m_isHoveringDivider)
+			{
+				// Salimos de la zona de cabeceras hacia abajo
+				//GUI::SetCursor(m_window, CursorType::Arrow);
+				m_resizeInteraction.m_isHoveringDivider = false;
+			}
+
+			return false;
+		}
+
+		bool Reactor::HeaderController::OnMouseUp(const ArgMouse& args)
+		{
+			if (m_resizeInteraction.m_isResizing)
+			{
+				m_resizeInteraction.m_isResizing = false;
+				//GUI::ReleaseMouse(m_window);
+				return true;
+			}
+			return false;
+		}
+
+		bool Reactor::HeaderController::OnMouseLeave()
+		{
+			if (m_resizeInteraction.m_isHoveringDivider && !m_resizeInteraction.m_isResizing)
+			{
+				//GUI::SetCursor(m_window, CursorType::Arrow);
+				m_resizeInteraction.m_isHoveringDivider = false;
+			}
+			return false;
+		}
+
+		bool Reactor::HeaderController::IsOverDivider(int mouseX, int xOffset, int& outIndex) const
+		{
+			int currentX = -xOffset;
+			for (size_t i = 0; i < m_headers.size(); ++i)
+			{
+				currentX += m_headers[i].Width;
+            
+				// Zona de tolerancia de 4 píxeles a cada lado del separador
+				if (std::abs(mouseX - currentX) <= 4)
+				{
+					outIndex = static_cast<int>(i);
+					return true;
+				}
+			}
+			return false;
+		}
+
 		void Reactor::Module::CalculateViewport(ViewportData& viewportData)
 		{
 			viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
@@ -557,9 +832,9 @@ namespace Berta
 				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 				viewportData.m_contentSize.Width += listItemIconSize + listItemIconMargin * 2u;
 			}
-			for (size_t i = 0; i < m_headers.m_items.size(); i++)
+			for (size_t i = 0; i < m_headers.m_headers.size(); i++)
 			{
-				auto headerWidth = m_window->ToScale(m_headers.m_items[i].m_bounds.Width);
+				auto headerWidth = m_window->ToScale(m_headers.m_headers[i].m_bounds.Width);
 				viewportData.m_contentSize.Width += headerWidth;
 			}
 
@@ -710,14 +985,14 @@ namespace Berta
 			if (startIndex > 0)
 			{
 				const auto& headerIndex = m_headers.m_sorted[startIndex - 1];
-				offset.X = m_headers.m_items[headerIndex].m_bounds.X + (int)m_headers.m_items[headerIndex].m_bounds.Width;
+				offset.X = m_headers.m_headers[headerIndex].m_bounds.X + (int)m_headers.m_headers[headerIndex].m_bounds.Width;
 			}
-			for (size_t i = startIndex; i < m_headers.m_items.size(); i++)
+			for (size_t i = startIndex; i < m_headers.m_headers.size(); i++)
 			{
 				const auto& headerIndex = m_headers.m_sorted[i];
-				m_headers.m_items[headerIndex].m_bounds.X = offset.X;
+				m_headers.m_headers[headerIndex].m_bounds.X = offset.X;
 
-				offset.X += m_headers.m_items[headerIndex].m_bounds.Width;
+				offset.X += m_headers.m_headers[headerIndex].m_bounds.Width;
 			}
 		}
 
@@ -772,8 +1047,8 @@ namespace Berta
 
 		void Reactor::Module::AppendHeader(const std::string& text, uint32_t width)
 		{
-			auto startIndex = m_headers.m_items.size();
-			m_headers.m_items.emplace_back(text, (std::max)(width, LISTBOX_MIN_HEADER_WIDTH));
+			auto startIndex = m_headers.m_headers.size();
+			m_headers.m_headers.emplace_back(text, (std::max)(width, LISTBOX_MIN_HEADER_WIDTH));
 			m_headers.m_sorted.emplace_back(m_headers.m_sorted.size());
 
 			CalculateViewport(m_viewport); 
@@ -786,7 +1061,7 @@ namespace Berta
 			m_list.m_items.emplace_back(text);
 			m_list.m_sortedIndexes.emplace_back(startIndex);
 
-			for (size_t i = 1; i < m_headers.m_items.size(); i++)
+			for (size_t i = 1; i < m_headers.m_headers.size(); i++)
 			{
 				m_list.m_items.back().m_cells.emplace_back("");
 			}
@@ -810,7 +1085,7 @@ namespace Berta
 		{
 			auto startIndex = m_list.m_items.size();
 
-			auto headersCount = m_headers.m_items.size();
+			auto headersCount = m_headers.m_headers.size();
 			auto& item = m_list.m_items.emplace_back("{}");
 			size_t position = 0;
 			for (auto& text : texts)
@@ -868,8 +1143,8 @@ namespace Berta
 
 		void Reactor::Module::ClearHeaders()
 		{
-			bool needUpdate = !m_headers.m_items.empty();
-			m_headers.m_items.clear();
+			bool needUpdate = !m_headers.m_headers.empty();
+			m_headers.m_headers.clear();
 			m_headers.m_sorted.clear();
 			m_list.m_items.clear();
 
@@ -895,9 +1170,9 @@ namespace Berta
 			Size contentSize;
         
 			contentSize.Width = m_viewport.m_columnOffsetStartOff;
-			for (const auto& header : m_headers.m_items)
+			for (const auto& header : m_headers.GetHeaders())
 			{
-				auto headerWidth = m_window->ToScale(header.m_bounds.Width);
+				auto headerWidth = m_window->ToScale(header.Width);
 				contentSize.Width += headerWidth;
 			}
 
@@ -927,10 +1202,10 @@ namespace Berta
 		
 			Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X, m_viewport.m_backgroundRect.Y };
 
-			for (size_t i = 0; i < m_headers.m_items.size(); ++i)
+			for (size_t i = 0; i < m_headers.m_headers.size(); ++i)
 			{
 				const auto& headerIndex = m_headers.m_sorted[i];
-				const auto& header = m_headers.m_items[headerIndex];
+				const auto& header = m_headers.m_headers[headerIndex];
 				auto headerWidth = m_window->ToScale(header.m_bounds.Width);
 				if (i == 0 && m_list.m_drawImages)
 				{
@@ -958,21 +1233,21 @@ namespace Berta
 				{
 					textRect.Width -= sortedHeaderMargin + arrowSortedHeaderSize;
 				}
-				DrawHeaderItem(graphics, columnRect, header.m_name, isHovered, textRect, m_appearance->Foreground);
+				DrawHeaderItem(graphics, columnRect, header.Text, isHovered, textRect, m_appearance->Foreground);
 
 				if (isDragging)
 				{
 					int lineWidth = m_window->ToScale(2);
 					auto targetHeaderPosition = 0;
-					if (m_headers.m_draggingTargetIndex < m_headers.m_items.size())
+					if (m_headers.m_draggingTargetIndex < m_headers.m_headers.size())
 					{
 						const auto& headerIndex = m_headers.m_sorted[m_headers.m_draggingTargetIndex];
-						targetHeaderPosition = m_window->ToScale(m_headers.m_items[headerIndex].m_bounds.X);
+						targetHeaderPosition = m_window->ToScale(m_headers.m_headers[headerIndex].m_bounds.X);
 					}
 					else
 					{
-						const auto& headerIndex = m_headers.m_sorted[m_headers.m_items.size() - 1];
-						const auto& lastHeaderBounds = m_headers.m_items[headerIndex].m_bounds;
+						const auto& headerIndex = m_headers.m_sorted[m_headers.m_headers.size() - 1];
+						const auto& lastHeaderBounds = m_headers.m_headers[headerIndex].m_bounds;
 						targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
 					}
 					targetHeaderPosition += m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X;
@@ -984,7 +1259,7 @@ namespace Berta
 
 					Graphics& draggingBox = m_headers.m_draggingBox;
 				
-					auto headerPosition = m_headers.m_items[headerIndex].m_bounds.X;
+					auto headerPosition = m_headers.m_headers[headerIndex].m_bounds.X;
 					auto newPosition = m_headers.m_mouseDraggingPosition - m_headers.m_mouseDownOffset;
 					if (m_headers.m_selectedIndex != 0 && m_list.m_drawImages)
 					{
@@ -1081,7 +1356,7 @@ namespace Berta
 					const auto& headerIndex = m_headers.m_sorted[j];
 
 					const auto& cell = item.m_cells[headerIndex];
-					const auto& header = m_headers.m_items[headerIndex];
+					const auto& header = m_headers.m_headers[headerIndex];
 					auto headerWidth = m_window->ToScale(header.m_bounds.Width);
 					uint32_t iconWidth = 0u;
 
@@ -1191,7 +1466,7 @@ namespace Berta
 
 		void Reactor::Module::SortHeader(size_t headerIndex, bool ascending)
 		{
-			if (m_list.m_items.empty() || headerIndex >= m_headers.m_items.size())
+			if (m_list.m_items.empty() || headerIndex >= m_headers.m_headers.size())
 			{
 				return;
 			}
@@ -1232,6 +1507,80 @@ namespace Berta
 			m_scrollableView->SetOnScrollChange([this]() {
 				GUI::MarkAsNeedUpdate(m_window);
 			});
+		}
+
+		void Reactor::Module::ProcessLassoIntersection()
+		{
+			if (!m_lassoSelection.IsActive() || m_list.m_items.empty()) return;
+
+			Rectangle lasso = m_lassoSelection.GetRect();
+			int itemHeight = m_appearance->ListItemHeight;
+			int scrollY = m_scrollableView->GetScrollOffset().Y;
+
+			int absoluteTop = (std::max)(0, lasso.Y - static_cast<int>(m_appearance->HeadersHeight) + scrollY);
+			int absoluteBottom = (lasso.Y + lasso.Height) - m_appearance->HeadersHeight + scrollY;
+
+			if (absoluteBottom < 0) return;
+
+			size_t startIndex = absoluteTop / itemHeight;
+			size_t endIndex = absoluteBottom / itemHeight;
+
+			startIndex = (std::min)(startIndex, m_list.m_items.size() - 1);
+			endIndex = (std::min)(endIndex, m_list.m_items.size() - 1);
+
+			bool isCtrl = m_ctrlPressed;
+
+			// DELEGACIÓN: Actualizamos el rango basado en la foto guardada
+			if (m_selectionController.ApplyLassoRange(startIndex, endIndex, isCtrl))
+			{
+				GUI::MarkAsNeedUpdate(m_window);
+			}
+		}
+
+		void Reactor::Module::UpdateSelectionRange(int startIndex, int endIndex)
+		{
+			// 1. Restaurar todos los ítems al estado "Pre-Lasso"
+			for (size_t i = 0; i < m_list.m_items.size(); ++i)
+			{
+				bool wasSelected = m_preLassoSelection.find(i) != m_preLassoSelection.end();
+				SetItemSelected(i, wasSelected); // Tu método para cambiar selección
+			}
+
+			// 2. Aplicar la selección ACTUAL del recuadro
+			// (Si apretó Ctrl, invertimos. Si no, forzamos selección)
+			bool isCtrlPressed = m_ctrlPressed;
+
+			for (int i = startIndex; i <= endIndex; ++i)
+			{
+				if (isCtrlPressed)
+				{
+					// Ctrl: Intercambia el estado previo
+					bool wasSelected = m_preLassoSelection.find(i) != m_preLassoSelection.end();
+					SetItemSelected(i, !wasSelected);
+				}
+				else
+				{
+					// Normal: Fuerza a que esté seleccionado
+					SetItemSelected(i, true);
+				}
+			}
+		}
+
+		void Reactor::Module::SetItemSelected(size_t index, bool selected)
+		{
+			// 1. Verificación de seguridad (Bounds check)
+			// Asumiendo que m_items es tu ItemCollection o std::vector
+			if (index >= m_list.m_items.size()) 
+			{
+				return;
+			}
+
+			// 2. Delegamos la acción al controlador
+			m_selectionController.SetSelected(index, selected);
+
+			// Nota: No llamamos a GUI::MarkAsNeedUpdate(m_window) aquí adentro 
+			// porque este método suele llamarse en bucles (ej. durante el Lasso Selection).
+			// Es mucho más eficiente repintar la ventana una sola vez al terminar el bucle.
 		}
 
 		bool Reactor::Module::HandleMultiSelection(List::Item* item, const ArgMouse& args)
@@ -1435,31 +1784,31 @@ namespace Berta
 
 		Reactor::InteractionArea Reactor::Module::DetermineHoverArea(const Point& mousePosition) const
 		{
-			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 			if (!m_window->ClientSize.IsInside(mousePosition))
 			{
 				return InteractionArea::None;
 			}
+			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
 			auto scrollOffset = m_scrollableView->GetScrollOffset();
 
 			if (mousePosition.Y <= static_cast<int>(headerHeight))
 			{
-				Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X, 0 };
+				Point headerOffset{ m_viewport.m_backgroundRect.X + static_cast<int>(m_viewport.m_columnOffsetStartOff) - scrollOffset.X, 0 };
 
 				auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 
 				auto splitterThreshold = m_window->ToScale(3);
-				for (size_t i = 0; i < m_headers.m_items.size(); i++)
+				for (size_t i = 0; i < m_headers.GetHeaders().size(); i++)
 				{
 					const auto& headerIndex = m_headers.m_sorted[i];
-					const auto& header = m_headers.m_items[headerIndex];
-					auto headerWidth = m_window->ToScale(header.m_bounds.Width);
+					const auto& header = m_headers.m_headers[headerIndex];
+					auto headerWidth = m_window->ToScale(header.Width);
 					if (i == 0 && m_list.m_drawImages)
 					{
 						headerWidth += listItemIconSize + listItemIconMargin * 2u;
 					}
-					auto headerWidthInt = (int)headerWidth;
+					auto headerWidthInt = static_cast<int>(headerWidth);
 					if (headerOffset.X + headerWidthInt < -splitterThreshold || headerOffset.X - splitterThreshold >= (int)m_viewport.m_backgroundRect.Width)
 					{
 						headerOffset.X += headerWidthInt;
@@ -1573,10 +1922,10 @@ namespace Berta
 			Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - m_scrollableView->GetScrollOffset().X, 0 };
 		
 			auto splitterThreshold = m_window->ToScale(3);
-			for (size_t i = 0; i < m_headers.m_items.size(); i++)
+			for (size_t i = 0; i < m_headers.m_headers.size(); i++)
 			{
 				const auto& headerIndex = m_headers.m_sorted[i];
-				const auto& header = m_headers.m_items[headerIndex];
+				const auto& header = m_headers.m_headers[headerIndex];
 				auto headerWidth = m_window->ToScale(header.m_bounds.Width);
 				if (i == 0 && m_list.m_drawImages)
 				{
@@ -1618,13 +1967,13 @@ namespace Berta
 			}
 			const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
 			m_headers.m_mouseDownOffset = m_scrollableView->GetScrollOffset().X + mousePosition.X - static_cast<int>(m_window->ToScale(
-				m_headers.m_items[headerIndex].m_bounds.X + m_headers.m_items[headerIndex].m_bounds.Width + iconWidth));
+				m_headers.m_headers[headerIndex].m_bounds.X + m_headers.m_headers[headerIndex].m_bounds.Width + iconWidth));
 		}
 
 		void Reactor::Module::UpdateHeadersSize(const Point& mousePosition)
 		{
 			const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
-			auto& headerBounds = m_headers.m_items[headerIndex].m_bounds;
+			auto& headerBounds = m_headers.m_headers[headerIndex].m_bounds;
 			auto newWidth = m_window->ToDownwardScale(m_scrollableView->GetScrollOffset().X + mousePosition.X - m_headers.m_mouseDownOffset - m_window->ToScale(headerBounds.X));
 			if (m_list.m_drawImages && m_headers.m_selectedIndex == 0)
 			{
@@ -1653,7 +2002,7 @@ namespace Berta
 			m_headers.m_isDragging = false;
 			m_headers.m_selectedIndex = GetHeaderAtMousePosition(mousePosition, false);
 			const auto& headerIndex = m_headers.m_sorted[m_headers.m_selectedIndex];
-			m_headers.m_mouseDownOffset = mousePosition.X - m_window->ToScale(m_headers.m_items[headerIndex].m_bounds.X) - m_viewport.m_backgroundRect.X - static_cast<int>(m_viewport.m_columnOffsetStartOff) + m_scrollableView->GetScrollOffset().X;
+			m_headers.m_mouseDownOffset = mousePosition.X - m_window->ToScale(m_headers.m_headers[headerIndex].m_bounds.X) - m_viewport.m_backgroundRect.X - static_cast<int>(m_viewport.m_columnOffsetStartOff) + m_scrollableView->GetScrollOffset().X;
 		}
 
 		void ListBoxItem::SetIcon(const Image& image) const
@@ -1668,7 +2017,7 @@ namespace Berta
 
 		void ListBoxItem::SetText(size_t columnIndex, const std::string& text) const
 		{
-			if (columnIndex >= m_module->m_headers.m_items.size())
+			if (columnIndex >= m_module->m_headers.m_headers.size())
 			{
 				return;
 			}
@@ -1689,7 +2038,7 @@ namespace Berta
 
 		std::string ListBoxItem::GetText(size_t columnIndex) const
 		{
-			if (columnIndex >= m_module->m_headers.m_items.size())
+			if (columnIndex >= m_module->m_headers.m_headers.size())
 				return {};
 
 			return m_target->m_cells[columnIndex].m_text;
