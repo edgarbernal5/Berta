@@ -212,7 +212,6 @@ namespace Berta
     {
         bool changed = false;
 
-        // Eje Y
         if (m_scrollBarVert)
         {
             int viewTop = m_scrollOffset.Y + m_viewPadding.Top;
@@ -235,13 +234,32 @@ namespace Berta
             }
         }
 
-        // Eje X (Aplica la misma lógica para el ancho si es necesario)
-        // ...
+        if (m_scrollBarHoriz)
+        {
+            int viewLeft = m_scrollOffset.X + m_viewPadding.Left;
+            int viewRight = m_scrollOffset.X + static_cast<int>(m_viewportRect.Width) - m_viewPadding.Right;
+            int newX = m_scrollOffset.X;
+
+            if (targetBounds.X < viewLeft)
+            {
+                newX = targetBounds.X - m_viewPadding.Left;
+            }
+            else if (targetBounds.X + targetBounds.Width > viewRight)
+            {
+                newX = targetBounds.X + static_cast<int>(targetBounds.Width) - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
+            }
+            
+            if (newX != m_scrollOffset.X)
+            {
+                m_scrollBarHoriz->SetValue(newX);
+                changed = true;
+            }
+        }
 
         return changed;
     }
 
-    void ScrollableView::NotifyChange()
+    void ScrollableView::NotifyChange() const
     {
         if (m_onScroll)
         {

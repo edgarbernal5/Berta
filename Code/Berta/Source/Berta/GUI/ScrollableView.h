@@ -56,7 +56,7 @@ namespace Berta
 		void UpdateScrollBars();
 		void UpdateVerticalScrollBar();
 		void UpdateHorizontalScrollBar();
-		void NotifyChange();
+		void NotifyChange() const;
 		
 		Window* m_owner; 
 		OnScrollCallback m_onScroll;
