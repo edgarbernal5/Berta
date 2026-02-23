@@ -47,6 +47,11 @@ namespace Berta
 		return X + static_cast<int>(Width);
 	}
 
+	Point Rectangle::Position() const
+	{
+		return {X, Y};
+	}
+
 #ifdef BT_PLATFORM_WINDOWS
 	::RECT Rectangle::ToRECT() const
 	{

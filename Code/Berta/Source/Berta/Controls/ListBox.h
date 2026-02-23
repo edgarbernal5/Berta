@@ -137,14 +137,40 @@ namespace Berta
 				std::vector<std::size_t> m_sortedIndexes;
 				bool m_drawImages{ false };
 			};
-
-			enum class InteractionArea : uint8_t
+			
+			class ItemCollection
 			{
-				None,
-				Header,
-				HeaderSplitter,
-				List,
-				ListBlank
+			public:
+				// Callback para que la Vista sepa cuándo debe repintarse o recalcular el scroll
+				using OnCollectionChangedCallback = std::function<void()>;
+				
+			public:
+				ItemCollection() = default;
+				void SetOnChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
+				
+				// CRUD
+				List::Item* Append(const std::string& text);
+				List::Item* Append(std::initializer_list<std::string> texts);
+				
+				void RemoveAt(size_t index);
+				void Clear();
+
+				// --- Acceso ---
+				size_t GetCount() const { return m_items.size(); }
+				bool IsEmpty() const { return m_items.empty(); }
+        
+				List::Item* At(size_t index) const;
+
+				// --- Utilidades ---
+				// Ideal para notificar que un texto o dato interno de un ítem cambió manualmente
+				void NotifyItemModified();
+
+			private:
+				void TriggerChanged();
+				
+				std::vector<List::Item> m_items;
+				
+				OnCollectionChangedCallback m_onChanged;
 			};
 
 			struct ViewportData
@@ -200,8 +226,7 @@ namespace Berta
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
 				void UpdateScrollData();
-				InteractionArea DetermineHoverArea(const Point& mousePosition) const;
-
+				
 				bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
 				void SelectItem(List::Item* index);
 				void ClearSelection();
@@ -243,17 +268,23 @@ namespace Berta
 				void UpdateSelectionRange(int startIndex, int endIndex);
 				void SetItemSelected(size_t index, bool selected);
 				
+				void DrawRowBackground(Graphics& graphics, int index, const Rectangle& rowRect);
+				void DrawRowContent(Graphics& graphics, int index, const Rectangle& rect);
+				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected);
+    
+				bool IsSelected(int index) const;
+				
 				HeaderController m_headers;
 				List m_list;
+				
+				std::unique_ptr<ScrollableView> m_scrollableView;
 				LassoSelection m_lassoSelection;
 				SelectionController m_selectionController;
-
+				ItemCollection m_items;
 				std::unordered_set<int> m_preLassoSelection;
 				
-				InteractionArea m_hoveredArea{ InteractionArea::None };
-				InteractionArea m_pressedArea{ InteractionArea::None };
-
-				std::unique_ptr<ScrollableView> m_scrollableView;
+				int m_hoveredIndex{-1};
+				
 				MouseSelection m_mouseSelection;
 				ViewportData m_viewport;
 				Window* m_window{ nullptr };
@@ -311,6 +342,9 @@ namespace Berta
 			std::any& UserData();
 			const std::any& UserData() const;
 
+			size_t m_logicalIndex{ static_cast<size_t>(-1) }; // Reemplaza al puntero m_target
+			ItemCollection* m_collection{ nullptr };
+			
 			Reactor::List::Item* m_target{ nullptr };
 			Reactor::Module* m_module{ nullptr };
 		};

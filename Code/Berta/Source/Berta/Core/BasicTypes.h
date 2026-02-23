@@ -149,6 +149,8 @@ namespace Berta
 		int Bottom() const noexcept;
 		int Right() const noexcept;
 		
+		Point Position() const;
+		
 #ifdef BT_PLATFORM_WINDOWS
 		void FromRECT(const ::RECT& rect)
 		{

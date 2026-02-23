@@ -181,6 +181,7 @@ public:
 #ifdef BT_DEBUG
 		m_listBox.SetDebugName("ListBox");
 #endif
+		/*
 		m_listBox.AppendHeader("Nombre completo", 100);
 		m_listBox.AppendHeader("Edad", 60);
 		m_listBox.AppendHeader("Lugar de Nacimiento", 200);
@@ -200,7 +201,7 @@ public:
 		m_listBox.At(2).SetIcon(image1);
 
 		Berta::Image image2("..\\..\\Resources\\Icons\\Icono5_2_16.png");
-		m_listBox.At(6).SetIcon(image2);
+		m_listBox.At(6).SetIcon(image2);*/
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();

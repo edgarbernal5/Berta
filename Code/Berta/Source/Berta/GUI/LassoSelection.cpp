@@ -55,8 +55,8 @@ namespace Berta
         // Evitar dibujar rectángulos con área cero
         if (rect.Width > 0 && rect.Height > 0)
         {
-            graphics.FillRectangle(rect, fillColor);
-            graphics.DrawRectangle(rect, borderColor);
+            graphics.DrawRectangle(rect, fillColor, true);
+            graphics.DrawRectangle(rect, borderColor, false);
         }
     }
 }
