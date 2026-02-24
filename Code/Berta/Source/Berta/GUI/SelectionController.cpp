@@ -9,54 +9,60 @@
 
 namespace Berta
 {
-    bool SelectionController::Select(size_t index, bool ctrlPressed, bool shiftPressed, size_t totalItems)
+    bool SelectionController::Select(size_t item, bool ctrlPressed, bool shiftPressed, const RangeResolver& resolver)
     {
-        if (index >= totalItems) return false;
-
         bool selectionChanged = true;
 
-        if (shiftPressed && m_anchorIndex != static_cast<size_t>(-1))
+        if (shiftPressed && m_anchorItem.has_value())
         {
-            // SHIFT + CLIC: Selecciona un rango desde el ancla hasta el índice actual
+            // --- SHIFT + CLIC: Selección de Rango ---
+        
+            // Si no está presionado CTRL al mismo tiempo, limpiamos la selección anterior
             if (!ctrlPressed)
             {
-                m_selectedIndices.clear();
+                m_selectedItems.clear();
             }
 
-            size_t start = (std::min)(m_anchorIndex, index);
-            size_t end = (std::max)(m_anchorIndex, index);
-
-            for (size_t i = start; i <= end; ++i)
+            // El Control (ListBox/TreeBox) nos resuelve qué elementos hay entre el Ancla y el Clic
+            std::vector<T> range = resolver(m_anchorItem.value(), item);
+        
+            for (const auto& rangeItem : range)
             {
-                m_selectedIndices.insert(i);
+                m_selectedItems.insert(rangeItem);
             }
         }
         else if (ctrlPressed)
         {
-            // CTRL + CLIC: Alterna la selección del ítem individual
-            if (m_selectedIndices.find(index) != m_selectedIndices.end())
+            // --- CTRL + CLIC: Alternar Selección ---
+        
+            if (m_selectedItems.find(item) != m_selectedItems.end())
             {
-                m_selectedIndices.erase(index);
+                m_selectedItems.erase(item); // Si ya estaba, lo quitamos
             }
             else
             {
-                m_selectedIndices.insert(index);
+                m_selectedItems.insert(item); // Si no estaba, lo añadimos
             }
-            m_anchorIndex = index; // Actualizamos el ancla
+            
+            m_anchorItem = item; // El último elemento tocado se convierte en la nueva ancla
         }
         else
         {
-            // CLIC NORMAL: Limpia todo y selecciona solo este
-            if (m_selectedIndices.size() == 1 && *m_selectedIndices.begin() == index)
+            // --- CLIC NORMAL ---
+        
+            // Optimización visual: si hacemos clic normal en el único elemento que ya
+            // estaba seleccionado, no hay cambios reales, evitamos repintar la UI.
+            if (m_selectedItems.size() == 1 && *m_selectedItems.begin() == item)
             {
-                selectionChanged = false; // Ya estaba seleccionado, evitamos repintados inútiles
+                selectionChanged = false; 
             }
             else
             {
-                m_selectedIndices.clear();
-                m_selectedIndices.insert(index);
+                m_selectedItems.clear();
+                m_selectedItems.insert(item);
             }
-            m_anchorIndex = index;
+        
+            m_anchorItem = item; // Se establece la nueva ancla
         }
 
         return selectionChanged;
@@ -64,69 +70,69 @@ namespace Berta
 
     void SelectionController::SaveSnapshot()
     {
-        m_snapshotIndices = m_selectedIndices;
+        m_snapshotItems = m_selectedItems;
     }
 
-    bool SelectionController::ApplyLassoRange(size_t startIndex, size_t endIndex, bool ctrlPressed)
+    bool SelectionController::ApplyLassoSelection(const std::vector<T>& lassoedItems, bool ctrlPressed)
     {
         // 1. Restaurar al estado antes de arrastrar
-        m_selectedIndices = m_snapshotIndices;
+        m_selectedItems = m_snapshotItems;
 
         // 2. Aplicar la nueva zona
-        for (size_t i = startIndex; i <= endIndex; ++i)
+        for (const auto& item : lassoedItems)
         {
             if (ctrlPressed)
             {
                 // Invertimos lo que había en la foto
-                if (m_snapshotIndices.find(i) != m_snapshotIndices.end())
-                    m_selectedIndices.erase(i);
+                if (m_snapshotItems.find(item) != m_snapshotItems.end())
+                    m_selectedItems.erase(item);
                 else
-                    m_selectedIndices.insert(i);
+                    m_selectedItems.insert(item);
             }
             else
             {
                 // Forzamos selección
-                m_selectedIndices.insert(i);
+                m_selectedItems.insert(item);
             }
         }
         return true; // En un escenario real, podrías comparar si el set cambió para retornar false
     }
 
-    void SelectionController::SetSelected(size_t index, bool selected)
+    void SelectionController::SetSelected(size_t item, bool selected)
     {
         if (selected)
         {
-            m_selectedIndices.insert(index);
-            m_anchorIndex = index;
+            m_selectedItems.insert(item);
+            m_anchorItem = item;
         }
         else
         {
-            m_selectedIndices.erase(index);
+            m_selectedItems.erase(item);
         }
     }
 
     void SelectionController::Clear()
     {
-        m_selectedIndices.clear();
-        m_anchorIndex = static_cast<size_t>(-1);
+        m_selectedItems.clear();
+        m_anchorItem = static_cast<size_t>(-1);
     }
 
     void SelectionController::SelectAll(size_t totalItems)
     {
         for (size_t i = 0; i < totalItems; ++i)
         {
-            m_selectedIndices.insert(i);
+            m_selectedItems.insert(i);
         }
     }
 
     bool SelectionController::IsSelected(size_t index) const
     {
-        return m_selectedIndices.find(index) != m_selectedIndices.end();
+        return m_selectedItems.find(index) != m_selectedItems.end();
     }
 
     std::vector<size_t> SelectionController::GetSelectedIndices() const
     {
-        std::vector<size_t> result(m_selectedIndices.begin(), m_selectedIndices.end());
+        std::vector<size_t> result(m_selectedItems.begin(), m_selectedItems.end());
         std::sort(result.begin(), result.end());
         return result;
     }

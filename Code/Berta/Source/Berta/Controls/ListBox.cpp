@@ -17,6 +17,128 @@ namespace Berta
 {
 	namespace ReactorCore::ListBox
 	{
+		size_t ItemCollection::Append(const std::string& text)
+		{
+			List::Item newItem;
+			newItem.m_cells.push_back({ text });
+        
+			m_items.push_back(std::move(newItem));
+			size_t newIndex = m_items.size() - 1;
+        
+			m_visualMap.push_back(newIndex);
+			
+			TriggerChanged();
+			return newIndex;
+		}
+
+		size_t ItemCollection::Append(std::initializer_list<std::string> texts)
+		{
+			List::Item newItem;
+			for (const auto& text : texts)
+			{
+				newItem.m_cells.push_back({ text });
+			}
+        
+			m_items.push_back(std::move(newItem));
+			size_t newIndex = m_items.size() - 1;
+			m_visualMap.push_back(newIndex);
+        
+			TriggerChanged();
+			return newIndex;
+		}
+
+		void ItemCollection::Clear()
+		{
+			if (!m_items.empty())
+			{
+				m_items.clear();
+				m_visualMap.clear();
+				TriggerChanged();
+			}
+		}
+
+		void ItemCollection::RemoveAt(size_t index)
+		{
+			if (index < m_items.size())
+			{
+				m_items.erase(m_items.begin() + index);
+				m_visualMap.erase(m_visualMap.begin() + index);
+				TriggerChanged();
+			}
+		}
+
+		List::Item* ItemCollection::At(size_t index)
+		{
+			if (index < m_items.size())
+			{
+				return &m_items[index];
+			}
+			return nullptr;
+		}
+
+		void ItemCollection::Sort(size_t columnIndex, bool ascending)
+		{
+			if (m_items.empty()) return;
+			
+			std::sort(m_visualMap.begin(), m_visualMap.end(), [&](size_t logicalA, size_t logicalB) 
+			{
+				const auto& itemA = m_items[logicalA];
+				const auto& itemB = m_items[logicalB];
+
+				std::string textA = (columnIndex < itemA.m_cells.size()) ? itemA.m_cells[columnIndex].m_text : "";
+				std::string textB = (columnIndex < itemB.m_cells.size()) ? itemB.m_cells[columnIndex].m_text : "";
+
+				return ascending ? (textA < textB) : (textA > textB);
+			});
+			TriggerChanged();
+		}
+
+		void ItemCollection::ResetSort()
+		{
+			for (size_t i = 0; i < m_visualMap.size(); ++i)
+			{
+				m_visualMap[i] = i;
+			}
+			TriggerChanged();
+		}
+
+		size_t ItemCollection::GetLogicalIndex(size_t visualIndex) const
+		{
+			if (visualIndex < m_visualMap.size())
+			{
+				return m_visualMap[visualIndex];
+			}
+			return static_cast<size_t>(-1);
+		}
+
+		size_t ItemCollection::GetVisualIndex(size_t logicalIndex) const
+		{
+			// Buscamos el índice lógico dentro de nuestro mapa visual
+			auto it = std::find(m_visualMap.begin(), m_visualMap.end(), logicalIndex);
+    
+			if (it != m_visualMap.end())
+			{
+				// std::distance nos da la posición (el índice visual real en pantalla)
+				return static_cast<size_t>(std::distance(m_visualMap.begin(), it));
+			}
+    
+			// Retornamos -1 (el máximo valor de size_t) si el elemento no está mapeado
+			return static_cast<size_t>(-1);
+		}
+
+		void ItemCollection::NotifyItemModified()
+		{
+			TriggerChanged();
+		}
+
+		void ItemCollection::TriggerChanged()
+		{
+			if (m_onChanged)
+			{
+				m_onChanged();
+			}
+		}
+
 		void Reactor::Init(ControlBase& control, Graphics* graphics)
 		{
 			m_control = &control;
@@ -150,17 +272,35 @@ namespace Berta
 			int headerHeight = static_cast<int>(m_module.m_appearance->HeadersHeight);
 			int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
 			
-			size_t clickedIndex = absoluteY / m_module.m_appearance->ListItemHeight;
+			size_t clickedVisualIndex = absoluteY / m_module.m_appearance->ListItemHeight;
 
-			if (clickedIndex < m_module.m_list.m_items.size())
+			if (clickedVisualIndex < m_module.m_items.GetCount())
 			{
+				size_t clickedLogicalIndex = m_module.m_items.GetLogicalIndex(clickedVisualIndex);
 				bool isCtrl = m_module.m_ctrlPressed;
 				bool isShift = m_module.m_shiftPressed;
 
-				if (m_module.m_selectionController.Select(clickedIndex, isCtrl, isShift, m_module.m_list.m_items.size()))
+				auto rangeResolver = [&](size_t anchorLogical, size_t currentLogical) {
+					std::vector<size_t> result;
+            
+					// 1. Encontrar dónde están el Ancla y el Clic visualmente
+					size_t anchorVisual = m_module.m_items.GetVisualIndex(anchorLogical);
+					size_t currentVisual = clickedVisualIndex;
+
+					// 2. Extraer todos los índices lógicos en ese rango visual
+					size_t start = (std::min)(anchorVisual, currentVisual);
+					size_t end = (std::max)(anchorVisual, currentVisual);
+            
+					for (size_t i = start; i <= end; ++i) {
+						result.push_back(m_module.m_items.GetLogicalIndex(i));
+					}
+					return result;
+				};
+				
+				if (m_module.m_selectionController.Select(clickedLogicalIndex, isCtrl, isShift, rangeResolver))
 				{
 					// Disparar evento a los usuarios de Berta
-					//GUI::InvokeEvent(m_module.m_events->Selected, { clickedIndex });
+					//GUI::InvokeEvent(m_module.m_events->Selected, { clickedLogicalIndex });
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
 			}
@@ -247,7 +387,7 @@ namespace Berta
 				int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
 				int hoveredIndex = absoluteY / m_module.m_appearance->ListItemHeight;
 
-				if (hoveredIndex >= 0 && hoveredIndex < m_module.m_list.m_items.size())
+				if (hoveredIndex >= 0 && hoveredIndex < m_module.m_items.GetCount())
 				{
 					if (m_module.m_hoveredIndex != hoveredIndex)
 					{
@@ -556,7 +696,7 @@ namespace Berta
 			m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 			m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-			bool needUpdate = false;
+			/*bool needUpdate = false;
 			if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
 			{
 				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
@@ -651,6 +791,7 @@ namespace Berta
 			{
 				GUI::MarkAsNeedUpdate(*m_control);
 			}
+			*/
 		}
 
 		void Reactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
@@ -659,23 +800,23 @@ namespace Berta
 			if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 		}
 
-		void Reactor::HeaderController::Init(Window* owner)
+		void HeaderController::Init(Window* owner)
 		{
 			m_owner = owner;
 		}
 
-		void Reactor::HeaderController::Append(const std::string& name, uint32_t width)
+		void HeaderController::Append(const std::string& name, uint32_t width)
 		{
 			m_headers.emplace_back(name, std::max<uint32_t>(width, LISTBOX_MIN_HEADER_WIDTH));
 		}
 
-		void Reactor::HeaderController::Clear()
+		void HeaderController::Clear()
 		{
 			m_headers.clear();
 			m_resizeInteraction = {};
 		}
 
-		uint32_t Reactor::HeaderController::GetTotalWidth() const
+		uint32_t HeaderController::GetTotalWidth() const
 		{
 			uint32_t total = 0;
 			for (const auto& h : m_headers)
@@ -685,7 +826,7 @@ namespace Berta
 			return total;
 		}
 
-		void Reactor::HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset)
+		void HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
 			int headerHeight = appearance->HeadersHeight;
@@ -721,7 +862,7 @@ namespace Berta
 			//graphics.DrawLine({0, headerHeight - 1}, {m_owner->ClientSize.Width, headerHeight - 1}, m_appearance->BorderColor);
 		}
 
-		bool Reactor::HeaderController::OnMouseDown(const ArgMouse& args, int xOffset)
+		bool HeaderController::OnMouseDown(const ArgMouse& args, int xOffset)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
 			if (args.Position.Y > appearance->HeadersHeight) return false;
@@ -741,7 +882,7 @@ namespace Berta
 			return false;
 		}
 
-		bool Reactor::HeaderController::OnMouseMove(const ArgMouse& args, int xOffset)
+		bool HeaderController::OnMouseMove(const ArgMouse& args, int xOffset)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
 			if (m_resizeInteraction.m_isResizing)
@@ -784,7 +925,7 @@ namespace Berta
 			return false;
 		}
 
-		bool Reactor::HeaderController::OnMouseUp(const ArgMouse& args)
+		bool HeaderController::OnMouseUp(const ArgMouse& args)
 		{
 			if (m_resizeInteraction.m_isResizing)
 			{
@@ -795,7 +936,7 @@ namespace Berta
 			return false;
 		}
 
-		bool Reactor::HeaderController::OnMouseLeave()
+		bool HeaderController::OnMouseLeave()
 		{
 			if (m_resizeInteraction.m_isHoveringDivider && !m_resizeInteraction.m_isResizing)
 			{
@@ -805,7 +946,7 @@ namespace Berta
 			return false;
 		}
 
-		bool Reactor::HeaderController::IsOverDivider(int mouseX, int xOffset, int& outIndex) const
+		bool HeaderController::IsOverDivider(int mouseX, int xOffset, int& outIndex) const
 		{
 			int currentX = -xOffset;
 			for (size_t i = 0; i < m_headers.size(); ++i)
@@ -878,7 +1019,7 @@ namespace Berta
 
 		void Reactor::Module::Erase(ListBoxItem item)
 		{
-			auto itemPtr = item.m_target;
+			/*auto itemPtr = item.m_target;
 			bool wasSelected = m_mouseSelection.IsSelected(itemPtr);
 			if (wasSelected)
 			{
@@ -921,12 +1062,12 @@ namespace Berta
 				BuildListItemBounds(index);
 			}
 
-			GUI::UpdateWindow(m_window);
+			GUI::UpdateWindow(m_window);*/
 		}
 
 		void Reactor::Module::Erase(std::vector<ListBoxItem>& items)
 		{
-			if (items.empty())
+			/*if (items.empty())
 				return;
 
 			std::vector<size_t> deferredSortedErase(items.size());
@@ -988,7 +1129,7 @@ namespace Berta
 				BuildListItemBounds(minIndex);
 			}
 
-			GUI::UpdateWindow(m_window);
+			GUI::UpdateWindow(m_window);*/
 		}
 
 		void Reactor::Module::EnableMultiselection(bool enabled)
@@ -1016,6 +1157,7 @@ namespace Berta
 
 		void Reactor::Module::BuildListItemBounds(size_t startIndex)
 		{
+			/*
 			auto listItemHeight = m_window->ToScale(m_appearance->ListItemHeight);
 			auto innerMarginInt = static_cast<int>(m_viewport.m_innerMargin);
 			Point offset{ 0,innerMarginInt };
@@ -1034,6 +1176,7 @@ namespace Berta
 
 				offset.Y += (int)m_list.m_items[i].m_bounds.Height + innerMarginInt * 2;
 			}
+			*/
 		}
 
 		void Reactor::Module::DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor)
@@ -1100,7 +1243,7 @@ namespace Berta
 
 			return { &m_list.m_items.back(), this};
 			*/
-			return {nullptr, nullptr};
+			return {0, nullptr};
 		}
 
 		ListBoxItem Reactor::Module::Append(std::initializer_list<std::string> texts)
@@ -1141,17 +1284,18 @@ namespace Berta
 
 			return { &m_list.m_items.back(), this };*/
 			
-			return {nullptr, nullptr};
+			return {0, nullptr};
 		}
 
 		ListBoxItem Reactor::Module::At(size_t index)
 		{
-			auto wrapper = &m_list.m_items[index];
-			return ListBoxItem{ wrapper, this };
+			auto wrapper = m_items.At(index);
+			return ListBoxItem{ 0, &m_items };
 		}
 
 		void Reactor::Module::Clear()
 		{
+			/*
 			bool needUpdate = !m_list.m_items.empty();
 			m_list.m_items.clear();
 			m_list.m_sortedIndexes.clear();
@@ -1164,6 +1308,7 @@ namespace Berta
 			{
 				GUI::UpdateWindow(m_window);
 			}
+			*/
 		}
 
 		void Reactor::Module::ClearHeaders()
@@ -1202,14 +1347,14 @@ namespace Berta
 				contentSize.Width += headerWidth;
 			}
 
-			contentSize.Height = static_cast<uint32_t>(m_list.m_items.size()) * (m_viewport.m_itemHeightWithMargin) + headerHeight;
+			contentSize.Height = static_cast<uint32_t>(m_items.GetCount()) * (m_viewport.m_itemHeightWithMargin) + headerHeight;
 
-			if (m_list.m_drawImages)
+			/*if (m_list.m_drawImages)
 			{
 				auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
 				auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
 				contentSize.Width += listItemIconSize + listItemIconMargin * 2u;
-			}
+			}*/
 			m_scrollableView->SetContentSize(contentSize);
 		}
 
@@ -1327,7 +1472,7 @@ namespace Berta
 
 		void Reactor::Module::DrawList(Graphics& graphics)
 		{
-			if (m_list.m_items.empty()) return;
+			if (m_items.IsEmpty()) return;
 
 			// 1. Obtener contexto geométrico (Gracias al ScrollableView)
 			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
@@ -1337,7 +1482,7 @@ namespace Berta
 			// 2. Calcular rango visible (Matemática O(1))
 			int listVisibleY = std::max<int>(0, visibleRect.Y - static_cast<int>(headerHeight));
 			int startIndex = listVisibleY / itemHeight;
-			int endIndex = std::min<int>((int)m_list.m_items.size(), (listVisibleY + (int)visibleRect.Height) / itemHeight + 1);
+			int endIndex = std::min<int>((int)m_items.GetCount(), (listVisibleY + (int)visibleRect.Height) / itemHeight + 1);
 
 			// 3. Iterar y dibujar
 			int currentY = (startIndex * itemHeight) + headerHeight - visibleRect.Y;
@@ -1453,6 +1598,7 @@ namespace Berta
 
 		void Reactor::Module::CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const
 		{
+			/*
 			startPoint = {
 				(std::min)(m_mouseSelection.m_startPosition.X, m_mouseSelection.m_endPosition.X),
 				(std::min)(m_mouseSelection.m_startPosition.Y, m_mouseSelection.m_endPosition.Y)
@@ -1468,15 +1614,18 @@ namespace Berta
 			startPoint.X = (std::max)(startPoint.X, m_viewport.m_backgroundRect.X - scrollOffset.X);
 
 			boxSize = { static_cast<uint32_t>(endPoint.X - startPoint.X), static_cast<uint32_t>(endPoint.Y - startPoint.Y) };
+			*/
 		}
 
 		bool Reactor::Module::SetHoveredListItem(List::Item* index)
 		{
+			/*
 			if (m_mouseSelection.m_hoveredItem != index)
 			{
 				m_mouseSelection.m_hoveredItem = index;
 				return true;
 			}
+			*/
 			return false;
 		}
 
@@ -1551,13 +1700,14 @@ namespace Berta
 
 		int Reactor::Module::GetListItemIndex(const List::Item* item) const
 		{
+			/*
 			for (size_t i = 0; i < m_list.m_items.size(); i++)
 			{
 				if (item == &m_list.m_items[m_list.m_sortedIndexes[i]])
 				{
 					return static_cast<int>(i);
 				}
-			}
+			}*/
 			return -1;
 		}
 
@@ -1577,7 +1727,7 @@ namespace Berta
 
 		void Reactor::Module::ProcessLassoIntersection()
 		{
-			if (!m_lassoSelection.IsActive() || m_list.m_items.empty()) return;
+			if (!m_lassoSelection.IsActive() || m_items.IsEmpty()) return;
 
 			Rectangle lasso = m_lassoSelection.GetRect();
 			int itemHeight = m_appearance->ListItemHeight;
@@ -1591,13 +1741,16 @@ namespace Berta
 			size_t startIndex = absoluteTop / itemHeight;
 			size_t endIndex = absoluteBottom / itemHeight;
 
-			startIndex = (std::min)(startIndex, m_list.m_items.size() - 1);
-			endIndex = (std::min)(endIndex, m_list.m_items.size() - 1);
+			std::vector<size_t> lassoedIndices;
+			for (size_t i = startIndex; i <= endIndex; ++i)
+			{
+				lassoedIndices.push_back(i);
+			}
 
 			bool isCtrl = m_ctrlPressed;
 
 			// DELEGACIÓN: Actualizamos el rango basado en la foto guardada
-			if (m_selectionController.ApplyLassoRange(startIndex, endIndex, isCtrl))
+			if (m_selectionController.ApplyLassoSelection(lassoedIndices, isCtrl))
 			{
 				GUI::MarkAsNeedUpdate(m_window);
 			}
@@ -1606,7 +1759,7 @@ namespace Berta
 		void Reactor::Module::UpdateSelectionRange(int startIndex, int endIndex)
 		{
 			// 1. Restaurar todos los ítems al estado "Pre-Lasso"
-			for (size_t i = 0; i < m_list.m_items.size(); ++i)
+			for (size_t i = 0; i < m_items.GetCount(); ++i)
 			{
 				bool wasSelected = m_preLassoSelection.find(i) != m_preLassoSelection.end();
 				SetItemSelected(i, wasSelected); // Tu método para cambiar selección
@@ -1636,7 +1789,7 @@ namespace Berta
 		{
 			// 1. Verificación de seguridad (Bounds check)
 			// Asumiendo que m_items es tu ItemCollection o std::vector
-			if (index >= m_list.m_items.size()) 
+			if (index >= m_items.GetCount()) 
 			{
 				return;
 			}
@@ -1649,12 +1802,12 @@ namespace Berta
 			// Es mucho más eficiente repintar la ventana una sola vez al terminar el bucle.
 		}
 
-		void Reactor::Module::DrawRowBackground(Graphics& graphics, int index, const Rectangle& rowRect)
+		void Reactor::Module::DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect)
 		{
 			Color bgColor = m_appearance->BoxBackground;
-    
-			bool isSelected = m_selectionController.IsSelected(index); 
-			bool isHovered = (index == m_hoveredIndex);
+			size_t logicalIndex = m_items.GetLogicalIndex(visualIndex);
+			bool isSelected = m_selectionController.IsSelected(logicalIndex); 
+			bool isHovered = (visualIndex == m_hoveredIndex);
 			
 			if (isSelected)
 			{
@@ -1675,9 +1828,10 @@ namespace Berta
 			}
 		}
 
-		void Reactor::Module::DrawRowContent(Graphics& graphics, int index, const Rectangle& rowRect)
+		void Reactor::Module::DrawRowContent(Graphics& graphics, int visualIndex, const Rectangle& rowRect)
 		{
-			const auto& item = m_list.m_items[index];
+			size_t logicalIndex = m_items.GetLogicalIndex(visualIndex);
+			const auto item = m_items.At(logicalIndex);
 			const auto& headers = m_headers.GetHeaders();
     
 			int currentX = rowRect.X;
@@ -1693,9 +1847,9 @@ namespace Berta
 					Rectangle cellRect = { currentX, rowRect.Y, colWidth, rowRect.Height };
             
 					// Obtenemos el texto de forma segura
-					std::string text = (col < item.m_cells.size()) ? item.m_cells[col].m_text : "";
+					std::string text = (col < item->m_cells.size()) ? item->m_cells[col].m_text : "";
             
-					DrawCell(graphics, cellRect, text, IsSelected(index));
+					DrawCell(graphics, cellRect, text, IsSelected(visualIndex));
 				}
 				currentX += colWidth;
 			}
@@ -1775,7 +1929,7 @@ namespace Berta
 
 		void Reactor::Module::ToggleItemSelection(List::Item* item)
 		{
-			item->m_isSelected = !item->m_isSelected;
+			/*item->m_isSelected = !item->m_isSelected;
 
 			if (item->m_isSelected)
 			{
@@ -1785,11 +1939,12 @@ namespace Berta
 			{
 				auto it = std::remove(m_mouseSelection.m_selections.begin(), m_mouseSelection.m_selections.end(), item);
 				m_mouseSelection.m_selections.erase(it, m_mouseSelection.m_selections.end());
-			}
+			}*/
 		}
 
 		void Reactor::Module::StartSelectionRectangle(const Point& mousePosition)
 		{
+			/*
 			auto logicalPosition = mousePosition;
 			logicalPosition -= m_scrollableView->GetScrollOffset();
 			m_mouseSelection.m_started = true;
@@ -1810,12 +1965,12 @@ namespace Berta
 				}
 			}
 
-			GUI::Capture(m_window);
+			GUI::Capture(m_window);*/
 		}
 
 		bool Reactor::Module::ClearSelectionIfNeeded()
 		{
-			if (!m_ctrlPressed && !m_shiftPressed)
+			/*if (!m_ctrlPressed && !m_shiftPressed)
 			{
 				if (!m_mouseSelection.m_selections.empty())
 				{
@@ -1830,26 +1985,26 @@ namespace Berta
 					m_mouseSelection.m_pivotItem = nullptr;
 					return true;
 				}
-			}
+			}*/
 			return false;
 		}
 
 		bool Reactor::Module::ClearSingleSelection()
 		{
-			if (m_mouseSelection.m_selectedItem)
+			/*if (m_mouseSelection.m_selectedItem)
 			{
 				m_mouseSelection.m_selectedItem->m_isSelected = false;
 				m_mouseSelection.m_selections.clear();
 				m_mouseSelection.m_selectedItem = nullptr;
 				return true;
-			}
+			}*/
 			return false;
 		}
 
 		std::vector<ListBoxItem> Reactor::Module::GetSelectedItems()
 		{
 			std::vector<ListBoxItem> selections;
-			std::vector<size_t> indexes;
+			/*std::vector<size_t> indexes;
 
 			selections.reserve(m_mouseSelection.m_selections.size());
 			indexes.reserve(m_mouseSelection.m_selections.size());
@@ -1863,28 +2018,30 @@ namespace Berta
 			for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 			{
 				selections.emplace_back(&m_list.m_items[m_list.m_sortedIndexes[indexes[i]]], this);
-			}
+			}*/
 			return selections;
 		}
 
 		void Reactor::Module::ClearSelection()
 		{
+			/*
 			for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 			{
 				m_mouseSelection.m_selections[i]->m_isSelected = false;
 			}
-			m_mouseSelection.m_selections.clear();
+			m_mouseSelection.m_selections.clear();*/
 		}
 
 		void Reactor::Module::SelectItem(List::Item* item)
 		{
-			item->m_isSelected = true;
+			/*item->m_isSelected = true;
 			m_mouseSelection.m_selections.push_back(item);
-			m_mouseSelection.m_selectedItem = item;
+			m_mouseSelection.m_selectedItem = item;*/
 		}
 
 		bool Reactor::Module::EnsureVisibility(int itemIndex)
 		{
+			/*
 			if (itemIndex >= m_list.m_items.size() || !m_scrollableView)
 			{
 				return false;
@@ -1904,11 +2061,13 @@ namespace Berta
 			{
 				GUI::MarkAsNeedUpdate(m_window);
 			}
-			return scrollChanged;
+			return scrollChanged;*/
+			return false;
 		}
 
 		void Reactor::Module::PerformRangeSelection(List::Item* pressedItem)
 		{
+			/*
 			auto pressedItemIndex = GetListItemIndex(pressedItem);
 			auto pivotIndex = GetListItemIndex(m_mouseSelection.m_pivotItem);
 			int minIndex = (std::min)(pivotIndex, pressedItemIndex);
@@ -1919,9 +2078,10 @@ namespace Berta
 				auto currentItem = &m_list.m_items[m_list.m_sortedIndexes[i]];
 				currentItem->m_isSelected = true;
 				m_mouseSelection.m_selections.push_back(currentItem);
-			}
+			}*/
 		}
 
+/*
 		bool Reactor::MouseSelection::IsAlreadySelected(List::Item* index) const
 		{
 			return std::find(m_alreadySelected.begin(), m_alreadySelected.end(), index) != m_alreadySelected.end();
@@ -1970,7 +2130,7 @@ namespace Berta
 			{
 				m_hoveredItem = nullptr;
 			}
-		}
+		}*/
 
 		int Reactor::Module::GetHeaderAtMousePosition(const Point& mousePosition, bool splitter) const
 		{
@@ -2070,16 +2230,23 @@ namespace Berta
 
 		void ListBoxItem::SetIcon(const Image& image) const
 		{
+			/*
 			m_target->m_icon = image;
 			if (image)
 			{
 				m_module->m_list.m_drawImages = true;
 				m_module->BuildHeaderBounds();
-			}
+			}*/
 		}
 
 		void ListBoxItem::SetText(size_t columnIndex, const std::string& text) const
 		{
+			auto target = m_collection->GetItemSafely(m_logicalIndex);
+			if (!target || columnIndex >= target->m_cells.size())
+				return;
+			
+			target->m_cells[columnIndex].m_text = text;
+			m_collection->NotifyItemModified();
 			/*
 			if (columnIndex >= m_module->m_headers.m_headers.size())
 			{
@@ -2103,23 +2270,21 @@ namespace Berta
 
 		std::string ListBoxItem::GetText(size_t columnIndex) const
 		{
-			/*
-			if (columnIndex >= m_module->m_headers.m_headers.size())
+			auto target = m_collection->GetItemSafely(m_logicalIndex);
+			if (!target || columnIndex >= target->m_cells.size())
 				return {};
 
-			return m_target->m_cells[columnIndex].m_text;
-			*/
-			return {};
+			return m_collection->GetItemSafely(m_logicalIndex)->m_cells[columnIndex].m_text;
 		}
 
 		std::any& ListBoxItem::UserData()
 		{
-			return m_target->m_userData;
+			return m_collection->GetItemSafely(m_logicalIndex)->m_userData;
 		}
 
 		const std::any& ListBoxItem::UserData() const
 		{
-			return m_target->m_userData;
+			return m_collection->GetItemSafely(m_logicalIndex)->m_userData;
 		}
 	}
 

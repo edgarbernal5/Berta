@@ -35,6 +35,131 @@ namespace Berta
 			uint32_t ListItemIconSize = 16;
 			uint32_t ListItemIconMargin = 4;
 		};
+		
+		namespace List
+		{
+			struct Cell 
+			{ 
+				std::string m_text; 
+				
+			};
+
+			struct Item
+			{
+				std::vector<Cell> m_cells;
+				Rectangle m_bounds;
+				bool m_isSelected{ false };
+				Image m_icon;
+				std::any m_userData;
+			};
+		}
+		
+		class ItemCollection
+		{
+		public:
+			// Callback para que la Vista sepa cuándo debe repintarse o recalcular el scroll
+			using OnCollectionChangedCallback = std::function<void()>;
+     				
+		public:
+			ItemCollection() = default;
+             
+			void SetOnChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
+             
+			size_t Append(const std::string& text);
+			size_t Append(std::initializer_list<std::string> texts);
+             
+			void Clear();
+			void RemoveAt(size_t index);
+     
+			size_t GetCount() const { return m_items.size(); }
+			bool IsEmpty() const { return m_items.empty(); }
+
+			List::Item* At(size_t index);
+             
+			void Sort(size_t columnIndex, bool ascending);
+			void ResetSort();
+             
+			size_t GetLogicalIndex(size_t visualIndex) const;
+			size_t GetVisualIndex(size_t logicalIndex) const;
+			
+			List::Item* GetItemSafely(size_t logicalIndex)
+			{
+				if (logicalIndex < m_items.size())
+				{
+					return &m_items[logicalIndex];
+				}
+				return nullptr;
+			}
+
+			void NotifyItemModified();
+     
+		private:
+			void TriggerChanged();
+     				
+			std::vector<List::Item> m_items;
+			std::vector<size_t> m_visualMap;
+			OnCollectionChangedCallback m_onChanged;
+		};
+		
+		struct HeaderController
+		{
+			struct ItemData
+			{
+				ItemData() = default;
+				ItemData(const std::string& text, uint32_t width) :
+					Text(text),
+					Width(width)
+				{
+				}
+
+				std::string Text;
+				uint32_t Width;
+			};
+
+			HeaderController() = default;
+
+			void Init(Window* owner);
+
+			void Append(const std::string& name, uint32_t width);
+			void Clear();
+			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
+			uint32_t GetTotalWidth() const;
+
+			void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
+
+			bool OnMouseDown(const ArgMouse& args, int xOffset);
+			bool OnMouseMove(const ArgMouse& args, int xOffset);
+			bool OnMouseUp(const ArgMouse& args);
+			bool OnMouseLeave();
+
+			bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
+
+		private:
+			bool IsOverDivider(int mouseX, int xOffset, int& outIndex) const;
+
+			Window* m_owner { nullptr };
+			Graphics m_draggingBox;
+			int m_mouseDownOffset{ 0 };
+			int m_mouseDraggingPosition{ 0 };
+			int m_draggingTargetIndex{ -1 };
+			int m_selectedIndex{ -1 };
+			int m_sortedHeaderIndex{ -1 };
+			bool isAscendingOrdering{ true };
+			bool m_isDragging{ false };
+
+			struct ResizeState
+			{
+				bool m_isResizing{ false };
+				int m_columnIndex{ -1 };
+				int m_startX{ 0 };
+				uint32_t m_startWidth{ 0 };
+				bool m_isHoveringDivider{ false };
+			} m_resizeInteraction;
+				
+			std::vector<ItemData> m_headers;
+
+			std::vector<size_t> m_sorted;
+		};
 
 		class Reactor : public ControlReactor
 		{
@@ -51,67 +176,7 @@ namespace Berta
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-			struct HeaderController
-			{
-				struct ItemData
-				{
-					ItemData() = default;
-					ItemData(const std::string& text, uint32_t width) :
-						Text(text),
-						Width(width)
-					{
-					}
-
-					std::string Text;
-					uint32_t Width;
-				};
-
-				HeaderController() = default;
-
-				void Init(Window* owner);
-
-				void Append(const std::string& name, uint32_t width);
-				void Clear();
-				const std::vector<ItemData>& GetHeaders() const { return m_headers; }
-				uint32_t GetTotalWidth() const;
-
-				void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
-
-				bool OnMouseDown(const ArgMouse& args, int xOffset);
-				bool OnMouseMove(const ArgMouse& args, int xOffset);
-				bool OnMouseUp(const ArgMouse& args);
-				bool OnMouseLeave();
-
-				bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
-
-			private:
-				bool IsOverDivider(int mouseX, int xOffset, int& outIndex) const;
-
-				Window* m_owner { nullptr };
-				Graphics m_draggingBox;
-				int m_mouseDownOffset{ 0 };
-				int m_mouseDraggingPosition{ 0 };
-				int m_draggingTargetIndex{ -1 };
-				int m_selectedIndex{ -1 };
-				int m_sortedHeaderIndex{ -1 };
-				bool isAscendingOrdering{ true };
-				bool m_isDragging{ false };
-
-				struct ResizeState
-				{
-					bool m_isResizing{ false };
-					int m_columnIndex{ -1 };
-					int m_startX{ 0 };
-					uint32_t m_startWidth{ 0 };
-					bool m_isHoveringDivider{ false };
-				} m_resizeInteraction;
-				
-				std::vector<ItemData> m_headers;
-
-				std::vector<size_t> m_sorted;
-			};
-
-			struct Cell
+			/*struct Cell
 			{
 				Cell(const std::string& text) : m_text(text){}
 
@@ -122,6 +187,7 @@ namespace Berta
 			{
 				struct Item
 				{
+					Item() = default;
 					Item(const std::string& text)
 					{
 						m_cells.emplace_back(text);
@@ -136,42 +202,7 @@ namespace Berta
 				std::vector<Item> m_items;
 				std::vector<std::size_t> m_sortedIndexes;
 				bool m_drawImages{ false };
-			};
-			
-			class ItemCollection
-			{
-			public:
-				// Callback para que la Vista sepa cuándo debe repintarse o recalcular el scroll
-				using OnCollectionChangedCallback = std::function<void()>;
-				
-			public:
-				ItemCollection() = default;
-				void SetOnChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
-				
-				// CRUD
-				List::Item* Append(const std::string& text);
-				List::Item* Append(std::initializer_list<std::string> texts);
-				
-				void RemoveAt(size_t index);
-				void Clear();
-
-				// --- Acceso ---
-				size_t GetCount() const { return m_items.size(); }
-				bool IsEmpty() const { return m_items.empty(); }
-        
-				List::Item* At(size_t index) const;
-
-				// --- Utilidades ---
-				// Ideal para notificar que un texto o dato interno de un ítem cambió manualmente
-				void NotifyItemModified();
-
-			private:
-				void TriggerChanged();
-				
-				std::vector<List::Item> m_items;
-				
-				OnCollectionChangedCallback m_onChanged;
-			};
+			};*/
 
 			struct ViewportData
 			{
@@ -184,29 +215,6 @@ namespace Berta
 				uint32_t m_itemHeightWithMargin{ 0 };
 
 				uint32_t m_columnOffsetStartOff{ 0 };
-			};
-
-			struct MouseSelection
-			{
-				bool IsAlreadySelected(List::Item* item) const;
-				bool IsSelected(List::Item* item) const;
-
-				void Select(List::Item* item);
-				void Deselect(List::Item* item);
-
-				void Clear();
-				void ClearReferences(List::Item* item);
-
-				std::vector<List::Item*> m_selections;
-				std::vector<List::Item*> m_alreadySelected; //TODO: cambiar por un set/map
-				List::Item* m_hoveredItem{ nullptr };
-				List::Item* m_selectedItem{ nullptr };
-				List::Item* m_pivotItem{ nullptr };
-
-				Point m_startPosition;
-				Point m_endPosition;
-				bool m_started{ false };
-				bool m_inverseSelection{ false };
 			};
 
 			struct Module
@@ -268,14 +276,14 @@ namespace Berta
 				void UpdateSelectionRange(int startIndex, int endIndex);
 				void SetItemSelected(size_t index, bool selected);
 				
-				void DrawRowBackground(Graphics& graphics, int index, const Rectangle& rowRect);
-				void DrawRowContent(Graphics& graphics, int index, const Rectangle& rect);
+				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
+				void DrawRowContent(Graphics& graphics, int visualIndex, const Rectangle& rect);
 				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected);
     
 				bool IsSelected(int index) const;
 				
 				HeaderController m_headers;
-				List m_list;
+				//List m_list;
 				
 				std::unique_ptr<ScrollableView> m_scrollableView;
 				LassoSelection m_lassoSelection;
@@ -285,7 +293,6 @@ namespace Berta
 				
 				int m_hoveredIndex{-1};
 				
-				MouseSelection m_mouseSelection;
 				ViewportData m_viewport;
 				Window* m_window{ nullptr };
 				Appearance* m_appearance{ nullptr };
@@ -303,8 +310,8 @@ namespace Berta
 
 		struct ListBoxItem
 		{
-			ListBoxItem(Reactor::List::Item* target, Reactor::Module* module) :
-				m_target(target), m_module(module)
+			ListBoxItem(size_t logicalIndex, ItemCollection* itemCollection) :
+				m_logicalIndex(logicalIndex), m_collection(itemCollection)
 			{
 			}
 
@@ -334,7 +341,7 @@ namespace Berta
 
 			explicit operator bool() const
 			{
-				return m_target;
+				return m_collection;
 			}
 
 			friend struct Reactor::Module;
@@ -342,11 +349,8 @@ namespace Berta
 			std::any& UserData();
 			const std::any& UserData() const;
 
-			size_t m_logicalIndex{ static_cast<size_t>(-1) }; // Reemplaza al puntero m_target
+			size_t m_logicalIndex{ static_cast<size_t>(-1) };
 			ItemCollection* m_collection{ nullptr };
-			
-			Reactor::List::Item* m_target{ nullptr };
-			Reactor::Module* m_module{ nullptr };
 		};
 	}
 
