@@ -298,6 +298,14 @@ namespace Berta
 		uint32_t BGRA; //Format: 0xBBGGRR
 	};
 	
+	struct Padding
+	{
+		int Top = 0;
+		int Bottom = 0;
+		int Left = 0;
+		int Right = 0;
+	};
+	
 	struct Color
 	{
 		Color() = default;

@@ -65,10 +65,7 @@ namespace Berta
 		Size m_fullViewSize{ 0, 0 }; 
 		Rectangle m_viewportRect{ 0, 0, 0, 0 }; 
 
-		struct Padding
-		{
-			int Top = 0, Bottom = 0, Left = 0, Right = 0;
-		} m_viewPadding;
+		Padding m_viewPadding;
 		
 		Point m_scrollOffset{ 0, 0 };
 		Size m_scrollStep{ 20, 20 }; 
