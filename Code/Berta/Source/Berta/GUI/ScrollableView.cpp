@@ -90,11 +90,12 @@ namespace Berta
 
     void ScrollableView::UpdateScrollBars()
     {
+        bool needNotifyChange = false;
         if (!m_needVerticalScroll && m_scrollBarVert)
         {
             m_scrollBarVert.reset();
             m_scrollOffset.Y = 0;
-            NotifyChange();
+            needNotifyChange = true;
         }
         else if (m_needVerticalScroll)
         {
@@ -105,11 +106,17 @@ namespace Berta
         {
             m_scrollBarHoriz.reset();
             m_scrollOffset.X = 0;
+            needNotifyChange = true;
             NotifyChange();
         }
         else if (m_needHorizontalScroll)
         {
             UpdateHorizontalScrollBar();
+        }
+        
+        if (needNotifyChange)
+        {
+            NotifyChange();
         }
     }
 
@@ -222,7 +229,7 @@ namespace Berta
             {
                 newY = targetBounds.Y - m_viewPadding.Top;
             }
-            else if (targetBounds.Y + targetBounds.Height > viewBottom)
+            else if (targetBounds.Y + static_cast<int>(targetBounds.Height) > viewBottom)
             {
                 newY = targetBounds.Y + static_cast<int>(targetBounds.Height) - static_cast<int>(m_viewportRect.Height) + m_viewPadding.Bottom;
             }
@@ -244,7 +251,7 @@ namespace Berta
             {
                 newX = targetBounds.X - m_viewPadding.Left;
             }
-            else if (targetBounds.X + targetBounds.Width > viewRight)
+            else if (targetBounds.X + static_cast<int>(targetBounds.Width) > viewRight)
             {
                 newX = targetBounds.X + static_cast<int>(targetBounds.Width) - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
             }
