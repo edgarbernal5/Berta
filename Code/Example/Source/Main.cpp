@@ -181,10 +181,10 @@ public:
 #ifdef BT_DEBUG
 		m_listBox.SetDebugName("ListBox");
 #endif
-		/*
+		
 		m_listBox.AppendHeader("Nombre completo", 100);
 		m_listBox.AppendHeader("Edad", 60);
-		m_listBox.AppendHeader("Lugar de Nacimiento", 200);
+		/*m_listBox.AppendHeader("Lugar de Nacimiento", 200);
 
 		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38", "Caracas"});
 		m_listBox.Append({ "Bruno Emmanuel Bernal", "3", "Buenos Aires" });

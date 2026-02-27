@@ -103,6 +103,10 @@ namespace Berta
 		
 		struct HeaderController
 		{
+			using OnHeaderClickedCallback = std::function<void(int visualColumnIndex)>;
+			using OnHeadersReorderedCallback = std::function<void()>;
+			using OnRequestColumnAutoWidth = std::function<int(int visualColumnIndex)>;
+
 			struct ItemData
 			{
 				ItemData() = default;
@@ -122,31 +126,45 @@ namespace Berta
 
 			void Append(const std::string& name, uint32_t width);
 			void Clear();
+			void SetSortState(int visualColumnIndex, bool ascending);
 			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
 			uint32_t GetTotalWidth() const;
 
 			void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
 
-			bool OnMouseDown(const ArgMouse& args, int xOffset);
-			bool OnMouseMove(const ArgMouse& args, int xOffset);
-			bool OnMouseUp(const ArgMouse& args);
+			bool OnMouseDown(const ArgMouse& args, int scrollX);
+			bool OnMouseMove(const ArgMouse& args, int scrollX);
+			bool OnMouseUp(const ArgMouse& args, int scrollX);
 			bool OnMouseLeave();
 
 			bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
 
+			void SetTextPadding(int top, int bottom = 0, int left = 0, int right = 0);
+			void SetOnHeaderClickedCallback(OnHeaderClickedCallback cb) { m_onHeaderClicked = cb; }
+			void SetOnHeadersReorderedCallback(OnHeadersReorderedCallback cb) { m_onHeadersReordered = cb; }
+			void SetOnRequestColumnAutoWidth(OnRequestColumnAutoWidth cb) { m_onRequestAutoWidth = cb; }
+			
 		private:
-			bool IsOverDivider(int mouseX, int xOffset, int& outIndex) const;
+			int GetHeaderIndexAt(int mouseX, int scrollX) const;
+			int GetDividerAt(int mouseX, int scrollX) const;
+			uint32_t GetPositionToColumn(size_t columnIndex) const;
+			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
 			Window* m_owner { nullptr };
-			Graphics m_draggingBox;
-			int m_mouseDownOffset{ 0 };
-			int m_mouseDraggingPosition{ 0 };
-			int m_draggingTargetIndex{ -1 };
-			int m_selectedIndex{ -1 };
-			int m_sortedHeaderIndex{ -1 };
-			bool isAscendingOrdering{ true };
-			bool m_isDragging{ false };
-
+			
+			OnHeaderClickedCallback m_onHeaderClicked;
+			OnHeadersReorderedCallback m_onHeadersReordered;
+			OnRequestColumnAutoWidth m_onRequestAutoWidth;
+			
+			// --- Estados Visuales e Interacción ---
+			int m_hoveredColumnIndex{ -1 };
+			int m_sortColumnIndex{ -1 };
+			bool m_isSortAscending{ true };
+			
+			uint32_t m_startOffPos{ 4 };
+			Padding m_textPadding;
+			
+			// Estado de Redimensionamiento
 			struct ResizeState
 			{
 				bool m_isResizing{ false };
@@ -155,10 +173,26 @@ namespace Berta
 				uint32_t m_startWidth{ 0 };
 				bool m_isHoveringDivider{ false };
 			} m_resizeInteraction;
-				
+			
+			// Estado de Arrastre (Drag & Drop)
+			int m_draggedColumnIndex{ -1 };
+			int m_dragStartX{ 0 };
+			int m_currentMouseX{ 0 };
+			bool m_isDraggingConfirmed{ false };
+			
 			std::vector<ItemData> m_headers;
 
 			std::vector<size_t> m_sorted;
+			
+			//old
+			Graphics m_draggingBox;
+			int m_mouseDownOffset{ 0 };
+			int m_mouseDraggingPosition{ 0 };
+			int m_draggingTargetIndex{ -1 };
+			int m_selectedIndex{ -1 };
+			int m_sortedHeaderIndex{ -1 };
+			bool isAscendingOrdering{ true };
+			bool m_isDragging{ false };
 		};
 
 		class Reactor : public ControlReactor
@@ -283,19 +317,17 @@ namespace Berta
 				bool IsSelected(int index) const;
 				
 				HeaderController m_headers;
-				//List m_list;
+				ItemCollection m_items;
 				
 				std::unique_ptr<ScrollableView> m_scrollableView;
 				LassoSelection m_lassoSelection;
 				SelectionController m_selectionController;
-				ItemCollection m_items;
 				std::unordered_set<int> m_preLassoSelection;
 				
 				int m_hoveredIndex{-1};
-				
+				bool m_drawImages {false};
 				ViewportData m_viewport;
 				Window* m_window{ nullptr };
-				Appearance* m_appearance{ nullptr };
 				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };
 				bool m_ctrlPressed{ false };
