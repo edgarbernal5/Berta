@@ -105,7 +105,7 @@ namespace Berta
 		{
 			using OnHeaderClickedCallback = std::function<void(int visualColumnIndex)>;
 			using OnHeadersReorderedCallback = std::function<void()>;
-			using OnRequestColumnAutoWidth = std::function<int(int visualColumnIndex)>;
+			using OnRequestColumnAutoWidth = std::function<uint32_t(int visualColumnIndex)>;
 
 			struct ItemData
 			{
@@ -136,6 +136,7 @@ namespace Berta
 			bool OnMouseMove(const ArgMouse& args, int scrollX);
 			bool OnMouseUp(const ArgMouse& args, int scrollX);
 			bool OnMouseLeave();
+			bool OnMouseDoubleClick(const ArgMouse& args, int scrollX);
 
 			bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
 
@@ -144,12 +145,15 @@ namespace Berta
 			void SetOnHeadersReorderedCallback(OnHeadersReorderedCallback cb) { m_onHeadersReordered = cb; }
 			void SetOnRequestColumnAutoWidth(OnRequestColumnAutoWidth cb) { m_onRequestAutoWidth = cb; }
 			
+			int GetLogicalIndex(int visualIndex) const { return m_visualOrder[visualIndex]; }
+			size_t GetColumnCount() const { return m_headers.size(); }
 		private:
-			int GetHeaderIndexAt(int mouseX, int scrollX) const;
-			int GetDividerAt(int mouseX, int scrollX) const;
 			uint32_t GetPositionToColumn(size_t columnIndex) const;
 			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
+			int GetVisualIndexAt(int mouseX, int scrollX) const;
+			int GetDividerVisualIndexAt(int mouseX, int scrollX) const;
+			
 			Window* m_owner { nullptr };
 			
 			OnHeaderClickedCallback m_onHeaderClicked;
@@ -157,8 +161,8 @@ namespace Berta
 			OnRequestColumnAutoWidth m_onRequestAutoWidth;
 			
 			// --- Estados Visuales e Interacción ---
-			int m_hoveredColumnIndex{ -1 };
-			int m_sortColumnIndex{ -1 };
+			int m_hoveredVisualIndex{ -1 };
+			int m_sortLogicalIndex{ -1 };
 			bool m_isSortAscending{ true };
 			
 			uint32_t m_startOffPos{ 4 };
@@ -168,21 +172,20 @@ namespace Berta
 			struct ResizeState
 			{
 				bool m_isResizing{ false };
-				int m_columnIndex{ -1 };
+				int m_visualColumnIndex{ -1 };
 				int m_startX{ 0 };
 				uint32_t m_startWidth{ 0 };
 				bool m_isHoveringDivider{ false };
 			} m_resizeInteraction;
 			
 			// Estado de Arrastre (Drag & Drop)
-			int m_draggedColumnIndex{ -1 };
+			int m_draggedVisualIndex{ -1 };
 			int m_dragStartX{ 0 };
 			int m_currentMouseX{ 0 };
 			bool m_isDraggingConfirmed{ false };
 			
 			std::vector<ItemData> m_headers;
-
-			std::vector<size_t> m_sorted;
+			std::vector<int> m_visualOrder;
 			
 			//old
 			Graphics m_draggingBox;
