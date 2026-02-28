@@ -39,7 +39,10 @@ namespace Berta
 		namespace List
 		{
 			struct Cell 
-			{ 
+			{
+				Cell(const std::string& text) :
+					m_text(text){}
+				
 				std::string m_text; 
 				
 			};
@@ -78,6 +81,7 @@ namespace Berta
              
 			void Sort(size_t columnIndex, bool ascending);
 			void ResetSort();
+			void EnableImages(bool active);
              
 			size_t GetLogicalIndex(size_t visualIndex) const;
 			size_t GetVisualIndex(size_t logicalIndex) const;
@@ -96,6 +100,7 @@ namespace Berta
 		private:
 			void TriggerChanged();
      				
+			bool m_drawImages { false };
 			std::vector<List::Item> m_items;
 			std::vector<size_t> m_visualMap;
 			OnCollectionChangedCallback m_onChanged;
@@ -103,9 +108,9 @@ namespace Berta
 		
 		struct HeaderController
 		{
-			using OnHeaderClickedCallback = std::function<void(int visualColumnIndex)>;
+			using OnHeaderClickedCallback = std::function<void(size_t visualColumnIndex)>;
 			using OnHeadersReorderedCallback = std::function<void()>;
-			using OnRequestColumnAutoWidth = std::function<uint32_t(int visualColumnIndex)>;
+			using OnRequestColumnAutoWidth = std::function<uint32_t(size_t visualColumnIndex)>;
 
 			struct ItemData
 			{
@@ -132,11 +137,11 @@ namespace Berta
 
 			void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
 
+			bool OnDblClick(const ArgMouse& args, int scrollX);
 			bool OnMouseDown(const ArgMouse& args, int scrollX);
 			bool OnMouseMove(const ArgMouse& args, int scrollX);
 			bool OnMouseUp(const ArgMouse& args, int scrollX);
 			bool OnMouseLeave();
-			bool OnMouseDoubleClick(const ArgMouse& args, int scrollX);
 
 			bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
 
@@ -145,10 +150,11 @@ namespace Berta
 			void SetOnHeadersReorderedCallback(OnHeadersReorderedCallback cb) { m_onHeadersReordered = cb; }
 			void SetOnRequestColumnAutoWidth(OnRequestColumnAutoWidth cb) { m_onRequestAutoWidth = cb; }
 			
-			int GetLogicalIndex(int visualIndex) const { return m_visualOrder[visualIndex]; }
+			size_t GetLogicalIndex(size_t visualIndex) const { return m_visualOrder[visualIndex]; }
 			size_t GetColumnCount() const { return m_headers.size(); }
+			
 		private:
-			uint32_t GetPositionToColumn(size_t columnIndex) const;
+			uint32_t GetPositionToColumn(size_t visualIdx) const;
 			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
 			int GetVisualIndexAt(int mouseX, int scrollX) const;
@@ -185,17 +191,9 @@ namespace Berta
 			bool m_isDraggingConfirmed{ false };
 			
 			std::vector<ItemData> m_headers;
-			std::vector<int> m_visualOrder;
-			
-			//old
+			std::vector<size_t> m_visualOrder;
 			Graphics m_draggingBox;
-			int m_mouseDownOffset{ 0 };
-			int m_mouseDraggingPosition{ 0 };
-			int m_draggingTargetIndex{ -1 };
-			int m_selectedIndex{ -1 };
-			int m_sortedHeaderIndex{ -1 };
-			bool isAscendingOrdering{ true };
-			bool m_isDragging{ false };
+			
 		};
 
 		class Reactor : public ControlReactor
@@ -314,7 +312,7 @@ namespace Berta
 				void SetItemSelected(size_t index, bool selected);
 				
 				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
-				void DrawRowContent(Graphics& graphics, int visualIndex, const Rectangle& rect);
+				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
 				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected);
     
 				bool IsSelected(int index) const;

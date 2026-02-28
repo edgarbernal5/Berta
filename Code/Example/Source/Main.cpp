@@ -184,9 +184,9 @@ public:
 		
 		m_listBox.AppendHeader("Nombre completo", 100);
 		m_listBox.AppendHeader("Edad", 60);
-		/*m_listBox.AppendHeader("Lugar de Nacimiento", 200);
+		m_listBox.AppendHeader("Lugar de Nacimiento", 200);
 
-		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38", "Caracas"});
+		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38", "Guatire"});
 		m_listBox.Append({ "Bruno Emmanuel Bernal", "3", "Buenos Aires" });
 		m_listBox.Append({ "Adriana Desiree", "37", "Caracas" });
 		m_listBox.Append({ "Luna Bernal", "0", "..." });
@@ -195,7 +195,7 @@ public:
 		m_listBox.Append({ "Orlando Urdaneta Jimenez", "71", "Caracas" });
 		m_listBox.Append({ "Abraham Leonardo Urdaneta", "29", "Caracas" });
 
-		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
+		/*Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 		m_listBox.At(0).SetIcon(image1);
 		m_listBox.At(4).SetIcon(image1);
 		m_listBox.At(2).SetIcon(image1);

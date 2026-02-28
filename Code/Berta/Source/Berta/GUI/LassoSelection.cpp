@@ -35,8 +35,11 @@ namespace Berta
 
     Rectangle LassoSelection::GetRect() const
     {
-        if (!m_isActive) return { 0, 0, 0, 0 };
-
+        if (!m_isActive)
+        {
+            return { 0, 0, 0, 0 };
+        }
+        
         // Normalizamos el rectángulo por si el usuario arrastra hacia arriba/izquierda
         int x = (std::min)(m_startPos.X, m_currentPos.X);
         int y = (std::min)(m_startPos.Y, m_currentPos.Y);
@@ -46,17 +49,22 @@ namespace Berta
         return { x, y, width, height };
     }
 
-    void LassoSelection::Draw(Graphics& graphics, const Color& fillColor, const Color& borderColor) const
+    void LassoSelection::Draw(Graphics& graphics, Graphics& selectionBox, const Color& blendColor, const Color& borderColor) const
     {
-        if (!m_isActive) return;
-
+        if (!m_isActive)
+        {
+            return;
+        }
         Rectangle rect = GetRect();
         
-        // Evitar dibujar rectángulos con área cero
         if (rect.Width > 0 && rect.Height > 0)
         {
-            graphics.DrawRectangle(rect, fillColor, true);
-            graphics.DrawRectangle(rect, borderColor, false);
+            selectionBox.Begin();
+            selectionBox.DrawRectangle(blendColor, true);
+            selectionBox.DrawRectangle(borderColor, false);
+            selectionBox.Flush();
+
+            graphics.Blend(rect, selectionBox, { 0,0 }, 0.5);
         }
     }
 }

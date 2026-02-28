@@ -16,24 +16,16 @@ namespace Berta
     {
     public:
         LassoSelection() = default;
-
-        // Inicia el recuadro en una posición
+        
         void Start(const Point& startPosition);
-
-        // Actualiza la posición y retorna 'true' si el recuadro cambió de tamaño
         bool Update(const Point& currentPosition);
-
-        // Termina la selección
         void End();
 
-        // Estado
         bool IsActive() const { return m_isActive; }
 
-        // Retorna el rectángulo normalizado (siempre con Width y Height positivos)
         Rectangle GetRect() const;
 
-        // Dibuja el recuadro visual
-        void Draw(Graphics& graphics, const Color& fillColor, const Color& borderColor) const;
+        void Draw(Graphics& graphics, Graphics& selectionBox, const Color& blendColor, const Color& borderColor) const;
 
     private:
         bool m_isActive{ false };

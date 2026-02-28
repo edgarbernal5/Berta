@@ -33,7 +33,6 @@ namespace Berta
 		m_dpi(dpi)
 	{
 		Build(size, rootPaintHandle);
-
 	}
 
 	Graphics::Graphics(API::RootPaintNativeHandle rootPaintHandle) :
@@ -132,8 +131,8 @@ namespace Berta
 		}
 
 		m_rootPaintNativeHandle = rootPaintHandle;
+		
 #ifdef BT_PLATFORM_WINDOWS
-
 		if (m_attributes->m_bitmapRT == nullptr && m_rootPaintNativeHandle.RenderTarget)
 		{
 			D2D1_SIZE_F desiredSize = D2D1::SizeF(static_cast<FLOAT>(m_size.Width), static_cast<FLOAT>(m_size.Height));
