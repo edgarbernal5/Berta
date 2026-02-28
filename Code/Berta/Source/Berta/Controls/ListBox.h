@@ -73,7 +73,8 @@ namespace Berta
              
 			void Clear();
 			void RemoveAt(size_t index);
-     
+			void Erase(size_t logicalIndex);
+			
 			size_t GetCount() const { return m_items.size(); }
 			bool IsEmpty() const { return m_items.empty(); }
 
@@ -193,7 +194,6 @@ namespace Berta
 			std::vector<ItemData> m_headers;
 			std::vector<size_t> m_visualOrder;
 			Graphics m_draggingBox;
-			
 		};
 
 		class Reactor : public ControlReactor
@@ -238,19 +238,7 @@ namespace Berta
 				std::vector<std::size_t> m_sortedIndexes;
 				bool m_drawImages{ false };
 			};*/
-
-			struct ViewportData
-			{
-				Rectangle m_backgroundRect{};
-				bool m_needVerticalScroll{ false };
-				bool m_needHorizontalScroll{ false };
-				Size m_contentSize{};
-				uint32_t m_innerMargin{ 0 };
-				uint32_t m_itemHeight{ 0 };
-				uint32_t m_itemHeightWithMargin{ 0 };
-
-				uint32_t m_columnOffsetStartOff{ 0 };
-			};
+			
 
 			struct Module
 			{
@@ -261,35 +249,15 @@ namespace Berta
 
 				void Clear();
 				void ClearHeaders();
-				void CalculateViewport(ViewportData& viewportData);
-				void BuildHeaderBounds(size_t startIndex = 0);
-				void BuildListItemBounds(size_t startIndex = 0);
 
 				void Erase(ListBoxItem item);
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
 				void UpdateScrollData();
 				
-				bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
-				void SelectItem(List::Item* index);
-				void ClearSelection();
 				bool EnsureVisibility(int lastSelectedIndex);
-				void PerformRangeSelection(List::Item* itemIndexAtPosition);
-
-				bool UpdateSingleSelection(List::Item* item);
-				void ToggleItemSelection(List::Item* item);
-				void StartSelectionRectangle(const Point& mousePosition);
-				bool ClearSelectionIfNeeded();
-				bool ClearSingleSelection();
 
 				std::vector<ListBoxItem> GetSelectedItems();
-
-				int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter) const;
-
-				void StartHeadersSizing(const Point& mousePosition);
-				void UpdateHeadersSize(const Point& mousePosition);
-				void StopHeadersSizing();
-				void StartSelectingHeader(const Point& mousePosition);
 
 				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
@@ -297,13 +265,7 @@ namespace Berta
 				void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
 				void DrawList(Graphics& graphics);
 
-				void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const;
-				bool SetHoveredListItem(List::Item* index = nullptr);
-
-				void StopDragOrSortHeader();
 				void SortHeader(size_t headerIndex, bool ascending);
-
-				int GetListItemIndex(const List::Item* item) const;
 
 				void InitScrollableView();
 
@@ -322,12 +284,13 @@ namespace Berta
 				
 				std::unique_ptr<ScrollableView> m_scrollableView;
 				LassoSelection m_lassoSelection;
-				SelectionController m_selectionController;
+				SelectionController<size_t> m_selectionController;
 				std::unordered_set<int> m_preLassoSelection;
 				
+				bool m_isSortAscending {false};
+				std::optional<size_t> m_currentSortColumn = std::nullopt;
 				int m_hoveredIndex{-1};
 				bool m_drawImages {false};
-				ViewportData m_viewport;
 				Window* m_window{ nullptr };
 				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };

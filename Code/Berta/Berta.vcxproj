@@ -250,7 +250,6 @@
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp" />
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp" />
-    <ClCompile Include="Source\Berta\GUI\SelectionController.cpp" />
     <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layout.cpp" />
     <ClCompile Include="Source\Berta\GUI\LayoutNodes.cpp" />
