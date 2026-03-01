@@ -30,15 +30,11 @@ namespace Berta
 
             if (shiftPressed && m_anchorItem.has_value())
             {
-                // --- SHIFT + CLIC: Selección de Rango ---
-        
-                // Si no está presionado CTRL al mismo tiempo, limpiamos la selección anterior
                 if (!ctrlPressed)
                 {
                     m_selectedItems.clear();
                 }
 
-                // El Control (ListBox/TreeBox) nos resuelve qué elementos hay entre el Ancla y el Clic
                 std::vector<T> range = resolver(m_anchorItem.value(), item);
         
                 for (const auto& rangeItem : range)
@@ -48,25 +44,19 @@ namespace Berta
             }
             else if (ctrlPressed)
             {
-                // --- CTRL + CLIC: Alternar Selección ---
-        
                 if (m_selectedItems.find(item) != m_selectedItems.end())
                 {
-                    m_selectedItems.erase(item); // Si ya estaba, lo quitamos
+                    m_selectedItems.erase(item);
                 }
                 else
                 {
-                    m_selectedItems.insert(item); // Si no estaba, lo añadimos
+                    m_selectedItems.insert(item);
                 }
             
-                m_anchorItem = item; // El último elemento tocado se convierte en la nueva ancla
+                m_anchorItem = item;
             }
             else
             {
-                // --- CLIC NORMAL ---
-        
-                // Optimización visual: si hacemos clic normal en el único elemento que ya
-                // estaba seleccionado, no hay cambios reales, evitamos repintar la UI.
                 if (m_selectedItems.size() == 1 && *m_selectedItems.begin() == item)
                 {
                     selectionChanged = false; 
@@ -90,15 +80,12 @@ namespace Berta
         
         bool ApplyLassoSelection(const std::vector<T>& lassoedItems, bool ctrlPressed)
         {
-            // 1. Restaurar al estado antes de arrastrar
             m_selectedItems = m_snapshotItems;
-
-            // 2. Aplicar la nueva zona
+            
             for (const auto& item : lassoedItems)
             {
                 if (ctrlPressed)
                 {
-                    // Invertimos lo que había en la foto
                     if (m_snapshotItems.find(item) != m_snapshotItems.end())
                     {
                         m_selectedItems.erase(item);
@@ -110,14 +97,12 @@ namespace Berta
                 }
                 else
                 {
-                    // Forzamos selección
                     m_selectedItems.insert(item);
                 }
             }
-            return true; // En un escenario real, podrías comparar si el set cambió para retornar false
+            return true;
         }
-
-        // --- Modificación Manual ---
+        
         void SetSelected(const T& item, bool selected)
         {
             if (selected)
@@ -145,7 +130,6 @@ namespace Berta
             }
         }
 
-        // --- Consultas ---
         bool IsSelected(const T& item) const
         {
             return m_selectedItems.find(item) != m_selectedItems.end();
@@ -153,15 +137,14 @@ namespace Berta
         bool IsEmpty() const { return m_selectedItems.empty(); }
         size_t GetCount() const { return m_selectedItems.size(); }
         
-        // Retorna un vector ordenado de los índices seleccionados
         std::vector<T> GetSelectedItems() const
         {
             return std::vector<T>(m_selectedItems.begin(), m_selectedItems.end());
         }
 
     private:
-        std::unordered_set<size_t> m_selectedItems;
-        std::unordered_set<size_t> m_snapshotItems; // Para el recuadro de selección
+        std::unordered_set<T> m_selectedItems;
+        std::unordered_set<T> m_snapshotItems;
         
         // El "Ancla" guarda el índice desde donde se empezó a hacer Shift+Clic
         std::optional<T> m_anchorItem;
