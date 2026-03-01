@@ -306,13 +306,11 @@ namespace Berta
 				{
 					std::vector<size_t> result;
             
-					// 1. Encontrar dónde están el Ancla y el Clic visualmente
 					size_t anchorVisual = m_module.m_items.GetVisualIndex(anchorLogical);
 					size_t currentVisual = clickedVisualIndex;
 
-					// 2. Extraer todos los índices lógicos en ese rango visual
-					size_t start = (std::min)(anchorVisual, currentVisual);
-					size_t end = (std::max)(anchorVisual, currentVisual);
+					size_t start = std::min<size_t>(anchorVisual, currentVisual);
+					size_t end = std::max<size_t>(anchorVisual, currentVisual);
             
 					for (size_t i = start; i <= end; ++i)
 					{
@@ -379,7 +377,7 @@ namespace Berta
 				int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
 				int hoveredIndex = absoluteY / itemHeightWithMargin;
 
-				if (hoveredIndex >= 0 && hoveredIndex < m_module.m_items.GetCount())
+				if (hoveredIndex >= 0 && hoveredIndex < static_cast<int>(m_module.m_items.GetCount()))
 				{
 					if (m_module.m_hoveredIndex != hoveredIndex)
 					{
@@ -405,6 +403,7 @@ namespace Berta
 			if (m_module.m_lassoSelection.IsActive())
 			{
 				m_module.m_lassoSelection.End();
+				m_module.m_selectionController.ClearSnapshot();
 				GUI::ReleaseCapture(m_control->Handle());
 				GUI::MarkAsNeedUpdate(m_module.m_window);
 			}
@@ -474,13 +473,10 @@ namespace Berta
 			}
 			if (focusChanged)
 			{
-				// Actualizamos la variable de estado
 				m_module.m_focusedLogicalIndex = m_module.m_items.GetLogicalIndex(currentVisual);
         
-				// Movemos la barra de scroll si es necesario
 				m_module.EnsureVisible(currentVisual);
 
-				// Si CTRL NO está presionado, la flecha también arrastra la selección
 				if (!m_module.m_ctrlPressed)
 				{
 					selectionChanged = m_module.SelectItemConResolver(m_module.m_focusedLogicalIndex.value(), false, m_module.m_shiftPressed);
@@ -604,20 +600,20 @@ namespace Berta
 				const auto& draggedHeader = m_headers[draggedLogicalIdx];
 				Rectangle columnRect{ 0,0,m_owner->ToScale(draggedHeader.Width), headerHeight };
 				int lineWidth = m_owner->ToScale(2);
-				auto targetHeaderPosition = 0;
+				auto targetHeaderPosition = -xOffset;
 				
 				auto visualColumnIdxMouse = GetVisualIndexAt(m_currentMouseX, xOffset);
 				if (!visualColumnIdxMouse.has_value())
 				{
 					auto totalWidth = static_cast<int>(GetTotalWidth());
-					if (m_currentMouseX > startOffPos + totalWidth)
+					if (m_currentMouseX > startOffPos + totalWidth - xOffset)
 					{
-						targetHeaderPosition = totalWidth;
+						targetHeaderPosition += totalWidth;
 					}
 				}
 				else
 				{
-					targetHeaderPosition = static_cast<int>(m_owner->ToScale(GetPositionToColumn(visualColumnIdxMouse.value())));
+					targetHeaderPosition += static_cast<int>(m_owner->ToScale(GetPositionToColumn(visualColumnIdxMouse.value())));
 				}
 				targetHeaderPosition += startOffPos;
 				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, static_cast<float>(lineWidth), appearance->SelectionHighlightColor);
@@ -639,6 +635,7 @@ namespace Berta
 				}
 				auto positionToColumn = static_cast<int>(m_owner->ToScale( GetPositionToColumn(m_draggedVisualIndex.value())));
 				auto newPosition = m_currentMouseX - (m_dragStartX - positionToColumn + xOffset);
+				
 				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
 				graphics.Blend(blendRect, m_draggingBox, { 0,0 }, 0.5);
 			}

@@ -23,11 +23,10 @@ namespace Berta
         
     public:
         SelectionController() = default;
-
+        
         bool Select(const T& item, bool ctrlPressed, bool shiftPressed, const RangeResolver& resolver)
         {
             bool selectionChanged = true;
-
             if (shiftPressed && m_anchorItem.has_value())
             {
                 if (!ctrlPressed)
@@ -67,12 +66,18 @@ namespace Berta
                     m_selectedItems.insert(item);
                 }
         
-                m_anchorItem = item; // Se establece la nueva ancla
+                m_anchorItem = item;
             }
 
             return selectionChanged;
         }
-
+        
+        void ClearSnapshot()
+        {
+            m_snapshotItems.clear();
+            m_snapshotAnchor.reset();
+        }
+        
         void SaveSnapshot()
         {
             m_snapshotItems = m_selectedItems;
@@ -127,6 +132,7 @@ namespace Berta
         {
             m_selectedItems.clear();
             m_anchorItem.reset();
+            ClearSnapshot();
         }
         
         void SelectAll(size_t totalItems)
