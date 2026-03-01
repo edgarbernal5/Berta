@@ -52,6 +52,8 @@ namespace Berta
 		Rectangle GetVisibleRect() const; 
 		Point GetScrollOffset() const { return m_scrollOffset; }
 		
+		void SetScrollOffsetY(int yPos);
+		
 	private:
 		void UpdateScrollBars();
 		void UpdateVerticalScrollBar();

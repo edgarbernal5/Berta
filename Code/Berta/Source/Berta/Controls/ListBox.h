@@ -264,7 +264,9 @@ namespace Berta
 				void SortHeader(size_t headerIndex, bool ascending);
 
 				void InitScrollableView();
-
+				void EnsureVisible(size_t visualIndex);
+				
+				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
 				void ProcessLassoIntersection();
 				void UpdateSelectionRange(int startIndex, int endIndex);
 				void SetItemSelected(size_t index, bool selected);
@@ -286,6 +288,7 @@ namespace Berta
 				bool m_isSortAscending {false};
 				std::optional<size_t> m_currentSortColumn = std::nullopt;
 				std::optional<size_t> m_hoveredIndex { std::nullopt };
+				std::optional<size_t> m_focusedLogicalIndex { std::nullopt };
 				bool m_drawImages {false};
 				Window* m_window{ nullptr };
 				bool m_multiselection{ true };

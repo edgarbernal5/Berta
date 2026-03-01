@@ -271,47 +271,6 @@ namespace Berta
 				GUI::MarkAsNeedUpdate(m_module.m_window);
 				return;
 			}
-			
-			/*
-			auto hoveredArea = m_module.DetermineHoverArea(args.Position);
-			if (hoveredArea != InteractionArea::HeaderSplitter)
-			{
-				return;
-			}
-
-			auto selectedHeader = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
-			auto maxCellWidth = 0u;
-			for (size_t i = 0; i < m_module.m_list.m_items.size(); i++)
-			{
-				const auto& cell = m_module.m_list.m_items[i].m_cells[selectedHeader];
-				auto cellWidth = graphics.GetTextExtent(cell.m_text).Width;
-				maxCellWidth = std::max<uint32_t>(cellWidth, maxCellWidth);
-			}
-			maxCellWidth = m_module.m_window->ToDownwardScale(maxCellWidth);
-			auto leftMarginTextHeader = 5u;
-			maxCellWidth += leftMarginTextHeader * 2u;
-
-			auto newWidth = (std::max)(maxCellWidth, LISTBOX_MIN_HEADER_WIDTH);
-			bool needUpdate = newWidth != m_module.m_headers.m_headers[selectedHeader].m_bounds.Width;
-			if (!needUpdate)
-				return;
-
-			m_module.m_headers.m_headers[selectedHeader].m_bounds.Width = newWidth;
-			m_module.CalculateViewport(m_module.m_viewport);
-			m_module.BuildHeaderBounds(selectedHeader);
-
-			m_module.UpdateScrollData();
-
-			hoveredArea = m_module.DetermineHoverArea(args.Position);
-			if (hoveredArea != InteractionArea::HeaderSplitter)
-			{
-				GUI::ChangeCursor(m_module.m_window, Cursor::Default);
-			}
-			m_module.m_pressedArea = InteractionArea::None;
-			m_module.m_hoveredArea = hoveredArea;
-
-			GUI::MarkAsNeedUpdate(m_module.m_window);
-			*/
 		}
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -362,6 +321,7 @@ namespace Berta
 					return result;
 				};
 				
+				m_module.m_focusedLogicalIndex= clickedLogicalIndex;
 				if (m_module.m_selectionController.Select(clickedLogicalIndex, isCtrl, isShift, rangeResolver))
 				{
 					// Disparar evento a los usuarios de Berta
@@ -474,102 +434,62 @@ namespace Berta
 			m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 			m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-			/*bool needUpdate = false;
-			if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
+			size_t itemCount = m_module.m_items.GetCount();
+			if (itemCount == 0)
 			{
-				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
-
-				int selectedIndex = -1;
-				if (m_module.m_mouseSelection.m_selectedItem)
+				return;
+			}
+			// Si no había nada enfocado, empezamos en 0
+			size_t currentVisual = 0;
+			if (m_module.m_focusedLogicalIndex.has_value())
+			{
+				currentVisual = m_module.m_items.GetVisualIndex(m_module.m_focusedLogicalIndex.value());
+			}
+			
+			bool focusChanged = false;
+			bool selectionChanged = false;
+			
+			if (args.Key == KeyboardKey::ArrowDown)
+			{
+				if (currentVisual + 1 < itemCount)
 				{
-					selectedIndex = m_module.GetListItemIndex(m_module.m_mouseSelection.m_selectedItem);
-				}
-				else
-				{
-					selectedIndex = (direction == -1 ? (int)m_module.m_list.m_items.size() : -1);
-				}
-
-				auto newItemIndex = selectedIndex + direction;
-				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_list.m_items.size())
-				{
-					auto absoluteIndex = m_module.m_list.m_sortedIndexes[newItemIndex];
-					auto newItemPtr = &m_module.m_list.m_items[m_module.m_list.m_sortedIndexes[newItemIndex]];
-					if (!m_module.m_ctrlPressed)
-					{
-						m_module.ClearSelection();
-					}
-
-					if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotItem)
-					{
-						int pivotIndex = m_module.GetListItemIndex(m_module.m_mouseSelection.m_pivotItem);
-
-						int endIndex = newItemIndex;
-						int startIndex = pivotIndex;
-						int minIndex = (std::min)(startIndex, endIndex);
-						int maxIndex = (std::max)(startIndex, endIndex);
-					
-						for (int current = minIndex; current <= maxIndex; ++current)
-						{
-							auto absoluteIndex = m_module.m_list.m_sortedIndexes[current];
-							if (!m_module.m_list.m_items[absoluteIndex].m_isSelected)
-							{
-								m_module.m_list.m_items[absoluteIndex].m_isSelected = true;
-								m_module.m_mouseSelection.m_selections.push_back(&m_module.m_list.m_items[absoluteIndex]);
-							}
-
-						}
-						m_module.m_mouseSelection.m_selectedItem = newItemPtr;
-					}
-					else if (m_module.m_ctrlPressed)
-					{
-						m_module.m_mouseSelection.m_selectedItem = newItemPtr;
-					}
-					else
-					{
-						newItemPtr->m_isSelected = true;
-						m_module.m_mouseSelection.m_selections.push_back(newItemPtr);
-						m_module.m_mouseSelection.m_selectedItem = newItemPtr;
-						m_module.m_mouseSelection.m_pivotItem = newItemPtr;
-					}
-					m_module.EnsureVisibility(newItemIndex);
-					needUpdate = true;
+					currentVisual++;
+					focusChanged = true;
 				}
 			}
-			else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
+			else if (args.Key == KeyboardKey::ArrowUp)
 			{
-				if (m_module.m_mouseSelection.m_selectedItem)
+				if (currentVisual > 0)
 				{
-					if (!m_module.m_multiselection && !m_module.m_mouseSelection.m_selections.empty())
-					{
-						m_module.m_mouseSelection.m_selections[0]->m_isSelected = false;
-						m_module.m_mouseSelection.m_selections.clear();
-					}
-
-					auto& isSelected = m_module.m_mouseSelection.m_selectedItem->m_isSelected;
-					isSelected = !isSelected;
-					if (isSelected)
-					{
-						m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_selectedItem);
-					}
-					else
-					{
-						m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_selectedItem);
-					}
-
-					if (m_module.m_multiselection)
-					{
-						m_module.m_mouseSelection.m_pivotItem = m_module.m_mouseSelection.m_selectedItem;
-					}
+					currentVisual--;
+					focusChanged = true;
+				}
+			}
+			else if (args.Key == KeyboardKey::Space)
+			{
+				size_t logicalToSelect = m_module.m_items.GetLogicalIndex(currentVisual);
+				selectionChanged = m_module.SelectItemConResolver(logicalToSelect, m_module.m_ctrlPressed, m_module.m_shiftPressed);
 				
-					needUpdate = true;
+				m_module.m_focusedLogicalIndex = logicalToSelect;
+			}
+			if (focusChanged)
+			{
+				// Actualizamos la variable de estado
+				m_module.m_focusedLogicalIndex = m_module.m_items.GetLogicalIndex(currentVisual);
+        
+				// Movemos la barra de scroll si es necesario
+				m_module.EnsureVisible(currentVisual);
+
+				// Si CTRL NO está presionado, la flecha también arrastra la selección
+				if (!m_module.m_ctrlPressed)
+				{
+					selectionChanged = m_module.SelectItemConResolver(m_module.m_focusedLogicalIndex.value(), false, m_module.m_shiftPressed);
 				}
 			}
-
-			if (needUpdate)
+			if (focusChanged || selectionChanged)
 			{
-				GUI::MarkAsNeedUpdate(*m_control);
+				GUI::MarkAsNeedUpdate(m_module.m_window);
 			}
-			*/
 		}
 
 		void Reactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
@@ -1285,6 +1205,51 @@ namespace Berta
 				{
 					GUI::MarkAsNeedUpdate(m_window);
 				});
+		}
+
+		void Reactor::Module::EnsureVisible(size_t visualIndex)
+		{
+			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
+			auto innerMargin = m_window->ToScale(2u);
+			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
+			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
+			int itemY = static_cast<int>(visualIndex) * itemHeightWithMargin;
+			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
+            
+			// El área real donde se ven los ítems (descontando las cabeceras)
+			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height) - static_cast<int>(m_window->ToScale(appearance->HeadersHeight));
+
+			if (itemY < currentScrollY)
+			{
+				// Se salió por arriba: scrollear hacia arriba
+				m_scrollableView->SetScrollOffsetY(itemY);
+			}
+			else if (itemY + itemHeight > currentScrollY + visibleHeight)
+			{
+				// Se salió por abajo: scrollear hacia abajo
+				m_scrollableView->SetScrollOffsetY(itemY + itemHeight - visibleHeight);
+			}
+		}
+
+		bool Reactor::Module::SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift)
+		{
+			auto rangeResolver = [&](size_t anchorLogical, size_t currentLogical)
+			{
+				std::vector<size_t> result;
+				size_t anchorVisual = m_items.GetVisualIndex(anchorLogical);
+				size_t currentVisual = m_items.GetVisualIndex(currentLogical);
+                
+				size_t start = (std::min)(anchorVisual, currentVisual);
+				size_t end = (std::max)(anchorVisual, currentVisual);
+                
+				for (size_t i = start; i <= end; ++i)
+				{
+					result.emplace_back(m_items.GetLogicalIndex(i));
+				}
+				return result;
+			};
+
+			return m_selectionController.Select(logicalIndex, isCtrl, isShift, rangeResolver);
 		}
 
 		void Reactor::Module::ProcessLassoIntersection()
