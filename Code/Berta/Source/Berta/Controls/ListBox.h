@@ -132,7 +132,7 @@ namespace Berta
 
 			void Append(const std::string& name, uint32_t width);
 			void Clear();
-			void SetSortState(int visualColumnIndex, bool ascending);
+			void SetSortState(size_t visualColumnIndex, bool ascending);
 			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
 			uint32_t GetTotalWidth() const;
 
@@ -158,8 +158,8 @@ namespace Berta
 			uint32_t GetPositionToColumn(size_t visualIdx) const;
 			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
-			int GetVisualIndexAt(int mouseX, int scrollX) const;
-			int GetDividerVisualIndexAt(int mouseX, int scrollX) const;
+			std::optional<size_t> GetVisualIndexAt(int mouseX, int scrollX) const;
+			std::optional<size_t> GetDividerVisualIndexAt(int mouseX, int scrollX) const;
 			
 			Window* m_owner { nullptr };
 			
@@ -168,8 +168,8 @@ namespace Berta
 			OnRequestColumnAutoWidth m_onRequestAutoWidth;
 			
 			// --- Estados Visuales e Interacción ---
-			int m_hoveredVisualIndex{ -1 };
-			int m_sortLogicalIndex{ -1 };
+			std::optional<size_t> m_hoveredVisualIndex{ std::nullopt };
+			std::optional<size_t> m_sortLogicalIndex{ std::nullopt };
 			bool m_isSortAscending{ true };
 			
 			uint32_t m_startOffPos{ 4 };
@@ -179,14 +179,14 @@ namespace Berta
 			struct ResizeState
 			{
 				bool m_isResizing{ false };
-				int m_visualColumnIndex{ -1 };
+				std::optional<size_t> m_visualColumnIndex{ std::nullopt };
 				int m_startX{ 0 };
 				uint32_t m_startWidth{ 0 };
 				bool m_isHoveringDivider{ false };
 			} m_resizeInteraction;
 			
 			// Estado de Arrastre (Drag & Drop)
-			int m_draggedVisualIndex{ -1 };
+			std::optional<size_t> m_draggedVisualIndex{ std::nullopt };
 			int m_dragStartX{ 0 };
 			int m_currentMouseX{ 0 };
 			bool m_isDraggingConfirmed{ false };

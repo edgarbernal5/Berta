@@ -193,12 +193,10 @@ namespace Berta
 			{
 				if (m_module.m_currentSortColumn.has_value() && m_module.m_currentSortColumn == visualColumnIndex)
 				{
-					// Si hizo clic en la misma columna, invertimos la dirección
 					m_module.m_isSortAscending = !m_module.m_isSortAscending;
 				}
 				else
 				{
-					// Si es una columna nueva, empezamos siempre en orden ascendente
 					m_module.m_currentSortColumn = visualColumnIndex;
 					m_module.m_isSortAscending = true;
 				}
@@ -885,7 +883,7 @@ namespace Berta
 			m_resizeInteraction = {};
 		}
 
-		void HeaderController::SetSortState(int logicalColumnIndex, bool ascending)
+		void HeaderController::SetSortState(size_t logicalColumnIndex, bool ascending)
 		{
 			m_sortLogicalIndex = logicalColumnIndex;
 			m_isSortAscending = ascending;
@@ -929,7 +927,7 @@ namespace Berta
 				int headerWidthInt = static_cast<int>(headerWidth);
 				
 				//int iInt = static_cast<int>(logicalIdx);
-				bool isHovered = static_cast<int>(visualIdx) == m_hoveredVisualIndex && (!m_isDraggingConfirmed || m_draggedVisualIndex != static_cast<int>(visualIdx));
+				bool isHovered = visualIdx == m_hoveredVisualIndex && (!m_isDraggingConfirmed || m_draggedVisualIndex != visualIdx);
 				bool isSortedHeader = logicalIdx == m_sortLogicalIndex;
 				// Clipping manual: solo dibujamos si está dentro de la ventana
 				if (currentX + headerWidthInt >= 0 && currentX < clientWidth)
@@ -969,16 +967,16 @@ namespace Berta
 				currentX += headerWidthInt;
 			}
 			
-			if (m_draggedVisualIndex != -1 && m_isDraggingConfirmed)
+			if (m_draggedVisualIndex.has_value() && m_isDraggingConfirmed)
 			{
-				auto draggedLogicalIdx = m_visualOrder[m_draggedVisualIndex];
+				auto draggedLogicalIdx = m_visualOrder[m_draggedVisualIndex.value()];
 				const auto& draggedHeader = m_headers[draggedLogicalIdx];
 				Rectangle columnRect{ 0,0,m_owner->ToScale(draggedHeader.Width), headerHeight };
 				int lineWidth = m_owner->ToScale(2);
 				auto targetHeaderPosition = 0;
 				
-				int visualColumnIdxMouse = GetVisualIndexAt(m_currentMouseX, xOffset);
-				if (visualColumnIdxMouse == -1)
+				auto visualColumnIdxMouse = GetVisualIndexAt(m_currentMouseX, xOffset);
+				if (!visualColumnIdxMouse.has_value())
 				{
 					auto totalWidth = static_cast<int>(GetTotalWidth());
 					if (m_currentMouseX > startOffPos + totalWidth)
@@ -988,7 +986,7 @@ namespace Berta
 				}
 				else
 				{
-					targetHeaderPosition = static_cast<int>(m_owner->ToScale(GetPositionToColumn(visualColumnIdxMouse)));
+					targetHeaderPosition = static_cast<int>(m_owner->ToScale(GetPositionToColumn(visualColumnIdxMouse.value())));
 				}
 				targetHeaderPosition += startOffPos;
 				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, static_cast<float>(lineWidth), appearance->SelectionHighlightColor);
@@ -1008,7 +1006,7 @@ namespace Berta
 					
 					m_draggingBox.Flush();
 				}
-				auto positionToColumn = static_cast<int>(m_owner->ToScale( GetPositionToColumn(m_draggedVisualIndex)));
+				auto positionToColumn = static_cast<int>(m_owner->ToScale( GetPositionToColumn(m_draggedVisualIndex.value())));
 				auto newPosition = m_currentMouseX - (m_dragStartX - positionToColumn + xOffset);
 				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
 				graphics.Blend(blendRect, m_draggingBox, { 0,0 }, 0.5);
@@ -1023,10 +1021,10 @@ namespace Berta
 
 		bool HeaderController::OnDblClick(const ArgMouse& args, int scrollX)
 		{
-			int dividerVisualIdx = GetDividerVisualIndexAt(args.Position.X, scrollX);
-			if (dividerVisualIdx != -1 && m_onRequestAutoWidth)
+			auto dividerVisualIdx = GetDividerVisualIndexAt(args.Position.X, scrollX);
+			if (dividerVisualIdx.has_value() && m_onRequestAutoWidth)
 			{
-				auto logicalIdx = m_visualOrder[dividerVisualIdx];
+				auto logicalIdx = m_visualOrder[dividerVisualIdx.value()];
         
 				auto idealWidth = m_onRequestAutoWidth(logicalIdx);
 				m_headers[logicalIdx].Width = std::max<uint32_t>(LISTBOX_MIN_HEADER_WIDTH, idealWidth + 20); // Padding
@@ -1045,13 +1043,13 @@ namespace Berta
 			{
 				return false;
 			}
-			int dividerVisualIdx = GetDividerVisualIndexAt(args.Position.X, scrollX);
-			if (dividerVisualIdx != -1)
+			auto dividerVisualIdx = GetDividerVisualIndexAt(args.Position.X, scrollX);
+			if (dividerVisualIdx.has_value())
 			{
 				m_resizeInteraction.m_isResizing = true;
 				m_resizeInteraction.m_visualColumnIndex = dividerVisualIdx;
 				m_resizeInteraction.m_startX = args.Position.X;
-				auto logicalIdx = m_visualOrder[dividerVisualIdx];
+				auto logicalIdx = m_visualOrder[dividerVisualIdx.value()];
 				m_resizeInteraction.m_startWidth = m_headers[logicalIdx].Width;
             
 				GUI::Capture(m_owner);
@@ -1059,8 +1057,8 @@ namespace Berta
 			}
         
 			// 2. Verificar si clicó en el cuerpo para ORDENAR o ARRASTRAR
-			int colVisualIdx = GetVisualIndexAt(args.Position.X, scrollX);
-			if (colVisualIdx != -1)
+			auto colVisualIdx = GetVisualIndexAt(args.Position.X, scrollX);
+			if (colVisualIdx.has_value())
 			{
 				m_draggedVisualIndex = colVisualIdx;
 				m_dragStartX = args.Position.X;
@@ -1085,14 +1083,14 @@ namespace Berta
 				int newWidthLocal = m_owner->ToScale(static_cast<int>(m_resizeInteraction.m_startWidth)) + deltaX;
 				auto newWidth = m_owner->ToDownwardScale(std::max<int>(newWidthLocal,0));
 				
-				auto logicalIdx = m_visualOrder[m_resizeInteraction.m_visualColumnIndex];
+				auto logicalIdx = m_visualOrder[m_resizeInteraction.m_visualColumnIndex.value()];
 				m_headers[logicalIdx].Width = std::max<uint32_t>(LISTBOX_MIN_HEADER_WIDTH, newWidth);
 				
 				GUI::MarkAsNeedUpdate(m_owner);
 				return true;
 			}
 			// 2. Lógica de Arrastre (Drag & Drop)
-			if (m_draggedVisualIndex != -1)
+			if (m_draggedVisualIndex.has_value())
 			{
 				m_currentMouseX = args.Position.X;
 
@@ -1112,18 +1110,18 @@ namespace Berta
 			auto headerHeight = static_cast<int>(m_owner->ToScale(appearance->HeadersHeight));
 			if (args.Position.Y < 0 || args.Position.Y >= headerHeight)
 			{
-				if (m_hoveredVisualIndex != -1)
+				if (m_hoveredVisualIndex.has_value())
 				{
-					m_hoveredVisualIndex = -1;
+					m_hoveredVisualIndex.reset();
 					GUI::MarkAsNeedUpdate(m_owner);
 				}
 				return false;
 			}
 			// 3. Lógica de HOVER y Cambio de Cursor
-			int hoveredVisual = GetVisualIndexAt(args.Position.X, scrollX);
-			int hoveredDivVisual = GetDividerVisualIndexAt(args.Position.X, scrollX);
+			auto hoveredVisual = GetVisualIndexAt(args.Position.X, scrollX);
+			auto hoveredDivVisual = GetDividerVisualIndexAt(args.Position.X, scrollX);
 
-			if (hoveredDivVisual != -1)
+			if (hoveredDivVisual.has_value())
 			{
 				GUI::ChangeCursor(m_owner, Cursor::SizeWE); 
 			}
@@ -1144,7 +1142,7 @@ namespace Berta
 			{
 				GUI::MarkAsNeedUpdate(m_owner);
 			}
-			return (hoveredVisual != -1 || hoveredDivVisual != -1);
+			return (hoveredVisual.has_value() || hoveredDivVisual.has_value());
 		}
 
 		bool HeaderController::OnMouseUp(const ArgMouse& args, int scrollX)
@@ -1156,14 +1154,14 @@ namespace Berta
 				m_resizeInteraction.m_isResizing = false;
 				handled = true;
 			}
-			else if (m_draggedVisualIndex != -1)
+			else if (m_draggedVisualIndex.has_value())
 			{
 				if (m_isDraggingConfirmed)
 				{
-					int dropIndex = GetVisualIndexAt(args.Position.X, scrollX);
-					if (dropIndex != -1 && dropIndex != m_draggedVisualIndex)
+					auto dropIndex = GetVisualIndexAt(args.Position.X, scrollX);
+					if (dropIndex.has_value() && dropIndex != m_draggedVisualIndex)
 					{
-						std::swap(m_visualOrder[m_draggedVisualIndex], m_visualOrder[dropIndex]);
+						std::swap(m_visualOrder[m_draggedVisualIndex.value()], m_visualOrder[dropIndex.value()]);
 						if (m_onHeadersReordered)
 						{
 							m_onHeadersReordered();
@@ -1174,14 +1172,14 @@ namespace Berta
 				}
 				else
 				{
-					auto logicalIdx = m_visualOrder[m_draggedVisualIndex];
+					auto logicalIdx = m_visualOrder[m_draggedVisualIndex.value()];
 					if (m_onHeaderClicked)
 					{
 						m_onHeaderClicked(logicalIdx);
 					}
 				}
 
-				m_draggedVisualIndex = -1;
+				m_draggedVisualIndex.reset();
 				m_isDraggingConfirmed = false;
 				handled = true;
 			}
@@ -1202,9 +1200,9 @@ namespace Berta
 				GUI::ChangeCursor(m_owner, Cursor::Default);
 				m_resizeInteraction.m_isHoveringDivider = false;
 			}
-			if (m_hoveredVisualIndex != -1)
+			if (m_hoveredVisualIndex.has_value())
 			{
-				m_hoveredVisualIndex = -1;
+				m_hoveredVisualIndex.reset();
 				GUI::MarkAsNeedUpdate(m_owner);
 			}
 			return false;
@@ -1258,7 +1256,7 @@ namespace Berta
 			}
 		}
 
-		int HeaderController::GetVisualIndexAt(int mouseX, int scrollX) const
+		std::optional<size_t> HeaderController::GetVisualIndexAt(int mouseX, int scrollX) const
 		{
 			int currentX = -scrollX + static_cast<int>(m_owner->ToScale(m_startOffPos));
 			for (size_t visualIdx = 0; visualIdx < m_visualOrder.size(); ++visualIdx)
@@ -1268,15 +1266,15 @@ namespace Berta
 
 				if (mouseX >= currentX && mouseX < currentX + headerWidth)
 				{
-					return static_cast<int>(visualIdx);	
+					return visualIdx;	
 				}
                 
 				currentX += headerWidth;
 			}
-			return -1;
+			return std::nullopt;
 		}
 
-		int HeaderController::GetDividerVisualIndexAt(int mouseX, int scrollX) const
+		std::optional<size_t> HeaderController::GetDividerVisualIndexAt(int mouseX, int scrollX) const
 		{
 			int currentX = -scrollX + static_cast<int>(m_owner->ToScale(m_startOffPos));
 			int tolerance = m_owner->ToScale(4);
@@ -1289,10 +1287,10 @@ namespace Berta
         
 				if (std::abs(mouseX - currentX) <= tolerance)
 				{
-					return static_cast<int>(visualIdx);	
+					return visualIdx;	
 				}
 			}
-			return -1;
+			return std::nullopt;
 		}
 
 		void Reactor::Module::Erase(ListBoxItem item)
@@ -1304,67 +1302,20 @@ namespace Berta
 			{
 				if (selIdx == item.m_logicalIndex) 
 				{
-					continue; // El ítem borrado ya no está seleccionado
+					continue;
 				}
 				if (selIdx > item.m_logicalIndex) 
 				{
-					// Desplazamos el índice hacia la izquierda para que siga apuntando al mismo dato
 					m_selectionController.SetSelected(selIdx - 1, true); 
 				}
 				else 
 				{
-					// Los elementos anteriores no sufren cambios
 					m_selectionController.SetSelected(selIdx, true);
 				}
 			}
 			m_items.Erase(item.m_logicalIndex);
 			UpdateScrollData();
 			GUI::MarkAsNeedUpdate(m_window);
-			
-			/*auto itemPtr = item.m_target;
-			bool wasSelected = m_mouseSelection.IsSelected(itemPtr);
-			if (wasSelected)
-			{
-				itemPtr->m_isSelected = false;
-				m_mouseSelection.Deselect(itemPtr);
-				m_mouseSelection.ClearReferences(itemPtr);
-			}
-			auto localIndex = GetListItemIndex(itemPtr);
-			auto index = m_list.m_sortedIndexes[localIndex];
-			m_list.m_items.erase(m_list.m_items.begin() + index);
-
-			auto it = std::find(m_list.m_sortedIndexes.begin(), m_list.m_sortedIndexes.end(), index);
-			if (it != m_list.m_sortedIndexes.end())
-			{
-				m_list.m_sortedIndexes.erase(it);
-			}
-
-			for (auto& sortedIndex : m_list.m_sortedIndexes)
-			{
-				if (sortedIndex > index)
-				{
-					--sortedIndex;
-				}
-			}
-
-			m_mouseSelection.m_selections.clear();
-			for (auto& item : m_list.m_items)
-			{
-				if (item.m_isSelected)
-				{
-					m_mouseSelection.m_selections.push_back(&item);
-				}
-			}
-
-			CalculateViewport(m_viewport);
-			UpdateScrollData();
-
-			if (index < m_list.m_items.size())
-			{
-				BuildListItemBounds(index);
-			}
-
-			GUI::UpdateWindow(m_window);*/
 		}
 
 		void Reactor::Module::Erase(std::vector<ListBoxItem>& items)
