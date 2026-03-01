@@ -343,7 +343,8 @@ namespace Berta
 				bool isCtrl = m_module.m_ctrlPressed;
 				bool isShift = m_module.m_shiftPressed;
 
-				auto rangeResolver = [&](size_t anchorLogical, size_t currentLogical) {
+				auto rangeResolver = [&](size_t anchorLogical, size_t currentLogical)
+				{
 					std::vector<size_t> result;
             
 					// 1. Encontrar dónde están el Ancla y el Clic visualmente
@@ -354,8 +355,9 @@ namespace Berta
 					size_t start = (std::min)(anchorVisual, currentVisual);
 					size_t end = (std::max)(anchorVisual, currentVisual);
             
-					for (size_t i = start; i <= end; ++i) {
-						result.push_back(m_module.m_items.GetLogicalIndex(i));
+					for (size_t i = start; i <= end; ++i)
+					{
+						result.emplace_back(m_module.m_items.GetLogicalIndex(i));
 					}
 					return result;
 				};
@@ -369,50 +371,15 @@ namespace Berta
 			}
 			else
 			{
-				// Clic en el espacio vacío: Iniciar recuadro de selección (Lasso) si lo deseas
-				m_module.m_lassoSelection.Start(args.Position);
+				if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+				{
+					m_module.m_selectionController.Clear();
+					GUI::MarkAsNeedUpdate(m_module.m_window);
+				}
 				m_module.m_selectionController.SaveSnapshot();
+				m_module.m_lassoSelection.Start(args.Position);
 				GUI::Capture(m_module.m_window);
 			}
-			
-			/*m_module.m_pressedArea = m_module.m_hoveredArea;
-			bool needUpdate = false;
-
-			if (m_module.m_pressedArea == InteractionArea::List)
-			{
-				if (m_module.m_mouseSelection.m_hoveredItem)
-				{
-					if (m_module.m_multiselection)
-					{
-						needUpdate = m_module.HandleMultiSelection(m_module.m_mouseSelection.m_hoveredItem, args);
-					}
-					else
-					{
-						needUpdate = m_module.UpdateSingleSelection(m_module.m_mouseSelection.m_hoveredItem);
-					}
-				}
-			}
-			else if (m_module.m_pressedArea == InteractionArea::ListBlank)
-			{
-				if (m_module.m_multiselection)
-				{
-					m_module.StartSelectionRectangle(args.Position);
-					needUpdate = m_module.ClearSelectionIfNeeded();
-				}
-				else
-				{
-					needUpdate = m_module.ClearSingleSelection();
-				}
-			}
-			else if (m_module.m_pressedArea == InteractionArea::HeaderSplitter || m_module.m_pressedArea == InteractionArea::Header)
-			{
-				m_module.m_headers.OnMouseDown(args, m_module.m_scrollableView->GetVisibleRect().X);
-			}
-
-			if (needUpdate)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_window);
-			}*/
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -420,21 +387,18 @@ namespace Berta
 			auto scrollOffset = m_module.m_scrollableView->GetVisibleRect();
 			if (m_module.m_headers.OnMouseMove(args, scrollOffset.X))
 			{
-				// Si el usuario está arrastrando una columna, el ancho total cambia.
-				// Hay que avisarle al ScrollableView para que actualice la barra horizontal.
 				if (m_module.m_headers.IsResizing())
 				{
 					m_module.UpdateScrollData();
 				}
-				if (m_module.m_hoveredIndex != -1)
+				if (m_module.m_hoveredIndex.has_value())
 				{
-					m_module.m_hoveredIndex = -1;
+					m_module.m_hoveredIndex.reset();
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
 				return;
 			}
-
-			// 2. DELEGACIÓN AL LASSO SELECTION (Si el usuario está arrastrando el recuadro)
+			
 			if (m_module.m_lassoSelection.IsActive())
 			{
 				if (m_module.m_lassoSelection.Update(args.Position))
@@ -460,293 +424,41 @@ namespace Berta
 					if (m_module.m_hoveredIndex != hoveredIndex)
 					{
 						m_module.m_hoveredIndex = hoveredIndex;
-						GUI::MarkAsNeedUpdate(m_module.m_window); // Repintar para mostrar el efecto Hover
+						GUI::MarkAsNeedUpdate(m_module.m_window);
 					}
 				}
-				else if (m_module.m_hoveredIndex != -1)
+				else if (m_module.m_hoveredIndex.has_value())
 				{
-					m_module.m_hoveredIndex = -1; // Ratón en área vacía
+					m_module.m_hoveredIndex.reset();
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
 			}
-			
-			/*auto hoveredArea = args.ButtonState.NoButtonsPressed() ? m_module.DetermineHoverArea(args.Position) : m_module.m_pressedArea;
-			bool needUpdate = false;
-			auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
-			
-			if ((hoveredArea == InteractionArea::Header || hoveredArea == InteractionArea::HeaderSplitter))
-			{
-				if (args.ButtonState.NoButtonsPressed())
-				{
-					needUpdate |= m_module.SetHoveredListItem();
-
-					if (hoveredArea == InteractionArea::HeaderSplitter)
-					{
-						GUI::ChangeCursor(m_module.m_window, Cursor::SizeWE);
-						auto headerSizeIndex = m_module.GetHeaderAtMousePosition(args.Position, true);
-						needUpdate = m_module.m_headers.m_selectedIndex != headerSizeIndex;
-						m_module.m_headers.m_selectedIndex = headerSizeIndex;
-					}
-					else
-					{
-						auto headerSelectedIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-						needUpdate = m_module.m_headers.m_selectedIndex != headerSelectedIndex;
-						m_module.m_headers.m_selectedIndex = headerSelectedIndex;
-					}
-				}
-				if (hoveredArea == InteractionArea::HeaderSplitter && args.ButtonState.LeftButton)
-				{
-					m_module.UpdateHeadersSize(args.Position);
-
-					needUpdate = true;
-				}
-				else if (hoveredArea == InteractionArea::Header && args.ButtonState.LeftButton)
-				{
-					auto listItemIconSize = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconSize);
-					auto listItemIconMargin = m_module.m_window->ToScale(m_module.m_appearance->ListItemIconMargin);
-
-					if (!m_module.m_headers.m_isDragging && !m_module.m_headers.m_draggingBox.IsValid())
-					{
-						auto leftMarginTextHeader = m_module.m_window->ToScale(5u);
-						auto headerHeight = m_module.m_window->ToScale(m_module.m_appearance->HeadersHeight);
-
-						const auto& headerIndex = m_module.m_headers.m_sorted[m_module.m_headers.m_selectedIndex];
-						const auto& header = m_module.m_headers.m_headers[headerIndex];
-						Graphics& draggingBox = m_module.m_headers.m_draggingBox;
-						Rectangle columnRect{ 0,0,m_module.m_window->ToScale(header.m_bounds.Width), headerHeight };
-						uint32_t textOffset = 0;
-						if (m_module.m_headers.m_selectedIndex == 0 && m_module.m_list.m_drawImages)
-						{
-							textOffset += listItemIconSize + listItemIconMargin * 2u;
-							columnRect.Width += (listItemIconSize + listItemIconMargin * 2u);
-						}
-
-						draggingBox.Build({ columnRect.Width, columnRect.Height }, m_module.m_window->RootPaintHandle);
-						draggingBox.BuildFont(m_module.m_window->DPI);
-
-						draggingBox.Begin();
-						draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, m_module.m_appearance->Foreground, m_module.m_appearance->Foreground2nd);
-					
-						Rectangle textRect = columnRect;
-						textRect.X += (int)leftMarginTextHeader + textOffset;
-						textRect.Width -= leftMarginTextHeader * 2 + textOffset;
-						m_module.DrawHeaderItem(draggingBox, { 0,0,columnRect.Width ,columnRect.Height }, header.Text, false, textRect, m_module.m_appearance->SelectionHighlightColor);
-					
-						draggingBox.Flush();
-					}
-					m_module.m_headers.m_mouseDraggingPosition = args.Position.X;
-					m_module.m_headers.m_isDragging = true;
-
-					auto mousePositionX = args.Position.X + scrollOffset.X - (int)m_module.m_viewport.m_columnOffsetStartOff;
-					auto targetHeaderIndex = m_module.GetHeaderAtMousePosition(args.Position, false);
-
-					if (targetHeaderIndex != -1)
-					{
-						const auto& headerIndex = m_module.m_headers.m_sorted[targetHeaderIndex];
-						const auto& headerItem = m_module.m_headers.m_headers[headerIndex];
-						auto headerPosX = m_module.m_window->ToScale(headerItem.m_bounds.X);
-						auto headerWidth = (int)m_module.m_window->ToScale(headerItem.m_bounds.Width);
-						if (targetHeaderIndex == 0 && m_module.m_list.m_drawImages)
-						{
-							headerWidth += (int)(listItemIconSize + listItemIconMargin * 2u);
-						}
-						if (targetHeaderIndex > 0 && m_module.m_list.m_drawImages)
-						{
-							headerPosX += static_cast<int>(listItemIconSize + listItemIconMargin * 2u);
-						}
-						auto headerHalfWidth = headerWidth >> 1;
-						if (mousePositionX >= headerPosX + headerHalfWidth && mousePositionX <= headerPosX + headerWidth)
-						{
-							targetHeaderIndex++;
-						}
-					}
-					else if (mousePositionX <= static_cast<int>(m_module.m_viewport.m_columnOffsetStartOff))
-					{
-						targetHeaderIndex = 0;
-					}
-					else
-					{
-						targetHeaderIndex = static_cast<int>(m_module.m_headers.m_headers.size());
-					}
-					m_module.m_headers.m_draggingTargetIndex = targetHeaderIndex;
-					needUpdate = true;
-				}
-			}
-			else if (hoveredArea == InteractionArea::List)
-			{
-				if (args.ButtonState.NoButtonsPressed())
-				{
-					auto itemHeight = m_module.m_window->ToScale(m_module.m_appearance->ListItemHeight) + m_module.m_viewport.m_innerMargin * 2u;
-
-					auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + scrollOffset.Y;
-					int newIndex = positionY / (int)itemHeight;
-					auto absIndex = m_module.m_list.m_sortedIndexes[newIndex];
-
-					needUpdate |= m_module.SetHoveredListItem(&m_module.m_list.m_items[absIndex]) && !m_module.m_list.m_items[absIndex].m_isSelected;
-				}
-			}
-			else if (hoveredArea == InteractionArea::ListBlank || hoveredArea == InteractionArea::None)
-			{
-				needUpdate |= m_module.SetHoveredListItem();
-
-				if (m_module.m_mouseSelection.m_started)
-				{
-					auto logicalPosition = args.Position;
-					logicalPosition -= scrollOffset;
-					m_module.m_mouseSelection.m_endPosition = logicalPosition;
-
-					Point startPoint, endPoint;
-					Size boxSize;
-					m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
-
-					Rectangle visibleRect = m_module.m_scrollableView->GetVisibleRect();
-					size_t startIndex = visibleRect.Y / m_module.m_viewport.m_itemHeightWithMargin;
-					size_t endIndex = std::min<size_t>(m_module.m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / m_module.m_viewport.m_itemHeightWithMargin) + 1);
-			
-					needUpdate |= (boxSize.Width > 0 && boxSize.Height > 0);
-					if (boxSize.Width > 0 && boxSize.Height > 0)
-					{
-						Rectangle selectionRect{ startPoint.X + scrollOffset.X, startPoint.Y + scrollOffset.Y * 2 - m_module.m_viewport.m_backgroundRect.Y, boxSize.Width, boxSize.Height };
-
-						for (size_t i = startIndex; i < endIndex; i++)
-						{
-							auto absoluteIndex = m_module.m_list.m_sortedIndexes[i];
-							auto& item = m_module.m_list.m_items[absoluteIndex];
-							item.m_bounds.Y = (int)((m_module.m_viewport.m_itemHeightWithMargin * i) + m_module.m_viewport.m_innerMargin);
-							item.m_bounds.Width = m_module.m_viewport.m_contentSize.Width;
-							bool intersection = item.m_bounds.Intersect(selectionRect);
-							bool alreadySelected = m_module.m_mouseSelection.IsAlreadySelected(&item);
-
-							if (m_module.m_mouseSelection.m_inverseSelection)
-							{
-								if (intersection && !alreadySelected || !intersection && alreadySelected)
-								{
-									item.m_isSelected = true;
-								}
-								else if (intersection && alreadySelected || !intersection && !alreadySelected)
-								{
-									item.m_isSelected = false;
-								}
-							}
-							else
-							{
-								item.m_isSelected = intersection || alreadySelected;
-							}
-						}
-					}
-				}
-			}
-			if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && hoveredArea != InteractionArea::Header
-				&& m_module.m_headers.m_selectedIndex != -1)
-			{
-				m_module.m_headers.m_selectedIndex = -1;
-				needUpdate = true;
-			}
-			if (args.ButtonState.NoButtonsPressed() && hoveredArea != InteractionArea::HeaderSplitter && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
-			{
-				GUI::ChangeCursor(m_module.m_window, Cursor::Default);
-			}
-
-			m_module.m_hoveredArea = hoveredArea;
-			if (needUpdate)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_window);
-			}*/
 		}
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			// 1. Liberar Header (Si estaba redimensionando)
 			if (m_module.m_headers.OnMouseUp(args, m_module.m_scrollableView->GetVisibleRect().X))
 			{
 				return;
 			}
 
-			// 2. Liberar Lasso Selection (Si estaba seleccionando)
 			if (m_module.m_lassoSelection.IsActive())
 			{
 				m_module.m_lassoSelection.End();
 				GUI::ReleaseCapture(m_control->Handle());
 				GUI::MarkAsNeedUpdate(m_module.m_window);
-				return;
 			}
-			
-			/*bool needUpdate = false;
-
-			if (m_module.m_pressedArea == InteractionArea::HeaderSplitter &&
-				m_module.DetermineHoverArea(args.Position) != InteractionArea::HeaderSplitter)
-			{
-				GUI::ChangeCursor(m_module.m_window, Cursor::Default);
-			}
-
-			if (m_module.m_mouseSelection.m_started)
-			{
-				Point startPoint, endPoint;
-				Size boxSize;
-				m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
-				needUpdate = (boxSize.Width > 0 && boxSize.Height > 0);
-
-				m_module.m_mouseSelection.m_started = false;
-				m_module.m_mouseSelection.m_selections.clear();
-				for (size_t i = 0; i < m_module.m_list.m_items.size(); i++)
-				{
-					if (m_module.m_list.m_items[i].m_isSelected)
-					{
-						m_module.m_mouseSelection.m_selections.push_back(&m_module.m_list.m_items[i]);
-					}
-				}
-				GUI::ReleaseCapture(m_module.m_window);
-			}
-			else if (m_module.m_pressedArea == InteractionArea::HeaderSplitter)
-			{
-				m_module.StopHeadersSizing();
-			}
-			else if (m_module.m_pressedArea == InteractionArea::Header)
-			{
-				m_module.StopDragOrSortHeader();
-				needUpdate = true;
-			}
-
-			m_module.m_pressedArea = InteractionArea::None;
-			if (needUpdate)
-			{
-				GUI::MarkAsNeedUpdate(*m_control);
-			}
-			*/
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
-			// Restaurar el cursor a la normalidad si se quedó atascado en el Header
 			m_module.m_headers.OnMouseLeave();
 
-			// Quitar la iluminación del ítem
-			if (m_module.m_hoveredIndex != -1)
+			if (m_module.m_hoveredIndex.has_value())
 			{
-				m_module.m_hoveredIndex = -1;
+				m_module.m_hoveredIndex.reset();
 				GUI::MarkAsNeedUpdate(m_module.m_window);
 			}
-			
-			/*if (args.ButtonState.NoButtonsPressed() && m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
-			{
-				GUI::ChangeCursor(m_module.m_window, Cursor::Default);
-			}
-
-			bool needUpdate = m_module.m_mouseSelection.m_hoveredItem != nullptr;
-			m_module.m_mouseSelection.m_hoveredItem = nullptr;
-			if (args.ButtonState.NoButtonsPressed() && (m_module.m_hoveredArea == InteractionArea::Header || m_module.m_hoveredArea == InteractionArea::HeaderSplitter)
-				&& m_module.m_headers.m_selectedIndex != -1)
-			{
-				m_module.m_headers.m_selectedIndex = -1;
-				needUpdate = true;
-			}
-
-			m_module.m_hoveredArea = InteractionArea::None;
-			if (needUpdate)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_window);
-			}
-			*/
 		}
 
 		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
@@ -926,10 +638,9 @@ namespace Berta
 				auto headerWidth = m_owner->ToScale(header.Width);
 				int headerWidthInt = static_cast<int>(headerWidth);
 				
-				//int iInt = static_cast<int>(logicalIdx);
 				bool isHovered = visualIdx == m_hoveredVisualIndex && (!m_isDraggingConfirmed || m_draggedVisualIndex != visualIdx);
 				bool isSortedHeader = logicalIdx == m_sortLogicalIndex;
-				// Clipping manual: solo dibujamos si está dentro de la ventana
+
 				if (currentX + headerWidthInt >= 0 && currentX < clientWidth)
 				{
 					Rectangle headerRect = { currentX, 0, headerWidth, headerHeight };
@@ -1055,8 +766,7 @@ namespace Berta
 				GUI::Capture(m_owner);
 				return true;
 			}
-        
-			// 2. Verificar si clicó en el cuerpo para ORDENAR o ARRASTRAR
+			
 			auto colVisualIdx = GetVisualIndexAt(args.Position.X, scrollX);
 			if (colVisualIdx.has_value())
 			{
@@ -1089,12 +799,10 @@ namespace Berta
 				GUI::MarkAsNeedUpdate(m_owner);
 				return true;
 			}
-			// 2. Lógica de Arrastre (Drag & Drop)
+			
 			if (m_draggedVisualIndex.has_value())
 			{
 				m_currentMouseX = args.Position.X;
-
-				// Confirmar arrastre si se mueve más de 5 píxeles
 				if (!m_isDraggingConfirmed && std::abs(m_currentMouseX - m_dragStartX) > m_owner->ToScale(5))
 				{
 					m_isDraggingConfirmed = true;
@@ -1117,7 +825,7 @@ namespace Berta
 				}
 				return false;
 			}
-			// 3. Lógica de HOVER y Cambio de Cursor
+
 			auto hoveredVisual = GetVisualIndexAt(args.Position.X, scrollX);
 			auto hoveredDivVisual = GetDividerVisualIndexAt(args.Position.X, scrollX);
 
@@ -1437,44 +1145,8 @@ namespace Berta
 		ListBoxItem Reactor::Module::Append(std::initializer_list<std::string> texts)
 		{
 			auto logicalIndex = m_items.Append(texts);
-			/*
-			auto startIndex = m_list.m_items.size();
-
-			auto headersCount = m_headers.m_headers.size();
-			auto& item = m_list.m_items.emplace_back("{}");
-			size_t position = 0;
-			for (auto& text : texts)
-			{
-				if (item.m_cells.size() == position)
-				{
-					item.m_cells.emplace_back(text);
-				}
-				else
-				{
-					item.m_cells[position] = text;
-				}
-				++position;
-				if (position >= headersCount)
-				{
-					break;
-				}
-			}
-			m_list.m_sortedIndexes.emplace_back(startIndex);
-
-			if (m_headers.m_sortedHeaderIndex != -1)
-			{
-				size_t selectedHeaderIndex = static_cast<size_t>(m_headers.m_sortedHeaderIndex);
-
-				SortHeader(m_headers.m_sorted[selectedHeaderIndex], m_headers.isAscendingOrdering);
-			}
-
-			CalculateViewport(m_viewport);
-			BuildListItemBounds(startIndex);
-
-			return { &m_list.m_items.back(), this };*/
 			
 			UpdateScrollData();
-
 			GUI::UpdateWindow(m_window);
 			
 			return{logicalIndex, &m_items};
@@ -1499,19 +1171,10 @@ namespace Berta
 
 		void Reactor::Module::ClearHeaders()
 		{
-			/*
-			bool needUpdate = !m_headers.m_headers.empty();
-			m_headers.m_headers.clear();
-			m_headers.m_sorted.clear();
-			m_list.m_items.clear();
-
-			m_headers.m_selectedIndex = -1;
-			m_headers.m_draggingTargetIndex = -1;
-
-			if (needUpdate)
-			{
-				GUI::UpdateWindow(m_window);
-			}*/
+			m_headers.Clear();
+			
+			UpdateScrollData();
+			GUI::UpdateWindow(m_window);
 		}
 
 		void Reactor::Module::UpdateScrollData()
@@ -1546,119 +1209,6 @@ namespace Berta
 			contentSize.Height = static_cast<uint32_t>(m_items.GetCount()) * itemHeightWithMargin + headerHeight;
 
 			m_scrollableView->SetContentSize(contentSize);
-		}
-
-		void Reactor::Module::DrawHeaders(Graphics& graphics)
-		{
-			/*
-			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
-			auto leftMarginTextHeader = m_window->ToScale(5u);
-			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
-			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
-
-			int sortedHeaderMargin = m_window->ToScale(4);
-			int arrowSortedHeaderSize = m_window->ToScale(6);
-			auto scrollOffset = m_scrollableView->GetScrollOffset();
-			graphics.DrawGradientFill({ 0,0, m_window->ClientSize.Width, headerHeight }, m_appearance->ButtonHighlightBackground, m_appearance->ButtonBackground);
-			graphics.DrawLine({ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X - 1, 0 }, { m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
-		
-			Point headerOffset{ m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X, m_viewport.m_backgroundRect.Y };
-
-			for (size_t i = 0; i < m_headers.m_headers.size(); ++i)
-			{
-				const auto& headerIndex = m_headers.m_sorted[i];
-				const auto& header = m_headers.m_headers[headerIndex];
-				auto headerWidth = m_window->ToScale(header.m_bounds.Width);
-				if (i == 0 && m_list.m_drawImages)
-				{
-					headerWidth += listItemIconSize + listItemIconMargin * 2u;
-				}
-				auto headerWidthInt = (int)headerWidth;
-				bool isHovered = m_headers.m_selectedIndex == (int)i;
-				bool isDragging = m_headers.m_isDragging && isHovered;
-				if (headerOffset.X + headerWidthInt < 0 || headerOffset.X >= (int)m_viewport.m_backgroundRect.Width)
-				{
-					headerOffset.X += headerWidthInt;
-					continue;
-				}
-				int textOffset = 0;
-				if (i == 0 && m_list.m_drawImages)
-				{
-					textOffset += listItemIconSize + listItemIconMargin * 2u;
-				}
-				Rectangle columnRect{ headerOffset.X, 0, headerWidth, headerHeight };
-				bool isSortedHeader = headerIndex == m_headers.m_sortedHeaderIndex;
-				Rectangle textRect = columnRect;
-				textRect.X += (int)leftMarginTextHeader + textOffset;
-				textRect.Width -= leftMarginTextHeader * 2 + textOffset;
-				if (isSortedHeader)
-				{
-					textRect.Width -= sortedHeaderMargin + arrowSortedHeaderSize;
-				}
-				DrawHeaderItem(graphics, columnRect, header.Text, isHovered, textRect, m_appearance->Foreground);
-
-				if (isDragging)
-				{
-					int lineWidth = m_window->ToScale(2);
-					auto targetHeaderPosition = 0;
-					if (m_headers.m_draggingTargetIndex < m_headers.m_headers.size())
-					{
-						const auto& headerIndex = m_headers.m_sorted[m_headers.m_draggingTargetIndex];
-						targetHeaderPosition = m_window->ToScale(m_headers.m_headers[headerIndex].m_bounds.X);
-					}
-					else
-					{
-						const auto& headerIndex = m_headers.m_sorted[m_headers.m_headers.size() - 1];
-						const auto& lastHeaderBounds = m_headers.m_headers[headerIndex].m_bounds;
-						targetHeaderPosition = m_window->ToScale(lastHeaderBounds.X + lastHeaderBounds.Width);
-					}
-					targetHeaderPosition += m_viewport.m_backgroundRect.X + (int)m_viewport.m_columnOffsetStartOff - scrollOffset.X;
-					if (m_headers.m_draggingTargetIndex != 0 && m_list.m_drawImages)
-					{
-						targetHeaderPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
-					}
-					graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, (int)headerHeight - lineWidth }, static_cast<float>(lineWidth), m_appearance->SelectionHighlightColor);
-
-					Graphics& draggingBox = m_headers.m_draggingBox;
-				
-					auto headerPosition = m_headers.m_headers[headerIndex].m_bounds.X;
-					auto newPosition = m_headers.m_mouseDraggingPosition - m_headers.m_mouseDownOffset;
-					if (m_headers.m_selectedIndex != 0 && m_list.m_drawImages)
-					{
-						newPosition += (int)(listItemIconSize + listItemIconMargin * 2u);
-					}
-					Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
-
-					graphics.Blend(blendRect, draggingBox, { 0,0 }, 0.5);
-				}
-				graphics.DrawLine({ m_viewport.m_backgroundRect.X, (int)headerHeight - 1 }, { (int)m_window->ClientSize.Width - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
-				graphics.DrawLine({ headerOffset.X + headerWidthInt - 1, 0 }, { headerOffset.X + headerWidthInt - 1, (int)headerHeight - 1 }, m_appearance->BoxBorderColor);
-
-				if (isSortedHeader)
-				{
-					int arrowWidth = m_window->ToScale(4);
-					int arrowLength = m_window->ToScale(2);
-					Rectangle arrowRect = columnRect;
-					arrowRect.X += headerWidthInt - arrowSortedHeaderSize - sortedHeaderMargin;
-					arrowRect.Width = arrowSortedHeaderSize;
-					graphics.DrawArrow(arrowRect, arrowLength, arrowWidth, 
-						m_headers.isAscendingOrdering ? Graphics::ArrowDirection::Upwards : Graphics::ArrowDirection::Downwards,
-						m_appearance->Foreground2nd);
-				}
-				headerOffset.X += headerWidthInt;
-			}
-			*/
-		}
-
-		void Reactor::Module::DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor)
-		{
-			/*
-			if (isHovered)
-			{
-				graphics.DrawRectangle(rect, m_appearance->HighlightColor, true);
-			}
-
-			DrawStringInBox(graphics, name, textRect, textColor);*/
 		}
 
 		void Reactor::Module::DrawList(Graphics& graphics)
@@ -1698,98 +1248,6 @@ namespace Berta
 
 				currentY += itemHeightWithMargin;
 			}
-			
-			/*
-			bool enabled = true;
-			auto listItemIconSize = m_window->ToScale(m_appearance->ListItemIconSize);
-			auto listItemIconMargin = m_window->ToScale(m_appearance->ListItemIconMargin);
-			auto scrollOffset = m_scrollableView->GetScrollOffset();
-			Point listOffset{ m_viewport.m_backgroundRect.X + static_cast<int>(m_viewport.m_columnOffsetStartOff) - scrollOffset.X, m_viewport.m_backgroundRect.Y - scrollOffset.Y };
-			
-			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
-			
-			auto& itemHeight = m_viewport.m_itemHeight;
-			auto& itemHeightWithMargin = m_viewport.m_itemHeightWithMargin;
-			auto leftMarginListItemText = m_window->ToScale(3u);
-			auto headerHeight = m_window->ToScale(m_appearance->HeadersHeight);
-			int listVisibleY = std::max<int>(0, visibleRect.Y - static_cast<int>(headerHeight));
-			
-			size_t startIndex = listVisibleY / itemHeightWithMargin;
-			size_t endIndex = std::min<size_t>(m_list.m_items.size(), static_cast<size_t>((visibleRect.Y + visibleRect.Height) / itemHeightWithMargin) + 1);
-			
-			Rectangle itemRect = m_scrollableView->GetClientArea();
-			itemRect.Height = itemHeight;
-			itemRect.Width = m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff;
-			
-			for (size_t i = startIndex; i < endIndex; i++)
-			{
-				auto absoluteIndex = m_list.m_sortedIndexes[i];
-				auto& item = m_list.m_items[absoluteIndex];
-				itemRect.Y = (i * itemHeightWithMargin) - visibleRect.Y + headerHeight + m_viewport.m_innerMargin;
-				itemRect.X = static_cast<int>(m_viewport.m_columnOffsetStartOff) + m_scrollableView->GetClientArea().X - visibleRect.X;
-				int cellOffset = 0;
-
-				bool isLastSelected = &item == m_mouseSelection.m_selectedItem;
-				bool isHovered = m_mouseSelection.m_hoveredItem == &item;
-				bool isSelected = item.m_isSelected;
-				//Rectangle itemRect{ listOffset.X, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), m_viewport.m_contentSize.Width - m_viewport.m_columnOffsetStartOff, itemHeight };
-				
-				if (isSelected)
-				{
-					auto lineColor = enabled ? (isLastSelected ? m_appearance->Foreground2nd : (isSelected ? m_appearance->BoxBorderHighlightColor : m_appearance->BoxBorderColor)) : m_appearance->BoxBorderDisabledColor;
-
-					auto color = m_appearance->HighlightColor;
-					graphics.DrawRoundRectBox(itemRect, color, lineColor, true);
-				}
-				else if (isHovered)
-				{
-					auto color = m_appearance->ItemCollectionHightlightBackground;
-					graphics.DrawRectangle(itemRect, color, true);
-				}
-				else if (isLastSelected)
-				{
-					auto color = m_appearance->Foreground2nd;
-					graphics.DrawRectangle(itemRect, color, false);
-				}
-
-				for (size_t j = 0; j < item.m_cells.size(); j++)
-				{
-					const auto& headerIndex = m_headers.m_sorted[j];
-
-					const auto& cell = item.m_cells[headerIndex];
-					const auto& header = m_headers.m_headers[headerIndex];
-					auto headerWidth = m_window->ToScale(header.m_bounds.Width);
-					uint32_t iconWidth = 0u;
-
-					if (j == 0 && m_list.m_drawImages)
-					{
-						headerWidth += listItemIconSize + listItemIconMargin * 2u;
-						iconWidth += listItemIconSize + listItemIconMargin * 2u;
-					}
-					auto headerWidthInt = static_cast<int>(headerWidth);
-					if (listOffset.X + (int)leftMarginListItemText + cellOffset + headerWidthInt <= 0)
-					{
-						cellOffset += headerWidthInt;
-						continue;
-					}
-					if (cellOffset - scrollOffset.X >= static_cast<int>(m_viewport.m_backgroundRect.Width))
-					{
-						break;
-					}
-
-					if (j == 0 && m_list.m_drawImages && item.m_icon)
-					{
-						auto iconSize = item.m_icon.GetSize();
-						Rectangle destRect{ listOffset.X + (int)leftMarginListItemText + (int)listItemIconMargin, listOffset.Y + (int)(itemHeightWithMargin * i) + (int)(itemHeight- listItemIconSize) / 2 + (int)m_viewport.m_innerMargin, listItemIconSize,listItemIconSize};
-						item.m_icon.Paste(iconSize.ToRectangle(), graphics, destRect);
-					}
-
-					DrawStringInBox(graphics, cell.m_text, { listOffset.X + (int)leftMarginListItemText + cellOffset + (int)iconWidth, listOffset.Y + (int)m_viewport.m_innerMargin + (int)(itemHeightWithMargin * i), headerWidth - leftMarginListItemText - iconWidth, itemHeight}, m_appearance->Foreground);
-
-					cellOffset += headerWidthInt;
-				}
-			}
-			*/
 		}
 
 		void Reactor::Module::SortHeader(size_t headerIndex, bool ascending)
@@ -1820,7 +1278,7 @@ namespace Berta
         
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			// Configuramos el paso del scroll (ej. saltar de a 1 ítem)
-			m_scrollableView->SetScrollStep(m_window->ToScale(appearance->ListItemHeight), 20);
+			m_scrollableView->SetScrollStep(static_cast<int>(m_window->ToScale(appearance->ListItemHeight)), 20);
 
 			// Cuando el ScrollableView detecta un cambio, repintamos el ListBox
 			m_scrollableView->SetOnScrollChange([this]()
@@ -1831,40 +1289,68 @@ namespace Berta
 
 		void Reactor::Module::ProcessLassoIntersection()
 		{
-			if (!m_lassoSelection.IsActive() || m_items.IsEmpty())
-			{
-				return;
-			}
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
+			
+			Rectangle lassoRect = m_lassoSelection.GetRect();
+    
+			auto scrollOffset = m_scrollableView->GetVisibleRect();
+			int scrollY = scrollOffset.Y;
 			int headerHeight = static_cast<int>(appearance->HeadersHeight);
+	    
+			// 2. Restaurar el estado de la selección a como estaba ANTES de empezar a arrastrar el lazo
+			// Esto es vital para que al achicar el recuadro, los elementos que quedan afuera se deseleccionen.
+			m_selectionController.RestoreSnapshot();
+
+			// 3. Si el lazo está completamente sobre las cabeceras y no toca la lista, terminamos
+			if (lassoRect.Y + static_cast<int>(lassoRect.Height) <= headerHeight)
+				return;
+
+			// 4. Calcular los límites absolutos en Y (ignorando la cabecera y sumando el scroll)
+			int y1 = lassoRect.Y - headerHeight + scrollY;
+			int y2 = lassoRect.Y + static_cast<int>(lassoRect.Height) - headerHeight + scrollY;
+			int topAbsoluteY = std::min<int>(y1, y2);
+			int bottomAbsoluteY = std::max<int>(y1, y2);
+
+			// Evitar valores negativos si el lazo empezó arrastrándose desde encima de las cabeceras
+			topAbsoluteY = std::max<int>(topAbsoluteY, 0);
+
+			// 5. Calcular el alto de cada fila (misma matemática que tienes en MouseDown)
 			auto innerMargin = m_window->ToScale(2u);
 			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
 			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
-			int scrollY = m_scrollableView->GetScrollOffset().Y;
 
-			Rectangle lasso = m_lassoSelection.GetRect();
-			int absoluteTop = std::max<int>(0, lasso.Y - headerHeight + scrollY);
-			int absoluteBottom = (lasso.Y + static_cast<int>(lasso.Height)) - headerHeight + scrollY;
+			// 6. Matemática O(1) para saber qué filas VISUALES están siendo tocadas
+			int startVisualIndex = topAbsoluteY / itemHeightWithMargin;
+			int endVisualIndex = bottomAbsoluteY / itemHeightWithMargin;
 
-			if (absoluteBottom < 0)
+			// Limitar los índices para que no se salgan del vector
+			int maxIndex = static_cast<int>(m_items.GetCount()) - 1;
+			if (maxIndex < 0) return; // Si la lista está vacía
+
+			// 7. ¡LA TRADUCCIÓN MÁGICA! Iterar el rango visual y afectar los datos lógicos
+			for (int visualIdx = startVisualIndex; visualIdx <= endVisualIndex; ++visualIdx)
 			{
-				return;
-			}
-			size_t startIndex = absoluteTop / itemHeightWithMargin;
-			size_t endIndex = absoluteBottom / itemHeightWithMargin;
-
-			std::vector<size_t> lassoedIndices;
-			for (size_t i = startIndex; i <= endIndex; ++i)
-			{
-				lassoedIndices.push_back(i);
-			}
-
-			bool isCtrl = m_ctrlPressed;
-
-			// DELEGACIÓN: Actualizamos el rango basado en la foto guardada
-			if (m_selectionController.ApplyLassoSelection(lassoedIndices, isCtrl))
-			{
-				GUI::MarkAsNeedUpdate(m_window);
+				if (visualIdx >= 0 && visualIdx <= maxIndex)
+				{
+					// Pasamos del "Cajón de la pantalla" al "Dato real en memoria"
+					size_t logicalIdx = m_items.GetLogicalIndex(visualIdx);
+	        
+					if (logicalIdx != static_cast<size_t>(-1))
+					{
+						// Comportamiento avanzado de Lazo (si el usuario presiona CTRL mientras arrastra):
+						// Invertimos el estado que tenía en el snapshot.
+						if (m_ctrlPressed)
+						{
+							bool wasSelected = m_selectionController.IsSelected(logicalIdx);
+							m_selectionController.SetSelected(logicalIdx, !wasSelected);
+						}
+						else
+						{
+							// Si es un arrastre normal, simplemente lo marcamos como seleccionado
+							m_selectionController.SetSelected(logicalIdx, true);
+						}
+					}
+				}
 			}
 		}
 
@@ -2012,84 +1498,6 @@ namespace Berta
 
 			return result;
 		}
-
-		bool Reactor::Module::EnsureVisibility(int itemIndex)
-		{
-			/*
-			if (itemIndex >= m_list.m_items.size() || !m_scrollableView)
-			{
-				return false;
-			}
-
-			auto itemHeight = static_cast<int>(m_viewport.m_itemHeightWithMargin);
-			int headerHeight = static_cast<int>(m_appearance->HeadersHeight);
-
-			Rectangle targetBounds;
-			targetBounds.X = 0; 
-			targetBounds.Y = (itemIndex * itemHeight) + headerHeight;
-			targetBounds.Width = 10;
-			targetBounds.Height = itemHeight;
-
-			bool scrollChanged = m_scrollableView->EnsureVisibility(targetBounds);
-			if (scrollChanged)
-			{
-				GUI::MarkAsNeedUpdate(m_window);
-			}
-			return scrollChanged;*/
-			return false;
-		}
-
-/*
-		bool Reactor::MouseSelection::IsAlreadySelected(List::Item* index) const
-		{
-			return std::find(m_alreadySelected.begin(), m_alreadySelected.end(), index) != m_alreadySelected.end();
-		}
-
-		bool Reactor::MouseSelection::IsSelected(List::Item* item) const
-		{
-			return std::find(m_selections.begin(), m_selections.end(), item) != m_selections.end();
-		}
-
-		void Reactor::MouseSelection::Select(List::Item* item)
-		{
-			m_selections.push_back(item);
-		}
-
-		void Reactor::MouseSelection::Deselect(List::Item* item)
-		{
-			auto it = std::find(m_selections.begin(), m_selections.end(), item);
-			if (it != m_selections.end())
-			{
-				m_selections.erase(it);
-			}
-		}
-
-		void Reactor::MouseSelection::Clear()
-		{
-			m_selections.clear();
-			m_alreadySelected.clear();
-
-			m_selectedItem = nullptr;
-			m_pivotItem = nullptr;
-			m_hoveredItem = nullptr;
-		}
-
-		void Reactor::MouseSelection::ClearReferences(List::Item* item)
-		{
-			if (m_selectedItem == item)
-			{
-				m_selectedItem = nullptr;
-			}
-			if (m_pivotItem == item)
-			{
-				m_pivotItem = nullptr;
-			}
-			if (m_hoveredItem == item)
-			{
-				m_hoveredItem = nullptr;
-			}
-		}*/
-
 
 		void ListBoxItem::SetIcon(const Image& image) const
 		{

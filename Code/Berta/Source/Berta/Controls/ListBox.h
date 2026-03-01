@@ -254,15 +254,11 @@ namespace Berta
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
 				void UpdateScrollData();
-				
-				bool EnsureVisibility(int lastSelectedIndex);
 
 				std::vector<ListBoxItem> GetSelectedItems();
 
 				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 
-				void DrawHeaders(Graphics& graphics);
-				void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
 				void DrawList(Graphics& graphics);
 
 				void SortHeader(size_t headerIndex, bool ascending);
@@ -289,7 +285,7 @@ namespace Berta
 				
 				bool m_isSortAscending {false};
 				std::optional<size_t> m_currentSortColumn = std::nullopt;
-				int m_hoveredIndex{-1};
+				std::optional<size_t> m_hoveredIndex { std::nullopt };
 				bool m_drawImages {false};
 				Window* m_window{ nullptr };
 				bool m_multiselection{ true };

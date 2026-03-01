@@ -76,6 +76,13 @@ namespace Berta
         void SaveSnapshot()
         {
             m_snapshotItems = m_selectedItems;
+            m_snapshotAnchor = m_anchorItem;
+        }
+
+        void RestoreSnapshot()
+        {
+            m_selectedItems = m_snapshotItems;
+            m_anchorItem = m_snapshotAnchor;
         }
         
         bool ApplyLassoSelection(const std::vector<T>& lassoedItems, bool ctrlPressed)
@@ -148,6 +155,7 @@ namespace Berta
         
         // El "Ancla" guarda el índice desde donde se empezó a hacer Shift+Clic
         std::optional<T> m_anchorItem;
+        std::optional<T> m_snapshotAnchor;
     };
 }
 

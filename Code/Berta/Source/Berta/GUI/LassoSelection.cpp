@@ -6,6 +6,7 @@
 
 #include "btpch.h"
 #include "LassoSelection.h"
+
 #include <algorithm>
 
 namespace Berta
