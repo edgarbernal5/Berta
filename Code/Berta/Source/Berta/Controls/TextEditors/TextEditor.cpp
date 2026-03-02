@@ -1383,7 +1383,10 @@ namespace Berta
 			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines);
 		}
     
-		if (m_features.wordWrap) m_cachedMaxWidth = m_editorArea.Width;
+		if (m_features.wordWrap)
+		{
+			m_cachedMaxWidth = m_editorArea.Width;
+		}
 	}
 
 	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList)

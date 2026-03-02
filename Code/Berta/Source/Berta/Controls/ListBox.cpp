@@ -1045,6 +1045,7 @@ namespace Berta
 		void Reactor::Module::AppendHeader(const std::string& text, uint32_t width)
 		{
 			m_headers.Append(text, width);
+			
 			UpdateScrollData();
 			GUI::UpdateWindow(m_window);
 		}
@@ -1113,12 +1114,12 @@ namespace Berta
 				auto headerWidth = m_window->ToScale(header.Width);
 				contentSize.Width += headerWidth;
 			}
-			if (m_drawImages)
+			/*if (m_drawImages)
 			{
 				auto listItemIconSize = m_window->ToScale(appearance->ListItemIconSize);
 				auto listItemIconMargin = m_window->ToScale(appearance->ListItemIconMargin);
 				contentSize.Width += listItemIconSize + listItemIconMargin * 2u;
-			}
+			}*/
 
 			auto innerMargin = m_window->ToScale(2u);
 			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
@@ -1135,31 +1136,27 @@ namespace Berta
 				return;
 			}
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
-			// 1. Obtener contexto geométrico (Gracias al ScrollableView)
+			
 			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
 			auto innerMargin = m_window->ToScale(2u);
 			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
 			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin*2u);
 			int headerHeight = static_cast<int>(m_window->ToScale(appearance->HeadersHeight));
-
-			// 2. Calcular rango visible (Matemática O(1))
+			
 			int listVisibleY = std::max<int>(0, visibleRect.Y - headerHeight);
 			int startIndex = listVisibleY / itemHeightWithMargin;
 			int endIndex = std::min<int>(static_cast<int>(m_items.GetCount()), (listVisibleY + static_cast<int>(visibleRect.Height)) / itemHeight + 1);
 
-			// 3. Iterar y dibujar
 			int currentY = (startIndex * itemHeightWithMargin) + headerHeight - visibleRect.Y;
     
 			for (int i = startIndex; i < endIndex; ++i)
 			{
 				Rectangle rowRect = m_scrollableView->GetClientArea();
-				rowRect.Y = currentY + innerMargin;
+				rowRect.Y = currentY + static_cast<int>(innerMargin);
 				rowRect.Height = itemHeight;
 
-				// Ajuste por scroll horizontal
 				rowRect.X -= visibleRect.X; 
         
-				// DELEGACIÓN: Métodos pequeños y específicos
 				DrawRowBackground(graphics, i, rowRect);
 				DrawRowContent(graphics, i, rowRect);
 
@@ -1394,7 +1391,7 @@ namespace Berta
 			size_t logicalRowIndex = m_items.GetLogicalIndex(visualRowIndex);
 			const auto* item = m_items.GetItemSafely(logicalRowIndex);
 			const auto& headers = m_headers.GetHeaders();
-    
+			const Image* icon = item->m_icon ? &item->m_icon : nullptr;
 			int currentX = rowRect.X;
 			auto cellHeight = rowRect.Height;
 			size_t columnCount = m_headers.GetColumnCount();
@@ -1405,23 +1402,41 @@ namespace Berta
 				auto colWidth = m_window->ToScale(headers[logicalCol].Width);
 				Rectangle cellRect = { currentX, rowRect.Y, colWidth, cellHeight };
 				
-				if (logicalCol >= 0 && logicalCol < item->m_cells.size())
+				if (logicalCol < item->m_cells.size())
 				{
 					const std::string& cellText = item->m_cells[logicalCol].m_text;
             
-					DrawCell(graphics, cellRect, cellText, IsSelected(visualRowIndex));
+					DrawCell(graphics, cellRect, cellText, IsSelected(visualRowIndex), visualCol == 0 ? icon : nullptr);
 				}
 				currentX += static_cast<int>(colWidth);
 			}
 		}
 
-		void Reactor::Module::DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected)
+		void Reactor::Module::DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			// Padding
+			auto textPadding= m_window->ToScale(3u);
 			Rectangle textRect = rect;
-			textRect.X += 4; 
-			textRect.Width -= 8;
+			textRect.X += static_cast<int>(textPadding); 
+			textRect.Width -= textPadding * 2u;
+			
+			if (icon)
+			{
+				auto listItemIconSize = m_window->ToScale(appearance->ListItemIconSize);
+				auto listItemIconMargin = m_window->ToScale(appearance->ListItemIconMargin);
+				
+				auto iconSize = icon->GetSize();
+				Rectangle destRect = rect;
+				destRect.X += static_cast<int>(listItemIconMargin);
+				destRect.Y += static_cast<int>(rect.Height - listItemIconSize) / 2;
+				destRect.Height = listItemIconSize;
+				destRect.Width = listItemIconSize;
+				
+				textRect.X += static_cast<int>(listItemIconMargin + listItemIconSize);
+				textRect.Width -= listItemIconMargin * 2u + listItemIconSize;
+				icon->Paste(iconSize.ToRectangle(), graphics, destRect);
+			}
 
 			Color textColor = isRowSelected ? appearance->HighlightTextColor : appearance->Foreground;
 			DrawStringInBox(graphics, text, textRect, textColor);

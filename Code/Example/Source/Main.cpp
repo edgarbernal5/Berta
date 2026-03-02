@@ -195,13 +195,13 @@ public:
 		m_listBox.Append({ "Orlando Urdaneta Jimenez", "71", "Caracas" });
 		m_listBox.Append({ "Abraham Leonardo Urdaneta", "29", "Caracas" });
 
-		/*Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
+		Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 		m_listBox.At(0).SetIcon(image1);
 		m_listBox.At(4).SetIcon(image1);
 		m_listBox.At(2).SetIcon(image1);
 
 		Berta::Image image2("..\\..\\Resources\\Icons\\Icono5_2_16.png");
-		m_listBox.At(6).SetIcon(image2);*/
+		m_listBox.At(6).SetIcon(image2);
 		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 			{
 				auto currentPosition = m_listBox.GetPosition();

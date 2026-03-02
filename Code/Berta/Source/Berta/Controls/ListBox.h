@@ -44,14 +44,11 @@ namespace Berta
 					m_text(text){}
 				
 				std::string m_text; 
-				
 			};
 
 			struct Item
 			{
 				std::vector<Cell> m_cells;
-				Rectangle m_bounds;
-				bool m_isSelected{ false };
 				Image m_icon;
 				std::any m_userData;
 			};
@@ -60,7 +57,6 @@ namespace Berta
 		class ItemCollection
 		{
 		public:
-			// Callback para que la Vista sepa cuándo debe repintarse o recalcular el scroll
 			using OnCollectionChangedCallback = std::function<void()>;
      				
 		public:
@@ -173,7 +169,7 @@ namespace Berta
 			bool m_isSortAscending{ true };
 			
 			uint32_t m_startOffPos{ 4 };
-			Padding m_textPadding;
+			Padding m_textPadding{0,0,2,0};
 			
 			// Estado de Redimensionamiento
 			struct ResizeState
@@ -273,7 +269,7 @@ namespace Berta
 				
 				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
 				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
-				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected);
+				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon);
     
 				bool IsSelected(int index) const;
 				
