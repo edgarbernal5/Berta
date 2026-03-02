@@ -131,7 +131,8 @@ namespace Berta
     void ScrollableView::UpdateVerticalScrollBar()
     {
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect{
+        Rectangle scrollRect
+        {
             static_cast<int>(m_fullViewSize.Width - scrollSize) - 1, 
             1, 
             scrollSize, 
@@ -170,7 +171,8 @@ namespace Berta
     void ScrollableView::UpdateHorizontalScrollBar()
     {
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect{
+        Rectangle scrollRect
+        {
             1, 
             static_cast<int>(m_fullViewSize.Height - scrollSize) - 1, 
             m_fullViewSize.Width - 2u, 

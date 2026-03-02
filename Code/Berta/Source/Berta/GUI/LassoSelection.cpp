@@ -26,7 +26,7 @@ namespace Berta
         }
 
         m_currentPos = currentPosition;
-        return true; // Hubo un cambio, el control padre debería repintarse
+        return true;
     }
 
     void LassoSelection::End()

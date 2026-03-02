@@ -1193,10 +1193,7 @@ namespace Berta
 			m_scrollableView = std::make_unique<ScrollableView>(m_window);
         
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
-			// Configuramos el paso del scroll (ej. saltar de a 1 ítem)
 			m_scrollableView->SetScrollStep(static_cast<int>(m_window->ToScale(appearance->ListItemHeight)), 20);
-
-			// Cuando el ScrollableView detecta un cambio, repintamos el ListBox
 			m_scrollableView->SetOnScrollChange([this]()
 				{
 					GUI::MarkAsNeedUpdate(m_window);
@@ -1212,17 +1209,14 @@ namespace Berta
 			int itemY = static_cast<int>(visualIndex) * itemHeightWithMargin;
 			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
             
-			// El área real donde se ven los ítems (descontando las cabeceras)
 			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height) - static_cast<int>(m_window->ToScale(appearance->HeadersHeight));
 
 			if (itemY < currentScrollY)
 			{
-				// Se salió por arriba: scrollear hacia arriba
 				m_scrollableView->SetScrollOffsetY(itemY);
 			}
 			else if (itemY + itemHeight > currentScrollY + visibleHeight)
 			{
-				// Se salió por abajo: scrollear hacia abajo
 				m_scrollableView->SetScrollOffsetY(itemY + itemHeight - visibleHeight);
 			}
 		}
@@ -1258,48 +1252,40 @@ namespace Berta
 			int scrollY = scrollOffset.Y;
 			int headerHeight = static_cast<int>(appearance->HeadersHeight);
 	    
-			// 2. Restaurar el estado de la selección a como estaba ANTES de empezar a arrastrar el lazo
-			// Esto es vital para que al achicar el recuadro, los elementos que quedan afuera se deseleccionen.
 			m_selectionController.RestoreSnapshot();
 
-			// 3. Si el lazo está completamente sobre las cabeceras y no toca la lista, terminamos
 			if (lassoRect.Y + static_cast<int>(lassoRect.Height) <= headerHeight)
+			{
 				return;
-
-			// 4. Calcular los límites absolutos en Y (ignorando la cabecera y sumando el scroll)
+			}
+			
 			int y1 = lassoRect.Y - headerHeight + scrollY;
 			int y2 = lassoRect.Y + static_cast<int>(lassoRect.Height) - headerHeight + scrollY;
 			int topAbsoluteY = std::min<int>(y1, y2);
 			int bottomAbsoluteY = std::max<int>(y1, y2);
-
-			// Evitar valores negativos si el lazo empezó arrastrándose desde encima de las cabeceras
+			
 			topAbsoluteY = std::max<int>(topAbsoluteY, 0);
-
-			// 5. Calcular el alto de cada fila (misma matemática que tienes en MouseDown)
+			
 			auto innerMargin = m_window->ToScale(2u);
 			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
 			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
 
-			// 6. Matemática O(1) para saber qué filas VISUALES están siendo tocadas
 			int startVisualIndex = topAbsoluteY / itemHeightWithMargin;
 			int endVisualIndex = bottomAbsoluteY / itemHeightWithMargin;
 
-			// Limitar los índices para que no se salgan del vector
 			int maxIndex = static_cast<int>(m_items.GetCount()) - 1;
-			if (maxIndex < 0) return; // Si la lista está vacía
+			if (maxIndex < 0)
+			{
+				return;
+			}
 
-			// 7. ¡LA TRADUCCIÓN MÁGICA! Iterar el rango visual y afectar los datos lógicos
 			for (int visualIdx = startVisualIndex; visualIdx <= endVisualIndex; ++visualIdx)
 			{
 				if (visualIdx >= 0 && visualIdx <= maxIndex)
 				{
-					// Pasamos del "Cajón de la pantalla" al "Dato real en memoria"
 					size_t logicalIdx = m_items.GetLogicalIndex(visualIdx);
-	        
 					if (logicalIdx != static_cast<size_t>(-1))
 					{
-						// Comportamiento avanzado de Lazo (si el usuario presiona CTRL mientras arrastra):
-						// Invertimos el estado que tenía en el snapshot.
 						if (m_ctrlPressed)
 						{
 							bool wasSelected = m_selectionController.IsSelected(logicalIdx);
@@ -1307,60 +1293,13 @@ namespace Berta
 						}
 						else
 						{
-							// Si es un arrastre normal, simplemente lo marcamos como seleccionado
 							m_selectionController.SetSelected(logicalIdx, true);
 						}
 					}
 				}
 			}
 		}
-
-		void Reactor::Module::UpdateSelectionRange(int startIndex, int endIndex)
-		{
-			// 1. Restaurar todos los ítems al estado "Pre-Lasso"
-			for (size_t i = 0; i < m_items.GetCount(); ++i)
-			{
-				bool wasSelected = m_preLassoSelection.find(i) != m_preLassoSelection.end();
-				SetItemSelected(i, wasSelected); // Tu método para cambiar selección
-			}
-
-			// 2. Aplicar la selección ACTUAL del recuadro
-			// (Si apretó Ctrl, invertimos. Si no, forzamos selección)
-			bool isCtrlPressed = m_ctrlPressed;
-
-			for (int i = startIndex; i <= endIndex; ++i)
-			{
-				if (isCtrlPressed)
-				{
-					// Ctrl: Intercambia el estado previo
-					bool wasSelected = m_preLassoSelection.find(i) != m_preLassoSelection.end();
-					SetItemSelected(i, !wasSelected);
-				}
-				else
-				{
-					// Normal: Fuerza a que esté seleccionado
-					SetItemSelected(i, true);
-				}
-			}
-		}
-
-		void Reactor::Module::SetItemSelected(size_t index, bool selected)
-		{
-			// 1. Verificación de seguridad (Bounds check)
-			// Asumiendo que m_items es tu ItemCollection o std::vector
-			if (index >= m_items.GetCount()) 
-			{
-				return;
-			}
-
-			// 2. Delegamos la acción al controlador
-			m_selectionController.SetSelected(index, selected);
-
-			// Nota: No llamamos a GUI::MarkAsNeedUpdate(m_window) aquí adentro 
-			// porque este método suele llamarse en bucles (ej. durante el Lasso Selection).
-			// Es mucho más eficiente repintar la ventana una sola vez al terminar el bucle.
-		}
-
+		
 		void Reactor::Module::DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
@@ -1377,8 +1316,7 @@ namespace Berta
 			{
 				bgColor = appearance->HighlightColor;
 			}
-
-			// Solo dibujamos si es distinto al fondo base para ahorrar llamadas a GPU
+			
 			if (bgColor != appearance->BoxBackground)
 			{
 				// Nota: Usamos el ancho total del contenido para que el color de selección no se corte al scrollear
@@ -1407,7 +1345,6 @@ namespace Berta
 				if (logicalCol < item->m_cells.size())
 				{
 					const std::string& cellText = item->m_cells[logicalCol].m_text;
-            
 					DrawCell(graphics, cellRect, cellText, IsSelected(visualRowIndex), visualCol == 0 ? icon : nullptr);
 				}
 				currentX += static_cast<int>(colWidth);

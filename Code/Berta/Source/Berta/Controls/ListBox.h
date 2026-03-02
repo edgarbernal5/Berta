@@ -264,8 +264,6 @@ namespace Berta
 				
 				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
 				void ProcessLassoIntersection();
-				void UpdateSelectionRange(int startIndex, int endIndex);
-				void SetItemSelected(size_t index, bool selected);
 				
 				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
 				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
@@ -285,7 +283,7 @@ namespace Berta
 				std::optional<size_t> m_currentSortColumn = std::nullopt;
 				std::optional<size_t> m_hoveredIndex { std::nullopt };
 				std::optional<size_t> m_focusedLogicalIndex { std::nullopt };
-				bool m_drawImages {false};
+				bool m_drawImages { false };
 				Window* m_window{ nullptr };
 				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };
