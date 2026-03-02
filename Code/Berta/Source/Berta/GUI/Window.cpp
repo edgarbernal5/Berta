@@ -22,6 +22,7 @@ namespace Berta
 		//Flags.isBatching = false;
 		Flags.IgnoreMouseFocus = false;
 		Flags.AutoDraw = true;
+		Flags.Borderless = false;
 
 		BorderSize = { 0,0 };
 	}

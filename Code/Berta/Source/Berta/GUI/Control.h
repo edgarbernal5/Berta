@@ -56,6 +56,8 @@ namespace Berta
 		void Show() const;
 		void Hide() const;
 		void Dispose() const;
+		
+		bool IsBorderless() const;
 
 		bool IsAutoDraw() const;
 		void SetAutoDraw(bool autoDraw) const;

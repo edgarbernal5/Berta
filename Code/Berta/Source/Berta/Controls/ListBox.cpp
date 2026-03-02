@@ -748,11 +748,13 @@ namespace Berta
 
 			if (hoveredDivVisual.has_value())
 			{
-				GUI::ChangeCursor(m_owner, Cursor::SizeWE); 
+				GUI::ChangeCursor(m_owner, Cursor::SizeWE);
+				m_resizeInteraction.m_isHoveringDivider = true;
 			}
 			else
 			{
 				GUI::ChangeCursor(m_owner, Cursor::Default);
+				m_resizeInteraction.m_isHoveringDivider = false;
 			}
 			
 			if (!m_isDraggingConfirmed && !m_resizeInteraction.m_isResizing)
