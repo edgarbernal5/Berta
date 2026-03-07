@@ -58,9 +58,9 @@ namespace Berta
     {
         m_viewportRect = m_fullViewSize.ToRectangle();
         
-        m_viewportRect.X = m_viewportRect.Y = 1;
-        m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - 2);
-        m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height) - 2);
+        //m_viewportRect.X = m_viewportRect.Y = 1;
+        m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width));
+        m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height));
 
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
 
@@ -225,14 +225,14 @@ namespace Berta
         }
     }
 
-    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds)
+    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds) const
     {
         bool changed = false;
 
         if (m_scrollBarVert)
         {
             int viewTop = m_scrollOffset.Y + m_viewPadding.Top;
-            int viewBottom = m_scrollOffset.Y + static_cast<int>(m_viewportRect.Height)- m_viewPadding.Bottom;
+            int viewBottom = m_scrollOffset.Y + static_cast<int>(m_viewportRect.Height) - m_viewPadding.Bottom;
             int newY = m_scrollOffset.Y;
 
             if (targetBounds.Y < viewTop)

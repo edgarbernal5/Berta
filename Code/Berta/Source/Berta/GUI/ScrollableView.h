@@ -46,7 +46,7 @@ namespace Berta
 		void CalculateViewport();
 		void HandleMouseWheel(const ArgWheel& args);
         
-		bool EnsureVisibility(const Rectangle& targetBounds); 
+		bool EnsureVisibility(const Rectangle& targetBounds) const; 
 		
 		Rectangle GetClientArea() const { return m_viewportRect; } 
 		Rectangle GetVisibleRect() const; 

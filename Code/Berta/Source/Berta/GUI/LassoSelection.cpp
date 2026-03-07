@@ -41,11 +41,10 @@ namespace Berta
             return { 0, 0, 0, 0 };
         }
         
-        // Normalizamos el rectángulo por si el usuario arrastra hacia arriba/izquierda
-        int x = (std::min)(m_startPos.X, m_currentPos.X);
-        int y = (std::min)(m_startPos.Y, m_currentPos.Y);
-        uint32_t width = static_cast<uint32_t>((std::max)(m_startPos.X, m_currentPos.X) - x);
-        uint32_t height = static_cast<uint32_t>((std::max)(m_startPos.Y, m_currentPos.Y) - y);
+        int x = std::min<int>(m_startPos.X, m_currentPos.X);
+        int y = std::min<int>(m_startPos.Y, m_currentPos.Y);
+        uint32_t width = static_cast<uint32_t>(std::max<int>(m_startPos.X, m_currentPos.X) - x);
+        uint32_t height = static_cast<uint32_t>(std::max<int>(m_startPos.Y, m_currentPos.Y) - y);
 
         return { x, y, width, height };
     }

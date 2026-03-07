@@ -52,7 +52,7 @@ namespace Berta
 			auto absoluteArea = m_control->GetArea();
 			m_graphics->SetTransform(absoluteArea);
 
-			if (!m_control->IsBorderless())
+			/*if (!m_control->IsBorderless())
 			{
 				Rectangle localBorderRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
 				m_graphics->DrawRectangle(localBorderRect, m_control->Handle()->Appearance->BoxBorderColor, false);
@@ -65,8 +65,8 @@ namespace Berta
 				controlClipRect.Y += 1;
 				controlClipRect.Height -= 2u;
 				controlClipRect.Width -= 2u;
-			}
-			Rectangle relativeClipRect = controlClipRect;
+			}*/
+			Rectangle relativeClipRect = clipRect;
 			relativeClipRect.X -= absoluteArea.X;
 			relativeClipRect.Y -= absoluteArea.Y;
 			

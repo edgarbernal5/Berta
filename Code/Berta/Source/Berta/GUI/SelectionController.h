@@ -142,6 +142,11 @@ namespace Berta
                 m_selectedItems.insert(i);
             }
         }
+        
+        bool HasSelectionChangedSinceSnapshot() const
+        {
+            return m_selectedItems != m_snapshotItems;
+        }
 
         bool IsSelected(const T& item) const
         {
@@ -159,7 +164,6 @@ namespace Berta
         std::unordered_set<T> m_selectedItems;
         std::unordered_set<T> m_snapshotItems;
         
-        // El "Ancla" guarda el índice desde donde se empezó a hacer Shift+Clic
         std::optional<T> m_anchorItem;
         std::optional<T> m_snapshotAnchor;
     };

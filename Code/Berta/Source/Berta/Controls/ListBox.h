@@ -175,13 +175,17 @@ namespace Berta
 			struct ResizeState
 			{
 				bool m_isResizing{ false };
-				std::optional<size_t> m_visualColumnIndex{ std::nullopt };
+				std::optional<size_t> m_visualColumnIndex { std::nullopt };
 				int m_startX{ 0 };
 				uint32_t m_startWidth{ 0 };
 				bool m_isHoveringDivider{ false };
 			} m_resizeInteraction;
 			
 			// Estado de Arrastre (Drag & Drop)
+			struct DragDropState
+			{
+				
+			};
 			std::optional<size_t> m_draggedVisualIndex{ std::nullopt };
 			int m_dragStartX{ 0 };
 			int m_currentMouseX{ 0 };
@@ -207,35 +211,6 @@ namespace Berta
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-			/*struct Cell
-			{
-				Cell(const std::string& text) : m_text(text){}
-
-				std::string m_text;
-			};
-
-			struct List
-			{
-				struct Item
-				{
-					Item() = default;
-					Item(const std::string& text)
-					{
-						m_cells.emplace_back(text);
-					}
-					std::vector<Cell> m_cells;
-					Rectangle m_bounds;
-					bool m_isSelected{ false };
-					Image m_icon;
-					std::any m_userData;
-				};
-
-				std::vector<Item> m_items;
-				std::vector<std::size_t> m_sortedIndexes;
-				bool m_drawImages{ false };
-			};*/
-			
-
 			struct Module
 			{
 				void AppendHeader(const std::string& text, uint32_t width);
@@ -253,11 +228,7 @@ namespace Berta
 
 				std::vector<ListBoxItem> GetSelectedItems();
 
-				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
-
-				void DrawList(Graphics& graphics);
-
-				void SortHeader(size_t headerIndex, bool ascending);
+				void SortHeader(size_t columnIndex, bool ascending);
 
 				void InitScrollableView();
 				void EnsureVisible(size_t visualIndex);
@@ -265,11 +236,13 @@ namespace Berta
 				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
 				void ProcessLassoIntersection();
 				
+				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
+				void DrawList(Graphics& graphics);
 				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
 				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
 				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon);
-    
-				bool IsSelected(int index) const;
+				
+				void TriggerSelectionChanged();
 				
 				HeaderController m_headers;
 				ItemCollection m_items;
@@ -277,9 +250,8 @@ namespace Berta
 				std::unique_ptr<ScrollableView> m_scrollableView;
 				LassoSelection m_lassoSelection;
 				SelectionController<size_t> m_selectionController;
-				std::unordered_set<int> m_preLassoSelection;
 				
-				bool m_isSortAscending {false};
+				bool m_isSortAscending { false };
 				std::optional<size_t> m_currentSortColumn = std::nullopt;
 				std::optional<size_t> m_hoveredIndex { std::nullopt };
 				std::optional<size_t> m_focusedLogicalIndex { std::nullopt };
@@ -345,14 +317,14 @@ namespace Berta
 
 	struct ArgListBox
 	{
-		size_t SelectedIndex{ 0 };
+		std::vector<ReactorCore::ListBox::ListBoxItem> Selected;
 	};
 
 	namespace ReactorCore::ListBox
 	{
 		struct Events : public ControlEvents
 		{
-			Event<ArgListBox> Selected;
+			Event<ArgListBox> SelectionChanged;
 		};
 	}
 	
@@ -368,7 +340,7 @@ namespace Berta
 		void AppendHeader(const std::string& name, uint32_t width = 120);
 		ListBoxItem Append(const std::string& text);
 		ListBoxItem Append(std::initializer_list<std::string> texts);
-		ListBoxItem At(size_t index);
+		ListBoxItem At(size_t logicalIndex);
 		void Clear();
 		void ClearHeaders();
 		void Erase(ListBoxItem item);
