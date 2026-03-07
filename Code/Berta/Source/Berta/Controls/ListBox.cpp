@@ -73,22 +73,15 @@ namespace Berta
 			{
 				return;
 			}
-			// PASO 1: Borrado físico de la memoria.
-			// Esto hace que todos los elementos a la derecha de 'logicalIndex'
-			// se desplacen una posición hacia la izquierda (su índice real disminuye en 1).
+			
 			m_items.erase(m_items.begin() + logicalIndex);
 
-			// PASO 2: Encontrar el elemento en nuestro orden visual y borrarlo.
 			auto it = std::find(m_visualMap.begin(), m_visualMap.end(), logicalIndex);
 			if (it != m_visualMap.end())
 			{
 				m_visualMap.erase(it);
 			}
 
-			// PASO 3: CORRECCIÓN DE ÍNDICES (El "Terremoto")
-			// Como los datos físicos se movieron a la izquierda, cualquier índice en nuestro
-			// mapa visual que apuntara a un elemento posterior al borrado, ahora está desfasado.
-			// Le restamos 1 para que vuelva a apuntar al dato correcto.
 			for (size_t& mappedLogicalIndex : m_visualMap)
 			{
 				if (mappedLogicalIndex > logicalIndex)
@@ -97,7 +90,6 @@ namespace Berta
 				}
 			}
 
-			// PASO 4: Avisar al ListBox (Module) que la lista cambió
 			TriggerChanged();
 		}
 
@@ -181,6 +173,7 @@ namespace Berta
 			m_control = &control;
 			m_module.m_window = control.Handle();
 
+			m_module.m_headers.Init(m_module.m_window);
 			m_module.m_items.SetOnChangedCallback([this]()
 			{
 				m_module.UpdateScrollData();
@@ -200,7 +193,38 @@ namespace Berta
 				m_module.m_headers.SetSortState(m_module.m_currentSortColumn.value(), m_module.m_isSortAscending);
 				m_module.m_items.Sort(visualColumnIndex, m_module.m_isSortAscending);
 			});
-			m_module.m_headers.Init(m_module.m_window);
+			
+			m_module.m_headers.SetOnRequestColumnAutoWidth([this, graphics](size_t logicalColumnIndex) -> uint32_t
+			{
+				const auto& headers = m_module.m_headers.GetHeaders();
+				std::string headerText = headers[logicalColumnIndex].Text;
+				uint32_t maxWidth = graphics->GetTextExtent(headerText).Width;
+
+				auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
+				auto listItemIconSize = m_module.m_window->ToScale(appearance->ListItemIconSize);
+				auto listItemIconMargin = m_module.m_window->ToScale(appearance->ListItemIconMargin);
+				
+				bool showIcons = m_module.m_headers.GetLogicalIndex(0) == logicalColumnIndex && m_module.m_items.ShouldDrawImages();
+				size_t rowCount = m_module.m_items.GetCount();
+				for (size_t i = 0; i < rowCount; ++i)
+				{
+					auto* item = m_module.m_items.GetItemSafely(i);
+		            
+					if (item && logicalColumnIndex < item->m_cells.size())
+					{
+						std::string cellText = item->m_cells[logicalColumnIndex].m_text; 
+		                
+						auto textWidth = graphics->GetTextExtent(cellText).Width;
+						if (showIcons)
+						{
+							textWidth += listItemIconSize + 2u * listItemIconMargin;
+						}
+						maxWidth = std::max<uint32_t>(textWidth, maxWidth);
+					}
+				}
+
+				return maxWidth;
+			});
 			
 			m_module.InitScrollableView();
 			m_module.UpdateScrollData();
@@ -232,39 +256,6 @@ namespace Berta
 			{
 				graphics.EndClipping();
 			}
-			/*
-			//BT_CORE_TRACE << " -- Listbox Update() " << std::endl;
-			auto enabled = m_control->GetEnabled();
-			auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
-			graphics.DrawRectangle(m_module.m_window->ClientSize.ToRectangle(), m_module.m_window->Appearance->BoxBackground, true);
-
-			m_module.DrawList(graphics);
-			m_module.DrawHeaders(graphics);
-
-			if (m_module.m_mouseSelection.m_started && m_module.m_mouseSelection.m_startPosition != m_module.m_mouseSelection.m_endPosition)
-			{
-				Point startPoint, endPoint;
-				Size boxSize;
-				m_module.CalculateSelectionBox(startPoint, endPoint, boxSize);
-
-				Color blendColor = m_module.m_window->Appearance->SelectionHighlightColor;
-				Graphics selectionBox(boxSize, m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
-				selectionBox.Begin();
-				selectionBox.DrawRectangle(blendColor, true);
-				selectionBox.DrawRectangle(m_module.m_window->Appearance->SelectionBorderHighlightColor, false);
-				selectionBox.Flush();
-
-				Rectangle blendRect{ startPoint.X + scrollOffset.X, startPoint.Y + scrollOffset.Y, boxSize.Width, boxSize.Height };
-				graphics.Blend(blendRect, selectionBox, { 0,0 }, 0.5);
-			}
-
-			if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
-			{
-				auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-				graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
-			}
-			graphics.DrawRectangle(m_module.m_window->ClientSize.ToRectangle(), enabled ? m_module.m_window->Appearance->BoxBorderColor : m_module.m_window->Appearance->BoxBorderDisabledColor, false);
-			*/
 		}
 
 		void Reactor::DblClick(Graphics& graphics, const ArgMouse& args)
@@ -273,6 +264,8 @@ namespace Berta
 			if (m_module.m_headers.OnDblClick(args, scrollX))
 			{
 				m_module.UpdateScrollData();
+				m_module.m_headers.OnMouseMove(args, scrollX);
+				
 				GUI::MarkAsNeedUpdate(m_module.m_window);
 				return;
 			}
@@ -1358,13 +1351,13 @@ namespace Berta
 				if (logicalCol < item->m_cells.size())
 				{
 					const std::string& cellText = item->m_cells[logicalCol].m_text;
-					DrawCell(graphics, cellRect, cellText, isSelected, visualCol == 0 ? icon : nullptr);
+					DrawCell(graphics, cellRect, cellText, isSelected, logicalCol == 0 ? icon : nullptr, logicalCol == 0 && m_items.ShouldDrawImages());
 				}
 				currentX += static_cast<int>(colWidth);
 			}
 		}
 
-		void Reactor::Module::DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon)
+		void Reactor::Module::DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon, bool drawIconsForColumn)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			// Padding
@@ -1373,11 +1366,10 @@ namespace Berta
 			textRect.X += static_cast<int>(textPadding); 
 			textRect.Width -= textPadding * 2u;
 			
+			auto listItemIconSize = m_window->ToScale(appearance->ListItemIconSize);
+			auto listItemIconMargin = m_window->ToScale(appearance->ListItemIconMargin);
 			if (icon)
 			{
-				auto listItemIconSize = m_window->ToScale(appearance->ListItemIconSize);
-				auto listItemIconMargin = m_window->ToScale(appearance->ListItemIconMargin);
-				
 				auto iconSize = icon->GetSize();
 				Rectangle destRect = rect;
 				destRect.X += static_cast<int>(listItemIconMargin);
@@ -1385,9 +1377,13 @@ namespace Berta
 				destRect.Height = listItemIconSize;
 				destRect.Width = listItemIconSize;
 				
+				icon->Paste(iconSize.ToRectangle(), graphics, destRect);
+			}
+			
+			if (drawIconsForColumn)
+			{
 				textRect.X += static_cast<int>(listItemIconMargin + listItemIconSize);
 				textRect.Width -= listItemIconMargin * 2u + listItemIconSize;
-				icon->Paste(iconSize.ToRectangle(), graphics, destRect);
 			}
 
 			Color textColor = isRowSelected ? appearance->HighlightTextColor : appearance->Foreground;
