@@ -58,9 +58,9 @@ namespace Berta
     {
         m_viewportRect = m_fullViewSize.ToRectangle();
         
-        m_viewportRect.X = m_viewportRect.Y = 1;
-        m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - 2);
-        m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height) - 2);
+        //m_viewportRect.X = m_viewportRect.Y = 1;
+        m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width));
+        m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height));
 
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
 
@@ -88,13 +88,30 @@ namespace Berta
         UpdateScrollBars();
     }
 
+    void ScrollableView::SetScrollOffsetX(int xPos)
+    {
+        if (!m_scrollBarHoriz || m_scrollOffset.X == xPos)
+            return;
+        
+        m_scrollBarHoriz->SetValue(xPos);
+    }
+
+    void ScrollableView::SetScrollOffsetY(int yPos)
+    {
+        if (!m_scrollBarVert || m_scrollOffset.Y == yPos)
+            return;
+        
+        m_scrollBarVert->SetValue(yPos);
+    }
+
     void ScrollableView::UpdateScrollBars()
     {
+        bool needNotifyChange = false;
         if (!m_needVerticalScroll && m_scrollBarVert)
         {
             m_scrollBarVert.reset();
             m_scrollOffset.Y = 0;
-            NotifyChange();
+            needNotifyChange = true;
         }
         else if (m_needVerticalScroll)
         {
@@ -105,18 +122,25 @@ namespace Berta
         {
             m_scrollBarHoriz.reset();
             m_scrollOffset.X = 0;
+            needNotifyChange = true;
             NotifyChange();
         }
         else if (m_needHorizontalScroll)
         {
             UpdateHorizontalScrollBar();
         }
+        
+        if (needNotifyChange)
+        {
+            NotifyChange();
+        }
     }
 
     void ScrollableView::UpdateVerticalScrollBar()
     {
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect{
+        Rectangle scrollRect
+        {
             static_cast<int>(m_fullViewSize.Width - scrollSize) - 1, 
             1, 
             scrollSize, 
@@ -155,7 +179,8 @@ namespace Berta
     void ScrollableView::UpdateHorizontalScrollBar()
     {
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect{
+        Rectangle scrollRect
+        {
             1, 
             static_cast<int>(m_fullViewSize.Height - scrollSize) - 1, 
             m_fullViewSize.Width - 2u, 
@@ -208,21 +233,21 @@ namespace Berta
         }
     }
 
-    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds)
+    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds) const
     {
         bool changed = false;
 
         if (m_scrollBarVert)
         {
             int viewTop = m_scrollOffset.Y + m_viewPadding.Top;
-            int viewBottom = m_scrollOffset.Y + static_cast<int>(m_viewportRect.Height)- m_viewPadding.Bottom;
+            int viewBottom = m_scrollOffset.Y + static_cast<int>(m_viewportRect.Height) - m_viewPadding.Bottom;
             int newY = m_scrollOffset.Y;
 
             if (targetBounds.Y < viewTop)
             {
                 newY = targetBounds.Y - m_viewPadding.Top;
             }
-            else if (targetBounds.Y + targetBounds.Height > viewBottom)
+            else if (targetBounds.Y + static_cast<int>(targetBounds.Height) > viewBottom)
             {
                 newY = targetBounds.Y + static_cast<int>(targetBounds.Height) - static_cast<int>(m_viewportRect.Height) + m_viewPadding.Bottom;
             }
@@ -244,7 +269,7 @@ namespace Berta
             {
                 newX = targetBounds.X - m_viewPadding.Left;
             }
-            else if (targetBounds.X + targetBounds.Width > viewRight)
+            else if (targetBounds.X + static_cast<int>(targetBounds.Width) > viewRight)
             {
                 newX = targetBounds.X + static_cast<int>(targetBounds.Width) - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
             }

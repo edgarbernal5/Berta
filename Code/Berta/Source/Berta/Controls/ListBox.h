@@ -12,10 +12,13 @@
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 #include "Berta/GUI/ScrollableView.h"
+#include "Berta/GUI/SelectionController.h"
+#include "Berta/GUI/LassoSelection.h"
 
 #include <string>
 #include <vector>
 #include <any>
+#include <unordered_set>
 
 namespace Berta
 {
@@ -31,6 +34,163 @@ namespace Berta
 			uint32_t ListItemHeight = 24;
 			uint32_t ListItemIconSize = 16;
 			uint32_t ListItemIconMargin = 4;
+		};
+		
+		namespace List
+		{
+			struct Cell 
+			{
+				Cell(const std::string& text) :
+					m_text(text){}
+				
+				std::string m_text; 
+			};
+
+			struct Item
+			{
+				std::vector<Cell> m_cells;
+				Image m_icon;
+				std::any m_userData;
+			};
+		}
+		
+		class ItemCollection
+		{
+		public:
+			using OnCollectionChangedCallback = std::function<void()>;
+     				
+		public:
+			ItemCollection() = default;
+             
+			void SetOnChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
+             
+			size_t Append(const std::string& text);
+			size_t Append(std::initializer_list<std::string> texts);
+             
+			void Clear();
+			void RemoveAt(size_t index);
+			void Erase(size_t logicalIndex);
+			
+			size_t GetCount() const { return m_items.size(); }
+			bool IsEmpty() const { return m_items.empty(); }
+
+			List::Item* At(size_t index);
+             
+			void Sort(size_t columnIndex, bool ascending);
+			void ResetSort();
+			void EnableImages(bool active);
+             
+			size_t GetLogicalIndex(size_t visualIndex) const;
+			size_t GetVisualIndex(size_t logicalIndex) const;
+			
+			List::Item* GetItemSafely(size_t logicalIndex)
+			{
+				if (logicalIndex < m_items.size())
+				{
+					return &m_items[logicalIndex];
+				}
+				return nullptr;
+			}
+
+			void NotifyItemModified();
+			bool ShouldDrawImages() const { return m_drawImages; }
+		private:
+			void TriggerChanged();
+     				
+			bool m_drawImages { false };
+			std::vector<List::Item> m_items;
+			std::vector<size_t> m_visualMap;
+			OnCollectionChangedCallback m_onChanged;
+		};
+		
+		struct HeaderController
+		{
+			using OnHeaderClickedCallback = std::function<void(size_t visualColumnIndex)>;
+			using OnHeadersReorderedCallback = std::function<void()>;
+			using OnRequestColumnAutoWidth = std::function<uint32_t(size_t visualColumnIndex)>;
+
+			struct ItemData
+			{
+				ItemData() = default;
+				ItemData(const std::string& text, uint32_t width) :
+					Text(text),
+					Width(width)
+				{
+				}
+
+				std::string Text;
+				uint32_t Width;
+			};
+
+			HeaderController() = default;
+
+			void Init(Window* owner);
+
+			void Append(const std::string& name, uint32_t width);
+			void Clear();
+			void SetSortState(size_t visualColumnIndex, bool ascending);
+			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
+			uint32_t GetTotalWidth() const;
+
+			void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
+
+			bool OnDblClick(const ArgMouse& args, int scrollX);
+			bool OnMouseDown(const ArgMouse& args, int scrollX);
+			bool OnMouseMove(const ArgMouse& args, int scrollX);
+			bool OnMouseUp(const ArgMouse& args, int scrollX);
+			bool OnMouseLeave();
+
+			bool IsResizing() const { return m_resizeInteraction.m_isResizing; }
+
+			void SetTextPadding(int top, int bottom = 0, int left = 0, int right = 0);
+			void SetOnHeaderClickedCallback(OnHeaderClickedCallback cb) { m_onHeaderClicked = cb; }
+			void SetOnHeadersReorderedCallback(OnHeadersReorderedCallback cb) { m_onHeadersReordered = cb; }
+			void SetOnRequestColumnAutoWidth(OnRequestColumnAutoWidth cb) { m_onRequestAutoWidth = cb; }
+			
+			size_t GetLogicalIndex(size_t visualIndex) const { return m_visualOrder[visualIndex]; }
+			size_t GetColumnCount() const { return m_headers.size(); }
+			
+		private:
+			uint32_t GetPositionToColumn(size_t visualIdx) const;
+			void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
+
+			std::optional<size_t> GetVisualIndexAt(int mouseX, int scrollX) const;
+			std::optional<size_t> GetDividerVisualIndexAt(int mouseX, int scrollX) const;
+			
+			Window* m_owner { nullptr };
+			
+			OnHeaderClickedCallback m_onHeaderClicked;
+			OnHeadersReorderedCallback m_onHeadersReordered;
+			OnRequestColumnAutoWidth m_onRequestAutoWidth;
+			
+			// --- Estados Visuales e Interacción ---
+			std::optional<size_t> m_hoveredVisualIndex{ std::nullopt };
+			std::optional<size_t> m_sortLogicalIndex{ std::nullopt };
+			bool m_isSortAscending{ true };
+			
+			uint32_t m_startOffPos{ 4 };
+			Padding m_textPadding{0,0,2,0};
+			
+			struct ResizeState
+			{
+				bool m_isResizing{ false };
+				std::optional<size_t> m_visualColumnIndex { std::nullopt };
+				int m_startX{ 0 };
+				uint32_t m_startWidth{ 0 };
+				bool m_isHoveringDivider{ false };
+			} m_resizeInteraction;
+			
+			struct DragDropState
+			{
+				std::optional<size_t> m_draggedVisualIndex{ std::nullopt };
+				int m_dragStartX{ 0 };
+				int m_currentMouseX{ 0 };
+				bool m_isDraggingConfirmed{ false };
+			} m_dragDropInteraction;
+			
+			std::vector<ItemData> m_headers;
+			std::vector<size_t> m_visualOrder;
+			Graphics m_draggingBox;
 		};
 
 		class Reactor : public ControlReactor
@@ -48,105 +208,6 @@ namespace Berta
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-			struct Headers
-			{
-				struct ItemData
-				{
-					ItemData() = default;
-					ItemData(const std::string& name, uint32_t width) : m_name(name)
-					{
-						m_bounds.Width = width;
-					}
-
-					std::string m_name;
-					Rectangle m_bounds;
-				};
-
-				Graphics m_draggingBox;
-				int m_mouseDownOffset{ 0 };
-				int m_mouseDraggingPosition{ 0 };
-				int m_draggingTargetIndex{ -1 };
-				int m_selectedIndex{ -1 };
-				int m_sortedHeaderIndex{ -1 };
-				bool isAscendingOrdering{ true };
-				bool m_isDragging{ false };
-				std::vector<ItemData> m_items;
-
-				std::vector<size_t> m_sorted;
-			};
-
-			struct Cell
-			{
-				Cell(const std::string& text) : m_text(text){}
-
-				std::string m_text;
-			};
-
-			struct List
-			{
-				struct Item
-				{
-					Item(const std::string& text)
-					{
-						m_cells.emplace_back(text);
-					}
-					std::vector<Cell> m_cells;
-					Rectangle m_bounds;
-					bool m_isSelected{ false };
-					Image m_icon;
-					std::any m_userData;
-				};
-
-				std::vector<Item> m_items;
-				std::vector<std::size_t> m_sortedIndexes;
-				bool m_drawImages{ false };
-			};
-
-			enum class InteractionArea : uint8_t
-			{
-				None,
-				Header,
-				HeaderSplitter,
-				List,
-				ListBlank
-			};
-
-			struct ViewportData
-			{
-				Rectangle m_backgroundRect{};
-				bool m_needVerticalScroll{ false };
-				bool m_needHorizontalScroll{ false };
-				Size m_contentSize{};
-				uint32_t m_innerMargin{ 0 };
-				uint32_t m_itemHeight{ 0 };
-				uint32_t m_itemHeightWithMargin{ 0 };
-
-				uint32_t m_columnOffsetStartOff{ 0 };
-			};
-
-			struct MouseSelection
-			{
-				bool IsAlreadySelected(List::Item* item) const;
-				bool IsSelected(List::Item* item) const;
-
-				void Select(List::Item* item);
-				void Deselect(List::Item* item);
-
-				void Clear();
-				void ClearReferences(List::Item* item);
-
-				std::vector<List::Item*> m_selections;
-				std::vector<List::Item*> m_alreadySelected; //TODO: cambiar por un set/map
-				List::Item* m_hoveredItem{ nullptr };
-				List::Item* m_selectedItem{ nullptr };
-				List::Item* m_pivotItem{ nullptr };
-
-				Point m_startPosition;
-				Point m_endPosition;
-				bool m_started{ false };
-				bool m_inverseSelection{ false };
-			};
-
 			struct Module
 			{
 				void AppendHeader(const std::string& text, uint32_t width);
@@ -156,64 +217,43 @@ namespace Berta
 
 				void Clear();
 				void ClearHeaders();
-				void CalculateViewport(ViewportData& viewportData);
-				void BuildHeaderBounds(size_t startIndex = 0);
-				void BuildListItemBounds(size_t startIndex = 0);
 
 				void Erase(ListBoxItem item);
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
 				void UpdateScrollData();
-				InteractionArea DetermineHoverArea(const Point& mousePosition) const;
-
-				bool HandleMultiSelection(List::Item* item, const ArgMouse& args);
-				void SelectItem(List::Item* index);
-				void ClearSelection();
-				bool EnsureVisibility(int lastSelectedIndex);
-				void PerformRangeSelection(List::Item* itemIndexAtPosition);
-
-				bool UpdateSingleSelection(List::Item* item);
-				void ToggleItemSelection(List::Item* item);
-				void StartSelectionRectangle(const Point& mousePosition);
-				bool ClearSelectionIfNeeded();
-				bool ClearSingleSelection();
 
 				std::vector<ListBoxItem> GetSelectedItems();
 
-				int GetHeaderAtMousePosition(const Point& mousePosition, bool splitter) const;
-
-				void StartHeadersSizing(const Point& mousePosition);
-				void UpdateHeadersSize(const Point& mousePosition);
-				void StopHeadersSizing();
-				void StartSelectingHeader(const Point& mousePosition);
-
-				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
-
-				void DrawHeaders(Graphics& graphics);
-				void DrawHeaderItem(Graphics& graphics, const Rectangle& rect, const std::string& name, bool isHovered, const Rectangle& textRect, const Color& textColor);
-				void DrawList(Graphics& graphics);
-
-				void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize) const;
-				bool SetHoveredListItem(List::Item* index = nullptr);
-
-				void StopDragOrSortHeader();
-				void SortHeader(size_t headerIndex, bool ascending);
-
-				int GetListItemIndex(const List::Item* item) const;
+				void SortHeader(size_t columnIndex, bool ascending);
 
 				void InitScrollableView();
+				void EnsureVisible(size_t visualIndex);
 				
-				Headers m_headers;
-				List m_list;
-
-				InteractionArea m_hoveredArea{ InteractionArea::None };
-				InteractionArea m_pressedArea{ InteractionArea::None };
-
+				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
+				void ProcessLassoIntersection();
+				
+				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
+				void DrawList(Graphics& graphics);
+				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
+				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
+				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon, bool drawIconsForColumn);
+				
+				void TriggerSelectionChanged();
+				
+				HeaderController m_headers;
+				ItemCollection m_items;
+				
 				std::unique_ptr<ScrollableView> m_scrollableView;
-				MouseSelection m_mouseSelection;
-				ViewportData m_viewport;
+				LassoSelection m_lassoSelection;
+				SelectionController<size_t> m_selectionController;
+				
+				bool m_isSortAscending { false };
+				std::optional<size_t> m_currentSortColumn = std::nullopt;
+				std::optional<size_t> m_hoveredIndex { std::nullopt };
+				std::optional<size_t> m_focusedLogicalIndex { std::nullopt };
+
 				Window* m_window{ nullptr };
-				Appearance* m_appearance{ nullptr };
 				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };
 				bool m_ctrlPressed{ false };
@@ -228,8 +268,8 @@ namespace Berta
 
 		struct ListBoxItem
 		{
-			ListBoxItem(Reactor::List::Item* target, Reactor::Module* module) :
-				m_target(target), m_module(module)
+			ListBoxItem(size_t logicalIndex, ItemCollection* itemCollection) :
+				m_logicalIndex(logicalIndex), m_collection(itemCollection)
 			{
 			}
 
@@ -259,7 +299,7 @@ namespace Berta
 
 			explicit operator bool() const
 			{
-				return m_target;
+				return m_collection;
 			}
 
 			friend struct Reactor::Module;
@@ -267,21 +307,21 @@ namespace Berta
 			std::any& UserData();
 			const std::any& UserData() const;
 
-			Reactor::List::Item* m_target{ nullptr };
-			Reactor::Module* m_module{ nullptr };
+			size_t m_logicalIndex{ static_cast<size_t>(-1) };
+			ItemCollection* m_collection{ nullptr };
 		};
 	}
 
 	struct ArgListBox
 	{
-		size_t SelectedIndex{ 0 };
+		std::vector<ReactorCore::ListBox::ListBoxItem> Selected;
 	};
 
 	namespace ReactorCore::ListBox
 	{
 		struct Events : public ControlEvents
 		{
-			Event<ArgListBox> Selected;
+			Event<ArgListBox> SelectionChanged;
 		};
 	}
 	
@@ -297,7 +337,7 @@ namespace Berta
 		void AppendHeader(const std::string& name, uint32_t width = 120);
 		ListBoxItem Append(const std::string& text);
 		ListBoxItem Append(std::initializer_list<std::string> texts);
-		ListBoxItem At(size_t index);
+		ListBoxItem At(size_t logicalIndex);
 		void Clear();
 		void ClearHeaders();
 		void Erase(ListBoxItem item);

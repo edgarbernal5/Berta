@@ -176,16 +176,32 @@ public:
 
 				m_listBox.Erase(selected[0]);
 			});
+		
+		
+		m_buttonEraseSelected.Create(*this, true, { 180,10,75,25 });
+#ifdef BT_DEBUG
+		m_buttonEraseSelected.SetDebugName("buttonEraseSelected");
+#endif
+		m_buttonEraseSelected.SetCaption(L"Erase selected");
+		m_buttonEraseSelected.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+			{
+				auto selected = m_listBox.GetSelected();
+				if (selected.empty())
+					return;
+
+				m_listBox.Erase(selected);
+			});
 
 		m_listBox.Create(*this, true, { 15, 38, 200, 200 });
 #ifdef BT_DEBUG
 		m_listBox.SetDebugName("ListBox");
 #endif
+		
 		m_listBox.AppendHeader("Nombre completo", 100);
 		m_listBox.AppendHeader("Edad", 60);
 		m_listBox.AppendHeader("Lugar de Nacimiento", 200);
 
-		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38", "Caracas"});
+		m_listBox.Append({ "Edgar Alejandro Bernal Oropeza", "38", "Guatire"});
 		m_listBox.Append({ "Bruno Emmanuel Bernal", "3", "Buenos Aires" });
 		m_listBox.Append({ "Adriana Desiree", "37", "Caracas" });
 		m_listBox.Append({ "Luna Bernal", "0", "..." });
@@ -217,6 +233,7 @@ public:
 private:
 	Berta::Button m_buttonClear;
 	Berta::Button m_buttonErase;
+	Berta::Button m_buttonEraseSelected;
 	Berta::Button m_buttonIcon;
 	Berta::ListBox m_listBox;
 };

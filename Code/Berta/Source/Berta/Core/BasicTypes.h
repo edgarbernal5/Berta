@@ -149,6 +149,8 @@ namespace Berta
 		int Bottom() const noexcept;
 		int Right() const noexcept;
 		
+		Point Position() const;
+		
 #ifdef BT_PLATFORM_WINDOWS
 		void FromRECT(const ::RECT& rect)
 		{
@@ -294,6 +296,14 @@ namespace Berta
 			uint8_t A;
 		}Channels;
 		uint32_t BGRA; //Format: 0xBBGGRR
+	};
+	
+	struct Padding
+	{
+		int Top = 0;
+		int Bottom = 0;
+		int Left = 0;
+		int Right = 0;
 	};
 	
 	struct Color

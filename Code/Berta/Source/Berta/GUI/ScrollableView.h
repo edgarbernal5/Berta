@@ -46,11 +46,14 @@ namespace Berta
 		void CalculateViewport();
 		void HandleMouseWheel(const ArgWheel& args);
         
-		bool EnsureVisibility(const Rectangle& targetBounds); 
+		bool EnsureVisibility(const Rectangle& targetBounds) const; 
 		
 		Rectangle GetClientArea() const { return m_viewportRect; } 
 		Rectangle GetVisibleRect() const; 
 		Point GetScrollOffset() const { return m_scrollOffset; }
+		
+		void SetScrollOffsetX(int xPos);
+		void SetScrollOffsetY(int yPos);
 		
 	private:
 		void UpdateScrollBars();
@@ -65,10 +68,7 @@ namespace Berta
 		Size m_fullViewSize{ 0, 0 }; 
 		Rectangle m_viewportRect{ 0, 0, 0, 0 }; 
 
-		struct Padding
-		{
-			int Top = 0, Bottom = 0, Left = 0, Right = 0;
-		} m_viewPadding;
+		Padding m_viewPadding;
 		
 		Point m_scrollOffset{ 0, 0 };
 		Size m_scrollStep{ 20, 20 }; 

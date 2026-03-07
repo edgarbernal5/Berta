@@ -111,6 +111,11 @@ namespace Berta
 		GUI::DisposeWindow(m_handle);
 	}
 
+	bool ControlBase::IsBorderless() const
+	{
+		return GUI::IsWindowBorderless(m_handle);
+	}
+
 	bool ControlBase::IsAutoDraw() const
 	{
 		return m_handle->Flags.AutoDraw;

@@ -39,7 +39,7 @@ namespace Berta
 		void Resize(const ArgResize& args);
 		void Move(const ArgMove& args);
 
-		Graphics& GetGraphics() { return *m_graphics; }
+		Graphics& GetGraphics() const { return *m_graphics; }
 		void SetGraphics(Graphics* newGraphics);
 
 	private:
