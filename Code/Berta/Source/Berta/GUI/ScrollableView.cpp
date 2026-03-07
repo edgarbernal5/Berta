@@ -88,6 +88,14 @@ namespace Berta
         UpdateScrollBars();
     }
 
+    void ScrollableView::SetScrollOffsetX(int xPos)
+    {
+        if (!m_scrollBarHoriz || m_scrollOffset.X == xPos)
+            return;
+        
+        m_scrollBarHoriz->SetValue(xPos);
+    }
+
     void ScrollableView::SetScrollOffsetY(int yPos)
     {
         if (!m_scrollBarVert || m_scrollOffset.Y == yPos)
