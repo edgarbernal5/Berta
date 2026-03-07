@@ -171,7 +171,6 @@ namespace Berta
 			uint32_t m_startOffPos{ 4 };
 			Padding m_textPadding{0,0,2,0};
 			
-			// Estado de Redimensionamiento
 			struct ResizeState
 			{
 				bool m_isResizing{ false };
@@ -181,15 +180,13 @@ namespace Berta
 				bool m_isHoveringDivider{ false };
 			} m_resizeInteraction;
 			
-			// Estado de Arrastre (Drag & Drop)
 			struct DragDropState
 			{
-				
-			};
-			std::optional<size_t> m_draggedVisualIndex{ std::nullopt };
-			int m_dragStartX{ 0 };
-			int m_currentMouseX{ 0 };
-			bool m_isDraggingConfirmed{ false };
+				std::optional<size_t> m_draggedVisualIndex{ std::nullopt };
+				int m_dragStartX{ 0 };
+				int m_currentMouseX{ 0 };
+				bool m_isDraggingConfirmed{ false };
+			} m_dragDropInteraction;
 			
 			std::vector<ItemData> m_headers;
 			std::vector<size_t> m_visualOrder;
