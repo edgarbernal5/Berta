@@ -239,6 +239,7 @@ namespace Berta
 			{
 				Rectangle localBorderRect = clientSize;
 				graphics.DrawRectangle(localBorderRect, appearance->BoxBorderColor, false);
+				
 				localBorderRect.X = localBorderRect.Y = 1;
 				localBorderRect.Height -= 2;
 				localBorderRect.Width -= 2;
@@ -252,6 +253,22 @@ namespace Berta
 				Graphics selectionBox(m_module.m_lassoSelection.GetRect(), m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
 				m_module.m_lassoSelection.Draw(graphics, selectionBox, appearance->SelectionHighlightColor, appearance->SelectionBorderHighlightColor);
 			}
+			
+			if (m_module.m_scrollableView->HasHorizontalScroll() && m_module.m_scrollableView->HasVerticalScroll())
+			{
+				auto scrollSize = m_module.m_window->ToScale(appearance->ScrollBarSize);
+				graphics.DrawRectangle
+				(
+					{
+						static_cast<int>(clientSize.Width) - static_cast<int>(scrollSize) - 1, 
+						static_cast<int>(clientSize.Height) - static_cast<int>(scrollSize) - 1,
+						scrollSize,
+						scrollSize
+					},
+					appearance->Background, true
+				);
+			}
+			
 			if (!m_control->IsBorderless())
 			{
 				graphics.EndClipping();

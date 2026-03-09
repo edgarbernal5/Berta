@@ -88,20 +88,20 @@ namespace Berta
         UpdateScrollBars();
     }
 
-    void ScrollableView::SetScrollOffsetX(int xPos)
+    void ScrollableView::SetScrollOffsetX(int offsetX)
     {
-        if (!m_scrollBarHoriz || m_scrollOffset.X == xPos)
+        if (!m_scrollBarHoriz || m_scrollOffset.X == offsetX)
             return;
         
-        m_scrollBarHoriz->SetValue(xPos);
+        m_scrollBarHoriz->SetValue(offsetX);
     }
 
-    void ScrollableView::SetScrollOffsetY(int yPos)
+    void ScrollableView::SetScrollOffsetY(int offsetY)
     {
-        if (!m_scrollBarVert || m_scrollOffset.Y == yPos)
+        if (!m_scrollBarVert || m_scrollOffset.Y == offsetY)
             return;
         
-        m_scrollBarVert->SetValue(yPos);
+        m_scrollBarVert->SetValue(offsetY);
     }
 
     void ScrollableView::UpdateScrollBars()

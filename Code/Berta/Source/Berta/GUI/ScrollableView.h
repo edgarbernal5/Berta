@@ -52,9 +52,11 @@ namespace Berta
 		Rectangle GetVisibleRect() const; 
 		Point GetScrollOffset() const { return m_scrollOffset; }
 		
-		void SetScrollOffsetX(int xPos);
-		void SetScrollOffsetY(int yPos);
+		void SetScrollOffsetX(int offsetX);
+		void SetScrollOffsetY(int offsetY);
 		
+		bool HasVerticalScroll() const { return m_scrollBarVert != nullptr; }
+		bool HasHorizontalScroll() const  { return m_scrollBarHoriz != nullptr; }
 	private:
 		void UpdateScrollBars();
 		void UpdateVerticalScrollBar();
