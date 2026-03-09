@@ -58,7 +58,6 @@ namespace Berta
     {
         m_viewportRect = m_fullViewSize.ToRectangle();
         
-        //m_viewportRect.X = m_viewportRect.Y = 1;
         m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width));
         m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height));
 

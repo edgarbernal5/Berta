@@ -160,6 +160,7 @@ namespace Berta
 		bool IsBatching() const;
 		void MarkForBatching();
 
+		Rectangle GetViewportRect() const;
 	private:
 		int GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const;
 	};

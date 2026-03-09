@@ -120,6 +120,21 @@ namespace Berta
 		RootWindow->Flags.isQueuingBatch = true;
 	}
 
+	Rectangle Window::GetViewportRect() const
+	{
+		Rectangle clientRect = ClientSize.ToRectangle();
+		if (!Flags.IsEnabled)
+		{
+			clientRect.X = clientRect.Y = 1;
+			if (clientRect.Width >= 2) clientRect.Width -= 2u;
+			else clientRect.Width = 0;
+			
+			if (clientRect.Height >= 2) clientRect.Height -= 2u;
+			else clientRect.Height = 0;
+		}
+		return clientRect;
+	}
+
 	int Window::GetHierarchyIndexInternal(Window* current, Window* target, bool& found) const
 	{
 		if (!current)
