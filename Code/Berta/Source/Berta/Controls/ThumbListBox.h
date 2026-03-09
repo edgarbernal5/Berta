@@ -11,9 +11,13 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
+#include "Berta/GUI/ScrollableView.h"
+#include "Berta/GUI/SelectionController.h"
 
 #include <string>
 #include <vector>
+
+
 
 namespace Berta
 {
@@ -39,6 +43,64 @@ namespace Berta
 	{
 		Event<ArgThumbListBox>	Selected;
 		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
+	};
+	
+	class ThumbnailCacheLRU
+	{
+	private:
+		size_t m_capacity;
+		std::list<size_t> m_lruList; 
+		
+		struct CacheItem {
+			Image image;
+			std::list<size_t>::iterator listIterator;
+		};
+		std::unordered_map<size_t, CacheItem> m_cacheMap;
+
+	public:
+		ThumbnailCacheLRU(size_t capacity = 100) : m_capacity(capacity) {}
+
+		bool TryGet(size_t index, Image& outImage) {
+			auto it = m_cacheMap.find(index);
+			if (it == m_cacheMap.end()) return false;
+			
+			// Hit en la caché: Mover al frente (O(1))
+			m_lruList.splice(m_lruList.begin(), m_lruList, it->second.listIterator);
+			outImage = it->second.image;
+			return true;
+		}
+
+		void Put(size_t index, const Image& image) {
+			auto it = m_cacheMap.find(index);
+			if (it != m_cacheMap.end()) {
+				it->second.image = image;
+				m_lruList.splice(m_lruList.begin(), m_lruList, it->second.listIterator);
+				return;
+			}
+
+			// Si superamos la capacidad máxima, expulsamos el menos usado
+			if (m_cacheMap.size() >= m_capacity) {
+				size_t last = m_lruList.back();
+				m_cacheMap.erase(last);
+				m_lruList.pop_back();
+			}
+
+			m_lruList.push_front(index);
+			m_cacheMap[index] = { image, m_lruList.begin() };
+		}
+
+		void Erase(size_t index) {
+			auto it = m_cacheMap.find(index);
+			if (it != m_cacheMap.end()) {
+				m_lruList.erase(it->second.listIterator);
+				m_cacheMap.erase(it);
+			}
+		}
+
+		void Clear() {
+			m_cacheMap.clear();
+			m_lruList.clear();
+		}
 	};
 
 	class ThumbListBoxReactor : public ControlReactor
@@ -139,7 +201,13 @@ namespace Berta
 			bool EnsureVisibility(int lastSelectedIndex);
 
 			void UpdateItem(const ItemType& item) const;
-
+			
+			void InitScrollableView();
+			
+			std::unique_ptr<ScrollableView> m_scrollableView;
+			ThumbnailCacheLRU m_imageCache;
+			SelectionController<size_t> m_selectionController;
+			
 			std::vector<ItemType> m_items;
 			uint32_t m_thumbnailSize{ 96u };
 			std::unique_ptr<ScrollBar> m_scrollBar;

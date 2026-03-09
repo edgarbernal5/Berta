@@ -22,6 +22,8 @@ namespace Berta
 		m_module.m_window = control.Handle();
 		m_module.m_control = m_control;
 		m_module.CalculateViewport(m_module.m_viewport);
+		
+		m_module.InitScrollableView();
 	}
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
@@ -50,6 +52,26 @@ namespace Berta
 			graphics.DrawRectangle(cardRect, window->Appearance->ButtonBackground, true);
 			graphics.DrawRectangle(thumbnailRect, window->Appearance->Background, true);
 
+			// INTEGRACIÓN DE CACHÉ: Intentar obtener la imagen
+			Image cachedImage;
+			/*if (item.m_hasThumbnail && m_module.m_imageCache.TryGet(i, cachedImage))
+			{
+				Size imageSize = window->ToScale(cachedImage.GetSize());
+				Rectangle thumbnailImageRect;
+				if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
+				{
+					thumbnailImageRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
+				}
+				else
+				{
+					Point center = thumbFrameSize;
+					center -= imageSize;
+					center /= 2;
+					thumbnailImageRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
+				}
+
+				cachedImage.Paste(graphics, thumbnailImageRect);
+			}*/
 			if (item.m_thumbnail)
 			{
 				Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
@@ -69,7 +91,6 @@ namespace Berta
 
 				item.m_thumbnail.Paste(graphics, thumbnailImageRect);
 			}
-			
 			
 			if (isSelected)
 			{
@@ -973,6 +994,17 @@ namespace Berta
 		}
 
 		GUI::UpdateWindow(m_window);
+	}
+
+	void ThumbListBoxReactor::Module::InitScrollableView()
+	{
+		m_scrollableView = std::make_unique<ScrollableView>(m_window);
+		
+		m_scrollableView->SetScrollStep(20, 20);
+		m_scrollableView->SetOnScrollChange([this]()
+			{
+				GUI::MarkAsNeedUpdate(m_window);
+			});
 	}
 
 	void ThumbListBoxReactor::Module::BuildItems()

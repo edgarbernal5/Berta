@@ -1141,9 +1141,9 @@ namespace Berta
 
 		void Reactor::Module::InitScrollableView()
 		{
+			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			m_scrollableView = std::make_unique<ScrollableView>(m_window);
         
-			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			m_scrollableView->SetScrollStep(static_cast<int>(m_window->ToScale(appearance->ListItemHeight)), 20);
 			m_scrollableView->SetOnScrollChange([this]()
 				{
