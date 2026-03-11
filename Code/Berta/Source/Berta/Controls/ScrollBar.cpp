@@ -280,8 +280,7 @@ namespace Berta
 
 	void ScrollBarReactor::EmitValueChanged()
 	{
-		ArgScrollBar argScrollbar{};
-		argScrollbar.Value = m_value;
+		ArgScrollBar argScrollbar { m_value };
 		reinterpret_cast<ScrollBarEvents*>(m_control->Handle()->Events.get())->ValueChanged.Emit(argScrollbar);
 	}
 
@@ -293,7 +292,9 @@ namespace Berta
 	void ScrollBarReactor::DrawButton(Graphics& graphics, const Rectangle& rect, int arrowLength, int arrowWidth, Graphics::ArrowDirection direction, bool isHighlighted, bool isEnabled)
 	{
 		if (arrowWidth % 2 == 1)
+		{
 			--arrowWidth;
+		}
 		
 		auto color = isEnabled ? (isHighlighted ? m_control->Handle()->Appearance->ButtonPressedBackground : m_control->Handle()->Appearance->ButtonBackground) : m_control->Handle()->Appearance->BoxBorderDisabledColor;
 		graphics.DrawArrow(rect, arrowLength, arrowWidth, direction,

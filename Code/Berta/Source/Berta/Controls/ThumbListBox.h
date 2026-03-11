@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "Berta/GUI/LassoSelection.h"
 
 
 namespace Berta
@@ -47,20 +48,11 @@ namespace Berta
 	
 	class ThumbnailCacheLRU
 	{
-	private:
-		size_t m_capacity;
-		std::list<size_t> m_lruList; 
-		
-		struct CacheItem {
-			Image image;
-			std::list<size_t>::iterator listIterator;
-		};
-		std::unordered_map<size_t, CacheItem> m_cacheMap;
-
 	public:
 		ThumbnailCacheLRU(size_t capacity = 100) : m_capacity(capacity) {}
 
-		bool TryGet(size_t index, Image& outImage) {
+		bool TryGet(size_t index, Image& outImage)
+		{
 			auto it = m_cacheMap.find(index);
 			if (it == m_cacheMap.end()) return false;
 			
@@ -70,16 +62,19 @@ namespace Berta
 			return true;
 		}
 
-		void Put(size_t index, const Image& image) {
+		void Put(size_t index, const Image& image)
+		{
 			auto it = m_cacheMap.find(index);
-			if (it != m_cacheMap.end()) {
+			if (it != m_cacheMap.end())
+			{
 				it->second.image = image;
 				m_lruList.splice(m_lruList.begin(), m_lruList, it->second.listIterator);
 				return;
 			}
 
 			// Si superamos la capacidad máxima, expulsamos el menos usado
-			if (m_cacheMap.size() >= m_capacity) {
+			if (m_cacheMap.size() >= m_capacity)
+			{
 				size_t last = m_lruList.back();
 				m_cacheMap.erase(last);
 				m_lruList.pop_back();
@@ -89,18 +84,32 @@ namespace Berta
 			m_cacheMap[index] = { image, m_lruList.begin() };
 		}
 
-		void Erase(size_t index) {
+		void Erase(size_t index)
+		{
 			auto it = m_cacheMap.find(index);
-			if (it != m_cacheMap.end()) {
+			if (it != m_cacheMap.end())
+			{
 				m_lruList.erase(it->second.listIterator);
 				m_cacheMap.erase(it);
 			}
 		}
 
-		void Clear() {
+		void Clear()
+		{
 			m_cacheMap.clear();
 			m_lruList.clear();
 		}
+		
+	private:
+		size_t m_capacity;
+		std::list<size_t> m_lruList; 
+		
+		struct CacheItem
+		{
+			Image image;
+			std::list<size_t>::iterator listIterator;
+		};
+		std::unordered_map<size_t, CacheItem> m_cacheMap;
 	};
 
 	class ThumbListBoxReactor : public ControlReactor
@@ -123,75 +132,22 @@ namespace Berta
 				ItemType() = default;
 
 				std::wstring m_text;
-				Image m_thumbnail;
-				bool m_isSelected{ false };
-				Rectangle m_bounds;
-			};
-
-			struct State
-			{
-				int m_offset{ 0 };
-			};
-
-			struct ViewportData
-			{
-				Rectangle m_backgroundRect{};
-				uint32_t m_totalRows{ 0 };
-				uint32_t m_totalCardsInRow{ 0 };
-				Size m_cardSize{};
-				Size m_cardSizeWithMargin{};
-				int m_contentSize{ 0 };
-				uint32_t m_innerMargin{ 0 };
-				uint32_t m_cardMargin{ 0 };
-				uint32_t m_cardMarginHalf{ 0 };
-
-				int m_startingVisibleIndex{ 0 };
-				int m_endingVisibleIndex{ 0 };
-			};
-
-			struct MouseSelection
-			{
-				bool IsAlreadySelected(size_t index) const;
-				bool IsSelected(size_t index) const;
-				void Select(size_t index);
-				void Deselect(size_t index);
-				void Clear();
-
-				std::vector<size_t> m_selections; //TODO: cambiar a set/map
-				std::vector<size_t> m_alreadySelected;  //TODO: cambiar a set/map
-				
-				int m_selectedIndex{ -1 };
-				int m_pivotIndex{ -1 };
-				Point m_startPosition;
-				Point m_endPosition;
-				bool m_started{ false };
-				bool m_inverseSelection{ false };
+				bool m_hasThumbnail { false };
 			};
 
 			bool AddItem(const std::wstring& text);
 			bool AddItem(const std::wstring& text, const Image& thumbnail);
 			ThumbListBoxItem At(size_t index);
-			void CalculateViewport(ViewportData& viewportData) const;
-			void CalculateVisibleIndices();
-			void CalculateSelectionBox(Point& startPoint, Point& endPoint, Size& boxSize);
-			void BuildItems();
+			
 			bool Clear();
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
-			void UpdateScrollBar();
+			void UpdateScrollContentSize();
 			bool IsEnabledMultiselection() const;
 			bool EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
-			void ClearSelection();
-			bool ClearSingleSelection();
-			bool UpdateSingleSelection(int newItemIndex);
-			void SelectItem(int index);
-			void StartSelectionRectangle(const Point& mousePosition);
-			bool ClearSelectionIfNeeded();
-			void ToggleItemSelection(int itemIndexAtPosition);
-			void PerformRangeSelection(int itemIndexAtPosition);
-			bool HandleMultiSelection(int itemIndexAtPosition, const ArgMouse& args);
 
+			Rectangle GetItemBounds(size_t index) const;
 			void EmitVisibilityEvent(size_t index, bool visible) const;
 			void Draw() const;
 			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
@@ -207,21 +163,21 @@ namespace Berta
 			std::unique_ptr<ScrollableView> m_scrollableView;
 			ThumbnailCacheLRU m_imageCache;
 			SelectionController<size_t> m_selectionController;
+			LassoSelection m_lassoSelection;
 			
 			std::vector<ItemType> m_items;
-			uint32_t m_thumbnailSize{ 96u };
-			std::unique_ptr<ScrollBar> m_scrollBar;
-			ThumbListBoxAppearance* m_appearance{ nullptr };
-			State m_state;
+			bool m_isDraggingSelection{ false };
+			Point m_dragStartPosition;
+			Point m_dragEndPosition;
+			
 			Window* m_window{ nullptr };
 			ControlBase* m_control{ nullptr };
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
+			uint32_t m_thumbnailSize{ 96u };
 
 			ThumbListBoxEvents* m_events{ nullptr };
-			MouseSelection m_mouseSelection;
-			ViewportData m_viewport;
 		private:
 
 		};
