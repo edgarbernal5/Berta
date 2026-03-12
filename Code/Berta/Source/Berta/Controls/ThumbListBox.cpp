@@ -26,7 +26,6 @@ namespace Berta
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
 	{
-		//BT_CORE_TRACE << "  - ThumbListBoxReactor::Update " << std::endl;
 		auto appearance = reinterpret_cast<ThumbListBoxAppearance*>(m_control->Handle()->Appearance.get());
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
@@ -34,7 +33,7 @@ namespace Berta
 		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
 
 		if (m_module.m_items.empty() || !m_module.m_scrollableView) return;
-		
+	
 		auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
 		Point offset{ -scrollOffset.X, -scrollOffset.Y };
 
@@ -42,15 +41,27 @@ namespace Berta
 		int cardWidth = firstBounds.Width;
 		int cardHeight = firstBounds.Height;
 		if (cardWidth == 0 || cardHeight == 0) return;
-		int columns = std::max<int>(1, static_cast<int>(window->ClientSize.Width / cardWidth));
-		
-		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / cardHeight);
-		int visibleRows = static_cast<int>(std::ceil(window->ClientSize.Height / static_cast<float>(cardHeight))) + 2;
-		
+
+		int availableWidth = window->ClientSize.Width;
+		if (m_module.m_scrollableView->GetClientArea().Width > 0) 
+		{
+			availableWidth = m_module.m_scrollableView->GetClientArea().Width;
+		}
+		int columns = std::max<int>(1, static_cast<int>(availableWidth / cardWidth));
+		// -----------------------------
+
+		int gapY = window->ToScale(10);
+		int totalRowHeight = cardHeight + gapY; 
+	
+		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / totalRowHeight);
+		int visibleRows = static_cast<int>(std::ceil(window->ClientSize.Height / static_cast<float>(totalRowHeight))) + 2;
+	
 		size_t startIndex = static_cast<size_t>(firstVisibleRow) * columns;
 		size_t endIndex = std::min<size_t>(m_module.m_items.size(), startIndex + static_cast<size_t>(visibleRows * columns));
+	
 		auto thumbSizeScale = window->ToScale(m_module.m_thumbnailSize);
 		Size thumbFrameSize{ thumbSizeScale, thumbSizeScale };
+
 		for (size_t i = startIndex; i < endIndex; i++)
 		{
 			auto& item = m_module.m_items[i];
@@ -59,13 +70,22 @@ namespace Berta
 			cardRect.Y += offset.Y;
 
 			Rectangle thumbnailRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
-			
-			const bool& isSelected = m_module.m_selectionController.IsSelected(i);;
-			bool isLastSelected = (int)i == 3323;
-			graphics.DrawRectangle(cardRect, window->Appearance->ButtonBackground, true);
+		
+			const bool& isSelected = m_module.m_selectionController.IsSelected(i);
+			bool isLastSelected = (int)i == 3323; // (Valor de prueba)
+			bool isHovered = (i == m_module.m_hoveredIndex);
+			Color backColor = window->Appearance->ButtonBackground;
+			if (isSelected)
+			{
+				backColor = window->Appearance->HighlightColor;
+			}
+			else if (isHovered)
+			{
+				backColor = window->Appearance->ButtonHighlightBackground;
+			}
+			graphics.DrawRectangle(cardRect, backColor, true);
 			graphics.DrawRectangle(thumbnailRect, window->Appearance->Background, true);
 
-			// INTEGRACIÓN DE CACHÉ: Intentar obtener la imagen
 			Image cachedImage;
 			if (item.m_hasThumbnail && m_module.m_imageCache.TryGet(i, cachedImage))
 			{
@@ -85,51 +105,25 @@ namespace Berta
 
 				cachedImage.Paste(graphics, thumbnailImageRect);
 			}
-			/*if (item.m_thumbnail)
-			{
-				Size imageSize = window->ToScale(item.m_thumbnail.GetSize());
-				Rectangle thumbnailImageRect;
-				if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
-				{
-					thumbnailImageRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
-				}
-				else
-				{
-					Point center = thumbFrameSize;
-					center -= imageSize;
-					center /= 2;
-
-					thumbnailImageRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
-				}
-
-				item.m_thumbnail.Paste(graphics, thumbnailImageRect);
-			}*/
-			
+		
 			if (isSelected)
 			{
 				graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardHeight - thumbSizeScale }, window->Appearance->HighlightColor, true);
-				//graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSize, cardRect.Width, cardHeight }, window->Appearance->HighlightColor, true);
 			}
 			m_module.DrawItemText(graphics, item, { cardRect.X, cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardRect.Height });
+		
 			auto lineColor = enabled ? (isLastSelected ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor, false);
 			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSizeScale }, { cardRect.X + (int)cardRect.Width - 1, cardRect.Y + (int)thumbSizeScale }, lineColor);
 		}
-		
+	
 		if (m_module.m_lassoSelection.IsActive())
 		{
 			Rectangle lassoRect = m_module.m_lassoSelection.GetRect();
 			if (lassoRect.Width > 0 && lassoRect.Height > 0)
 			{
-				Color blendColor = window->Appearance->SelectionHighlightColor;
-				Color borderColor = window->Appearance->SelectionBorderHighlightColor;
-
-				// Creamos la superficie gráfica temporal para el lazo
-				Graphics selectionBox(lassoRect, window->DPI, window->RootPaintHandle);
-				selectionBox.Begin();
-
-				// Tu propia clase se encarga de aplicar los rectángulos y hacer el Flush
-				m_module.m_lassoSelection.Draw(graphics, selectionBox, blendColor, borderColor);
+				Graphics selectionBox(m_module.m_lassoSelection.GetRect(), m_module.m_window->DPI, m_module.m_window->RootPaintHandle);
+				m_module.m_lassoSelection.Draw(graphics, selectionBox, appearance->SelectionHighlightColor, appearance->SelectionBorderHighlightColor);
 			}
 		}
 
@@ -138,7 +132,22 @@ namespace Berta
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
-		m_module.UpdateScrollContentSize();
+		m_module.UpdateScrollMetrics();
+	}
+
+	void ThumbListBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
+	{
+		if (!args.ButtonState.LeftButton) return;
+
+		int clickedIndex = m_module.GetItemIndexAtMousePosition(args.Position);
+		if (clickedIndex != -1)
+		{
+			if (m_module.m_events)
+			{
+				ArgThumbListBox arguments { static_cast<size_t>(clickedIndex) };
+				m_module.m_events->ItemDblClick.Emit(arguments);
+			}
+		}
 	}
 
 	void ThumbListBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -146,12 +155,8 @@ namespace Berta
 		if (!args.ButtonState.LeftButton) return;
 
 		int clickedIndex = m_module.GetItemIndexAtMousePosition(args.Position);
-
 		if (clickedIndex != -1)
 		{
-			// Hemos hecho clic en un elemento válido.
-			
-			// 3. EL RESOLVEDOR DE RANGOS: Le enseñamos al controlador cómo llenar huecos numéricos
 			auto rangeResolver = [](const size_t& anchor, const size_t& current)
 			{
 				std::vector<size_t> range;
@@ -163,7 +168,6 @@ namespace Berta
 				return range;
 			};
 
-			// 4. DELEGACIÓN: El controlador se encarga de toda la lógica compleja
 			bool selectionChanged = m_module.m_selectionController.Select
 			(
 				static_cast<size_t>(clickedIndex), 
@@ -178,7 +182,6 @@ namespace Berta
 		}
 		else
 		{
-			// Hicimos clic en el fondo vacío
 			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed) {
 				m_module.m_selectionController.Clear();
 				if (m_module.m_events)
@@ -187,10 +190,6 @@ namespace Berta
 				}
 			}
 
-			// Iniciar selección por arrastre (Drag Box)
-			m_module.m_isDraggingSelection = true;
-			m_module.m_dragStartPosition = args.Position;
-			m_module.m_dragEndPosition = args.Position;
 			m_module.m_lassoSelection.Start(args.Position);
 		}
 		
@@ -201,57 +200,83 @@ namespace Berta
 	{
 		if (m_module.m_lassoSelection.IsActive())
 		{
+			Rectangle oldLassoRect = m_module.m_lassoSelection.GetRect();
 			if (m_module.m_lassoSelection.Update(args.Position))
 			{
-				// Si el ratón se movió, calculamos qué elementos quedaron dentro del rectángulo
-				Rectangle lassoScreenRect = m_module.m_lassoSelection.GetRect();
+				Rectangle newLassoRect = m_module.m_lassoSelection.GetRect();
 				auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
 
-				// Convertimos el lazo a coordenadas absolutas de la cuadrícula
 				Rectangle lassoWorldRect = { 
-					lassoScreenRect.X + scrollOffset.X, 
-					lassoScreenRect.Y + scrollOffset.Y, 
-					lassoScreenRect.Width, 
-					lassoScreenRect.Height 
+					newLassoRect.X + scrollOffset.X, 
+					newLassoRect.Y + scrollOffset.Y, 
+					newLassoRect.Width, 
+					newLassoRect.Height 
 				};
 
 				auto firstBounds = m_module.GetItemBounds(0);
 				if (firstBounds.Width > 0 && firstBounds.Height > 0)
 				{
-					int columns = std::max<int>(1, static_cast<int>(m_module.m_window->ClientSize.Width / firstBounds.Width));
+					int availableWidth = m_module.m_window->ClientSize.Width;
+					if (m_module.m_scrollableView->GetClientArea().Width > 0)
+					{
+						availableWidth = m_module.m_scrollableView->GetClientArea().Width;
+					}
 
-					// Calculamos matemáticamente qué filas y columnas interceptan con el lazo
-					int startCol = std::max<int>(0, lassoWorldRect.X / static_cast<int>(firstBounds.Width));
-					int endCol = std::min<int>(columns - 1, (lassoWorldRect.X + static_cast<int>(lassoWorldRect.Width)) / static_cast<int>(firstBounds.Width));
+					int cardWidth = firstBounds.Width;
+					int cardHeight = firstBounds.Height;
+					int columns = std::max<int>(1, availableWidth / cardWidth);
 					
-					int startRow = std::max<int>(0, lassoWorldRect.Y / static_cast<int>(firstBounds.Height));
-					int endRow = (lassoWorldRect.Y + static_cast<int>(lassoWorldRect.Height)) / static_cast<int>(firstBounds.Height);
+					int gapY = m_module.m_window->ToScale(10);
+					int remainingWidth = availableWidth - (columns * cardWidth);
+					int gapX = remainingWidth / (columns + 1);
 
-					// Limpiamos selecciones previas si no presionamos Control
-					if (!m_module.m_ctrlPressed) {
+					int totalCellWidth = cardWidth + gapX;
+					int totalCellHeight = cardHeight + gapY;
+
+					int startCol = std::max<int>(0, (lassoWorldRect.X - gapX) / totalCellWidth);
+					int endCol = std::min<int>(columns - 1, (lassoWorldRect.X + static_cast<int>(lassoWorldRect.Width)) / totalCellWidth);
+					
+					int startRow = std::max<int>(0, (lassoWorldRect.Y - gapY) / totalCellHeight);
+					int endRow = (lassoWorldRect.Y + static_cast<int>(lassoWorldRect.Height)) / totalCellHeight;
+
+					if (!m_module.m_ctrlPressed)
+					{
 						m_module.m_selectionController.Clear();
 					}
 
-					// Seleccionamos instantáneamente los elementos en ese bloque de la matriz
 					bool selectionChanged = false;
-					for (int row = startRow; row <= endRow; ++row) {
-						for (int col = startCol; col <= endCol; ++col) {
+					for (int row = startRow; row <= endRow; ++row) 
+					{
+						for (int col = startCol; col <= endCol; ++col) 
+						{
 							size_t index = (row * columns) + col;
-							if (index < m_module.m_items.size()) {
-								m_module.m_selectionController.SetSelected(index, true);
-								selectionChanged = true;
+							if (index < m_module.m_items.size()) 
+							{
+								Rectangle itemRect = m_module.GetItemBounds(index);
+								if (lassoWorldRect.Intersect(itemRect)) 
+								{
+									m_module.m_selectionController.SetSelected(index, true);
+									selectionChanged = true;
+								}
 							}
 						}
 					}
 
 					if (selectionChanged && m_module.m_events) {
-						// Disparamos evento del último seleccionado, o envías un vector
 						//m_module.m_events->Selected.Fire({ (size_t)-1 }); 
 					}
 				}
 				
-				GUI::MarkAsNeedUpdate(*m_control);
+				GUI::MarkAsNeedUpdate(*m_control); 
 			}
+			return;
+		}
+
+		int currentIndex = m_module.GetItemIndexAtMousePosition(args.Position);
+		if (currentIndex != static_cast<int>(m_module.m_hoveredIndex))
+		{
+			m_module.m_hoveredIndex = currentIndex;
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -264,9 +289,19 @@ namespace Berta
 		}
 	}
 
+	void ThumbListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_module.m_hoveredIndex != static_cast<size_t>(-1))
+		{
+			m_module.m_hoveredIndex = static_cast<size_t>(-1);
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
+	}
+
 	void ThumbListBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 	{
-		if (m_module.m_scrollableView) {
+		if (m_module.m_scrollableView)
+		{
 			m_module.m_scrollableView->HandleMouseWheel(args);
 		}
 	}
@@ -276,126 +311,86 @@ namespace Berta
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-		/*bool needUpdate = false;
-		if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight || args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
+		if (m_module.m_items.empty() || !m_module.m_scrollableView) return;
+
+		size_t currentIndex = 0;
+		auto selectedItems = m_module.m_selectionController.GetSelectedItems();
+		if (!selectedItems.empty())
 		{
-			if (args.Key == KeyboardKey::ArrowLeft || args.Key == KeyboardKey::ArrowRight)
-			{
-				auto direction = args.Key == KeyboardKey::ArrowLeft ? -1 : 1;
-				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
-				auto newItemIndex = pivot + direction;
-				if (newItemIndex >= 0 && newItemIndex < static_cast<int>(m_module.m_items.size()))
-				{
-					if (!m_module.m_ctrlPressed)
-					{
-						m_module.ClearSelection();
-					}
-
-					if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotIndex != -1)
-					{
-						int endIndex = newItemIndex;
-						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
-						int minIndex = (std::min)(startIndex, endIndex);
-						int maxIndex = (std::max)(startIndex, endIndex);
-
-						for (int current = minIndex; current <= maxIndex; ++current)
-						{
-							m_module.m_items[current].m_isSelected = true;
-							m_module.m_mouseSelection.m_selections.push_back(current);
-						}
-						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
-					}
-					else if (m_module.m_ctrlPressed)
-					{
-						m_module.m_mouseSelection.m_selectedIndex += direction;
-					}
-					else
-					{
-						m_module.m_items[newItemIndex].m_isSelected = true;
-						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
-						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
-						m_module.m_mouseSelection.m_pivotIndex = newItemIndex;
-					}
-					m_module.EnsureVisibility(m_module.m_mouseSelection.m_selectedIndex);
-
-					needUpdate = true;
-				}
-			}
-			else if (args.Key == KeyboardKey::ArrowUp || args.Key == KeyboardKey::ArrowDown)
-			{
-				auto direction = args.Key == KeyboardKey::ArrowUp ? -1 : 1;
-				auto pivot = (m_module.m_mouseSelection.m_selectedIndex == -1 ? (direction == -1 ? (int)m_module.m_items.size() : -1) : m_module.m_mouseSelection.m_selectedIndex);
-				auto newItemIndex = pivot + direction * m_module.m_viewport.m_totalCardsInRow;
-				if (newItemIndex >= 0 && newItemIndex < (int)m_module.m_items.size())
-				{
-					if (!m_module.m_ctrlPressed)
-					{
-						m_module.ClearSelection();
-					}
-
-					if (m_module.m_multiselection && m_module.m_shiftPressed && m_module.m_mouseSelection.m_pivotIndex != -1)
-					{
-						int endIndex = newItemIndex;
-						int startIndex = m_module.m_mouseSelection.m_pivotIndex;
-						int minIndex = (std::min)(startIndex, endIndex);
-						int maxIndex = (std::max)(startIndex, endIndex);
-
-						for (int current = minIndex; current <= maxIndex; ++current)
-						{
-							m_module.m_items[current].m_isSelected = true;
-							m_module.m_mouseSelection.m_selections.push_back(current);
-						}
-						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
-					}
-					else if (m_module.m_ctrlPressed)
-					{
-						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
-					}
-					else
-					{
-						m_module.m_items[newItemIndex].m_isSelected = true;
-						m_module.m_mouseSelection.m_selections.push_back(newItemIndex);
-						m_module.m_mouseSelection.m_selectedIndex = newItemIndex;
-						m_module.m_mouseSelection.m_pivotIndex = newItemIndex;
-					}
-					m_module.EnsureVisibility(m_module.m_mouseSelection.m_selectedIndex);
-					needUpdate = true;
-				}
-			}
+			currentIndex = selectedItems.back(); 
 		}
-		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
-		{
-			if (m_module.m_mouseSelection.m_selectedIndex != -1)
-			{
-				if (!m_module.m_multiselection && !m_module.m_mouseSelection.m_selections.empty())
-				{
-					m_module.m_items[m_module.m_mouseSelection.m_selections[0]].m_isSelected = false;
-					m_module.m_mouseSelection.m_selections.clear();
-				}
 
-				auto& isSelected = m_module.m_items[m_module.m_mouseSelection.m_selectedIndex].m_isSelected;
-				isSelected = !isSelected;
-				if (isSelected)
+		auto firstBounds = m_module.GetItemBounds(0);
+		if (firstBounds.Width == 0) return;
+
+		int availableWidth = m_module.GetLayoutWidth();
+		int columns = std::max<int>(1, static_cast<int>(availableWidth / firstBounds.Width));
+
+		size_t newIndex = currentIndex;
+
+		switch (args.Key)
+		{
+			case KeyboardKey::ArrowRight: 
+				if (currentIndex + 1 < m_module.m_items.size())
 				{
-					m_module.m_mouseSelection.Select(m_module.m_mouseSelection.m_selectedIndex);
+					newIndex = currentIndex + 1;
+				}
+				break;
+
+			case KeyboardKey::ArrowLeft:
+				if (currentIndex > 0)
+				{
+					newIndex = currentIndex - 1;
+				}
+				break;
+
+			case KeyboardKey::ArrowDown:
+				if (currentIndex + columns < m_module.m_items.size())
+				{
+					newIndex = currentIndex + columns;
 				}
 				else
 				{
-					m_module.m_mouseSelection.Deselect(m_module.m_mouseSelection.m_selectedIndex);
+					newIndex = m_module.m_items.size() - 1;
 				}
+				break;
 
-				if (m_module.m_multiselection)
+			case KeyboardKey::ArrowUp:
+				if (currentIndex >= static_cast<size_t>(columns))
 				{
-					m_module.m_mouseSelection.m_pivotIndex = m_module.m_mouseSelection.m_selectedIndex;
+					newIndex = currentIndex - columns;
 				}
-				needUpdate = true;
-			}
+				else 
+				{
+					newIndex = 0;
+				}
+				break;
+
+			default:
+				return;
 		}
 
-		if (needUpdate)
+		if (newIndex != currentIndex)
 		{
+			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			{
+				m_module.m_selectionController.Clear();
+			}
+			
+			m_module.m_selectionController.SetSelected(newIndex, true);
+
+			Rectangle targetBounds = m_module.GetItemBounds(newIndex);
+			if (m_module.m_scrollableView->EnsureVisibility(targetBounds))
+			{
+				//m_module.FireVisibilityEvents();
+			}
+
+			if (m_module.m_events) {
+				//m_module.m_events->Selected.Fire({ newIndex });
+			}
+
 			GUI::MarkAsNeedUpdate(*m_control);
-		}*/
+		}
 	}
 
 	void ThumbListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
@@ -414,7 +409,7 @@ namespace Berta
 		auto& newItem = m_items.emplace_back();
 		newItem.m_text = text;
 
-		UpdateScrollContentSize();
+		UpdateScrollMetrics();
 
 		return true;
 	}
@@ -427,7 +422,7 @@ namespace Berta
 
 		m_imageCache.Put(m_items.size() - 1, thumbnail);
 
-		UpdateScrollContentSize();
+		UpdateScrollMetrics();
 
 		return true;
 	}
@@ -438,14 +433,15 @@ namespace Berta
 		m_items.clear();
 		m_imageCache.Clear();
 		m_selectionController.Clear();
-		m_isDraggingSelection = false;
-		UpdateScrollContentSize();
+
+		UpdateScrollMetrics();
+		
 		return needUpdate;
 	}
 
 	void ThumbListBoxReactor::Module::Erase(size_t index)
 	{
-		if (m_items.size() <= index)
+		if (index >= m_items.size())
 		{
 			return;
 		}
@@ -453,7 +449,7 @@ namespace Berta
 		m_items.erase(m_items.begin() + index);
 		
 		m_selectionController.Clear();
-		UpdateScrollContentSize();
+		UpdateScrollMetrics();
 
 		GUI::UpdateWindow(m_window);
 	}
@@ -466,25 +462,37 @@ namespace Berta
 		}
 
 		m_thumbnailSize = size;
-		UpdateScrollContentSize();
+		UpdateScrollMetrics();
 
 		GUI::UpdateWindow(m_window);
 	}
 
-	void ThumbListBoxReactor::Module::UpdateScrollContentSize()
+	void ThumbListBoxReactor::Module::UpdateScrollMetrics()
 	{
 		if (!m_scrollableView || m_items.empty())
 		{
 			if (m_scrollableView)
-				m_scrollableView->SetContentSize({ m_window->ClientSize.Width, 0 });
+			{
+				m_scrollableView->SetContentSize({ m_window->ClientSize.Width, 0 });	
+			}
 			return;
 		}
-
-		auto lastItemBounds = GetItemBounds(m_items.size() - 1);
-		uint32_t totalHeight = lastItemBounds.Y + lastItemBounds.Height;
-		
-		m_scrollableView->SetContentSize({ m_window->ClientSize.Width, totalHeight });
 		m_scrollableView->SetViewSize(m_window->ClientSize);
+		int currentWidth = GetLayoutWidth();
+		auto lastItemBounds = GetItemBounds(m_items.size() - 1, currentWidth);
+		
+		int gapY = m_window->ToScale(10);
+		uint32_t totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
+		m_scrollableView->SetContentSize({ static_cast<uint32_t>(currentWidth), totalHeight });
+
+		int newWidth = GetLayoutWidth();
+		if (newWidth != currentWidth)
+		{
+			lastItemBounds = GetItemBounds(m_items.size() - 1, newWidth);
+			totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
+			
+			m_scrollableView->SetContentSize({ static_cast<uint32_t>(newWidth), totalHeight });
+		}
 	}
 
 	bool ThumbListBoxReactor::Module::IsEnabledMultiselection() const
@@ -501,17 +509,36 @@ namespace Berta
 
 	int ThumbListBoxReactor::Module::GetItemIndexAtMousePosition(const Point& position)
 	{
+		auto appearance = reinterpret_cast<ThumbListBoxAppearance*>(m_control->Handle()->Appearance.get());
+		
 		auto scrollOffset = m_scrollableView->GetScrollOffset();
 		Point absolutePt = { position.X + scrollOffset.X, position.Y + scrollOffset.Y };
 		
-		auto bounds = GetItemBounds(0);
-		if (bounds.Width == 0 || bounds.Height == 0) return -1;
-
-		int columns = std::max<int>(1, static_cast<int>(m_window->ClientSize.Width / bounds.Width));
-		int col = absolutePt.X / bounds.Width;
-		int row = absolutePt.Y / bounds.Height;
+		uint32_t thumbSizeScale = m_window->ToScale(m_thumbnailSize);
+		uint32_t textHeightScale = m_window->ToScale(appearance->ThumbnailCardHeight);
+		int cardWidth = thumbSizeScale;
+		int cardHeight = thumbSizeScale + textHeightScale;
 		
+		int clientWidth = GetLayoutWidth();
+		
+		int gapY = m_window->ToScale(10);
+		int columns = std::max<int>(1, clientWidth / cardWidth);
+		
+		int remainingWidth = clientWidth - (columns * cardWidth);
+		int gapX = remainingWidth / (columns + 1);
+		if (absolutePt.X < gapX || absolutePt.Y < gapY) return -1;
+		
+		int col = (absolutePt.X - gapX) / (cardWidth + gapX);
+		int row = (absolutePt.Y - gapY) / (cardHeight + gapY);
+
 		if (col >= columns) return -1;
+		
+		int itemStartX = gapX + col * (cardWidth + gapX);
+		int itemStartY = gapY + row * (cardHeight + gapY);
+
+		if (absolutePt.X > itemStartX + cardWidth || absolutePt.Y > itemStartY + cardHeight) {
+			return -1; // Clic en el espacio entre elementos
+		}
 		
 		int index = (row * columns) + col;
 		if (index >= 0 && index < static_cast<int>(m_items.size()))
@@ -521,7 +548,21 @@ namespace Berta
 		return -1;
 	}
 
-	Rectangle ThumbListBoxReactor::Module::GetItemBounds(size_t index) const
+	int ThumbListBoxReactor::Module::GetLayoutWidth() const
+	{
+		if (m_scrollableView)
+		{
+			int width = static_cast<int>(m_scrollableView->GetClientArea().Width);
+			if (width > 0)
+			{
+				return width;
+			}
+		}
+
+		return static_cast<int>(m_window->ClientSize.Width);
+	}
+
+	Rectangle ThumbListBoxReactor::Module::GetItemBounds(size_t index, int overrideWidth) const
 	{
 		auto appearance = reinterpret_cast<ThumbListBoxAppearance*>(m_control->Handle()->Appearance.get());
 		
@@ -531,18 +572,23 @@ namespace Berta
 		uint32_t cardWidth = thumbSizeScale;
 		uint32_t cardHeight = thumbSizeScale + textHeightScale;
 		
-		if (cardWidth == 0) return {};
+		int clientWidth = (overrideWidth == -1) ? GetLayoutWidth() : overrideWidth;
 
-		int columns = std::max<int>(1, static_cast<int>(m_window->ClientSize.Width / cardWidth));
+		if (cardWidth == 0 || clientWidth <= 0) return {};
+
+		int gapY = m_window->ToScale(10); 
+		int columns = std::max<int>(1, clientWidth / static_cast<int>(cardWidth));
+		
+		int remainingWidth = clientWidth - (columns * static_cast<int>(cardWidth));
+		int gapX = remainingWidth / (columns + 1); 
+
 		int row = (int)index / columns;
 		int col = (int)index % columns;
 		
-		return { 
-			static_cast<int>(col * cardWidth), 
-			static_cast<int>(row * cardHeight), 
-			static_cast<uint32_t>(cardWidth), 
-			static_cast<uint32_t>(cardHeight) 
-		};
+		int x = gapX + col * (cardWidth + gapX);
+		int y = gapY + row * (cardHeight + gapY);
+
+		return { x, y, static_cast<uint32_t>(cardWidth), static_cast<uint32_t>(cardHeight) };
 	}
 
 	void ThumbListBoxReactor::Module::EmitVisibilityEvent(size_t index, bool visible) const
@@ -616,9 +662,20 @@ namespace Berta
 		return m_selectionController.GetSelectedItems();
 	}
 
-	bool ThumbListBoxReactor::Module::EnsureVisibility(int lastSelectedIndex)
+	void ThumbListBoxReactor::Module::EnsureVisibility(size_t index)
 	{
-		return true;
+		if (m_items.empty() || !m_scrollableView || index >= m_items.size()) 
+		{
+			return;
+		}
+		
+		Rectangle targetBounds = GetItemBounds(index);
+		if (m_scrollableView->EnsureVisibility(targetBounds))
+		{
+			//FireVisibilityEvents();
+			
+			GUI::MarkAsNeedUpdate(*m_control);
+		}
 	}
 
 	void ThumbListBoxReactor::Module::UpdateItem(const ItemType& item) const
@@ -658,11 +715,8 @@ namespace Berta
 
 	void ThumbListBoxItem::SetIcon(const Image& image)
 	{
-		/*if (m_target.m_thumbnail == image)
-			return;
-
-		m_target.m_thumbnail = image;
-		m_module.UpdateItem(m_target);*/
+		m_target.m_hasThumbnail = image;
+		m_module.UpdateItem(m_target);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
@@ -692,17 +746,19 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::wstring& text, const Image& thumbnail)
 	{
-		if (GetReactor().GetModule().AddItem(text, thumbnail) && IsAutoDraw())
+		auto& module = GetReactor().GetModule();
+		if (module.AddItem(text, thumbnail) && IsAutoDraw())
 		{
-			GetReactor().GetModule().Draw();
+			module.Draw();
 		}
 	}
 
 	void ThumbListBox::AddItem(const std::string& text, const Image& thumbnail)
 	{
-		if (GetReactor().GetModule().AddItem(StringUtils::UTF8ToWide(text), thumbnail) && IsAutoDraw())
+		auto& module = GetReactor().GetModule();
+		if (module.AddItem(StringUtils::UTF8ToWide(text), thumbnail) && IsAutoDraw())
 		{
-			GetReactor().GetModule().Draw();
+			module.Draw();
 		}
 	}
 
@@ -748,5 +804,15 @@ namespace Berta
 	std::vector<size_t> ThumbListBox::GetSelected() const
 	{
 		return GetReactor().GetModule().GetSelectedItems();
+	}
+
+	void ThumbListBox::SetCacheCapacity(size_t maxImages)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_imageCache.SetCapacity(maxImages);
+		if (IsAutoDraw())
+		{
+			module.Draw();
+		}
 	}
 }

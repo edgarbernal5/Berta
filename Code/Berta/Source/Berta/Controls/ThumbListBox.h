@@ -42,21 +42,29 @@ namespace Berta
 
 	struct ThumbListBoxEvents : public ControlEvents
 	{
+		Event<ArgThumbListBox>	ItemDblClick;
 		Event<ArgThumbListBox>	Selected;
 		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
 	};
 	
+	// LRU = Least Recently Used
 	class ThumbnailCacheLRU
 	{
 	public:
-		ThumbnailCacheLRU(size_t capacity = 100) : m_capacity(capacity) {}
+		ThumbnailCacheLRU(size_t capacity = 100) : 
+		m_capacity(capacity)
+		{
+		}
 
 		bool TryGet(size_t index, Image& outImage)
 		{
 			auto it = m_cacheMap.find(index);
-			if (it == m_cacheMap.end()) return false;
+			if (it == m_cacheMap.end())
+			{
+				return false;
+			}
 			
-			// Hit en la caché: Mover al frente (O(1))
+			// Hit in cache: Move to front (O(1))
 			m_lruList.splice(m_lruList.begin(), m_lruList, it->second.listIterator);
 			outImage = it->second.image;
 			return true;
@@ -72,7 +80,7 @@ namespace Berta
 				return;
 			}
 
-			// Si superamos la capacidad máxima, expulsamos el menos usado
+			// If we exceed the maximum capacity, we eject the least used one.
 			if (m_cacheMap.size() >= m_capacity)
 			{
 				size_t last = m_lruList.back();
@@ -100,6 +108,18 @@ namespace Berta
 			m_lruList.clear();
 		}
 		
+		void SetCapacity(size_t newCapacity) 
+		{
+			m_capacity = newCapacity;
+			
+			while (m_cacheMap.size() > m_capacity) 
+			{
+				size_t last = m_lruList.back();
+				m_cacheMap.erase(last);
+				m_lruList.pop_back();
+			}
+		}
+		
 	private:
 		size_t m_capacity;
 		std::list<size_t> m_lruList; 
@@ -118,9 +138,11 @@ namespace Berta
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
+		void DblClick(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
@@ -142,19 +164,21 @@ namespace Berta
 			bool Clear();
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
-			void UpdateScrollContentSize();
+			void UpdateScrollMetrics();
 			bool IsEnabledMultiselection() const;
 			bool EnableMultiselection(bool enabled);
 			int GetItemIndexAtMousePosition(const Point& position);
-
-			Rectangle GetItemBounds(size_t index) const;
+			
+			int GetLayoutWidth() const;
+			Rectangle GetItemBounds(size_t index, int overrideWidth = -1) const;
+			
 			void EmitVisibilityEvent(size_t index, bool visible) const;
 			void Draw() const;
 			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
 			void DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect);
 
 			std::vector<size_t> GetSelectedItems() const;
-			bool EnsureVisibility(int lastSelectedIndex);
+			void EnsureVisibility(size_t index);
 
 			void UpdateItem(const ItemType& item) const;
 			
@@ -166,9 +190,6 @@ namespace Berta
 			LassoSelection m_lassoSelection;
 			
 			std::vector<ItemType> m_items;
-			bool m_isDraggingSelection{ false };
-			Point m_dragStartPosition;
-			Point m_dragEndPosition;
 			
 			Window* m_window{ nullptr };
 			ControlBase* m_control{ nullptr };
@@ -176,10 +197,9 @@ namespace Berta
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			uint32_t m_thumbnailSize{ 96u };
+			size_t m_hoveredIndex{ static_cast<size_t>(-1) };
 
 			ThumbListBoxEvents* m_events{ nullptr };
-		private:
-
 		};
 
 		Module& GetModule() { return m_module; }
@@ -222,6 +242,8 @@ namespace Berta
 		void EnableMultiselection(bool enabled);
 
 		std::vector<size_t> GetSelected() const;
+		
+		void SetCacheCapacity(size_t maxImages);
 	};
 }
 
