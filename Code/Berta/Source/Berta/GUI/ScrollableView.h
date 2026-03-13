@@ -37,7 +37,7 @@ namespace Berta
 		~ScrollableView() = default;
 		
 		void SetContentSize(const Size& size);
-		void SetViewSize(const Size& size);
+		void SetViewRect(const Rectangle& clientAreaBounds);
 		void SetViewPadding(int top, int bottom = 0, int left = 0, int right = 0);
 		
 		void SetScrollStep(int vertical, int horizontal);
@@ -52,8 +52,8 @@ namespace Berta
 		Rectangle GetVisibleRect() const; 
 		Point GetScrollOffset() const { return m_scrollOffset; }
 		
-		void SetScrollOffsetX(int offsetX);
-		void SetScrollOffsetY(int offsetY);
+		void SetScrollToX(int offsetX);
+		void SetScrollToY(int offsetY);
 		
 		bool HasVerticalScroll() const { return m_scrollBarVert != nullptr; }
 		bool HasHorizontalScroll() const  { return m_scrollBarHoriz != nullptr; }
@@ -67,7 +67,7 @@ namespace Berta
 		OnScrollCallback m_onScroll;
 
 		Size m_contentSize{ 0, 0 };
-		Size m_fullViewSize{ 0, 0 }; 
+		Rectangle m_clientAreaBounds{ 0, 0, 0, 0 }; 
 		Rectangle m_viewportRect{ 0, 0, 0, 0 }; 
 
 		Padding m_viewPadding;

@@ -16,10 +16,10 @@ namespace Berta
 	void ThumbListBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
-		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(control.Handle()->Events.get());
-
 		m_module.m_window = control.Handle();
 		m_module.m_control = m_control;
+		
+		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(control.Handle()->Events.get());
 		
 		m_module.InitScrollableView();
 	}
@@ -29,32 +29,29 @@ namespace Berta
 		auto appearance = reinterpret_cast<ThumbListBoxAppearance*>(m_control->Handle()->Appearance.get());
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
+		Rectangle globalRect = window->ClientSize.ToRectangle();
+		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
 
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
-
+		Rectangle clientArea = m_module.m_scrollableView->GetClientArea(); //m_module.m_control->GetClientArea();
+		if (clientArea.Width <= 0 || clientArea.Height <= 0) return;
 		if (m_module.m_items.empty() || !m_module.m_scrollableView) return;
 	
 		auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
-		Point offset{ -scrollOffset.X, -scrollOffset.Y };
+		Point offset{ clientArea.X - scrollOffset.X, clientArea.Y - scrollOffset.Y };
 
 		auto firstBounds = m_module.GetItemBounds(0);
-		int cardWidth = firstBounds.Width;
-		int cardHeight = firstBounds.Height;
+		int cardWidth = (int)firstBounds.Width;
+		int cardHeight = (int)firstBounds.Height;
 		if (cardWidth == 0 || cardHeight == 0) return;
 
-		int availableWidth = window->ClientSize.Width;
-		if (m_module.m_scrollableView->GetClientArea().Width > 0) 
-		{
-			availableWidth = m_module.m_scrollableView->GetClientArea().Width;
-		}
-		int columns = std::max<int>(1, static_cast<int>(availableWidth / cardWidth));
-		// -----------------------------
+		int availableWidth = static_cast<int>(clientArea.Width);
+		int columns = std::max<int>(1, availableWidth / cardWidth);
 
 		int gapY = window->ToScale(10);
 		int totalRowHeight = cardHeight + gapY; 
 	
 		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / totalRowHeight);
-		int visibleRows = static_cast<int>(std::ceil(window->ClientSize.Height / static_cast<float>(totalRowHeight))) + 2;
+		int visibleRows = static_cast<int>(std::ceil(static_cast<float>(clientArea.Height) / static_cast<float>(totalRowHeight))) + 2;
 	
 		size_t startIndex = static_cast<size_t>(firstVisibleRow) * columns;
 		size_t endIndex = std::min<size_t>(m_module.m_items.size(), startIndex + static_cast<size_t>(visibleRows * columns));
@@ -477,8 +474,9 @@ namespace Berta
 			}
 			return;
 		}
-		m_scrollableView->SetViewSize(m_window->ClientSize);
-		int currentWidth = GetLayoutWidth();
+		auto clientArea = m_control->GetClientArea();
+		m_scrollableView->SetViewRect(clientArea);
+		int currentWidth = static_cast<int>(clientArea.Width);
 		auto lastItemBounds = GetItemBounds(m_items.size() - 1, currentWidth);
 		
 		int gapY = m_window->ToScale(10);
@@ -588,7 +586,7 @@ namespace Berta
 		int x = gapX + col * (cardWidth + gapX);
 		int y = gapY + row * (cardHeight + gapY);
 
-		return { x, y, static_cast<uint32_t>(cardWidth), static_cast<uint32_t>(cardHeight) };
+		return { x, y, cardWidth, cardHeight };
 	}
 
 	void ThumbListBoxReactor::Module::EmitVisibilityEvent(size_t index, bool visible) const
@@ -814,5 +812,10 @@ namespace Berta
 		{
 			module.Draw();
 		}
+	}
+
+	void ThumbListBox::ScrollTo(size_t index)
+	{
+		GetReactor().GetModule().EnsureVisibility(index);
 	}
 }

@@ -172,6 +172,7 @@ namespace Berta
 		{
 			m_control = &control;
 			m_module.m_window = control.Handle();
+			m_module.m_control = m_control;
 
 			m_module.m_headers.Init(m_module.m_window);
 			m_module.m_items.SetOnChangedCallback([this]()
@@ -233,19 +234,16 @@ namespace Berta
 		void Reactor::Update(Graphics& graphics)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
-			auto clientSize = m_module.m_window->ClientSize.ToRectangle();
-			graphics.DrawRectangle(clientSize, appearance->BoxBackground, true);
+			auto globalRect = m_module.m_window->ClientSize.ToRectangle();
+			graphics.DrawRectangle(globalRect, appearance->BoxBackground, true);
 			if (!m_control->IsBorderless())
 			{
-				Rectangle localBorderRect = clientSize;
-				graphics.DrawRectangle(localBorderRect, appearance->BoxBorderColor, false);
+				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor, false);
 				
-				localBorderRect.X = localBorderRect.Y = 1;
-				localBorderRect.Height -= 2;
-				localBorderRect.Width -= 2;
+				Rectangle localBorderRect = m_control->GetClientArea();
 				graphics.SetClipping(localBorderRect);
 			}
-			m_module.m_headers.Draw(graphics, m_module.m_scrollableView->GetVisibleRect(), m_module.m_scrollableView->GetScrollOffset().X);
+			m_module.m_headers.Draw(graphics, m_module.m_scrollableView->GetVisibleRect(), m_module.m_scrollableView->GetClientArea());
 			m_module.DrawList(graphics);
 			
 			if (m_module.m_lassoSelection.IsActive())
@@ -260,8 +258,8 @@ namespace Berta
 				graphics.DrawRectangle
 				(
 					{
-						static_cast<int>(clientSize.Width) - static_cast<int>(scrollSize) - 1, 
-						static_cast<int>(clientSize.Height) - static_cast<int>(scrollSize) - 1,
+						static_cast<int>(globalRect.Width) - static_cast<int>(scrollSize) - 1, 
+						static_cast<int>(globalRect.Height) - static_cast<int>(scrollSize) - 1,
 						scrollSize,
 						scrollSize
 					},
@@ -556,7 +554,7 @@ namespace Berta
 			return total;
 		}
 
-		void HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset)
+		void HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, const Point& clientPos)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
 			auto headerHeight = m_owner->ToScale(appearance->HeadersHeight);
@@ -567,14 +565,14 @@ namespace Berta
 			int clientWidth = static_cast<int>(visibleRect.Width);
 			int sortedHeaderMargin = m_owner->ToScale(4);
 			int arrowSortedHeaderSize = m_owner->ToScale(6);
-			int currentX = -visibleRect.X + startOffPos;
+			int currentX = clientPos.X - visibleRect.X + startOffPos;
 
-			Rectangle fullHeaderRect = { 0, 0, visibleRect.Width, headerHeight };
+			Rectangle fullHeaderRect = { clientPos.X, clientPos.Y, visibleRect.Width, headerHeight };
 			graphics.SetClipping(fullHeaderRect);
 			graphics.DrawGradientFill(fullHeaderRect, appearance->ButtonHighlightBackground, appearance->ButtonBackground);
 			graphics.DrawLine(
-				{ currentX - 1, 0 }, 
-				{ currentX - 1, headerHeightInt - 1 },
+				{ currentX - 1, clientPos.Y }, 
+				{ currentX - 1, clientPos.Y + headerHeightInt - 1 },
 				appearance->BoxBorderColor);
 			
 			for (size_t visualIdx = 0; visualIdx < m_visualOrder.size(); ++visualIdx)
@@ -630,13 +628,13 @@ namespace Berta
 				const auto& draggedHeader = m_headers[draggedLogicalIdx];
 				Rectangle columnRect{ 0,0,m_owner->ToScale(draggedHeader.Width), headerHeight };
 				int lineWidth = m_owner->ToScale(2);
-				auto targetHeaderPosition = -xOffset;
+				auto targetHeaderPosition = -visibleRect.X;
 				
-				auto visualColumnIdxMouse = GetVisualIndexAt(m_dragDropInteraction.m_currentMouseX, xOffset);
+				auto visualColumnIdxMouse = GetVisualIndexAt(m_dragDropInteraction.m_currentMouseX, visibleRect.X);
 				if (!visualColumnIdxMouse.has_value())
 				{
 					auto totalWidth = static_cast<int>(GetTotalWidth());
-					if (m_dragDropInteraction.m_currentMouseX > startOffPos + totalWidth - xOffset)
+					if (m_dragDropInteraction.m_currentMouseX > startOffPos + totalWidth - visibleRect.X)
 					{
 						targetHeaderPosition += totalWidth;
 					}
@@ -654,32 +652,32 @@ namespace Berta
 				targetHeaderPosition += startOffPos;
 				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, headerHeightInt - lineWidth }, static_cast<float>(lineWidth), appearance->SelectionHighlightColor);
 
-				if (!m_draggingBox.IsValid())
+				if (!m_dragDropInteraction.m_draggingBox.IsValid())
 				{
-					m_draggingBox.Build({ columnRect.Width, columnRect.Height }, m_owner->RootPaintHandle);
-					m_draggingBox.BuildFont(m_owner->DPI);
+					m_dragDropInteraction.m_draggingBox.Build({ columnRect.Width, columnRect.Height }, m_owner->RootPaintHandle);
+					m_dragDropInteraction.m_draggingBox.BuildFont(m_owner->DPI);
 					
-					m_draggingBox.Begin();
-					m_draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, appearance->Foreground, appearance->Foreground2nd);
+					m_dragDropInteraction.m_draggingBox.Begin();
+					m_dragDropInteraction.m_draggingBox.DrawGradientFill({ 0,0, columnRect.Width, columnRect.Height }, appearance->Foreground, appearance->Foreground2nd);
 					
 					Rectangle textRect = columnRect;
 					textRect.X += leftPadding;
 					textRect.Width -= leftPadding * 2;
-					DrawStringInBox(m_draggingBox, draggedHeader.Text, textRect, appearance->Foreground);
+					DrawStringInBox(m_dragDropInteraction.m_draggingBox, draggedHeader.Text, textRect, appearance->Foreground);
 					
-					m_draggingBox.Flush();
+					m_dragDropInteraction.m_draggingBox.Flush();
 				}
 				auto positionToColumn = static_cast<int>(m_owner->ToScale( GetPositionToColumn(m_dragDropInteraction.m_draggedVisualIndex.value())));
-				auto newPosition = m_dragDropInteraction.m_currentMouseX - (m_dragDropInteraction.m_dragStartX - positionToColumn + xOffset);
+				auto newPosition = m_dragDropInteraction.m_currentMouseX - (m_dragDropInteraction.m_dragStartX - positionToColumn + visibleRect.X);
 				
 				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
-				graphics.Blend(blendRect, m_draggingBox, { 0,0 }, 0.5);
+				graphics.Blend(blendRect, m_dragDropInteraction.m_draggingBox, { 0,0 }, 0.5);
 			}
 
 			// Línea horizontal inferior que separa las cabeceras de la lista
 			graphics.DrawLine(
-				{0, headerHeightInt - 1},
-				{clientWidth, headerHeightInt - 1},
+				{clientPos.X, clientPos.Y + headerHeightInt - 1},
+				{clientPos.X + clientWidth, clientPos.Y + headerHeightInt - 1},
 				appearance->BoxBorderColor);
 			
 			graphics.EndClipping();
@@ -834,7 +832,7 @@ namespace Berta
 						}
 					}
 					
-					m_draggingBox.Release();
+					m_dragDropInteraction.m_draggingBox.Release();
 				}
 				else
 				{
@@ -1108,7 +1106,9 @@ namespace Berta
 			
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			auto headerHeight = m_window->ToScale(appearance->HeadersHeight);
-			m_scrollableView->SetViewSize(m_window->ClientSize);
+			auto clientArea = m_control->GetClientArea();
+			
+			m_scrollableView->SetViewRect(clientArea);
 			m_scrollableView->SetViewPadding(static_cast<int>(headerHeight), 0, 0, 0);
 			
 			auto four = m_window->ToScale(4u);
@@ -1164,11 +1164,11 @@ namespace Berta
 
 			if (itemY < currentScrollY)
 			{
-				m_scrollableView->SetScrollOffsetY(itemY);
+				m_scrollableView->SetScrollToY(itemY);
 			}
 			else if (itemY + itemHeightWithMargin > currentScrollY + visibleHeight)
 			{
-				m_scrollableView->SetScrollOffsetY(itemY + itemHeightWithMargin - visibleHeight);
+				m_scrollableView->SetScrollToY(itemY + itemHeightWithMargin - visibleHeight);
 			}
 		}
 
@@ -1302,7 +1302,7 @@ namespace Berta
 			int startIndex = listVisibleY / itemHeightWithMargin;
 			int endIndex = std::min<int>(static_cast<int>(m_items.GetCount()), (listVisibleY + static_cast<int>(visibleRect.Height)) / itemHeight + 1);
 
-			int currentY = (startIndex * itemHeightWithMargin) + headerHeight - visibleRect.Y;
+			int currentY = (startIndex * itemHeightWithMargin) + viewportRect.Y - visibleRect.Y;
     
 			for (int i = startIndex; i < endIndex; ++i)
 			{

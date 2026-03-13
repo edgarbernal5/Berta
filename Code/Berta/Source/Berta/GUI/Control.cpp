@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "Control.h"
 
+#include <algorithm>
+
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlWindow.h"
 
@@ -110,10 +112,45 @@ namespace Berta
 	{
 		GUI::DisposeWindow(m_handle);
 	}
+	
+	void ControlBase::Capture(bool redirectToChildren)
+	{
+		GUI::Capture(m_handle, redirectToChildren);
+	}
+
+	void ControlBase::ReleaseCapture()
+	{
+		GUI::ReleaseCapture(m_handle);
+	}
 
 	bool ControlBase::IsBorderless() const
 	{
 		return GUI::IsWindowBorderless(m_handle);
+	}
+
+	Rectangle ControlBase::GetClientArea() const
+	{
+		int x = 0;
+		int y = 0;
+		const auto size = GetSize();
+		int width = static_cast<int>(size.Width);
+		int height = static_cast<int>(size.Height);
+
+		bool hasBorder = !m_handle->Flags.Borderless;
+		const int borderThickness = hasBorder ? 1 : 0;
+
+		if (borderThickness > 0)
+		{
+			x += borderThickness;
+			y += borderThickness;
+			width -= (borderThickness * 2);
+			height -= (borderThickness * 2);
+
+			width = std::max<int>(width, 0);
+			height = std::max<int>(height, 0);
+		}
+
+		return { x, y, static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 	}
 
 	bool ControlBase::IsAutoDraw() const
@@ -139,16 +176,6 @@ namespace Berta
 	void ControlBase::Focus()
 	{
 		GUI::FocusWindow(m_handle);
-	}
-
-	void ControlBase::Capture(bool redirectToChildren)
-	{
-		GUI::Capture(m_handle, redirectToChildren);
-	}
-
-	void ControlBase::ReleaseCapture()
-	{
-		GUI::ReleaseCapture(m_handle);
 	}
 
 	std::wstring ControlBase::DoOnCaption() const

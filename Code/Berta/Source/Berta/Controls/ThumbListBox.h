@@ -244,6 +244,8 @@ namespace Berta
 		std::vector<size_t> GetSelected() const;
 		
 		void SetCacheCapacity(size_t maxImages);
+		
+		void ScrollTo(size_t index);
 	};
 }
 

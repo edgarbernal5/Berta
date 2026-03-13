@@ -132,7 +132,7 @@ namespace Berta
 			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
 			uint32_t GetTotalWidth() const;
 
-			void Draw(Graphics& graphics, const Rectangle& visibleRect, int xOffset);
+			void Draw(Graphics& graphics, const Rectangle& visibleRect, const Point& clientPos);
 
 			bool OnDblClick(const ArgMouse& args, int scrollX);
 			bool OnMouseDown(const ArgMouse& args, int scrollX);
@@ -186,11 +186,11 @@ namespace Berta
 				int m_dragStartX{ 0 };
 				int m_currentMouseX{ 0 };
 				bool m_isDraggingConfirmed{ false };
+				Graphics m_draggingBox;
 			} m_dragDropInteraction;
 			
 			std::vector<ItemData> m_headers;
 			std::vector<size_t> m_visualOrder;
-			Graphics m_draggingBox;
 		};
 
 		class Reactor : public ControlReactor
@@ -254,6 +254,7 @@ namespace Berta
 				std::optional<size_t> m_focusedLogicalIndex { std::nullopt };
 
 				Window* m_window{ nullptr };
+				ControlBase* m_control{ nullptr };
 				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };
 				bool m_ctrlPressed{ false };

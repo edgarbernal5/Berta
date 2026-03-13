@@ -56,9 +56,13 @@ namespace Berta
 		void Show() const;
 		void Hide() const;
 		void Dispose() const;
+
+		void Capture(bool redirectToChildren);
+		void ReleaseCapture();
 		
 		bool IsBorderless() const;
-
+		Rectangle GetClientArea() const;
+		
 		bool IsAutoDraw() const;
 		void SetAutoDraw(bool autoDraw) const;
 
@@ -66,12 +70,9 @@ namespace Berta
 
 		void MakeActive(bool activated, Window* makeTargetWhenInactive);
 		void Focus();
-
-		void Capture(bool redirectToChildren);
-		void ReleaseCapture();
 		
 #if BT_DEBUG
-		void SetDebugName(const std::string& name)
+		void SetDebugName(const std::string& name) const
 		{
 			m_handle->Name = name;
 		}

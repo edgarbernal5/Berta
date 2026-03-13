@@ -14,11 +14,15 @@ namespace Berta
     class ControlClipping
     {
     public:
+        ControlClipping(Graphics& graphics);
         ControlClipping(Graphics& graphics, const Rectangle& clipRect);
+        
+        void SetClipping(const Rectangle& clipRect);
         ~ControlClipping();
         
     private:
         Graphics& m_graphics;
+        bool m_isClipping { false };
     };
 }
 

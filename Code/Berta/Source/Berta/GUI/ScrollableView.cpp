@@ -24,13 +24,13 @@ namespace Berta
         CalculateViewport();
     }
 
-    void ScrollableView::SetViewSize(const Size& size)
+    void ScrollableView::SetViewRect(const Rectangle& clientAreaBounds)
     {
-        if (m_fullViewSize == size)
+        if (m_clientAreaBounds == clientAreaBounds)
         {
             return;
         }
-        m_fullViewSize = size;
+        m_clientAreaBounds = clientAreaBounds;
         CalculateViewport();
     }
 
@@ -56,30 +56,30 @@ namespace Berta
 
     void ScrollableView::CalculateViewport()
     {
-        m_viewportRect = m_fullViewSize.ToRectangle();
+        m_viewportRect = m_clientAreaBounds;
         
         m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width));
         m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height));
 
-        auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+        auto scrollSize = static_cast<int>(m_owner->ToScale(m_owner->Appearance->ScrollBarSize));
 
         m_needVerticalScroll = m_contentSize.Height > m_viewportRect.Height;
         if (m_needVerticalScroll)
         {
-            m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - static_cast<int>(scrollSize));
+            m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - scrollSize);
         }
 
         m_needHorizontalScroll = m_contentSize.Width > m_viewportRect.Width;
         if (m_needHorizontalScroll)
         {
-            m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height) - static_cast<int>(scrollSize));
+            m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height) - scrollSize);
             
             if (!m_needVerticalScroll)
             {
                 m_needVerticalScroll = m_contentSize.Height > m_viewportRect.Height;
                 if (m_needVerticalScroll)
                 {
-                    m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - static_cast<int>(scrollSize));
+                    m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - scrollSize);
                 }
             }
         }
@@ -87,7 +87,7 @@ namespace Berta
         UpdateScrollBars();
     }
 
-    void ScrollableView::SetScrollOffsetX(int offsetX)
+    void ScrollableView::SetScrollToX(int offsetX)
     {
         if (!m_scrollBarHoriz || m_scrollOffset.X == offsetX)
             return;
@@ -95,7 +95,7 @@ namespace Berta
         m_scrollBarHoriz->SetValue(offsetX);
     }
 
-    void ScrollableView::SetScrollOffsetY(int offsetY)
+    void ScrollableView::SetScrollToY(int offsetY)
     {
         if (!m_scrollBarVert || m_scrollOffset.Y == offsetY)
             return;
@@ -140,10 +140,10 @@ namespace Berta
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
         Rectangle scrollRect
         {
-            static_cast<int>(m_fullViewSize.Width - scrollSize) - 1, 
-            1, 
+            m_clientAreaBounds.X + static_cast<int>(m_clientAreaBounds.Width - scrollSize), 
+            m_clientAreaBounds.Y, 
             scrollSize, 
-            m_fullViewSize.Height - 2u 
+            m_clientAreaBounds.Height
         };
 
         if (m_needHorizontalScroll)
@@ -180,9 +180,9 @@ namespace Berta
         auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
         Rectangle scrollRect
         {
-            1, 
-            static_cast<int>(m_fullViewSize.Height - scrollSize) - 1, 
-            m_fullViewSize.Width - 2u, 
+            m_clientAreaBounds.X, 
+            static_cast<int>(m_clientAreaBounds.Height - scrollSize), 
+            m_clientAreaBounds.Width, 
             scrollSize
         };
 
