@@ -346,9 +346,12 @@ namespace Berta
 					m_module.m_selectionController.Clear();
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
-				m_module.m_selectionController.SaveSnapshot();
-				m_module.m_lassoSelection.Start(args.Position);
-				GUI::Capture(m_module.m_window);
+				if (m_module.m_selectionController.IsMultiSelect())
+				{
+					m_module.m_selectionController.SaveSnapshot();
+					m_module.m_lassoSelection.Start(args.Position);
+					GUI::Capture(m_module.m_window);
+				}
 			}
 		}
 
@@ -1042,7 +1045,10 @@ namespace Berta
 
 		void Reactor::Module::EnableMultiselection(bool enabled)
 		{
-			m_multiselection = enabled;
+			if (m_selectionController.IsMultiSelect() == enabled)
+				return;
+			
+			m_selectionController.SetMultiSelect(enabled);
 		}
 
 		void Reactor::Module::AppendHeader(const std::string& text, uint32_t width)

@@ -130,6 +130,7 @@ namespace Berta
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.UpdateScrollMetrics();
+		m_module.TriggerVisibilityEvent();
 	}
 
 	void ThumbListBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
@@ -141,7 +142,7 @@ namespace Berta
 		{
 			if (m_module.m_events)
 			{
-				ArgThumbListBox arguments { static_cast<size_t>(clickedIndex) };
+				ArgThumbListBoxItem arguments { static_cast<size_t>(clickedIndex) };
 				m_module.m_events->ItemDblClick.Emit(arguments);
 			}
 		}
@@ -173,7 +174,8 @@ namespace Berta
 				rangeResolver
 			);
 
-			if (selectionChanged && m_module.m_events) {
+			if (selectionChanged && m_module.m_events)
+			{
 				//m_module.m_events->Selected.Emit({ static_cast<size_t>(clickedIndex) });
 			}
 		}
@@ -186,8 +188,11 @@ namespace Berta
 					//m_module.m_events->Selected.Fire({ (size_t)-1 });
 				}
 			}
-
-			m_module.m_lassoSelection.Start(args.Position);
+			if (m_module.m_selectionController.IsMultiSelect())
+			{
+				m_module.m_selectionController.SaveSnapshot();
+				m_module.m_lassoSelection.Start(args.Position);
+			}
 		}
 		
 		GUI::MarkAsNeedUpdate(*m_control);
@@ -213,11 +218,7 @@ namespace Berta
 				auto firstBounds = m_module.GetItemBounds(0);
 				if (firstBounds.Width > 0 && firstBounds.Height > 0)
 				{
-					int availableWidth = m_module.m_window->ClientSize.Width;
-					if (m_module.m_scrollableView->GetClientArea().Width > 0)
-					{
-						availableWidth = m_module.m_scrollableView->GetClientArea().Width;
-					}
+					int availableWidth = (int)m_module.m_scrollableView->GetClientArea().Width;
 
 					int cardWidth = firstBounds.Width;
 					int cardHeight = firstBounds.Height;
@@ -281,8 +282,16 @@ namespace Berta
 	{
 		if (m_module.m_lassoSelection.IsActive())
 		{
+			bool actuallyChanged = m_module.m_selectionController.HasSelectionChangedSinceSnapshot();
+				
 			m_module.m_lassoSelection.End();
+			m_module.m_selectionController.ClearSnapshot();
 			GUI::MarkAsNeedUpdate(*m_control);
+			
+			if (actuallyChanged)
+			{
+				m_module.TriggerSelectionChanged();
+			}
 		}
 	}
 
@@ -398,7 +407,11 @@ namespace Berta
 
 	ThumbListBoxItem ThumbListBoxReactor::Module::At(size_t index)
 	{
-		return ThumbListBoxItem{ m_items[index], *this };
+		if (index <= m_items.size())
+		{
+			return ThumbListBoxItem{ index, this };
+		}
+		return { 0, nullptr };
 	}
 
 	bool ThumbListBoxReactor::Module::AddItem(const std::wstring& text)
@@ -431,6 +444,9 @@ namespace Berta
 		m_imageCache.Clear();
 		m_selectionController.Clear();
 
+		m_lastVisibleStart = 0;
+		m_lastVisibleEnd = 0;
+		
 		UpdateScrollMetrics();
 		
 		return needUpdate;
@@ -495,13 +511,13 @@ namespace Berta
 
 	bool ThumbListBoxReactor::Module::IsEnabledMultiselection() const
 	{
-		return m_multiselection;
+		return m_selectionController.IsMultiSelect();
 	}
 
 	bool ThumbListBoxReactor::Module::EnableMultiselection(bool enabled)
 	{
-		bool needUpdate = m_multiselection != enabled;
-		m_multiselection = enabled;
+		bool needUpdate = m_selectionController.IsMultiSelect() != enabled;
+		m_selectionController.SetMultiSelect(enabled);
 		return needUpdate;
 	}
 
@@ -589,13 +605,68 @@ namespace Berta
 		return { x, y, cardWidth, cardHeight };
 	}
 
-	void ThumbListBoxReactor::Module::EmitVisibilityEvent(size_t index, bool visible) const
+	void ThumbListBoxReactor::Module::TriggerVisibilityEvent()
 	{
-		ArgThumbListBoxItemVisibility args;
-		args.Index = index;
-		args.Visible = visible;
-		BT_CORE_DEBUG << " - visibility item = " << index << ". visible=" << visible << std::endl;
-		m_events->ItemVisibility.Emit(args);
+		if (!m_events || !m_scrollableView || m_items.empty()) return;
+
+		auto clientArea = m_control->GetClientArea();
+		if (clientArea.Width <= 1 || clientArea.Height <= 1) return;
+
+		auto scrollOffset = m_scrollableView->GetScrollOffset();
+		auto firstBounds = GetItemBounds(0);
+		if (firstBounds.Width == 0 || firstBounds.Height == 0) return;
+		
+		int availableWidth = (int)m_scrollableView->GetClientArea().Width;
+		if (availableWidth <= 0) 
+		{
+			availableWidth = (int)clientArea.Width;
+		}
+		
+		int cardWidth = (int)firstBounds.Width;
+		int cardHeight = (int)firstBounds.Height;
+		int columns = std::max<int>(1, availableWidth / cardWidth);
+		
+		int gapY = m_window->ToScale(10);
+		int totalRowHeight = cardHeight + gapY;
+
+		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / totalRowHeight);
+		//int visibleRows = static_cast<int>(std::ceil(clientArea.Height / static_cast<float>(totalRowHeight))) + 2;
+		int visibleRows = static_cast<int>(std::ceil(clientArea.Height / static_cast<float>(totalRowHeight)));
+
+		size_t currentStart = static_cast<size_t>(firstVisibleRow) * columns;
+		size_t currentEnd = std::min<size_t>(m_items.size(), currentStart + static_cast<size_t>(visibleRows * columns));
+
+		if (currentStart == m_lastVisibleStart && currentEnd == m_lastVisibleEnd) return;
+
+		for (size_t i = m_lastVisibleStart; i < m_lastVisibleEnd; ++i)
+		{
+			if (i < currentStart || i >= currentEnd)
+			{
+				ArgThumbListBoxItemVisibility arguments{ i, false };
+				BT_CORE_DEBUG << " - visibility item = " << i << ". visible=false. "<< std::endl;
+				m_events->ItemVisibility.Emit(arguments);
+			}
+		}
+		
+		for (size_t i = currentStart; i < currentEnd; ++i)
+		{
+			if (i < m_lastVisibleStart || i >= m_lastVisibleEnd)
+			{
+				ArgThumbListBoxItemVisibility arguments{ i, true };
+				BT_CORE_DEBUG << " - visibility item = " << i << ". visible=true" << std::endl;
+				m_events->ItemVisibility.Emit(arguments);
+			}
+		}
+
+		m_lastVisibleStart = currentStart;
+		m_lastVisibleEnd = currentEnd;
+	}
+
+	void ThumbListBoxReactor::Module::TriggerSelectionChanged()
+	{
+		ArgThumbListBox arguments { GetSelectedItems() };
+		auto events = reinterpret_cast<ThumbListBoxEvents*>(m_window->Events.get());
+		events->SelectionChanged.Emit(arguments);
 	}
 
 	void ThumbListBoxReactor::Module::Draw() const
@@ -655,9 +726,17 @@ namespace Berta
 		}
 	}
 
-	std::vector<size_t> ThumbListBoxReactor::Module::GetSelectedItems() const
+	std::vector<ThumbListBoxItem> ThumbListBoxReactor::Module::GetSelectedItems()
 	{
-		return m_selectionController.GetSelectedItems();
+		auto selectedItems = m_selectionController.GetSelectedItems();
+		std::vector<ThumbListBoxItem> result;
+		result.reserve(selectedItems.size());
+		
+		for (auto& item : selectedItems)
+		{
+			result.emplace_back(item, this);
+		}
+		return result;
 	}
 
 	void ThumbListBoxReactor::Module::EnsureVisibility(size_t index)
@@ -696,7 +775,7 @@ namespace Berta
 		m_scrollableView->SetScrollStep(20, 20);
 		m_scrollableView->SetOnScrollChange([this]()
 			{
-				//m_module.EmitVisibilityEvent();
+				TriggerVisibilityEvent();
 				GUI::MarkAsNeedUpdate(m_window);
 			});
 	}
@@ -704,17 +783,30 @@ namespace Berta
 
 	void ThumbListBoxItem::SetText(const std::wstring& text)
 	{
-		if (m_target.m_text == text)
-		return;
+		if (!m_logicalIndex.has_value() || m_logicalIndex.value() >= m_module->m_items.size())
+			return;
 
-		m_target.m_text = text;
-		m_module.UpdateItem(m_target);
+		m_module->m_items[m_logicalIndex.value()].m_text = text;
+		GUI::UpdateWindow(m_module->m_window);
 	}
 
 	void ThumbListBoxItem::SetIcon(const Image& image)
 	{
-		m_target.m_hasThumbnail = image;
-		m_module.UpdateItem(m_target);
+		if (!m_logicalIndex.has_value() || m_logicalIndex.value() >= m_module->m_items.size())
+			return;
+
+		auto index = m_logicalIndex.value();
+		m_module->m_items[index].m_hasThumbnail = image;
+		if (m_module->m_items[index].m_hasThumbnail)
+		{
+			m_module->m_imageCache.Put(index, image);
+		}
+		else
+		{
+			m_module->m_imageCache.Erase(index);
+		}
+		
+		GUI::UpdateWindow(m_module->m_window);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)
@@ -728,17 +820,19 @@ namespace Berta
 
 	void ThumbListBox::AddItem(const std::wstring& text)
 	{
-		if (GetReactor().GetModule().AddItem(text) && IsAutoDraw())
+		auto& module = GetReactor().GetModule();
+		if (module.AddItem(text) && IsAutoDraw())
 		{
-			GetReactor().GetModule().Draw();
+			module.Draw();
 		}
 	}
 
 	void ThumbListBox::AddItem(const std::string& text)
 	{
-		if (GetReactor().GetModule().AddItem(StringUtils::UTF8ToWide(text)) && IsAutoDraw())
+		auto& module = GetReactor().GetModule();
+		if (module.AddItem(StringUtils::UTF8ToWide(text)) && IsAutoDraw())
 		{
-			GetReactor().GetModule().Draw();
+			module.Draw();
 		}
 	}
 
@@ -799,7 +893,7 @@ namespace Berta
 		}
 	}
 
-	std::vector<size_t> ThumbListBox::GetSelected() const
+	std::vector<ThumbListBoxItem> ThumbListBox::GetSelected()
 	{
 		return GetReactor().GetModule().GetSelectedItems();
 	}

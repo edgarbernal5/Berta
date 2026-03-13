@@ -29,9 +29,14 @@ namespace Berta
 		uint32_t ThumbnailCardHeight = 45;
 	};
 
+	struct ArgThumbListBoxItem
+	{
+		size_t Index{ 0 };
+	};
+
 	struct ArgThumbListBox
 	{
-		size_t SelectedIndex{ 0 };
+		std::vector<ThumbListBoxItem> SelectedItems{ };
 	};
 
 	struct ArgThumbListBoxItemVisibility
@@ -42,9 +47,9 @@ namespace Berta
 
 	struct ThumbListBoxEvents : public ControlEvents
 	{
-		Event<ArgThumbListBox>	ItemDblClick;
-		Event<ArgThumbListBox>	Selected;
+		Event<ArgThumbListBoxItem>	ItemDblClick;
 		Event<ArgThumbListBoxItemVisibility>	ItemVisibility;
+		Event<ArgThumbListBox>	SelectionChanged;
 	};
 	
 	// LRU = Least Recently Used
@@ -172,12 +177,14 @@ namespace Berta
 			int GetLayoutWidth() const;
 			Rectangle GetItemBounds(size_t index, int overrideWidth = -1) const;
 			
-			void EmitVisibilityEvent(size_t index, bool visible) const;
+			void TriggerVisibilityEvent();
+			void TriggerSelectionChanged();
+			
 			void Draw() const;
 			void DrawItem(Graphics& graphics, ItemType& item, Point& offset);
 			void DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect);
 
-			std::vector<size_t> GetSelectedItems() const;
+			std::vector<ThumbListBoxItem> GetSelectedItems();
 			void EnsureVisibility(size_t index);
 
 			void UpdateItem(const ItemType& item) const;
@@ -193,7 +200,10 @@ namespace Berta
 			
 			Window* m_window{ nullptr };
 			ControlBase* m_control{ nullptr };
-			bool m_multiselection{ true };
+			
+			size_t m_lastVisibleStart{ 0 };
+			size_t m_lastVisibleEnd{ 0 };
+			
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			uint32_t m_thumbnailSize{ 96u };
@@ -211,16 +221,21 @@ namespace Berta
 
 	struct ThumbListBoxItem
 	{
-		ThumbListBoxItem(ThumbListBoxReactor::Module::ItemType& target, ThumbListBoxReactor::Module& module) :
-			m_target(target), m_module(module)
+		ThumbListBoxItem(size_t logicalIndex, ThumbListBoxReactor::Module* module) :
+			m_logicalIndex(logicalIndex), m_module(module)
 		{
 		}
 
 		void SetText(const std::wstring& text);
 		void SetIcon(const Image& image);
+		
+		explicit operator bool() const
+		{
+			return m_logicalIndex.has_value() && m_module;
+		}
 	private:
-		ThumbListBoxReactor::Module::ItemType& m_target;
-		ThumbListBoxReactor::Module& m_module;
+		std::optional<size_t> m_logicalIndex { std::nullopt };
+		ThumbListBoxReactor::Module* m_module;
 	};
 
 	class ThumbListBox : public Control<ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>
@@ -241,7 +256,7 @@ namespace Berta
 		bool IsEnabledMultiselection() const;
 		void EnableMultiselection(bool enabled);
 
-		std::vector<size_t> GetSelected() const;
+		std::vector<ThumbListBoxItem> GetSelected();
 		
 		void SetCacheCapacity(size_t maxImages);
 		

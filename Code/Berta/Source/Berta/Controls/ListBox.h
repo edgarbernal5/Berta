@@ -163,7 +163,6 @@ namespace Berta
 			OnHeadersReorderedCallback m_onHeadersReordered;
 			OnRequestColumnAutoWidth m_onRequestAutoWidth;
 			
-			// --- Estados Visuales e Interacción ---
 			std::optional<size_t> m_hoveredVisualIndex{ std::nullopt };
 			std::optional<size_t> m_sortLogicalIndex{ std::nullopt };
 			bool m_isSortAscending{ true };
@@ -255,7 +254,6 @@ namespace Berta
 
 				Window* m_window{ nullptr };
 				ControlBase* m_control{ nullptr };
-				bool m_multiselection{ true };
 				bool m_shiftPressed{ false };
 				bool m_ctrlPressed{ false };
 			};

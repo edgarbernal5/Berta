@@ -281,7 +281,7 @@ public:
 					return;
 
 				Berta::Image newIcon("..\\..\\Resources\\Escudo.png");
-				m_thumbListBox.At(selected[0]).SetIcon(newIcon);
+				selected[0].SetIcon(newIcon);
 			});
 
 		m_thumbListBox.Create(*this, true, { 40, 45, 200, 200 });

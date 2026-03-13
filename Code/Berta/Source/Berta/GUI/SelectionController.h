@@ -26,6 +26,19 @@ namespace Berta
         
         bool Select(const T& item, bool ctrlPressed, bool shiftPressed, const RangeResolver& resolver)
         {
+            if (!m_isMultiSelect)
+            {
+                if (m_selectedItems.size() == 1 && m_selectedItems.find(item) != m_selectedItems.end())
+                {
+                    return false;
+                }
+
+                m_selectedItems.clear();
+                m_selectedItems.insert(item);
+                m_anchorItem = item;
+                return true;
+            }
+            
             bool selectionChanged = true;
             if (shiftPressed && m_anchorItem.has_value())
             {
@@ -119,6 +132,10 @@ namespace Berta
         {
             if (selected)
             {
+                if (!m_isMultiSelect)
+                {
+                    m_selectedItems.clear();
+                }
                 m_selectedItems.insert(item);
                 m_anchorItem = item;
             }
@@ -134,6 +151,20 @@ namespace Berta
             m_anchorItem.reset();
             ClearSnapshot();
         }
+        
+        void SetMultiSelect(bool enabled)
+        {
+            m_isMultiSelect = enabled;
+            
+            if (!m_isMultiSelect && m_selectedItems.size() > 1)
+            {
+                T firstItem = *m_selectedItems.begin();
+                m_selectedItems.clear();
+                m_selectedItems.insert(firstItem);
+                m_anchorItem = firstItem;
+            }
+        }
+        bool IsMultiSelect() const { return m_isMultiSelect; }
         
         void SelectAll(size_t totalItems)
         {
@@ -163,6 +194,8 @@ namespace Berta
     private:
         std::unordered_set<T> m_selectedItems;
         std::unordered_set<T> m_snapshotItems;
+        
+        bool m_isMultiSelect{ true };
         
         std::optional<T> m_anchorItem;
         std::optional<T> m_snapshotAnchor;
