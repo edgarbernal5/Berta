@@ -165,15 +165,7 @@ namespace Berta
             }
         }
         bool IsMultiSelect() const { return m_isMultiSelect; }
-        
-        void SelectAll(size_t totalItems)
-        {
-            for (size_t i = 0; i < totalItems; ++i)
-            {
-                m_selectedItems.insert(i);
-            }
-        }
-        
+                
         bool HasSelectionChangedSinceSnapshot() const
         {
             return m_selectedItems != m_snapshotItems;
