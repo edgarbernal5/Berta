@@ -19,9 +19,11 @@ namespace Berta
 	{
 		m_control = &control;
 		m_module.m_window = control.Handle();
+		m_module.m_control = m_control;
 		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 
 		m_module.Init();
+		m_module.InitScrollableView();
 		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
@@ -31,7 +33,8 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->BoxBackground, true);
+		auto globalRect = window->ClientSize.ToRectangle();
+		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
 
 		if (m_module.m_showNavigationLines)
 		{
@@ -39,27 +42,20 @@ namespace Berta
 		}
 		m_module.DrawTreeNodes(graphics);
 
-		if (m_module.m_viewport.m_needHorizontalScroll && m_module.m_viewport.m_needVerticalScroll)
+		if (m_module.m_scrollableView->HasVerticalScroll() && m_module.m_scrollableView->HasHorizontalScroll())
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
 			graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
 		}
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(globalRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
 	}
 
 	void TreeBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		m_module.CalculateViewport(m_module.m_viewport);
 
-		m_module.UpdateScrollBars();
+		m_module.UpdateScrollData();
 		m_module.CalculateVisibleNodes();
-
-		if (m_module.m_scrollBarVert)
-		{
-			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			Rectangle scrollRect{ static_cast<int>(m_module.m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_module.m_window->ClientSize.Height - 2u };
-			GUI::MoveWindow(m_module.m_scrollBarVert->Handle(), scrollRect);
-		}
 	}
 
 	void TreeBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
@@ -70,7 +66,8 @@ namespace Berta
 		auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 
-		auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
+		auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
+		auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + scrollOffset.Y;
 		int index = positionY / nodeHeightInt;
 		index -= m_module.m_viewport.m_startingVisibleIndex;
 
@@ -81,7 +78,7 @@ namespace Berta
 		visibleNode->isExpanded = !visibleNode->isExpanded;
 		m_module.CalculateViewport(m_module.m_viewport);
 
-		m_module.UpdateScrollBars();
+		m_module.UpdateScrollData();
 		m_module.CalculateVisibleNodes();
 		
 		m_module.EmitExpansionEvent(visibleNode);
@@ -102,7 +99,7 @@ namespace Berta
 
 	void TreeBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		m_module.m_pressedArea = m_module.m_hoveredArea;
+		/*m_module.m_pressedArea = m_module.m_hoveredArea;
 		bool needUpdate = false;
 		bool emitSelectionEvent = false;
 
@@ -113,14 +110,15 @@ namespace Berta
 				auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
 				auto nodeHeightInt = static_cast<int>(nodeHeight);
 
-				auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + m_module.m_scrollOffset.Y;
+				auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
+				auto positionY = args.Position.Y - m_module.m_viewport.m_backgroundRect.Y + scrollOffset.Y;
 				int index = positionY / nodeHeightInt;
 				index -= m_module.m_viewport.m_startingVisibleIndex;
 
 				m_module.m_visibleNodes[index]->isExpanded = !m_module.m_visibleNodes[index]->isExpanded;
 				m_module.CalculateViewport(m_module.m_viewport);
 
-				m_module.UpdateScrollBars();
+				m_module.UpdateScrollData();
 				m_module.CalculateVisibleNodes();
 
 				needUpdate = true;
@@ -180,12 +178,12 @@ namespace Berta
 		if (emitSelectionEvent)
 		{
 			m_module.EmitSelectionEvent();
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		auto hoveredArea = m_module.DetermineHoverArea(args.Position);
+		/*auto hoveredArea = m_module.DetermineHoverArea(args.Position);
 		bool needUpdate = false;
 		
 		if (hoveredArea == InteractionArea::Node || hoveredArea == InteractionArea::Expander)
@@ -211,7 +209,7 @@ namespace Berta
 		if (needUpdate)
 		{
 			GUI::MarkAsNeedUpdate(m_module.m_window);
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
@@ -220,38 +218,7 @@ namespace Berta
 
 	void TreeBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 	{
-		if (!m_module.m_scrollBarVert && args.IsVertical || !m_module.m_scrollBarHoriz && !args.IsVertical)
-		{
-			return;
-		}
-
-		int direction = args.WheelDelta > 0 ? -1 : 1;
-		direction *= args.IsVertical ? m_module.m_scrollBarVert->GetStepValue() : m_module.m_scrollBarHoriz->GetStepValue();
-		auto min = args.IsVertical ? m_module.m_scrollBarVert->GetMin() : m_module.m_scrollBarHoriz->GetMin();
-		auto max = args.IsVertical ? m_module.m_scrollBarVert->GetMax() : m_module.m_scrollBarHoriz->GetMax();
-		int newOffset = std::clamp((args.IsVertical ? m_module.m_scrollOffset.Y : m_module.m_scrollOffset.X) + direction, (int)min, (int)max);
-
-		if (args.IsVertical && newOffset != m_module.m_scrollOffset.Y ||
-			!args.IsVertical && newOffset != m_module.m_scrollOffset.X)
-		{
-			if (args.IsVertical)
-			{
-				m_module.m_scrollOffset.Y = newOffset;
-				m_module.CalculateVisibleNodes();
-				m_module.m_scrollBarVert->SetValue(newOffset);
-
-				GUI::MarkAsNeedUpdate(m_module.m_scrollBarVert->Handle());
-			}
-			else
-			{
-				m_module.m_scrollOffset.X = newOffset;
-				m_module.m_scrollBarHoriz->SetValue(newOffset);
-
-				GUI::MarkAsNeedUpdate(m_module.m_scrollBarHoriz->Handle());
-			}
-
-			GUI::MarkAsNeedUpdate(*m_control);
-		}
+		m_module.m_scrollableView->HandleMouseWheel(args);
 	}
 
 	void TreeBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
@@ -259,7 +226,7 @@ namespace Berta
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-		bool needUpdate = false;
+		/*bool needUpdate = false;
 		bool recalculateVisibleNodes = false;
 		bool emitSelectionEvent = false;
 		bool emitCollapsedEvent = false;
@@ -383,53 +350,6 @@ namespace Berta
 				}
 			}
 			
-			/*else
-			{
-				int selectedIndex;
-				if (m_module.IsVisibleNode(m_module.m_mouseSelection.m_selectedNode, selectedIndex))
-				{
-					int newIndex = selectedIndex + amount;
-					if (newIndex >= 0 && newIndex < m_module.m_visibleNodes.size())
-					{
-						newIndex = std::clamp(newIndex, 0, (int)m_module.m_visibleNodes.size() - 1);
-
-						if (!m_module.m_multiselection && m_module.UpdateSingleSelection(m_module.m_visibleNodes[newIndex]))
-						{
-							m_module.m_mouseSelection.m_selectedNode = m_module.m_visibleNodes[newIndex];
-							needUpdate = true;
-							emitSelectionEvent = true;
-						}
-					}
-					else
-					{
-						selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_selectedNode);
-						int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
-
-						auto newNode = m_module.LocateNodeIndexInTree(newIndex);
-						if (newNode && m_module.UpdateSingleSelection(newNode))
-						{
-							m_module.m_mouseSelection.m_selectedNode = newNode;
-							needUpdate = true;
-							emitSelectionEvent = true;
-							recalculateVisibleNodes = true;
-						}
-					}
-				}
-				else
-				{
-					selectedIndex = m_module.LocateNodeIndexInTree(m_module.m_mouseSelection.m_selectedNode);
-
-					int newIndex = std::clamp(selectedIndex + amount, 0, (int)m_module.m_viewport.m_treeSize - 1);
-					auto newNode = m_module.LocateNodeIndexInTree(newIndex);
-					if (newNode && m_module.UpdateSingleSelection(newNode))
-					{
-						m_module.m_mouseSelection.m_selectedNode = newNode;
-						needUpdate = true;
-						emitSelectionEvent = true;
-						recalculateVisibleNodes = true;
-					}
-				}
-			}*/
 			
 		}
 		else if (args.Key == KeyboardKey::Space && m_module.m_ctrlPressed)
@@ -483,21 +403,12 @@ namespace Berta
 			}
 		}
 
-		//if (m_module.m_multiselection && emitSelectionEvent)
-		//{
-		//	for (auto& oldNode : m_module.m_mouseSelection.m_selections)
-		//	{
-		//		oldNode->isSelected = false;
-		//	}
-		//	m_module.m_mouseSelection.m_selections.clear();
-		//}
-
 		if (recalculateVisibleNodes)
 		{
 			m_module.CalculateViewport(m_module.m_viewport);
 			m_module.CalculateVisibleNodes();
 		}
-		m_module.UpdateScrollBars();
+		m_module.UpdateScrollData();
 
 		if (emitSelectionEvent)
 		{
@@ -512,7 +423,7 @@ namespace Berta
 		if (needUpdate)
 		{
 			GUI::MarkAsNeedUpdate(m_module.m_window);
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
@@ -562,7 +473,7 @@ namespace Berta
 
 	void TreeBoxReactor::Module::CalculateVisibleNodes()
 	{
-		m_visibleNodes.clear();
+		/*m_visibleNodes.clear();
 		if (m_root.firstChild == nullptr)
 		{
 			m_viewport.m_startingVisibleIndex = m_viewport.m_endingVisibleIndex = 0;
@@ -575,7 +486,7 @@ namespace Berta
 		m_viewport.m_startingVisibleIndex = m_scrollOffset.Y / nodeHeight;
 		m_viewport.m_endingVisibleIndex = (m_scrollOffset.Y + visibleHeight) / nodeHeight;
 
-		GetNodesInBetween(m_viewport.m_startingVisibleIndex, m_viewport.m_endingVisibleIndex, m_visibleNodes);
+		GetNodesInBetween(m_viewport.m_startingVisibleIndex, m_viewport.m_endingVisibleIndex, m_visibleNodes);*/
 	}
 
 	void TreeBoxReactor::Module::GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const
@@ -651,7 +562,7 @@ namespace Berta
 		m_root.m_lookup.clear();
 
 		CalculateViewport(m_viewport);
-		UpdateScrollBars();
+		UpdateScrollData();
 
 		if (needUpdate)
 		{
@@ -750,7 +661,7 @@ namespace Berta
 
 	TreeBoxReactor::InteractionArea TreeBoxReactor::Module::DetermineHoverArea(const Point& mousePosition)
 	{
-		if (!m_window->ClientSize.IsInside(mousePosition))
+		/*if (!m_window->ClientSize.IsInside(mousePosition))
 		{
 			return InteractionArea::None;
 		}
@@ -791,7 +702,7 @@ namespace Berta
 		if (absolutePosition.X >= expanderRect.X + static_cast<int>(expanderRect.Width))
 		{
 			return InteractionArea::Node;
-		}
+		}*/
 
 		return InteractionArea::Blank;
 	}
@@ -801,7 +712,7 @@ namespace Berta
 		CalculateViewport(m_viewport);
 		CalculateVisibleNodes();
 
-		UpdateScrollBars();
+		UpdateScrollData();
 	}
 
 	void TreeBoxReactor::Module::Draw()
@@ -811,6 +722,7 @@ namespace Berta
 
 	void TreeBoxReactor::Module::DrawTreeNodes(Graphics& graphics)
 	{
+		/*
 		bool enabled = true;
 		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto nodeTextMargin = m_window->ToScale(4u);
@@ -885,12 +797,12 @@ namespace Berta
 
 			graphics.DrawString({ nodeRect.X + contentOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
 			++i;
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::Module::DrawNavigationLines(Graphics& graphics)
 	{
-		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
+		/*auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
 		auto nodeTextMargin = m_window->ToScale(8u);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 		auto nodeHeightHalfInt = nodeHeightInt >> 1;
@@ -988,7 +900,7 @@ namespace Berta
 				--currentDepth;
 				parentVisible = parentVisible->parent;
 			}
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::Module::Init()
@@ -1086,7 +998,7 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
-		UpdateScrollBars();
+		UpdateScrollData();
 		CalculateVisibleNodes();
 		m_mouseSelection.Deselect(item.m_node);
 
@@ -1099,7 +1011,7 @@ namespace Berta
 		EraseNode(item.m_node);
 
 		CalculateViewport(m_viewport);
-		UpdateScrollBars();
+		UpdateScrollData();
 		CalculateVisibleNodes();
 		m_mouseSelection.Deselect(item.m_node);
 
@@ -1152,12 +1064,22 @@ namespace Berta
 		}
 	}
 
-	bool TreeBoxReactor::Module::UpdateScrollBars()
+	void TreeBoxReactor::Module::UpdateScrollData()
 	{
-		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
-		bool needUpdate = false;
+		if (!m_scrollableView)
+		{
+			return;
+		}
 		
-		if (m_viewport.m_needVerticalScroll)
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
+		auto clientArea = m_control->GetClientArea();
+			
+		m_scrollableView->SetViewRect(clientArea);
+		
+		Size contentSize;
+		m_scrollableView->SetContentSize(contentSize);
+		
+		/*if (m_viewport.m_needVerticalScroll)
 		{
 			Rectangle scrollRect{ static_cast<int>(m_window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_window->ClientSize.Height - 2u };
 			if (m_viewport.m_needHorizontalScroll)
@@ -1199,7 +1121,7 @@ namespace Berta
 
 			needUpdate = true;
 		}
-		return needUpdate;
+		return needUpdate;*/
 	}
 
 	void TreeBoxReactor::Module::ClearSelection()

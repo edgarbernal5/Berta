@@ -135,7 +135,7 @@ namespace Berta
 			void Erase(TreeBoxItem item);
 			void EraseNode(TreeNodeType* node);
 			void Unlink(TreeNodeType* node);
-			bool UpdateScrollBars();
+			void UpdateScrollData();
 			void ClearSelection();
 			bool ClearSingleSelection();
 			void SelectItem(TreeNodeType* node);
@@ -166,13 +166,10 @@ namespace Berta
 
 			void InitScrollableView();
 			
-			Point m_scrollOffset{};
-			std::unique_ptr<ScrollBar> m_scrollBarVert;
-			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
-
 			ViewportData m_viewport;
 			TreeNodeType m_root;
 			Window* m_window{ nullptr };
+			ControlBase* m_control{ nullptr };
 			TreeBoxAppearance* m_appearance{ nullptr };
 			std::vector<TreeNodeType*> m_visibleNodes;
 			bool m_drawImages{ false };
