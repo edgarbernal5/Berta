@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <any>
 
+#include "Berta/GUI/ScrollableView.h"
+
 namespace Berta
 {
 	using TreeNodeHandle = std::string;
@@ -162,6 +164,8 @@ namespace Berta
 
 			bool ShowNavigationLines(bool visible);
 
+			void InitScrollableView();
+			
 			Point m_scrollOffset{};
 			std::unique_ptr<ScrollBar> m_scrollBarVert;
 			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
@@ -176,6 +180,8 @@ namespace Berta
 			InteractionArea m_hoveredArea{ InteractionArea::None};
 			InteractionArea m_pressedArea{ InteractionArea::None };
 
+			std::unique_ptr<ScrollableView> m_scrollableView;
+			
 			MouseSelection m_mouseSelection;
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };

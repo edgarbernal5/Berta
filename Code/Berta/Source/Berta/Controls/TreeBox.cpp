@@ -1598,6 +1598,17 @@ namespace Berta
 		return true;
 	}
 
+	void TreeBoxReactor::Module::InitScrollableView()
+	{
+		m_scrollableView = std::make_unique<ScrollableView>(m_window);
+		
+		m_scrollableView->SetScrollStep(20, 20);
+		m_scrollableView->SetOnScrollChange([this]()
+			{
+				GUI::MarkAsNeedUpdate(m_window);
+			});
+	}
+
 	TreeBox::TreeBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
