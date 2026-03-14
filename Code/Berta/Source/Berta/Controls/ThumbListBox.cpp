@@ -783,27 +783,26 @@ namespace Berta
 
 	void ThumbListBoxItem::SetText(const std::wstring& text)
 	{
-		if (!m_logicalIndex.has_value() || m_logicalIndex.value() >= m_module->m_items.size())
+		if (m_logicalIndex >= m_module->m_items.size())
 			return;
 
-		m_module->m_items[m_logicalIndex.value()].m_text = text;
+		m_module->m_items[m_logicalIndex].m_text = text;
 		GUI::UpdateWindow(m_module->m_window);
 	}
 
 	void ThumbListBoxItem::SetIcon(const Image& image)
 	{
-		if (!m_logicalIndex.has_value() || m_logicalIndex.value() >= m_module->m_items.size())
+		if (m_logicalIndex >= m_module->m_items.size())
 			return;
 
-		auto index = m_logicalIndex.value();
-		m_module->m_items[index].m_hasThumbnail = image;
-		if (m_module->m_items[index].m_hasThumbnail)
+		m_module->m_items[m_logicalIndex].m_hasThumbnail = image;
+		if (m_module->m_items[m_logicalIndex].m_hasThumbnail)
 		{
-			m_module->m_imageCache.Put(index, image);
+			m_module->m_imageCache.Put(m_logicalIndex, image);
 		}
 		else
 		{
-			m_module->m_imageCache.Erase(index);
+			m_module->m_imageCache.Erase(m_logicalIndex);
 		}
 		
 		GUI::UpdateWindow(m_module->m_window);

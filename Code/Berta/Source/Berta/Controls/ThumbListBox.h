@@ -170,8 +170,10 @@ namespace Berta
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
 			void UpdateScrollMetrics();
+			
 			bool IsEnabledMultiselection() const;
 			bool EnableMultiselection(bool enabled);
+			
 			int GetItemIndexAtMousePosition(const Point& position);
 			
 			int GetLayoutWidth() const;
@@ -201,13 +203,16 @@ namespace Berta
 			Window* m_window{ nullptr };
 			ControlBase* m_control{ nullptr };
 			
+			uint32_t m_thumbnailSize{ 96u };
+			
 			size_t m_lastVisibleStart{ 0 };
 			size_t m_lastVisibleEnd{ 0 };
 			
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
-			uint32_t m_thumbnailSize{ 96u };
-			size_t m_hoveredIndex{ static_cast<size_t>(-1) };
+			std::optional<size_t> m_focusedIndex;
+			std::optional<size_t> m_anchorIndex;
+			std::optional<size_t> m_hoveredIndex;
 
 			ThumbListBoxEvents* m_events{ nullptr };
 		};
@@ -231,10 +236,10 @@ namespace Berta
 		
 		explicit operator bool() const
 		{
-			return m_logicalIndex.has_value() && m_module;
+			return m_module;
 		}
 	private:
-		std::optional<size_t> m_logicalIndex { std::nullopt };
+		size_t m_logicalIndex { static_cast<size_t>(-1) };
 		ThumbListBoxReactor::Module* m_module;
 	};
 
