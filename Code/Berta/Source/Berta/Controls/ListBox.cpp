@@ -1334,6 +1334,7 @@ namespace Berta
 			size_t logicalIndex = m_items.GetLogicalIndex(visualIndex);
 			bool isSelected = m_selectionController.IsSelected(logicalIndex); 
 			bool isHovered = (visualIndex == m_hoveredIndex);
+			bool isFocused = (logicalIndex == m_focusedLogicalIndex);
 			
 			if (isSelected)
 			{
@@ -1350,6 +1351,12 @@ namespace Berta
 				bgRect.Width = std::max<uint32_t>(rowRect.Width, m_headers.GetTotalWidth()); 
 				graphics.DrawRectangle(bgRect, bgColor, true);
 			}
+			if (isFocused)
+			{
+				Rectangle bgRect = rowRect;
+				bgRect.Width = std::max<uint32_t>(rowRect.Width, m_headers.GetTotalWidth()); 
+				graphics.DrawRectangle(bgRect, appearance->Foreground, false);
+			}
 		}
 
 		void Reactor::Module::DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rowRect)
@@ -1357,11 +1364,15 @@ namespace Berta
 			size_t logicalRowIndex = m_items.GetLogicalIndex(visualRowIndex);
 			const auto* item = m_items.GetItemSafely(logicalRowIndex);
 			const auto& headers = m_headers.GetHeaders();
+			size_t columnCount = m_headers.GetColumnCount();
+			
 			const Image* icon = item->m_icon ? &item->m_icon : nullptr;
+			
 			int currentX = rowRect.X;
 			auto cellHeight = rowRect.Height;
-			size_t columnCount = m_headers.GetColumnCount();
+			
 			auto isSelected = m_selectionController.IsSelected(logicalRowIndex);
+			
 			for (size_t visualCol = 0; visualCol < columnCount; ++visualCol)
 			{
 				auto logicalCol = m_headers.GetLogicalIndex(visualCol);

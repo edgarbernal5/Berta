@@ -36,7 +36,7 @@ namespace Berta
 
 	struct ArgThumbListBox
 	{
-		std::vector<ThumbListBoxItem> SelectedItems{ };
+		std::vector<ThumbListBoxItem> SelectedItems;
 	};
 
 	struct ArgThumbListBoxItemVisibility
@@ -57,13 +57,13 @@ namespace Berta
 	{
 	public:
 		ThumbnailCacheLRU(size_t capacity = 100) : 
-		m_capacity(capacity)
+			m_capacity(capacity)
 		{
 		}
 
-		bool TryGet(size_t index, Image& outImage)
+		bool TryGet(uint64_t id, Image& outImage)
 		{
-			auto it = m_cacheMap.find(index);
+			auto it = m_cacheMap.find(id);
 			if (it == m_cacheMap.end())
 			{
 				return false;
@@ -75,9 +75,9 @@ namespace Berta
 			return true;
 		}
 
-		void Put(size_t index, const Image& image)
+		void Put(uint64_t id, const Image& image)
 		{
-			auto it = m_cacheMap.find(index);
+			auto it = m_cacheMap.find(id);
 			if (it != m_cacheMap.end())
 			{
 				it->second.image = image;
@@ -93,13 +93,13 @@ namespace Berta
 				m_lruList.pop_back();
 			}
 
-			m_lruList.push_front(index);
-			m_cacheMap[index] = { image, m_lruList.begin() };
+			m_lruList.push_front(id);
+			m_cacheMap[id] = { image, m_lruList.begin() };
 		}
 
-		void Erase(size_t index)
+		void Erase(size_t id)
 		{
-			auto it = m_cacheMap.find(index);
+			auto it = m_cacheMap.find(id);
 			if (it != m_cacheMap.end())
 			{
 				m_lruList.erase(it->second.listIterator);
@@ -127,14 +127,14 @@ namespace Berta
 		
 	private:
 		size_t m_capacity;
-		std::list<size_t> m_lruList; 
+		std::list<uint64_t> m_lruList; 
 		
 		struct CacheItem
 		{
 			Image image;
-			std::list<size_t>::iterator listIterator;
+			std::list<uint64_t>::iterator listIterator;
 		};
-		std::unordered_map<size_t, CacheItem> m_cacheMap;
+		std::unordered_map<uint64_t, CacheItem> m_cacheMap;
 	};
 
 	class ThumbListBoxReactor : public ControlReactor
@@ -158,6 +158,7 @@ namespace Berta
 			{
 				ItemType() = default;
 
+				uint64_t m_id { 0 };
 				std::wstring m_text;
 				bool m_hasThumbnail { false };
 			};
@@ -174,7 +175,7 @@ namespace Berta
 			bool IsEnabledMultiselection() const;
 			bool EnableMultiselection(bool enabled);
 			
-			int GetItemIndexAtMousePosition(const Point& position);
+			std::optional<size_t> GetItemIndexAtMousePosition(const Point& position);
 			
 			int GetLayoutWidth() const;
 			Rectangle GetItemBounds(size_t index, int overrideWidth = -1) const;
@@ -187,12 +188,11 @@ namespace Berta
 			void DrawItemText(Graphics& graphics, ItemType& item, const Rectangle& cardRect);
 
 			std::vector<ThumbListBoxItem> GetSelectedItems();
-			void EnsureVisibility(size_t index);
-
-			void UpdateItem(const ItemType& item) const;
 			
 			void InitScrollableView();
+			void EnsureVisibility(size_t index);
 			
+			uint64_t m_idCounter{ 1 };
 			std::unique_ptr<ScrollableView> m_scrollableView;
 			ThumbnailCacheLRU m_imageCache;
 			SelectionController<size_t> m_selectionController;
@@ -211,7 +211,6 @@ namespace Berta
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			std::optional<size_t> m_focusedIndex;
-			std::optional<size_t> m_anchorIndex;
 			std::optional<size_t> m_hoveredIndex;
 
 			ThumbListBoxEvents* m_events{ nullptr };
@@ -239,7 +238,7 @@ namespace Berta
 			return m_module;
 		}
 	private:
-		size_t m_logicalIndex { static_cast<size_t>(-1) };
+		size_t m_logicalIndex { 0 };
 		ThumbListBoxReactor::Module* m_module;
 	};
 
