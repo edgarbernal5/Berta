@@ -20,11 +20,9 @@ namespace Berta
 		m_control = &control;
 		m_module.m_window = control.Handle();
 		m_module.m_control = m_control;
-		m_module.m_appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 
 		m_module.Init();
 		m_module.InitScrollableView();
-		m_module.CalculateViewport(m_module.m_viewport);
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -52,10 +50,7 @@ namespace Berta
 
 	void TreeBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
-		m_module.CalculateViewport(m_module.m_viewport);
-
 		m_module.UpdateScrollData();
-		m_module.CalculateVisibleNodes();
 	}
 
 	void TreeBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
@@ -63,7 +58,9 @@ namespace Berta
 		if (m_module.m_pressedArea != InteractionArea::Node)
 			return;
 		
-		auto nodeHeight = m_module.m_window->ToScale(m_module.m_appearance->TreeItemHeight);
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
+
+		/*auto nodeHeight = m_module.m_window->ToScale(appearance->TreeItemHeight);
 		auto nodeHeightInt = static_cast<int>(nodeHeight);
 
 		auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
@@ -81,20 +78,20 @@ namespace Berta
 		m_module.UpdateScrollData();
 		m_module.CalculateVisibleNodes();
 		
-		m_module.EmitExpansionEvent(visibleNode);
+		m_module.EmitExpansionEvent(visibleNode);*/
 		GUI::MarkAsNeedUpdate(m_module.m_window);
 	}
 
 	void TreeBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		bool needUpdate = m_module.m_mouseSelection.m_hoveredNode != nullptr;
+		/*bool needUpdate = m_module.m_mouseSelection.m_hoveredNode != nullptr;
 		m_module.m_mouseSelection.m_hoveredNode = nullptr;
 
 		m_module.m_hoveredArea = InteractionArea::None;
 		if (needUpdate)
 		{
 			GUI::MarkAsNeedUpdate(m_module.m_window);
-		}
+		}*/
 	}
 
 	void TreeBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -432,45 +429,6 @@ namespace Berta
 		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
 
-	bool TreeBoxReactor::MouseSelection::IsSelected(TreeNodeType* node) const
-	{
-		return std::find(m_selections.begin(), m_selections.end(), node) != m_selections.end();
-	}
-
-	void TreeBoxReactor::MouseSelection::Select(TreeNodeType* node)
-	{
-		m_selections.push_back(node);
-	}
-
-	void TreeBoxReactor::MouseSelection::Deselect(TreeNodeType* node)
-	{
-		auto it = std::find(m_selections.begin(), m_selections.end(), node);
-		if (it != m_selections.end())
-		{
-			m_selections.erase(it);
-		}
-	}
-
-	void TreeBoxReactor::Module::CalculateViewport(ViewportData& viewportData)
-	{
-		viewportData.m_backgroundRect = m_window->ClientSize.ToRectangle();
-		viewportData.m_backgroundRect.X = viewportData.m_backgroundRect.Y = 1;
-		viewportData.m_backgroundRect.Width -= 2u;
-		viewportData.m_backgroundRect.Height -= 2u;
-
-		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
-		viewportData.m_treeSize = CalculateTreeSize(&m_root) - 1;
-		viewportData.m_contentSize.Height = nodeHeight * viewportData.m_treeSize;
-
-		auto scrollSize = m_window->ToScale(m_window->Appearance->ScrollBarSize);
-		viewportData.m_needVerticalScroll = viewportData.m_contentSize.Height > viewportData.m_backgroundRect.Height;
-		if (viewportData.m_needVerticalScroll)
-		{
-			viewportData.m_backgroundRect.Width -= scrollSize;
-		}
-		viewportData.m_contentSize.Width = viewportData.m_backgroundRect.Width;
-	}
-
 	void TreeBoxReactor::Module::CalculateVisibleNodes()
 	{
 		/*m_visibleNodes.clear();
@@ -561,7 +519,6 @@ namespace Berta
 		m_visibleNodes.clear();
 		m_root.m_lookup.clear();
 
-		CalculateViewport(m_viewport);
 		UpdateScrollData();
 
 		if (needUpdate)
@@ -709,7 +666,6 @@ namespace Berta
 
 	void TreeBoxReactor::Module::Update()
 	{
-		CalculateViewport(m_viewport);
 		CalculateVisibleNodes();
 
 		UpdateScrollData();
@@ -917,7 +873,9 @@ namespace Berta
 	TreeNodeHandle TreeBoxReactor::Module::CleanKey(const TreeNodeHandle& key)
 	{
 		if (key.empty() || key[key.size() - 1] != '/')
+		{
 			return key;
+		}
 
 		return key.substr(0, key.size() - 1);
 	}
@@ -926,7 +884,9 @@ namespace Berta
 	{
 		auto cleanKey = CleanKey(key);
 		if (cleanKey.empty())
+		{
 			return {};
+		}
 
 		auto parts = StringUtils::Split(key, '/');
 		TreeNodeType* current = &m_root;
@@ -942,7 +902,9 @@ namespace Berta
 	{
 		auto cleanKey = CleanKey(key);
 		if (cleanKey.empty())
+		{
 			return {};
+		}
 
 		auto parts = StringUtils::Split(key, '/');
 		TreeNodeType* current = parentNode;
@@ -979,7 +941,7 @@ namespace Berta
 	{
 		if (parentNode)
 		{
-			return !parentNode->key.empty() && parentNode->key.back()=='/' ? 
+			return !parentNode->key.empty() && parentNode->key.back() == '/' ? 
 				parentNode->key + key :
 				parentNode->key + "/" + key;
 		}
@@ -997,10 +959,8 @@ namespace Berta
 		Unlink(item.m_node);
 		EraseNode(item.m_node);
 
-		CalculateViewport(m_viewport);
 		UpdateScrollData();
 		CalculateVisibleNodes();
-		m_mouseSelection.Deselect(item.m_node);
 
 		GUI::UpdateWindow(m_window);
 	}
@@ -1010,10 +970,8 @@ namespace Berta
 		Unlink(item.m_node);
 		EraseNode(item.m_node);
 
-		CalculateViewport(m_viewport);
 		UpdateScrollData();
 		CalculateVisibleNodes();
-		m_mouseSelection.Deselect(item.m_node);
 
 		GUI::UpdateWindow(m_window);
 	}
@@ -1124,148 +1082,6 @@ namespace Berta
 		return needUpdate;*/
 	}
 
-	void TreeBoxReactor::Module::ClearSelection()
-	{
-		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
-		{
-			m_mouseSelection.m_selections[i]->isSelected = false;
-		}
-		m_mouseSelection.m_selections.clear();
-	}
-
-	bool TreeBoxReactor::Module::ClearSingleSelection()
-	{
-		if (m_mouseSelection.m_selectedNode != nullptr)
-		{
-			m_mouseSelection.m_selectedNode->isSelected = false;
-			m_mouseSelection.m_selections.clear();
-			m_mouseSelection.m_selectedNode = nullptr;
-			return true;
-		}
-		return false;
-	}
-
-	void TreeBoxReactor::Module::SelectItem(TreeNodeType* node)
-	{
-		node->isSelected = true;
-		m_mouseSelection.m_selections.push_back(node);
-		m_mouseSelection.m_selectedNode = node;
-	}
-
-	bool TreeBoxReactor::Module::HandleMultiSelection(TreeNodeType* node)
-	{
-		auto savedSelectedNode = m_mouseSelection.m_selectedNode;
-		auto savedPivotNode = m_mouseSelection.m_pivotNode;
-		if (!m_mouseSelection.m_pivotNode || (!m_ctrlPressed && !m_shiftPressed))
-		{
-			m_mouseSelection.m_pivotNode = node;
-		}
-		m_mouseSelection.m_selectedNode = node;
-
-		if (m_shiftPressed)
-		{
-			for (auto& oldNode : m_mouseSelection.m_selections)
-			{
-				oldNode->isSelected = false;
-			}
-			m_mouseSelection.m_selections.clear();
-
-			auto target1 = m_mouseSelection.m_pivotNode;
-			auto target2 = node;
-
-			std::stack<TreeNodeType*> stack;
-			stack.push(m_root.firstChild);
-
-			while (!stack.empty())
-			{
-				TreeNodeType* current = stack.top();
-				stack.pop();
-
-				if (target1 == current)
-				{
-					if (!current->isSelected)
-					{
-						current->isSelected = true;
-						m_mouseSelection.Select(current);
-					}
-					target1 = nullptr;
-				}
-				else if (target2 == current)
-				{
-					if (!current->isSelected)
-					{
-						current->isSelected = true;
-						m_mouseSelection.Select(current);
-					}
-					target2 = nullptr;
-				}
-				else if (target1 == nullptr || target2 == nullptr)
-				{
-					current->isSelected = true;
-					m_mouseSelection.Select(current);
-				}
-
-				if (target1 == nullptr && target2 == nullptr)
-					break;
-
-				if (current->nextSibling)
-				{
-					stack.push(current->nextSibling);
-				}
-
-				if (current->isExpanded && current->firstChild)
-				{
-					stack.push(current->firstChild);
-				}
-			}
-
-			for (auto& selNode : m_mouseSelection.m_selections)
-			{
-				BT_CORE_TRACE << "  - " << selNode->text << std::endl;
-			}
-
-			return savedPivotNode != m_mouseSelection.m_pivotNode || savedSelectedNode != m_mouseSelection.m_selectedNode;
-		}
-
-		if (m_ctrlPressed)
-		{
-			node->isSelected = !node->isSelected;
-			if (node->isSelected)
-			{
-				m_mouseSelection.Select(node);
-			}
-			else
-			{
-				m_mouseSelection.Deselect(node);
-			}
-
-			return true;
-		}
-
-		auto savedSelectionCount = m_mouseSelection.m_selections.size();
-		for (auto& selectedNode : m_mouseSelection.m_selections)
-		{
-			selectedNode->isSelected = false;
-		}
-		m_mouseSelection.m_selections.clear();
-		node->isSelected = true;
-		m_mouseSelection.Select(node);
-
-		return savedSelectionCount != m_mouseSelection.m_selections.size() || savedSelectedNode != m_mouseSelection.m_selectedNode;
-	}
-
-	bool TreeBoxReactor::Module::UpdateSingleSelection(TreeNodeType* node)
-	{
-		bool needUpdate = m_mouseSelection.m_selectedNode != node || !node->isSelected;
-		if (needUpdate)
-		{
-			ClearSingleSelection();
-			SelectItem(node);
-			m_mouseSelection.m_pivotNode = node;
-		}
-		return needUpdate;
-	}
-
 	bool TreeBoxReactor::Module::IsVisibleNode(TreeNodeType* node) const
 	{
 		return std::find(m_visibleNodes.begin(), m_visibleNodes.end(), node) != m_visibleNodes.end();
@@ -1302,13 +1118,13 @@ namespace Berta
 
 	void TreeBoxReactor::Module::EmitSelectionEvent()
 	{
-		ArgTreeBoxSelection argTreeBox;
+		/*ArgTreeBoxSelection argTreeBox;
 		argTreeBox.Items.resize(m_mouseSelection.m_selections.size());
 		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
 			argTreeBox.Items[i] = { m_mouseSelection.m_selections[i], this };
 		}
-		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Selected.Emit(argTreeBox);
+		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Selected.Emit(argTreeBox);*/
 	}
 
 	void TreeBoxReactor::Module::EmitExpansionEvent(TreeNodeType* node)
@@ -1438,7 +1254,7 @@ namespace Berta
 
 	void TreeBoxItem::Select()
 	{
-		bool needUpdate = false;
+		/*bool needUpdate = false;
 		bool emitSelectionEvent = false;
 		if (m_module->m_multiselection)
 		{
@@ -1464,7 +1280,7 @@ namespace Berta
 		if (emitSelectionEvent)
 		{
 			m_module->EmitSelectionEvent();
-		}
+		}*/
 	}
 
 	std::any& TreeBoxItem::UserData()
@@ -1504,10 +1320,10 @@ namespace Berta
 	std::vector<TreeBoxItem> TreeBoxReactor::Module::GetSelected()
 	{
 		std::vector<TreeBoxItem> selections;
-		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		/*for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
 		{
 			selections.emplace_back(TreeBoxItem{ m_mouseSelection.m_selections[i], this });
-		}
+		}*/
 		return selections;
 	}
 
@@ -1606,7 +1422,7 @@ namespace Berta
 
 	void TreeBox::DeselectAll()
 	{
-		auto& module = GetReactor().GetModule();
+		/*auto& module = GetReactor().GetModule();
 		auto& selection = module.m_mouseSelection.m_selections;
 		if (selection.empty())
 		{
@@ -1617,7 +1433,7 @@ namespace Berta
 		{
 			module.m_mouseSelection.Deselect(node);
 		}
-		module.EmitSelectionEvent();
+		module.EmitSelectionEvent();*/
 	}
 
 	void TreeBox::ExpandAll()

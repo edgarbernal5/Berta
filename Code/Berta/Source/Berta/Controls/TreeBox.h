@@ -80,44 +80,20 @@ namespace Berta
 			Blank
 		};
 
-		struct ViewportData
-		{
-			Rectangle m_backgroundRect{};
-			bool m_needVerticalScroll{ false };
-			bool m_needHorizontalScroll{ false };
-			Size m_contentSize{};
-
-			int m_startingVisibleIndex{ -1 };
-			int m_endingVisibleIndex{ -1 };
-			uint32_t m_treeSize{ 0 };
-		};
-
-		struct MouseSelection
-		{
-			bool IsSelected(TreeNodeType* node) const;
-
-			void Select(TreeNodeType* node);
-			void Deselect(TreeNodeType* node);
-
-			std::vector<TreeNodeType*> m_selections;
-			TreeNodeType* m_hoveredNode{ nullptr };
-			TreeNodeType* m_selectedNode{ nullptr };
-			TreeNodeType* m_pivotNode{ nullptr };
-			bool m_inverseSelection{ false };
-		};
-
 		struct Module
 		{
-			void CalculateViewport(ViewportData& viewportData);
 			void CalculateVisibleNodes();
 			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const;
 			uint32_t CalculateTreeSize(TreeNodeType* node);
 			uint32_t CalculateNodeDepth(TreeNodeType* node);
+			
 			void Clear();
 			TreeNodeType* GetNextVisible(TreeNodeType* node);
+			
 			int LocateNodeIndexInTree(TreeNodeType* node) const;
 			TreeNodeType* LocateNodeIndexInTree(int nodeIndex) const;
 			InteractionArea DetermineHoverArea(const Point& mousePosition);
+			
 			void Update();
 			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
@@ -130,18 +106,14 @@ namespace Berta
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
-			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
+			TreeNodeHandle GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode);
+			
 			void Erase(const TreeNodeHandle& handle);
 			void Erase(TreeBoxItem item);
 			void EraseNode(TreeNodeType* node);
 			void Unlink(TreeNodeType* node);
 			void UpdateScrollData();
-			void ClearSelection();
-			bool ClearSingleSelection();
-			void SelectItem(TreeNodeType* node);
 
-			bool HandleMultiSelection(TreeNodeType* node);
-			bool UpdateSingleSelection(TreeNodeType* node);
 			bool IsVisibleNode(TreeNodeType* node) const;
 			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
 			bool IsAnySiblingVisible(TreeNodeType* node) const;
@@ -166,11 +138,9 @@ namespace Berta
 
 			void InitScrollableView();
 			
-			ViewportData m_viewport;
 			TreeNodeType m_root;
 			Window* m_window{ nullptr };
 			ControlBase* m_control{ nullptr };
-			TreeBoxAppearance* m_appearance{ nullptr };
 			std::vector<TreeNodeType*> m_visibleNodes;
 			bool m_drawImages{ false };
 
@@ -179,7 +149,6 @@ namespace Berta
 
 			std::unique_ptr<ScrollableView> m_scrollableView;
 			
-			MouseSelection m_mouseSelection;
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
