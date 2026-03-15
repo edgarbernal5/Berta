@@ -498,35 +498,6 @@ namespace Berta
 		GUI::UpdateWindow(m_window);
 	}
 
-	void ThumbListBoxReactor::Module::UpdateScrollMetrics()
-	{
-		if (!m_scrollableView || m_items.empty())
-		{
-			if (m_scrollableView)
-			{
-				m_scrollableView->SetContentSize({ m_window->ClientSize.Width, 0 });	
-			}
-			return;
-		}
-		auto clientArea = m_control->GetClientArea();
-		m_scrollableView->SetViewRect(clientArea);
-		int currentWidth = static_cast<int>(clientArea.Width);
-		auto lastItemBounds = GetItemBounds(m_items.size() - 1, currentWidth);
-		
-		int gapY = m_window->ToScale(10);
-		uint32_t totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
-		m_scrollableView->SetContentSize({ static_cast<uint32_t>(currentWidth), totalHeight });
-
-		int newWidth = GetLayoutWidth();
-		if (newWidth != currentWidth)
-		{
-			lastItemBounds = GetItemBounds(m_items.size() - 1, newWidth);
-			totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
-			
-			m_scrollableView->SetContentSize({ static_cast<uint32_t>(newWidth), totalHeight });
-		}
-	}
-
 	bool ThumbListBoxReactor::Module::IsEnabledMultiselection() const
 	{
 		return m_selectionController.IsMultiSelect();
@@ -655,8 +626,11 @@ namespace Berta
 		size_t currentStart = static_cast<size_t>(firstVisibleRow) * columns;
 		size_t currentEnd = std::min<size_t>(m_items.size(), currentStart + static_cast<size_t>(visibleRows * columns));
 
-		if (currentStart == m_lastVisibleStart && currentEnd == m_lastVisibleEnd) return;
-
+		if (currentStart == m_lastVisibleStart && currentEnd == m_lastVisibleEnd)
+		{
+			return;
+		}
+		
 		for (size_t i = m_lastVisibleStart; i < m_lastVisibleEnd; ++i)
 		{
 			if (i < currentStart || i >= currentEnd)
@@ -786,6 +760,35 @@ namespace Berta
 		}
 	}
 
+	void ThumbListBoxReactor::Module::UpdateScrollMetrics()
+	{
+		if (!m_scrollableView || m_items.empty())
+		{
+			if (m_scrollableView)
+			{
+				m_scrollableView->SetContentSize({ m_window->ClientSize.Width, 0 });	
+			}
+			return;
+		}
+		auto clientArea = m_control->GetClientArea();
+		m_scrollableView->SetViewRect(clientArea);
+		int currentWidth = static_cast<int>(clientArea.Width);
+		auto lastItemBounds = GetItemBounds(m_items.size() - 1, currentWidth);
+		
+		int gapY = m_window->ToScale(10);
+		uint32_t totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
+		m_scrollableView->SetContentSize({ static_cast<uint32_t>(currentWidth), totalHeight });
+
+		int newWidth = GetLayoutWidth();
+		if (newWidth != currentWidth)
+		{
+			lastItemBounds = GetItemBounds(m_items.size() - 1, newWidth);
+			totalHeight = lastItemBounds.Y + lastItemBounds.Height + gapY;
+			
+			m_scrollableView->SetContentSize({ static_cast<uint32_t>(newWidth), totalHeight });
+		}
+	}
+	
 	void ThumbListBoxItem::SetText(const std::wstring& text)
 	{
 		if (m_logicalIndex >= m_module->m_items.size())
