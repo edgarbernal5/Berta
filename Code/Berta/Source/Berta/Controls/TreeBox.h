@@ -12,12 +12,14 @@
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 
+#include "Berta/GUI/ScrollableView.h"
+#include "Berta/GUI/SelectionController.h"
+
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <any>
-
-#include "Berta/GUI/ScrollableView.h"
+#include <set>
 
 namespace Berta
 {
@@ -48,13 +50,20 @@ namespace Berta
 		Image icon;
 		Size textExtents;
 		std::any userData;
-
+		int visualWidth { -1 };
+		
 		std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_lookup;
 
 		TreeNodeType* parent{ nullptr };
 		TreeNodeType* firstChild{ nullptr };
 		TreeNodeType* nextSibling{ nullptr };
 		TreeNodeType* prevSibling{ nullptr };
+	};
+	
+	struct FlatNode 
+	{
+		TreeNodeType* Node;
+		int Level;
 	};
 
 	class TreeBoxReactor : public ControlReactor
@@ -72,27 +81,9 @@ namespace Berta
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-		enum class InteractionArea : uint8_t
-		{
-			None,
-			Node,
-			Expander,
-			Blank
-		};
-
 		struct Module
 		{
-			void CalculateVisibleNodes();
-			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const;
-			uint32_t CalculateTreeSize(TreeNodeType* node);
-			uint32_t CalculateNodeDepth(TreeNodeType* node);
-			
 			void Clear();
-			TreeNodeType* GetNextVisible(TreeNodeType* node);
-			
-			int LocateNodeIndexInTree(TreeNodeType* node) const;
-			TreeNodeType* LocateNodeIndexInTree(int nodeIndex) const;
-			InteractionArea DetermineHoverArea(const Point& mousePosition);
 			
 			void Update();
 			void Draw();
@@ -106,7 +97,7 @@ namespace Berta
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
 			TreeBoxItem Find(const TreeNodeHandle& handle);
-			TreeNodeHandle GenerateUniqueHandle(const std::string& key, TreeNodeType* parentNode);
+			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
 			void Erase(const TreeNodeHandle& handle);
 			void Erase(TreeBoxItem item);
@@ -114,9 +105,6 @@ namespace Berta
 			void Unlink(TreeNodeType* node);
 			void UpdateScrollData();
 
-			bool IsVisibleNode(TreeNodeType* node) const;
-			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
-			bool IsAnySiblingVisible(TreeNodeType* node) const;
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
 
@@ -127,6 +115,16 @@ namespace Berta
 			bool ExpandAll(TreeBoxItem item);
 			bool Expand(TreeBoxItem item);
 
+			void CollectVisibleDescendants(TreeNodeType* parent, int parentLevel, std::vector<FlatNode>& outList);
+			
+			void CollapseNode(TreeNodeType* node);
+			void ExpandNode(TreeNodeType* node);
+			
+			int CalculateNodeWidth(TreeNodeType* node, int level);
+			
+			void RebuildFlatTree();
+			void CollectVisibleNodes(TreeNodeType* node, int level);
+			
 			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText) const;
 
@@ -139,20 +137,29 @@ namespace Berta
 			void InitScrollableView();
 			
 			TreeNodeType m_root;
+			
 			Window* m_window{ nullptr };
+			Graphics* m_graphics{ nullptr };
 			ControlBase* m_control{ nullptr };
 			std::vector<TreeNodeType*> m_visibleNodes;
 			bool m_drawImages{ false };
 
-			InteractionArea m_hoveredArea{ InteractionArea::None};
-			InteractionArea m_pressedArea{ InteractionArea::None };
-
 			std::unique_ptr<ScrollableView> m_scrollableView;
+			SelectionController<TreeNodeType*> m_selectionController;
+			
+			std::vector<FlatNode> m_flatVisibleTree;
+			std::multiset<int> m_visibleWidths;
+			TreeNodeType* m_focusedNode{ nullptr };
 			
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			bool m_showNavigationLines{ true };
+			
+			bool m_needsRepaint{ false };
+			bool m_needsRecalculate{ false };
+			
+			std::function<std::vector<TreeNodeType*>(const TreeNodeType*, const TreeNodeType*)> m_treeRangeResolver;
 		};
 
 		Module& GetModule() { return m_module; }
