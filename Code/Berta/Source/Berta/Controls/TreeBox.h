@@ -48,9 +48,8 @@ namespace Berta
 		std::string text;
 		TreeNodeHandle key;
 		Image icon;
-		Size textExtents;
 		std::any userData;
-		int visualWidth { -1 };
+		int cachedTextWidth { -1 };
 		
 		std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_lookup;
 
@@ -73,9 +72,9 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		void DblClick(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
@@ -126,7 +125,7 @@ namespace Berta
 			void CollectVisibleNodes(TreeNodeType* node, int level);
 			
 			void SetIcon(TreeNodeType* node, const Image& icon);
-			void SetText(TreeNodeType* node, const std::string& newText) const;
+			void SetText(TreeNodeType* node, const std::string& newText);
 
 			TreeNodeType* GetRoot();
 			std::string GetKeyPath(TreeBoxItem item, char separator);
@@ -149,7 +148,9 @@ namespace Berta
 			
 			std::vector<FlatNode> m_flatVisibleTree;
 			std::multiset<int> m_visibleWidths;
+			
 			TreeNodeType* m_focusedNode{ nullptr };
+			TreeNodeType* m_hoveredNode{ nullptr };
 			
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };

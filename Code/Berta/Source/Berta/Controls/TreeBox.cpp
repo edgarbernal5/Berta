@@ -15,18 +15,6 @@
 
 namespace Berta
 {
-	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
-	{
-		m_control = &control;
-		m_module.m_window = control.Handle();
-		m_module.m_control = m_control;
-		m_module.m_graphics = graphics;
-
-		m_module.Init();
-		m_module.InitScrollableView();
-	}
-	
-	
 	TreeNodeType* TreeNodeType::Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_)
 	{
 		auto it = m_lookup.find(childKey);
@@ -56,11 +44,23 @@ namespace Berta
 
 		return childPtr;
 	}
-
+	
+	
 	TreeNodeType* TreeNodeType::Find(const TreeNodeHandle& key)
 	{
 		auto it = m_lookup.find(key);
 		return it != m_lookup.end() ? it->second.get() : nullptr;
+	}
+
+	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
+	{
+		m_control = &control;
+		m_module.m_window = control.Handle();
+		m_module.m_control = m_control;
+		m_module.m_graphics = graphics;
+
+		m_module.Init();
+		m_module.InitScrollableView();
 	}
 
 	void TreeBoxReactor::Update(Graphics& graphics)
@@ -103,7 +103,10 @@ namespace Berta
 
 	void TreeBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
 	{		
-		if (m_module.m_flatVisibleTree.empty()) return;
+		if (m_module.m_flatVisibleTree.empty())
+		{
+			return;
+		}
 
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
@@ -142,18 +145,6 @@ namespace Berta
 		GUI::MarkAsNeedUpdate(m_module.m_window);
 	}
 
-	void TreeBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
-	{
-		/*bool needUpdate = m_module.m_mouseSelection.m_hoveredNode != nullptr;
-		m_module.m_mouseSelection.m_hoveredNode = nullptr;
-
-		m_module.m_hoveredArea = InteractionArea::None;
-		if (needUpdate)
-		{
-			GUI::MarkAsNeedUpdate(m_module.m_window);
-		}*/
-	}
-
 	void TreeBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		if (m_module.m_flatVisibleTree.empty())
@@ -162,55 +153,57 @@ namespace Berta
 		}
 		
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
-	    auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
-	    int scrollY = m_module.m_scrollableView->GetScrollOffset().Y;
-	    int scrollX = m_module.m_scrollableView->GetScrollOffset().X;
+		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
+		int scrollY = m_module.m_scrollableView->GetScrollOffset().Y;
+		int scrollX = m_module.m_scrollableView->GetScrollOffset().X;
 
-	    int absoluteY = args.Position.Y + scrollY;
-	    size_t clickedIndex = absoluteY / nodeHeight;
+		int absoluteY = args.Position.Y + scrollY;
+		size_t clickedIndex = absoluteY / nodeHeight;
 
-	    if (clickedIndex >= m_module.m_flatVisibleTree.size())
-	    {
-	    	return;
-	    }
+		if (clickedIndex >= m_module.m_flatVisibleTree.size())
+		{
+			return;
+		}
 
-	    const auto& flatNode = m_module.m_flatVisibleTree[clickedIndex];
-	    TreeNodeType* clickedNode = flatNode.Node;
+		const auto& flatNode = m_module.m_flatVisibleTree[clickedIndex];
+		TreeNodeType* clickedNode = flatNode.Node;
 
-	    int expanderStartX = (flatNode.Level * appearance->DepthWidthMultiplier) - scrollX;
-	    int expanderEndX = expanderStartX + (int)appearance->ExpanderButtonSize;
+		int expanderStartX = (flatNode.Level * appearance->DepthWidthMultiplier) - scrollX;
+		int expanderEndX = expanderStartX + (int)appearance->ExpanderButtonSize;
 
-	    if (clickedNode->firstChild && args.Position.X >= expanderStartX && args.Position.X <= expanderEndX)
-	    {
-	        clickedNode->isExpanded = !clickedNode->isExpanded;
+		if (clickedNode->firstChild && args.Position.X >= expanderStartX && args.Position.X <= expanderEndX)
+		{
+			clickedNode->isExpanded = !clickedNode->isExpanded;
 	        
-	        // Disparar evento de la librería
-	        // ArgTreeBox eventArgs{TreeBoxItem(clickedNode), clickedNode->isExpanded};
-	        // m_control->Events.Expanded(eventArgs);
+			// Disparar evento de la librería
+			// ArgTreeBox eventArgs{TreeBoxItem(clickedNode), clickedNode->isExpanded};
+			// m_control->Events.Expanded(eventArgs);
 
-	        m_module.RebuildFlatTree(); // Reconstruir caché para reflejar expansión/colapso
-	        return;
-	    }
+			m_module.RebuildFlatTree(); // Reconstruir caché para reflejar expansión/colapso
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+			return;
+		}
 
-	    // 3. Si no fue en el icono, usamos tu SelectionController
-	    bool selectionChanged = m_module.m_selectionController.Select
+		// 3. Si no fue en el icono, usamos tu SelectionController
+		bool selectionChanged = m_module.m_selectionController.Select
 		(
-	        clickedNode,
-	        m_module.m_ctrlPressed,
-	        m_module.m_shiftPressed,
-	        m_module.m_treeRangeResolver
-	    );
+			clickedNode,
+			m_module.m_ctrlPressed,
+			m_module.m_shiftPressed,
+			m_module.m_treeRangeResolver
+		);
 
-	    if (selectionChanged)
-	    {
-	        m_module.m_focusedNode = clickedNode; // Actualizar el foco del teclado
-	        m_module.m_needsRepaint = true;
+		if (selectionChanged)
+		{
+			m_module.m_focusedNode = clickedNode; // Actualizar el foco del teclado
+			m_module.m_needsRepaint = true;
 
-	        // Disparar evento de selección de la librería
-	        // ArgTreeBoxSelection eventArgs;
-	        // eventArgs.Items = Convertir m_selectionController.GetSelectedItems() a TreeBoxItem
-	        // m_control->Events.Selected(eventArgs);
-	    }
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+			// Disparar evento de selección de la librería
+			// ArgTreeBoxSelection eventArgs;
+			// eventArgs.Items = Convertir m_selectionController.GetSelectedItems() a TreeBoxItem
+			// m_control->Events.Selected(eventArgs);
+		}
 		
 		/*m_module.m_pressedArea = m_module.m_hoveredArea;
 		bool needUpdate = false;
@@ -296,6 +289,32 @@ namespace Berta
 
 	void TreeBoxReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
+		if (m_module.m_flatVisibleTree.empty())
+		{
+			return;
+		}
+		
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
+		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
+		int scrollY = m_module.m_scrollableView->GetScrollOffset().Y;
+
+		int absoluteY = args.Position.Y + scrollY;
+		size_t hoveredIndex = absoluteY / nodeHeight;
+
+		TreeNodeType* currentHover = nullptr;
+		if (hoveredIndex < m_module.m_flatVisibleTree.size())
+		{
+			currentHover = m_module.m_flatVisibleTree[hoveredIndex].Node;
+		}
+
+		if (m_module.m_hoveredNode != currentHover)
+		{
+			m_module.m_hoveredNode = currentHover;
+			m_module.m_needsRepaint = true;
+        
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+		}
+		
 		/*auto hoveredArea = m_module.DetermineHoverArea(args.Position);
 		bool needUpdate = false;
 		
@@ -329,6 +348,25 @@ namespace Berta
 	{
 	}
 
+	void TreeBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_module.m_hoveredNode != nullptr)
+		{
+			m_module.m_hoveredNode = nullptr;
+			m_module.m_needsRepaint = true;
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+		}
+		
+		/*bool needUpdate = m_module.m_mouseSelection.m_hoveredNode != nullptr;
+		m_module.m_mouseSelection.m_hoveredNode = nullptr;
+
+		m_module.m_hoveredArea = InteractionArea::None;
+		if (needUpdate)
+		{
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+		}*/
+	}
+
 	void TreeBoxReactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 	{
 		m_module.m_scrollableView->HandleMouseWheel(args);
@@ -338,7 +376,131 @@ namespace Berta
 	{
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
+		if (m_module.m_flatVisibleTree.empty()) return;
+		
+		
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
+		
+		// 1. Localizar el foco actual en la caché lineal (O(N) en el peor de los casos, pero sobre memoria contigua)
+		int currentIndex = -1;
+		if (m_module.m_focusedNode)
+		{
+			auto it = std::find_if(m_module.m_flatVisibleTree.begin(), m_module.m_flatVisibleTree.end(),
+								   [this](const FlatNode& fn) { return fn.Node == m_module.m_focusedNode; });
+        
+			if (it != m_module.m_flatVisibleTree.end()) {
+				currentIndex = static_cast<int>(std::distance(m_module.m_flatVisibleTree.begin(), it));
+			}
+		}
 
+		// Si perdimos el foco o es la primera vez, empezamos en el primer elemento visible
+		if (currentIndex == -1)
+		{
+			currentIndex = 0;
+			m_module.m_focusedNode = m_module.m_flatVisibleTree[0].Node;
+		}
+
+		int targetIndex = currentIndex;
+		bool structureChanged = false;
+
+		// 2. Procesar la tecla de navegación
+		switch (args.Key)
+		{
+		case KeyboardKey::ArrowDown:
+			targetIndex = std::min<int>(static_cast<int>(m_module.m_flatVisibleTree.size()) - 1, currentIndex + 1);
+			break;
+
+		case KeyboardKey::ArrowUp:
+			targetIndex = std::max<int>(0, currentIndex - 1);
+			break;
+
+		case KeyboardKey::ArrowRight:
+			// Flecha Derecha: Expandir si está colapsado, o mover al primer hijo si ya está expandido
+			if (m_module.m_focusedNode->firstChild) 
+			{
+				if (!m_module.m_focusedNode->isExpanded)
+				{
+					m_module.m_focusedNode->isExpanded = true;
+					structureChanged = true;
+				}
+				else if (currentIndex + 1 < static_cast<int>(m_module.m_flatVisibleTree.size()))
+				{
+					targetIndex = currentIndex + 1; // El primer hijo siempre es el siguiente índice inmediato
+				}
+			}
+			break;
+
+		case KeyboardKey::ArrowLeft:
+			// Flecha Izquierda: Colapsar si está expandido, o saltar al nodo padre
+			if (m_module.m_focusedNode->isExpanded && m_module.m_focusedNode->firstChild)
+			{
+				m_module.m_focusedNode->isExpanded = false;
+				structureChanged = true;
+			}
+			else if (m_module.m_focusedNode->parent && m_module.m_focusedNode->parent != m_module.GetRoot())
+			{
+				// Buscar al padre en la vista plana para mover el foco hacia él
+				auto it = std::find_if(m_module.m_flatVisibleTree.begin(), m_module.m_flatVisibleTree.end(),
+					[this](const FlatNode& fn) { return fn.Node == m_module.m_focusedNode->parent; });
+                    
+				if (it != m_module.m_flatVisibleTree.end()) {
+					targetIndex = static_cast<int>(std::distance(m_module.m_flatVisibleTree.begin(), it));
+				}
+			}
+			break;
+
+		case KeyboardKey::Space:
+		case KeyboardKey::Enter:
+			// Opcional: Permitir seleccionar el elemento actual explícitamente con el teclado
+			m_module.m_selectionController.Select(m_module.m_focusedNode, m_module.m_ctrlPressed, m_module.m_shiftPressed, m_module.m_treeRangeResolver);
+			m_module.m_needsRepaint = true;
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+			return;
+
+		default:
+			return; // Ignorar otras teclas
+		}
+
+		// 3. Aplicar expansiones/colapsos si usamos Izquierda/Derecha
+		if (structureChanged)
+		{
+			m_module.RebuildFlatTree();
+			// Disparar evento de la librería si lo deseas:
+			// m_control->Events.Expanded({ TreeBoxItem(m_module.m_focusedNode), m_module.m_focusedNode->isExpanded });
+			return;
+		}
+
+		// 4. Aplicar cambios de selección y hacer scroll
+		if (targetIndex != currentIndex)
+		{
+			// A. Actualizar el foco visual
+			m_module.m_focusedNode = m_module.m_flatVisibleTree[targetIndex].Node;
+
+			// B. Delegar la complejidad de selección (Shift, Ctrl) a tu controlador
+			bool selectionChanged = m_module.m_selectionController.Select(
+				m_module.m_focusedNode, 
+				m_module.m_ctrlPressed, 
+				m_module.m_shiftPressed, 
+				m_module.m_treeRangeResolver
+			);
+
+			if (selectionChanged)
+			{
+				// Disparar evento de selección:
+				// m_control->Events.Selected( ... );
+			}
+
+			// C. Magia del ScrollableView: Asegurar que el destino esté visible en la pantalla
+			auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
+			//Rectangle targetBounds = { 0, targetIndex * nodeHeight, 100 /* ancho estimado irrelevante aquí */, nodeHeight };
+        
+			//m_module.m_scrollableView.EnsureVisibility(targetBounds);
+        
+			// D. Solicitar repintado
+			m_module.m_needsRepaint = true;
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+		}
+		
 		/*bool needUpdate = false;
 		bool recalculateVisibleNodes = false;
 		bool emitSelectionEvent = false;
@@ -553,6 +715,8 @@ namespace Berta
 		m_visibleNodes.clear();
 		m_root.m_lookup.clear();
 
+		m_focusedNode = nullptr;
+		m_hoveredNode = nullptr;
 		UpdateScrollData();
 
 		if (needUpdate)
@@ -654,6 +818,7 @@ namespace Berta
 			// Comprobar estado usando el controlador
 			bool isSelected = m_selectionController.IsSelected(node);
 			bool isFocused = (node == m_focusedNode);
+			bool isHovered = (node == m_hoveredNode);
 
 			// --- AQUÍ VA TU LÓGICA GRÁFICA ---
 			// Dibujar fondo si isSelected
@@ -664,7 +829,16 @@ namespace Berta
 			if (isSelected)
 			{
 				// Asume que tu Graphics tiene un método para rellenar (el 'true' en tu DrawRectangle original)
+				graphics.DrawRectangle(rowRect, appearance->SelectionHighlightColor, true); 
+			}
+			else if (isHovered)
+			{
+				// Asume que tu Graphics tiene un método para rellenar (el 'true' en tu DrawRectangle original)
 				graphics.DrawRectangle(rowRect, appearance->HighlightColor, true); 
+			}
+			if (isFocused)
+			{
+				graphics.DrawRectangle(rowRect, appearance->Foreground, false);
 			}
 			Rectangle expanderRect{ indentX, drawY + (nodeHeight - (int)expanderSize) / 2, expanderSize, expanderSize };
 			
@@ -1233,13 +1407,13 @@ namespace Berta
 	int TreeBoxReactor::Module::CalculateNodeWidth(TreeNodeType* node, int level)
 	{
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
-		if (node->visualWidth == -1) // Solo medimos si nunca se ha medido
+		if (node->cachedTextWidth == -1) // Solo medimos si nunca se ha medido
 		{
 			int textWidth = m_graphics->GetTextExtent(node->text).Width;
 			//int iconWidth = m_appearance->ExpanderButtonSize + 5; // padding
-			node->visualWidth = textWidth /*+ iconWidth*/;
+			node->cachedTextWidth = textWidth /*+ iconWidth*/;
 		}
-		return node->visualWidth + (level * (int)appearance->DepthWidthMultiplier);
+		return node->cachedTextWidth + (level * (int)appearance->DepthWidthMultiplier);
 	}
 
 	void TreeBoxReactor::Module::RebuildFlatTree()
@@ -1254,6 +1428,15 @@ namespace Berta
 			child = child->nextSibling;
 		}
 
+		int maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
+		int rightPadding = 10; 
+    
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
+		auto nodeHeight = static_cast<int>(m_window->ToScale(appearance->TreeItemHeight));
+		int totalHeight = static_cast<int>(m_flatVisibleTree.size()) * nodeHeight;
+
+		m_scrollableView->SetContentSize(Size{ static_cast<uint32_t>(maxWidth + rightPadding), static_cast<uint32_t>(totalHeight) });
+		
 		m_needsRecalculate = true;
 		m_needsRepaint = true;
 	}
@@ -1263,10 +1446,20 @@ namespace Berta
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
 		m_flatVisibleTree.push_back({ node, level });
 
-		int estimatedTextWidth = (int)m_graphics->GetTextExtent(node->text).Width;
-		int totalWidth = (level * appearance->DepthWidthMultiplier) + 
-						 appearance->ExpanderButtonSize + 5 + estimatedTextWidth;
-		m_visibleWidths.insert(totalWidth);
+		if (node->cachedTextWidth == -1)
+		{
+			// NOTA: Asume que m_window tiene un método para medir texto, 
+			// o usa una utilidad estática de tu motor Berta.
+			Size textSize = m_graphics->GetTextExtent(node->text);
+			node->cachedTextWidth = textSize.Width;
+		}
+		
+		auto expanderSize = static_cast<int>(m_window->ToScale(appearance->ExpanderButtonSize));
+		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
+		int textPaddingX = 5;
+
+		int rowTotalWidth = (level * depthMultiplier) + expanderSize + textPaddingX + node->cachedTextWidth;
+		m_visibleWidths.insert(rowTotalWidth);
 
 		if (node->isExpanded)
 		{
@@ -1291,17 +1484,16 @@ namespace Berta
 		}
 	}
 
-	void TreeBoxReactor::Module::SetText(TreeNodeType* node, const std::string& newText) const
+	void TreeBoxReactor::Module::SetText(TreeNodeType* node, const std::string& newText)
 	{
 		if (node->text == newText)
 			return;
 
 		node->text = newText;
-
-		if (true)
-		{
-			GUI::UpdateWindow(m_window);
-		}
+		node->cachedTextWidth = -1;
+		RebuildFlatTree();
+		
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxItem::Collapse()
