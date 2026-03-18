@@ -48,7 +48,6 @@ namespace Berta
                 }
 
                 std::vector<T> range = resolver(m_anchorItem.value(), item);
-        
                 for (const auto& rangeItem : range)
                 {
                     m_selectedItems.insert(rangeItem);

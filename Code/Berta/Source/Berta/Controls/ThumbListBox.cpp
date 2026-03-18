@@ -33,7 +33,7 @@ namespace Berta
 		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
 
 		Rectangle clientArea = m_module.m_scrollableView->GetClientArea(); //m_module.m_control->GetClientArea();
-		if (clientArea.Width <= 0 || clientArea.Height <= 0) return;
+		if (clientArea.Width == 0 || clientArea.Height == 0) return;
 		if (m_module.m_items.empty() || !m_module.m_scrollableView) return;
 	
 		auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
@@ -183,7 +183,6 @@ namespace Berta
 			if (selectionChanged && m_module.m_events)
 			{
 				m_module.TriggerSelectionChanged();
-				//m_module.m_events->Selected.Emit({ static_cast<size_t>(clickedIndex) });
 			}
 		}
 		else
@@ -193,7 +192,7 @@ namespace Berta
 				m_module.m_selectionController.Clear();
 				if (m_module.m_events)
 				{
-					//m_module.m_events->Selected.Fire({ (size_t)-1 });
+					m_module.TriggerSelectionChanged();
 				}
 			}
 			if (m_module.m_selectionController.IsMultiSelect())
@@ -216,7 +215,8 @@ namespace Berta
 				Rectangle newLassoRect = m_module.m_lassoSelection.GetRect();
 				auto scrollOffset = m_module.m_scrollableView->GetScrollOffset();
 
-				Rectangle lassoWorldRect = { 
+				Rectangle lassoWorldRect =
+				{ 
 					newLassoRect.X + scrollOffset.X, 
 					newLassoRect.Y + scrollOffset.Y, 
 					newLassoRect.Width, 
@@ -250,7 +250,6 @@ namespace Berta
 						m_module.m_selectionController.Clear();
 					}
 
-					bool selectionChanged = false;
 					for (int row = startRow; row <= endRow; ++row) 
 					{
 						for (int col = startCol; col <= endCol; ++col) 
@@ -262,14 +261,9 @@ namespace Berta
 								if (lassoWorldRect.Intersect(itemRect)) 
 								{
 									m_module.m_selectionController.SetSelected(index, true);
-									selectionChanged = true;
 								}
 							}
 						}
-					}
-
-					if (selectionChanged && m_module.m_events) {
-						//m_module.m_events->Selected.Fire({ (size_t)-1 }); 
 					}
 				}
 				
@@ -325,7 +319,10 @@ namespace Berta
 		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
 		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
 
-		if (m_module.m_items.empty() || !m_module.m_scrollableView) return;
+		if (m_module.m_items.empty() || !m_module.m_scrollableView)
+		{
+			return;
+		}
 		
 		auto firstBounds = m_module.GetItemBounds(0);
 		if (firstBounds.Width == 0) return;
@@ -754,9 +751,9 @@ namespace Berta
 		Rectangle targetBounds = GetItemBounds(index);
 		if (m_scrollableView->EnsureVisibility(targetBounds))
 		{
-			//FireVisibilityEvents();
+			TriggerVisibilityEvent();
 			
-			GUI::MarkAsNeedUpdate(*m_control);
+			GUI::UpdateWindow(*m_control);
 		}
 	}
 
@@ -792,7 +789,9 @@ namespace Berta
 	void ThumbListBoxItem::SetText(const std::wstring& text)
 	{
 		if (m_logicalIndex >= m_module->m_items.size())
+		{
 			return;
+		}
 
 		m_module->m_items[m_logicalIndex].m_text = text;
 		GUI::UpdateWindow(m_module->m_window);

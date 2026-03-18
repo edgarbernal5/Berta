@@ -14,6 +14,7 @@
 
 #include "Berta/GUI/ScrollableView.h"
 #include "Berta/GUI/SelectionController.h"
+#include "Berta/Core/ObjectPool.h"
 
 #include <string>
 #include <vector>
@@ -21,50 +22,197 @@
 #include <any>
 #include <set>
 
+
 namespace Berta
 {
 	using TreeNodeHandle = std::string;
 	struct TreeBoxItem;
-
+	struct TreeNodeType;
+	
 	struct TreeBoxAppearance : public ControlAppearance
 	{
 		uint32_t ExpanderButtonSize = 12u;
 		uint32_t DepthWidthMultiplier = 20u;
 		uint32_t TreeItemHeight = 20u;
 	};
-
+	
 	struct TreeNodeType
 	{
 		TreeNodeType() = default;
 		TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
-			: key(key_), text(text_), parent(parent_) {
+			: key(key_), text(text_), parent(parent_)
+		{
 		}
+		~TreeNodeType() = default;
+		
+		//TreeNodeType* Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_ = nullptr);
+		//TreeNodeType* Find(const TreeNodeHandle& key);
 
-		TreeNodeType* Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_ = nullptr);
-		TreeNodeType* Find(const TreeNodeHandle& key);
-
-		bool isExpanded{ false };
-		bool isSelected{ false };
 		std::string text;
 		TreeNodeHandle key;
 		Image icon;
 		std::any userData;
+		bool isExpanded{ false };
 		int cachedTextWidth { -1 };
 		
-		std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_lookup;
-
 		TreeNodeType* parent{ nullptr };
-		TreeNodeType* firstChild{ nullptr };
-		TreeNodeType* nextSibling{ nullptr };
-		TreeNodeType* prevSibling{ nullptr };
+		std::vector<TreeNodeType*> children;
 	};
 	
 	struct FlatNode 
 	{
 		TreeNodeType* Node;
 		int Level;
+		bool IsLastChild;
+		uint32_t VerticalLineMask; // Bits: 1 = dibujar línea vertical, 0 = espacio vacío
+		
+		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
+			Node(node), Level(level), IsLastChild(isLastChild), VerticalLineMask(vertLineMask)
+		{}
 	};
 
+	class TreeModel
+	{
+	public:
+        TreeModel()
+        {
+            m_root = m_nodePool.Allocate("$$ROOT$$", "", nullptr);
+            m_root->isExpanded = true;
+        }
+
+        ~TreeModel()
+        {
+            Clear();
+            m_nodePool.Deallocate(m_root);
+        }
+
+        TreeNodeType* GetRoot() const { return m_root; }
+
+        TreeNodeType* Insert(const std::string& key, const std::string& text, TreeNodeType* parent = nullptr)
+        {
+            if (m_lookup.find(key) != m_lookup.end())
+            {
+	            return m_lookup[key];
+            }
+            TreeNodeType* actualParent = parent ? parent : m_root;
+            
+            TreeNodeType* newNode = m_nodePool.Allocate(key, text, actualParent);
+            
+            actualParent->children.emplace_back(newNode);
+            m_lookup[key] = newNode;
+
+            return newNode;
+        }
+
+		TreeNodeType* Find(const TreeNodeHandle& key) const
+        {
+        	auto it = m_lookup.find(key);
+        	return (it != m_lookup.end()) ? it->second : nullptr;
+        }
+
+		void Erase(TreeNodeType* node)
+        {
+        	if (!node || node == m_root) return;
+
+        	if (node->parent)
+        	{
+        		auto& siblings = node->parent->children;
+        		siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
+        	}
+
+        	EraseRecursive(node);
+        }
+
+        void Clear()
+        {
+            for (auto* child : m_root->children)
+            {
+                EraseRecursive(child);
+            }
+            m_root->children.clear();
+        	m_lookup.clear();
+        }
+		
+		std::string GetKeyPath(TreeNodeType* node, char separator) const
+        {
+        	if (!node || node == m_root) return "";
+
+        	std::string path = node->key;
+        	TreeNodeType* current = node->parent;
+
+        	while (current && current != m_root)
+        	{
+        		path = current->key + separator + path; //TODO
+        		current = current->parent;
+        	}
+
+        	return path;
+        }
+
+		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos)
+        {
+        	if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
+        	{
+        		return;
+        	}
+
+        	if (nodeToMove->parent)
+        	{
+        		auto& oldSiblings = nodeToMove->parent->children;
+        		oldSiblings.erase(std::remove(oldSiblings.begin(), oldSiblings.end(), nodeToMove), oldSiblings.end());
+        	}
+
+        	if (pos == DropPosition::Inside)
+        	{
+        		nodeToMove->parent = targetNode;
+        		targetNode->children.emplace_back(nodeToMove);
+        		targetNode->isExpanded = true;
+        	}
+        	else // Before o After
+        	{
+        		TreeNodeType* newParent = targetNode->parent;
+        		nodeToMove->parent = newParent;
+        
+        		auto& newSiblings = newParent->children;
+        		auto itTarget = std::find(newSiblings.begin(), newSiblings.end(), targetNode);
+        
+        		if (pos == DropPosition::Before)
+        		{
+        			newSiblings.insert(itTarget, nodeToMove);
+        		}
+        		else
+        		{
+        			newSiblings.insert(itTarget + 1, nodeToMove);
+        		}
+        	}
+        }
+		
+	private:
+		
+        void EraseRecursive(TreeNodeType* node)
+        {
+            if (!node) return;
+        	auto childrenCopy = node->children;
+            for (auto* child : childrenCopy)
+            {
+                EraseRecursive(child);
+            }
+
+            if (node->parent)
+            {
+                auto& siblings = childrenCopy;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
+            }
+
+            m_lookup.erase(node->key);
+            m_nodePool.Deallocate(node);
+        }
+		
+		ObjectPool<TreeNodeType, 1024> m_nodePool;
+		std::unordered_map<std::string, TreeNodeType*> m_lookup;
+		TreeNodeType* m_root { nullptr };
+    };
+	
 	class TreeBoxReactor : public ControlReactor
 	{
 	public:
@@ -82,39 +230,28 @@ namespace Berta
 
 		struct Module
 		{
-			void Clear();
-			
 			void Update();
 			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
-			void DrawNavigationLines(Graphics& graphics);
-			void Init();
+			
 			void EnableMultiselection(bool enabled);
 
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			
-			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
-			TreeBoxItem Find(const TreeNodeHandle& handle);
+			//TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
+			//TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
+			//TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
 			void Erase(const TreeNodeHandle& handle);
 			void Erase(TreeBoxItem item);
 			void EraseNode(TreeNodeType* node);
-			void Unlink(TreeNodeType* node);
 			void UpdateScrollData();
 
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
 
-			bool Collapse(TreeBoxItem item);
-			bool CollapseAll();
-			bool CollapseAll(TreeBoxItem item);
-			bool ExpandAll();
-			bool ExpandAll(TreeBoxItem item);
 			bool Expand(TreeBoxItem item);
-
-			void CollectVisibleDescendants(TreeNodeType* parent, int parentLevel, std::vector<FlatNode>& outList);
 			
 			void CollapseNode(TreeNodeType* node);
 			void ExpandNode(TreeNodeType* node);
@@ -122,36 +259,42 @@ namespace Berta
 			int CalculateNodeWidth(TreeNodeType* node, int level);
 			
 			void RebuildFlatTree();
-			void CollectVisibleNodes(TreeNodeType* node, int level);
+			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
 			
 			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText);
 
-			TreeNodeType* GetRoot();
-			std::string GetKeyPath(TreeBoxItem item, char separator);
 			std::vector<TreeBoxItem> GetSelected();
 
 			bool ShowNavigationLines(bool visible);
 
+			bool IsDescendantOf(TreeNodeType* node, TreeNodeType* potentialAncestor) const;
 			void InitScrollableView();
 			
-			TreeNodeType m_root;
-			
-			Window* m_window{ nullptr };
-			Graphics* m_graphics{ nullptr };
-			ControlBase* m_control{ nullptr };
-			std::vector<TreeNodeType*> m_visibleNodes;
-			bool m_drawImages{ false };
-
+			TreeModel m_model;
 			std::unique_ptr<ScrollableView> m_scrollableView;
 			SelectionController<TreeNodeType*> m_selectionController;
 			
 			std::vector<FlatNode> m_flatVisibleTree;
 			std::multiset<int> m_visibleWidths;
 			
+			Window* m_window{ nullptr };
+			Graphics* m_graphics{ nullptr };
+			ControlBase* m_control{ nullptr };
+			
 			TreeNodeType* m_focusedNode{ nullptr };
 			TreeNodeType* m_hoveredNode{ nullptr };
 			
+			// Estado del Drag & Drop
+			bool m_allowDragAndDrop{ true };
+			bool m_isDragging{ false };
+			Point m_dragStartPoint{ 0, 0 };
+        
+			TreeNodeType* m_draggedNode{ nullptr };
+			TreeNodeType* m_dropTargetNode{ nullptr };
+			DropPosition m_dropPosition{ DropPosition::None };
+			
+			bool m_drawImages{ false };
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
@@ -160,7 +303,7 @@ namespace Berta
 			bool m_needsRepaint{ false };
 			bool m_needsRecalculate{ false };
 			
-			std::function<std::vector<TreeNodeType*>(const TreeNodeType*, const TreeNodeType*)> m_treeRangeResolver;
+			SelectionController<TreeNodeType*>::RangeResolver m_treeRangeResolver;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -225,7 +368,7 @@ namespace Berta
 
 		TreeBoxItem FirstChild()
 		{
-			return { m_node->firstChild, m_module};
+			return { m_node->children[0], m_module};
 		}
 
 		void Select();

@@ -354,6 +354,14 @@ namespace Berta
 		Center, 
 		Bottom
 	};
+	
+	enum class DropPosition : uint8_t
+	{
+		None,
+		Before,
+		Inside,
+		After
+	};
 }
 
 #endif
