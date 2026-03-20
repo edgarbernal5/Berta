@@ -44,9 +44,6 @@ namespace Berta
 		{
 		}
 		~TreeNodeType() = default;
-		
-		//TreeNodeType* Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_ = nullptr);
-		//TreeNodeType* Find(const TreeNodeHandle& key);
 
 		std::string text;
 		TreeNodeHandle key;
@@ -63,12 +60,13 @@ namespace Berta
 	{
 		TreeNodeType* Node;
 		int Level;
+		uint32_t VerticalLineMask; // Bits: 1 = draw vertical line, 0 = empty space
 		bool IsLastChild;
-		uint32_t VerticalLineMask; // Bits: 1 = dibujar línea vertical, 0 = espacio vacío
 		
 		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
 			Node(node), Level(level), IsLastChild(isLastChild), VerticalLineMask(vertLineMask)
-		{}
+		{
+		}
 	};
 
 	class TreeModel
@@ -135,8 +133,11 @@ namespace Berta
 		
 		std::string GetKeyPath(TreeNodeType* node, char separator) const
         {
-        	if (!node || node == m_root) return "";
-
+        	if (!node || node == m_root)
+        	{
+        		return "";
+        	}
+        	
         	std::string path = node->key;
         	TreeNodeType* current = node->parent;
 
@@ -237,14 +238,8 @@ namespace Berta
 			void EnableMultiselection(bool enabled);
 
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
-			
-			//TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-			//TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
-			//TreeBoxItem Find(const TreeNodeHandle& handle);
 			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
-			void Erase(const TreeNodeHandle& handle);
-			void Erase(TreeBoxItem item);
 			void EraseNode(TreeNodeType* node);
 			void UpdateScrollData();
 
@@ -263,8 +258,6 @@ namespace Berta
 			
 			void SetIcon(TreeNodeType* node, const Image& icon);
 			void SetText(TreeNodeType* node, const std::string& newText);
-
-			std::vector<TreeBoxItem> GetSelected();
 
 			bool ShowNavigationLines(bool visible);
 
@@ -413,14 +406,17 @@ namespace Berta
 		TreeBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
+		
 		void CollapseAll();
 		void CollapseAll(TreeBoxItem item);
 
-		void Erase(const TreeNodeHandle& key);
-		void Erase(TreeBoxItem item);
 		TreeBoxItem Find(const TreeNodeHandle& key);
 		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
+		
+		void Erase(const TreeNodeHandle& key);
+		void Erase(TreeBoxItem item);
+		
 		void DeselectAll();
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);

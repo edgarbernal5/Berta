@@ -153,6 +153,61 @@ namespace Berta
 		);
 	}
 
+	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
+	{
+		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), positionDestination);
+
+		auto destinationSize = destination.GetSize();
+		Rectangle destinationRect {positionDestination.X, positionDestination.Y, destinationSize.Width, destinationSize.Height};
+		Rectangle validDestRect, validSourceDest;
+		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destinationSize, validSourceDest, validDestRect))
+		{
+			return;
+		}
+
+		//TODO: cache bitmap by hwnd (a map<HWND, Bitmap>)
+		if (m_bitmap)
+		{
+			m_bitmap->Release();
+			m_bitmap = nullptr;
+		}
+
+		auto handle = destination.GetHandle();
+		if (!m_bitmap)
+		{
+			HRESULT hr = handle->RenderTarget->CreateBitmap
+			(
+				D2D1::SizeU(m_size.Width, m_size.Height),
+				static_cast<void*>(m_colorBuffer.m_storage->m_buffer),
+				m_colorBuffer.m_storage->m_bytesPerLine,
+				D2D1::BitmapProperties
+				(
+					D2D1::PixelFormat
+					(
+						DXGI_FORMAT_B8G8R8A8_UNORM,
+						D2D1_ALPHA_MODE_PREMULTIPLIED
+					)
+				),
+				&m_bitmap
+			);
+
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "Failed to create bitmap: " << std::endl;
+				return;
+			}
+		}
+
+		handle->RenderTarget->DrawBitmap
+		(
+			m_bitmap,
+			validDestRect,
+			1.0f,
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+			validSourceDest
+		);
+	}
+
 	void BasicImageAttributes::ReleaseNativeObjects()
 	{
 #if BT_PLATFORM_WINDOWS

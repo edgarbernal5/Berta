@@ -15,30 +15,6 @@
 
 namespace Berta
 {
-	/*TreeNodeType* TreeNodeType::Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_)
-	{
-		auto it = m_lookup.find(childKey);
-		if (it != m_lookup.end())
-		{
-			return it->second.get();
-		}
-
-		auto child = std::make_unique<TreeNodeType>(childKey, text_, parent_);
-		TreeNodeType* childPtr = child.get();
-		m_lookup[childKey] = std::move(child);
-		
-		parent_->children.emplace_back(childPtr);
-
-		return childPtr;
-	}
-	
-	
-	TreeNodeType* TreeNodeType::Find(const TreeNodeHandle& key)
-	{
-		auto it = m_lookup.find(key);
-		return it != m_lookup.end() ? it->second.get() : nullptr;
-	}*/
-
 	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
@@ -167,11 +143,8 @@ namespace Berta
 			m_module.m_focusedNode = clickedNode;
 			m_module.m_needsRepaint = true;
 
+			m_module.EmitSelectionEvent();
 			GUI::MarkAsNeedUpdate(m_module.m_window);
-			// Disparar evento de selección de la librería
-			// ArgTreeBoxSelection eventArgs;
-			// eventArgs.Items = Convertir m_selectionController.GetSelectedItems() a TreeBoxItem
-			// m_control->Events.Selected(eventArgs);
 		}
 		
 		if (m_module.m_allowDragAndDrop && clickedNode != nullptr)
@@ -192,6 +165,7 @@ namespace Berta
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
 		
 		auto dragThreshold = m_module.m_window->ToScale(3);
+		auto clientArea = m_module.m_scrollableView->GetClientArea();
 		if (m_module.m_draggedNode && !m_module.m_isDragging)
 		{
 			if (std::abs(args.Position.X - m_module.m_dragStartPoint.X) > dragThreshold || 
@@ -200,13 +174,12 @@ namespace Berta
 				m_module.m_isDragging = true;
 			}
 		}
-
+		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
+		int absoluteY = args.Position.Y + m_module.m_scrollableView->GetScrollOffset().Y - clientArea.Y;
+		
+		size_t hoveredIndex = absoluteY / nodeHeight;
 		if (m_module.m_isDragging)
-		{
-			auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
-			int absoluteY = args.Position.Y + m_module.m_scrollableView->GetScrollOffset().Y;
-			size_t hoveredIndex = absoluteY / nodeHeight;
-
+		{			
 			if (hoveredIndex < m_module.m_flatVisibleTree.size())
 			{
 				TreeNodeType* hoverNode = m_module.m_flatVisibleTree[hoveredIndex].Node;
@@ -242,12 +215,6 @@ namespace Berta
 			return;
 		}
 		
-		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
-		int scrollY = m_module.m_scrollableView->GetScrollOffset().Y;
-
-		int absoluteY = args.Position.Y + scrollY;
-		size_t hoveredIndex = absoluteY / nodeHeight;
-
 		TreeNodeType* currentHover = nullptr;
 		if (hoveredIndex < m_module.m_flatVisibleTree.size())
 		{
@@ -425,21 +392,21 @@ namespace Berta
 		if (targetIndex != currentIndex)
 		{
 			m_module.m_focusedNode = m_module.m_flatVisibleTree[targetIndex].Node;
-
-			bool selectionChanged = m_module.m_selectionController.Select
-			(
-				m_module.m_focusedNode, 
-				m_module.m_ctrlPressed, 
-				m_module.m_shiftPressed, 
-				m_module.m_treeRangeResolver
-			);
-
-			if (selectionChanged)
+			if (!m_module.m_ctrlPressed)
 			{
-				// Disparar evento de selección:
-				// m_control->Events.Selected( ... );
+				bool selectionChanged = m_module.m_selectionController.Select
+				(
+					m_module.m_focusedNode, 
+					m_module.m_ctrlPressed, 
+					m_module.m_shiftPressed, 
+					m_module.m_treeRangeResolver
+				);
+
+				if (selectionChanged)
+				{
+					m_module.EmitSelectionEvent();
+				}
 			}
-			
 			Rectangle targetBounds = { 0, targetIndex * static_cast<int>(nodeHeight), 100 , nodeHeight };
         
 			bool scrollChanged = m_module.m_scrollableView->EnsureVisibility(targetBounds);
@@ -479,6 +446,8 @@ namespace Berta
 		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
 		
 		int expanderMarginX = static_cast<int>(depthMultiplier - expanderSize) >> 1;
+		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
+		int textPaddingX = m_window->ToScale(5); 
 		
 		int scrollX = m_scrollableView->GetScrollOffset().X;
 		int scrollY = m_scrollableView->GetScrollOffset().Y;
@@ -496,8 +465,42 @@ namespace Berta
         
 			int indentX = (flatNode.Level * depthMultiplier) - scrollX + clientArea.X;
 			int drawY = static_cast<int>(i * nodeHeight) - scrollY + clientArea.Y;
+			int centerY = drawY + (nodeHeight / 2);
+			int currentX = indentX;
+			
+			Rectangle rowRect{ clientArea.X, drawY, clientArea.Width, static_cast<uint32_t>(nodeHeight) };
+			
+			if (m_showNavigationLines)
+			{
+				Color lineColor = appearance->BoxBorderColor;
+				int startX = -scrollX;
+				
+				for (int currLevel = 0; currLevel < flatNode.Level; ++currLevel)
+				{
+					if (flatNode.VerticalLineMask & (1 << currLevel))
+					{
+						int lineX = startX + (currLevel * depthMultiplier) + ((int)expanderSize / 2);
+            
+						// Dibuja desde el borde superior hasta el borde inferior de esta fila
+						// Puedes usar DrawLine o DrawDashedLine si Berta lo soporta
+						graphics.DrawLine({lineX, drawY}, {lineX, drawY + nodeHeight}, lineColor, Graphics::LineStyle::Dotted);
+					}
+				}
+				
+				int currentLineX = startX + (flatNode.Level * depthMultiplier) + ((int)expanderSize / 2);
+    
+				// Línea horizontal (apunta hacia el icono/texto)
+				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, Graphics::LineStyle::Dotted);
 
-			Rectangle rowRect{ clientArea.X, drawY, clientArea.Width, (uint32_t)nodeHeight };
+				// Línea vertical superior (viene del nodo de arriba)
+				graphics.DrawLine({currentLineX, drawY}, {currentLineX, centerY}, lineColor, Graphics::LineStyle::Dotted);
+
+				// Línea vertical inferior (continúa hacia abajo solo si NO es el último hijo)
+				if (!flatNode.IsLastChild)
+				{
+					graphics.DrawLine({currentLineX, centerY}, {currentLineX, drawY + nodeHeight}, lineColor, Graphics::LineStyle::Dotted);
+				}
+			}
 			
 			bool isSelected = m_selectionController.IsSelected(node);
 			bool isFocused = (node == m_focusedNode);
@@ -517,17 +520,17 @@ namespace Berta
 			}
 			Rectangle expanderRect{ indentX + expanderMarginX, drawY + (nodeHeight - (int)expanderSize) / 2, expanderSize, expanderSize };
 			
-			/*
+			currentX += (int)expanderSize + textPaddingX;
 			if (m_drawImages)
 			{
 				if (node->icon)
 				{
-					auto positionY = (nodeHeight - iconSize) >> 1;
-					node->icon.Paste(graphics, { nodeRect.X + iconMargin, nodeRect.Y + (int)positionY, iconSize , iconSize });
+					Rectangle iconRect{ currentX, centerY - (int)(iconSize >> 1), iconSize, iconSize };
+					node->icon.Paste(graphics, iconRect);
 				}
-				contentOffsetX += iconSize + iconMargin * 2;
+				currentX += (int)iconSize; //+ iconMargin * 2;
 			}
-			 */
+			
 			if (!node->children.empty())
 			{
 				int arrowWidth = m_window->ToScale(4);
@@ -544,9 +547,7 @@ namespace Berta
 				);
 			}
 			
-			int textPaddingX = m_window->ToScale(5); 
-			int textX = indentX + expanderSize + textPaddingX;
-			Rectangle textRect{ textX, drawY + ((nodeHeight - (int)graphics.GetTextExtent().Height)/2), (uint32_t)(clientWidth - textX), (uint32_t)nodeHeight };
+			Rectangle textRect{ currentX, drawY + ((nodeHeight - (int)graphics.GetTextExtent().Height)/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
         
 			Color textColor = isSelected ? appearance->HighlightTextColor : appearance->Foreground;
 			graphics.DrawString(textRect, node->text, textColor);
@@ -573,187 +574,7 @@ namespace Berta
 				}
 			}
 		}
-		
-		/*
-		bool enabled = true;
-		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
-		auto nodeTextMargin = m_window->ToScale(4u);
-		auto nodeHeightInt = static_cast<int>(nodeHeight);
-		auto nodeHeightHalfInt = nodeHeightInt >> 1;
-		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
-
-		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto iconMargin = m_window->ToScale(2);
-		auto expanderSize = m_window->ToScale(m_appearance->ExpanderButtonSize);
-		auto depthWidthMultiplier = m_window->ToScale(m_appearance->DepthWidthMultiplier);
-
-		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
-		int expanderMarginY = (nodeHeightInt - static_cast<int>(expanderSize)) >> 1;
-
-		int i = m_viewport.m_startingVisibleIndex;
-		for (auto& node : m_visibleNodes)
-		{
-			auto depth = CalculateNodeDepth(node);
-			int depthOffsetX = static_cast<int>((depth - 1) * depthWidthMultiplier);
-
-			Rectangle expanderRect{ offset.X + depthOffsetX + expanderMarginX, offset.Y + nodeHeightInt * i + expanderMarginY, expanderSize, expanderSize };
-			Rectangle nodeRect{ offset.X + depthOffsetX + (int)depthWidthMultiplier, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
-			nodeRect.Width -= nodeRect.X;
-
-			bool isLastSelected = node == m_mouseSelection.m_selectedNode;
-			bool isSelected = node->isSelected;
-			bool isHovered = node == m_mouseSelection.m_hoveredNode;
-
-			if (isSelected)
-			{
-				auto lineColor = enabled ? (isLastSelected ? m_appearance->Foreground2nd : (isSelected ? m_appearance->BoxBorderHighlightColor : m_appearance->BoxBorderColor)) : m_appearance->BoxBorderDisabledColor;
-
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->HighlightColor, true);
-				graphics.DrawRectangle(nodeRect, lineColor, false);
-			}
-			else if (isHovered)
-			{
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->ItemCollectionHightlightBackground, true);
-			}
-			else if (isLastSelected)
-			{
-				graphics.DrawRectangle(nodeRect, m_window->Appearance->Foreground2nd, false);
-			}
-
-			int contentOffsetX = 0;
-			if (m_drawImages)
-			{
-				if (node->icon)
-				{
-					auto positionY = (nodeHeight - iconSize) >> 1;
-					node->icon.Paste(graphics, { nodeRect.X + iconMargin, nodeRect.Y + (int)positionY, iconSize , iconSize });
-				}
-				contentOffsetX += iconSize + iconMargin * 2;
-			}
-
-			if (node->firstChild)
-			{
-				int arrowWidth = m_window->ToScale(4);
-				int arrowLength = m_window->ToScale(2);
-				graphics.DrawRoundRectBox(expanderRect, m_window->Appearance->Background, m_window->Appearance->BoxBorderColor, true);
-			
-				graphics.DrawArrow(expanderRect,
-					arrowLength,
-					arrowWidth,
-					node->isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
-					m_window->Appearance->Foreground2nd,
-					true,
-					node->isExpanded ? m_window->Appearance->Foreground2nd : m_window->Appearance->BoxBackground
-				);
-			}
-
-			graphics.DrawString({ nodeRect.X + contentOffsetX + (int)nodeTextMargin, nodeRect.Y + (int)(nodeHeight - graphics.GetTextExtent().Height) / 2 }, node->text, m_window->Appearance->Foreground);
-			++i;
-		}*/
 	}
-
-	/*void TreeBoxReactor::Module::DrawNavigationLines(Graphics& graphics)
-	{
-		auto nodeHeight = m_window->ToScale(m_appearance->TreeItemHeight);
-		auto nodeTextMargin = m_window->ToScale(8u);
-		auto nodeHeightInt = static_cast<int>(nodeHeight);
-		auto nodeHeightHalfInt = nodeHeightInt >> 1;
-		Point offset{ m_viewport.m_backgroundRect.X - m_scrollOffset.X, m_viewport.m_backgroundRect.Y - m_scrollOffset.Y };
-
-		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		auto expanderSize = m_window->ToScale(m_appearance->ExpanderButtonSize);
-		auto depthWidthMultiplier = m_window->ToScale(m_appearance->DepthWidthMultiplier);
-
-		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
-		int expanderMarginY = (nodeHeightInt - static_cast<int>(expanderSize)) >> 1;
-
-		auto lineColor = m_window->Appearance->BoxBorderColor;
-		Graphics::LineStyle lineStyle = Graphics::LineStyle::Dotted;
-		int lineWidth = m_window->ToScale(1);
-
-		uint32_t minDepth = (std::numeric_limits<uint32_t>::max)();
-		int i = m_viewport.m_startingVisibleIndex;
-		for (auto& node : m_visibleNodes)
-		{
-			auto depth = CalculateNodeDepth(node);
-			int depthOffsetX = static_cast<int>((depth - 1) * depthWidthMultiplier);
-
-			Rectangle expanderRect{ offset.X + depthOffsetX + expanderMarginX, offset.Y + nodeHeightInt * i + expanderMarginY, expanderSize, expanderSize };
-			Rectangle nodeRect{ offset.X + depthOffsetX + (int)depthWidthMultiplier, offset.Y + nodeHeightInt * i, m_viewport.m_contentSize.Width, nodeHeight };
-			nodeRect.Width -= nodeRect.X;
-
-			auto expanderRectMidX = static_cast<int>((expanderRect.X * 2 + expanderRect.Width)) >> 1;
-			Point startPointV{ expanderRectMidX, nodeRect.Y };
-			Point endPointV{ startPointV.X, nodeRect.Y + nodeHeightInt };
-
-			if (i == 0)
-			{
-				startPointV.Y += nodeHeightHalfInt;
-			}
-
-			if (node->prevSibling && !IsVisibleNode(node->prevSibling))
-			{
-				startPointV.Y = offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex;
-			}
-
-			if (!node->nextSibling)
-			{
-				endPointV.Y -= nodeHeightHalfInt;
-			}
-			else
-			{
-				int nextSiblingIndex = -1;
-				if (IsVisibleNode(node->nextSibling, nextSiblingIndex))
-				{
-					endPointV.Y = m_viewport.m_backgroundRect.Y + offset.Y + nodeHeightInt * (nextSiblingIndex + m_viewport.m_startingVisibleIndex);
-				}
-				else
-				{
-					endPointV.Y = offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1);
-				}
-			}
-			graphics.DrawLine(startPointV, endPointV, static_cast<float>(lineWidth), lineColor, lineStyle);
-			
-			Point startPointH{ expanderRectMidX + lineWidth * 2, nodeRect.Y + nodeHeightHalfInt };
-			Point endPointH{ startPointH.X + (int)(depthWidthMultiplier / 2) - lineWidth * 2, startPointH.Y};
-			graphics.DrawLine(startPointH, endPointH, static_cast<float>(lineWidth), lineColor, lineStyle);
-
-			minDepth = (std::min)(minDepth, depth);
-			++i;
-		}
-
-		if (minDepth > 1 && minDepth < (std::numeric_limits<uint32_t>::max)())
-		{
-			auto currentDepth = minDepth - 1;
-			auto parentVisible = m_visibleNodes[0]->parent;
-			auto depthParentVisible = CalculateNodeDepth(parentVisible);
-			while (parentVisible && depthParentVisible > currentDepth)
-			{
-				parentVisible = parentVisible->parent;
-				--depthParentVisible;
-			}
-
-			while (currentDepth > 0)
-			{
-				if (parentVisible && !parentVisible->nextSibling)
-				{
-					--currentDepth;
-					parentVisible = parentVisible->parent;
-					continue;
-				}
-
-				int nodeOffsetX = (currentDepth - 1) * depthWidthMultiplier;
-
-				Point startPointV{ offset.X + nodeOffsetX + expanderMarginX + static_cast<int>(expanderSize) / 2, offset.Y + nodeHeightInt * m_viewport.m_startingVisibleIndex };
-				Point endPointV{ startPointV.X, offset.Y + nodeHeightInt * (m_viewport.m_endingVisibleIndex + 1) };
-
-				graphics.DrawLine(startPointV, endPointV, static_cast<float>(lineWidth), lineColor, lineStyle);
-
-				--currentDepth;
-				parentVisible = parentVisible->parent;
-			}
-		}
-	}*/
 
 	void TreeBoxReactor::Module::EnableMultiselection(bool enabled)
 	{
@@ -770,63 +591,6 @@ namespace Berta
 		return key.substr(0, key.size() - 1);
 	}
 
-	/*TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text)
-	{
-		auto cleanKey = CleanKey(key);
-		if (cleanKey.empty())
-		{
-			return {};
-		}
-
-		auto parts = StringUtils::Split(key, '/');
-		TreeNodeType* current = &m_root;
-		for (const auto& part : parts)
-		{
-			current = current->Add(part, text, current);
-		}
-
-		return { current, this };
-	}
-
-	TreeBoxItem TreeBoxReactor::Module::Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode)
-	{
-		auto cleanKey = CleanKey(key);
-		if (cleanKey.empty())
-		{
-			return {};
-		}
-
-		auto parts = StringUtils::Split(key, '/');
-		TreeNodeType* current = parentNode;
-		for (const auto& part : parts)
-		{
-			current = current->Add(part, text, current);
-		}
-
-		return { current, this };
-	}*/
-
-	/*TreeBoxItem TreeBoxReactor::Module::Find(const TreeNodeHandle& handle)
-	{
-		if (handle.empty())
-		{
-			return {};
-		}
-
-		auto parts = StringUtils::Split(handle, '/');
-		auto current = &m_root;
-		for (auto& part : parts)
-		{
-			current = current->Find(part);
-			if (!current)
-			{
-				return {};
-			}
-		}
-
-		return { current, this };
-	}*/
-
 	TreeNodeHandle TreeBoxReactor::Module::GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode)
 	{
 		if (parentNode)
@@ -836,30 +600,6 @@ namespace Berta
 				parentNode->key + "/" + key;
 		}
 		return key;
-	}
-
-	void TreeBoxReactor::Module::Erase(const TreeNodeHandle& handle)
-	{
-		/*auto item = Find(handle);
-		if (!item)
-		{
-			return;
-		}
-
-		EraseNode(item.m_node);
-
-		UpdateScrollData();*/
-
-		GUI::UpdateWindow(m_window);
-	}
-
-	void TreeBoxReactor::Module::Erase(TreeBoxItem item)
-	{
-		EraseNode(item.m_node);
-
-		UpdateScrollData();
-
-		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::EraseNode(TreeNodeType* node)
@@ -903,13 +643,16 @@ namespace Berta
 
 	void TreeBoxReactor::Module::EmitSelectionEvent()
 	{
-		/*ArgTreeBoxSelection argTreeBox;
-		argTreeBox.Items.resize(m_mouseSelection.m_selections.size());
-		for (size_t i = 0; i < m_mouseSelection.m_selections.size(); i++)
+		ArgTreeBoxSelection argTreeBox;
+    
+		auto selectedNodes = m_selectionController.GetSelectedItems();
+    
+		argTreeBox.Items.reserve(selectedNodes.size());
+		for (auto* node : selectedNodes)
 		{
-			argTreeBox.Items[i] = { m_mouseSelection.m_selections[i], this };
+			argTreeBox.Items.emplace_back(node, this); 
 		}
-		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Selected.Emit(argTreeBox);*/
+		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Selected.Emit(argTreeBox);
 	}
 
 	void TreeBoxReactor::Module::EmitExpansionEvent(TreeNodeType* node)
@@ -925,6 +668,7 @@ namespace Berta
 		{
 			return false;
 		}
+		
 		bool needUpdate = !item.m_node->isExpanded;
 		item.m_node->isExpanded = true;
 		
@@ -1025,9 +769,14 @@ namespace Berta
 		
 		auto expanderSize = static_cast<int>(m_window->ToScale(appearance->ExpanderButtonSize));
 		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
+		auto iconSize = static_cast<int>(m_window->ToScale(appearance->SmallIconSize));
 		int textPaddingX = 5;
 
 		int rowTotalWidth = (level * depthMultiplier) + expanderSize + textPaddingX + node->cachedTextWidth;
+		if (m_drawImages)
+		{
+			rowTotalWidth += iconSize;
+		}
 		m_visibleWidths.insert(rowTotalWidth);
 
 		if (node->isExpanded && !node->children.empty())
@@ -1046,14 +795,15 @@ namespace Berta
 
 	void TreeBoxReactor::Module::SetIcon(TreeNodeType* node, const Image& icon)
 	{
+		if (!node)
+		{
+			return;
+		}
 		node->icon = icon;
 		
 		m_drawImages = true;
-
-		if (true)
-		{
-			GUI::UpdateWindow(m_window);
-		}
+		m_needsRepaint = true;
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::SetText(TreeNodeType* node, const std::string& newText)
@@ -1088,33 +838,14 @@ namespace Berta
 
 	void TreeBoxItem::Select()
 	{
-		/*bool needUpdate = false;
-		bool emitSelectionEvent = false;
-		if (m_module->m_multiselection)
+		bool changed = m_module->m_selectionController.Select(m_node, false, false, m_module->m_treeRangeResolver);
+		if (changed)
 		{
-			if (m_module->HandleMultiSelection(m_node))
-			{
-				needUpdate = true;
-				emitSelectionEvent = true;
-			}
-		}
-		else
-		{
-			if (m_module->UpdateSingleSelection(m_node))
-			{
-				needUpdate = true;
-				emitSelectionEvent = true;
-			}
-		}
-		if (needUpdate)
-		{
-			m_module->Update();
+			m_module->m_focusedNode = m_node;
 			m_module->Draw();
-		}
-		if (emitSelectionEvent)
-		{
+			
 			m_module->EmitSelectionEvent();
-		}*/
+		}
 	}
 
 	std::any& TreeBoxItem::UserData()
@@ -1125,20 +856,6 @@ namespace Berta
 	const std::any& TreeBoxItem::UserData() const
 	{
 		return m_node->userData;
-	}
-
-	std::vector<TreeBoxItem> TreeBoxReactor::Module::GetSelected()
-	{
-		std::vector<TreeBoxItem> result;
-		auto selectedItems = m_selectionController.GetSelectedItems();
-		result.reserve(selectedItems.size());
-		
-		for (auto& selectedItem : selectedItems)
-		{
-			result.emplace_back(selectedItem, this);
-		}
-		
-		return result;
 	}
 
 	bool TreeBoxReactor::Module::ShowNavigationLines(bool visible)
@@ -1223,6 +940,7 @@ namespace Berta
 		
 		auto root = module.m_model.GetRoot();
 		bool needUpdate = !root->children.empty();
+		
 		module.m_selectionController.Clear();
 		
 		module.m_flatVisibleTree.clear();
@@ -1294,37 +1012,6 @@ namespace Berta
 		module.Draw();
 	}
 
-	void TreeBox::Erase(const TreeNodeHandle& key)
-	{
-		GetReactor().GetModule().Erase(key);
-	}
-
-	void TreeBox::Erase(TreeBoxItem item)
-	{
-		if (!item || !item.GetNode())
-		{
-			return;
-		}
-		auto& module = GetReactor().GetModule();
-		auto node = item.GetNode();
-		if (module.m_selectionController.IsSelected(node))
-		{
-			module.m_selectionController.SetSelected(node, false); 
-		}
-		if (module.m_focusedNode == node)
-		{
-			module.m_focusedNode = nullptr;
-		}
-		if (module.m_hoveredNode == node)
-		{
-			module.m_hoveredNode = nullptr;
-		}
-
-		module.m_model.Erase(node);
-
-		module.RebuildFlatTree();
-	}
-
 	TreeBoxItem TreeBox::Find(const TreeNodeHandle& key)
 	{
 		auto& module = GetReactor().GetModule();
@@ -1381,6 +1068,39 @@ namespace Berta
 		}
 		return { newNode, &module };
 	}
+	
+	void TreeBox::Erase(const TreeNodeHandle& key)
+	{
+		//GetReactor().GetModule().Erase(key);
+	}
+
+	void TreeBox::Erase(TreeBoxItem item)
+	{
+		if (!item || !item.GetNode())
+		{
+			return;
+		}
+		
+		auto& module = GetReactor().GetModule();
+		auto node = item.GetNode();
+		if (module.m_selectionController.IsSelected(node))
+		{
+			module.m_selectionController.SetSelected(node, false); 
+		}
+		if (module.m_focusedNode == node)
+		{
+			module.m_focusedNode = nullptr;
+		}
+		if (module.m_hoveredNode == node)
+		{
+			module.m_hoveredNode = nullptr;
+		}
+
+		module.m_model.Erase(node);
+
+		module.RebuildFlatTree();
+		module.Draw();
+	}
 
 	void TreeBox::DeselectAll()
 	{
@@ -1420,13 +1140,28 @@ namespace Berta
 
 	std::string TreeBox::GetKeyPath(TreeBoxItem item, char separator)
 	{
-		if (!item) return "";
+		if (!item)
+		{
+			return "";
+		}
+		
 		return GetReactor().GetModule().m_model.GetKeyPath(item.GetNode(), separator);
 	}
 
 	std::vector<TreeBoxItem> TreeBox::GetSelected()
 	{
-		return GetReactor().GetModule().GetSelected();
+		auto& module = GetReactor().GetModule();
+		std::vector<TreeBoxItem> result;
+    
+		auto selectedNodes = module.m_selectionController.GetSelectedItems();
+    
+		result.reserve(selectedNodes.size());
+		for (auto* node : selectedNodes)
+		{
+			result.emplace_back(node, &module); 
+		}
+    
+		return result;
 	}
 
 	void TreeBox::EnableMultiselection(bool enabled)

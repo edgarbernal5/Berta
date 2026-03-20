@@ -323,9 +323,10 @@ namespace Berta
 			}
 			else
 			{
+				float dashes[] = { 1.0f, 1.0f };
 				ID2D1StrokeStyle* strokeStyle = nullptr;
 
-				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties
+				/*D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties
 				(
 					D2D1_CAP_STYLE_ROUND,      // startCap
 					D2D1_CAP_STYLE_ROUND,      // endCap
@@ -334,9 +335,19 @@ namespace Berta
 					10.0f,                     // miterLimit
 					D2D1_DASH_STYLE_DASH,      // dashStyle
 					0.0f                       // dashOffset
+				);*/
+				
+				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties(
+					D2D1_CAP_STYLE_FLAT,  // Cap inicial plano
+					D2D1_CAP_STYLE_FLAT,  // Cap final plano
+					D2D1_CAP_STYLE_FLAT,  // Cap intermedio plano
+					D2D1_LINE_JOIN_MITER, // Unión recta
+					10.0f,                // Límite de miter
+					D2D1_DASH_STYLE_CUSTOM, // Usaremos nuestro array de arriba
+					0.0f                  // Desplazamiento inicial del patrón
 				);
 
-				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, nullptr, 0, &strokeStyle);
+				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, dashes, ARRAYSIZE(dashes), &strokeStyle);
 				m_targetRT->DrawLine(point1F, point2F, brush, strokeWidth, strokeStyle);
 
 				strokeStyle->Release();

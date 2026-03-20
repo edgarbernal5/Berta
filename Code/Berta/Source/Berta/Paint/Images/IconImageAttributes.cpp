@@ -118,4 +118,7 @@ namespace Berta
 	{
 	}
 
+	void IconImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
+	{
+	}
 }

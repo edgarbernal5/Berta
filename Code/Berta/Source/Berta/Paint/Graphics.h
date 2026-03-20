@@ -35,7 +35,7 @@ namespace Berta
 		Graphics& operator=(const Graphics& other);
 		Graphics& operator=(Graphics&& other) noexcept;
 
-		enum class ArrowDirection
+		enum class ArrowDirection : uint8_t
 		{
 			Downwards,
 			Upwards,
@@ -43,7 +43,7 @@ namespace Berta
 			Right
 		};
 
-		enum class LineStyle
+		enum class LineStyle : uint8_t
 		{
 			Solid,
 			Dash,
@@ -82,7 +82,7 @@ namespace Berta
 		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid);
 		void DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor);
 		void DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
-		void DrawEllipse(const Rectangle& rect, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
+		void DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
