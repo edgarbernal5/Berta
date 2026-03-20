@@ -172,6 +172,15 @@ namespace Berta
 				std::abs(args.Position.Y - m_module.m_dragStartPoint.Y) > dragThreshold)
 			{
 				m_module.m_isDragging = true;
+				
+				ArgTreeDragDrop arguments{ TreeBoxItem(m_module.m_draggedNode, &m_module), {}, DropPosition::None };
+				reinterpret_cast<TreeBoxEvents*>(m_module.m_window->Events.get())->DragStart.Emit(arguments);
+				
+				if (arguments.Cancel) 
+				{
+					m_module.ResetDragState();
+					return;
+				}
 			}
 		}
 		auto nodeHeight = static_cast<int>(m_module.m_window->ToScale(appearance->TreeItemHeight));
@@ -208,6 +217,13 @@ namespace Berta
 					m_module.m_dropTargetNode = nullptr;
 					m_module.m_dropPosition = DropPosition::None;
 				}
+				ArgTreeDragDrop arguments{ TreeBoxItem(m_module.m_draggedNode, &m_module), {m_module.m_dropTargetNode, &m_module}, m_module.m_dropPosition };
+				reinterpret_cast<TreeBoxEvents*>(m_module.m_window->Events.get())->DragOver.Emit(arguments);
+				
+				if (arguments.Cancel) 
+				{
+					m_module.m_dropPosition = DropPosition::None;
+				}
 			}
         
 			m_module.m_needsRepaint = true;
@@ -236,13 +252,19 @@ namespace Berta
 		{
 			if (m_module.m_dropTargetNode && m_module.m_dropPosition != DropPosition::None)
 			{
-				// Opcional: Podrías disparar un evento "OnBeforeDrop" aquí para que el usuario 
-				// de la librería pueda cancelarlo si rompe alguna regla de negocio de su app.
-
-				m_module.m_model.MoveNode(m_module.m_draggedNode, m_module.m_dropTargetNode, m_module.m_dropPosition);
+				ArgTreeDragDrop arguments{ TreeBoxItem(m_module.m_draggedNode, &m_module), {m_module.m_dropTargetNode, &m_module}, m_module.m_dropPosition };
+				auto events = reinterpret_cast<TreeBoxEvents*>(m_module.m_window->Events.get());
+				events->BeforeDrop.Emit(arguments);
+				
+				if (!arguments.Cancel)
+				{
+					m_module.m_model.MoveNode(m_module.m_draggedNode, m_module.m_dropTargetNode, m_module.m_dropPosition);
             
-				m_module.RebuildFlatTree(); 
-				m_module.UpdateScrollData();
+					m_module.RebuildFlatTree(); 
+					m_module.UpdateScrollData();
+					
+					events->NodeMoved.Emit(arguments);
+				}
 			}
 		}
 		
@@ -281,6 +303,13 @@ namespace Berta
 		if (m_module.m_flatVisibleTree.empty())
 		{
 			return;
+		}
+		
+		if (args.Key == KeyboardKey::Escape && m_module.m_isDragging)
+		{
+			m_module.ResetDragState();
+			GUI::MarkAsNeedUpdate(m_module.m_window);
+			return; 
 		}
 		
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
@@ -564,12 +593,12 @@ namespace Berta
 				}
 				else if (m_dropPosition == DropPosition::Before)
 				{
-					Rectangle lineRect{ indicatorX, drawY, clientArea.Width - indicatorX, 2 };
+					Rectangle lineRect{ indicatorX, drawY - 1, clientArea.Width - indicatorX, 2 };
 					graphics.DrawRectangle(lineRect, indicatorColor, true);
 				}
 				else if (m_dropPosition == DropPosition::After)
 				{
-					Rectangle lineRect{ indicatorX, drawY + nodeHeight - 2, clientArea.Width  - indicatorX, 2 };
+					Rectangle lineRect{ indicatorX, drawY + nodeHeight - 1, clientArea.Width  - indicatorX, 2 };
 					graphics.DrawRectangle(lineRect, indicatorColor, true);
 				}
 			}
@@ -729,6 +758,17 @@ namespace Berta
 			node->cachedTextWidth = textWidth /*+ iconWidth*/;
 		}
 		return node->cachedTextWidth + (level * (int)appearance->DepthWidthMultiplier);
+	}
+
+	void TreeBoxReactor::Module::ResetDragState()
+	{
+		m_isDragging = false;
+		m_draggedNode = nullptr;
+		m_dropTargetNode = nullptr;
+		m_dropPosition = DropPosition::None;
+    
+		m_needsRepaint = true;
+		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::RebuildFlatTree()
@@ -1003,7 +1043,7 @@ namespace Berta
 		{
 			return {};
 		}
-		char separator = '/';
+		wchar_t separator = L'/';
 		TreeNodeType* parentNode = nullptr;
 		
 		size_t lastSeparatorPos = cleanKey.find_last_of(separator);

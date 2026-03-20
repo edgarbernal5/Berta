@@ -64,7 +64,7 @@ namespace Berta
 		bool IsLastChild;
 		
 		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
-			Node(node), Level(level), IsLastChild(isLastChild), VerticalLineMask(vertLineMask)
+			Node(node), Level(level), VerticalLineMask(vertLineMask), IsLastChild(isLastChild)
 		{
 		}
 	};
@@ -253,6 +253,7 @@ namespace Berta
 			
 			int CalculateNodeWidth(TreeNodeType* node, int level);
 			
+			void ResetDragState();
 			void RebuildFlatTree();
 			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
 
@@ -401,6 +402,14 @@ namespace Berta
 
 		ArgTreeBox(TreeBoxItem item, bool isExpanded) : Item(item), IsExpanded(isExpanded){}
 	};
+	
+	struct ArgTreeDragDrop
+	{
+		TreeBoxItem DraggedItem;
+		TreeBoxItem TargetItem;
+		DropPosition Position;
+		bool Cancel{ false };
+	};
 
 	struct ArgTreeBoxSelection
 	{
@@ -409,6 +418,10 @@ namespace Berta
 
 	struct TreeBoxEvents : public ControlEvents
 	{
+		Event<ArgTreeDragDrop> DragStart;
+		Event<ArgTreeDragDrop> DragOver;
+		Event<ArgTreeDragDrop> BeforeDrop;
+		Event<ArgTreeDragDrop> NodeMoved;
 		Event<ArgTreeBox> Expanded;
 		Event<ArgTreeBoxSelection> Selected;
 	};
@@ -434,7 +447,7 @@ namespace Berta
 		void DeselectAll();
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
-
+		
 		std::wstring GetKeyPath(TreeBoxItem item, wchar_t separator);
 		std::vector<TreeBoxItem> GetSelected();
 

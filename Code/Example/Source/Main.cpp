@@ -131,6 +131,23 @@ public:
 			{
 				BT_CORE_TRACE << " - tree box selected event: " << args.Items.size() << std::endl;
 			});
+		
+		m_treeBox.GetEvents().DragStart.Connect([this](const Berta::ArgTreeDragDrop& args)
+			{
+				BT_CORE_TRACE << " - tree box drag start: " << Berta::StringUtils::WideToUTF8(args.DraggedItem.GetText()) << std::endl;
+			});
+		m_treeBox.GetEvents().DragOver.Connect([this](const Berta::ArgTreeDragDrop& args)
+			{
+				BT_CORE_TRACE << " - tree box drag over: " << Berta::StringUtils::WideToUTF8(args.DraggedItem.GetText()) << std::endl;
+			});
+		m_treeBox.GetEvents().BeforeDrop.Connect([this](const Berta::ArgTreeDragDrop& args)
+			{
+				BT_CORE_TRACE << " - tree box before over: " << Berta::StringUtils::WideToUTF8(args.DraggedItem.GetText()) << ". target " << Berta::StringUtils::WideToUTF8(args.TargetItem.GetText()) << std::endl;
+			});
+		m_treeBox.GetEvents().NodeMoved.Connect([this](const Berta::ArgTreeDragDrop& args)
+			{
+				BT_CORE_TRACE << " - tree box node moved: " << Berta::StringUtils::WideToUTF8(args.DraggedItem.GetText()) << ". target " << Berta::StringUtils::WideToUTF8(args.TargetItem.GetText()) << std::endl;
+			});
 	}
 
 	TabExample1() : Panel()
@@ -172,7 +189,9 @@ public:
 			{
 				auto selected = m_listBox.GetSelected();
 				if (selected.empty())
+				{
 					return;
+				}
 
 				m_listBox.Erase(selected[0]);
 			});
