@@ -47,6 +47,7 @@ namespace Berta
 
 		std::wstring text;
 		TreeNodeHandle key;
+		CheckState checkState { CheckState::None };
 		Image icon;
 		std::any userData;
 		bool isExpanded{ false };
@@ -240,13 +241,10 @@ namespace Berta
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
-			void EraseNode(TreeNodeType* node);
 			void UpdateScrollData();
 
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
-
-			bool Expand(TreeBoxItem item);
 			
 			void CollapseNode(TreeNodeType* node);
 			void ExpandNode(TreeNodeType* node);
@@ -286,6 +284,7 @@ namespace Berta
 			DropPosition m_dropPosition{ DropPosition::None };
 			
 			bool m_drawImages{ false };
+			bool m_drawCheck{ false };
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
@@ -332,6 +331,24 @@ namespace Berta
 			m_node->icon = icon;
 		
 			m_module->m_drawImages = true;
+			m_module->m_needsRepaint = true;
+			
+			GUI::UpdateWindow(m_module->m_window);
+		}
+		
+		void SetChecked(bool checked)
+		{
+			if (!m_node || m_node->checkState == CheckState::None)
+			{
+				return;
+			}
+			CheckState newState = checked ? CheckState::Checked : CheckState::Unchecked;
+			m_node->checkState = newState;
+			
+			//PropagateCheckStateToChildren(m_node, newState);
+			//UpdateAncestorsCheckState(m_node);
+			
+			m_module->m_drawCheck = true;
 			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);
@@ -437,6 +454,8 @@ namespace Berta
 		void CollapseAll();
 		void CollapseAll(TreeBoxItem item);
 
+		void DeselectAll();
+		
 		TreeBoxItem Find(const TreeNodeHandle& key);
 		TreeBoxItem Insert(const TreeNodeHandle& key, const std::wstring& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text);
@@ -444,15 +463,15 @@ namespace Berta
 		void Erase(const TreeNodeHandle& key);
 		void Erase(TreeBoxItem item);
 		
-		void DeselectAll();
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
 		
 		std::wstring GetKeyPath(TreeBoxItem item, wchar_t separator);
 		std::vector<TreeBoxItem> GetSelected();
 
+		void Filter(const std::wstring& text);
+		
 		void EnableMultiselection(bool enabled);
-
 		void ShowNavigationLines(bool visible);
 	};
 }

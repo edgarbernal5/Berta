@@ -181,8 +181,8 @@ namespace Berta
         Rectangle scrollRect
         {
             m_clientAreaBounds.X, 
-            static_cast<int>(m_clientAreaBounds.Height - scrollSize), 
-            m_clientAreaBounds.Width, 
+            m_clientAreaBounds.Y + static_cast<int>(m_clientAreaBounds.Height - scrollSize), 
+            m_clientAreaBounds.Width,
             scrollSize
         };
 

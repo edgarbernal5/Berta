@@ -321,6 +321,11 @@ namespace Berta
 		uint8_t GetG() const { return G; }
 		uint8_t GetB() const { return B; }
 		uint8_t GetA() const { return A; }
+		
+		void SetR(uint8_t newR) { R = newR; }
+		void SetG(uint8_t newG) { G = newG; }
+		void SetB(uint8_t newB) { B = newB; }
+		void SetA(uint8_t newA) { A = newA; }
 	private:
 		uint8_t R{ 255 };
 		uint8_t G{ 255 };
@@ -361,6 +366,14 @@ namespace Berta
 		Before,
 		Inside,
 		After
+	};
+	
+	enum class CheckState : uint8_t
+	{ 
+		None,
+		Unchecked,
+		Checked,
+		Indeterminate
 	};
 }
 
