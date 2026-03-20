@@ -16,13 +16,14 @@ namespace Berta
 	{
 	public:
 		BasicImageAttributes();
-		~BasicImageAttributes();
+		~BasicImageAttributes() override;
 
 		Size GetSize() const override;
 		void Open(const std::string& filepath) override;
 		void Paste(Graphics& destination, const Point& positionDestination) override;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
-
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;
+		
 	private:
 		void ReleaseNativeObjects();
 

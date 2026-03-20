@@ -18,47 +18,9 @@ namespace Berta
 		Open(filepath);
 	}
 
-	Image::Image(const Image& other) : 
-		m_attributes(other.m_attributes)
-	{
-	}
-
-	Image::Image(Image&& other) noexcept :
-		m_attributes(std::move(other.m_attributes))
-	{
-	}
-
-	Image::~Image()
-	{
-		if (m_attributes)
-		{
-			m_attributes.reset();
-		}
-	}
-
 	Image::operator bool() const
 	{
 		return m_attributes.get();
-	}
-
-	Image& Image::operator=(const Image& rhs)
-	{
-		if (this != &rhs)
-		{
-			m_attributes = rhs.m_attributes;
-		}
-
-		return *this;
-	}
-
-	Image& Image::operator=(Image&& other) noexcept
-	{
-		if (this != &other)
-		{
-			m_attributes = std::move(other.m_attributes);
-		}
-
-		return *this;
 	}
 
 	bool Image::operator==(const Image& other) const
@@ -73,7 +35,9 @@ namespace Berta
 		{
 			return;
 		}
-
+		std::string ext = path.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch){ return std::tolower(ch); });
+		
 		if (path.extension() == ".ico")
 		{
 			m_attributes = std::make_shared<IconImageAttributes>();
@@ -82,18 +46,22 @@ namespace Berta
 		{
 			m_attributes = std::make_shared<BasicImageAttributes>();
 		}
-
+		else
+		{
+			return; 
+		}
+		
 		m_attributes->Open(filepath);
 	}
 
 	void Image::Paste(Graphics& destination, const Point& positionDestination) const
 	{
-		Paste(Rectangle{ GetSize() }, destination, positionDestination);
+		Paste(GetSize().ToRectangle(), destination, positionDestination);
 	}
 
 	void Image::Paste(Graphics& destination, const Rectangle& destinationRect) const
 	{
-		Paste(Rectangle{ GetSize() }, destination, destinationRect);
+		Paste(GetSize().ToRectangle(), destination, destinationRect);
 	}
 
 	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const
@@ -103,7 +71,7 @@ namespace Berta
 			return;
 		}
 
-		m_attributes->Paste(destination, positionDestination);
+		m_attributes->Paste(sourceRect, destination, positionDestination);
 	}
 
 	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) const

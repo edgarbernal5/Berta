@@ -170,7 +170,6 @@ namespace Berta
 			bool Clear();
 			void Erase(size_t index);
 			void SetThumbnailSize(uint32_t size);
-			void UpdateScrollMetrics();
 			
 			bool IsEnabledMultiselection() const;
 			bool EnableMultiselection(bool enabled);
@@ -191,6 +190,7 @@ namespace Berta
 			
 			void InitScrollableView();
 			void EnsureVisibility(size_t index);
+			void UpdateScrollMetrics();
 			
 			uint64_t m_idCounter{ 1 };
 			std::unique_ptr<ScrollableView> m_scrollableView;

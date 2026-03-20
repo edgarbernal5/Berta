@@ -12,49 +12,209 @@
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 
+#include "Berta/GUI/ScrollableView.h"
+#include "Berta/GUI/SelectionController.h"
+#include "Berta/Core/ObjectPool.h"
+
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <any>
+#include <set>
+
 
 namespace Berta
 {
-	using TreeNodeHandle = std::string;
+	using TreeNodeHandle = std::wstring;
 	struct TreeBoxItem;
-
+	struct TreeNodeType;
+	
 	struct TreeBoxAppearance : public ControlAppearance
 	{
 		uint32_t ExpanderButtonSize = 12u;
 		uint32_t DepthWidthMultiplier = 20u;
 		uint32_t TreeItemHeight = 20u;
 	};
-
+	
 	struct TreeNodeType
 	{
 		TreeNodeType() = default;
-		TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
-			: key(key_), text(text_), parent(parent_) {
+		TreeNodeType(const TreeNodeHandle& key_, const std::wstring& text_, TreeNodeType* parent_ = nullptr)
+			: key(key_), text(text_), parent(parent_)
+		{
 		}
+		~TreeNodeType() = default;
 
-		TreeNodeType* Add(const TreeNodeHandle& childKey, const std::string& text_, TreeNodeType* parent_ = nullptr);
-		TreeNodeType* Find(const TreeNodeHandle& key);
-
-		bool isExpanded{ false };
-		bool isSelected{ false };
-		std::string text;
+		std::wstring text;
 		TreeNodeHandle key;
+		CheckState checkState { CheckState::None };
 		Image icon;
-		Size textExtents;
 		std::any userData;
-
-		std::unordered_map<std::string, std::unique_ptr<TreeNodeType>> m_lookup;
-
+		bool isExpanded{ false };
+		int cachedTextWidth { -1 };
+		
 		TreeNodeType* parent{ nullptr };
-		TreeNodeType* firstChild{ nullptr };
-		TreeNodeType* nextSibling{ nullptr };
-		TreeNodeType* prevSibling{ nullptr };
+		std::vector<TreeNodeType*> children;
+	};
+	
+	struct FlatNode 
+	{
+		TreeNodeType* Node;
+		int Level;
+		uint32_t VerticalLineMask; // Bits: 1 = draw vertical line, 0 = empty space
+		bool IsLastChild;
+		
+		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
+			Node(node), Level(level), VerticalLineMask(vertLineMask), IsLastChild(isLastChild)
+		{
+		}
 	};
 
+	class TreeModel
+	{
+	public:
+        TreeModel()
+        {
+            m_root = m_nodePool.Allocate(L"$$ROOT$$", L"", nullptr);
+            m_root->isExpanded = true;
+        }
+
+        ~TreeModel()
+        {
+            Clear();
+            m_nodePool.Deallocate(m_root);
+        }
+
+        TreeNodeType* GetRoot() const { return m_root; }
+
+        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr)
+        {
+            if (m_lookup.find(key) != m_lookup.end())
+            {
+	            return m_lookup[key];
+            }
+            TreeNodeType* actualParent = parent ? parent : m_root;
+            
+            TreeNodeType* newNode = m_nodePool.Allocate(key, text, actualParent);
+            
+            actualParent->children.emplace_back(newNode);
+            m_lookup[key] = newNode;
+
+            return newNode;
+        }
+
+		TreeNodeType* Find(const TreeNodeHandle& key) const
+        {
+        	auto it = m_lookup.find(key);
+        	return (it != m_lookup.end()) ? it->second : nullptr;
+        }
+
+		void Erase(TreeNodeType* node)
+        {
+        	if (!node || node == m_root) return;
+
+        	if (node->parent)
+        	{
+        		auto& siblings = node->parent->children;
+        		siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
+        	}
+
+        	EraseRecursive(node);
+        }
+
+        void Clear()
+        {
+            for (auto* child : m_root->children)
+            {
+                EraseRecursive(child);
+            }
+            m_root->children.clear();
+        	m_lookup.clear();
+        }
+		
+		std::wstring GetKeyPath(TreeNodeType* node, wchar_t separator) const
+        {
+        	if (!node || node == m_root)
+        	{
+        		return L"";
+        	}
+        	
+        	std::wstring path = node->key;
+        	TreeNodeType* current = node->parent;
+
+        	while (current && current != m_root)
+        	{
+        		path = current->key + separator + path; //TODO
+        		current = current->parent;
+        	}
+
+        	return path;
+        }
+
+		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos)
+        {
+        	if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
+        	{
+        		return;
+        	}
+
+        	if (nodeToMove->parent)
+        	{
+        		auto& oldSiblings = nodeToMove->parent->children;
+        		oldSiblings.erase(std::remove(oldSiblings.begin(), oldSiblings.end(), nodeToMove), oldSiblings.end());
+        	}
+
+        	if (pos == DropPosition::Inside)
+        	{
+        		nodeToMove->parent = targetNode;
+        		targetNode->children.emplace_back(nodeToMove);
+        		targetNode->isExpanded = true;
+        	}
+        	else // Before o After
+        	{
+        		TreeNodeType* newParent = targetNode->parent;
+        		nodeToMove->parent = newParent;
+        
+        		auto& newSiblings = newParent->children;
+        		auto itTarget = std::find(newSiblings.begin(), newSiblings.end(), targetNode);
+        
+        		if (pos == DropPosition::Before)
+        		{
+        			newSiblings.insert(itTarget, nodeToMove);
+        		}
+        		else
+        		{
+        			newSiblings.insert(itTarget + 1, nodeToMove);
+        		}
+        	}
+        }
+		
+	private:
+		
+        void EraseRecursive(TreeNodeType* node)
+        {
+            if (!node) return;
+        	auto childrenCopy = node->children;
+            for (auto* child : childrenCopy)
+            {
+                EraseRecursive(child);
+            }
+
+            if (node->parent)
+            {
+                auto& siblings = childrenCopy;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
+            }
+
+            m_lookup.erase(node->key);
+            m_nodePool.Deallocate(node);
+        }
+		
+		ObjectPool<TreeNodeType, 1024> m_nodePool;
+		std::unordered_map<std::wstring, TreeNodeType*> m_lookup;
+		TreeNodeType* m_root { nullptr };
+    };
+	
 	class TreeBoxReactor : public ControlReactor
 	{
 	public:
@@ -62,125 +222,78 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		void DblClick(Graphics& graphics, const ArgMouse& args) override;
-		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 
-		enum class InteractionArea : uint8_t
-		{
-			None,
-			Node,
-			Expander,
-			Blank
-		};
-
-		struct ViewportData
-		{
-			Rectangle m_backgroundRect{};
-			bool m_needVerticalScroll{ false };
-			bool m_needHorizontalScroll{ false };
-			Size m_contentSize{};
-
-			int m_startingVisibleIndex{ -1 };
-			int m_endingVisibleIndex{ -1 };
-			uint32_t m_treeSize{ 0 };
-		};
-
-		struct MouseSelection
-		{
-			bool IsSelected(TreeNodeType* node) const;
-
-			void Select(TreeNodeType* node);
-			void Deselect(TreeNodeType* node);
-
-			std::vector<TreeNodeType*> m_selections;
-			TreeNodeType* m_hoveredNode{ nullptr };
-			TreeNodeType* m_selectedNode{ nullptr };
-			TreeNodeType* m_pivotNode{ nullptr };
-			bool m_inverseSelection{ false };
-		};
-
 		struct Module
 		{
-			void CalculateViewport(ViewportData& viewportData);
-			void CalculateVisibleNodes();
-			void GetNodesInBetween(int startIndex, int endIndex, std::vector< TreeNodeType*>& nodes) const;
-			uint32_t CalculateTreeSize(TreeNodeType* node);
-			uint32_t CalculateNodeDepth(TreeNodeType* node);
-			void Clear();
-			TreeNodeType* GetNextVisible(TreeNodeType* node);
-			int LocateNodeIndexInTree(TreeNodeType* node) const;
-			TreeNodeType* LocateNodeIndexInTree(int nodeIndex) const;
-			InteractionArea DetermineHoverArea(const Point& mousePosition);
 			void Update();
 			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
-			void DrawNavigationLines(Graphics& graphics);
-			void Init();
+			
 			void EnableMultiselection(bool enabled);
 
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
+			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
-			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-			TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text, TreeNodeType* parentNode);
-			TreeBoxItem Find(const TreeNodeHandle& handle);
-			TreeNodeHandle GenerateUniqueHandle(const std::string& text, TreeNodeType* parentNode);
-			void Erase(const TreeNodeHandle& handle);
-			void Erase(TreeBoxItem item);
-			void EraseNode(TreeNodeType* node);
-			void Unlink(TreeNodeType* node);
-			bool UpdateScrollBars();
-			void ClearSelection();
-			bool ClearSingleSelection();
-			void SelectItem(TreeNodeType* node);
+			void UpdateScrollData();
 
-			bool HandleMultiSelection(TreeNodeType* node);
-			bool UpdateSingleSelection(TreeNodeType* node);
-			bool IsVisibleNode(TreeNodeType* node) const;
-			bool IsVisibleNode(TreeNodeType* node, int& visibleIndex) const;
-			bool IsAnySiblingVisible(TreeNodeType* node) const;
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
-
-			bool Collapse(TreeBoxItem item);
-			bool CollapseAll();
-			bool CollapseAll(TreeBoxItem item);
-			bool ExpandAll();
-			bool ExpandAll(TreeBoxItem item);
-			bool Expand(TreeBoxItem item);
-
-			void SetIcon(TreeNodeType* node, const Image& icon);
-			void SetText(TreeNodeType* node, const std::string& newText) const;
-
-			TreeNodeType* GetRoot();
-			std::string GetKeyPath(TreeBoxItem item, char separator);
-			std::vector<TreeBoxItem> GetSelected();
+			
+			void CollapseNode(TreeNodeType* node);
+			void ExpandNode(TreeNodeType* node);
+			
+			int CalculateNodeWidth(TreeNodeType* node, int level);
+			
+			void ResetDragState();
+			void RebuildFlatTree();
+			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
 
 			bool ShowNavigationLines(bool visible);
 
-			Point m_scrollOffset{};
-			std::unique_ptr<ScrollBar> m_scrollBarVert;
-			std::unique_ptr<ScrollBar> m_scrollBarHoriz;
-
-			ViewportData m_viewport;
-			TreeNodeType m_root;
+			bool IsDescendantOf(TreeNodeType* node, TreeNodeType* potentialAncestor) const;
+			void InitScrollableView();
+			
+			TreeModel m_model;
+			std::unique_ptr<ScrollableView> m_scrollableView;
+			SelectionController<TreeNodeType*> m_selectionController;
+			
+			std::vector<FlatNode> m_flatVisibleTree;
+			std::multiset<int> m_visibleWidths;
+			
 			Window* m_window{ nullptr };
-			TreeBoxAppearance* m_appearance{ nullptr };
-			std::vector<TreeNodeType*> m_visibleNodes;
+			Graphics* m_graphics{ nullptr };
+			ControlBase* m_control{ nullptr };
+			
+			TreeNodeType* m_focusedNode{ nullptr };
+			TreeNodeType* m_hoveredNode{ nullptr };
+			
+			// Estado del Drag & Drop
+			bool m_allowDragAndDrop{ true };
+			bool m_isDragging{ false };
+			Point m_dragStartPoint{ 0, 0 };
+        
+			TreeNodeType* m_draggedNode{ nullptr };
+			TreeNodeType* m_dropTargetNode{ nullptr };
+			DropPosition m_dropPosition{ DropPosition::None };
+			
 			bool m_drawImages{ false };
-
-			InteractionArea m_hoveredArea{ InteractionArea::None};
-			InteractionArea m_pressedArea{ InteractionArea::None };
-
-			MouseSelection m_mouseSelection;
+			bool m_drawCheck{ false };
 			bool m_multiselection{ true };
 			bool m_shiftPressed{ false };
 			bool m_ctrlPressed{ false };
 			bool m_showNavigationLines{ true };
+			
+			bool m_needsRepaint{ false };
+			bool m_needsRecalculate{ false };
+			
+			SelectionController<TreeNodeType*>::RangeResolver m_treeRangeResolver;
 		};
 
 		Module& GetModule() { return m_module; }
@@ -195,14 +308,50 @@ namespace Berta
 		TreeBoxItem() = default;
 		TreeBoxItem(TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
 		
-		void SetText(const std::string& text)
+		void SetText(const std::wstring& text)
 		{
-			m_module->SetText(m_node, text);
+			if (!m_node || m_node->text == text)
+			{
+				return;
+			}
+			
+			m_node->text = text;
+			m_node->cachedTextWidth = -1;
+			m_module->RebuildFlatTree();
+		
+			GUI::UpdateWindow(m_module->m_window);
 		}
 
 		void SetIcon(const Image& icon)
 		{
-			m_module->SetIcon(m_node, icon);
+			if (!m_node)
+			{
+				return;
+			}
+			m_node->icon = icon;
+		
+			m_module->m_drawImages = true;
+			m_module->m_needsRepaint = true;
+			
+			GUI::UpdateWindow(m_module->m_window);
+		}
+		
+		void SetChecked(bool checked)
+		{
+			if (!m_node || m_node->checkState == CheckState::None)
+			{
+				return;
+			}
+			CheckState newState = checked ? CheckState::Checked : CheckState::Unchecked;
+			m_node->checkState = newState;
+			
+			//PropagateCheckStateToChildren(m_node, newState);
+			//UpdateAncestorsCheckState(m_node);
+			
+			m_module->m_drawCheck = true;
+			m_module->m_needsRepaint = true;
+			
+			GUI::UpdateWindow(m_module->m_window);
 		}
 
 		template<typename T>
@@ -228,7 +377,7 @@ namespace Berta
 		void Collapse();
 		void Expand();
 
-		std::string& GetText() const
+		std::wstring& GetText() const
 		{
 			return m_node->text;
 		}
@@ -245,7 +394,7 @@ namespace Berta
 
 		TreeBoxItem FirstChild()
 		{
-			return { m_node->firstChild, m_module};
+			return { m_node->children[0], m_module};
 		}
 
 		void Select();
@@ -255,7 +404,6 @@ namespace Berta
 			return m_node;
 		}
 
-		friend struct TreeBoxReactor::Module;
 	private:
 		std::any& UserData();
 		const std::any& UserData() const;
@@ -271,6 +419,14 @@ namespace Berta
 
 		ArgTreeBox(TreeBoxItem item, bool isExpanded) : Item(item), IsExpanded(isExpanded){}
 	};
+	
+	struct ArgTreeDragDrop
+	{
+		TreeBoxItem DraggedItem;
+		TreeBoxItem TargetItem;
+		DropPosition Position;
+		bool Cancel{ false };
+	};
 
 	struct ArgTreeBoxSelection
 	{
@@ -279,6 +435,10 @@ namespace Berta
 
 	struct TreeBoxEvents : public ControlEvents
 	{
+		Event<ArgTreeDragDrop> DragStart;
+		Event<ArgTreeDragDrop> DragOver;
+		Event<ArgTreeDragDrop> BeforeDrop;
+		Event<ArgTreeDragDrop> NodeMoved;
 		Event<ArgTreeBox> Expanded;
 		Event<ArgTreeBoxSelection> Selected;
 	};
@@ -290,23 +450,28 @@ namespace Berta
 		TreeBox(Window* parent, const Rectangle& rectangle = {});
 
 		void Clear();
+		
 		void CollapseAll();
 		void CollapseAll(TreeBoxItem item);
 
+		void DeselectAll();
+		
+		TreeBoxItem Find(const TreeNodeHandle& key);
+		TreeBoxItem Insert(const TreeNodeHandle& key, const std::wstring& text);
+		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text);
+		
 		void Erase(const TreeNodeHandle& key);
 		void Erase(TreeBoxItem item);
-		TreeBoxItem Find(const TreeNodeHandle& key);
-		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
-		void DeselectAll();
+		
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
-
-		std::string GetKeyPath(TreeBoxItem item, char separator);
+		
+		std::wstring GetKeyPath(TreeBoxItem item, wchar_t separator);
 		std::vector<TreeBoxItem> GetSelected();
 
+		void Filter(const std::wstring& text);
+		
 		void EnableMultiselection(bool enabled);
-
 		void ShowNavigationLines(bool visible);
 	};
 }

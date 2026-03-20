@@ -25,6 +25,7 @@ namespace Berta
 
 		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
 		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
+		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) = 0;
 
 	protected:
 		ColorBuffer m_colorBuffer;
@@ -35,14 +36,15 @@ namespace Berta
 	public:
 		Image() = default;
 		explicit Image(const std::string& filepath);
-		Image(const Image& other);
-		Image(Image&& other) noexcept;
-		~Image();
+		
+		Image(const Image& other) = default;
+		Image(Image&& other) noexcept = default;
+		~Image() = default;
 
 		operator bool() const;
 
-		Image& operator=(const Image& rhs);
-		Image& operator=(Image&&) noexcept;
+		Image& operator=(const Image& rhs) = default;
+		Image& operator=(Image&&) noexcept = default;
 		bool operator==(const Image& other) const;
 
 		Size GetSize() const { return m_attributes->GetSize(); }

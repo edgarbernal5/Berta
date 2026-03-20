@@ -48,7 +48,6 @@ namespace Berta
                 }
 
                 std::vector<T> range = resolver(m_anchorItem.value(), item);
-        
                 for (const auto& rangeItem : range)
                 {
                     m_selectedItems.insert(rangeItem);
@@ -165,15 +164,7 @@ namespace Berta
             }
         }
         bool IsMultiSelect() const { return m_isMultiSelect; }
-        
-        void SelectAll(size_t totalItems)
-        {
-            for (size_t i = 0; i < totalItems; ++i)
-            {
-                m_selectedItems.insert(i);
-            }
-        }
-        
+                
         bool HasSelectionChangedSinceSnapshot() const
         {
             return m_selectedItems != m_snapshotItems;
