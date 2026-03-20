@@ -25,7 +25,7 @@
 
 namespace Berta
 {
-	using TreeNodeHandle = std::string;
+	using TreeNodeHandle = std::wstring;
 	struct TreeBoxItem;
 	struct TreeNodeType;
 	
@@ -39,13 +39,13 @@ namespace Berta
 	struct TreeNodeType
 	{
 		TreeNodeType() = default;
-		TreeNodeType(const TreeNodeHandle& key_, const std::string& text_, TreeNodeType* parent_ = nullptr)
+		TreeNodeType(const TreeNodeHandle& key_, const std::wstring& text_, TreeNodeType* parent_ = nullptr)
 			: key(key_), text(text_), parent(parent_)
 		{
 		}
 		~TreeNodeType() = default;
 
-		std::string text;
+		std::wstring text;
 		TreeNodeHandle key;
 		Image icon;
 		std::any userData;
@@ -74,7 +74,7 @@ namespace Berta
 	public:
         TreeModel()
         {
-            m_root = m_nodePool.Allocate("$$ROOT$$", "", nullptr);
+            m_root = m_nodePool.Allocate(L"$$ROOT$$", L"", nullptr);
             m_root->isExpanded = true;
         }
 
@@ -86,7 +86,7 @@ namespace Berta
 
         TreeNodeType* GetRoot() const { return m_root; }
 
-        TreeNodeType* Insert(const std::string& key, const std::string& text, TreeNodeType* parent = nullptr)
+        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr)
         {
             if (m_lookup.find(key) != m_lookup.end())
             {
@@ -131,14 +131,14 @@ namespace Berta
         	m_lookup.clear();
         }
 		
-		std::string GetKeyPath(TreeNodeType* node, char separator) const
+		std::wstring GetKeyPath(TreeNodeType* node, wchar_t separator) const
         {
         	if (!node || node == m_root)
         	{
-        		return "";
+        		return L"";
         	}
         	
-        	std::string path = node->key;
+        	std::wstring path = node->key;
         	TreeNodeType* current = node->parent;
 
         	while (current && current != m_root)
@@ -210,7 +210,7 @@ namespace Berta
         }
 		
 		ObjectPool<TreeNodeType, 1024> m_nodePool;
-		std::unordered_map<std::string, TreeNodeType*> m_lookup;
+		std::unordered_map<std::wstring, TreeNodeType*> m_lookup;
 		TreeNodeType* m_root { nullptr };
     };
 	
@@ -255,9 +255,6 @@ namespace Berta
 			
 			void RebuildFlatTree();
 			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
-			
-			void SetIcon(TreeNodeType* node, const Image& icon);
-			void SetText(TreeNodeType* node, const std::string& newText);
 
 			bool ShowNavigationLines(bool visible);
 
@@ -311,14 +308,32 @@ namespace Berta
 		TreeBoxItem() = default;
 		TreeBoxItem(TreeNodeType* node, TreeBoxReactor::Module* module) : m_node(node), m_module(module) {}
 		
-		void SetText(const std::string& text)
+		void SetText(const std::wstring& text)
 		{
-			m_module->SetText(m_node, text);
+			if (!m_node || m_node->text == text)
+			{
+				return;
+			}
+			
+			m_node->text = text;
+			m_node->cachedTextWidth = -1;
+			m_module->RebuildFlatTree();
+		
+			GUI::UpdateWindow(m_module->m_window);
 		}
 
 		void SetIcon(const Image& icon)
 		{
-			m_module->SetIcon(m_node, icon);
+			if (!m_node)
+			{
+				return;
+			}
+			m_node->icon = icon;
+		
+			m_module->m_drawImages = true;
+			m_module->m_needsRepaint = true;
+			
+			GUI::UpdateWindow(m_module->m_window);
 		}
 
 		template<typename T>
@@ -344,7 +359,7 @@ namespace Berta
 		void Collapse();
 		void Expand();
 
-		std::string& GetText() const
+		std::wstring& GetText() const
 		{
 			return m_node->text;
 		}
@@ -371,7 +386,6 @@ namespace Berta
 			return m_node;
 		}
 
-		friend struct TreeBoxReactor::Module;
 	private:
 		std::any& UserData();
 		const std::any& UserData() const;
@@ -411,8 +425,8 @@ namespace Berta
 		void CollapseAll(TreeBoxItem item);
 
 		TreeBoxItem Find(const TreeNodeHandle& key);
-		TreeBoxItem Insert(const TreeNodeHandle& key, const std::string& text);
-		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text);
+		TreeBoxItem Insert(const TreeNodeHandle& key, const std::wstring& text);
+		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text);
 		
 		void Erase(const TreeNodeHandle& key);
 		void Erase(TreeBoxItem item);
@@ -421,7 +435,7 @@ namespace Berta
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
 
-		std::string GetKeyPath(TreeBoxItem item, char separator);
+		std::wstring GetKeyPath(TreeBoxItem item, wchar_t separator);
 		std::vector<TreeBoxItem> GetSelected();
 
 		void EnableMultiselection(bool enabled);

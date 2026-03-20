@@ -595,9 +595,9 @@ namespace Berta
 	{
 		if (parentNode)
 		{
-			return !parentNode->key.empty() && parentNode->key.back() == '/' ? 
+			return !parentNode->key.empty() && parentNode->key.back() == L'/' ? 
 				parentNode->key + key :
-				parentNode->key + "/" + key;
+				parentNode->key + L'/' + key;
 		}
 		return key;
 	}
@@ -664,13 +664,13 @@ namespace Berta
 
 	bool TreeBoxReactor::Module::Expand(TreeBoxItem item)
 	{
-		if (!item || item.m_node->children.empty())
+		if (!item || item.GetNode()->children.empty())
 		{
 			return false;
 		}
 		
-		bool needUpdate = !item.m_node->isExpanded;
-		item.m_node->isExpanded = true;
+		bool needUpdate = !item.GetNode()->isExpanded;
+		item.GetNode()->isExpanded = true;
 		
 		return needUpdate;
 	}
@@ -792,32 +792,7 @@ namespace Berta
 			}
 		}
 	}
-
-	void TreeBoxReactor::Module::SetIcon(TreeNodeType* node, const Image& icon)
-	{
-		if (!node)
-		{
-			return;
-		}
-		node->icon = icon;
-		
-		m_drawImages = true;
-		m_needsRepaint = true;
-		GUI::UpdateWindow(m_window);
-	}
-
-	void TreeBoxReactor::Module::SetText(TreeNodeType* node, const std::string& newText)
-	{
-		if (node->text == newText)
-			return;
-
-		node->text = newText;
-		node->cachedTextWidth = -1;
-		RebuildFlatTree();
-		
-		GUI::UpdateWindow(m_window);
-	}
-
+	
 	void TreeBoxItem::Collapse()
 	{
 		/*if (m_module->Collapse(*this))
@@ -1020,7 +995,7 @@ namespace Berta
 		return { node, &module };
 	}
 
-	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::string& text)
+	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::wstring& text)
 	{
 		auto& module = GetReactor().GetModule();
 		auto cleanKey = module.CleanKey(key);
@@ -1034,7 +1009,7 @@ namespace Berta
 		size_t lastSeparatorPos = cleanKey.find_last_of(separator);
 		if (lastSeparatorPos != std::string::npos)
 		{
-			std::string parentKey = cleanKey.substr(0, lastSeparatorPos);
+			std::wstring parentKey = cleanKey.substr(0, lastSeparatorPos);
         
 			parentNode = module.m_model.Find(parentKey);
 		}
@@ -1048,7 +1023,7 @@ namespace Berta
 		return { newNode, &module };
 	}
 
-	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::string& text)
+	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text)
 	{
 		auto& module = GetReactor().GetModule();
 		auto cleanKey = module.CleanKey(key);
@@ -1138,11 +1113,11 @@ namespace Berta
 		}*/
 	}
 
-	std::string TreeBox::GetKeyPath(TreeBoxItem item, char separator)
+	std::wstring TreeBox::GetKeyPath(TreeBoxItem item, wchar_t separator)
 	{
 		if (!item)
 		{
-			return "";
+			return L"";
 		}
 		
 		return GetReactor().GetModule().m_model.GetKeyPath(item.GetNode(), separator);
