@@ -330,7 +330,7 @@ namespace Berta
 
 	void Layout::RequestClose(DockPaneLayoutNode* paneNode)
 	{
-		auto index = paneNode->m_dockArea->GetTabSelectedIndex();
+		auto index = paneNode->m_dockArea->GetTabSelectedIndex().value();
 		auto childNode = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[index].get());
 		m_dockPaneTabFields.erase(childNode->m_tabId);
 

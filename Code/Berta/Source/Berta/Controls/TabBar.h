@@ -50,7 +50,7 @@ namespace Berta
 		void Clear();
 		void InsertTab(size_t position, const std::string& tabId, Window* window);
 		void EraseTab(size_t position);
-		int GetSelectedIndex() const;
+		std::optional<size_t> GetSelectedIndex() const;
 		size_t Count() const;
 
 		void SetTabPosition(TabBarPosition position);
@@ -105,7 +105,7 @@ namespace Berta
 		
 		size_t Count() const;
 		void Erase(size_t index);
-		int GetSelectedIndex() const;
+		std::optional<size_t> GetSelectedIndex() const;
 
 		void Insert(size_t position, const std::string& tabId, Window* window);
 		void PushBack(const std::string& tabId, Window* window);

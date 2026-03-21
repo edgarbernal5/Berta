@@ -776,7 +776,7 @@ namespace Berta
 
 			if (m_caption->HaveClickedCloseButton())
 			{
-				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex());
+				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex().value());
 				m_eventsNotifier->RequestClose();
 				return;
 			}
@@ -805,7 +805,7 @@ namespace Berta
 		m_nativeContainer.reset();
 	}
 
-	int DockArea::GetTabSelectedIndex() const
+	std::optional<size_t> DockArea::GetTabSelectedIndex() const
 	{
 		return m_tabBar->GetSelectedIndex();
 	}

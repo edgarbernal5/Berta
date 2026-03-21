@@ -26,7 +26,7 @@ namespace Berta
 		auto enabled = m_control->GetEnabled();
 		graphics.DrawRectangle(m_module.m_owner->Appearance->Background, true);
 
-		if (m_module.m_panels.empty() || m_module.m_selectedTabIndex == -1)
+		/*if (m_module.m_panels.empty() || m_module.m_selectedTabIndex == -1)
 		{
 			graphics.DrawRectangle(m_module.m_owner->Appearance->BoxBorderColor, false);
 			return;
@@ -118,12 +118,12 @@ namespace Berta
 			{
 				graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, { (int)m_module.m_owner->ClientSize.Width, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
 			}
-		}
+		}*/
 	}
 
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		int newSelectedIndex = m_module.FindItem(args.Position);
+		/*int newSelectedIndex = m_module.FindItem(args.Position);
 		if (newSelectedIndex == -1)
 		{
 			return;
@@ -143,7 +143,7 @@ namespace Berta
 			m_module.m_events->TabChanged.Emit(argsTabBar);
 
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
-		}
+		}*/
 	}
 
 	void TabBarReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -188,7 +188,7 @@ namespace Berta
 		}
 	}
 
-	int TabBarReactor::GetSelectedIndex() const
+	std::optional<size_t> TabBarReactor::GetSelectedIndex() const
 	{
 		return m_module.GetSelectedIndex();
 	}
@@ -223,7 +223,7 @@ namespace Berta
 
 	bool TabBarReactor::Module::InsertTab(size_t index, const std::string& tabId, Window* window)
 	{
-		index = std::min<size_t>(index, m_panels.size());
+		/*index = std::min<size_t>(index, m_panels.size());
 		int startIndex = static_cast<int>(index);
 
 		GUI::SetParentWindow(window, m_owner);
@@ -245,13 +245,13 @@ namespace Berta
 			GUI::ShowWindow(newIt->PanelPtr, false);
 		}
 
-		BuildItems(startIndex);
+		BuildItems(startIndex);*/
 		return true;
 	}
 
 	void TabBarReactor::Module::BuildItems(size_t startIndex)
 	{
-		if (startIndex >= m_panels.size())
+		/*if (startIndex >= m_panels.size())
 		{
 			return;
 		}
@@ -301,12 +301,12 @@ namespace Berta
 			current->PanelArea = panelTabArea;
 
 			offset.X += static_cast<int>(itemSize.Width);
-		}
+		}*/
 	}
 
 	bool TabBarReactor::Module::EraseTab(size_t index)
 	{
-		if (index >= m_panels.size())
+		/*if (index >= m_panels.size())
 		{
 			return false;
 		}
@@ -331,7 +331,7 @@ namespace Berta
 			GUI::ShowWindow(m_panels[*m_selectedTabIndex].PanelPtr, true);
 		}
 
-		BuildItems(index);
+		BuildItems(index);*/
 		return true;
 	}
 
@@ -438,7 +438,7 @@ namespace Berta
 		GetReactor().EraseTab(index);
 	}
 
-	int TabBar::GetSelectedIndex() const
+	std::optional<size_t> TabBar::GetSelectedIndex() const
 	{
 		return GetReactor().GetSelectedIndex();
 	}
