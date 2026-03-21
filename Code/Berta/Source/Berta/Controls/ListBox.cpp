@@ -371,6 +371,7 @@ namespace Berta
 				}
 				return;
 			}
+			
 			m_module.m_headers.OnMouseLeave();
 			if (m_module.m_lassoSelection.IsActive())
 			{
@@ -381,6 +382,7 @@ namespace Berta
 				}
 				return;
 			}
+			
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
 			int headerHeight = static_cast<int>(m_module.m_window->ToScale(appearance->HeadersHeight));
 

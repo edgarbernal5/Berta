@@ -30,11 +30,8 @@ namespace Berta
 		//BT_CORE_TRACE << " -- TreeBox Update() " << std::endl;
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
-		
-		auto globalRect = window->ClientSize.ToRectangle();
-		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
-		
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_module.m_window->Appearance.get());
+		
 		if (m_module.m_needsRecalculate)
 		{
 			auto nodeHeight = static_cast<int>(window->ToScale(appearance->TreeItemHeight));
@@ -44,6 +41,16 @@ namespace Berta
 			m_module.m_needsRecalculate = false;
 		}
 		
+		auto globalRect = window->ClientSize.ToRectangle();
+		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
+		if (!m_control->IsBorderless())
+		{
+			graphics.DrawRectangle(globalRect, appearance->BoxBorderColor, false);
+				
+			Rectangle localBorderRect = m_control->GetClientArea();
+			graphics.SetClipping(localBorderRect);
+		}
+		
 		m_module.DrawTreeNodes(graphics);
 
 		if (m_module.m_scrollableView->HasVerticalScroll() && m_module.m_scrollableView->HasHorizontalScroll())
@@ -51,7 +58,11 @@ namespace Berta
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
 			graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
 		}
-		graphics.DrawRectangle(globalRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		
+		if (!m_control->IsBorderless())
+		{
+			graphics.EndClipping();
+		}
 	}
 
 	void TreeBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -197,7 +208,6 @@ namespace Berta
 				{
 					m_module.m_dropTargetNode = hoverNode;
                 
-					// Calcular la zona de Drop
 					int relativeY = absoluteY % nodeHeight;
 					if (relativeY < nodeHeight / 4)
 					{
@@ -526,7 +536,7 @@ namespace Berta
 				{
 					if (flatNode.VerticalLineMask & (1 << currLevel))
 					{
-						int lineX = startX + (currLevel * depthMultiplier) + ((int)expanderSize / 2);
+						int lineX = startX + (currLevel * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
             
 						// Dibuja desde el borde superior hasta el borde inferior de esta fila
 						// Puedes usar DrawLine o DrawDashedLine si Berta lo soporta
@@ -534,7 +544,7 @@ namespace Berta
 					}
 				}
 				
-				int currentLineX = startX + (flatNode.Level * depthMultiplier) + ((int)expanderSize / 2);
+				int currentLineX = startX + (flatNode.Level * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
     
 				// Línea horizontal (apunta hacia el icono/texto)
 				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, Graphics::LineStyle::Dotted);
@@ -585,7 +595,7 @@ namespace Berta
 			Rectangle textRect{ currentX, drawY + ((nodeHeight - (int)graphics.GetTextExtent().Height)/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
         
 			Color textColor = isSelected ? appearance->HighlightTextColor : appearance->Foreground;
-			graphics.DrawString(textRect, node->text, textColor);
+			graphics.DrawString(textRect.Position(), node->text, textColor);
 			
 			if (m_isDragging && m_dropTargetNode == node)
 			{
