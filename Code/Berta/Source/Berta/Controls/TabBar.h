@@ -12,7 +12,8 @@
 #include "Berta/Controls/Panel.h"
 
 #include <string>
-#include <list>
+#include <vector>
+#include <optional>
 
 namespace Berta
 {
@@ -71,9 +72,6 @@ namespace Berta
 
 		struct Module
 		{
-			using PanelIterator = std::list<PanelItem>::iterator;
-			using ConstPanelIterator = std::list<PanelItem>::const_iterator;
-
 			bool AddTab(const std::string& tabId, Window* window);
 			bool Clear();
 			bool InsertTab(size_t index, const std::string& tabId, Window* window);
@@ -82,24 +80,10 @@ namespace Berta
 			int FindItem(const Point& position) const;
 			bool NewSelectedIndex(int newIndex) const { return m_selectedTabIndex != newIndex; }
 			void SelectIndex(int newIndex) { m_selectedTabIndex = newIndex; }
-			int GetSelectedIndex() const;
+			std::optional<size_t> GetSelectedIndex() const;
 
-			PanelIterator At(std::size_t position)
-			{
-				auto it = m_panels.begin();
-				std::advance(it, position);
-				return it;
-			}
-
-			ConstPanelIterator At(std::size_t position) const
-			{
-				auto it = m_panels.cbegin();
-				std::advance(it, position);
-				return it;
-			}
-
-			std::list<PanelItem> m_panels;
-			int m_selectedTabIndex{ -1 };
+			std::vector<PanelItem> m_panels;
+			std::optional<size_t> m_selectedTabIndex{ std::nullopt };
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
 			TabBarAppearance* m_appearance{ nullptr };

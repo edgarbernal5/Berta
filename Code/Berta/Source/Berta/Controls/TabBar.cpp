@@ -227,7 +227,7 @@ namespace Berta
 		int startIndex = static_cast<int>(index);
 
 		GUI::SetParentWindow(window, m_owner);
-		auto newIt = m_panels.emplace(At(index), std::move(tabId), std::move(window));
+		auto newIt = m_panels.emplace(At(index), tabId, window);
 
 		UpdatePanelMoveRect(window);
 
@@ -311,24 +311,24 @@ namespace Berta
 			return false;
 		}
 
-		auto current = At(index);
+		auto currentIt = At(index);
 
-		auto panelPtr = current->PanelPtr;
-		bool removeSelectedIndex = index == m_selectedTabIndex;
-		current = m_panels.erase(current);
-		if (m_selectedTabIndex >= static_cast<int>(m_panels.size()))
+		auto panelPtr = currentIt->PanelPtr;
+		bool removeSelectedIndex = m_selectedTabIndex.has_value() && index == *m_selectedTabIndex;
+		
+		currentIt = m_panels.erase(currentIt);
+		
+		if (m_selectedTabIndex >= m_panels.size())
 		{
-			m_selectedTabIndex = static_cast<int>(m_panels.size()) - 1;
-			if (m_selectedTabIndex >= 0)
-				--current;
+			m_selectedTabIndex = m_panels.size() - 1;
 		}
 		GUI::DisposeWindow(panelPtr);
 		if (removeSelectedIndex && m_selectedTabIndex >= 0)
 		{
-			ArgTabBar argsTabBar{ current->Id };
+			ArgTabBar argsTabBar{ m_panels[*m_selectedTabIndex].Id };
 			m_events->TabChanged.Emit(argsTabBar);
 
-			GUI::ShowWindow(current->PanelPtr, true);
+			GUI::ShowWindow(m_panels[*m_selectedTabIndex].PanelPtr, true);
 		}
 
 		BuildItems(index);
@@ -348,10 +348,12 @@ namespace Berta
 		return -1;
 	}
 
-	int TabBarReactor::Module::GetSelectedIndex() const
+	std::optional<size_t> TabBarReactor::Module::GetSelectedIndex() const
 	{
 		if (m_panels.empty())
-			return -1;
+		{
+			return std::nullopt;
+		}
 
 		return m_selectedTabIndex;
 	}
