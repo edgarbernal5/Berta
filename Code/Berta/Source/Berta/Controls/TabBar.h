@@ -25,18 +25,36 @@ namespace Berta
 
 	struct ArgTabBar
 	{
-		std::string id;
+		size_t Index;
+		std::string_view Id;
 	};
-
+	
+	struct ArgTabClosing
+	{
+		size_t Index;
+		std::string_view Id;
+		mutable bool Cancel{ false };
+	};
+	
 	struct TabBarEvents : public ControlEvents
 	{
 		Event<ArgTabBar> TabChanged;
+		Event<ArgTabClosing> TabClosing;
+		Event<ArgTabBar> TabClosed;
 	};
+	
 	struct TabBarAppearance : public ControlAppearance
 	{
 		uint32_t TabBarItemHeight = 27;
+		Color SelectedBackgroundColor; 
+		Color AccentColor;
 	};
-
+	
+	struct WindowDeleter
+	{
+		void operator()(Window* window) const;
+	};
+	
 	class TabBarReactor : public ControlReactor
 	{
 	public:
@@ -45,45 +63,34 @@ namespace Berta
 
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
-
-		void AddTab(const std::string& tabId, Window* window);
-		void Clear();
-		void InsertTab(size_t position, const std::string& tabId, Window* window);
-		void EraseTab(size_t position);
-		std::optional<size_t> GetSelectedIndex() const;
-		size_t Count() const;
-
-		void SetTabPosition(TabBarPosition position);
-	private:
+		
 		struct PanelItem
 		{
 			PanelItem() = default;
-			PanelItem(const std::string& id, Window* panel) : Id(id), PanelPtr(panel) {}
-			~PanelItem();
-
+			
+			std::string Id;
+			std::unique_ptr<Window, WindowDeleter> PanelPtr;
+			
 			Point Position{};
 			Point Center{};
 			Size Size{};
 			Rectangle PanelArea{};
-
-			std::string Id;
-			Window* PanelPtr{ nullptr };
 		};
-
+		
 		struct Module
 		{
-			bool AddTab(const std::string& tabId, Window* window);
+			bool AddTab(std::string tabId, Window* window);
 			bool Clear();
-			bool InsertTab(size_t index, const std::string& tabId, Window* window);
+			bool InsertTab(size_t index, std::string tabId, Window* window);
 			void BuildItems(size_t startIndex = 0);
 			bool EraseTab(size_t index);
-			int FindItem(const Point& position) const;
-			bool NewSelectedIndex(int newIndex) const { return m_selectedTabIndex != newIndex; }
-			void SelectIndex(int newIndex) { m_selectedTabIndex = newIndex; }
+			
+			std::optional<size_t> FindItem(const Point& position) const;
 			std::optional<size_t> GetSelectedIndex() const;
 
 			std::vector<PanelItem> m_panels;
 			std::optional<size_t> m_selectedTabIndex{ std::nullopt };
+			
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
 			TabBarAppearance* m_appearance{ nullptr };
@@ -92,6 +99,11 @@ namespace Berta
 		private:
 			void UpdatePanelMoveRect(Window* window) const;
 		};
+		
+		Module& GetModule() { return m_module; }
+		const Module& GetModule() const { return m_module; }
+		
+	private:
 		Module m_module;
 	};
 
@@ -102,12 +114,11 @@ namespace Berta
 		TabBar(Window* parent, const Rectangle& rectangle);
 
 		void Clear();
-		
 		size_t Count() const;
 		void Erase(size_t index);
 		std::optional<size_t> GetSelectedIndex() const;
 
-		void Insert(size_t position, const std::string& tabId, Window* window);
+		void Insert(size_t position, std::string tabId, Window* window);
 		void PushBack(const std::string& tabId, Window* window);
 		void SetTabBarPosition(TabBarPosition position);
 

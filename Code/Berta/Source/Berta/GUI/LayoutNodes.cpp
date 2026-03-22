@@ -792,11 +792,13 @@ namespace Berta
 
 		m_tabBar->GetEvents().TabChanged.Connect([this](const ArgTabBar& args)
 		{
-			m_caption->SetCaption(args.id);
+			m_caption->SetCaption(std::string(args.Id));
 		});
 
 		if (!paneInfo->showCaption)
+		{
 			m_caption->Hide();
+		}
 	}
 
 	void DockArea::Dock()
