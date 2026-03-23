@@ -46,8 +46,8 @@ namespace Berta
 	struct TabBarAppearance : public ControlAppearance
 	{
 		uint32_t TabBarItemHeight = 27;
-		Color SelectedBackgroundColor; 
-		Color AccentColor;
+		Color SelectedBackgroundColor { Colors::Light_ButtonBackground };
+		Color AccentColor{ Colors::Light_SelectionHighlightColor };
 	};
 	
 	struct WindowDeleter

@@ -42,17 +42,15 @@ namespace Berta
 	        graphics.DrawRectangle(appearance->BoxBorderColor, false);
 	        return;
 	    }
-
-	    // Guardar dimensiones en variables locales (KISS)
+		
 	    int tabBarItemHeight = m_module.m_owner->ToScale(appearance->TabBarItemHeight);
-		int cornerRadius = m_module.m_owner->ToScale(5);
+		int cornerRadius = m_module.m_owner->ToScale(4);
 		
 	    int width = static_cast<int>(m_module.m_owner->ClientSize.Width);
 	    int height = static_cast<int>(m_module.m_owner->ClientSize.Height);
 		
 		size_t selectedIndex = m_module.m_selectedTabIndex.value();
-
-	    // 1. DIBUJAR PESTAÑAS
+		
 	    for (size_t i = 0; i < m_module.m_panels.size(); ++i)
 	    {
 	        const auto& tabItem = m_module.m_panels[i];
@@ -64,17 +62,14 @@ namespace Berta
 
 	    	if (isSelected)
 	    	{
+	    		Rectangle activeBgRect{ Point{xLeft, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight)} };
 	    		if (m_module.m_tabPosition == TabBarPosition::Top)
 	    		{
-	    			Rectangle activeBgRect{ Point{xLeft, 0}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight + cornerRadius)} };
-	    			//graphics.DrawRoundRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
-	    			graphics.DrawRoundRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true);
+	    			graphics.DrawTopRoundedRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
 	    		}
 	    		else
 	    		{
-	    			Rectangle activeBgRect{ Point{xLeft, height - tabBarItemHeight - cornerRadius}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight + cornerRadius)} };
-	    			//graphics.DrawRoundRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
-	    			graphics.DrawRoundRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true);
+	    			graphics.DrawBottomRoundedRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
 	    		}
 	    	}
 
@@ -98,15 +93,15 @@ namespace Berta
 		if (m_module.m_tabPosition == TabBarPosition::Top)
 		{
 			int accentLineY = tabBarItemHeight - 2;
-			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, appearance->AccentColor);
+			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 
 			graphics.DrawLine({ 0, tabBarItemHeight }, { activeXStart, tabBarItemHeight }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, tabBarItemHeight }, { width, tabBarItemHeight }, appearance->BoxBorderColor);
 		}
 		else
 		{
-			int accentLineY = height - tabBarItemHeight + 1;
-			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, appearance->AccentColor);
+			int accentLineY = height - tabBarItemHeight + 2;
+			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 
 			int yBase = height - 1 - tabBarItemHeight;
 			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
@@ -315,8 +310,11 @@ namespace Berta
 
 	void TabBarReactor::Module::BuildItems(size_t startIndex)
 	{
-		if (startIndex >= m_panels.size()) return;
-
+		if (startIndex >= m_panels.size())
+		{
+			return;
+		}
+		
 		int tabBarItemHeight = m_owner->ToScale(static_cast<int>(m_appearance->TabBarItemHeight));
 		int tabPadding = m_owner->ToScale(10);
 		int closeBtnSize = m_owner->ToScale(8);
@@ -324,7 +322,7 @@ namespace Berta
 
 		auto& graphics = m_owner->Renderer.GetGraphics();
 
-		int currentX = 0;
+		int currentX = 1;
 		if (startIndex > 0)
 		{
 			const auto& prevTab = m_panels[startIndex - 1];
@@ -333,8 +331,10 @@ namespace Berta
 
 		int clientWidth = static_cast<int>(m_owner->ClientSize.Width);
 		int clientHeight = static_cast<int>(m_owner->ClientSize.Height);
+		
+		int tabY = (m_tabPosition == TabBarPosition::Top) ? 1 : (clientHeight - tabBarItemHeight - 2);
+		
 		Rectangle contentArea;
-
 		if (m_tabPosition == TabBarPosition::Top)
 			contentArea = { 0, tabBarItemHeight, static_cast<uint32_t>(clientWidth), static_cast<uint32_t>(clientHeight - tabBarItemHeight) };
 		else
@@ -349,7 +349,7 @@ namespace Berta
 			tab.Size.Height = tabBarItemHeight;
 
 			tab.Position.X = currentX;
-			tab.Position.Y = 0;
+			tab.Position.Y = tabY;
 
 			tab.Center.X = tabPadding;
 			tab.Center.Y = (tabBarItemHeight - textSize.Height) / 2;
@@ -426,7 +426,10 @@ namespace Berta
 		}
 		ArgTabClosing closingArgs{ index, m_panels[index].Id };
 		m_events->TabClosing.Emit(closingArgs);
-		if (closingArgs.Cancel) return false;
+		if (closingArgs.Cancel)
+		{
+			return false;
+		}
 		
 		std::string idCopia{ m_panels[index].Id };
 		bool removeSelectedIndex = (m_selectedTabIndex && m_selectedTabIndex.value() == index);
@@ -534,9 +537,10 @@ namespace Berta
 	void TabBar::SetTabBarPosition(TabBarPosition position)
 	{
 		auto& module = GetReactor().GetModule();
-		
 		if (module.m_tabPosition == position)
+		{
 			return;
+		}
 		
 		module.m_tabPosition = position;
 		module.BuildItems();
