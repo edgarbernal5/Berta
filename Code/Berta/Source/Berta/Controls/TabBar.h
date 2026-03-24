@@ -74,7 +74,7 @@ namespace Berta
 			Point Position{};
 			Point Center{};
 			Size Size{};
-			Rectangle PanelArea{};
+			Rectangle ContentArea{};
 		};
 		
 		struct Module

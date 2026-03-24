@@ -43,7 +43,7 @@ namespace Berta
 	        return;
 	    }
 		
-	    int tabBarItemHeight = m_module.m_owner->ToScale(appearance->TabBarItemHeight);
+	    int tabBarItemHeight = static_cast<int>(m_module.m_owner->ToScale(appearance->TabBarItemHeight));
 		int cornerRadius = m_module.m_owner->ToScale(4);
 		
 	    int width = static_cast<int>(m_module.m_owner->ClientSize.Width);
@@ -65,11 +65,11 @@ namespace Berta
 	    		Rectangle activeBgRect{ Point{xLeft, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight)} };
 	    		if (m_module.m_tabPosition == TabBarPosition::Top)
 	    		{
-	    			graphics.DrawTopRoundedRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
+	    			graphics.DrawTopRoundedRectBox(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
 	    		}
 	    		else
 	    		{
-	    			graphics.DrawBottomRoundedRectBox(activeBgRect, cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
+	    			graphics.DrawBottomRoundedRectBox(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
 	    		}
 	    	}
 
@@ -92,118 +92,21 @@ namespace Berta
 
 		if (m_module.m_tabPosition == TabBarPosition::Top)
 		{
-			int accentLineY = tabBarItemHeight - 2;
+			int accentLineY = tabBarItemHeight;
 			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 
-			graphics.DrawLine({ 0, tabBarItemHeight }, { activeXStart, tabBarItemHeight }, appearance->BoxBorderColor);
-			graphics.DrawLine({ activeXStart + activeWidth, tabBarItemHeight }, { width, tabBarItemHeight }, appearance->BoxBorderColor);
+			graphics.DrawLine({ 0, tabBarItemHeight + 1 }, { activeXStart, tabBarItemHeight + 1 }, appearance->BoxBorderColor);
+			graphics.DrawLine({ activeXStart + activeWidth, tabBarItemHeight + 1 }, { width, tabBarItemHeight + 1 }, appearance->BoxBorderColor);
 		}
 		else
 		{
-			int accentLineY = height - tabBarItemHeight + 2;
+			int accentLineY = height - tabBarItemHeight - 1;
 			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 
-			int yBase = height - 1 - tabBarItemHeight;
+			int yBase = height - 2 - tabBarItemHeight;
 			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
 		}
-		
-		/*auto enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(m_module.m_owner->Appearance->Background, true);
-
-		if (m_module.m_panels.empty() || m_module.m_selectedTabIndex == -1)
-		{
-			graphics.DrawRectangle(m_module.m_owner->Appearance->BoxBorderColor, false);
-			return;
-		}
-
-		auto tabBarItemHeight = m_module.m_owner->ToScale((int)m_module.m_appearance->TabBarItemHeight);
-		auto tabPadding = m_module.m_owner->ToScale(10);
-		auto tabMarginUnselected = m_module.m_owner->ToScale(4);
-		auto one = m_module.m_owner->ToScale(1);
-
-		int lastPositionX = 0;
-		int selectedPositionX = 0;
-		int i = 0;
-		
-		for (auto tabItem = m_module.m_panels.cbegin(); tabItem != m_module.m_panels.cend(); ++i, ++tabItem)
-		{
-			if (m_module.m_selectedTabIndex == i)
-			{
-				if (m_module.m_tabPosition == TabBarPosition::Top)
-				{
-					graphics.DrawLine({ lastPositionX, 1 }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + 1, 0 }, { lastPositionX + (int)tabItem->Size.Width - 1, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-				}
-				else
-				{
-					graphics.DrawLine({ lastPositionX, (int)m_module.m_owner->ClientSize.Height - 2 }, { lastPositionX, (int)m_module.m_owner->ClientSize.Height - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + 1, (int)m_module.m_owner->ClientSize.Height - 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height - 1 }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height - 2 }, { lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height - tabBarItemHeight - 1 }, m_module.m_owner->Appearance->BoxBorderColor);
-				}
-				graphics.DrawString({ tabItem->Center.X + lastPositionX, tabItem->Center.Y + tabItem->Position.Y }, tabItem->Id, enabled ? m_module.m_owner->Appearance->Foreground : m_module.m_owner->Appearance->BoxBorderDisabledColor);
-				selectedPositionX = lastPositionX;
-			}
-			else
-			{
-				if (m_module.m_tabPosition == TabBarPosition::Top)
-				{
-					graphics.DrawLine({ lastPositionX, 1 + tabMarginUnselected }, { lastPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-
-					graphics.DrawLine({ lastPositionX + 1, tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, tabMarginUnselected + 1 }, { lastPositionX + (int)tabItem->Size.Width - 1, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-
-					graphics.DrawString({ tabItem->Center.X + lastPositionX, tabItem->Center.Y + one + tabItem->Position.Y }, tabItem->Id, enabled ? m_module.m_owner->Appearance->Foreground : m_module.m_owner->Appearance->BoxBorderDisabledColor);
-				}
-				else
-				{
-					graphics.DrawLine({ lastPositionX, (int)m_module.m_owner->ClientSize.Height - 2 - tabMarginUnselected }, { lastPositionX, (int)m_module.m_owner->ClientSize.Height - 2 - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-					
-					graphics.DrawLine({ lastPositionX + 1, (int)m_module.m_owner->ClientSize.Height - 1 - tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height - 1 - tabMarginUnselected }, m_module.m_owner->Appearance->BoxBorderColor);
-					graphics.DrawLine({ lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height - 2 - tabMarginUnselected }, { lastPositionX + (int)tabItem->Size.Width - 1, (int)m_module.m_owner->ClientSize.Height -2 - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-					
-					graphics.DrawString({ tabItem->Center.X + lastPositionX, tabItem->Center.Y - one + tabItem->Position.Y }, tabItem->Id, enabled ? m_module.m_owner->Appearance->Foreground : m_module.m_owner->Appearance->BoxBorderDisabledColor);
-				}
-				
-			}
-			lastPositionX += (int)tabItem->Size.Width;
-		}
-		auto selectedTabItem = m_module.At(m_module.m_selectedTabIndex);
-		if (selectedPositionX > 0)
-		{
-			if (m_module.m_tabPosition == TabBarPosition::Top)
-			{
-				graphics.DrawLine({ 0, tabBarItemHeight }, { selectedPositionX, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-			}
-			else
-			{
-				graphics.DrawLine({ 0, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, { selectedPositionX, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-			}
-		}
-
-		if (m_module.m_tabPosition == TabBarPosition::Top)
-		{
-			graphics.DrawLine({ 0, tabBarItemHeight }, { 0, (int)m_module.m_owner->ClientSize.Height }, m_module.m_owner->Appearance->BoxBorderColor);
-			graphics.DrawLine({ 0, (int)m_module.m_owner->ClientSize.Height - 1 }, { (int)m_module.m_owner->ClientSize.Width, (int)m_module.m_owner->ClientSize.Height - 1 }, m_module.m_owner->Appearance->BoxBorderColor);
-			graphics.DrawLine({ (int)m_module.m_owner->ClientSize.Width - 1, tabBarItemHeight + 1 }, { (int)m_module.m_owner->ClientSize.Width - 1, (int)m_module.m_owner->ClientSize.Height }, m_module.m_owner->Appearance->BoxBorderColor);
-
-			if (selectedPositionX + (int)selectedTabItem->Size.Width < (int)m_module.m_owner->ClientSize.Width)
-			{
-				graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width,tabBarItemHeight }, { (int)m_module.m_owner->ClientSize.Width, tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-			}
-		}
-		else
-		{
-			graphics.DrawLine({ 0, (int)m_module.m_owner->ClientSize.Height - tabBarItemHeight }, { 0, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
-			graphics.DrawLine({ 0, 0 }, { (int)m_module.m_owner->ClientSize.Width, 0 }, m_module.m_owner->Appearance->BoxBorderColor);
-			graphics.DrawLine({ (int)m_module.m_owner->ClientSize.Width - 1, 0 }, { (int)m_module.m_owner->ClientSize.Width - 1, (int)m_module.m_owner->ClientSize.Height - tabBarItemHeight - 1 }, m_module.m_owner->Appearance->BoxBorderColor);
-
-			if (selectedPositionX + (int)selectedTabItem->Size.Width < (int)m_module.m_owner->ClientSize.Width)
-			{
-				graphics.DrawLine({ selectedPositionX + (int)selectedTabItem->Size.Width, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, { (int)m_module.m_owner->ClientSize.Width, (int)m_module.m_owner->ClientSize.Height - 1 - tabBarItemHeight }, m_module.m_owner->Appearance->BoxBorderColor);
-			}
-		}*/
 	}
 
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -242,19 +145,6 @@ namespace Berta
 			m_module.m_events->TabChanged.Emit(argsTabBar);
 
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
-			
-			/*auto selectedTabItem = m_module.At(m_module.m_selectedTabIndex);
-
-			GUI::ShowWindow(selectedTabItem->PanelPtr, false);
-			m_module.SelectIndex(newSelectedIndex);
-
-			auto newSelectedTabItem = m_module.At(newSelectedIndex);
-			GUI::ShowWindow(newSelectedTabItem->PanelPtr, true);
-
-			ArgTabBar argsTabBar{ newSelectedTabItem->Id };
-			m_module.m_events->TabChanged.Emit(argsTabBar);
-
-			GUI::MarkAsNeedUpdate(m_module.m_owner);*/
 		}
 	}
 
@@ -264,7 +154,7 @@ namespace Berta
 
 		for (auto& tabItem : m_module.m_panels)
 		{
-			GUI::MoveWindow(tabItem.PanelPtr.get(), tabItem.PanelArea);
+			GUI::MoveWindow(tabItem.PanelPtr.get(), tabItem.ContentArea);
 		}
 	}
 
@@ -288,7 +178,7 @@ namespace Berta
 		newItem.Id = std::move(tabId);
 		newItem.PanelPtr.reset(window);
 
-		auto newIt = m_panels.insert(m_panels.begin() + index, std::move(newItem));
+		m_panels.insert(m_panels.begin() + index, std::move(newItem));
 		UpdatePanelMoveRect(window);
 
 		if (!m_selectedTabIndex)
@@ -332,14 +222,18 @@ namespace Berta
 		int clientWidth = static_cast<int>(m_owner->ClientSize.Width);
 		int clientHeight = static_cast<int>(m_owner->ClientSize.Height);
 		
-		int tabY = (m_tabPosition == TabBarPosition::Top) ? 1 : (clientHeight - tabBarItemHeight - 2);
+		int tabY = (m_tabPosition == TabBarPosition::Top) ? 1 : (clientHeight - tabBarItemHeight - 1);
 		
 		Rectangle contentArea;
 		if (m_tabPosition == TabBarPosition::Top)
-			contentArea = { 0, tabBarItemHeight, static_cast<uint32_t>(clientWidth), static_cast<uint32_t>(clientHeight - tabBarItemHeight) };
+		{
+			contentArea = { 2, tabBarItemHeight + 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
+		}
 		else
-			contentArea = { 0, 0, static_cast<uint32_t>(clientWidth), static_cast<uint32_t>(clientHeight - tabBarItemHeight) };
-
+		{
+			contentArea = { 2, 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
+		}
+		
 		for (size_t i = startIndex; i < m_panels.size(); ++i)
 		{
 			auto& tab = m_panels[i];
@@ -361,61 +255,9 @@ namespace Berta
 				static_cast<uint32_t>(closeBtnSize)
 			};*/
 
-			tab.PanelArea = contentArea;
+			tab.ContentArea = contentArea;
 			currentX += static_cast<int>(tab.Size.Width);
 		}
-		
-		/*if (startIndex >= m_panels.size())
-		{
-			return;
-		}
-
-		auto tabBarItemHeight = m_owner->ToScale(m_appearance->TabBarItemHeight);
-		auto tabPadding = m_owner->ToScale(10u);
-
-		Point offset{ 0, 0 };
-		Point tabPositionOffset{};
-		if (m_tabPosition == TabBarPosition::Bottom)
-		{
-			tabPositionOffset.Y = m_owner->ClientSize.Height > tabBarItemHeight ? static_cast<int>(m_owner->ClientSize.Height - tabBarItemHeight) : 0 ;
-		}
-
-		int newWidth = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
-		int newHeight =  std::max<int>(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
-		Rectangle panelTabArea;
-		if (m_tabPosition == TabBarPosition::Top)
-		{
-			panelTabArea = { 2, static_cast<int>(tabBarItemHeight) + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
-		}
-		else
-		{
-			panelTabArea = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
-		}
-
-		if (startIndex > 0)
-		{
-			auto element = At(startIndex - 1);
-			offset.X = element->Position.X + static_cast<int>(element->Size.Width);
-		}
-
-		auto current = At(startIndex);
-		for (size_t i = startIndex; i < m_panels.size(); ++i, ++current)
-		{
-			auto textSize = m_owner->Renderer.GetGraphics().GetTextExtent(current->Id);
-			Size itemSize{ textSize.Width + tabPadding, tabBarItemHeight };
-
-			Point center{ static_cast<int>(itemSize.Width) - static_cast<int>(textSize.Width), static_cast<int>(itemSize.Height) - static_cast<int>(textSize.Height) };
-			center >>= 1;
-
-			Point itemPos = offset + tabPositionOffset;
-			current->Position = itemPos;
-			current->Size = itemSize;
-			current->Center = center;
-
-			current->PanelArea = panelTabArea;
-
-			offset.X += static_cast<int>(itemSize.Width);
-		}*/
 	}
 
 	bool TabBarReactor::Module::EraseTab(size_t index)
@@ -438,8 +280,14 @@ namespace Berta
 		
 		if (m_selectedTabIndex && m_selectedTabIndex.value() >= m_panels.size())
 		{
-			if (m_panels.empty()) m_selectedTabIndex.reset();
-			else m_selectedTabIndex = m_panels.size() - 1;
+			if (m_panels.empty())
+			{
+				m_selectedTabIndex.reset();
+			}
+			else
+			{
+				m_selectedTabIndex = m_panels.size() - 1;
+			}
 		}
 
 		if (removeSelectedIndex && m_selectedTabIndex)
@@ -447,6 +295,7 @@ namespace Berta
 			size_t newIdx = m_selectedTabIndex.value();
 			ArgTabBar argsTabBar{ newIdx, m_panels[newIdx].Id };
 			m_events->TabChanged.Emit(argsTabBar);
+			
 			GUI::ShowWindow(m_panels[newIdx].PanelPtr.get(), true);
 		}
 		ArgTabBar closedArgs{ index, idCopia };
@@ -481,19 +330,19 @@ namespace Berta
 	void TabBarReactor::Module::UpdatePanelMoveRect(Window* window) const
 	{
 		auto tabBarItemHeight = m_owner->ToScale(m_appearance->TabBarItemHeight);
-		int newWidth = (std::max)(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
-		int newHeight = (std::max)(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
+		int newWidth = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
+		int newHeight = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
 		
-		Rectangle rect;
+		Rectangle contentArea;
 		if (m_tabPosition == TabBarPosition::Top)
 		{
-			rect = { 2, (int)tabBarItemHeight + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
+			contentArea = { 2, static_cast<int>(tabBarItemHeight) + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
 		else
 		{
-			rect = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
+			contentArea = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
 		}
-		GUI::MoveWindow(window, rect);
+		GUI::MoveWindow(window, contentArea);
 	}
 
 	TabBar::TabBar(Window* parent, const Rectangle& rectangle)
