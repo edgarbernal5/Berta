@@ -84,7 +84,7 @@ namespace Berta
 		void DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 		void DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 
-		void DrawTopRoundedRectBox(const Rectangle& rect, float radius, Color fillColor, Color borderColor, bool solid, bool drawBorder);
+		void DrawTopRoundedRectBox(const Rectangle& rect, float radius, Color fillColor, Color borderColor, bool solid, bool drawBorder, bool closeFigure = false);
 		void DrawBottomRoundedRectBox(const Rectangle& rect, float radius, Color fillColor, Color borderColor, bool solid, bool drawBorder);
 		
 		uint32_t GetDpi() const { return m_dpi; }

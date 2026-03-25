@@ -37,7 +37,7 @@ namespace Berta
 	    
 	    graphics.DrawRectangle(appearance->Background, true);
 
-	    if (m_module.m_panels.empty() || !m_module.m_selectedTabIndex.has_value())
+	    if (m_module.m_panels.empty() || !m_module.m_selectedTabIndex)
 	    {
 	        graphics.DrawRectangle(appearance->BoxBorderColor, false);
 	        return;
@@ -58,7 +58,7 @@ namespace Berta
 
 	    	int xLeft = tabItem.Position.X;
 	    	int tabWidth = static_cast<int>(tabItem.Size.Width);
-	    	auto textColor = isSelected ? appearance->Foreground : appearance->BoxBorderDisabledColor;
+	    	auto textColor = isSelected ? appearance->Foreground : appearance->Foreground2nd;
 
 	    	if (isSelected)
 	    	{
@@ -87,22 +87,28 @@ namespace Berta
 
 	    // 2. DIBUJAR BASE DE LAS PESTAÑAS Y BORDES DEL CONTENEDOR
 		const auto& selectedTab = m_module.m_panels[selectedIndex];
-		int activeXStart = selectedTab.Position.X;
-		int activeWidth = static_cast<int>(selectedTab.Size.Width);
+		int activeXStart = selectedTab.Position.X + 1;
+		int activeWidth = static_cast<int>(selectedTab.Size.Width) - 2;
 
+		int accentThickness = m_module.m_owner->ToScale(3); 
 		if (m_module.m_tabPosition == TabBarPosition::Top)
 		{
-			int accentLineY = tabBarItemHeight;
-			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
-
-			graphics.DrawLine({ 0, tabBarItemHeight + 1 }, { activeXStart, tabBarItemHeight + 1 }, appearance->BoxBorderColor);
-			graphics.DrawLine({ activeXStart + activeWidth, tabBarItemHeight + 1 }, { width, tabBarItemHeight + 1 }, appearance->BoxBorderColor);
+			int accentLineY = tabBarItemHeight - accentThickness / 2;
+			//graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
+			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
+			graphics.DrawRectangle(accentRect, appearance->AccentColor, true);
+			
+			int yBase = tabBarItemHeight + 1;
+			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
 		}
 		else
 		{
-			int accentLineY = height - tabBarItemHeight - 1;
-			graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
-
+			int accentLineY = height - tabBarItemHeight - accentThickness / 2;
+			//graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
+			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
+			graphics.DrawRectangle(accentRect, appearance->AccentColor, true);
+			
 			int yBase = height - 2 - tabBarItemHeight;
 			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
@@ -170,7 +176,6 @@ namespace Berta
 	bool TabBarReactor::Module::InsertTab(size_t index, std::string tabId, Window* window)
 	{
 		index = std::min<size_t>(index, m_panels.size());
-		int startIndex = static_cast<int>(index);
 
 		GUI::SetParentWindow(window, m_owner);
 		
@@ -194,7 +199,7 @@ namespace Berta
 			GUI::ShowWindow(window, false);
 		}
 
-		BuildItems(startIndex);
+		BuildItems(index);
 		return true;
 	}
 

@@ -879,78 +879,88 @@ namespace Berta
 	}
 
 	void Graphics::DrawTopRoundedRectBox(const Rectangle& rect, float radius, Color fillColor, Color borderColor,
-		bool solid, bool drawBorder)
+		bool solid, bool drawBorder, bool closeFigure) // <-- NUEVO PARÁMETRO (Por defecto no cierra la base)
+{
+	// Si no hay radio, dibujamos un rectángulo normal
+	if (radius <= 0.0f)
 	{
-		// Si no hay radio, dibujamos un rectángulo normal para ahorrar CPU
-	    if (radius <= 0.0f)
-	    {
-	        // Llama a tu método existente de rectángulos normales
-	        // DrawRectangle(rect, ...); 
-	        return;
-	    }
+		// DrawRectangle(rect, ...); 
+		return;
+	}
 
 #ifdef BT_PLATFORM_WINDOWS
-	    ID2D1PathGeometry* pathGeometry = nullptr;
-	    HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&pathGeometry);
-	    
-	    if (SUCCEEDED(hr))
-	    {
-		    ID2D1GeometrySink* sink = nullptr;
-    		hr = pathGeometry->Open(&sink);
-	        
-    		if (SUCCEEDED(hr))
-    		{
-    			float left = static_cast<float>(rect.X);
-    			float top = static_cast<float>(rect.Y);
-    			float right = left + static_cast<float>(rect.Width);
-    			float bottom = top + static_cast<float>(rect.Height);
+	ID2D1PathGeometry* pathGeometry = nullptr;
+	HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&pathGeometry);
+	
+	if (SUCCEEDED(hr))
+	{
+		ID2D1GeometrySink* sink = nullptr;
+		hr = pathGeometry->Open(&sink);
+		
+		if (SUCCEEDED(hr))
+		{
+			// ¡LA MAGIA DEL 0.5f AQUÍ!
+			// Desplazamos las coordenadas para alinear el trazo a la cuadrícula de píxeles
+			float offset = drawBorder ? 0.5f : 0.0f; 
+			float left = static_cast<float>(rect.X) + offset;
+			float top = static_cast<float>(rect.Y) + offset;
+			float right = static_cast<float>(rect.X + rect.Width) - offset;
+			float bottom = static_cast<float>(rect.Y + rect.Height) - offset;
 
-    			sink->BeginFigure(D2D1::Point2F(left, bottom), D2D1_FIGURE_BEGIN_FILLED);
+			// 1. Empezamos en la esquina inferior izquierda
+			sink->BeginFigure(D2D1::Point2F(left, bottom), D2D1_FIGURE_BEGIN_FILLED);
 
-    			sink->AddLine(D2D1::Point2F(left, top + radius));
+			// 2. Línea izquierda hacia arriba
+			sink->AddLine(D2D1::Point2F(left, top + radius));
 
-    			sink->AddArc(D2D1::ArcSegment(
-					D2D1::Point2F(left + radius, top),
-					D2D1::SizeF(radius, radius),
-					0.0f, 
-					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
-					D2D1_ARC_SIZE_SMALL
-				));
+			// 3. Arco superior izquierdo
+			sink->AddArc(D2D1::ArcSegment(
+				D2D1::Point2F(left + radius, top),
+				D2D1::SizeF(radius, radius),
+				0.0f, 
+				D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+				D2D1_ARC_SIZE_SMALL
+			));
 
-    			sink->AddLine(D2D1::Point2F(right - radius, top));
+			// 4. Línea superior
+			sink->AddLine(D2D1::Point2F(right - radius, top));
 
-    			sink->AddArc(D2D1::ArcSegment(
-					D2D1::Point2F(right, top + radius),
-					D2D1::SizeF(radius, radius), 
-					0.0f, 
-					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
-					D2D1_ARC_SIZE_SMALL
-				));
+			// 5. Arco superior derecho
+			sink->AddArc(D2D1::ArcSegment(
+				D2D1::Point2F(right, top + radius),
+				D2D1::SizeF(radius, radius), 
+				0.0f, 
+				D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+				D2D1_ARC_SIZE_SMALL
+			));
 
-    			sink->AddLine(D2D1::Point2F(right, bottom));
+			// 6. Línea derecha hacia abajo
+			sink->AddLine(D2D1::Point2F(right, bottom));
 
-    			sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-    			sink->Close();
+			// ¡LA MAGIA DE LA LÍNEA INFERIOR AQUÍ!
+			// Si open, no dibuja la línea que conecta el punto derecho con el izquierdo.
+			sink->EndFigure(closeFigure ? D2D1_FIGURE_END_CLOSED : D2D1_FIGURE_END_OPEN);
+			sink->Close();
 
-    			if (solid)
-    			{
-    				auto pFillBrush = m_resourceCache.GetBrush(fillColor);
-    				m_targetRT->FillGeometry(pathGeometry, pFillBrush);
-    			}
+			if (solid)
+			{
+				auto pFillBrush = m_resourceCache.GetBrush(fillColor);
+				m_targetRT->FillGeometry(pathGeometry, pFillBrush);
+			}
 
-    			if (drawBorder)
-    			{
-    				auto pBorderBrush = m_resourceCache.GetBrush(borderColor);
-    				m_targetRT->DrawGeometry(pathGeometry, pBorderBrush, 1.0f); // 1.0f es el grosor de la línea
-    			}
+			if (drawBorder)
+			{
+				auto pBorderBrush = m_resourceCache.GetBrush(borderColor);
+				m_targetRT->DrawGeometry(pathGeometry, pBorderBrush, 1.0f); // Ahora sí será de 1px real
+			}
 
-    			// Liberación de recursos locales
-    			sink->Release();
-    		}
-    		pathGeometry->Release();
-	    }
-#endif
+			// Liberación de recursos locales
+			sink->Release();
+		}
+		pathGeometry->Release();
 	}
+#endif
+}
 	
 	void Graphics::DrawBottomRoundedRectBox(const Rectangle& rect, float radius, Color fillColor, Color borderColor,
 		bool solid, bool drawBorder)

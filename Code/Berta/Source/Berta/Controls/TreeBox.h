@@ -46,7 +46,7 @@ namespace Berta
 		~TreeNodeType() = default;
 
 		std::wstring text;
-		TreeNodeHandle key;
+		TreeNodeHandle key; //relative key.
 		CheckState checkState { CheckState::None };
 		Image icon;
 		std::any userData;
@@ -73,35 +73,12 @@ namespace Berta
 	class TreeModel
 	{
 	public:
-        TreeModel()
-        {
-            m_root = m_nodePool.Allocate(L"$$ROOT$$", L"", nullptr);
-            m_root->isExpanded = true;
-        }
-
-        ~TreeModel()
-        {
-            Clear();
-            m_nodePool.Deallocate(m_root);
-        }
+        TreeModel();
+        ~TreeModel();
 
         TreeNodeType* GetRoot() const { return m_root; }
 
-        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr)
-        {
-            if (m_lookup.find(key) != m_lookup.end())
-            {
-	            return m_lookup[key];
-            }
-            TreeNodeType* actualParent = parent ? parent : m_root;
-            
-            TreeNodeType* newNode = m_nodePool.Allocate(key, text, actualParent);
-            
-            actualParent->children.emplace_back(newNode);
-            m_lookup[key] = newNode;
-
-            return newNode;
-        }
+        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr);
 
 		TreeNodeType* Find(const TreeNodeHandle& key) const
         {
@@ -138,56 +115,39 @@ namespace Berta
         	{
         		return L"";
         	}
-        	
-        	std::wstring path = node->key;
-        	TreeNodeType* current = node->parent;
+
+        	std::vector<const std::wstring*> parts;
+        	TreeNodeType* current = node;
+        	size_t totalLength = 0;
 
         	while (current && current != m_root)
         	{
-        		path = current->key + separator + path; //TODO
+        		parts.push_back(&(current->key));
+        		totalLength += current->key.length();
         		current = current->parent;
+        	}
+
+        	if (!parts.empty())
+        	{
+        		totalLength += parts.size() - 1;
+        	}
+
+        	std::wstring path;
+        	path.reserve(totalLength);
+
+        	for (auto it = parts.rbegin(); it != parts.rend(); ++it)
+        	{
+        		if (it != parts.rbegin())
+        		{
+        			path += separator;
+        		}
+        		path += **it;
         	}
 
         	return path;
         }
 
-		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos)
-        {
-        	if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
-        	{
-        		return;
-        	}
-
-        	if (nodeToMove->parent)
-        	{
-        		auto& oldSiblings = nodeToMove->parent->children;
-        		oldSiblings.erase(std::remove(oldSiblings.begin(), oldSiblings.end(), nodeToMove), oldSiblings.end());
-        	}
-
-        	if (pos == DropPosition::Inside)
-        	{
-        		nodeToMove->parent = targetNode;
-        		targetNode->children.emplace_back(nodeToMove);
-        		targetNode->isExpanded = true;
-        	}
-        	else // Before o After
-        	{
-        		TreeNodeType* newParent = targetNode->parent;
-        		nodeToMove->parent = newParent;
-        
-        		auto& newSiblings = newParent->children;
-        		auto itTarget = std::find(newSiblings.begin(), newSiblings.end(), targetNode);
-        
-        		if (pos == DropPosition::Before)
-        		{
-        			newSiblings.insert(itTarget, nodeToMove);
-        		}
-        		else
-        		{
-        			newSiblings.insert(itTarget + 1, nodeToMove);
-        		}
-        	}
-        }
+		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos);
 		
 	private:
 		
@@ -457,7 +417,7 @@ namespace Berta
 		void DeselectAll();
 		
 		TreeBoxItem Find(const TreeNodeHandle& key);
-		TreeBoxItem Insert(const TreeNodeHandle& key, const std::wstring& text);
+		TreeBoxItem Insert(const TreeNodeHandle& absoluteKey, const std::wstring& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text);
 		
 		void Erase(const TreeNodeHandle& key);

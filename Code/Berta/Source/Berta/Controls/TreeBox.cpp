@@ -15,6 +15,101 @@
 
 namespace Berta
 {
+	TreeModel::TreeModel()
+	{
+		m_root = m_nodePool.Allocate(L"$$ROOT$$", L"", nullptr);
+		m_root->isExpanded = true;
+	}
+
+	TreeModel::~TreeModel()
+	{
+		Clear();
+		m_nodePool.Deallocate(m_root);
+	}
+
+	TreeNodeType* TreeModel::Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent)
+	{
+		std::vector<std::wstring> pathParts = StringUtils::Split(key, L'/');
+    
+		if (pathParts.empty() || !m_root)
+		{
+			return nullptr;
+		}
+		TreeNodeType* currentParent = parent == nullptr ? m_root : parent; 
+
+		for (size_t i = 0; i < pathParts.size(); ++i)
+		{
+			const std::wstring& relativeKey = pathParts[i];
+        
+			TreeNodeType* existingChild = nullptr;
+			for (auto* child : currentParent->children)
+			{
+				if (child->key == relativeKey)
+				{
+					existingChild = child;
+					break;
+				}
+			}
+
+			if (existingChild)
+			{
+				currentParent = existingChild;
+				//currentParent->text = text;
+			}
+			else
+			{
+				TreeNodeType* newNode = m_nodePool.Allocate();
+            
+				newNode->key = relativeKey;
+				newNode->text = text; 
+				newNode->parent = currentParent;
+            
+				currentParent->children.emplace_back(newNode);
+            
+				currentParent = newNode;
+			}
+		}
+
+		return currentParent;
+	}
+
+	void TreeModel::MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos){
+		if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
+		{
+			return;
+		}
+
+		if (nodeToMove->parent)
+		{
+			auto& oldSiblings = nodeToMove->parent->children;
+			oldSiblings.erase(std::remove(oldSiblings.begin(), oldSiblings.end(), nodeToMove), oldSiblings.end());
+		}
+
+		if (pos == DropPosition::Inside)
+		{
+			nodeToMove->parent = targetNode;
+			targetNode->children.emplace_back(nodeToMove);
+			targetNode->isExpanded = true;
+		}
+		else // Before o After
+		{
+			TreeNodeType* newParent = targetNode->parent;
+			nodeToMove->parent = newParent;
+        
+			auto& newSiblings = newParent->children;
+			auto itTarget = std::find(newSiblings.begin(), newSiblings.end(), targetNode);
+        
+			if (pos == DropPosition::Before)
+			{
+				newSiblings.insert(itTarget, nodeToMove);
+			}
+			else
+			{
+				newSiblings.insert(itTarget + 1, nodeToMove);
+			}
+		}
+	}
+
 	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
 	{
 		m_control = &control;
@@ -92,6 +187,7 @@ namespace Berta
 		{
 			clickedNode->isExpanded = !clickedNode->isExpanded;
 			m_module.RebuildFlatTree();
+			m_module.EmitExpansionEvent(clickedNode);
 			
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
@@ -1036,53 +1132,34 @@ namespace Berta
 		return { node, &module };
 	}
 
-	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& key, const std::wstring& text)
+	TreeBoxItem TreeBox::Insert(const TreeNodeHandle& absoluteKey, const std::wstring& text)
 	{
 		auto& module = GetReactor().GetModule();
-		auto cleanKey = module.CleanKey(key);
-		if (cleanKey.empty())
-		{
-			return {};
-		}
-		wchar_t separator = L'/';
-		TreeNodeType* parentNode = nullptr;
-		
-		size_t lastSeparatorPos = cleanKey.find_last_of(separator);
-		if (lastSeparatorPos != std::string::npos)
-		{
-			std::wstring parentKey = cleanKey.substr(0, lastSeparatorPos);
-        
-			parentNode = module.m_model.Find(parentKey);
-		}
-		
-		TreeNodeType* newNode = module.m_model.Insert(cleanKey, text, parentNode);
-		
-		module.RebuildFlatTree();
-		module.UpdateScrollData();
-		module.Draw();
-		
-		return { newNode, &module };
-	}
-
-	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text)
-	{
-		auto& module = GetReactor().GetModule();
-		auto cleanKey = module.CleanKey(key);
-		if (cleanKey.empty())
-		{
-			return {};
-		}
-		TreeNodeType* parentNode = parent ? parent.GetNode() : nullptr;
-		
-		TreeNodeType* newNode = module.m_model.Insert(cleanKey, text, parentNode);
-
-		if (!parentNode || parentNode->isExpanded)
+		auto cleanAbsoluteKey = module.CleanKey(absoluteKey);
+		TreeNodeType* insertedNode = module.m_model.Insert(cleanAbsoluteKey, text);
+		if (insertedNode)
 		{
 			module.RebuildFlatTree();
 			module.UpdateScrollData();
 			module.Draw();
 		}
-		return { newNode, &module };
+		
+		return { insertedNode, &module };
+	}
+
+	TreeBoxItem TreeBox::Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text)
+	{
+		auto& module = GetReactor().GetModule();
+		auto cleanAbsoluteKey = module.CleanKey(key);
+		TreeNodeType* insertedNode = module.m_model.Insert(cleanAbsoluteKey, text, parent.GetNode());
+		if (insertedNode)
+		{
+			module.RebuildFlatTree();
+			module.UpdateScrollData();
+			module.Draw();
+		}
+		
+		return { insertedNode, &module };
 	}
 	
 	void TreeBox::Erase(const TreeNodeHandle& key)
