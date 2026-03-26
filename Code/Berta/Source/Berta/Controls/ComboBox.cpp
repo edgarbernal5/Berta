@@ -57,11 +57,11 @@ namespace Berta
 
 			if (m_module.m_status == State::Normal)
 			{
-				graphics.DrawRectangle(backgroundRect, window->Appearance->BoxBackground, true);
+				graphics.FillRectangle(backgroundRect, window->Appearance->BoxBackground);
 			}
 			else if (m_module.m_status == State::Hovered)
 			{
-				graphics.DrawRectangle(backgroundRect, window->Appearance->BoxHightlightBackground, true);
+				graphics.FillRectangle(backgroundRect, window->Appearance->BoxHightlightBackground);
 			}
 
 			//m_textEditor->Render();
@@ -86,7 +86,7 @@ namespace Berta
 
 			auto buttonSize = window->ToScale(m_module.m_comboBox->GetAppearance().ButtonSize);
 
-			graphics.DrawRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background, true);
+			graphics.FillRectangle({ static_cast<int>(window->ClientSize.Width - buttonSize - 1), 1, buttonSize, window->ClientSize.Height - 2 }, window->Appearance->Background);
 
 			int arrowWidth = window->ToScale(4);
 			int arrowLength = window->ToScale(2);
@@ -102,7 +102,7 @@ namespace Berta
 				{ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
 				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
-			graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+			graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

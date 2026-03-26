@@ -73,7 +73,8 @@ namespace Berta
 		return currentParent;
 	}
 
-	void TreeModel::MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos){
+	void TreeModel::MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos)
+	{
 		if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
 		{
 			return;
@@ -137,10 +138,10 @@ namespace Berta
 		}
 		
 		auto globalRect = window->ClientSize.ToRectangle();
-		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
+		graphics.FillRectangle(globalRect, window->Appearance->BoxBackground);
 		if (!m_control->IsBorderless())
 		{
-			graphics.DrawRectangle(globalRect, appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
 				
 			Rectangle localBorderRect = m_control->GetClientArea();
 			graphics.SetClipping(localBorderRect);
@@ -151,7 +152,7 @@ namespace Berta
 		if (m_module.m_scrollableView->HasVerticalScroll() && m_module.m_scrollableView->HasHorizontalScroll())
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			graphics.DrawRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background, true);
+			graphics.FillRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background);
 		}
 		
 		if (!m_control->IsBorderless())
@@ -614,13 +615,13 @@ namespace Berta
 			{
 				auto color = appearance->SelectionHighlightColor;
 				color.SetA(200);
-				graphics.DrawRectangle(rowRect, color, true); 
+				graphics.FillRectangle(rowRect, color); 
 			}
 			else if (isHovered)
 			{
 				auto color = appearance->HighlightColor;
 				color.SetA(180);
-				graphics.DrawRectangle(rowRect, color, true); 
+				graphics.FillRectangle(rowRect, color); 
 			}
 			
 			if (m_showNavigationLines)
@@ -685,7 +686,7 @@ namespace Berta
 			
 			if (isFocused)
 			{
-				graphics.DrawRectangle(rowRect, appearance->Foreground, false);
+				graphics.DrawRectangle(rowRect, appearance->Foreground);
 			}
 			
 			Rectangle textRect{ currentX, drawY + ((nodeHeight - (int)graphics.GetTextExtent().Height)/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
@@ -701,17 +702,17 @@ namespace Berta
 
 				if (m_dropPosition == DropPosition::Inside)
 				{
-					graphics.DrawRectangle(rowRect, indicatorColor, false);
+					graphics.DrawRectangle(rowRect, indicatorColor);
 				}
 				else if (m_dropPosition == DropPosition::Before)
 				{
 					Rectangle lineRect{ indicatorX, drawY - 1, clientArea.Width - indicatorX, 2 };
-					graphics.DrawRectangle(lineRect, indicatorColor, true);
+					graphics.FillRectangle(lineRect, indicatorColor);
 				}
 				else if (m_dropPosition == DropPosition::After)
 				{
 					Rectangle lineRect{ indicatorX, drawY + nodeHeight - 1, clientArea.Width  - indicatorX, 2 };
-					graphics.DrawRectangle(lineRect, indicatorColor, true);
+					graphics.FillRectangle(lineRect, indicatorColor);
 				}
 			}
 		}

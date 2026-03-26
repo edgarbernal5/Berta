@@ -869,7 +869,7 @@ namespace Berta
 	void TextEditor::Render()
 	{
 		bool enabled = GUI::IsWindowEnabled(m_owner);
-		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor(), true);
+		m_graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
 		
 		auto lineHeight = GetLineHeight();
 		int viewportTop = m_offsetView.Y;
@@ -910,7 +910,7 @@ namespace Berta
 				{
 					auto x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
 					auto w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
-					m_graphics.DrawRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128), true);
+					m_graphics.FillRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128));
 				}
 			}
 			EnsureLayout(vl);
@@ -935,7 +935,7 @@ namespace Berta
 			auto caretHeight= m_graphics.GetCaretHeight();
 			m_graphics.DrawLine({ m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y }, { m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
 		}
-		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor, false);
+		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
 	}
 
 	bool TextEditor::IsEditable() const

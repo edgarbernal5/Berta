@@ -26,7 +26,7 @@ namespace Berta
 			auto window = m_module.m_owner;
 			bool enabled = m_module.m_control->GetEnabled();
 
-			graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground, true);
+			graphics.FillRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground);
 
 			auto& items = m_module.m_items;
 			auto itemMargin = window->ToScale(4u);
@@ -38,10 +38,10 @@ namespace Berta
 				auto textPosition = Point{ itemData.position.X + static_cast<int>(itemData.center.Width), itemData.position.Y + static_cast<int>(itemData.center.Height) };
 				if (m_module.m_interactionData.m_selectedItemIndex == static_cast<int>(i))
 				{
-					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor, true);
+					graphics.FillRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor);
 
 					graphics.DrawString(textPosition, itemData.text, window->Appearance->Foreground);
-					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor, false);
+					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor);
 				}
 				else
 				{

@@ -250,7 +250,8 @@ namespace Berta
 		void Module::Draw()
 		{
 			auto& graphics = *m_graphics;
-			graphics.DrawRectangle(m_owner->Appearance->BoxBackground, true);
+			auto clientRect = m_owner->ClientSize.ToRectangle();
+			graphics.FillRectangle(clientRect, m_owner->Appearance->BoxBackground);
 
 			auto one = m_owner->ToScale(1);
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
@@ -329,7 +330,7 @@ namespace Berta
 				}
 			}
 
-			graphics.DrawRectangle(m_owner->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, m_owner->Appearance->BoxBorderColor);
 		}
 
 		CategoryType* Module::GetCategoryOnMouse(const Point& mousePosition)

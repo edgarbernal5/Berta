@@ -34,12 +34,13 @@ namespace Berta
 	{
 		auto enabled = m_control->GetEnabled();
 		auto appearance = reinterpret_cast<TabBarAppearance*>(m_module.m_owner->Appearance.get());
-	    
-	    graphics.DrawRectangle(appearance->Background, true);
+	    auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
+		
+	    graphics.FillRectangle(clientRect, appearance->Background);
 
 	    if (m_module.m_panels.empty() || !m_module.m_selectedTabIndex)
 	    {
-	        graphics.DrawRectangle(appearance->BoxBorderColor, false);
+	        graphics.DrawRectangle(clientRect, appearance->BoxBorderColor);
 	        return;
 	    }
 		
@@ -65,14 +66,26 @@ namespace Berta
 	    		Rectangle activeBgRect{ Point{xLeft, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight)} };
 	    		if (m_module.m_tabPosition == TabBarPosition::Top)
 	    		{
-	    			graphics.DrawTopRoundedRectBox(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
+	    			graphics.DrawTopRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->BoxBorderColor, false);
 	    		}
 	    		else
 	    		{
-	    			graphics.DrawBottomRoundedRectBox(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, true, true);
+	    			graphics.DrawBottomRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, false);
 	    		}
 	    	}
-
+		    else
+		    {
+		    	if (m_module.m_tabPosition == TabBarPosition::Top)
+		    	{
+		    		Rectangle inactiveBgRect{ Point{xLeft + 1, tabItem.Position.Y + 4}, Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 4)} };
+		    		graphics.DrawTopRoundedRectangle(inactiveBgRect, (float)cornerRadius, appearance->BoxBorderColor, false);
+		    	}
+		    	else
+		    	{
+		    		Rectangle inactiveBgRect{ Point{xLeft + 1, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 4)} };
+		    		graphics.DrawBottomRoundedRectangle(inactiveBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, false);
+		    	}
+		    }
 	    	// Texto
 	    	graphics.DrawString({ tabItem.Center.X + xLeft, tabItem.Center.Y + tabItem.Position.Y }, tabItem.Id, textColor);
 
@@ -94,23 +107,25 @@ namespace Berta
 		if (m_module.m_tabPosition == TabBarPosition::Top)
 		{
 			int accentLineY = tabBarItemHeight - accentThickness / 2;
+			//int accentLineY = 1+accentThickness / 2;
 			//graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
-			graphics.DrawRectangle(accentRect, appearance->AccentColor, true);
+			graphics.FillRectangle(accentRect, appearance->AccentColor);
 			
 			int yBase = tabBarItemHeight + 1;
-			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
+			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
 		}
 		else
 		{
+			//int accentLineY = height - accentThickness - 1;
 			int accentLineY = height - tabBarItemHeight - accentThickness / 2;
 			//graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
-			graphics.DrawRectangle(accentRect, appearance->AccentColor, true);
+			graphics.FillRectangle(accentRect, appearance->AccentColor);
 			
-			int yBase = height - 2 - tabBarItemHeight;
-			graphics.DrawLine({ 0, yBase }, { activeXStart, yBase }, appearance->BoxBorderColor);
+			int yBase = height - 1 - tabBarItemHeight;
+			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
 		}
 	}
@@ -162,6 +177,31 @@ namespace Berta
 		{
 			GUI::MoveWindow(tabItem.PanelPtr.get(), tabItem.ContentArea);
 		}
+	}
+	
+	bool TabBarReactor::Module::AddTab(std::string tabId, Window* window)
+	{
+		auto startIndex = m_panels.size();
+		auto& newItem = m_panels.emplace_back();
+		newItem.Id = std::move(tabId);
+		newItem.PanelPtr.reset(window);
+
+		GUI::SetParentWindow(window, m_owner);
+		
+		UpdatePanelMoveRect(window);
+
+		if (!m_selectedTabIndex)
+		{
+			m_selectedTabIndex = 0;
+		}
+		else
+		{
+			GUI::ShowWindow(window, false);
+		}
+
+		BuildItems(startIndex);
+
+		return true;
 	}
 
 	bool TabBarReactor::Module::Clear()
@@ -227,7 +267,7 @@ namespace Berta
 		int clientWidth = static_cast<int>(m_owner->ClientSize.Width);
 		int clientHeight = static_cast<int>(m_owner->ClientSize.Height);
 		
-		int tabY = (m_tabPosition == TabBarPosition::Top) ? 1 : (clientHeight - tabBarItemHeight - 1);
+		int tabY = (m_tabPosition == TabBarPosition::Top) ? 1 : (clientHeight - tabBarItemHeight);
 		
 		Rectangle contentArea;
 		if (m_tabPosition == TabBarPosition::Top)
@@ -271,6 +311,7 @@ namespace Berta
 		{
 			return false;
 		}
+		
 		ArgTabClosing closingArgs{ index, m_panels[index].Id };
 		m_events->TabClosing.Emit(closingArgs);
 		if (closingArgs.Cancel)
@@ -278,7 +319,7 @@ namespace Berta
 			return false;
 		}
 		
-		std::string idCopia{ m_panels[index].Id };
+		std::string idCopy{ m_panels[index].Id };
 		bool removeSelectedIndex = (m_selectedTabIndex && m_selectedTabIndex.value() == index);
 		
 		m_panels.erase(m_panels.begin() + index);
@@ -303,11 +344,29 @@ namespace Berta
 			
 			GUI::ShowWindow(m_panels[newIdx].PanelPtr.get(), true);
 		}
-		ArgTabBar closedArgs{ index, idCopia };
+		ArgTabBar closedArgs{ index, idCopy };
 		m_events->TabClosed.Emit(closedArgs);
 		
 		BuildItems(index);
 		return true;
+	}
+
+	Window* TabBarReactor::Module::DetachTab(size_t index)
+	{
+		if (index >= m_panels.size())
+		{
+			return nullptr;
+		}
+		
+		Window* detachedWindow = m_panels[index].PanelPtr.release();
+		EraseTab(index);
+
+		return detachedWindow;
+	}
+
+	void TabBarReactor::Module::Draw()
+	{
+		GUI::UpdateWindow(m_owner);
 	}
 
 	std::optional<size_t> TabBarReactor::Module::FindItem(const Point& position) const
@@ -375,19 +434,35 @@ namespace Berta
 		auto& module = GetReactor().GetModule();
 		module.EraseTab(index);
 	}
+
+	std::optional<size_t> TabBar::GetSelectedIndex() const
+	{
+		return GetReactor().GetModule().GetSelectedIndex();
+	}
 	
 	void TabBar::Insert(size_t position, std::string tabId, Window* window)
 	{
 		auto& module = GetReactor().GetModule();
 		module.InsertTab(position, std::move(tabId), window);
+		module.Draw();
 	}
 
-	void TabBar::PushBack(const std::string& tabId, Window* window)
+	void TabBar::PushBack(std::string tabId, Window* window)
 	{
 		auto& module = GetReactor().GetModule();
-		module.AddTab(tabId, window);
+		module.AddTab(std::move(tabId), window);
+		module.Draw();
 	}
 
+	Window* TabBar::Detach(size_t index)
+	{
+		auto& module = GetReactor().GetModule();
+		auto detachedWindow = module.DetachTab(index);
+		module.Draw();
+		
+		return detachedWindow;
+	}
+	
 	void TabBar::SetTabBarPosition(TabBarPosition position)
 	{
 		auto& module = GetReactor().GetModule();
@@ -398,35 +473,6 @@ namespace Berta
 		
 		module.m_tabPosition = position;
 		module.BuildItems();
-	}
-
-	bool TabBarReactor::Module::AddTab(std::string tabId, Window* window)
-	{
-		auto startIndex = m_panels.size();
-		auto& newItem = m_panels.emplace_back();
-		newItem.Id = std::move(tabId);
-		newItem.PanelPtr.reset(window);
-
-		GUI::SetParentWindow(window, m_owner);
-		
-		UpdatePanelMoveRect(window);
-
-		if (!m_selectedTabIndex)
-		{
-			m_selectedTabIndex = 0;
-		}
-		else
-		{
-			GUI::ShowWindow(window, false);
-		}
-
-		BuildItems(startIndex);
-
-		return true;
-	}
-
-	std::optional<size_t> TabBar::GetSelectedIndex() const
-	{
-		return GetReactor().GetModule().GetSelectedIndex();
+		module.Draw();
 	}
 }

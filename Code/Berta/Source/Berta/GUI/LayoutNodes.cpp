@@ -489,7 +489,7 @@ namespace Berta
 			auto paneTab = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[i].get());
 
 			auto tabId = paneTab->m_tabId.substr(paneNode->m_paneId.size() + 1);
-			m_dockArea->AddTab(tabId, dockArea.m_tabBarPanels[i]);
+			m_dockArea->AddTab(tabId, dockArea.m_tabBar->Detach(i));
 		}
 	}
 
@@ -539,7 +539,7 @@ namespace Berta
 	void DockAreaCaptionReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->MenuBackground, true);
+		graphics.FillRectangle(window->ClientSize.ToRectangle(), window->Appearance->MenuBackground);
 
 		Point textPos{ window->ToScale(5), 0 };
 		textPos.Y = (int)window->ClientSize.Height - (int)graphics.GetTextExtent().Height;

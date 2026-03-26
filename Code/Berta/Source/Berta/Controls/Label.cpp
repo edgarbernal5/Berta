@@ -24,9 +24,9 @@ namespace Berta
 		{
 			auto clientRect = m_module.m_owner->ClientSize.ToRectangle();
 			auto caption = m_control->GetCaptionW();
-			graphics.DrawRectangle(clientRect, m_module.m_owner->Appearance->Background, true);
+			graphics.FillRectangle(clientRect, m_module.m_owner->Appearance->Background);
 			
-			graphics.DrawString(clientRect, caption, m_module.m_owner->Appearance->Foreground, m_module.m_isWordWrap, m_module.m_horizontalAlign, m_module.m_verticalAlignment);
+			graphics.DrawString(clientRect, caption, m_module.m_owner->Appearance->Foreground, {m_module.m_isWordWrap, m_module.m_horizontalAlign, m_module.m_verticalAlignment});
 		}
 
 		void Reactor::Module::Update()

@@ -30,8 +30,8 @@ namespace Berta
 
 			auto checkboxHeight = window->ToScale(window->Appearance->CheckboxHeight);
 			Rectangle checkBoxRect{ 0, static_cast<int>((window->ClientSize.Height - checkboxHeight) >> 1),checkboxHeight, checkboxHeight };
-			graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBackground, true);
-			graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(checkBoxRect, window->Appearance->BoxBackground);
+			graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBorderColor);
 
 			if (m_module.m_isChecked)
 			{

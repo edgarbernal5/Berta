@@ -26,12 +26,12 @@ namespace Berta
 	void FloatBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		Rectangle rect{ 0,0,window->ClientSize.Width,window->ClientSize.Height };
+		auto clientRect = window->ClientSize.ToRectangle();
 		if (m_scrollBar)
 		{
-			rect.Width -= m_scrollBar->Handle()->ClientSize.Width;
+			clientRect.Width -= m_scrollBar->Handle()->ClientSize.Width;
 		}
-		graphics.DrawRectangle(rect, window->Appearance->BoxBackground, true);
+		graphics.FillRectangle(clientRect, window->Appearance->BoxBackground);
 		
 		if (m_interactionData)
 		{
@@ -46,7 +46,7 @@ namespace Berta
 				size_t offsetIndex = static_cast<size_t>(m_state.m_offset) + i;
 				bool isSelected = m_state.m_selectedIndex == offsetIndex;
 				bool isHovered = m_state.m_hoveredIndex == offsetIndex;
-				Rectangle itemRect{ 2, 1 + static_cast<int>(i * itemHeight), rect.Width - 4,itemHeight };
+				Rectangle itemRect{ 2, 1 + static_cast<int>(i * itemHeight), clientRect.Width - 4,itemHeight };
 				if (isSelected)
 				{
 					graphics.DrawRoundRectBox(itemRect, window->Appearance->HighlightColor, window->Appearance->HighlightBorderColor, true);
@@ -54,7 +54,7 @@ namespace Berta
 				}
 				else if (isHovered)
 				{
-					graphics.DrawRectangle(itemRect, window->Appearance->ItemCollectionHightlightBackground, true);
+					graphics.FillRectangle(itemRect, window->Appearance->ItemCollectionHightlightBackground);
 				}
 				auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
 				auto iconMargin = window->ToScale(3u);
@@ -80,7 +80,7 @@ namespace Berta
 			}
 		}
 
-		graphics.DrawRectangle(m_floatBox->GetAppearance().BoxBorderColor, false);
+		graphics.DrawRectangle(clientRect, m_floatBox->GetAppearance().BoxBorderColor);
 	}
 
 	void FloatBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)

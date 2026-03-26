@@ -59,9 +59,12 @@ namespace Berta
         
         if (rect.Width > 0 && rect.Height > 0)
         {
+            Rectangle selectionBoxRect = rect;
+            selectionBoxRect.X = selectionBoxRect.Y = 0;
+            
             selectionBox.Begin();
-            selectionBox.DrawRectangle(blendColor, true);
-            selectionBox.DrawRectangle(borderColor, false);
+            selectionBox.FillRectangle(selectionBoxRect, blendColor);
+            selectionBox.DrawRectangle(selectionBoxRect, borderColor);
             selectionBox.Flush();
 
             graphics.Blend(rect, selectionBox, { 0,0 }, 0.5);

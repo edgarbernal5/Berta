@@ -84,6 +84,9 @@ namespace Berta
 			bool InsertTab(size_t index, std::string tabId, Window* window);
 			void BuildItems(size_t startIndex = 0);
 			bool EraseTab(size_t index);
+			Window* DetachTab(size_t index);
+			
+			void Draw();
 			
 			std::optional<size_t> FindItem(const Point& position) const;
 			std::optional<size_t> GetSelectedIndex() const;
@@ -117,9 +120,12 @@ namespace Berta
 		size_t Count() const;
 		void Erase(size_t index);
 		std::optional<size_t> GetSelectedIndex() const;
-
+		
 		void Insert(size_t position, std::string tabId, Window* window);
-		void PushBack(const std::string& tabId, Window* window);
+		void PushBack(std::string tabId, Window* window);
+		
+		Window* Detach(size_t index);
+		
 		void SetTabBarPosition(TabBarPosition position);
 
 	private:

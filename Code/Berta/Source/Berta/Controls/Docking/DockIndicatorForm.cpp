@@ -14,17 +14,18 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto indicatorSize = static_cast<int>(window->ClientSize.Width);
 		auto indicatorSizeHalf = indicatorSize >> 1;
-
+		auto clientRect = window->ClientSize.ToRectangle();
+		
 		if (m_dockPosition == DockPosition::Tab)
 		{
 			int four = window->ToScale(4);
 			int eight = window->ToScale(8);
 			uint32_t six = window->ToScale(6u);
-			graphics.DrawRectangle(window->Appearance->Background, true);
-			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), six }, window->Appearance->MenuBackground, true);
-			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(clientRect, window->Appearance->Background);
+			graphics.FillRectangle({ four,four,(uint32_t)(indicatorSize - eight), six }, window->Appearance->MenuBackground);
+			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor);
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, window->Appearance->BoxBorderColor);
 		}
 		else if (m_dockPosition == DockPosition::Up)
 		{
@@ -32,9 +33,9 @@ namespace Berta
 			int four = window->ToScale(4);
 			int eight = window->ToScale(8);
 			int six = window->ToScale(6);
-			graphics.DrawRectangle(window->Appearance->Background, true);
-			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground, true);
-			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(clientRect, window->Appearance->Background);
+			graphics.FillRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground);
+			graphics.DrawRectangle({ four,four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor);
 
 			int arrowWidth = four;
 			int arrowLength = two;
@@ -44,7 +45,7 @@ namespace Berta
 				Graphics::ArrowDirection::Upwards,
 				window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, window->Appearance->BoxBorderColor);
 		}
 		else if (m_dockPosition == DockPosition::Down)
 		{
@@ -52,9 +53,9 @@ namespace Berta
 			int four = window->ToScale(4);
 			int eight = window->ToScale(8);
 			int six = window->ToScale(6);
-			graphics.DrawRectangle(window->Appearance->Background, true);
-			graphics.DrawRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground, true);
-			graphics.DrawRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(clientRect, window->Appearance->Background);
+			graphics.FillRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)six }, window->Appearance->MenuBackground);
+			graphics.DrawRectangle({ four,indicatorSizeHalf - four,(uint32_t)(indicatorSize - eight), (uint32_t)(indicatorSizeHalf) }, window->Appearance->BoxBorderColor);
 
 			int arrowWidth = four;
 			int arrowLength = two;
@@ -64,7 +65,7 @@ namespace Berta
 				Graphics::ArrowDirection::Downwards,
 				window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, window->Appearance->BoxBorderColor);
 		}
 		else if (m_dockPosition == DockPosition::Left)
 		{
@@ -72,9 +73,9 @@ namespace Berta
 			int four = window->ToScale(4);
 			int eight = window->ToScale(8);
 			int six = window->ToScale(6);
-			graphics.DrawRectangle(window->Appearance->Background, true);
-			graphics.DrawRectangle({ four,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground, true);
-			graphics.DrawRectangle({ four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(clientRect, window->Appearance->Background);
+			graphics.FillRectangle({ four,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground);
+			graphics.DrawRectangle({ four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor);
 
 			int arrowWidth = four;
 			int arrowLength = two;
@@ -84,7 +85,7 @@ namespace Berta
 				Graphics::ArrowDirection::Left,
 				window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, window->Appearance->BoxBorderColor);
 		}
 		else if (m_dockPosition == DockPosition::Right)
 		{
@@ -92,9 +93,9 @@ namespace Berta
 			int four = window->ToScale(4);
 			int eight = window->ToScale(8);
 			int six = window->ToScale(6);
-			graphics.DrawRectangle(window->Appearance->Background, true);
-			graphics.DrawRectangle({ indicatorSize - four - six,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground, true);
-			graphics.DrawRectangle({ indicatorSizeHalf - four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor, false);
+			graphics.FillRectangle(clientRect, window->Appearance->Background);
+			graphics.FillRectangle({ indicatorSize - four - six,four,(uint32_t)six, (uint32_t)(indicatorSize - eight) }, window->Appearance->MenuBackground);
+			graphics.DrawRectangle({ indicatorSizeHalf - four,four, (uint32_t)(indicatorSizeHalf), (uint32_t)(indicatorSize - eight) }, window->Appearance->BoxBorderColor);
 
 			int arrowWidth = four;
 			int arrowLength = two;
@@ -104,7 +105,7 @@ namespace Berta
 				Graphics::ArrowDirection::Right,
 				window->Appearance->Foreground2nd, true, window->Appearance->ButtonPressedBackground);
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientRect, window->Appearance->BoxBorderColor);
 		}
 	}
 

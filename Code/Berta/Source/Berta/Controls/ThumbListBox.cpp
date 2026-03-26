@@ -30,7 +30,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		bool enabled = m_control->GetEnabled();
 		Rectangle globalRect = window->ClientSize.ToRectangle();
-		graphics.DrawRectangle(globalRect, window->Appearance->BoxBackground, true);
+		graphics.FillRectangle(globalRect, window->Appearance->BoxBackground);
 
 		Rectangle clientArea = m_module.m_scrollableView->GetClientArea(); //m_module.m_control->GetClientArea();
 		if (clientArea.Width == 0 || clientArea.Height == 0) return;
@@ -81,8 +81,8 @@ namespace Berta
 			{
 				backColor = window->Appearance->ButtonHighlightBackground;
 			}
-			graphics.DrawRectangle(cardRect, backColor, true);
-			graphics.DrawRectangle(thumbnailRect, window->Appearance->Background, true);
+			graphics.FillRectangle(cardRect, backColor);
+			graphics.FillRectangle(thumbnailRect, window->Appearance->Background);
 
 			Image cachedImage;
 			if (item.m_hasThumbnail && m_module.m_imageCache.TryGet(item.m_id, cachedImage))
@@ -106,12 +106,12 @@ namespace Berta
 		
 			if (isSelected)
 			{
-				graphics.DrawRectangle({ cardRect.X , cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardHeight - thumbSizeScale }, window->Appearance->HighlightColor, true);
+				graphics.FillRectangle({ cardRect.X , cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardHeight - thumbSizeScale }, window->Appearance->HighlightColor);
 			}
 			m_module.DrawItemText(graphics, item, { cardRect.X, cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardRect.Height });
 		
 			auto lineColor = enabled ? (isFocused ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
-			graphics.DrawRectangle(cardRect, lineColor, false);
+			graphics.DrawRectangle(cardRect, lineColor);
 			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSizeScale }, { cardRect.X + (int)cardRect.Width - 1, cardRect.Y + (int)thumbSizeScale }, lineColor);
 		}
 	
@@ -125,7 +125,7 @@ namespace Berta
 			}
 		}
 
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, false);
+		graphics.DrawRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 	}
 
 	void ThumbListBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
