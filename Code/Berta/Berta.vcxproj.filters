@@ -273,6 +273,27 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h">
       <Filter>Source\Berta\Controls\TextEditors</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ControlClipping.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\LassoSelection.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Core\ObjectPool.h">
+      <Filter>Source\Berta\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\API\PlatformAPI.h">
+      <Filter>Source\Berta\API</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Platform\Windows\ResourceCache.h">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\SelectionController.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ScrollableView.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -448,6 +469,21 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Paint\DrawBatchActivator.cpp">
       <Filter>Source\Berta\Paint</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\API\PlatformAPI.cpp">
+      <Filter>Source\Berta\API</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Platform\Windows\ResourceCache.cpp">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
