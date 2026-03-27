@@ -51,7 +51,7 @@ namespace Berta
 		Image icon;
 		std::any userData;
 		bool isExpanded{ false };
-		int cachedTextWidth { -1 };
+		std::optional<uint32_t> cachedTextWidth { std::nullopt };
 		
 		TreeNodeType* parent{ nullptr };
 		std::vector<TreeNodeType*> children;
@@ -60,11 +60,11 @@ namespace Berta
 	struct FlatNode 
 	{
 		TreeNodeType* Node;
-		int Level;
+		uint32_t Level;
 		uint32_t VerticalLineMask; // Bits: 1 = draw vertical line, 0 = empty space
 		bool IsLastChild;
 		
-		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
+		FlatNode(TreeNodeType* node, uint32_t level, bool isLastChild, uint32_t vertLineMask) : 
 			Node(node), Level(level), VerticalLineMask(vertLineMask), IsLastChild(isLastChild)
 		{
 		}
@@ -227,11 +227,11 @@ namespace Berta
 			void CollapseNode(TreeNodeType* node);
 			void ExpandNode(TreeNodeType* node);
 			
-			int CalculateNodeWidth(TreeNodeType* node, int level);
+			uint32_t CalculateNodeWidth(TreeNodeType* node, uint32_t level);
 			
 			void ResetDragState();
 			void RebuildFlatTree();
-			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
+			void CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild);
 
 			bool ShowNavigationLines(bool visible);
 
@@ -243,7 +243,7 @@ namespace Berta
 			SelectionController<TreeNodeType*> m_selectionController;
 			
 			std::vector<FlatNode> m_flatVisibleTree;
-			std::multiset<int> m_visibleWidths;
+			std::multiset<uint32_t> m_visibleWidths;
 			
 			Window* m_window{ nullptr };
 			Graphics* m_graphics{ nullptr };

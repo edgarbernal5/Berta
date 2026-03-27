@@ -30,11 +30,11 @@ namespace Berta
 	TreeNodeType* TreeModel::Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent)
 	{
 		std::vector<std::wstring> pathParts = StringUtils::Split(key, L'/');
-    
 		if (pathParts.empty() || !m_root)
 		{
 			return nullptr;
 		}
+		
 		TreeNodeType* currentParent = parent == nullptr ? m_root : parent; 
 
 		for (size_t i = 0; i < pathParts.size(); ++i)
@@ -54,7 +54,6 @@ namespace Berta
 			if (existingChild)
 			{
 				currentParent = existingChild;
-				//currentParent->text = text;
 			}
 			else
 			{
@@ -300,7 +299,6 @@ namespace Berta
 			if (hoveredIndex < m_module.m_flatVisibleTree.size())
 			{
 				TreeNodeType* hoverNode = m_module.m_flatVisibleTree[hoveredIndex].Node;
-            
 				if (hoverNode != m_module.m_draggedNode && !m_module.IsDescendantOf(hoverNode, m_module.m_draggedNode))
 				{
 					m_module.m_dropTargetNode = hoverNode;
@@ -494,13 +492,13 @@ namespace Berta
 
 		case KeyboardKey::PageUp:
 			{
-				auto visibleNodesCount = (int)(m_module.m_scrollableView->GetClientArea().Height / nodeHeight);
+				auto visibleNodesCount = static_cast<int>(m_module.m_scrollableView->GetClientArea().Height / nodeHeight);
 				targetIndex = std::max<int>(0, currentIndex - visibleNodesCount);
 			}
 			break;
 		case KeyboardKey::PageDown:
 			{
-				auto visibleNodesCount = (int)(m_module.m_scrollableView->GetClientArea().Height / nodeHeight);
+				auto visibleNodesCount = static_cast<int>(m_module.m_scrollableView->GetClientArea().Height / nodeHeight);
 				targetIndex = std::min<int>(static_cast<int>(m_module.m_flatVisibleTree.size()) - 1, currentIndex + visibleNodesCount);
 			}
 			break;
@@ -601,7 +599,7 @@ namespace Berta
 			const auto& flatNode = m_flatVisibleTree[i];
 			const auto& node = flatNode.Node;
         
-			int indentX = (flatNode.Level * depthMultiplier) - scrollX + clientArea.X;
+			int indentX = (int)(flatNode.Level * depthMultiplier) - scrollX + clientArea.X;
 			int drawY = static_cast<int>(i * nodeHeight) - scrollY + clientArea.Y;
 			
 			if (drawY + nodeHeight < 0 || drawY > clientHeight)
@@ -647,16 +645,16 @@ namespace Berta
 				Color lineColor = appearance->BoxBorderColor;
 				int startX = -scrollX;
 	
-				for (int currLevel = 0; currLevel < flatNode.Level; ++currLevel)
+				for (uint32_t currLevel = 0; currLevel < flatNode.Level; ++currLevel)
 				{
 					if (flatNode.VerticalLineMask & (1 << currLevel))
 					{
-						int lineX = startX + (currLevel * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
+						int lineX = startX + (int)(currLevel * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
 						graphics.DrawLine({lineX, drawY}, {lineX, drawY + nodeHeight}, lineColor, LineStyle::Dotted);
 					}
 				}
 	
-				int currentLineX = startX + (flatNode.Level * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
+				int currentLineX = startX + (int)(flatNode.Level * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
     
 				// Línea horizontal (apunta hacia el icono/texto)
 				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, LineStyle::Dotted);
@@ -714,7 +712,7 @@ namespace Berta
 			
 			if (m_isDragging && m_dropTargetNode == node)
 			{
-				int indicatorX = (flatNode.Level * depthMultiplier) - scrollX + clientArea.Y;
+				int indicatorX = (int)(flatNode.Level * depthMultiplier) - scrollX + clientArea.Y;
     
 				Color indicatorColor = Color(0, 120, 215, 255);
 
@@ -819,17 +817,17 @@ namespace Berta
 			return;
 		}
 		
-		int parentLevel = it->Level;
+		auto parentLevel = it->Level;
 		auto eraseStart = it + 1;
 		auto eraseEnd = eraseStart;
 		
 		while (eraseEnd != m_flatVisibleTree.end() && eraseEnd->Level > parentLevel) 
 		{
-			int totalWidth = CalculateNodeWidth(eraseEnd->Node, eraseEnd->Level);
-			auto it = m_visibleWidths.find(totalWidth);
-			if (it != m_visibleWidths.end())
+			auto totalWidth = CalculateNodeWidth(eraseEnd->Node, eraseEnd->Level);
+			auto widthIt = m_visibleWidths.find(totalWidth);
+			if (widthIt != m_visibleWidths.end())
 			{
-				m_visibleWidths.erase(it);
+				m_visibleWidths.erase(widthIt);
 			}
 			
 			++eraseEnd;
@@ -841,7 +839,10 @@ namespace Berta
 
 	void TreeBoxReactor::Module::ExpandNode(TreeNodeType* node)
 	{
-		if (!node || node->isExpanded || node->children.empty()) return;
+		if (!node || node->isExpanded || node->children.empty())
+		{
+			return;
+		}
 		node->isExpanded = true;
 
 		RebuildFlatTree();
@@ -850,16 +851,26 @@ namespace Berta
 		m_needsRecalculate = true;
 	}
 
-	int TreeBoxReactor::Module::CalculateNodeWidth(TreeNodeType* node, int level)
+	uint32_t TreeBoxReactor::Module::CalculateNodeWidth(TreeNodeType* node, uint32_t level)
 	{
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
-		if (node->cachedTextWidth == -1) // Solo medimos si nunca se ha medido
+		
+		auto expanderSize = static_cast<int>(m_window->ToScale(appearance->ExpanderButtonSize));
+		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
+		auto iconSize = static_cast<int>(m_window->ToScale(appearance->SmallIconSize));
+		int textPaddingX = m_window->ToScale(5);
+		
+		if (!node->cachedTextWidth.has_value())
 		{
-			int textWidth = m_graphics->GetTextExtent(node->text).Width;
-			//int iconWidth = m_appearance->ExpanderButtonSize + 5; // padding
-			node->cachedTextWidth = textWidth /*+ iconWidth*/;
+			node->cachedTextWidth = m_graphics->GetTextExtent(node->text).Width;
 		}
-		return node->cachedTextWidth + (level * (int)appearance->DepthWidthMultiplier);
+		
+		auto rowTotalWidth = *node->cachedTextWidth + (level * depthMultiplier) + expanderSize + textPaddingX;
+		if (m_drawImages)
+		{
+			rowTotalWidth += iconSize;
+		}
+		return rowTotalWidth;
 	}
 
 	void TreeBoxReactor::Module::ResetDragState()
@@ -870,7 +881,7 @@ namespace Berta
 		m_dropPosition = DropPosition::None;
     
 		m_needsRepaint = true;
-		GUI::UpdateWindow(m_window);
+		GUI::MarkAsNeedUpdate(m_window);
 	}
 
 	void TreeBoxReactor::Module::RebuildFlatTree()
@@ -898,27 +909,11 @@ namespace Berta
 		m_needsRepaint = true;
 	}
 
-	void TreeBoxReactor::Module::CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild)
+	void TreeBoxReactor::Module::CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild)
 	{
-		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
 		m_flatVisibleTree.emplace_back(node, level, isLastChild, lineMask);
 
-		if (node->cachedTextWidth == -1)
-		{
-			Size textSize = m_graphics->GetTextExtent(node->text);
-			node->cachedTextWidth = static_cast<int>(textSize.Width);
-		}
-		
-		auto expanderSize = static_cast<int>(m_window->ToScale(appearance->ExpanderButtonSize));
-		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
-		auto iconSize = static_cast<int>(m_window->ToScale(appearance->SmallIconSize));
-		int textPaddingX = 5;
-
-		int rowTotalWidth = (level * depthMultiplier) + expanderSize + textPaddingX + node->cachedTextWidth;
-		if (m_drawImages)
-		{
-			rowTotalWidth += iconSize;
-		}
+		auto rowTotalWidth = CalculateNodeWidth(node, level);
 		m_visibleWidths.insert(rowTotalWidth);
 
 		if (node->isExpanded && !node->children.empty())
@@ -1099,6 +1094,7 @@ namespace Berta
 				collapseRecursive(childPair);
 			}
 		};
+		
 		TreeNodeType* root = module.m_model.GetRoot();
 		for (auto& childPair : root->children)
 		{
