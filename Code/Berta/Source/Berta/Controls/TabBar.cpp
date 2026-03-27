@@ -152,14 +152,18 @@ namespace Berta
 			return;
 		}
 		
+		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
+		
+		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
+		m_module.m_events->TabMouseDown.Emit(argsTabMouse);
+		
 		if (m_module.m_selectedTabIndex != newSelectedIndex) 
 		{
 			auto& selectedTabItem = m_module.m_panels[*m_module.m_selectedTabIndex];
 			GUI::ShowWindow(selectedTabItem.PanelPtr.get(), false);
 			
 			m_module.m_selectedTabIndex = newSelectedIndex;
-
-			auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
+			
 			GUI::ShowWindow(newSelectedTabItem.PanelPtr.get(), true);
 
 			ArgTabBar argsTabBar{ newSelectedIndex.value(), newSelectedTabItem.Id };
@@ -167,6 +171,32 @@ namespace Berta
 
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
+	}
+
+	void TabBarReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+	{
+		auto newSelectedIndex = m_module.FindItem(args.Position);
+		if (!newSelectedIndex.has_value())
+		{
+			return;
+		}
+		
+		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
+		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
+		m_module.m_events->TabMouseMove.Emit(argsTabMouse);
+	}
+
+	void TabBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+	{
+		auto newSelectedIndex = m_module.FindItem(args.Position);
+		if (!newSelectedIndex.has_value())
+		{
+			return;
+		}
+		
+		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
+		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
+		m_module.m_events->TabMouseUp.Emit(argsTabMouse);
 	}
 
 	void TabBarReactor::Resize(Graphics& graphics, const ArgResize& args)

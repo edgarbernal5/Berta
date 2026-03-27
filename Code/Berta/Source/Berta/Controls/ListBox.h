@@ -128,7 +128,7 @@ namespace Berta
 
 			void Append(const std::string& name, uint32_t width);
 			void Clear();
-			void SetSortState(size_t visualColumnIndex, bool ascending);
+			void SetSortState(size_t logicalColumnIndex, bool ascending);
 			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
 			uint32_t GetTotalWidth() const;
 

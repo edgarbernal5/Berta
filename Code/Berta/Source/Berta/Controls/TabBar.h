@@ -36,11 +36,20 @@ namespace Berta
 		mutable bool Cancel{ false };
 	};
 	
+	struct ArgTabMouse : public ArgTabBar
+	{
+		ArgMouse Mouse;
+	};
+	
 	struct TabBarEvents : public ControlEvents
 	{
 		Event<ArgTabBar> TabChanged;
 		Event<ArgTabClosing> TabClosing;
 		Event<ArgTabBar> TabClosed;
+		
+		Event<ArgTabMouse> TabMouseDown;
+		Event<ArgTabMouse> TabMouseMove;
+		Event<ArgTabMouse> TabMouseUp;
 	};
 	
 	struct TabBarAppearance : public ControlAppearance
@@ -62,6 +71,8 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
 		
 		struct PanelItem
