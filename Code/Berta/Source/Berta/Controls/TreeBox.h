@@ -80,10 +80,31 @@ namespace Berta
 
         TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr);
 
-		TreeNodeType* Find(const TreeNodeHandle& key) const
+		TreeNodeType* Find(const TreeNodeHandle& absolutePath) const
         {
-        	auto it = m_lookup.find(key);
-        	return (it != m_lookup.end()) ? it->second : nullptr;
+			if (absolutePath.empty() || !m_root) return nullptr;
+
+			std::vector<std::wstring> pathParts = StringUtils::Split(absolutePath, '/');
+			TreeNodeType* current = m_root;
+
+			for (const std::wstring& part : pathParts)
+			{
+				bool found = false;
+				for (auto* child : current->children)
+				{
+					if (child->key == part)
+					{
+						current = child;
+						found = true;
+						break;
+					}
+				}
+        
+				// Si en algún nivel no encontramos el hijo, la ruta no existe
+				if (!found) return nullptr; 
+			}
+
+			return current;
         }
 
 		void Erase(TreeNodeType* node)
@@ -106,7 +127,6 @@ namespace Berta
                 EraseRecursive(child);
             }
             m_root->children.clear();
-        	m_lookup.clear();
         }
 		
 		std::wstring GetKeyPath(TreeNodeType* node, wchar_t separator) const
@@ -166,12 +186,10 @@ namespace Berta
                 siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
             }
 
-            m_lookup.erase(node->key);
             m_nodePool.Deallocate(node);
         }
 		
 		ObjectPool<TreeNodeType, 1024> m_nodePool;
-		std::unordered_map<std::wstring, TreeNodeType*> m_lookup;
 		TreeNodeType* m_root { nullptr };
     };
 	

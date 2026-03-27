@@ -589,6 +589,7 @@ namespace Berta
 		int scrollX = m_scrollableView->GetScrollOffset().X;
 		int scrollY = m_scrollableView->GetScrollOffset().Y;
 		auto clientArea = m_scrollableView->GetClientArea();
+		int clientHeight = (int)clientArea.Height;
 		int clientWidth = (int)clientArea.Width;
     
 		size_t startIndex = std::max<size_t>(0ULL, static_cast<size_t>(scrollY / nodeHeight));
@@ -602,6 +603,12 @@ namespace Berta
         
 			int indentX = (flatNode.Level * depthMultiplier) - scrollX + clientArea.X;
 			int drawY = static_cast<int>(i * nodeHeight) - scrollY + clientArea.Y;
+			
+			if (drawY + nodeHeight < 0 || drawY > clientHeight)
+			{
+				continue;
+			}
+			
 			int centerY = drawY + nodeHeightHalf;
 			int currentX = indentX;
 			
@@ -611,48 +618,56 @@ namespace Berta
 			bool isFocused = (node == m_focusedNode);
 			bool isHovered = (node == m_hoveredNode);
 			
+			int reducedX = currentX + (int)expanderSize + textPaddingX;
+			if (m_drawImages)
+			{
+				//reducedX += (int)iconSize; //+ iconMargin * 2;
+			}
 			if (isSelected)
 			{
+				Rectangle reducedRowRect = rowRect;
+				reducedRowRect.X += reducedX;
+				reducedRowRect.Width -= reducedX;
 				auto color = appearance->SelectionHighlightColor;
-				color.SetA(200);
-				graphics.FillRectangle(rowRect, color); 
+				//color.SetA(200);
+				graphics.FillRectangle(reducedRowRect, color); 
 			}
 			else if (isHovered)
 			{
+				Rectangle reducedRowRect = rowRect;
+				reducedRowRect.X += reducedX;
+				reducedRowRect.Width -= reducedX;
 				auto color = appearance->HighlightColor;
-				color.SetA(180);
-				graphics.FillRectangle(rowRect, color); 
+				//color.SetA(180);
+				graphics.FillRectangle(reducedRowRect, color); 
 			}
 			
 			if (m_showNavigationLines)
 			{
 				Color lineColor = appearance->BoxBorderColor;
 				int startX = -scrollX;
-				
+	
 				for (int currLevel = 0; currLevel < flatNode.Level; ++currLevel)
 				{
 					if (flatNode.VerticalLineMask & (1 << currLevel))
 					{
 						int lineX = startX + (currLevel * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
-            
-						// Dibuja desde el borde superior hasta el borde inferior de esta fila
-						// Puedes usar DrawLine o DrawDashedLine si Berta lo soporta
-						graphics.DrawLine({lineX, drawY}, {lineX, drawY + nodeHeight}, lineColor, Graphics::LineStyle::Dotted);
+						graphics.DrawLine({lineX, drawY}, {lineX, drawY + nodeHeight}, lineColor, LineStyle::Dotted);
 					}
 				}
-				
+	
 				int currentLineX = startX + (flatNode.Level * depthMultiplier) + ((int)expanderSize / 2) + expanderMarginX;
     
 				// Línea horizontal (apunta hacia el icono/texto)
-				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, Graphics::LineStyle::Dotted);
+				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, LineStyle::Dotted);
 
 				// Línea vertical superior (viene del nodo de arriba)
-				graphics.DrawLine({currentLineX, drawY}, {currentLineX, centerY}, lineColor, Graphics::LineStyle::Dotted);
+				graphics.DrawLine({currentLineX, drawY}, {currentLineX, centerY}, lineColor, LineStyle::Dotted);
 
 				// Línea vertical inferior (continúa hacia abajo solo si NO es el último hijo)
 				if (!flatNode.IsLastChild)
 				{
-					graphics.DrawLine({currentLineX, centerY}, {currentLineX, drawY + nodeHeight}, lineColor, Graphics::LineStyle::Dotted);
+					graphics.DrawLine({currentLineX, centerY}, {currentLineX, drawY + nodeHeight}, lineColor, LineStyle::Dotted);
 				}
 			}
 			Rectangle expanderRect{ indentX + expanderMarginX, drawY + (nodeHeight - (int)expanderSize) / 2, expanderSize, expanderSize };
@@ -686,7 +701,10 @@ namespace Berta
 			
 			if (isFocused)
 			{
-				graphics.DrawRectangle(rowRect, appearance->Foreground);
+				Rectangle reducedRowRect = rowRect;
+				reducedRowRect.X += reducedX;
+				reducedRowRect.Width -= reducedX;
+				graphics.DrawRectangle(reducedRowRect, appearance->Foreground);
 			}
 			
 			Rectangle textRect{ currentX, drawY + ((nodeHeight - (int)graphics.GetTextExtent().Height)/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
@@ -767,10 +785,9 @@ namespace Berta
 
 	void TreeBoxReactor::Module::EmitSelectionEvent()
 	{
-		ArgTreeBoxSelection argTreeBox;
-    
 		auto selectedNodes = m_selectionController.GetSelectedItems();
-    
+		
+		ArgTreeBoxSelection argTreeBox;
 		argTreeBox.Items.reserve(selectedNodes.size());
 		for (auto* node : selectedNodes)
 		{
@@ -788,7 +805,10 @@ namespace Berta
 
 	void TreeBoxReactor::Module::CollapseNode(TreeNodeType* node)
 	{
-		if (!node->isExpanded) return;
+		if (!node->isExpanded)
+		{
+			return;
+		}
 		node->isExpanded = false;
 
 		auto it = std::find_if(m_flatVisibleTree.begin(), m_flatVisibleTree.end(),
@@ -1152,6 +1172,7 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		auto cleanAbsoluteKey = module.CleanKey(key);
+		
 		TreeNodeType* insertedNode = module.m_model.Insert(cleanAbsoluteKey, text, parent.GetNode());
 		if (insertedNode)
 		{
