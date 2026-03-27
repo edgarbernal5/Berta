@@ -53,13 +53,6 @@ namespace Berta
 			Right
 		};
 
-		enum class LineStyle : uint8_t
-		{
-			Solid,
-			Dash,
-			Dotted
-		};
-
 		void Build(API::RootPaintNativeHandle rootPaintHandle);
 		void Build(const Size& size, API::RootPaintNativeHandle rootPaintHandle);
 		void BuildFont(uint32_t dpi);

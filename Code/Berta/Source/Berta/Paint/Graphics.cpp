@@ -300,48 +300,29 @@ namespace Berta
 		auto brush = m_resourceCache.GetBrush(color);
 		if (brush)
 		{
+			float offset = (strokeWidth == 1.0f) ? 0.5f : 0.0f;
+			
 			D2D1_POINT_2F point1F;
-			point1F.x = static_cast<FLOAT>(point1.X) + 0.5f;
-			point1F.y = static_cast<FLOAT>(point1.Y) + 0.5f;
+			point1F.x = static_cast<FLOAT>(point1.X) + offset;
+			point1F.y = static_cast<FLOAT>(point1.Y) + offset;
 
 			D2D1_POINT_2F point2F;
-			point2F.x = static_cast<FLOAT>(point2.X) + 0.5f;
-			point2F.y = static_cast<FLOAT>(point2.Y) + 0.5f;
-
+			point2F.x = static_cast<FLOAT>(point2.X) + offset;
+			point2F.y = static_cast<FLOAT>(point2.Y) + offset;
+			
 			if (style == LineStyle::Solid)
 			{
 				m_targetRT->DrawLine(point1F, point2F, brush, strokeWidth);
 			}
 			else
 			{
-				float dashes[] = { 1.0f, 1.0f };
-				ID2D1StrokeStyle* strokeStyle = nullptr;
-
-				/*D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties
-				(
-					D2D1_CAP_STYLE_ROUND,      // startCap
-					D2D1_CAP_STYLE_ROUND,      // endCap
-					D2D1_CAP_STYLE_FLAT,       // dashCap
-					D2D1_LINE_JOIN_ROUND,      // lineJoin
-					10.0f,                     // miterLimit
-					D2D1_DASH_STYLE_DASH,      // dashStyle
-					0.0f                       // dashOffset
-				);*/
+				D2D1_ANTIALIAS_MODE oldAntialiasMode = m_targetRT->GetAntialiasMode();
+				m_targetRT->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
 				
-				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties(
-					D2D1_CAP_STYLE_FLAT,  // Cap inicial plano
-					D2D1_CAP_STYLE_FLAT,  // Cap final plano
-					D2D1_CAP_STYLE_FLAT,  // Cap intermedio plano
-					D2D1_LINE_JOIN_MITER, // Unión recta
-					10.0f,                // Límite de miter
-					D2D1_DASH_STYLE_CUSTOM, // Usaremos nuestro array de arriba
-					0.0f                  // Desplazamiento inicial del patrón
-				);
-
-				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, dashes, ARRAYSIZE(dashes), &strokeStyle);
+				ID2D1StrokeStyle* strokeStyle = m_resourceCache.GetStrokeStyle(style);
 				m_targetRT->DrawLine(point1F, point2F, brush, strokeWidth, strokeStyle);
-
-				strokeStyle->Release();
+				
+				m_targetRT->SetAntialiasMode(oldAntialiasMode);
 			}
 		}
 #endif
