@@ -80,4 +80,8 @@ namespace Berta
 	void ControlReactor::Move(Graphics& graphics, const ArgMove& args)
 	{
 	}
+
+	void ControlReactor::DpiChanged(Graphics& graphics)
+	{
+	}
 }
