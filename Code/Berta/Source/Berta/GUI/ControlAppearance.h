@@ -48,7 +48,7 @@ namespace Berta
 		Color ScrollBarBackground{ Colors::Light_ScrollBarBackground };
 		Color MenuBackground{ Colors::Light_MenuBackground };
 
-		Color ItemCollectionHightlightBackground{ Colors::Light_ItemCollectionHightlightBackground };
+		Color ItemCollectionHightlightBackground{ Colors::Light_ItemCollectionHighlightBackground };
 
 		Color SelectionHighlightColor{ Colors::Light_SelectionHighlightColor };
 		Color SelectionBorderHighlightColor{ Colors::Light_SelectionBorderHighlightColor };

@@ -57,6 +57,8 @@ namespace Berta
 		uint32_t TabBarItemHeight = 27;
 		Color SelectedBackgroundColor { Colors::Light_ButtonBackground };
 		Color AccentColor{ Colors::Light_SelectionHighlightColor };
+		Color InnerHighlightColor{255, 255, 255, 128};
+		Color TabBackgroundColor{204, 200, 192, 255};
 	};
 	
 	struct WindowDeleter

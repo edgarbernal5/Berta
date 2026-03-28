@@ -74,7 +74,7 @@ namespace Berta
 		void DrawTopRoundedRectangle(const Rectangle& rect, float radius, const Color& borderColor, bool closeFigure, float strokeWidth = 1.0f);
 		void FillTopRoundedRectangle(const Rectangle& rect, float radius, const Color& fillColor);
 		
-		void DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color fillColor, Color borderColor, bool closeFigure, float strokeWidth = 1.0f);
+		void DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color borderColor, bool closeFigure, float strokeWidth = 1.0f);
 		void FillBottomRoundedRectangle(const Rectangle& rect, float radius, Color fillColor);
 		
 		void DrawString(const Point& position, std::string_view strView, const Color& color);

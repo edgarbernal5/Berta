@@ -52,6 +52,17 @@ namespace Berta
 		
 		size_t selectedIndex = m_module.m_selectedTabIndex.value();
 		
+		Rectangle contentArea;
+		if (m_module.m_tabPosition == TabBarPosition::Top)
+		{
+			contentArea = { 2, tabBarItemHeight + 2, static_cast<uint32_t>(width - 4), static_cast<uint32_t>(height - tabBarItemHeight - 4) };
+		}
+		else
+		{
+			contentArea = { 2, 2, static_cast<uint32_t>(width - 4), static_cast<uint32_t>(height - tabBarItemHeight - 4) };
+		}
+	    graphics.FillRectangle(contentArea, appearance->TabBackgroundColor);
+		
 	    for (size_t i = 0; i < m_module.m_panels.size(); ++i)
 	    {
 	        const auto& tabItem = m_module.m_panels[i];
@@ -66,16 +77,60 @@ namespace Berta
 	    		Rectangle activeBgRect{ Point{xLeft, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight)} };
 	    		if (m_module.m_tabPosition == TabBarPosition::Top)
 	    		{
-	    			graphics.DrawTopRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->BoxBorderColor, false);
+	    			//graphics.DrawTopRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->BoxBorderColor, false);
+	    			
+	    			graphics.FillTopRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->TabBackgroundColor);
+	    			
+	    			Rectangle highlightRect{ 
+	    				Point{xLeft + 1, tabItem.Position.Y + 1}, 
+						Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 1)} 
+	    			};
+	    			
+	    			graphics.DrawTopRoundedRectangle(highlightRect, static_cast<float>(cornerRadius - 1), appearance->InnerHighlightColor, false);
+	    			graphics.DrawTopRoundedRectangle(activeBgRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, false);
 	    		}
 	    		else
 	    		{
-	    			graphics.DrawBottomRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, false);
+	    			//graphics.DrawBottomRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, false);
+	    			
+	    			graphics.FillBottomRoundedRectangle(activeBgRect, (float)cornerRadius, appearance->TabBackgroundColor);
+	    			
+	    			Rectangle highlightRect{ 
+	    				Point{xLeft + 1, tabItem.Position.Y + 1}, 
+						Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 1)} 
+	    			};
+	    			
+	    			graphics.DrawBottomRoundedRectangle(highlightRect, static_cast<float>(cornerRadius - 1), appearance->InnerHighlightColor, false);
+	    			graphics.DrawBottomRoundedRectangle(activeBgRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, false);
 	    		}
 	    	}
 		    else
 		    {
 		    	if (m_module.m_tabPosition == TabBarPosition::Top)
+			    {
+				    int yOffset = 2;
+		    		Rectangle inactiveBgRect{ 
+		    			Point{xLeft, tabItem.Position.Y + yOffset}, 
+						Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight - yOffset)} 
+		    		};
+
+		    		// Relleno y borde cerrado (la línea horizontal que dibujaremos después pasará por encima)
+		    		graphics.FillTopRoundedRectangle(inactiveBgRect, static_cast<float>(cornerRadius), appearance->Background);
+		    		graphics.DrawTopRoundedRectangle(inactiveBgRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, true);
+			    }
+			    else
+			    {
+			    	int yOffset = 2; 
+			    	Rectangle inactiveBgRect{ 
+			    		Point{xLeft, tabItem.Position.Y}, 
+						Size{static_cast<uint32_t>(tabWidth), static_cast<uint32_t>(tabBarItemHeight - yOffset)} 
+			    	};
+
+			    	// Relleno y borde cerrado (la línea horizontal que dibujaremos después pasará por encima)
+			    	graphics.FillBottomRoundedRectangle(inactiveBgRect, static_cast<float>(cornerRadius), appearance->Background);
+			    	graphics.DrawBottomRoundedRectangle(inactiveBgRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, true);
+			    }
+		    	/*if (m_module.m_tabPosition == TabBarPosition::Top)
 		    	{
 		    		Rectangle inactiveBgRect{ Point{xLeft + 1, tabItem.Position.Y + 4}, Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 4)} };
 		    		graphics.DrawTopRoundedRectangle(inactiveBgRect, (float)cornerRadius, appearance->BoxBorderColor, false);
@@ -84,7 +139,7 @@ namespace Berta
 		    	{
 		    		Rectangle inactiveBgRect{ Point{xLeft + 1, tabItem.Position.Y}, Size{static_cast<uint32_t>(tabWidth - 2), static_cast<uint32_t>(tabBarItemHeight - 4)} };
 		    		graphics.DrawBottomRoundedRectangle(inactiveBgRect, (float)cornerRadius, appearance->SelectedBackgroundColor, appearance->BoxBorderColor, false);
-		    	}
+		    	}*/
 		    }
 	    	// Texto
 	    	graphics.DrawString({ tabItem.Center.X + xLeft, tabItem.Center.Y + tabItem.Position.Y }, tabItem.Id, textColor);
@@ -118,6 +173,10 @@ namespace Berta
 			int yBase = tabBarItemHeight + 1;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
+			
+			++yBase;
+			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->InnerHighlightColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->InnerHighlightColor);
 		}
 		else
 		{
@@ -130,6 +189,10 @@ namespace Berta
 			int yBase = height - 1 - tabBarItemHeight;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
 			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
+			
+			--yBase;
+			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->InnerHighlightColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->InnerHighlightColor);
 		}
 	}
 

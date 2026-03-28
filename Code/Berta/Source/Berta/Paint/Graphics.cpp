@@ -528,7 +528,7 @@ namespace Berta
 #endif
 	}
 
-	void Graphics::DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color fillColor, Color borderColor, bool closeFigure, float strokeWidth)
+	void Graphics::DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color borderColor, bool closeFigure, float strokeWidth)
 	{
 		if (!IsValid())
 		{
