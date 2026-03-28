@@ -86,6 +86,7 @@ namespace Berta
 			Point Center{};
 			Size Size{};
 			Rectangle ContentArea{};
+			Rectangle CloseButtonArea{};
 		};
 		
 		struct Module
@@ -109,6 +110,7 @@ namespace Berta
 			TabBarEvents* m_events{ nullptr };
 			TabBarAppearance* m_appearance{ nullptr };
 			TabBarPosition m_tabPosition{ TabBarPosition::Top };
+			bool m_showCloseButton { true };
 
 		private:
 			void UpdatePanelMoveRect(Window* window) const;
@@ -138,7 +140,7 @@ namespace Berta
 		Window* Detach(size_t index);
 		
 		void SetTabBarPosition(TabBarPosition position);
-
+		void ShowCloseButton(bool show);
 	private:
 		
 	};

@@ -90,12 +90,15 @@ namespace Berta
 	    	graphics.DrawString({ tabItem.Center.X + xLeft, tabItem.Center.Y + tabItem.Position.Y }, tabItem.Id, textColor);
 
 	    	// Botón de Cerrar 'X'
-	    	/*int btnX = xLeft + tabItem.CloseButtonArea.Position.X;
-	    	int btnY = tabItem.Position.Y + tabItem.CloseButtonArea.Position.Y;
-	    	int btnS = tabItem.CloseButtonArea.Size.Width;
+	    	if (m_module.m_showCloseButton)
+	    	{
+	    		int btnX = xLeft + tabItem.CloseButtonArea.X;
+	    		int btnY = tabItem.Position.Y + tabItem.CloseButtonArea.Y;
+	    		int btnS = tabItem.CloseButtonArea.Width;
 
-	    	graphics.DrawLine({ btnX, btnY }, { btnX + btnS, btnY + btnS }, textColor);
-	    	graphics.DrawLine({ btnX, btnY + btnS }, { btnX + btnS, btnY }, textColor);*/
+	    		graphics.DrawLine({ btnX, btnY }, { btnX + btnS, btnY + btnS }, textColor);
+	    		graphics.DrawLine({ btnX, btnY + btnS }, { btnX + btnS, btnY }, textColor);
+	    	}
 	    }
 
 	    // 2. DIBUJAR BASE DE LAS PESTAÑAS Y BORDES DEL CONTENEDOR
@@ -132,19 +135,20 @@ namespace Berta
 
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		/*for (size_t i = 0; i < m_module.m_panels.size(); ++i)
+		for (size_t i = 0; i < m_module.m_panels.size(); ++i)
 		{
 			auto& tab = m_module.m_panels[i];
 			Rectangle absCloseBtn = tab.CloseButtonArea;
-			absCloseBtn.Position.X += tab.Position.X;
-			absCloseBtn.Position.Y += tab.Position.Y;
+			absCloseBtn.X += tab.Position.X;
+			absCloseBtn.Y += tab.Position.Y;
 
 			if (absCloseBtn.IsInside(args.Position))
 			{
 				m_module.EraseTab(i);
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 				return;
 			}
-		}*/
+		}
 		
 		auto newSelectedIndex = m_module.FindItem(args.Position);
 		if (!newSelectedIndex.has_value())
@@ -314,7 +318,18 @@ namespace Berta
 			auto& tab = m_panels[i];
 			auto textSize = graphics.GetTextExtent(tab.Id);
 
-			tab.Size.Width = textSize.Width + (tabPadding * 2) + closeBtnSize + spacing;
+			tab.Size.Width = textSize.Width + (tabPadding * 2) + spacing;
+			if (m_showCloseButton)
+			{
+				tab.Size.Width += closeBtnSize;
+				
+				tab.CloseButtonArea = {
+					tabPadding + static_cast<int>(textSize.Width) + spacing,
+					(tabBarItemHeight - closeBtnSize) / 2,
+					static_cast<uint32_t>(closeBtnSize),
+					static_cast<uint32_t>(closeBtnSize)
+				};
+			}
 			tab.Size.Height = tabBarItemHeight;
 
 			tab.Position.X = currentX;
@@ -322,13 +337,6 @@ namespace Berta
 
 			tab.Center.X = tabPadding;
 			tab.Center.Y = (tabBarItemHeight - textSize.Height) / 2;
-
-			/*tab.CloseButtonArea = {
-				static_cast<uint32_t>(tabPadding + textSize.Width + spacing),
-				static_cast<uint32_t>((tabBarItemHeight - closeBtnSize) / 2),
-				static_cast<uint32_t>(closeBtnSize),
-				static_cast<uint32_t>(closeBtnSize)
-			};*/
 
 			tab.ContentArea = contentArea;
 			currentX += static_cast<int>(tab.Size.Width);
@@ -502,6 +510,17 @@ namespace Berta
 		}
 		
 		module.m_tabPosition = position;
+		module.BuildItems();
+		module.Draw();
+	}
+
+	void TabBar::ShowCloseButton(bool show)
+	{
+		auto& module = GetReactor().GetModule();
+		if (module.m_showCloseButton == show)
+			return;
+		
+		module.m_showCloseButton = show;
 		module.BuildItems();
 		module.Draw();
 	}
