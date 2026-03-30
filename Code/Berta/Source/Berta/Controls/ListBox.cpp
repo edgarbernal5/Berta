@@ -1095,6 +1095,9 @@ namespace Berta
 		{
 			m_items.Clear();
 			m_selectionController.Clear();
+			m_hoveredIndex.reset();
+			m_focusedLogicalIndex.reset();
+			
 			UpdateScrollData();
 		}
 
