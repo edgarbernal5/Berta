@@ -47,19 +47,19 @@ namespace Berta
 	    int tabBarItemHeight = static_cast<int>(m_module.m_owner->ToScale(appearance->TabBarItemHeight));
 		int cornerRadius = m_module.m_owner->ToScale(4);
 		
-	    int width = static_cast<int>(m_module.m_owner->ClientSize.Width);
-	    int height = static_cast<int>(m_module.m_owner->ClientSize.Height);
+	    int clientWidth = static_cast<int>(m_module.m_owner->ClientSize.Width);
+	    int clientHeight = static_cast<int>(m_module.m_owner->ClientSize.Height);
 		
 		size_t selectedIndex = m_module.m_selectedTabIndex.value();
 		
 		Rectangle contentArea;
 		if (m_module.m_tabPosition == TabBarPosition::Top)
 		{
-			contentArea = { 2, tabBarItemHeight + 2, static_cast<uint32_t>(width - 4), static_cast<uint32_t>(height - tabBarItemHeight - 4) };
+			contentArea = { 2, tabBarItemHeight + 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
 		}
 		else
 		{
-			contentArea = { 2, 2, static_cast<uint32_t>(width - 4), static_cast<uint32_t>(height - tabBarItemHeight - 4) };
+			contentArea = { 2, 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
 		}
 	    graphics.FillRectangle(contentArea, appearance->TabBackgroundColor);
 		
@@ -172,27 +172,44 @@ namespace Berta
 			
 			int yBase = tabBarItemHeight + 1;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
-			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { clientWidth, yBase }, appearance->BoxBorderColor);
 			
 			++yBase;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->InnerHighlightColor);
-			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->InnerHighlightColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { clientWidth, yBase }, appearance->InnerHighlightColor);
+			
+			Rectangle contentAreaRect{ Point{0, tabBarItemHeight + 1}, Size{static_cast<uint32_t>(clientWidth), static_cast<uint32_t>(clientHeight - 1 - tabBarItemHeight)}  };
+			graphics.DrawBottomRoundedRectangle(contentAreaRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, false);
+			
+			contentAreaRect.X = 1;
+			contentAreaRect.Y++;
+			contentAreaRect.Width -= 2;
+			contentAreaRect.Height -= 2;
+			graphics.DrawBottomRoundedRectangle(contentAreaRect, static_cast<float>(cornerRadius), appearance->InnerHighlightColor, false);
 		}
 		else
 		{
 			//int accentLineY = height - accentThickness - 1;
-			int accentLineY = height - tabBarItemHeight - accentThickness / 2;
+			int accentLineY = clientHeight - tabBarItemHeight - accentThickness / 2;
 			//graphics.DrawLine({ activeXStart, accentLineY }, { activeXStart + activeWidth, accentLineY }, 2.0f, appearance->AccentColor);
 			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
 			graphics.FillRectangle(accentRect, appearance->AccentColor);
 			
-			int yBase = height - 1 - tabBarItemHeight;
+			int yBase = clientHeight - 1 - tabBarItemHeight;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->BoxBorderColor);
-			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->BoxBorderColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { clientWidth, yBase }, appearance->BoxBorderColor);
 			
 			--yBase;
 			graphics.DrawLine({ 0, yBase }, { activeXStart - 1, yBase }, appearance->InnerHighlightColor);
-			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { width, yBase }, appearance->InnerHighlightColor);
+			graphics.DrawLine({ activeXStart + activeWidth, yBase }, { clientWidth, yBase }, appearance->InnerHighlightColor);
+			
+			Rectangle contentAreaRect{ Point{0, 0}, Size{static_cast<uint32_t>(clientWidth), static_cast<uint32_t>(clientHeight - 1 - tabBarItemHeight)}  };
+			graphics.DrawTopRoundedRectangle(contentAreaRect, static_cast<float>(cornerRadius), appearance->BoxBorderColor, false);
+			
+			contentAreaRect.X = contentAreaRect.Y = 1;
+			contentAreaRect.Width -= 2;
+			contentAreaRect.Height -= 2;
+			graphics.DrawTopRoundedRectangle(contentAreaRect, static_cast<float>(cornerRadius), appearance->InnerHighlightColor, false);
 		}
 	}
 
