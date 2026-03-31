@@ -897,7 +897,7 @@ namespace Berta
 		auto& module = GetReactor().GetModule();
 		if (module.EnableMultiselection(enabled))
 		{
-			//module.ClearSelection();
+			module.m_selectionController.Clear();
 			module.Draw();
 		}
 	}

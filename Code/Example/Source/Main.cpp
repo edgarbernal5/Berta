@@ -480,7 +480,7 @@ int main()
 	TabExample2 tabExample2(form);
 	TabExample3 tabExample3(form);
 
-	tabbar.SetTabBarPosition(Berta::TabBarPosition::Bottom);
+	//tabbar.SetTabBarPosition(Berta::TabBarPosition::Bottom);
 	tabbar.PushBack("Apariencia", tabExample1);
 	tabbar.PushBack("Player", tabExample2);
 	tabbar.Insert(0, "Input", tabExample3);

@@ -46,7 +46,6 @@ namespace Berta
 	private:
 		template <typename TArgument>
 		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&, const TArgument&), const TArgument& args);
-		
 		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&));
 
 		bool m_updating{ false };
