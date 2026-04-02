@@ -582,7 +582,7 @@ int main()
 	
 	form.GetEvents().MouseUp.Connect([&tabbar](const Berta::ArgMouse& args)
 	{
-		tabbar.SetTabBarPosition(tabbar.GetTabBarPosition() == Berta::TabBarPosition::Top ? Berta::TabBarPosition::Bottom : Berta::TabBarPosition::Top);
+		tabbar.SetTabRowPosition(tabbar.GetTabRowPosition() == Berta::TabRowPosition::Top ? Berta::TabRowPosition::Bottom : Berta::TabRowPosition::Top);
 	});
 	form.GetAppearance().Background.SetR(0);
 	form.Show();

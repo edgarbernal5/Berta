@@ -17,7 +17,7 @@
 
 namespace Berta
 {
-	enum class TabBarPosition
+	enum class TabRowPosition
 	{
 		Top,
 		Bottom
@@ -115,7 +115,7 @@ namespace Berta
 			
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
-			TabBarPosition m_tabBarPosition{ TabBarPosition::Top };
+			TabRowPosition m_tabRowPosition{ TabRowPosition::Top };
 			Padding m_tabPagePadding;
 			bool m_showCloseButton { true };
 		};
@@ -165,8 +165,8 @@ namespace Berta
 		
 		Window* Detach(size_t index);
 		
-		TabBarPosition GetTabBarPosition() const;
-		void SetTabBarPosition(TabBarPosition position);
+		TabRowPosition GetTabRowPosition() const;
+		void SetTabRowPosition(TabRowPosition position);
 		void SetTabPagePadding(Padding padding);
 		
 		void ShowCloseButton(bool show);
