@@ -578,12 +578,14 @@ namespace Berta
 		auto nodeHeight = static_cast<int>(m_window->ToScale(appearance->TreeItemHeight));
 		auto nodeHeightHalf = nodeHeight >> 1;
 		auto expanderSize = m_window->ToScale(appearance->ExpanderButtonSize);
-		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
+		auto depthWidthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
 		
-		int expanderMarginX = static_cast<int>(depthMultiplier - expanderSize) >> 1;
+		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		int textPaddingX = m_window->ToScale(5); 
+		int textPaddingX = m_window->ToScale(0); 
+		int textMarginX = m_window->ToScale(3); 
 		auto iconPaddingX = m_window->ToScale(2);
+		auto rowPaddingX = m_window->ToScale(2);
 		int scrollX = m_scrollableView->GetScrollOffset().X;
 		int scrollY = m_scrollableView->GetScrollOffset().Y;
 		auto clientArea = m_scrollableView->GetClientArea();
@@ -599,7 +601,7 @@ namespace Berta
 			const auto& flatNode = m_flatVisibleTree[i];
 			const auto& node = flatNode.Node;
         
-			int indentX = static_cast<int>(flatNode.Level * depthMultiplier) - scrollX + clientArea.X;
+			int indentX = static_cast<int>(flatNode.Level * depthWidthMultiplier) - scrollX + clientArea.X;
 			int drawY = static_cast<int>(i * nodeHeight) - scrollY + clientArea.Y;
 			
 			if (drawY + nodeHeight < 0 || drawY > clientHeight)
@@ -616,44 +618,42 @@ namespace Berta
 			bool isFocused = (node == m_focusedNode);
 			bool isHovered = (node == m_hoveredNode);
 			
-			int reducedX = currentX + static_cast<int>(expanderSize) + textPaddingX;
+			int reducedX = currentX + (depthWidthMultiplier) + rowPaddingX + textPaddingX;
 			if (isSelected)
 			{
 				Rectangle reducedRowRect = rowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
-				auto color = appearance->SelectionHighlightColor;
-				//color.SetA(200);
-				graphics.FillRectangle(reducedRowRect, color); 
+				
+				graphics.FillRectangle(reducedRowRect, appearance->SelectionHighlightColor); 
 			}
 			else if (isHovered)
 			{
 				Rectangle reducedRowRect = rowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
-				auto color = appearance->HighlightColor;
-				//color.SetA(180);
-				graphics.FillRectangle(reducedRowRect, color); 
+
+				graphics.FillRectangle(reducedRowRect, appearance->HighlightColor); 
 			}
 			
 			if (m_showNavigationLines)
 			{
 				Color lineColor = appearance->BoxBorderColor;
-				int startX = -scrollX;
+				int startX = -scrollX + clientArea.X;
 	
 				for (uint32_t currLevel = 0; currLevel < flatNode.Level; ++currLevel)
 				{
 					if (flatNode.VerticalLineMask & (1 << currLevel))
 					{
-						int lineX = startX + static_cast<int>(currLevel * depthMultiplier) + (static_cast<int>(expanderSize) / 2) + expanderMarginX;
+						int lineX = startX + static_cast<int>(currLevel * depthWidthMultiplier) + (static_cast<int>(expanderSize) / 2) + expanderMarginX;
 						graphics.DrawLine({lineX, drawY}, {lineX, drawY + nodeHeight}, lineColor, LineStyle::Dotted);
 					}
 				}
 	
-				int currentLineX = startX + static_cast<int>(flatNode.Level * depthMultiplier) + (static_cast<int>(expanderSize) / 2) + expanderMarginX;
+				int currentLineX = startX + static_cast<int>(flatNode.Level * depthWidthMultiplier) + (static_cast<int>(expanderSize) / 2) + expanderMarginX;
     
 				// Línea horizontal (apunta hacia el icono/texto)
-				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthMultiplier / 2), centerY}, lineColor, LineStyle::Dotted);
+				graphics.DrawLine({currentLineX, centerY}, {currentLineX + (depthWidthMultiplier / 2), centerY}, lineColor, LineStyle::Dotted);
 
 				// Línea vertical superior (viene del nodo de arriba)
 				graphics.DrawLine({currentLineX, drawY}, {currentLineX, centerY}, lineColor, LineStyle::Dotted);
@@ -666,7 +666,7 @@ namespace Berta
 			}
 			Rectangle expanderRect{ indentX + expanderMarginX, drawY + (nodeHeight - static_cast<int>(expanderSize)) / 2, expanderSize, expanderSize };
 			
-			currentX += static_cast<int>(expanderSize) + textPaddingX;
+			currentX += depthWidthMultiplier + textMarginX;
 			if (m_drawImages)
 			{
 				if (node->icon)
@@ -682,7 +682,7 @@ namespace Berta
 				int arrowWidth = m_window->ToScale(4);
 				int arrowLength = m_window->ToScale(2);
 				graphics.DrawRoundRectBox(expanderRect, m_window->Appearance->Background, m_window->Appearance->BoxBorderColor, true);
-			
+				
 				graphics.DrawArrow(expanderRect,
 					arrowLength,
 					arrowWidth,
@@ -698,17 +698,18 @@ namespace Berta
 				Rectangle reducedRowRect = rowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
+				
 				graphics.DrawRectangle(reducedRowRect, appearance->Foreground);
 			}
 			
-			Rectangle textRect{ currentX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
+			Rectangle textRect{ rowRect.X + currentX + rowPaddingX + textPaddingX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
         
 			Color textColor = isSelected ? appearance->HighlightTextColor : appearance->Foreground;
 			graphics.DrawString(textRect.Position(), node->text, textColor);
 			
 			if (m_isDragging && m_dropTargetNode == node)
 			{
-				int indicatorX = static_cast<int>(flatNode.Level * depthMultiplier) - scrollX + clientArea.Y;
+				int indicatorX = static_cast<int>(flatNode.Level * depthWidthMultiplier) - scrollX + clientArea.Y;
     
 				Color indicatorColor = Color(0, 120, 215, 255);
 

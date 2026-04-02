@@ -484,6 +484,7 @@ int main()
 	tabbar.PushBack("Apariencia", tabExample1);
 	tabbar.PushBack("Player", tabExample2);
 	tabbar.Insert(0, "Input", tabExample3);
+	tabbar.At(1).SetIcon(image1);
 	
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
 #ifdef BT_DEBUG
@@ -578,7 +579,12 @@ int main()
 			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 
 		});
-
+	
+	form.GetEvents().MouseUp.Connect([&tabbar](const Berta::ArgMouse& args)
+	{
+		tabbar.SetTabBarPosition(tabbar.GetTabBarPosition() == Berta::TabBarPosition::Top ? Berta::TabBarPosition::Bottom : Berta::TabBarPosition::Top);
+	});
+	form.GetAppearance().Background.SetR(0);
 	form.Show();
 	form.Exec();
 

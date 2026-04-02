@@ -308,7 +308,7 @@ namespace Berta
 			}
 			m_node->icon = icon;
 		
-			m_module->m_drawImages = true;
+			//m_module->m_drawImages = true;
 			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);

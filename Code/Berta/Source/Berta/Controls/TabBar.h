@@ -9,7 +9,7 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Controls/Panel.h"
+#include "Berta/Paint/Image.h"
 
 #include <string>
 #include <vector>
@@ -61,7 +61,7 @@ namespace Berta
 		Color TabBackgroundColor{204, 200, 192, 255};
 	};
 	
-	struct WindowDeleter
+	struct TabWindowDeleter
 	{
 		void operator()(Window* window) const;
 	};
@@ -82,7 +82,8 @@ namespace Berta
 			PanelItem() = default;
 			
 			std::string Id;
-			std::unique_ptr<Window, WindowDeleter> PanelPtr;
+			std::unique_ptr<Window, TabWindowDeleter> PanelPtr;
+			Image Icon;
 			
 			Point Position{};
 			Point Center{};
@@ -102,6 +103,10 @@ namespace Berta
 			
 			void Draw();
 			
+			Rectangle GetTabPageArea(bool includePadding) const;
+			
+			void MoveTabPage(Window* window) const;
+			
 			std::optional<size_t> FindItem(const Point& position) const;
 			std::optional<size_t> GetSelectedIndex() const;
 
@@ -110,12 +115,9 @@ namespace Berta
 			
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
-			TabBarAppearance* m_appearance{ nullptr };
-			TabBarPosition m_tabPosition{ TabBarPosition::Top };
+			TabBarPosition m_tabBarPosition{ TabBarPosition::Top };
+			Padding m_tabPagePadding;
 			bool m_showCloseButton { true };
-
-		private:
-			void UpdatePanelMoveRect(Window* window) const;
 		};
 		
 		Module& GetModule() { return m_module; }
@@ -124,6 +126,27 @@ namespace Berta
 	private:
 		Module m_module;
 	};
+	
+	struct TabBarItem
+	{
+		TabBarItem() = default;
+		TabBarItem(size_t logicalIndex, TabBarReactor::Module* module) :
+			m_logicalIndex(logicalIndex), m_module(module)
+		{
+		}
+		
+		void SetTitle(const std::string& title);
+		void SetIcon(const Image& image);
+
+		explicit operator bool() const
+		{
+			return m_module;
+		}
+
+	private:
+		size_t m_logicalIndex{ static_cast<size_t>(-1) };
+		TabBarReactor::Module* m_module{ nullptr };
+	};
 
 	class TabBar : public Control<TabBarReactor, TabBarEvents, TabBarAppearance>
 	{
@@ -131,6 +154,7 @@ namespace Berta
 		TabBar() = default;
 		TabBar(Window* parent, const Rectangle& rectangle);
 
+		TabBarItem At(size_t index);
 		void Clear();
 		size_t Count() const;
 		void Erase(size_t index);
@@ -141,7 +165,10 @@ namespace Berta
 		
 		Window* Detach(size_t index);
 		
+		TabBarPosition GetTabBarPosition() const;
 		void SetTabBarPosition(TabBarPosition position);
+		void SetTabPagePadding(Padding padding);
+		
 		void ShowCloseButton(bool show);
 	private:
 		
