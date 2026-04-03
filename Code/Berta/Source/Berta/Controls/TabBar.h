@@ -118,6 +118,9 @@ namespace Berta
 			TabRowPosition m_tabRowPosition{ TabRowPosition::Top };
 			Padding m_tabPagePadding;
 			bool m_showCloseButton { true };
+			std::optional<size_t> m_hoveredTabIndex { std::nullopt };
+			std::optional<size_t> m_hoveredCloseBtnIndex { std::nullopt };
+			std::optional<size_t> m_mouseDownCloseBtnIndex { std::nullopt };
 		};
 		
 		Module& GetModule() { return m_module; }

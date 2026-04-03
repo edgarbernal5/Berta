@@ -142,8 +142,14 @@ namespace Berta
 	    		int btnY = tabItem.Position.Y + tabItem.CloseButtonArea.Y;
 	    		int btnS = static_cast<int>(tabItem.CloseButtonArea.Width);
 
-	    		graphics.DrawLine({ btnX, btnY }, { btnX + btnS, btnY + btnS }, textColor);
-	    		graphics.DrawLine({ btnX, btnY + btnS }, { btnX + btnS, btnY }, textColor);
+	    		bool isHovered = (m_module.m_hoveredCloseBtnIndex.has_value() && m_module.m_hoveredCloseBtnIndex.value() == i);
+	    		if (isHovered)
+	    		{
+	    			Rectangle btnRect{ Point{btnX, btnY}, Size{static_cast<uint32_t>(btnS), static_cast<uint32_t>(btnS)} };
+	    			graphics.FillRectangle(btnRect, appearance->MenuBackground);
+	    		}
+	    		graphics.DrawLine({ btnX + 2, btnY + 2 }, { btnX - 2 + btnS, btnY - 2 + btnS }, textColor);
+	    		graphics.DrawLine({ btnX + 2, btnY - 2 + btnS }, { btnX - 2 + btnS, btnY + 2 }, textColor);
 	    	}
 	    }
 
@@ -202,72 +208,97 @@ namespace Berta
 
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
-		for (size_t i = 0; i < m_module.m_panels.size(); ++i)
+		m_module.m_mouseDownCloseBtnIndex.reset();
+		if (m_module.m_hoveredCloseBtnIndex.has_value())
 		{
-			auto& tab = m_module.m_panels[i];
-			Rectangle absCloseBtn = tab.CloseButtonArea;
-			absCloseBtn.X += tab.Position.X;
-			absCloseBtn.Y += tab.Position.Y;
-
-			if (absCloseBtn.IsInside(args.Position))
-			{
-				m_module.EraseTab(i);
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-				return;
-			}
-		}
-		
-		auto newSelectedIndex = m_module.FindItem(args.Position);
-		if (!newSelectedIndex.has_value())
-		{
+			m_module.m_mouseDownCloseBtnIndex = m_module.m_hoveredCloseBtnIndex;
 			return;
 		}
-		
-		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
-		
-		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
-		m_module.m_events->TabMouseDown.Emit(argsTabMouse);
-		
-		if (m_module.m_selectedTabIndex != newSelectedIndex) 
+		if (m_module.m_hoveredTabIndex.has_value())
 		{
-			auto& selectedTabItem = m_module.m_panels[*m_module.m_selectedTabIndex];
-			GUI::ShowWindow(selectedTabItem.PanelPtr.get(), false);
+			size_t selectedIndex = m_module.m_hoveredTabIndex.value();
 			
-			m_module.m_selectedTabIndex = newSelectedIndex;
+			if (!m_module.m_selectedTabIndex || m_module.m_selectedTabIndex.value() != selectedIndex)
+			{
+				if (m_module.m_selectedTabIndex != selectedIndex) 
+				{
+					auto& selectedTabItem = m_module.m_panels[*m_module.m_selectedTabIndex];
+					GUI::ShowWindow(selectedTabItem.PanelPtr.get(), false);
 			
-			GUI::ShowWindow(newSelectedTabItem.PanelPtr.get(), true);
+					m_module.m_selectedTabIndex = selectedIndex;
+			
+					GUI::ShowWindow(m_module.m_panels[selectedIndex].PanelPtr.get(), true);
 
-			ArgTabBar argsTabBar{ newSelectedIndex.value(), newSelectedTabItem.Id };
-			m_module.m_events->TabChanged.Emit(argsTabBar);
+					ArgTabBar argsTabBar{ selectedIndex, m_module.m_panels[selectedIndex].Id };
+					m_module.m_events->TabChanged.Emit(argsTabBar);
 
-			GUI::MarkAsNeedUpdate(m_module.m_owner);
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
+			}
 		}
 	}
 
 	void TabBarReactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 	{
-		auto newSelectedIndex = m_module.FindItem(args.Position);
-		if (!newSelectedIndex.has_value())
+		auto hoveredTabIndex = m_module.FindItem(args.Position);
+		std::optional<size_t> newHoveredTab;
+		std::optional<size_t> newHoveredCloseBtn;
+		
+		if (m_module.m_showCloseButton && hoveredTabIndex.has_value())
 		{
-			return;
+			newHoveredTab = hoveredTabIndex;
+			
+			auto& tabItem = m_module.m_panels[*hoveredTabIndex];
+			Rectangle absCloseBtn = tabItem.CloseButtonArea;
+			absCloseBtn.X += tabItem.Position.X;
+			absCloseBtn.Y += tabItem.Position.Y;
+			if (absCloseBtn.IsInside(args.Position))
+			{
+				newHoveredCloseBtn = newHoveredTab;
+			}
 		}
 		
-		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
-		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
-		m_module.m_events->TabMouseMove.Emit(argsTabMouse);
+		if (m_module.m_hoveredTabIndex != newHoveredTab || m_module.m_hoveredCloseBtnIndex != newHoveredCloseBtn)
+		{
+			m_module.m_hoveredTabIndex = newHoveredTab;
+			m_module.m_hoveredCloseBtnIndex = newHoveredCloseBtn;
+			
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
+		}
+		
+		if (hoveredTabIndex.has_value())
+		{
+			auto& newSelectedTabItem = m_module.m_panels[*hoveredTabIndex];
+			ArgTabMouse argsTabMouse{{hoveredTabIndex.value(), newSelectedTabItem.Id}, args };
+			m_module.m_events->TabMouseMove.Emit(argsTabMouse);
+		}
 	}
 
 	void TabBarReactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 	{
-		auto newSelectedIndex = m_module.FindItem(args.Position);
-		if (!newSelectedIndex.has_value())
+		if (m_module.m_hoveredCloseBtnIndex.has_value() && 
+			m_module.m_mouseDownCloseBtnIndex.has_value() && 
+			m_module.m_hoveredCloseBtnIndex.value() == m_module.m_mouseDownCloseBtnIndex.value())
 		{
+			size_t tabToClose = m_module.m_hoveredCloseBtnIndex.value();
+			
+			m_module.EraseTab(tabToClose);
+			
+			m_module.m_hoveredTabIndex.reset();
+			m_module.m_hoveredCloseBtnIndex.reset();
+			m_module.m_mouseDownCloseBtnIndex.reset();
+			
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 			return;
 		}
-		
-		auto& newSelectedTabItem = m_module.m_panels[*newSelectedIndex];
-		ArgTabMouse argsTabMouse{{newSelectedIndex.value(), newSelectedTabItem.Id}, args };
-		m_module.m_events->TabMouseUp.Emit(argsTabMouse);
+
+		m_module.m_mouseDownCloseBtnIndex.reset();
+
+		if (m_module.m_hoveredTabIndex.has_value())
+		{
+			ArgTabMouse tabMouseArgs{ m_module.m_hoveredTabIndex.value(), m_module.m_panels[m_module.m_hoveredTabIndex.value()].Id, args.Position };
+			m_module.m_events->TabMouseUp.Emit(tabMouseArgs);
+		}
 	}
 
 	void TabBarReactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -354,7 +385,7 @@ namespace Berta
 	    
 		int tabBarItemHeight = m_owner->ToScale(static_cast<int>(appearance->TabBarItemHeight));
 		int tabPadding = m_owner->ToScale(10);
-		int closeBtnSize = m_owner->ToScale(8);
+		int closeBtnSize = m_owner->ToScale(12);
 		int spacing = m_owner->ToScale(6);
 		int iconSize = static_cast<int>(m_owner->ToScale(appearance->SmallIconSize));
 
