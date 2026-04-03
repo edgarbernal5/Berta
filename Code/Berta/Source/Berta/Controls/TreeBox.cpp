@@ -582,8 +582,7 @@ namespace Berta
 		
 		int expanderMarginX = static_cast<int>(depthWidthMultiplier - expanderSize) >> 1;
 		auto iconSize = m_window->ToScale(m_window->Appearance->SmallIconSize);
-		int textPaddingX = m_window->ToScale(0); 
-		int textMarginX = m_window->ToScale(3); 
+		int textPaddingX = m_window->ToScale(3);
 		auto iconPaddingX = m_window->ToScale(2);
 		auto rowPaddingX = m_window->ToScale(2);
 		int scrollX = m_scrollableView->GetScrollOffset().X;
@@ -610,7 +609,7 @@ namespace Berta
 			}
 			
 			int centerY = drawY + nodeHeightHalf;
-			int currentX = indentX;
+			int currentX = indentX + rowPaddingX;
 			
 			Rectangle rowRect{ clientArea.X, drawY, clientArea.Width, static_cast<uint32_t>(nodeHeight) };
 			
@@ -618,7 +617,7 @@ namespace Berta
 			bool isFocused = (node == m_focusedNode);
 			bool isHovered = (node == m_hoveredNode);
 			
-			int reducedX = currentX + (depthWidthMultiplier) + rowPaddingX + textPaddingX;
+			int reducedX = currentX + depthWidthMultiplier;
 			if (isSelected)
 			{
 				Rectangle reducedRowRect = rowRect;
@@ -666,7 +665,7 @@ namespace Berta
 			}
 			Rectangle expanderRect{ indentX + expanderMarginX, drawY + (nodeHeight - static_cast<int>(expanderSize)) / 2, expanderSize, expanderSize };
 			
-			currentX += depthWidthMultiplier + textMarginX;
+			currentX += depthWidthMultiplier;
 			if (m_drawImages)
 			{
 				if (node->icon)
@@ -702,7 +701,7 @@ namespace Berta
 				graphics.DrawRectangle(reducedRowRect, appearance->Foreground);
 			}
 			
-			Rectangle textRect{ rowRect.X + currentX + rowPaddingX + textPaddingX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
+			Rectangle textRect{ rowRect.X + currentX + textPaddingX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
         
 			Color textColor = isSelected ? appearance->HighlightTextColor : appearance->Foreground;
 			graphics.DrawString(textRect.Position(), node->text, textColor);
@@ -852,20 +851,21 @@ namespace Berta
 	{
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
 		
-		auto expanderSize = static_cast<int>(m_window->ToScale(appearance->ExpanderButtonSize));
 		auto depthMultiplier = static_cast<int>(m_window->ToScale(appearance->DepthWidthMultiplier));
 		auto iconSize = static_cast<int>(m_window->ToScale(appearance->SmallIconSize));
-		int textPaddingX = m_window->ToScale(5);
+		int textPaddingX = m_window->ToScale(3);
+		int iconPaddingX = m_window->ToScale(2);
+		auto rowPaddingX = m_window->ToScale(2);
 		
 		if (!node->cachedTextWidth.has_value())
 		{
 			node->cachedTextWidth = m_graphics->GetTextExtent(node->text).Width;
 		}
 		
-		auto rowTotalWidth = *node->cachedTextWidth + (level * depthMultiplier) + expanderSize + textPaddingX;
+		auto rowTotalWidth = *node->cachedTextWidth + ((level + 1u) * depthMultiplier) + rowPaddingX + textPaddingX * 2 + 1;
 		if (m_drawImages)
 		{
-			rowTotalWidth += iconSize;
+			rowTotalWidth += iconSize + iconPaddingX * 2;
 		}
 		return rowTotalWidth;
 	}
