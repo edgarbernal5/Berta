@@ -72,6 +72,7 @@ namespace Berta
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;

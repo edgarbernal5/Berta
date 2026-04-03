@@ -206,6 +206,19 @@ namespace Berta
 		}
 	}
 
+	void TabBarReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+	{
+		if (m_module.m_hoveredTabIndex.has_value() || m_module.m_hoveredCloseBtnIndex.has_value())
+		{
+			m_module.m_hoveredTabIndex.reset();
+			m_module.m_hoveredCloseBtnIndex.reset();
+			
+			m_module.m_mouseDownCloseBtnIndex.reset(); 
+
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
+		}
+	}
+
 	void TabBarReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 	{
 		m_module.m_mouseDownCloseBtnIndex.reset();
@@ -220,20 +233,17 @@ namespace Berta
 			
 			if (!m_module.m_selectedTabIndex || m_module.m_selectedTabIndex.value() != selectedIndex)
 			{
-				if (m_module.m_selectedTabIndex != selectedIndex) 
-				{
-					auto& selectedTabItem = m_module.m_panels[*m_module.m_selectedTabIndex];
-					GUI::ShowWindow(selectedTabItem.PanelPtr.get(), false);
-			
-					m_module.m_selectedTabIndex = selectedIndex;
-			
-					GUI::ShowWindow(m_module.m_panels[selectedIndex].PanelPtr.get(), true);
+				auto& selectedTabItem = m_module.m_panels[*m_module.m_selectedTabIndex];
+				GUI::ShowWindow(selectedTabItem.PanelPtr.get(), false);
+		
+				m_module.m_selectedTabIndex = selectedIndex;
+		
+				GUI::ShowWindow(m_module.m_panels[selectedIndex].PanelPtr.get(), true);
 
-					ArgTabBar argsTabBar{ selectedIndex, m_module.m_panels[selectedIndex].Id };
-					m_module.m_events->TabChanged.Emit(argsTabBar);
+				ArgTabBar argsTabBar{ selectedIndex, m_module.m_panels[selectedIndex].Id };
+				m_module.m_events->TabChanged.Emit(argsTabBar);
 
-					GUI::MarkAsNeedUpdate(m_module.m_owner);
-				}
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
 	}
@@ -296,7 +306,7 @@ namespace Berta
 
 		if (m_module.m_hoveredTabIndex.has_value())
 		{
-			ArgTabMouse tabMouseArgs{ m_module.m_hoveredTabIndex.value(), m_module.m_panels[m_module.m_hoveredTabIndex.value()].Id, args.Position };
+			ArgTabMouse tabMouseArgs{{m_module.m_hoveredTabIndex.value(), m_module.m_panels[m_module.m_hoveredTabIndex.value()].Id},{args.Position}};
 			m_module.m_events->TabMouseUp.Emit(tabMouseArgs);
 		}
 	}
@@ -319,7 +329,6 @@ namespace Berta
 		newItem.PanelPtr.reset(window);
 
 		GUI::SetParentWindow(window, m_owner);
-		
 		MoveTabPage(window);
 
 		if (!m_selectedTabIndex)
@@ -461,20 +470,28 @@ namespace Berta
 		bool removeSelectedIndex = (m_selectedTabIndex && m_selectedTabIndex.value() == index);
 		
 		m_panels.erase(m_panels.begin() + index);
-		
-		if (m_selectedTabIndex && m_selectedTabIndex.value() >= m_panels.size())
+		if (m_selectedTabIndex.has_value())
 		{
-			if (m_panels.empty())
+			size_t currentSelected = m_selectedTabIndex.value();
+
+			if (removeSelectedIndex)
 			{
-				m_selectedTabIndex.reset();
+				if (m_panels.empty())
+				{
+					m_selectedTabIndex.reset();
+				}
+				else if (currentSelected >= m_panels.size())
+				{
+					m_selectedTabIndex = m_panels.size() - 1;
+				}
 			}
-			else
+			else if (index < currentSelected)
 			{
-				m_selectedTabIndex = m_panels.size() - 1;
+				m_selectedTabIndex = currentSelected - 1;
 			}
 		}
 
-		if (removeSelectedIndex && m_selectedTabIndex)
+		if (removeSelectedIndex && m_selectedTabIndex.has_value())
 		{
 			size_t newIdx = m_selectedTabIndex.value();
 			ArgTabBar argsTabBar{ newIdx, m_panels[newIdx].Id };
