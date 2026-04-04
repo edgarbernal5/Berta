@@ -180,8 +180,9 @@ namespace Berta
 		void Reactor::Update(Graphics& graphics)
 		{
 			auto window = m_control->Handle();
-
-			graphics.DrawRectangle(window->Appearance->MenuBackground, true);
+			auto clientSize = window->ClientSize.ToRectangle();
+			
+			graphics.FillRectangle(clientSize, window->Appearance->MenuBackground);
 
 			auto menuBoxLeftPaneWidth = window->ToScale(m_appearance->MenuBoxLeftPaneWidth);
 			auto itemTextPadding = window->ToScale(ItemTextPadding);
@@ -211,7 +212,7 @@ namespace Berta
 						bool isItemSelected = m_selectedIndex == (int)i;
 						if (isItemSelected)
 						{
-							graphics.DrawRectangle({ 1 + (int)(itemTextPadding), offsetY, window->ClientSize.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appearance->HighlightColor, true);
+							graphics.FillRectangle({ 1 + (int)(itemTextPadding), offsetY, window->ClientSize.Width - 2u - itemTextPadding * 2u, menuBoxItemHeight }, window->Appearance->HighlightColor);
 						}
 						if (item.m_image)
 						{
@@ -248,7 +249,7 @@ namespace Berta
 				}
 			}
 
-			graphics.DrawRectangle(window->Appearance->BoxBorderColor, false);
+			graphics.DrawRectangle(clientSize, window->Appearance->BoxBorderColor);
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

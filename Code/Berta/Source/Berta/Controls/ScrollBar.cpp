@@ -36,7 +36,7 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto buttonSize = GetButtonSize();
 		bool enabled = m_control->GetEnabled();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->ScrollBarBackground, true);
+		graphics.FillRectangle(window->ClientSize.ToRectangle(), window->Appearance->ScrollBarBackground);
 
 		if (!IsValid())
 		{

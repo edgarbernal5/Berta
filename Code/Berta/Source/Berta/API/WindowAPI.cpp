@@ -95,7 +95,7 @@ namespace Berta
 				parentHandle.Handle,	// Parent
 				nullptr,				// We aren't using menus.
 				hInstance,
-				0
+				nullptr
 			);
 
 			if (!hwnd)

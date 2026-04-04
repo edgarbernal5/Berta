@@ -38,6 +38,7 @@ namespace Berta
 		void KeyReleased(const ArgKeyboard& args);
 		void Resize(const ArgResize& args);
 		void Move(const ArgMove& args);
+		void DpiChanged();
 
 		Graphics& GetGraphics() const { return *m_graphics; }
 		void SetGraphics(Graphics* newGraphics);
@@ -45,6 +46,7 @@ namespace Berta
 	private:
 		template <typename TArgument>
 		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&, const TArgument&), const TArgument& args);
+		void ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&));
 
 		bool m_updating{ false };
 		ControlBase* m_control{ nullptr };
@@ -60,7 +62,7 @@ namespace Berta
 			return;
 		}
 
-		((*m_controlReactor).*reactorEventPtr)(*m_graphics, args);
+		(m_controlReactor->*reactorEventPtr)(*m_graphics, args);
 	}
 }
 

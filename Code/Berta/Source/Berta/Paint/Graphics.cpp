@@ -24,26 +24,22 @@
 namespace Berta
 {
 	Graphics::Graphics() :
-		m_attributes(new PaintNativeHandle())
+		m_attributes(std::make_unique<PaintNativeHandle>())
 	{
 	}
 
 	Graphics::Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle) :
-		m_attributes(new PaintNativeHandle()),
+		m_attributes(std::make_unique<PaintNativeHandle>()),
 		m_dpi(dpi)
 	{
 		Build(size, rootPaintHandle);
 	}
 
 	Graphics::Graphics(API::RootPaintNativeHandle rootPaintHandle) :
-		m_attributes(new PaintNativeHandle())
+		m_attributes(std::make_unique<PaintNativeHandle>())
 	{
 		Build(rootPaintHandle);
 	}
-
-	/*Graphics::Graphics(const Graphics& other)
-	{
-	}*/
 
 	Graphics::Graphics(Graphics&& other) noexcept :
 		m_attributes(std::move(other.m_attributes)),
@@ -51,29 +47,17 @@ namespace Berta
 		m_size(other.m_size),
 		m_rootPaintNativeHandle(other.m_rootPaintNativeHandle),
 #ifdef BT_PLATFORM_WINDOWS
-		m_resourceCache(other.m_resourceCache),
+		m_resourceCache(std::move(other.m_resourceCache)),
 #endif
 		m_targetRT(other.m_targetRT)
 	{
-		other.m_attributes.reset(new PaintNativeHandle());
+		other.m_attributes = std::make_unique<PaintNativeHandle>();
+		other.m_targetRT = nullptr;
 	}
 
 	Graphics::~Graphics()
 	{
 		Release();
-	}
-
-	Graphics& Graphics::operator=(const Graphics& other)
-	{
-		if (this != &other)
-		{
-			/*m_attributes = std::move(other.m_attributes);
-			m_dpi = std::move(other.m_dpi);
-			m_size = std::move(other.m_size);
-			m_renderTarget = std::move(other.m_renderTarget);
-			m_bitmapRT = std::move(other.m_bitmapRT);*/
-		}
-		return *this;
 	}
 
 	Graphics& Graphics::operator=(Graphics&& other) noexcept
@@ -83,6 +67,12 @@ namespace Berta
 			m_attributes = std::move(other.m_attributes);
 			m_dpi = other.m_dpi;
 			m_size = other.m_size;
+#ifdef BT_PLATFORM_WINDOWS
+			m_resourceCache = std::move(other.m_resourceCache);
+#endif
+			m_targetRT = other.m_targetRT;
+			
+			other.m_targetRT = nullptr;
 		}
 
 		return *this;
@@ -92,14 +82,16 @@ namespace Berta
 	{
 		if (!m_attributes)
 		{
-			m_attributes.reset(new PaintNativeHandle());
+			m_attributes = std::make_unique<PaintNativeHandle>();
 		}
 
 		m_rootPaintNativeHandle = rootPaintHandle;
 
 #ifdef BT_PLATFORM_WINDOWS
 		if (!rootPaintHandle.RenderTarget)
+		{
 			return;
+		}
 
 		m_targetRT = rootPaintHandle.RenderTarget;
 
@@ -127,7 +119,7 @@ namespace Berta
 
 		if (!m_attributes)
 		{
-			m_attributes.reset(new PaintNativeHandle());
+			m_attributes = std::make_unique<PaintNativeHandle>();
 		}
 
 		m_rootPaintNativeHandle = rootPaintHandle;
@@ -171,7 +163,6 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-
 		::LOGFONT lfText = {};
 		::SystemParametersInfoForDpi(SPI_GETICONTITLELOGFONT, sizeof(lfText), &lfText, FALSE, dpi);
 
@@ -309,65 +300,35 @@ namespace Berta
 		auto brush = m_resourceCache.GetBrush(color);
 		if (brush)
 		{
+			float offset = (strokeWidth == 1.0f) ? 0.5f : 0.0f;
+			
 			D2D1_POINT_2F point1F;
-			point1F.x = static_cast<FLOAT>(point1.X) + 0.5f;
-			point1F.y = static_cast<FLOAT>(point1.Y) + 0.5f;
+			point1F.x = static_cast<FLOAT>(point1.X) + offset;
+			point1F.y = static_cast<FLOAT>(point1.Y) + offset;
 
 			D2D1_POINT_2F point2F;
-			point2F.x = static_cast<FLOAT>(point2.X) + 0.5f;
-			point2F.y = static_cast<FLOAT>(point2.Y) + 0.5f;
-
+			point2F.x = static_cast<FLOAT>(point2.X) + offset;
+			point2F.y = static_cast<FLOAT>(point2.Y) + offset;
+			
 			if (style == LineStyle::Solid)
 			{
 				m_targetRT->DrawLine(point1F, point2F, brush, strokeWidth);
 			}
 			else
 			{
-				float dashes[] = { 1.0f, 1.0f };
-				ID2D1StrokeStyle* strokeStyle = nullptr;
-
-				/*D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties
-				(
-					D2D1_CAP_STYLE_ROUND,      // startCap
-					D2D1_CAP_STYLE_ROUND,      // endCap
-					D2D1_CAP_STYLE_FLAT,       // dashCap
-					D2D1_LINE_JOIN_ROUND,      // lineJoin
-					10.0f,                     // miterLimit
-					D2D1_DASH_STYLE_DASH,      // dashStyle
-					0.0f                       // dashOffset
-				);*/
+				D2D1_ANTIALIAS_MODE oldAntialiasMode = m_targetRT->GetAntialiasMode();
+				m_targetRT->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
 				
-				D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties(
-					D2D1_CAP_STYLE_FLAT,  // Cap inicial plano
-					D2D1_CAP_STYLE_FLAT,  // Cap final plano
-					D2D1_CAP_STYLE_FLAT,  // Cap intermedio plano
-					D2D1_LINE_JOIN_MITER, // Unión recta
-					10.0f,                // Límite de miter
-					D2D1_DASH_STYLE_CUSTOM, // Usaremos nuestro array de arriba
-					0.0f                  // Desplazamiento inicial del patrón
-				);
-
-				DirectX::D2DModule::GetInstance().GetFactory()->CreateStrokeStyle(&props, dashes, ARRAYSIZE(dashes), &strokeStyle);
+				ID2D1StrokeStyle* strokeStyle = m_resourceCache.GetStrokeStyle(style);
 				m_targetRT->DrawLine(point1F, point2F, brush, strokeWidth, strokeStyle);
-
-				strokeStyle->Release();
+				
+				m_targetRT->SetAntialiasMode(oldAntialiasMode);
 			}
 		}
 #endif
 	}
 
-	void Graphics::DrawBeginLine(const Point& point, const Color& color, LineStyle style)
-	{
-#ifdef BT_PLATFORM_WINDOWS
-#endif
-	}
-
-	void Graphics::DrawRectangle(const Color& color, bool solid, float strokeWidth)
-	{
-		DrawRectangle(m_size.ToRectangle(), color, solid, strokeWidth);
-	}
-
-	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth)
+	void Graphics::DrawRectangle(const Rectangle& rect, const Color& borderColor, float strokeWidth)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		if (!IsValid())
@@ -376,43 +337,61 @@ namespace Berta
 		}
 
 		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rectangle, validRectangle))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
+		{
+			return;
+		}
+		
+		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		if (borderBrush)
+		{
+			D2D1_RECT_F d2dRect = validRectangle;
+			
+			d2dRect.left += 0.5f;
+			d2dRect.top += 0.5f;
+			d2dRect.right -= 0.5f;
+			d2dRect.bottom -= 0.5f;
+
+			m_targetRT->DrawRectangle(&d2dRect, borderBrush, strokeWidth);
+		}
+#endif
+	}
+
+	void Graphics::FillRectangle(const Rectangle& rect, const Color& fillColor)
+	{
+		if (!IsValid())
+		{
+			return;
+		}
+		
+#ifdef BT_PLATFORM_WINDOWS
+		Rectangle validRectangle;
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
 		{
 			return;
 		}
 
 		D2D1_RECT_F d2dRect = validRectangle;
-
-		auto brush = m_resourceCache.GetBrush(color);
-		if (brush)
+		
+		auto fillBrush = m_resourceCache.GetBrush(fillColor);
+		if (fillBrush)
 		{
-			if (solid)
-			{
-				m_targetRT->FillRectangle(&d2dRect, brush);
-			}
-			else
-			{
-				d2dRect.left += 0.5f;
-				d2dRect.top += 0.5f;
-				d2dRect.right -= 0.5f;
-				d2dRect.bottom -= 0.5f;
-
-				m_targetRT->DrawRectangle(&d2dRect, brush, strokeWidth);
-			}
+			m_targetRT->FillRectangle(&d2dRect, fillBrush);
 		}
 #endif
 	}
 
-	void Graphics::DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth)
+	void Graphics::FillAndDrawRectangle(const Rectangle& rect, const Color& solidColor, const Color& borderColor, float strokeWidth)
 	{
-#ifdef BT_PLATFORM_WINDOWS
 		if (!IsValid())
 		{
 			return;
 		}
+		
+#ifdef BT_PLATFORM_WINDOWS
 
 		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rectangle, validRectangle))
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
 		{
 			return;
 		}
@@ -420,15 +399,12 @@ namespace Berta
 		D2D1_RECT_F d2dRect = validRectangle;
 		
 		auto borderBrush = m_resourceCache.GetBrush(borderColor);
+		auto solidBrush = m_resourceCache.GetBrush(solidColor);
 		if (borderBrush)
 		{
-			if (solid)
+			if (solidBrush)
 			{
-				auto solidBrush = m_resourceCache.GetBrush(solidColor);
-				if (solidBrush)
-				{
-					m_targetRT->FillRectangle(&d2dRect, solidBrush);
-				}
+				m_targetRT->FillRectangle(&d2dRect, solidBrush);
 			}
 			
 			d2dRect.left += 0.5f;
@@ -436,72 +412,165 @@ namespace Berta
 			d2dRect.right -= 0.5f;
 			d2dRect.bottom -= 0.5f;
 
-			m_targetRT->DrawRectangle(&d2dRect, borderBrush);
+			m_targetRT->DrawRectangle(&d2dRect, borderBrush, strokeWidth);
 		}
 #endif
 	}
-
-	void Graphics::DrawString(const Point& position, const std::wstring& wstr, const Color& color) 
+	
+	void Graphics::DrawTopRoundedRectangle(const Rectangle& rect, float radius, const Color& borderColor, bool closeFigure, float strokeWidth)
 	{
-		if (wstr.empty() || !IsValid())
+		if (!IsValid())
+		{
+			return;
+		}
+		
+		if (radius <= 0.0f)
 		{
 			return;
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		auto textSize = GetTextExtent(wstr);
-
-		D2D1_RECT_F d2dRect;
-		d2dRect.left = static_cast<FLOAT>(position.X);
-		d2dRect.top = static_cast<FLOAT>(position.Y);
-		d2dRect.right = static_cast<FLOAT>(position.X + textSize.Width);
-		d2dRect.bottom = static_cast<FLOAT>(position.Y + textSize.Height);
-		
-		auto brush = m_resourceCache.GetBrush(color);
-		
-		IDWriteTextLayout* textLayout = nullptr;
-		
-		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
-		(
-			wstr.c_str(), 
-			static_cast<UINT32>(wstr.size()),
-			m_attributes->m_textFormat,
-			FLT_MAX, FLT_MAX,
-			&textLayout
-		);
-		
-		if (FAILED(hr))
+		if (auto pathGeometry = CreateTopRoundedGeometry(rect, radius, closeFigure))
 		{
-			return;
+			if (auto brush = m_resourceCache.GetBrush(borderColor))
+			{
+				m_targetRT->DrawGeometry(pathGeometry, brush, strokeWidth);
+			}
+			pathGeometry->Release();
 		}
+		
+		/*ID2D1PathGeometry* pathGeometry = nullptr;
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&pathGeometry);
+		
+		if (SUCCEEDED(hr))
+		{
+			ID2D1GeometrySink* sink = nullptr;
+			hr = pathGeometry->Open(&sink);
+			
+			if (SUCCEEDED(hr))
+			{
+				// ¡LA MAGIA DEL 0.5f AQUÍ!
+				// Desplazamos las coordenadas para alinear el trazo a la cuadrícula de píxeles
+				//float offset = drawBorder ? 0.5f : 0.0f; 
+				float offset = 0.5f; 
+				float left = static_cast<float>(rect.X) + offset;
+				float top = static_cast<float>(rect.Y) + offset;
+				float right = static_cast<float>(rect.X + rect.Width) - offset;
+				float bottom = static_cast<float>(rect.Y + rect.Height) - offset;
 
-		m_targetRT->DrawText
-		(
-			wstr.c_str(),
-			static_cast<UINT32>(wstr.size()),
-			m_attributes->m_textFormat,
-			d2dRect,
-			brush,
-			D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT | D2D1_DRAW_TEXT_OPTIONS_NO_SNAP
-		);
-		textLayout->Release();
+				// 1. Empezamos en la esquina inferior izquierda
+				sink->BeginFigure(D2D1::Point2F(left, bottom), D2D1_FIGURE_BEGIN_FILLED);
+
+				// 2. Línea izquierda hacia arriba
+				sink->AddLine(D2D1::Point2F(left, top + radius));
+
+				// 3. Arco superior izquierdo
+				sink->AddArc(D2D1::ArcSegment(
+					D2D1::Point2F(left + radius, top),
+					D2D1::SizeF(radius, radius),
+					0.0f, 
+					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+					D2D1_ARC_SIZE_SMALL
+				));
+
+				// 4. Línea superior
+				sink->AddLine(D2D1::Point2F(right - radius, top));
+
+				// 5. Arco superior derecho
+				sink->AddArc(D2D1::ArcSegment(
+					D2D1::Point2F(right, top + radius),
+					D2D1::SizeF(radius, radius), 
+					0.0f, 
+					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+					D2D1_ARC_SIZE_SMALL
+				));
+
+				// 6. Línea derecha hacia abajo
+				sink->AddLine(D2D1::Point2F(right, bottom));
+
+				// ¡LA MAGIA DE LA LÍNEA INFERIOR AQUÍ!
+				// Si open, no dibuja la línea que conecta el punto derecho con el izquierdo.
+				sink->EndFigure(closeFigure ? D2D1_FIGURE_END_CLOSED : D2D1_FIGURE_END_OPEN);
+				sink->Close();
+				
+				auto pBorderBrush = m_resourceCache.GetBrush(borderColor);
+				m_targetRT->DrawGeometry(pathGeometry, pBorderBrush, 1.0f);
+				
+				// Liberación de recursos locales
+				sink->Release();
+			}
+			pathGeometry->Release();
+		}*/
 #endif
 	}
 
-	void Graphics::DrawString(const Point& position, const std::string& str, const Color& color)
+	void Graphics::FillTopRoundedRectangle(const Rectangle& rect, float radius, const Color& fillColor)
 	{
-		DrawString(position, StringUtils::UTF8ToWide(str), color);
-	}
-
-	void Graphics::DrawString(const Point& position, std::wstring_view wstr, const Color& color)
-	{
-		if (wstr.empty() || !IsValid())
+		if (radius <= 0.0f)
+		{
+			FillRectangle(rect, fillColor);
+			return;
+		}
+		if (!IsValid())
 		{
 			return;
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		auto textSize = GetTextExtent(wstr);
+		if (auto pathGeometry = CreateTopRoundedGeometry(rect, radius, false))
+		{
+			if (auto brush = m_resourceCache.GetBrush(fillColor))
+			{
+				m_targetRT->FillGeometry(pathGeometry, brush);
+			}
+			pathGeometry->Release();
+		}
+#endif
+	}
+
+	void Graphics::DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color borderColor, bool closeFigure, float strokeWidth)
+	{
+		if (!IsValid())
+		{
+			return;
+		}
+		
+		if (radius <= 0.0f)
+		{
+			return;
+		}
+
+#ifdef BT_PLATFORM_WINDOWS
+		if (auto pathGeometry = CreateBottomRoundedGeometry(rect, radius, closeFigure))
+		{
+			if (auto brush = m_resourceCache.GetBrush(borderColor))
+			{
+				m_targetRT->DrawGeometry(pathGeometry, brush, strokeWidth);
+			}
+			pathGeometry->Release();
+		}
+#endif
+	}
+
+	void Graphics::FillBottomRoundedRectangle(const Rectangle& rect, float radius, Color fillColor)
+	{
+	}
+
+	void Graphics::DrawString(const Point& position, std::string_view strView, const Color& color) 
+	{
+		DrawString(position, StringUtils::UTF8ToWide(std::string(strView)), color);
+	}
+
+	void Graphics::DrawString(const Point& position, std::wstring_view wstrView, const Color& color)
+	{
+		if (wstrView.empty() || !IsValid())
+		{
+			return;
+		}
+
+#ifdef BT_PLATFORM_WINDOWS
+		auto textSize = GetTextExtent(wstrView);
+		auto wstr = std::wstring{ wstrView };
 
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = static_cast<FLOAT>(position.X);
@@ -535,19 +604,25 @@ namespace Berta
 			d2dRect,
 			brush
 		);
+		
 		textLayout->Release();
 #endif
 	}
 
-	void Graphics::DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap, HorizontalAlign horizontalAlign, VerticalAlign verticalAlign)
+	void Graphics::DrawString(const Rectangle& area, std::string_view strView, const Color& color, const TextFormatOptions& options)
 	{
-		if (wstr.empty() || !IsValid())
+		DrawString(area, StringUtils::UTF8ToWide(std::string(strView)), color, options);
+	}
+
+	void Graphics::DrawString(const Rectangle& area, std::wstring_view wstrView, const Color& color, const TextFormatOptions& options)
+	{
+		if (wstrView.empty() || !IsValid())
 		{
 			return;
 		}
 		
 #ifdef BT_PLATFORM_WINDOWS
-		
+		auto wstr = std::wstring(wstrView);
 		IDWriteTextLayout* textLayout = nullptr;
 		
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
@@ -566,12 +641,12 @@ namespace Berta
 
 		auto brush = m_resourceCache.GetBrush(color);
 		
-		textLayout->SetWordWrapping(wordWrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
-		textLayout->SetTextAlignment(horizontalAlign == HorizontalAlign::Left ? DWRITE_TEXT_ALIGNMENT_LEADING : 
-			(horizontalAlign == HorizontalAlign::Center ? DWRITE_TEXT_ALIGNMENT_CENTER : DWRITE_TEXT_ALIGNMENT_TRAILING));
+		textLayout->SetWordWrapping(options.WordWrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
+		textLayout->SetTextAlignment(options.AlignX == HorizontalAlign::Left ? DWRITE_TEXT_ALIGNMENT_LEADING : 
+			(options.AlignX == HorizontalAlign::Center ? DWRITE_TEXT_ALIGNMENT_CENTER : DWRITE_TEXT_ALIGNMENT_TRAILING));
 		
-		textLayout->SetParagraphAlignment(verticalAlign == VerticalAlign::Top ? DWRITE_PARAGRAPH_ALIGNMENT_NEAR : 
-			(verticalAlign == VerticalAlign::Center ? DWRITE_PARAGRAPH_ALIGNMENT_CENTER : DWRITE_PARAGRAPH_ALIGNMENT_FAR));
+		textLayout->SetParagraphAlignment(options.AlignY == VerticalAlign::Top ? DWRITE_PARAGRAPH_ALIGNMENT_NEAR : 
+			(options.AlignY == VerticalAlign::Center ? DWRITE_PARAGRAPH_ALIGNMENT_CENTER : DWRITE_PARAGRAPH_ALIGNMENT_FAR));
 		
 		D2D1_RECT_F d2dRect;
 		d2dRect.left = static_cast<FLOAT>(area.X);
@@ -597,11 +672,6 @@ namespace Berta
 		
 		textLayout->Release();
 #endif
-	}
-
-	void Graphics::DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap)
-	{
-		DrawString(area, StringUtils::UTF8ToWide(str), color, wordWrap);
 	}
 
 	void Graphics::DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color)
@@ -1027,6 +1097,94 @@ namespace Berta
 		m_targetRT->SetAntialiasMode(enabled ? D2D1_ANTIALIAS_MODE_ALIASED : D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 #endif
 	}
+
+#ifdef BT_PLATFORM_WINDOWS
+	ID2D1PathGeometry* Graphics::CreateTopRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const
+	{
+		ID2D1PathGeometry* pathGeometry = nullptr;
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&pathGeometry);
+		
+		if (SUCCEEDED(hr))
+		{
+			ID2D1GeometrySink* sink = nullptr;
+			if (SUCCEEDED(pathGeometry->Open(&sink)))
+			{
+				float left = static_cast<float>(rect.X) + 0.5f; 
+				float top = static_cast<float>(rect.Y) + 0.5f;
+				float right = static_cast<float>(rect.X + rect.Width) - 0.5f;
+				float bottom = static_cast<float>(rect.Y + rect.Height) - 0.5f;
+
+				sink->BeginFigure(D2D1::Point2F(left, bottom), D2D1_FIGURE_BEGIN_FILLED);
+				sink->AddLine(D2D1::Point2F(left, top + radius));
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(left + radius, top), D2D1::SizeF(radius, radius), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+				sink->AddLine(D2D1::Point2F(right - radius, top));
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(right, top + radius), D2D1::SizeF(radius, radius), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+				sink->AddLine(D2D1::Point2F(right, bottom));
+				
+				sink->EndFigure(closeFigure ? D2D1_FIGURE_END_CLOSED : D2D1_FIGURE_END_OPEN);
+				sink->Close();
+				sink->Release();
+			}
+		}
+		return pathGeometry;
+	}
+
+	ID2D1PathGeometry* Graphics::CreateBottomRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const
+	{
+		ID2D1PathGeometry* pathGeometry = nullptr;
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetFactory()->CreatePathGeometry(&pathGeometry);
+		
+		if (SUCCEEDED(hr))
+		{
+			ID2D1GeometrySink* sink = nullptr;
+			if (SUCCEEDED(pathGeometry->Open(&sink)))
+			{
+				float left = static_cast<float>(rect.X) + 0.5f;
+				float top = static_cast<float>(rect.Y) + 0.5f;
+				float right = static_cast<float>(rect.X + rect.Width) - 0.5f;
+				float bottom = static_cast<float>(rect.Y + rect.Height) - 0.5f;
+
+				// 1. Empezamos en la esquina SUPERIOR DERECHA
+				sink->BeginFigure(D2D1::Point2F(right, top), D2D1_FIGURE_BEGIN_FILLED);
+
+				// 2. Línea derecha hacia abajo, hasta el inicio de la curva
+				sink->AddLine(D2D1::Point2F(right, bottom - radius));
+
+				// 3. Arco inferior derecho
+				sink->AddArc(D2D1::ArcSegment(
+					D2D1::Point2F(right - radius, bottom), // Punto final del arco
+					D2D1::SizeF(radius, radius),
+					0.0f, 
+					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+					D2D1_ARC_SIZE_SMALL
+				));
+
+				// 4. Línea horizontal inferior hacia la izquierda
+				sink->AddLine(D2D1::Point2F(left + radius, bottom));
+
+				// 5. Arco inferior izquierdo
+				sink->AddArc(D2D1::ArcSegment(
+					D2D1::Point2F(left, bottom - radius), // Punto final del arco
+					D2D1::SizeF(radius, radius), 
+					0.0f, 
+					D2D1_SWEEP_DIRECTION_CLOCKWISE, 
+					D2D1_ARC_SIZE_SMALL
+				));
+
+				// 6. Línea izquierda vertical hacia arriba
+				sink->AddLine(D2D1::Point2F(left, top));
+
+				// 7. Cierre. Si closeFigure es 'false', la línea que conecta 
+				// Top-Left con Top-Right (la horizontal superior) NO se dibuja.
+				sink->EndFigure(closeFigure ? D2D1_FIGURE_END_CLOSED : D2D1_FIGURE_END_OPEN);
+			
+				sink->Close();
+				sink->Release();
+			}
+		}
+		return pathGeometry;
+	}
+#endif
 
 	void Graphics::SetTransform(const Rectangle& area)
 	{

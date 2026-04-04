@@ -235,10 +235,10 @@ namespace Berta
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
 			auto globalRect = m_module.m_window->ClientSize.ToRectangle();
-			graphics.DrawRectangle(globalRect, appearance->BoxBackground, true);
+			graphics.FillRectangle(globalRect, appearance->BoxBackground);
 			if (!m_control->IsBorderless())
 			{
-				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor, false);
+				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
 				
 				Rectangle localBorderRect = m_control->GetClientArea();
 				graphics.SetClipping(localBorderRect);
@@ -255,7 +255,7 @@ namespace Berta
 			if (m_module.m_scrollableView->HasHorizontalScroll() && m_module.m_scrollableView->HasVerticalScroll())
 			{
 				auto scrollSize = m_module.m_window->ToScale(appearance->ScrollBarSize);
-				graphics.DrawRectangle
+				graphics.FillRectangle
 				(
 					{
 						static_cast<int>(globalRect.Width) - static_cast<int>(scrollSize) - 1, 
@@ -263,7 +263,7 @@ namespace Berta
 						scrollSize,
 						scrollSize
 					},
-					appearance->Background, true
+					appearance->Background
 				);
 			}
 			
@@ -596,7 +596,7 @@ namespace Berta
 					
 					if (isHovered)
 					{
-						graphics.DrawRectangle(headerRect, appearance->HighlightColor, true);
+						graphics.FillRectangle(headerRect, appearance->HighlightColor);
 					}
 					Rectangle textRect = headerRect;
 					textRect.X += leftPadding;
@@ -655,7 +655,8 @@ namespace Berta
 					}
 				}
 				targetHeaderPosition += startOffPos;
-				graphics.DrawLine({ targetHeaderPosition, 0 }, { targetHeaderPosition, headerHeightInt - lineWidth }, static_cast<float>(lineWidth), appearance->SelectionHighlightColor);
+				// dragging vertical line
+				graphics.DrawLine({ targetHeaderPosition, clientPos.Y }, { targetHeaderPosition, headerHeightInt }, static_cast<float>(lineWidth), appearance->SelectionHighlightColor);
 
 				if (!m_dragDropInteraction.m_draggingBox.IsValid())
 				{
@@ -675,7 +676,7 @@ namespace Berta
 				auto positionToColumn = static_cast<int>(m_owner->ToScale( GetPositionToColumn(m_dragDropInteraction.m_draggedVisualIndex.value())));
 				auto newPosition = m_dragDropInteraction.m_currentMouseX - (m_dragDropInteraction.m_dragStartX - positionToColumn + visibleRect.X);
 				
-				Rectangle blendRect{ newPosition, 0, columnRect.Width, columnRect.Height };
+				Rectangle blendRect{ newPosition, clientPos.Y, columnRect.Width, columnRect.Height };
 				graphics.Blend(blendRect, m_dragDropInteraction.m_draggingBox, { 0,0 }, 0.5);
 			}
 
@@ -1094,6 +1095,9 @@ namespace Berta
 		{
 			m_items.Clear();
 			m_selectionController.Clear();
+			m_hoveredIndex.reset();
+			m_focusedLogicalIndex.reset();
+			
 			UpdateScrollData();
 		}
 
@@ -1351,13 +1355,13 @@ namespace Berta
 			{
 				Rectangle bgRect = rowRect;
 				bgRect.Width = std::max<uint32_t>(rowRect.Width, m_headers.GetTotalWidth()); 
-				graphics.DrawRectangle(bgRect, bgColor, true);
+				graphics.FillRectangle(bgRect, bgColor);
 			}
 			if (isFocused)
 			{
 				Rectangle bgRect = rowRect;
 				bgRect.Width = std::max<uint32_t>(rowRect.Width, m_headers.GetTotalWidth()); 
-				graphics.DrawRectangle(bgRect, appearance->Foreground, false);
+				graphics.DrawRectangle(bgRect, appearance->Foreground);
 			}
 		}
 

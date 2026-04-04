@@ -489,7 +489,7 @@ namespace Berta
 			auto paneTab = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[i].get());
 
 			auto tabId = paneTab->m_tabId.substr(paneNode->m_paneId.size() + 1);
-			m_dockArea->AddTab(tabId, dockArea.m_tabBarPanels[i]);
+			m_dockArea->AddTab(tabId, dockArea.m_tabBar->Detach(i));
 		}
 	}
 
@@ -539,7 +539,7 @@ namespace Berta
 	void DockAreaCaptionReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
-		graphics.DrawRectangle(window->ClientSize.ToRectangle(), window->Appearance->MenuBackground, true);
+		graphics.FillRectangle(window->ClientSize.ToRectangle(), window->Appearance->MenuBackground);
 
 		Point textPos{ window->ToScale(5), 0 };
 		textPos.Y = (int)window->ClientSize.Height - (int)graphics.GetTextExtent().Height;
@@ -776,7 +776,7 @@ namespace Berta
 
 			if (m_caption->HaveClickedCloseButton())
 			{
-				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex());
+				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex().value());
 				m_eventsNotifier->RequestClose();
 				return;
 			}
@@ -788,15 +788,17 @@ namespace Berta
 		});
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
-		m_tabBar->SetTabBarPosition(TabBarPosition::Bottom);
+		m_tabBar->SetTabRowPosition(TabRowPosition::Bottom);
 
 		m_tabBar->GetEvents().TabChanged.Connect([this](const ArgTabBar& args)
 		{
-			m_caption->SetCaption(args.id);
+			m_caption->SetCaption(std::string(args.Id));
 		});
 
 		if (!paneInfo->showCaption)
+		{
 			m_caption->Hide();
+		}
 	}
 
 	void DockArea::Dock()
@@ -805,7 +807,7 @@ namespace Berta
 		m_nativeContainer.reset();
 	}
 
-	int DockArea::GetTabSelectedIndex() const
+	std::optional<size_t> DockArea::GetTabSelectedIndex() const
 	{
 		return m_tabBar->GetSelectedIndex();
 	}

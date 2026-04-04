@@ -78,21 +78,6 @@ namespace Berta
 		m_colorBuffer.SetAlphaChannel(m_hasTransparency);
 		m_colorBuffer.Copy(imageData, m_size.Width, m_size.Height, bitsPerPixel, m_size.Width * channels);
 
-		/*if (m_hasTransparency)
-		{
-		}
-		else
-		{
-			auto totalBytes = static_cast<size_t>(width * height * 3);
-			m_imageData = new unsigned char[totalBytes];
-			for (size_t i = 0; i < totalBytes; i += 3)
-			{
-				m_imageData[i] = imageData[i + 2];
-				m_imageData[i + 1] = imageData[i + 1];
-				m_imageData[i + 2] = imageData[i];
-			}
-		}*/
-
 		stbi_image_free(imageData);
 	}
 

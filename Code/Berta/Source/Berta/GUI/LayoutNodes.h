@@ -448,7 +448,7 @@ namespace Berta
         void AddTab(const std::string& id, Window* window);
         void Create(Window* parent, PaneInfo* paneInfo);
         void Dock();
-        int GetTabSelectedIndex() const;
+        std::optional<size_t> GetTabSelectedIndex() const;
 
         struct MouseInteraction
         {

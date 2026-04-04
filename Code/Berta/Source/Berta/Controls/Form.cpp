@@ -25,7 +25,7 @@ namespace Berta
 #else
 			BT_CORE_TRACE << "  - Form::Update. hWnd = " << m_control->Handle()->RootHandle.Handle << std::endl;
 #endif
-			graphics.DrawRectangle(m_control->Handle()->Appearance->Background, true);
+			graphics.FillRectangle(m_control->Handle()->ClientSize.ToRectangle(), m_control->Handle()->Appearance->Background);
 		}
 		
 		FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)

@@ -38,6 +38,7 @@ namespace Berta
 		virtual void KeyReleased(Graphics& graphics, const ArgKeyboard& args);
 		virtual void Resize(Graphics& graphics, const ArgResize& args);
 		virtual void Move(Graphics& graphics, const ArgMove& args);
+		virtual void DpiChanged(Graphics& graphics);
 
 	protected:
 		ControlBase* m_control{ nullptr };

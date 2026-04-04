@@ -46,12 +46,12 @@ namespace Berta
 		~TreeNodeType() = default;
 
 		std::wstring text;
-		TreeNodeHandle key;
+		TreeNodeHandle key; //relative key.
 		CheckState checkState { CheckState::None };
 		Image icon;
 		std::any userData;
 		bool isExpanded{ false };
-		int cachedTextWidth { -1 };
+		std::optional<uint32_t> cachedTextWidth { std::nullopt };
 		
 		TreeNodeType* parent{ nullptr };
 		std::vector<TreeNodeType*> children;
@@ -60,11 +60,11 @@ namespace Berta
 	struct FlatNode 
 	{
 		TreeNodeType* Node;
-		int Level;
+		uint32_t Level;
 		uint32_t VerticalLineMask; // Bits: 1 = draw vertical line, 0 = empty space
 		bool IsLastChild;
 		
-		FlatNode(TreeNodeType* node, int level, bool isLastChild, uint32_t vertLineMask) : 
+		FlatNode(TreeNodeType* node, uint32_t level, bool isLastChild, uint32_t vertLineMask) : 
 			Node(node), Level(level), VerticalLineMask(vertLineMask), IsLastChild(isLastChild)
 		{
 		}
@@ -73,40 +73,38 @@ namespace Berta
 	class TreeModel
 	{
 	public:
-        TreeModel()
-        {
-            m_root = m_nodePool.Allocate(L"$$ROOT$$", L"", nullptr);
-            m_root->isExpanded = true;
-        }
-
-        ~TreeModel()
-        {
-            Clear();
-            m_nodePool.Deallocate(m_root);
-        }
+        TreeModel();
+        ~TreeModel();
 
         TreeNodeType* GetRoot() const { return m_root; }
 
-        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr)
-        {
-            if (m_lookup.find(key) != m_lookup.end())
-            {
-	            return m_lookup[key];
-            }
-            TreeNodeType* actualParent = parent ? parent : m_root;
-            
-            TreeNodeType* newNode = m_nodePool.Allocate(key, text, actualParent);
-            
-            actualParent->children.emplace_back(newNode);
-            m_lookup[key] = newNode;
+        TreeNodeType* Insert(const TreeNodeHandle& key, const std::wstring& text, TreeNodeType* parent = nullptr);
 
-            return newNode;
-        }
-
-		TreeNodeType* Find(const TreeNodeHandle& key) const
+		TreeNodeType* Find(const TreeNodeHandle& absolutePath) const
         {
-        	auto it = m_lookup.find(key);
-        	return (it != m_lookup.end()) ? it->second : nullptr;
+			if (absolutePath.empty() || !m_root) return nullptr;
+
+			std::vector<std::wstring> pathParts = StringUtils::Split(absolutePath, '/');
+			TreeNodeType* current = m_root;
+
+			for (const std::wstring& part : pathParts)
+			{
+				bool found = false;
+				for (auto* child : current->children)
+				{
+					if (child->key == part)
+					{
+						current = child;
+						found = true;
+						break;
+					}
+				}
+        
+				// Si en algún nivel no encontramos el hijo, la ruta no existe
+				if (!found) return nullptr; 
+			}
+
+			return current;
         }
 
 		void Erase(TreeNodeType* node)
@@ -129,7 +127,6 @@ namespace Berta
                 EraseRecursive(child);
             }
             m_root->children.clear();
-        	m_lookup.clear();
         }
 		
 		std::wstring GetKeyPath(TreeNodeType* node, wchar_t separator) const
@@ -138,56 +135,39 @@ namespace Berta
         	{
         		return L"";
         	}
-        	
-        	std::wstring path = node->key;
-        	TreeNodeType* current = node->parent;
+
+        	std::vector<const std::wstring*> parts;
+        	TreeNodeType* current = node;
+        	size_t totalLength = 0;
 
         	while (current && current != m_root)
         	{
-        		path = current->key + separator + path; //TODO
+        		parts.push_back(&(current->key));
+        		totalLength += current->key.length();
         		current = current->parent;
+        	}
+
+        	if (!parts.empty())
+        	{
+        		totalLength += parts.size() - 1;
+        	}
+
+        	std::wstring path;
+        	path.reserve(totalLength);
+
+        	for (auto it = parts.rbegin(); it != parts.rend(); ++it)
+        	{
+        		if (it != parts.rbegin())
+        		{
+        			path += separator;
+        		}
+        		path += **it;
         	}
 
         	return path;
         }
 
-		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos)
-        {
-        	if (!nodeToMove || !targetNode || nodeToMove == targetNode || nodeToMove == m_root)
-        	{
-        		return;
-        	}
-
-        	if (nodeToMove->parent)
-        	{
-        		auto& oldSiblings = nodeToMove->parent->children;
-        		oldSiblings.erase(std::remove(oldSiblings.begin(), oldSiblings.end(), nodeToMove), oldSiblings.end());
-        	}
-
-        	if (pos == DropPosition::Inside)
-        	{
-        		nodeToMove->parent = targetNode;
-        		targetNode->children.emplace_back(nodeToMove);
-        		targetNode->isExpanded = true;
-        	}
-        	else // Before o After
-        	{
-        		TreeNodeType* newParent = targetNode->parent;
-        		nodeToMove->parent = newParent;
-        
-        		auto& newSiblings = newParent->children;
-        		auto itTarget = std::find(newSiblings.begin(), newSiblings.end(), targetNode);
-        
-        		if (pos == DropPosition::Before)
-        		{
-        			newSiblings.insert(itTarget, nodeToMove);
-        		}
-        		else
-        		{
-        			newSiblings.insert(itTarget + 1, nodeToMove);
-        		}
-        	}
-        }
+		void MoveNode(TreeNodeType* nodeToMove, TreeNodeType* targetNode, DropPosition pos);
 		
 	private:
 		
@@ -206,12 +186,10 @@ namespace Berta
                 siblings.erase(std::remove(siblings.begin(), siblings.end(), node), siblings.end());
             }
 
-            m_lookup.erase(node->key);
             m_nodePool.Deallocate(node);
         }
 		
 		ObjectPool<TreeNodeType, 1024> m_nodePool;
-		std::unordered_map<std::wstring, TreeNodeType*> m_lookup;
 		TreeNodeType* m_root { nullptr };
     };
 	
@@ -249,13 +227,14 @@ namespace Berta
 			void CollapseNode(TreeNodeType* node);
 			void ExpandNode(TreeNodeType* node);
 			
-			int CalculateNodeWidth(TreeNodeType* node, int level);
+			uint32_t CalculateNodeWidth(TreeNodeType* node, uint32_t level);
 			
 			void ResetDragState();
 			void RebuildFlatTree();
-			void CollectVisibleNodes(TreeNodeType* node, int level, uint32_t lineMask, bool isLastChild);
+			void CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild);
 
 			bool ShowNavigationLines(bool visible);
+			bool ShowIcons(bool visible);
 
 			bool IsDescendantOf(TreeNodeType* node, TreeNodeType* potentialAncestor) const;
 			void InitScrollableView();
@@ -265,7 +244,7 @@ namespace Berta
 			SelectionController<TreeNodeType*> m_selectionController;
 			
 			std::vector<FlatNode> m_flatVisibleTree;
-			std::multiset<int> m_visibleWidths;
+			std::multiset<uint32_t> m_visibleWidths;
 			
 			Window* m_window{ nullptr };
 			Graphics* m_graphics{ nullptr };
@@ -329,8 +308,6 @@ namespace Berta
 				return;
 			}
 			m_node->icon = icon;
-		
-			m_module->m_drawImages = true;
 			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);
@@ -457,7 +434,7 @@ namespace Berta
 		void DeselectAll();
 		
 		TreeBoxItem Find(const TreeNodeHandle& key);
-		TreeBoxItem Insert(const TreeNodeHandle& key, const std::wstring& text);
+		TreeBoxItem Insert(const TreeNodeHandle& absoluteKey, const std::wstring& text);
 		TreeBoxItem Insert(TreeBoxItem parent, const TreeNodeHandle& key, const std::wstring& text);
 		
 		void Erase(const TreeNodeHandle& key);
@@ -473,6 +450,7 @@ namespace Berta
 		
 		void EnableMultiselection(bool enabled);
 		void ShowNavigationLines(bool visible);
+		void ShowIcons(bool visible);
 	};
 }
 

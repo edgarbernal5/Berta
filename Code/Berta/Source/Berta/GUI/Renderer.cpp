@@ -148,8 +148,23 @@ namespace Berta
 		ProcessEvent(&ControlReactor::Move, args);
 	}
 
+	void Renderer::DpiChanged()
+	{
+		ProcessEvent(&ControlReactor::DpiChanged);
+	}
+
 	void Renderer::SetGraphics(Graphics* newGraphics)
 	{
 		m_graphics = newGraphics;
+	}
+
+	void Renderer::ProcessEvent(void(ControlReactor::* reactorEventPtr)(Graphics&))
+	{
+		if (m_controlReactor == nullptr) //Added this check due to panels that don't have either reactor or graphics.
+		{
+			return;
+		}
+
+		(m_controlReactor->*reactorEventPtr)(*m_graphics);
 	}
 }

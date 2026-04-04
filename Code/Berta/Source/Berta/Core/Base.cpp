@@ -58,30 +58,48 @@ namespace Berta::StringUtils
 	std::vector<std::string> Split(const std::string& str, char delimiter)
 	{
 		std::vector<std::string> result;
-		std::stringstream ss(str);
-		std::string item;
-		while (std::getline(ss, item, delimiter))
+		size_t start = 0;
+		size_t end = str.find(delimiter);
+
+		while (end != std::wstring::npos)
 		{
-			if (!item.empty())
-			{
-				result.push_back(item);
+			if (end != start)
+			{ 
+				result.push_back(str.substr(start, end - start));
 			}
+			start = end + 1;
+			end = str.find(delimiter, start);
 		}
+    
+		if (start < str.length()) 
+		{
+			result.push_back(str.substr(start));
+		}
+    
 		return result;
 	}
 
 	std::vector<std::wstring> Split(const std::wstring& wstr, wchar_t delimiter)
 	{
 		std::vector<std::wstring> result;
-		std::wstringstream ss(wstr);
-		std::wstring item;
-		while (std::getline(ss, item, delimiter))
+		size_t start = 0;
+		size_t end = wstr.find(delimiter);
+
+		while (end != std::wstring::npos)
 		{
-			if (!item.empty())
-			{
-				result.push_back(item);
+			if (end != start)
+			{ 
+				result.push_back(wstr.substr(start, end - start));
 			}
+			start = end + 1;
+			end = wstr.find(delimiter, start);
 		}
+    
+		if (start < wstr.length()) 
+		{
+			result.push_back(wstr.substr(start));
+		}
+    
 		return result;
 	}
 }

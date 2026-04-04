@@ -9,14 +9,15 @@
 
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Controls/Panel.h"
+#include "Berta/Paint/Image.h"
 
 #include <string>
-#include <list>
+#include <vector>
+#include <optional>
 
 namespace Berta
 {
-	enum class TabBarPosition
+	enum class TabRowPosition
 	{
 		Top,
 		Bottom
@@ -24,91 +25,131 @@ namespace Berta
 
 	struct ArgTabBar
 	{
-		std::string id;
+		size_t Index;
+		std::string_view Id;
 	};
-
+	
+	struct ArgTabClosing
+	{
+		size_t Index;
+		std::string_view Id;
+		mutable bool Cancel{ false };
+	};
+	
+	struct ArgTabMouse : public ArgTabBar
+	{
+		ArgMouse Mouse;
+	};
+	
 	struct TabBarEvents : public ControlEvents
 	{
 		Event<ArgTabBar> TabChanged;
+		Event<ArgTabClosing> TabClosing;
+		Event<ArgTabBar> TabClosed;
+		
+		Event<ArgTabMouse> TabMouseDown;
+		Event<ArgTabMouse> TabMouseMove;
+		Event<ArgTabMouse> TabMouseUp;
 	};
+	
 	struct TabBarAppearance : public ControlAppearance
 	{
 		uint32_t TabBarItemHeight = 27;
+		Color SelectedBackgroundColor { Colors::Light_ButtonBackground };
+		Color AccentColor{ Colors::Light_SelectionHighlightColor };
+		Color InnerHighlightColor{255, 255, 255, 128};
+		Color TabBackgroundColor{204, 200, 192, 255};
 	};
-
+	
+	struct TabWindowDeleter
+	{
+		void operator()(Window* window) const;
+	};
+	
 	class TabBarReactor : public ControlReactor
 	{
 	public:
 		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
+		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+		void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void Resize(Graphics& graphics, const ArgResize& args) override;
-
-		void AddTab(const std::string& tabId, Window* window);
-		void Clear();
-		void InsertTab(size_t position, const std::string& tabId, Window* window);
-		void EraseTab(size_t position);
-		int GetSelectedIndex() const;
-		size_t Count() const;
-
-		void SetTabPosition(TabBarPosition position);
-	private:
+		
 		struct PanelItem
 		{
 			PanelItem() = default;
-			PanelItem(const std::string& id, Window* panel) : Id(id), PanelPtr(panel) {}
-			~PanelItem();
-
+			
+			std::string Id;
+			std::unique_ptr<Window, TabWindowDeleter> PanelPtr;
+			Image Icon;
+			
 			Point Position{};
 			Point Center{};
 			Size Size{};
-			Rectangle PanelArea{};
-
-			std::string Id;
-			Window* PanelPtr{ nullptr };
+			Rectangle ContentArea{};
+			Rectangle CloseButtonArea{};
 		};
-
+		
 		struct Module
 		{
-			using PanelIterator = std::list<PanelItem>::iterator;
-			using ConstPanelIterator = std::list<PanelItem>::const_iterator;
-
-			bool AddTab(const std::string& tabId, Window* window);
+			bool AddTab(std::string tabId, Window* window);
 			bool Clear();
-			bool InsertTab(size_t index, const std::string& tabId, Window* window);
+			bool InsertTab(size_t index, std::string tabId, Window* window);
 			void BuildItems(size_t startIndex = 0);
 			bool EraseTab(size_t index);
-			int FindItem(const Point& position) const;
-			bool NewSelectedIndex(int newIndex) const { return m_selectedTabIndex != newIndex; }
-			void SelectIndex(int newIndex) { m_selectedTabIndex = newIndex; }
-			int GetSelectedIndex() const;
+			Window* DetachTab(size_t index);
+			
+			void Draw();
+			
+			Rectangle GetTabPageArea(bool includePadding) const;
+			
+			void MoveTabPage(Window* window) const;
+			
+			std::optional<size_t> FindItem(const Point& position) const;
+			std::optional<size_t> GetSelectedIndex() const;
 
-			PanelIterator At(std::size_t position)
-			{
-				auto it = m_panels.begin();
-				std::advance(it, position);
-				return it;
-			}
-
-			ConstPanelIterator At(std::size_t position) const
-			{
-				auto it = m_panels.cbegin();
-				std::advance(it, position);
-				return it;
-			}
-
-			std::list<PanelItem> m_panels;
-			int m_selectedTabIndex{ -1 };
+			std::vector<PanelItem> m_panels;
+			std::optional<size_t> m_selectedTabIndex{ std::nullopt };
+			
 			Window* m_owner{ nullptr };
 			TabBarEvents* m_events{ nullptr };
-			TabBarAppearance* m_appearance{ nullptr };
-			TabBarPosition m_tabPosition{ TabBarPosition::Top };
-
-		private:
-			void UpdatePanelMoveRect(Window* window) const;
+			TabRowPosition m_tabRowPosition{ TabRowPosition::Top };
+			Padding m_tabPagePadding;
+			bool m_showCloseButton { true };
+			std::optional<size_t> m_hoveredTabIndex { std::nullopt };
+			std::optional<size_t> m_hoveredCloseBtnIndex { std::nullopt };
+			std::optional<size_t> m_mouseDownCloseBtnIndex { std::nullopt };
 		};
+		
+		Module& GetModule() { return m_module; }
+		const Module& GetModule() const { return m_module; }
+		
+	private:
 		Module m_module;
+	};
+	
+	struct TabBarItem
+	{
+		TabBarItem() = default;
+		TabBarItem(size_t logicalIndex, TabBarReactor::Module* module) :
+			m_logicalIndex(logicalIndex), m_module(module)
+		{
+		}
+		
+		void SetTitle(const std::string& title);
+		void SetIcon(const Image& image);
+
+		explicit operator bool() const
+		{
+			return m_module;
+		}
+
+	private:
+		size_t m_logicalIndex{ static_cast<size_t>(-1) };
+		TabBarReactor::Module* m_module{ nullptr };
 	};
 
 	class TabBar : public Control<TabBarReactor, TabBarEvents, TabBarAppearance>
@@ -117,16 +158,22 @@ namespace Berta
 		TabBar() = default;
 		TabBar(Window* parent, const Rectangle& rectangle);
 
+		TabBarItem At(size_t index);
 		void Clear();
-		
 		size_t Count() const;
 		void Erase(size_t index);
-		int GetSelectedIndex() const;
-
-		void Insert(size_t position, const std::string& tabId, Window* window);
-		void PushBack(const std::string& tabId, Window* window);
-		void SetTabBarPosition(TabBarPosition position);
-
+		std::optional<size_t> GetSelectedIndex() const;
+		
+		void Insert(size_t position, std::string tabId, Window* window);
+		void PushBack(std::string tabId, Window* window);
+		
+		Window* Detach(size_t index);
+		
+		TabRowPosition GetTabRowPosition() const;
+		void SetTabRowPosition(TabRowPosition position);
+		void SetTabPagePadding(Padding padding);
+		
+		void ShowCloseButton(bool show);
 	private:
 		
 	};

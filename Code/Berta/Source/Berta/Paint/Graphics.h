@@ -8,6 +8,8 @@
 #define BT_GRAPHICS_HEADER
 
 #include <memory>
+#include <string_view>
+
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/API/WindowAPI.h"
 #include "Berta/API/PaintAPI.h"
@@ -18,6 +20,13 @@
 
 namespace Berta
 {
+	struct TextFormatOptions
+	{
+		bool WordWrap{ false };
+		HorizontalAlign AlignX { HorizontalAlign::Left };
+		VerticalAlign AlignY { VerticalAlign::Top };
+	};
+	
 	class Graphics
 	{
 	public:
@@ -28,11 +37,12 @@ namespace Berta
 		Graphics();
 		Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle);
 		explicit Graphics(API::RootPaintNativeHandle rootPaintHandle);
-		//Graphics(const Graphics& other);
+
+		Graphics(const Graphics& other) = delete;
 		Graphics(Graphics&& other) noexcept;
 		~Graphics(); 
 		
-		Graphics& operator=(const Graphics& other);
+		Graphics& operator=(const Graphics& other) = delete;
 		Graphics& operator=(Graphics&& other) noexcept;
 
 		enum class ArrowDirection : uint8_t
@@ -41,13 +51,6 @@ namespace Berta
 			Upwards,
 			Left,
 			Right
-		};
-
-		enum class LineStyle : uint8_t
-		{
-			Solid,
-			Dash,
-			Dotted
 		};
 
 		void Build(API::RootPaintNativeHandle rootPaintHandle);
@@ -63,16 +66,22 @@ namespace Berta
 		
 		void DrawLine(const Point& point1, const Point& point2, const Color& color, LineStyle style = LineStyle::Solid);
 		void DrawLine(const Point& point1, const Point& point2, float strokeWidth, const Color& color, LineStyle style = LineStyle::Solid);
-		void DrawBeginLine(const Point& point, const Color& color, LineStyle style = LineStyle::Solid);
-
-		void DrawRectangle(const Color& color, bool solid, float strokeWidth = 1.0f);
-		void DrawRectangle(const Rectangle& rectangle, const Color& color, bool solid, float strokeWidth = 1.0f);
-		void DrawRectangle(const Rectangle& rectangle, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth = 1.0f);
-		void DrawString(const Point& position, const std::wstring& wstr, const Color& color);
-		void DrawString(const Point& position, const std::string& str, const Color& color);
-		void DrawString(const Point& position, std::wstring_view wstr, const Color& color);
-		void DrawString(const Rectangle& area, const std::wstring& wstr, const Color& color, bool wordWrap = false, HorizontalAlign horizontalAlign = HorizontalAlign::Left, VerticalAlign verticalAlign = VerticalAlign::Top);
-		void DrawString(const Rectangle& area, const std::string& str, const Color& color, bool wordWrap = false);
+		
+		void DrawRectangle(const Rectangle& rect, const Color& borderColor, float strokeWidth = 1.0f);
+		void FillRectangle(const Rectangle& rect, const Color& fillColor);
+		void FillAndDrawRectangle(const Rectangle& rect, const Color& solidColor, const Color& borderColor, float strokeWidth = 1.0f);
+		
+		void DrawTopRoundedRectangle(const Rectangle& rect, float radius, const Color& borderColor, bool closeFigure, float strokeWidth = 1.0f);
+		void FillTopRoundedRectangle(const Rectangle& rect, float radius, const Color& fillColor);
+		
+		void DrawBottomRoundedRectangle(const Rectangle& rect, float radius, Color borderColor, bool closeFigure, float strokeWidth = 1.0f);
+		void FillBottomRoundedRectangle(const Rectangle& rect, float radius, Color fillColor);
+		
+		void DrawString(const Point& position, std::string_view strView, const Color& color);
+		void DrawString(const Point& position, std::wstring_view wstrView, const Color& color);
+		
+		void DrawString(const Rectangle& area, std::string_view strView, const Color& color, const TextFormatOptions& options = {});
+		void DrawString(const Rectangle& area, std::wstring_view wstrView, const Color& color, const TextFormatOptions& options = {});
 		
 		void DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color);
 		
@@ -113,6 +122,7 @@ namespace Berta
 
 		void Swap(Graphics& other);
 		void Release();
+		
 		bool IsEnabledAliasing();
 		void EnabledAliasing(bool enabled);
 
@@ -141,6 +151,9 @@ namespace Berta
 		std::unique_ptr<PaintNativeHandle> m_attributes;
 
 #ifdef BT_PLATFORM_WINDOWS
+		ID2D1PathGeometry* CreateTopRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
+		ID2D1PathGeometry* CreateBottomRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
+		
 		ID2D1RenderTarget* m_targetRT{ nullptr };
 		ResourceCache m_resourceCache;
 #endif

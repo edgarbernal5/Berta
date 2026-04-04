@@ -375,6 +375,13 @@ namespace Berta
 		Checked,
 		Indeterminate
 	};
+	
+	enum class LineStyle : uint8_t
+	{
+		Solid,
+		Dash,
+		Dotted
+	};
 }
 
 #endif

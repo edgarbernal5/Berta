@@ -124,7 +124,7 @@ public:
 		m_treeBox.Insert(L"D:/Juegos/Control", L"Control");
 		m_treeBox.Insert(L"D:/Juegos/Cuphead", L"Cuphead");
 		m_treeBox.Insert(L"D:/Juegos/Never alone", L"Never alone");
-
+		m_treeBox.ShowIcons(true);
 		m_treeBox.ExpandAll();
 
 		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
@@ -480,9 +480,11 @@ int main()
 	TabExample2 tabExample2(form);
 	TabExample3 tabExample3(form);
 
+	//tabbar.SetTabBarPosition(Berta::TabBarPosition::Bottom);
 	tabbar.PushBack("Apariencia", tabExample1);
 	tabbar.PushBack("Player", tabExample2);
 	tabbar.Insert(0, "Input", tabExample3);
+	tabbar.At(1).SetIcon(image1);
 	
 	Berta::Button button2(form, { 5,120,75,25 }, L"Disabled");
 #ifdef BT_DEBUG
@@ -577,7 +579,12 @@ int main()
 			tabbar.SetSize({ args.NewSize.Width - currentPosition.X - margin, args.NewSize.Height - currentPosition.Y - margin });
 
 		});
-
+	
+	form.GetEvents().MouseUp.Connect([&tabbar](const Berta::ArgMouse& args)
+	{
+		tabbar.SetTabRowPosition(tabbar.GetTabRowPosition() == Berta::TabRowPosition::Top ? Berta::TabRowPosition::Bottom : Berta::TabRowPosition::Top);
+	});
+	form.GetAppearance().Background.SetR(0);
 	form.Show();
 	form.Exec();
 
