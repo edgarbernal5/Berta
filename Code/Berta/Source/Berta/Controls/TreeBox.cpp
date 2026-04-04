@@ -611,7 +611,7 @@ namespace Berta
 			int centerY = drawY + nodeHeightHalf;
 			int currentX = indentX + rowPaddingX;
 			
-			Rectangle rowRect{ clientArea.X, drawY, clientArea.Width, static_cast<uint32_t>(nodeHeight) };
+			Rectangle fullRowRect{ clientArea.X, drawY, clientArea.Width, static_cast<uint32_t>(nodeHeight) };
 			
 			bool isSelected = m_selectionController.IsSelected(node);
 			bool isFocused = (node == m_focusedNode);
@@ -620,7 +620,7 @@ namespace Berta
 			int reducedX = currentX + depthWidthMultiplier;
 			if (isSelected)
 			{
-				Rectangle reducedRowRect = rowRect;
+				Rectangle reducedRowRect = fullRowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
 				
@@ -628,7 +628,7 @@ namespace Berta
 			}
 			else if (isHovered)
 			{
-				Rectangle reducedRowRect = rowRect;
+				Rectangle reducedRowRect = fullRowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
 
@@ -670,7 +670,7 @@ namespace Berta
 			{
 				if (node->icon)
 				{
-					Rectangle iconRect{ rowRect.X + currentX + iconPaddingX, centerY - (int)(iconSize >> 1), iconSize, iconSize };
+					Rectangle iconRect{ fullRowRect.X + currentX + iconPaddingX, centerY - (int)(iconSize >> 1), iconSize, iconSize };
 					node->icon.Paste(graphics, iconRect);
 				}
 				currentX += static_cast<int>(iconSize) + iconPaddingX * 2;
@@ -694,27 +694,27 @@ namespace Berta
 			
 			if (isFocused)
 			{
-				Rectangle reducedRowRect = rowRect;
+				Rectangle reducedRowRect = fullRowRect;
 				reducedRowRect.X += reducedX;
 				reducedRowRect.Width -= reducedX;
 				
 				graphics.DrawRectangle(reducedRowRect, appearance->Foreground);
 			}
 			
-			Rectangle textRect{ rowRect.X + currentX + textPaddingX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
+			Rectangle textRect{ fullRowRect.X + currentX + textPaddingX, drawY + ((nodeHeight - static_cast<int>(graphics.GetTextExtent().Height))/2), (uint32_t)(clientWidth - currentX), (uint32_t)nodeHeight };
         
 			Color textColor = isSelected ? appearance->HighlightTextColor : appearance->Foreground;
 			graphics.DrawString(textRect.Position(), node->text, textColor);
 			
 			if (m_isDragging && m_dropTargetNode == node)
 			{
-				int indicatorX = static_cast<int>(flatNode.Level * depthWidthMultiplier) - scrollX + clientArea.Y;
+				int indicatorX = static_cast<int>(flatNode.Level * depthWidthMultiplier) - scrollX + clientArea.X;
     
 				Color indicatorColor = Color(0, 120, 215, 255);
 
 				if (m_dropPosition == DropPosition::Inside)
 				{
-					graphics.DrawRectangle(rowRect, indicatorColor);
+					graphics.DrawRectangle(fullRowRect, indicatorColor);
 				}
 				else if (m_dropPosition == DropPosition::Before)
 				{
@@ -975,6 +975,15 @@ namespace Berta
 			return false;
 
 		m_showNavigationLines = visible;
+		return true;
+	}
+
+	bool TreeBoxReactor::Module::ShowIcons(bool visible)
+	{
+		if (m_drawImages == visible)
+			return false;
+
+		m_drawImages = visible;
 		return true;
 	}
 
@@ -1307,6 +1316,17 @@ namespace Berta
 		auto& module = GetReactor().GetModule();
 		if (module.ShowNavigationLines(visible))
 		{
+			module.Update();
+			module.Draw();
+		}
+	}
+
+	void TreeBox::ShowIcons(bool visible)
+	{
+		auto& module = GetReactor().GetModule();
+		if (module.ShowIcons(visible))
+		{
+			module.RebuildFlatTree();
 			module.Update();
 			module.Draw();
 		}

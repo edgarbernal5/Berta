@@ -234,6 +234,7 @@ namespace Berta
 			void CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild);
 
 			bool ShowNavigationLines(bool visible);
+			bool ShowIcons(bool visible);
 
 			bool IsDescendantOf(TreeNodeType* node, TreeNodeType* potentialAncestor) const;
 			void InitScrollableView();
@@ -307,8 +308,6 @@ namespace Berta
 				return;
 			}
 			m_node->icon = icon;
-		
-			//m_module->m_drawImages = true;
 			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);
@@ -451,6 +450,7 @@ namespace Berta
 		
 		void EnableMultiselection(bool enabled);
 		void ShowNavigationLines(bool visible);
+		void ShowIcons(bool visible);
 	};
 }
 

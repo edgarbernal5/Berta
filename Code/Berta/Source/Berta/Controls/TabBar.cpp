@@ -161,7 +161,7 @@ namespace Berta
 		int accentThickness = m_module.m_owner->ToScale(3); 
 		if (m_module.m_tabRowPosition == TabRowPosition::Top)
 		{
-			int accentLineY = tabBarItemHeight - 1 - accentThickness / 2;
+			int accentLineY = tabBarItemHeight - accentThickness / 2;
 			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
 			graphics.FillRectangle(accentRect, appearance->AccentColor);
 			
@@ -184,7 +184,7 @@ namespace Berta
 		}
 		else
 		{
-			int accentLineY = clientHeight - tabBarItemHeight - accentThickness / 2;
+			int accentLineY = clientHeight - tabBarItemHeight - 1 - accentThickness / 2;
 			Rectangle accentRect{ Point{activeXStart, accentLineY}, Size{static_cast<uint32_t>(activeWidth), static_cast<uint32_t>(accentThickness)} };
 			graphics.FillRectangle(accentRect, appearance->AccentColor);
 			
@@ -535,11 +535,11 @@ namespace Berta
 		Rectangle contentArea;
 		if (m_tabRowPosition == TabRowPosition::Top)
 		{
-			contentArea = { 2, tabBarItemHeight + 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
+			contentArea = { 2, tabBarItemHeight + 3, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) };
 		}
 		else
 		{
-			contentArea = { 2, 2, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4) };
+			contentArea = { 2, 3, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) };
 		}
 		
 		if (includePadding)
@@ -556,20 +556,7 @@ namespace Berta
 
 	void TabBarReactor::Module::MoveTabPage(Window* window) const
 	{
-		auto appearance = reinterpret_cast<TabBarAppearance*>(m_owner->Appearance.get());
-		auto tabBarItemHeight = m_owner->ToScale(appearance->TabBarItemHeight);
-		int newWidth = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Width) - 4);
-		int newHeight = std::max<int>(0, static_cast<int>(m_owner->ClientSize.Height) - static_cast<int>(tabBarItemHeight) - 4);
-		
-		Rectangle contentArea;
-		if (m_tabRowPosition == TabRowPosition::Top)
-		{
-			contentArea = { 2, static_cast<int>(tabBarItemHeight) + 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
-		}
-		else
-		{
-			contentArea = { 2, 2, static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight) };
-		}
+		Rectangle contentArea = GetTabPageArea(true);
 		GUI::MoveWindow(window, contentArea);
 	}
 	

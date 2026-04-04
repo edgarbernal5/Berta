@@ -12,6 +12,7 @@
 #include <Berta/Controls/ThumbListBox.h>
 #include <Berta/Controls/ComboBox.h>
 #include <Berta/Controls/Slider.h>
+#include <Berta/Controls/Panel.h>
 
 #include <iostream>
 #include <filesystem>
@@ -47,7 +48,7 @@ public:
 				m_treeBox.Insert(letter + L".../", L"...");
 			}
 		}
-
+		m_treeBox.ShowIcons(true);
 		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
 			{
 				m_listBox.Clear();

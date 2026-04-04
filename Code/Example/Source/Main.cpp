@@ -124,7 +124,7 @@ public:
 		m_treeBox.Insert(L"D:/Juegos/Control", L"Control");
 		m_treeBox.Insert(L"D:/Juegos/Cuphead", L"Cuphead");
 		m_treeBox.Insert(L"D:/Juegos/Never alone", L"Never alone");
-
+		m_treeBox.ShowIcons(true);
 		m_treeBox.ExpandAll();
 
 		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
