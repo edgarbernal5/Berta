@@ -430,7 +430,7 @@ namespace Berta
 				
 				tab.CloseButtonArea = {
 					static_cast<int>(tab.Size.Width) - tabPadding - closeBtnSize,
-					(tabBarItemHeight - closeBtnSize) / 2,
+					(tabBarItemHeight - closeBtnSize) / 2 + 1,
 					static_cast<uint32_t>(closeBtnSize),
 					static_cast<uint32_t>(closeBtnSize)
 				};
