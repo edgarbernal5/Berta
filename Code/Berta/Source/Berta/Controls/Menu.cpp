@@ -23,18 +23,18 @@ namespace Berta
 	
 	void Menu::Append(const std::string& text, ClickCallback onClick)
 	{
-		std::wstring wstr(text.begin(), text.end());
-		auto& newItem = m_items.emplace_back(new Menu::Item{ wstr , std::move(onClick)});
+		std::wstring wstr = StringUtils::UTF8ToWide(text);
+		m_items.emplace_back(MenuAction{ wstr, Image{}, std::move(onClick) });
 	}
 
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
-		auto& newItem = m_items.emplace_back(new Menu::Item{ text , std::move(onClick)});
+		m_items.emplace_back(MenuAction{ text, Image{}, std::move(onClick) });
 	}
 
 	void Menu::AppendSeparator()
 	{
-		m_items.emplace_back(new Menu::Item());
+		m_items.emplace_back(MenuSeparator{});
 	}
 
 	void Menu::ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp)
@@ -567,7 +567,7 @@ namespace Berta
 			}
 		}
 
-		void Reactor::SetItems(std::vector<std::unique_ptr<Menu::Item>>& items)
+		void Reactor::SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
 		{
 			m_items = &items;
 		}
@@ -757,7 +757,7 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items)
+	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
 	{
 		menuOwner->m_menuBox = this;
 

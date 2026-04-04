@@ -13,6 +13,7 @@
 #include "Berta/Paint/Image.h"
 #include <string>
 #include <functional>
+#include <variant>
 #include <vector>
 
 namespace Berta
@@ -36,25 +37,30 @@ namespace Berta
 	
 	struct Menu
 	{
-		friend class Berta::MenuBox;
-		friend class ReactorCore::MenuBox::Reactor;
-		friend class ReactorCore::MenuBar::Reactor;
-
 		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
+		
+		struct MenuSeparator {};
 
-		void Append(const std::string& text, ClickCallback onClick = {});
-		void Append(const std::wstring& text, ClickCallback onClick = {});
-		void AppendSeparator();
-		void ShowPopup(Window* owner, const ArgMouse& args);
-		Menu* CreateSubMenu(std::size_t index);
-		void SetImage(size_t index, const Image& image);
-		void SetEnabled(size_t index, bool enabled);
+		struct MenuAction
+		{
+			std::wstring text;
+			Image image;
+			ClickCallback onClick;
+			wchar_t accessKey{ 0 };
+			std::size_t accessKeyPosition{ 0 };
+			bool isEnabled{ true };
+		};
 
-		Berta::MenuBox* GetMenuBox() const { return m_menuBox; }
-		void CloseMenuBox();
-
-		struct Item
+		struct MenuSubMenu
+		{
+			std::wstring text;
+			Image image;
+			std::unique_ptr<Menu> subMenu;
+			bool isEnabled{ true };
+		};
+		
+		/*struct Item
 		{
 			Item() : m_isSeparator(true) {}
 			Item(const std::wstring& _text, ClickCallback _onClick) : 
@@ -73,13 +79,31 @@ namespace Berta
 			Image m_image;
 			wchar_t m_accessKey{ 0 };
 			std::size_t	m_accessKeyPosition{ 0 };
-		};
+		};*/
+		
+		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu>;
+		
+		friend class Berta::MenuBox;
+		friend class ReactorCore::MenuBox::Reactor;
+		friend class ReactorCore::MenuBar::Reactor;
+
+		void Append(const std::string& text, ClickCallback onClick = {});
+		void Append(const std::wstring& text, ClickCallback onClick = {});
+		void AppendSeparator();
+		void ShowPopup(Window* owner, const ArgMouse& args);
+		Menu* CreateSubMenu(std::size_t index);
+		void SetImage(size_t index, const Image& image);
+		void SetEnabled(size_t index, bool enabled);
+		const std::vector<MenuItemData>& GetItems() const { return m_items; }
+		Berta::MenuBox* GetMenuBox() const { return m_menuBox; }
+		void CloseMenuBox();
+
 		
 	private:
 		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
 		Size GetMenuBoxSize(Window* parent) const;
 
-		std::vector<std::unique_ptr<Item>> m_items;
+		std::vector<MenuItemData> m_items;
 		Berta::MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
@@ -88,14 +112,14 @@ namespace Berta
 	
 	struct MenuItem
 	{
-		MenuItem(Menu::Item& target) : m_target(target) {}
+		MenuItem(Menu::MenuItemData& target) : m_target(target) {}
 
 		bool GetEnabled() const;
 		void SetEnabled(bool isEnabled);
 		void SetText(const std::wstring& text);
 		
 	private:
-		Menu::Item& m_target;
+		Menu::MenuItemData& m_target;
 	};
 	
 	namespace ReactorCore::MenuBox
@@ -163,7 +187,7 @@ namespace Berta
 			Menu* GetMenuOwner() const { return m_menuOwner; }
 
 			void BuildItems();
-			void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
+			void SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 			void SetMenuOwner(Menu* menuOwner);
 			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 			Size GetMenuBoxSize();
@@ -190,7 +214,7 @@ namespace Berta
 			Menu* m_menuOwner{ nullptr };
 			Appearance* m_appearance{ nullptr };
 			bool m_ignoreFirstMouseUp{ true };
-			std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
+			std::vector<std::unique_ptr<Menu::MenuItemData>>* m_items{ nullptr };
 			std::vector<MenuBoxItem> m_itemSizePositions;
 			Timer m_subMenuTimer;
 			int m_selectedIndex{ -1 };
@@ -213,7 +237,7 @@ namespace Berta
 		MenuBox(Window* parent, const Point& position);
 		~MenuBox();
 
-		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items);
+		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 		void SetIgnoreFirstMouseUp(bool value);
 
 		void Popup(bool fromMenuBar = false);
