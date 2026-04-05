@@ -254,17 +254,20 @@ namespace Berta
 		std::optional<size_t> newHoveredTab;
 		std::optional<size_t> newHoveredCloseBtn;
 		
-		if (m_module.m_showCloseButton && hoveredTabIndex.has_value())
+		if (hoveredTabIndex.has_value())
 		{
 			newHoveredTab = hoveredTabIndex;
-			
 			auto& tabItem = m_module.m_panels[*hoveredTabIndex];
-			Rectangle absCloseBtn = tabItem.CloseButtonArea;
-			absCloseBtn.X += tabItem.Position.X;
-			absCloseBtn.Y += tabItem.Position.Y;
-			if (absCloseBtn.IsInside(args.Position))
+			
+			if (m_module.m_showCloseButton)
 			{
-				newHoveredCloseBtn = newHoveredTab;
+				Rectangle absCloseBtn = tabItem.CloseButtonArea;
+				absCloseBtn.X += tabItem.Position.X;
+				absCloseBtn.Y += tabItem.Position.Y;
+				if (absCloseBtn.IsInside(args.Position))
+				{
+					newHoveredCloseBtn = newHoveredTab;
+				}
 			}
 		}
 		
