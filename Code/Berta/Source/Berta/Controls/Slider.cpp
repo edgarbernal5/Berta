@@ -274,13 +274,13 @@ namespace Berta
 		{
 			auto sliderBoxRect = GetSliderBoxRect();
 
-			if (sliderBoxRect.IsInside(position))
+			if (sliderBoxRect.Contains(position))
 			{
 				return InteractionArea::Scrollbox;
 			}
 
 			auto trackRect = GetSliderTrackRect();
-			if (trackRect.IsInside(position))
+			if (trackRect.Contains(position))
 			{
 				return InteractionArea::ScrollTrack;
 			}

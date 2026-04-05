@@ -308,11 +308,11 @@ namespace Berta
 
 		if (m_isVertical)
 		{
-			if (Rectangle{ 0, 0, window->ClientSize.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, 0, window->ClientSize.Width, buttonSize }.Contains(position))
 			{
 				return InteractionArea::Button1;
 			}
-			if (Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize }.Contains(position))
 			{
 				return InteractionArea::Button2;
 			}
@@ -321,7 +321,7 @@ namespace Berta
 			{
 				auto scrollBoxRect = GetScrollBoxRect();
 
-				if (scrollBoxRect.IsInside(position))
+				if (scrollBoxRect.Contains(position))
 				{
 					return InteractionArea::Scrollbox;
 				}
@@ -329,11 +329,11 @@ namespace Berta
 				return InteractionArea::ScrollTrack;
 			}
 		}
-		if (Rectangle{ 0, 0, buttonSize, window->ClientSize.Height }.IsInside(position))
+		if (Rectangle{ 0, 0, buttonSize, window->ClientSize.Height }.Contains(position))
 		{
 			return InteractionArea::Button1;
 		}
-		if (Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height }.IsInside(position))
+		if (Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height }.Contains(position))
 		{
 			return InteractionArea::Button2;
 		}
@@ -342,7 +342,7 @@ namespace Berta
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
 
-			if (scrollBoxRect.IsInside(position))
+			if (scrollBoxRect.Contains(position))
 			{
 				return InteractionArea::Scrollbox;
 			}

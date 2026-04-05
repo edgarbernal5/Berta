@@ -582,7 +582,7 @@ namespace Berta
 			return;
 		}
 
-		m_mouseDownCloseButton = m_buttonRect.IsInside(args.Position) && args.ButtonState.LeftButton;
+		m_mouseDownCloseButton = m_buttonRect.Contains(args.Position) && args.ButtonState.LeftButton;
 		m_clickedCloseButton = false;
 		if (!m_mouseDownCloseButton)
 		{
@@ -599,7 +599,7 @@ namespace Berta
 			return;
 
 		auto prevStatus = m_buttonStatus;
-		m_buttonStatus = m_buttonRect.IsInside(args.Position) ? (m_mouseDownCloseButton ? State::Pressed : State::Hovered) : State::None;
+		m_buttonStatus = m_buttonRect.Contains(args.Position) ? (m_mouseDownCloseButton ? State::Pressed : State::Hovered) : State::None;
 
 		if (prevStatus == m_buttonStatus)
 			return;
@@ -612,7 +612,7 @@ namespace Berta
 		if (!m_paneInfo->ShouldShowCloseButton())
 			return;
 
-		m_clickedCloseButton = m_mouseDownCloseButton && m_buttonRect.IsInside(args.Position) && args.ButtonState.LeftButton;
+		m_clickedCloseButton = m_mouseDownCloseButton && m_buttonRect.Contains(args.Position) && args.ButtonState.LeftButton;
 
 		m_mouseDownCloseButton = false;
 

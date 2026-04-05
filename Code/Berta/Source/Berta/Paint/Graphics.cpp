@@ -742,7 +742,7 @@ namespace Berta
 			break;
 		}
 
-		if (!output.IsInside(p1) && !output.IsInside(p2) && !output.IsInside(p3))
+		if (!output.Contains(p1) && !output.Contains(p2) && !output.Contains(p3))
 		{
 			return;
 		}

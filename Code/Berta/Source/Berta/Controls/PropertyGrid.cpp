@@ -338,7 +338,7 @@ namespace Berta
 			Point offsetPosition = mousePosition + m_scrollOffset;
 			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
 			{
-				if (it->m_area.IsInside(offsetPosition))
+				if (it->m_area.Contains(offsetPosition))
 					return &(*it);
 			}
 			return nullptr;

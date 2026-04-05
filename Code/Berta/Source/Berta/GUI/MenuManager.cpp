@@ -8,6 +8,7 @@
 #include "MenuManager.h"
 
 #include "Berta/GUI/Interface.h"
+#include "Berta/Controls/Menu.h"
 
 #include <stack>
 
@@ -21,7 +22,9 @@ namespace Berta
     void MenuManager::Close(Window* popupWindow)
     {
         if (m_popups.empty())
+        {
             return;
+        }
 
         std::stack<Window*> popups;
         for (size_t i = 0; i < m_popups.size(); i++)
@@ -80,7 +83,7 @@ namespace Berta
 
         if (fromKeyboard && m_fromMenuBar)
         {
-            return m_popups[0];
+            return m_popups.front();
         }
 
         return m_popups.back();
@@ -88,6 +91,20 @@ namespace Berta
 
     Window* MenuManager::FindMenu(const Point& mousePosition) const
     {
+        // Iteradores modernos (sin advertencias de signed/unsigned)
+        for (auto it = m_popups.rbegin(); it != m_popups.rend(); ++it)
+        {
+            Window* menuWindow = *it;
+            // DIP: Delegamos la conversión Win32 a la abstracción de GUI
+            Point localPosition = GUI::GetPointScreenToClient(menuWindow, mousePosition);
+
+            if (menuWindow->ClientSize.IsInside(localPosition))
+            {
+                return menuWindow;
+            }
+        }
+        return nullptr; // No hay llamadas nativas Win32 aquí
+        /*
 #ifdef BT_PLATFORM_WINDOWS
         for (int i = m_popups.size() - 1; i >=0 ; --i)
         {
@@ -105,7 +122,7 @@ namespace Berta
         return nullptr;
 #else
         return nullptr;
-#endif
+#endif*/
     }
 
     void MenuManager::ShowContextMenu(const Menu& menuData, Window* owner, const Point& position)
@@ -115,17 +132,21 @@ namespace Berta
     
         // 2. Transfiere los datos al Reactor de la vista
         menuBox->InitFromData(menuData); 
-    
+        
+        // 3. Reutilizamos tu lógica probada de control de ventanas
+        ShowPopup(menuBox->Handle(), owner, false);
+        
+        /*i
         // 3. Reutiliza tu lógica existente de gestión de ventanas
         // (Esto es exactamente lo que hacías antes en MenuBox::Popup)
-        if (m_popups.empty())
+        f (m_popups.empty())
         {
             m_owner = owner;
             GUI::Capture(m_owner); // Mantiene el mismo comportamiento de foco
         }
     
-        m_popups.push_back(menuBox);
-        GUI::MakeWindowActive(menuBox->Handle(), true, nullptr);
+        m_popups.push_back(menuBox->Handle());
+        GUI::MakeWindowActive(menuBox->Handle(), true, nullptr);*/
     }
 
     void MenuManager::ShowMenuBarPopup(const Menu& menuData, Window* owner)
@@ -139,14 +160,16 @@ namespace Berta
             m_owner = fromMenuBar ? owner : window;
             GUI::Capture(m_owner);
         }
+        
         if (fromMenuBar)
         {
+            m_fromMenuBar = true;
             if (std::find(m_popups.begin(), m_popups.end(), owner) == m_popups.end())
             {
                 m_popups.emplace_back(owner);
             }
-            m_fromMenuBar = true;
         }
         m_popups.emplace_back(window);
+        GUI::MakeWindowActive(window, true, nullptr);
     }
 }

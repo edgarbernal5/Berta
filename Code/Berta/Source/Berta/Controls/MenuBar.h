@@ -17,6 +17,10 @@ namespace Berta
 {
 	class MenuBar;
 
+	//TODO:
+	/*
+	Consolidar todos los cambios y mejoras sugeridas hasta el momento, de todas las clases involucradas con el mayor detalle posible de código. Ya hice la implementación de std::variant
+	*/
 	namespace ReactorCore::MenuBar
 	{
 		class Reactor : public ControlReactor, public ReactorCore::MenuBox::MenuItemReactor
@@ -56,12 +60,15 @@ namespace Berta
 				std::wstring text;
 				wchar_t accessKey;
 				std::size_t accessKeyPosition;
-				Size size;
-				Point position;
-				Size center;
 				bool isEnabled{ true };
 			};
 
+			struct ItemLayoutCache
+			{
+				Rectangle bounds;
+				Point textPosition;
+			};
+			
 			struct InteractionData
 			{
 				int		m_selectedItemIndex{ -1 };
@@ -81,7 +88,7 @@ namespace Berta
 
 				Berta::MenuBar* m_control{ nullptr };
 				Window* m_owner{ nullptr };
-				std::vector<std::unique_ptr<MenuBarItemData>> m_items;
+				std::vector<MenuBarItemData> m_items;
 				InteractionData m_interactionData;
 				Point m_lastMousePosition{ -1,-1 };
 			};

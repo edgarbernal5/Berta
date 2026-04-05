@@ -228,7 +228,7 @@ namespace Berta
 			{
 				auto& itemData = *(items[i]);
 
-				if (Rectangle{ itemData.position, itemData.size}.IsInside(position))
+				if (Rectangle{ itemData.position, itemData.size}.Contains(position))
 				{
 					return static_cast<int>(i);
 				}

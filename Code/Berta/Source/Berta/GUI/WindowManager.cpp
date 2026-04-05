@@ -1039,7 +1039,7 @@ namespace Berta
 			absolutePosition,
 			window->ClientSize
 		};
-		return rect.IsInside(point);
+		return rect.Contains(point);
 	}
 
 	Window* WindowManager::FindInTree(Window* window, const Point& point)

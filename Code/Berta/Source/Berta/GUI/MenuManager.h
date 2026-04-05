@@ -8,7 +8,11 @@
 #define BT_MENU_MANAGER_HEADER
 
 #include "Berta/GUI/Window.h"
-#include "Berta/Controls/Menu.h"
+//#include "Berta/Controls/Menu.h"
+namespace Berta
+{
+	struct Menu;
+}
 #include <vector>
 
 namespace Berta
@@ -21,6 +25,7 @@ namespace Berta
 
 		void Close(Window* popupWindow);
 		void CloseAll();
+		
 		Window* GetActiveMenu(bool fromKeyboard = false) const;
 		Window* FindMenu(const Point& mousePosition) const;
 

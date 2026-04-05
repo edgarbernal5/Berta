@@ -262,7 +262,7 @@ namespace Berta
 			Rectangle absCloseBtn = tabItem.CloseButtonArea;
 			absCloseBtn.X += tabItem.Position.X;
 			absCloseBtn.Y += tabItem.Position.Y;
-			if (absCloseBtn.IsInside(args.Position))
+			if (absCloseBtn.Contains(args.Position))
 			{
 				newHoveredCloseBtn = newHoveredTab;
 			}
@@ -565,7 +565,7 @@ namespace Berta
 	{
 		for (size_t i = 0; i < m_panels.size(); ++i)
 		{
-			if (Rectangle{ m_panels[i].Position, m_panels[i].Size }.IsInside(position))
+			if (Rectangle{ m_panels[i].Position, m_panels[i].Size }.Contains(position))
 			{
 				return i;
 			}

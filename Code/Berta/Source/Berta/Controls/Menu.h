@@ -11,8 +11,10 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/Core/Timer.h"
 #include "Berta/Paint/Image.h"
+
 #include <string>
 #include <functional>
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -39,6 +41,14 @@ namespace Berta
 	{
 		using ClickCallback = std::function<void(MenuItem&)>;
 		using DestroyCallback = std::function<void()>;
+		
+		Menu() = default;
+		~Menu() = default;
+		
+		Menu(const Menu&) = delete;
+		Menu& operator=(const Menu&) = delete;
+		Menu(Menu&&) = default;
+		Menu& operator=(Menu&&) = default;
 		
 		struct MenuSeparator {};
 
@@ -82,29 +92,21 @@ namespace Berta
 		};*/
 		
 		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu>;
-		
-		//friend class Berta::MenuBox;
-		//friend class ReactorCore::MenuBox::Reactor;
-		//friend class ReactorCore::MenuBar::Reactor;
 
 		void Append(const std::string& text, ClickCallback onClick = {});
 		void Append(const std::wstring& text, ClickCallback onClick = {});
 		void AppendSeparator();
-		void ShowPopup(Window* owner, const ArgMouse& args);
-		Menu* CreateSubMenu(std::size_t index);
+		void AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu);
+		
+		const std::vector<MenuItemData>& GetItems() const { return m_items; }
+		
 		void SetImage(size_t index, const Image& image);
 		void SetEnabled(size_t index, bool enabled);
-		const std::vector<MenuItemData>& GetItems() const { return m_items; }
-		Berta::MenuBox* GetMenuBox() const { return m_menuBox; }
-		void CloseMenuBox();
-
 		
 	private:
-		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
 		Size GetMenuBoxSize(Window* parent) const;
 
 		std::vector<MenuItemData> m_items;
-		Berta::MenuBox* m_menuBox{ nullptr };
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
 		DestroyCallback m_destroyCallback;
@@ -132,12 +134,37 @@ namespace Berta
 			uint32_t MenuBoxSubMenuArrowWidth = 20;
 			uint32_t MenuBoxShortcutWidth = 20;
 		};
+		
+		struct ItemLayoutCache
+		{
+			Rectangle bounds;       // Área total (para detectar clics y dibujar el fondo 'hover')
+			Point textPosition;     // Origen del texto principal
+			Point shortcutPosition; // Origen del texto del atajo de teclado (ej. Ctrl+C)
+			Point arrowPosition;    // Origen de la flecha si es un submenú
+		};
+		
+		struct Module
+		{
+			void CalculateLayout(const Menu& menuData);
+			Size CalculateMenuBoxSize();
+			
+			void InitFromData(const Menu& menuData);
+			void LoadItems(const std::vector<Menu::MenuItemData>& items);
+			
+			Window* m_owner { nullptr };
+			
+			std::vector<Menu::MenuItemData> m_itemsData;
+			
+			std::vector<ItemLayoutCache> m_layoutCache;
+			Size m_calculatedBoxSize;
+			const Menu* m_menuData{ nullptr };
+			std::optional<std::size_t> m_hoveredIndex;
+			std::optional<std::size_t> m_pendingSubMenuIndex;
+			std::optional<std::size_t> m_openedSubMenuIndex;
+		};
 
 		class MenuItemReactor
 		{
-		public:
-			friend class ReactorCore::MenuBox::Reactor;
-		
 		public:
 			virtual ~MenuItemReactor() = default;
 
@@ -190,8 +217,10 @@ namespace Berta
 			void SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 			void SetMenuOwner(Menu* menuOwner);
 			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
-			Size GetMenuBoxSize();
+			//Size GetMenuBoxSize();
 
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
 		private:
 			struct MenuBoxItem
 			{
@@ -204,7 +233,8 @@ namespace Berta
 				Open,
 				Close
 			};
-
+			
+			
 			void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
 			int FindItem(const ArgMouse& args);
 			bool MouseMoveInternal(const ArgMouse& args);
@@ -212,14 +242,11 @@ namespace Berta
 
 			Berta::MenuBox* m_menuBox{ nullptr };
 			Menu* m_menuOwner{ nullptr };
-			Appearance* m_appearance{ nullptr };
 			bool m_ignoreFirstMouseUp{ true };
-			std::vector<std::unique_ptr<Menu::MenuItemData>>* m_items{ nullptr };
-			std::vector<MenuBoxItem> m_itemSizePositions;
+			
 			Timer m_subMenuTimer;
-			int m_selectedIndex{ -1 };
-			int m_selectedSubMenuIndex{ -1 };
-			int m_openedSubMenuIndex{ -1 };
+			
+			Module m_module;
 		};
 	}
 
@@ -228,10 +255,6 @@ namespace Berta
 	public:
 		using MenuItem = Berta::MenuItem;
 		using MenuItemReactor = ReactorCore::MenuBox::MenuItemReactor;
-		
-		//friend struct Menu;
-		//friend class ReactorCore::MenuBox::Reactor;
-		//friend class ReactorCore::MenuBar::Reactor;
 
 	public:
 		MenuBox(Window* parent, const Point& position);
@@ -240,15 +263,12 @@ namespace Berta
 		//void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 		void InitFromData(const Menu& menuData);
 		//void SetIgnoreFirstMouseUp(bool value);
-
-		void Popup(bool fromMenuBar = false);
 	private:
 #if BT_DEBUG
 		static int g_globalId;
 #endif
 
 		MenuItemReactor* GetItemReactor() { return &GetReactor(); }
-		Size GetMenuBoxSize();
 	};
 }
 
