@@ -83,9 +83,9 @@ namespace Berta
 		
 		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu>;
 		
-		friend class Berta::MenuBox;
-		friend class ReactorCore::MenuBox::Reactor;
-		friend class ReactorCore::MenuBar::Reactor;
+		//friend class Berta::MenuBox;
+		//friend class ReactorCore::MenuBox::Reactor;
+		//friend class ReactorCore::MenuBar::Reactor;
 
 		void Append(const std::string& text, ClickCallback onClick = {});
 		void Append(const std::wstring& text, ClickCallback onClick = {});
@@ -229,16 +229,17 @@ namespace Berta
 		using MenuItem = Berta::MenuItem;
 		using MenuItemReactor = ReactorCore::MenuBox::MenuItemReactor;
 		
-		friend struct Menu;
-		friend class ReactorCore::MenuBox::Reactor;
-		friend class ReactorCore::MenuBar::Reactor;
+		//friend struct Menu;
+		//friend class ReactorCore::MenuBox::Reactor;
+		//friend class ReactorCore::MenuBar::Reactor;
 
 	public:
 		MenuBox(Window* parent, const Point& position);
-		~MenuBox();
+		~MenuBox() override;
 
-		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
-		void SetIgnoreFirstMouseUp(bool value);
+		//void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
+		void InitFromData(const Menu& menuData);
+		//void SetIgnoreFirstMouseUp(bool value);
 
 		void Popup(bool fromMenuBar = false);
 	private:

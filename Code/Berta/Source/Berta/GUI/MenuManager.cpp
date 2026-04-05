@@ -108,6 +108,30 @@ namespace Berta
 #endif
     }
 
+    void MenuManager::ShowContextMenu(const Menu& menuData, Window* owner, const Point& position)
+    {
+        // 1. MenuManager crea la representación visual
+        auto menuBox = new Berta::MenuBox(owner, position);
+    
+        // 2. Transfiere los datos al Reactor de la vista
+        menuBox->InitFromData(menuData); 
+    
+        // 3. Reutiliza tu lógica existente de gestión de ventanas
+        // (Esto es exactamente lo que hacías antes en MenuBox::Popup)
+        if (m_popups.empty())
+        {
+            m_owner = owner;
+            GUI::Capture(m_owner); // Mantiene el mismo comportamiento de foco
+        }
+    
+        m_popups.push_back(menuBox);
+        GUI::MakeWindowActive(menuBox->Handle(), true, nullptr);
+    }
+
+    void MenuManager::ShowMenuBarPopup(const Menu& menuData, Window* owner)
+    {
+    }
+
     void MenuManager::ShowPopup(Window* window, Window* owner, bool fromMenuBar)
     {
         if (m_popups.empty())

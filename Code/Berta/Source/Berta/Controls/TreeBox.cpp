@@ -893,7 +893,7 @@ namespace Berta
 			CollectVisibleNodes(root->children[i], 0, 0, isLast);
 		}
 
-		int maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
+		auto maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
 		int rightPadding = 10; 
     
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());

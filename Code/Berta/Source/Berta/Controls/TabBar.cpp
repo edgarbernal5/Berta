@@ -499,6 +499,7 @@ namespace Berta
 			
 			GUI::ShowWindow(m_panels[newIdx].PanelPtr.get(), true);
 		}
+		
 		ArgTabBar closedArgs{ index, idCopy };
 		m_events->TabClosed.Emit(closedArgs);
 		

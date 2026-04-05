@@ -179,6 +179,54 @@ namespace Berta
 
 		void Reactor::Update(Graphics& graphics)
 		{
+			/*
+			for (const auto& itemData : m_menuData->GetItems()) {
+	std::visit([&](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, MenuSeparator>) {
+			// Dibujar línea separadora
+		} else if constexpr (std::is_same_v<T, MenuAction>) {
+			// Dibujar texto, imagen y atajos
+			graphics.DrawString(textPosition, arg.text, ...);
+		} else if constexpr (std::is_same_v<T, MenuSubMenu>) {
+			// Dibujar ítem con la flecha de submenú
+		}
+	}, itemData);
+	offsetY += menuBoxItemHeight;
+}
+			-*/
+			
+			auto window = m_module.m_owner;
+			int offsetY = window->ToScale(2u); // Margen inicial
+
+			for (size_t i = 0; i < m_itemsData.size(); i++)
+			{
+				bool isHovered = (m_selectedIndex == static_cast<int>(i));
+
+				// Usamos std::visit de C++17 para dibujar de forma segura y rápida
+				std::visit([&](const auto& item) {
+					using T = std::decay_t<decltype(item)>;
+
+					if constexpr (std::is_same_v<T, MenuSeparator>) 
+					{
+						window->Appearance->DrawSeparator(graphics, offsetY);
+						offsetY += SeparatorHeight;
+					} 
+					else if constexpr (std::is_same_v<T, MenuAction>) 
+					{
+						window->Appearance->DrawActionItem(graphics, item, offsetY, isHovered);
+						offsetY += menuBoxItemHeight;
+					}
+					else if constexpr (std::is_same_v<T, MenuSubMenu>) 
+					{
+						window->Appearance->DrawSubMenuItem(graphics, item, offsetY, isHovered);
+						offsetY += menuBoxItemHeight;
+					}
+				}, m_itemsData[i]);
+			}
+			
+			//old
+			/*
 			auto window = m_control->Handle();
 			auto clientSize = window->ClientSize.ToRectangle();
 			
@@ -249,7 +297,7 @@ namespace Berta
 				}
 			}
 
-			graphics.DrawRectangle(clientSize, window->Appearance->BoxBorderColor);
+			graphics.DrawRectangle(clientSize, window->Appearance->BoxBorderColor);*/
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -757,7 +805,7 @@ namespace Berta
 #endif
 	}
 
-	void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
+	/*void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
 	{
 		menuOwner->m_menuBox = this;
 
@@ -768,12 +816,22 @@ namespace Berta
 		SetSize(boxSize);
 
 		GetReactor().BuildItems();
+	}*/
+
+	void MenuBox::InitFromData(const Menu& menuData)
+	{
+		// Pasamos los datos al reactor para que calcule tamaños
+		GetReactor().LoadItems(menuData.GetItems());
+    
+		// Calcula el tamaño de la ventana en base a los textos e íconos
+		auto boxSize = GetReactor().CalculateMenuBoxSize();
+		SetSize(boxSize);
 	}
 
-	void MenuBox::SetIgnoreFirstMouseUp(bool value)
+	/*void MenuBox::SetIgnoreFirstMouseUp(bool value)
 	{
 		GetReactor().SetIgnoreFirstMouseUp(value);
-	}
+	}*/
 
 	void MenuBox::Popup(bool fromMenuBar)
 	{
