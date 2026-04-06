@@ -39,8 +39,8 @@ namespace Berta
 	
 	struct Menu
 	{
-		//using ClickCallback = std::function<void(MenuItem&)>;
-		using ClickCallback = std::function<void()>;
+		using ClickCallback = std::function<void(MenuItem)>;
+		using ToggleCallback = std::function<void(MenuItem, bool)>;
 		using DestroyCallback = std::function<void()>;
 		
 		Menu() = default;
@@ -68,7 +68,7 @@ namespace Berta
 		{
 			std::wstring text;
 			bool isChecked{ false };             // Estado actual
-			std::function<void(bool)> onToggle;  // Callback que recibe el nuevo estado
+			ToggleCallback onToggle;  // Callback que recibe el nuevo estado
 			bool isEnabled{ true };
 		};
 
@@ -103,11 +103,11 @@ namespace Berta
 		
 		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu, MenuCheckbox>;
 
-		void Append(const std::string& text, ClickCallback onClick = {});
-		void Append(const std::wstring& text, ClickCallback onClick = {});
-		void AppendSeparator();
-		void AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu);
-		void AppendCheckbox(const std::wstring& text, bool initialState, std::function<void(bool)> onToggle = {});
+		MenuItem Append(const std::string& text, ClickCallback onClick = {});
+		MenuItem Append(const std::wstring& text, ClickCallback onClick = {});
+		MenuItem AppendSeparator();
+		MenuItem AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu);
+		MenuItem AppendCheckbox(const std::wstring& text, bool initialState, ToggleCallback onToggle = {});
 		
 		const std::vector<MenuItemData>& GetItems() const { return m_items; }
 		
@@ -117,14 +117,19 @@ namespace Berta
 			return m_items.at(index); 
 		}
 		
+		void SetText(size_t index, const std::wstring& text);
+		std::wstring GetText(size_t index) const;
+		
 		void SetImage(size_t index, const Image& image);
+		
+		bool GetEnabled(size_t index) const;
 		void SetEnabled(size_t index, bool enabled);
-		void SetChecked(size_t index, bool checked);
+		
 		bool IsChecked(size_t index) const;
+		void SetChecked(size_t index, bool checked);
 		void ToggleCheckbox(size_t index);
 		
 	private:
-
 		std::vector<MenuItemData> m_items;
 		Window* m_parentWindow{ nullptr };
 		Menu* m_parentMenu{ nullptr };
@@ -133,14 +138,28 @@ namespace Berta
 	
 	struct MenuItem
 	{
-		MenuItem(Menu::MenuItemData& target) : m_target(target) {}
-
-		bool GetEnabled() const;
-		void SetEnabled(bool isEnabled);
-		void SetText(const std::wstring& text);
+		MenuItem() = default;
+		MenuItem(Menu* owner, size_t index) : m_owner(owner), m_index(index) {}
 		
+		bool IsValid() const { return m_owner != nullptr; }
+		operator bool() const { return IsValid(); }
+		
+		//method chaining
+		
+		bool GetEnabled() const;
+		MenuItem& SetEnabled(bool enabled);
+		
+		std::wstring GetText() const;
+		MenuItem& SetText(const std::wstring& text);
+		
+		MenuItem& SetImage(const Image& image);
+		
+		MenuItem& SetChecked(bool checked);
+		bool IsChecked() const;
+		MenuItem& Toggle();
 	private:
-		Menu::MenuItemData& m_target;
+		Menu* m_owner{ nullptr };
+		size_t m_index{ 0 };
 	};
 	
 	namespace ReactorCore::MenuBox
@@ -170,6 +189,8 @@ namespace Berta
 			void InitTimer();
 			void ExecuteHoveredItem();
 			void OpenHoveredSubMenu(bool selectFirstItem);
+			
+			void MoveSelection(int step);
 			
 			void DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color);
 			

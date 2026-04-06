@@ -20,17 +20,18 @@ int main()
 
 	auto& fileMenu = menuBar.PushBack("File");
 	fileMenu.Append("New");
-	fileMenu.Append("Exit", [](Berta::MenuItem& item)
+	fileMenu.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
 	fileMenu.SetImage(0, imageImage);
 
-	auto newMenu = fileMenu.CreateSubMenu(0);
-	newMenu->Append("Scene");
-	newMenu->Append("Texture");
-	newMenu->AppendSeparator();
-	newMenu->SetImage(0, hddImage);
+	auto newSubMenu = std::make_unique<Berta::Menu>();
+	newSubMenu->Append("Scene");
+	newSubMenu->Append("Texture");
+	newSubMenu->AppendSeparator();
+	newSubMenu->SetImage(0, hddImage);
+	fileMenu.AppendSubMenu(L"New", std::move(newSubMenu));
 
 	auto& editMenu = menuBar.PushBack("Edit");
 	editMenu.Append("Undo");
@@ -44,37 +45,38 @@ int main()
 	helpMenu.Append("About");
 
 	Berta::Menu popupMenu;
-	popupMenu.Append(L"Cut", [](Berta::MenuItem& item)
+	popupMenu.Append(L"Cut", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > Cut" << std::endl;
 		});
 	popupMenu.SetImage(0, cutImage);
-	popupMenu.Append(L"Copy", [](Berta::MenuItem& item)
+	popupMenu.Append(L"Copy", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > Copy" << std::endl;
 		});
-	popupMenu.Append(L"Paste", [](Berta::MenuItem& item)
+	popupMenu.Append(L"Paste", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > Paste" << std::endl;
 		});
 	popupMenu.AppendSeparator();
-	popupMenu.Append(L"Select", [](Berta::MenuItem& item)
+	popupMenu.Append(L"Select", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > Select" << std::endl;
 		});
-	auto selectSubMenu = popupMenu.CreateSubMenu(4);
-	selectSubMenu->Append("All", [](Berta::MenuItem& item)
+	auto selectSubMenu = std::make_unique<Berta::Menu>();
+	selectSubMenu->Append("All", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > All" << std::endl;
 		});
-	selectSubMenu->Append("None", [](Berta::MenuItem& item)
+	selectSubMenu->Append("None", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > None" << std::endl;
 		});
+	popupMenu.AppendSubMenu(L"Select", std::move(selectSubMenu));
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
-			popupMenu.ShowPopup(form.Handle(), args);
+			//popupMenu.ShowPopup(form.Handle(), args);
 		});
 
 	form.Show();

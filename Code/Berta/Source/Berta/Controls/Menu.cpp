@@ -21,30 +21,35 @@ namespace Berta
 	int MenuBox::g_globalId = 0;
 #endif
 	
-	void Menu::Append(const std::string& text, ClickCallback onClick)
+	MenuItem Menu::Append(const std::string& text, ClickCallback onClick)
 	{
 		std::wstring wstr = StringUtils::UTF8ToWide(text);
 		m_items.emplace_back(MenuAction{ wstr, L"", Image{}, std::move(onClick) });
+		return {this, m_items.size() - 1};
 	}
 
-	void Menu::Append(const std::wstring& text, ClickCallback onClick)
+	MenuItem Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
 		m_items.emplace_back(MenuAction{ text, L"", Image{}, std::move(onClick) });
+		return {this, m_items.size() - 1};
 	}
 
-	void Menu::AppendSeparator()
+	MenuItem Menu::AppendSeparator()
 	{
 		m_items.emplace_back(MenuSeparator{});
+		return {this, m_items.size() - 1};
 	}
 
-	void Menu::AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu)
+	MenuItem Menu::AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu)
 	{
 		m_items.emplace_back(MenuSubMenu{ text, Image{}, std::move(subMenu) });
+		return {this, m_items.size() - 1};
 	}
 
-	void Menu::AppendCheckbox(const std::wstring& text, bool initialState, std::function<void(bool)> onToggle)
+	MenuItem Menu::AppendCheckbox(const std::wstring& text, bool initialState, ToggleCallback onToggle)
 	{
 		m_items.emplace_back(MenuCheckbox{ text, initialState, std::move(onToggle) });
+		return {this, m_items.size() - 1};
 	}
 
 	/*void Menu::ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp)
@@ -94,6 +99,43 @@ namespace Berta
 		return nullptr;
 	}*/
 
+	void Menu::SetText(size_t index, const std::wstring& text)
+	{
+		if (index >= m_items.size())
+		{
+			return;
+		}
+		
+		std::visit([&text](auto& item)
+		{
+			using T = std::decay_t<decltype(item)>;
+			if constexpr (!std::is_same_v<T, MenuSeparator>)
+			{
+				item.text = text;
+			}
+		}, m_items[index]);
+	}
+
+	std::wstring Menu::GetText(size_t index) const
+	{
+		if (index >= m_items.size())
+		{
+			return L"";
+		}
+		
+		std::wstring result;
+		std::visit([&result](const auto& item)
+		{
+			using T = std::decay_t<decltype(item)>;
+			if constexpr (!std::is_same_v<T, MenuSeparator>)
+			{
+				result = item.text;
+			}
+		}, m_items[index]);
+		
+		return result;
+	}
+
 	void Menu::SetImage(size_t index, const Image& image)
 	{
 		if (index >= m_items.size())
@@ -110,6 +152,26 @@ namespace Berta
 				item.image = image;
 			}
 		}, m_items[index]);
+	}
+
+	bool Menu::GetEnabled(size_t index) const
+	{
+		if (index >= m_items.size())
+		{
+			return false;
+		}
+		
+		bool result = false;
+		std::visit([&result](const auto& item)
+		{
+			using T = std::decay_t<decltype(item)>;
+			if constexpr (!std::is_same_v<T, MenuSeparator>)
+			{
+				result = item.isEnabled;
+			}
+		}, m_items[index]);
+		
+		return result;
 	}
 
 	void Menu::SetEnabled(size_t index, bool enabled)
@@ -131,8 +193,11 @@ namespace Berta
 
 	void Menu::SetChecked(size_t index, bool checked)
 	{
-		if (index >= m_items.size()) return;
-
+		if (index >= m_items.size())
+		{
+			return;
+		}
+		
 		if (auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
 		{
 			checkbox->isChecked = checked;
@@ -141,7 +206,10 @@ namespace Berta
 
 	bool Menu::IsChecked(size_t index) const
 	{
-		if (index >= m_items.size()) return false;
+		if (index >= m_items.size())
+		{
+			return false;
+		}
 
 		if (const auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
 		{
@@ -536,31 +604,35 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			/*auto lastMenuItem = GetLastMenuItem();
-			if (args.Key == KeyboardKey::ArrowUp)
+			switch (args.Key)
 			{
-				lastMenuItem->MoveToNextItem(true);
+			case KeyboardKey::ArrowDown:
+				m_module.MoveSelection(1); 
+				break;
+			case KeyboardKey::ArrowUp:
+				m_module.MoveSelection(-1); 
+				break;
+			case KeyboardKey::ArrowRight:
+				if (m_module.m_hoveredIndex.has_value()) {
+					m_module.OpenHoveredSubMenu(true);
+				} else {
+					Foundation::GetInstance().GetMenuManager().NavigateTopLevel(1);
+				}
+				break;
+			case KeyboardKey::ArrowLeft:
+				if (Foundation::GetInstance().GetMenuManager().GetPopupCount() > 1) {
+					Foundation::GetInstance().GetMenuManager().Close(m_module.m_owner);
+				} else {
+					Foundation::GetInstance().GetMenuManager().NavigateTopLevel(-1);
+				}
+				break;
+			case KeyboardKey::Enter:
+				m_module.ExecuteHoveredItem();
+				break;
+			case KeyboardKey::Escape:
+				Foundation::GetInstance().GetMenuManager().CloseAll();
+				break;
 			}
-			else if (args.Key == KeyboardKey::ArrowDown)
-			{
-				lastMenuItem->MoveToNextItem(false);
-			}
-			else if (args.Key == KeyboardKey::ArrowLeft)
-			{
-				lastMenuItem->ExitSubMenu();
-			}
-			else if (args.Key == KeyboardKey::ArrowRight)
-			{
-				lastMenuItem->EnterSubMenu();
-			}
-			else if (args.Key == KeyboardKey::Enter)
-			{
-				lastMenuItem->Select();
-			}
-			else if (args.Key == KeyboardKey::Escape)
-			{
-				lastMenuItem->Quit();
-			}*/
 		}
 
 		/*void Reactor::BuildItems()
@@ -816,18 +888,64 @@ namespace Berta
 
 	bool MenuBox::MenuItem::GetEnabled() const
 	{
-		//return m_target.is;
-		return true;
+		return IsValid() ? m_owner->GetEnabled(m_index) : false;
 	}
 
-	void MenuBox::MenuItem::SetEnabled(bool isEnabled)
+	MenuItem& MenuBox::MenuItem::SetEnabled(bool enabled)
 	{
-		//m_target.m_isEnabled = isEnabled;
+		if (IsValid())
+		{
+			m_owner->SetEnabled(m_index, enabled);
+		}
+		return *this;
 	}
 
-	void MenuBox::MenuItem::SetText(const std::wstring& text)
+	std::wstring MenuItem::GetText() const
 	{
-		//m_target.m_text = text;
+		return IsValid() ? m_owner->GetText(m_index) : L"";
+	}
+
+	MenuItem& MenuBox::MenuItem::SetText(const std::wstring& text)
+	{
+		if (IsValid())
+		{
+			m_owner->SetText(m_index, text);
+		}
+		
+		return *this;
+	}
+
+	MenuItem& MenuItem::SetImage(const Image& image)
+	{
+		if (IsValid())
+		{
+			m_owner->SetImage(m_index, image);
+		}
+		return *this;
+	}
+
+	MenuItem& MenuItem::SetChecked(bool checked)
+	{
+		if (IsValid())
+		{
+			m_owner->SetChecked(m_index, checked);
+		}
+		
+		return *this;
+	}
+
+	bool MenuItem::IsChecked() const
+	{
+		return IsValid() ? m_owner->IsChecked(m_index) : false;
+	}
+
+	MenuItem& MenuItem::Toggle()
+	{
+		if (IsValid())
+		{
+			m_owner->ToggleCheckbox(m_index);
+		}
+		return *this;
 	}
 
 	void ReactorCore::MenuBox::Module::CalculateLayout(const Menu& menuData)
@@ -980,7 +1098,7 @@ namespace Berta
 					Foundation::GetInstance().GetMenuManager().CloseAll();
 
 					// 2. ¡DISPARAMOS EL CALLBACK DEL USUARIO!
-					callback(); 
+					callback(MenuItem(m_menuData, index));
 				}
 			}
 			else if constexpr (std::is_same_v<T,  Menu::MenuCheckbox>)
@@ -998,7 +1116,7 @@ namespace Berta
 					// 3. Disparamos el callback
 					if (callback)
 					{
-						callback(newState);
+						callback(MenuItem(m_menuData, index), newState);
 					}
 				}
 			}
@@ -1075,6 +1193,50 @@ namespace Berta
                 }
             }
         }
+	}
+
+	void ReactorCore::MenuBox::Module::MoveSelection(int step)
+	{
+		const auto& items = m_menuData->GetItems();
+		if (items.empty())
+		{
+			return;
+		}
+		
+		int count = static_cast<int>(items.size());
+        
+		// Si no hay nada seleccionado, empezamos desde arriba (o abajo si step es negativo)
+		int currentIndex = m_hoveredIndex.value_or(step > 0 ? -1 : count); 
+
+		// Iteramos para buscar el siguiente ítem válido (saltando separadores)
+		for (int i = 0; i < count; ++i)
+		{
+			// Aritmética modular para que el menú sea cíclico (da la vuelta)
+			currentIndex = (currentIndex + step + count) % count;
+
+			// Verificamos si el ítem es válido para ser seleccionado usando std::visit
+			bool isValid = std::visit([](const auto& item)
+			{
+				using T = std::decay_t<decltype(item)>;
+				if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
+				{
+					return false; // Nunca seleccionamos separadores
+				}
+				else
+				{
+					return item.isEnabled; // Solo seleccionamos si está habilitado
+				}
+			}, items[currentIndex]);
+
+			if (isValid)
+			{
+				m_hoveredIndex = currentIndex;
+                
+				// Opcional: si el ítem está fuera de la pantalla (en caso de scroll),
+				// aquí podrías ajustar el offset de la ventana.
+				return;
+			}
+		}
 	}
 
 	void ReactorCore::MenuBox::Module::DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color)

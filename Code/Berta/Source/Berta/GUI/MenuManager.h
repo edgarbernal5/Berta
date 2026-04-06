@@ -33,6 +33,9 @@ namespace Berta
 		void ShowMenuBarPopup(const Menu& menuData, Window* owner);
 		
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
+		
+		void NavigateTopLevel(int step);
+		size_t GetPopupCount() const;
 	private:
 		Window* m_owner{ nullptr };
 		std::vector<Window*> m_popups;

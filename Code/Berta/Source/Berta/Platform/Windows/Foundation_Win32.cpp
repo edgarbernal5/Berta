@@ -808,6 +808,7 @@ namespace Berta
 
 			break;
 		}
+			//case WM_SYSCHAR: //TODO
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 		case WM_SYSKEYDOWN:

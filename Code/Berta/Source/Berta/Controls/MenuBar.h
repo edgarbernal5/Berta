@@ -10,8 +10,10 @@
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/Menu.h"
+
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace Berta
 {
@@ -23,13 +25,17 @@ namespace Berta
 	*/
 	namespace ReactorCore::MenuBar
 	{
+		struct Appearance : public ControlAppearance
+		{
+			uint32_t ItemPaddingInner = 8;
+		};
+		
 		class Reactor : public ControlReactor
 		{
 		public:
 			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
-
-			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
+			
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
@@ -39,20 +45,15 @@ namespace Berta
 
 			struct MenuBarItemData
 			{
-				MenuBarItemData(std::wstring _text, wchar_t _accessKey, std::size_t _accessKeyPosition) :
-					text(std::move(_text)),
-					accessKey(_accessKey),
-					accessKeyPosition(_accessKeyPosition)
-				{
-				}
-
-				Menu menu;
 				std::wstring text;
-				wchar_t accessKey;
-				std::size_t accessKeyPosition;
+				wchar_t accessKey{ 0 };
+				std::size_t accessKeyPosition{ 0 };
 				bool isEnabled{ true };
+            
+				// Cada categoría de la barra (Archivo, Edición) es dueña de su propio Menu
+				Menu menu; 
 			};
-
+			
 			struct ItemLayoutCache
 			{
 				Rectangle bounds;
@@ -61,28 +62,26 @@ namespace Berta
 			
 			struct InteractionData
 			{
-				int		m_selectedItemIndex{ -1 };
-				Menu*	m_activeMenu{ nullptr };
+				std::optional<std::size_t> m_selectedIndex; // C++17: Reemplaza al clásico -1
+				bool m_isMenuOpen{ false };
 			};
-
+			
 			struct Module
 			{
 				Menu& At(size_t index);
-				void BuildItems(size_t startIndex = 0);
-				int FindItem(const Point& position) const;
 				Menu& PushBack(const std::wstring& text);
-				void OpenMenu(bool ignoreFirstMouseUp = false);
-				void SelectIndex(int index);
-				bool IsMenuOpen() const { return m_interactionData.m_activeMenu; }
-				Berta::MenuBox* GetActiveMenuBox() const;
+				void CalculateLayout();
+				void OpenMenu(bool focusFirstItem = false);
+				void MoveSelection(int step);
 
-				Berta::MenuBar* m_control{ nullptr };
 				Window* m_owner{ nullptr };
+				ControlBase* m_control{ nullptr };
+            
 				std::vector<MenuBarItemData> m_items;
-				InteractionData m_interactionData;
-				Point m_lastMousePosition{ -1,-1 };
+				std::vector<ItemLayoutCache> m_layoutCache;
+				InteractionData m_interaction;
 			};
-
+			
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 
@@ -91,7 +90,7 @@ namespace Berta
 		};
 	}
 
-	class MenuBar : public Control<ReactorCore::MenuBar::Reactor>
+	class MenuBar : public Control<ReactorCore::MenuBar::Reactor, ControlEvents, ReactorCore::MenuBar::Appearance>
 	{
 	public:
 		MenuBar() = default;

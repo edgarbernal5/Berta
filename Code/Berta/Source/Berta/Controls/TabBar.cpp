@@ -227,6 +227,7 @@ namespace Berta
 			m_module.m_mouseDownCloseBtnIndex = m_module.m_hoveredCloseBtnIndex;
 			return;
 		}
+		
 		if (m_module.m_hoveredTabIndex.has_value())
 		{
 			size_t selectedIndex = m_module.m_hoveredTabIndex.value();

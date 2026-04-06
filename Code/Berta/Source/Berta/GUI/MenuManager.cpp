@@ -172,4 +172,29 @@ namespace Berta
         m_popups.emplace_back(window);
         GUI::MakeWindowActive(window, true, nullptr);
     }
+
+    void MenuManager::NavigateTopLevel(int step)
+    {
+        // 1. Verificamos que el menú se haya originado desde una MenuBar
+        if (!m_fromMenuBar || m_popups.empty() || m_owner == nullptr)
+        {
+            return;
+        }
+        
+        // 2. Cerramos todos los MenuBoxes flotantes limpiecita
+        CloseAll();
+
+        // 3. Enviamos un evento "sintético" de teclado directamente a la MenuBar 
+        // para decirle que se mueva a la Izquierda (-1) o Derecha (1)
+        ArgKeyboard args;
+        args.Key = (step > 0) ? VK_RIGHT : VK_LEFT;
+    
+        // Le decimos a la MenuBar que se mueva y vuelva a abrir el nuevo submenú
+        //Foundation::GetInstance().ProcessEvents(m_owner, nullptr, &ControlEvents::KeyPressed, args);
+    }
+
+    size_t MenuManager::GetPopupCount() const
+    {
+        return m_popups.size();
+    }
 }

@@ -76,10 +76,10 @@ int main()
 	auto& menuFile = menuBar.PushBack(L"File");
 
 	menuFile.Append("New");
-	auto newSubmenu = menuFile.CreateSubMenu(0);
+	/*auto newSubmenu = menuFile.CreateSubMenu(0);
 	newSubmenu->Append("Tab");
 
-	menuFile.Append("Exit", [](Berta::MenuItem& item)
+	menuFile.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
@@ -93,7 +93,7 @@ int main()
 	customSubmenu->Append("Two");
 	customSubmenu->AppendSeparator();
 	customSubmenu->Append("More");
-
+*/
 	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
 	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
 
