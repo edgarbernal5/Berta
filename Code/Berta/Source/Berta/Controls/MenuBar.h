@@ -19,7 +19,7 @@ namespace Berta
 
 	//TODO:
 	/*
-	Consolidar todos los cambios y mejoras sugeridas hasta el momento, de todas las clases involucradas con el mayor detalle posible de código. Ya hice la implementación de std::variant
+	Ok. Habría que implementar otros mensajes wm_syschar o wm_syschardown o wm_char (realmente no recuerdo bien los nombres pero revisar en mí implementación en Foundation de win32
 	*/
 	namespace ReactorCore::MenuBar
 	{

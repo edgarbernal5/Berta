@@ -55,10 +55,19 @@ namespace Berta
 		struct MenuAction
 		{
 			std::wstring text;
+			std::wstring shortcutText; //Ej. L"Ctrl+S"
 			Image image;
 			ClickCallback onClick;
 			wchar_t accessKey{ 0 };
 			std::size_t accessKeyPosition{ 0 };
+			bool isEnabled{ true };
+		};
+		
+		struct MenuCheckbox 
+		{
+			std::wstring text;
+			bool isChecked{ false };             // Estado actual
+			std::function<void(bool)> onToggle;  // Callback que recibe el nuevo estado
 			bool isEnabled{ true };
 		};
 
@@ -91,17 +100,27 @@ namespace Berta
 			std::size_t	m_accessKeyPosition{ 0 };
 		};*/
 		
-		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu>;
+		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu, MenuCheckbox>;
 
 		void Append(const std::string& text, ClickCallback onClick = {});
 		void Append(const std::wstring& text, ClickCallback onClick = {});
 		void AppendSeparator();
 		void AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu);
+		void AppendCheckbox(const std::wstring& text, bool initialState, std::function<void(bool)> onToggle = {});
 		
 		const std::vector<MenuItemData>& GetItems() const { return m_items; }
 		
+		MenuItemData& GetItem(size_t index) 
+		{ 
+			// Usamos .at() para tener protección contra desbordamientos (Out of Bounds) en modo Debug
+			return m_items.at(index); 
+		}
+		
 		void SetImage(size_t index, const Image& image);
 		void SetEnabled(size_t index, bool enabled);
+		void SetChecked(size_t index, bool checked);
+		bool IsChecked(size_t index) const;
+		void ToggleCheckbox(size_t index);
 		
 	private:
 		Size GetMenuBoxSize(Window* parent) const;
@@ -148,19 +167,29 @@ namespace Berta
 			void CalculateLayout(const Menu& menuData);
 			Size CalculateMenuBoxSize();
 			
-			void InitFromData(const Menu& menuData);
+			void InitFromData(Menu& menuData);
+			void InitTimer();
 			void LoadItems(const std::vector<Menu::MenuItemData>& items);
+			void ExecuteHoveredItem();
+			void OpenHoveredSubMenu(bool selectFirstItem);
 			
+			void DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color);
+			
+			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 			Window* m_owner { nullptr };
 			
 			std::vector<Menu::MenuItemData> m_itemsData;
 			
+			Menu* m_menuData{ nullptr };
 			std::vector<ItemLayoutCache> m_layoutCache;
 			Size m_calculatedBoxSize;
-			const Menu* m_menuData{ nullptr };
+			
+			bool m_ignoreFirstMouseUp{ true };
 			std::optional<std::size_t> m_hoveredIndex;
 			std::optional<std::size_t> m_pendingSubMenuIndex;
 			std::optional<std::size_t> m_openedSubMenuIndex;
+			Timer m_hoverTimer; // El temporizador de la vista
+			static constexpr float SubMenuDelayMs = 400.0f;
 		};
 
 		class MenuItemReactor
@@ -216,7 +245,7 @@ namespace Berta
 			void BuildItems();
 			void SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 			void SetMenuOwner(Menu* menuOwner);
-			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
+			
 			//Size GetMenuBoxSize();
 
 			Module& GetModule() { return m_module; }
@@ -242,9 +271,6 @@ namespace Berta
 
 			Berta::MenuBox* m_menuBox{ nullptr };
 			Menu* m_menuOwner{ nullptr };
-			bool m_ignoreFirstMouseUp{ true };
-			
-			Timer m_subMenuTimer;
 			
 			Module m_module;
 		};
