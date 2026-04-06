@@ -24,12 +24,12 @@ namespace Berta
 	void Menu::Append(const std::string& text, ClickCallback onClick)
 	{
 		std::wstring wstr = StringUtils::UTF8ToWide(text);
-		m_items.emplace_back(MenuAction{ wstr, Image{}, std::move(onClick) });
+		m_items.emplace_back(MenuAction{ wstr, L"", Image{}, std::move(onClick) });
 	}
 
 	void Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
-		m_items.emplace_back(MenuAction{ text, Image{}, std::move(onClick) });
+		m_items.emplace_back(MenuAction{ text, L"", Image{}, std::move(onClick) });
 	}
 
 	void Menu::AppendSeparator()
@@ -131,10 +131,23 @@ namespace Berta
 
 	void Menu::SetChecked(size_t index, bool checked)
 	{
+		if (index >= m_items.size()) return;
+
+		if (auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
+		{
+			checkbox->isChecked = checked;
+		}
 	}
 
 	bool Menu::IsChecked(size_t index) const
 	{
+		if (index >= m_items.size()) return false;
+
+		if (const auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
+		{
+			return checkbox->isChecked;
+		}
+		return false;
 	}
 
 	void Menu::ToggleCheckbox(size_t index)
@@ -195,63 +208,40 @@ namespace Berta
 		void Reactor::Init(ControlBase& control, Graphics* graphics)
 		{
 			ControlReactor::Init(control, graphics);
-			m_menuBox = reinterpret_cast<Berta::MenuBox*>(&control);
+			//m_menuBox = reinterpret_cast<Berta::MenuBox*>(&control);
 			
+			m_module.m_control = &control;
 			m_module.InitTimer();
 		}
 
 		void Reactor::Update(Graphics& graphics)
-		{			
-			if (!m_module.m_menuData) return;
+		{
+			if (!m_module.m_menuData)
+			{
+				return;
+			}
+			
 			auto window = m_module.m_owner;
 			auto appearance = window->Appearance.get(); // Solo leemos colores
 
-			int paddingX = window->ToScale(8u);
+			int paddingX = window->ToScale(8);
 			
 			graphics.DrawRectangle(window->ClientSize.ToRectangle(), appearance->MenuBackground, true);
 
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
 			{
 				const auto& cache = m_module.m_layoutCache[i];
-				bool isHovered = (m_module.m_hoveredIndex == i);
-
+				bool isHovered = (m_module.m_hoveredIndex.has_value() && m_module.m_hoveredIndex.value() == i);
+				
+				// C++17 std::visit: Resolvemos el tipo de ítem en tiempo de compilación
 				std::visit([&](const auto& itemData) {
 					using T = std::decay_t<decltype(itemData)>;
 					if constexpr (std::is_same_v<T, Menu::MenuSeparator>) {
 						int midY = cache.bounds.Y + (int)cache.bounds.Height / 2;
 						graphics.DrawLine({ cache.bounds.X + 4, midY }, { (int)cache.bounds.Width - 4, midY }, appearance->BoxBorderColor);
 					}
-					else if constexpr (std::is_same_v<T, Menu::MenuCheckbox>)
+					else
 					{
-						// 1. Fondo Highlight si está el mouse encima
-						if (isHovered && itemData.isEnabled)
-							graphics.DrawRectangle(cache.bounds, appearance->HighlightColor, true);
-
-						Color textColor = itemData.isEnabled ? 
-							(isHovered ? appearance->HighlightTextColor : appearance->Foreground) : 
-							appearance->ButtonDisabledBackground;
-
-						// 2. Dibujar el texto
-						graphics.DrawString(cache.textPosition, itemData.text, textColor);
-
-						// 3. Dibujar la palomita (Checkmark) si está activado
-						if (itemData.isChecked)
-						{
-							// Obtenemos el tamaño del checkmark desde Appearance (ej. 12px) escalado a DPI
-							int checkSize = window->ToScale(appearance->CheckboxHeight);
-					        
-							// Lo centramos verticalmente respecto a los bounds del ítem entero
-							int checkY = cache.bounds.Y + (cache.bounds.Height - checkSize) / 2;
-					        
-							// Lo separamos un poco del borde izquierdo
-							int paddingLeft = window->ToScale(6u); 
-							int checkX = cache.bounds.X + paddingLeft;
-					        
-							// Llamamos a nuestro nuevo método
-							m_module.DrawCheckmark(graphics, { checkX, checkY }, checkSize, textColor);
-						}
-					}
-					else {
 						if (isHovered && itemData.isEnabled)
 							graphics.DrawRectangle(cache.bounds, appearance->HighlightColor, true);
 
@@ -262,12 +252,32 @@ namespace Berta
 						graphics.DrawString(cache.textPosition, itemData.text, textColor);
 
 						if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
+						{
 							graphics.DrawString(cache.arrowPosition, L"►", textColor);
-						
+						}
+						else if constexpr (std::is_same_v<T, Menu::MenuCheckbox>)
+						{
+							// Dibujar la palomita vectorial solo si el estado es 'true'
+							if (itemData.isChecked)
+							{
+								// Tomamos el tamaño del checkmark configurado en Appearance
+								int checkSize = window->ToScale(appearance->CheckboxHeight);
+	                            
+								// Lo centramos verticalmente respecto a su hitbox
+								int checkY = cache.bounds.Y + (cache.bounds.Height - checkSize) / 2;
+								int checkX = cache.bounds.X + window->ToScale(6u); // Margen izquierdo
+	                            
+								// Llamada a nuestro método de dibujo de vectores
+								m_module.DrawCheckmark(graphics, { checkX, checkY }, checkSize, textColor);
+							}
+						}
+						else if constexpr (std::is_same_v<T, Menu::MenuAction>)
+						{
 						if (!itemData.shortcutText.empty()) {
 							auto sSize = graphics.GetTextExtent(itemData.shortcutText); // O precalcularlo en caché
-							Point shortcutPos = { (int)cache.bounds.Width - paddingX - sSize.Width, cache.textPosition.Y };
+							Point shortcutPos = { (int)cache.bounds.Width - paddingX - (int)sSize.Width, cache.textPosition.Y };
 							graphics.DrawString(shortcutPos, itemData.shortcutText, appearance->Foreground2nd);
+						}
 						}
 					}
 				}, m_module.m_menuData->GetItems()[i]);
@@ -526,7 +536,7 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			auto lastMenuItem = GetLastMenuItem();
+			/*auto lastMenuItem = GetLastMenuItem();
 			if (args.Key == KeyboardKey::ArrowUp)
 			{
 				lastMenuItem->MoveToNextItem(true);
@@ -550,155 +560,10 @@ namespace Berta
 			else if (args.Key == KeyboardKey::Escape)
 			{
 				lastMenuItem->Quit();
-			}
+			}*/
 		}
 
-		MenuItemReactor* Reactor::GetLastMenuItem() const
-		{
-			auto activeMenuItemReactor = (MenuItemReactor*)this;
-			while (activeMenuItemReactor->Next() != nullptr)
-			{
-				activeMenuItemReactor = activeMenuItemReactor->Next();
-			}
-			return activeMenuItemReactor;
-		}
-
-		bool Reactor::OnClickSubMenu(const ArgMouse& args)
-		{
-			int selectedIndex = -1;
-			for (size_t i = 0; i < m_itemSizePositions.size(); i++)
-			{
-				auto& item = m_itemSizePositions[i];
-				if (!m_items->at(i)->m_isSeparator && Rectangle { item.m_position, item.m_size }.Contains(args.Position))
-				{
-					selectedIndex = static_cast<int>(i);
-					break;
-				}
-			}
-
-			if (selectedIndex == -1)
-			{
-				return false;
-			}
-
-			return m_items->at(selectedIndex)->m_subMenu != nullptr;
-		}
-
-		Window* Reactor::Owner() const
-		{
-			return m_control->Handle();
-		}
-
-		void Reactor::MoveToNextItem(bool upwards)
-		{
-			if (m_items->empty())
-			{
-				return;
-			}
-			auto selectedIndex = m_selectedIndex;
-			int direction = upwards ? -1 : 1;
-			int totalItems = static_cast<int>(m_items->size());
-			if (selectedIndex == -1)
-			{
-				selectedIndex = upwards ? totalItems - 1 : 0;
-			}
-			else
-			{
-				selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
-			}
-			auto savedIndex = selectedIndex;
-			auto item = m_items->at(selectedIndex).get();
-			while (selectedIndex >= 0 && (!item->m_isEnabled || item->m_isSeparator))
-			{
-				selectedIndex = ((selectedIndex + direction + totalItems) % totalItems);
-				if (selectedIndex == savedIndex)
-				{
-					break;
-				}
-
-				item = m_items->at(selectedIndex).get();
-			}
-
-			if (m_selectedIndex != selectedIndex)
-			{
-				m_selectedIndex = selectedIndex;
-
-				GUI::UpdateWindow(*m_control);
-			}
-		}
-
-		bool Reactor::ExitSubMenu()
-		{
-			m_subMenuTimer.Stop();
-			if (m_menuOwner->m_parentMenu == nullptr && (m_items->empty() || m_selectedIndex == -1))
-			{
-				return false;
-			}
-
-			if (m_menuOwner->m_parentMenu)
-			{
-				GUI::DisposeMenu(this);
-				return true;
-			}
-
-			return false;
-		}
-
-		bool Reactor::EnterSubMenu()
-		{
-			if (m_items->empty() || m_selectedIndex == -1)
-			{
-				return false;
-			}
-			auto item = m_items->at(m_selectedIndex).get();
-			if (!item->m_subMenu)
-			{
-				return false;
-			}
-			m_openedSubMenuIndex = m_selectedIndex;
-			m_selectedSubMenuIndex = m_selectedIndex;
-			m_subMenuTimer.Stop();
-			OpenSubMenu(item->m_subMenu.get(), m_menuOwner, m_openedSubMenuIndex, false);
-
-			return true;
-		}
-
-		void Reactor::Select()
-		{
-			size_t selectedIndex = static_cast<size_t>(m_selectedIndex);
-			if (selectedIndex >= m_items->size())
-			{
-				return;
-			}
-
-			auto& item = m_items->at(selectedIndex);
-			if (item->m_subMenu)
-			{
-				if (!item->m_subMenu->m_menuBox)
-				{
-					m_selectedSubMenuIndex = m_selectedIndex;
-					m_openedSubMenuIndex = m_selectedIndex;
-					OpenSubMenu(item->m_subMenu.get(), m_menuOwner, m_selectedIndex);
-					m_subMenuTimer.Stop();
-				}
-				return;
-			}
-
-			GUI::DisposeMenu();
-
-			if (!item->m_isSeparator && item->m_onClick)
-			{
-				MenuItem menuItem(*item);
-				item->m_onClick(menuItem);
-			}
-		}
-
-		void Reactor::Quit()
-		{
-			GUI::DisposeMenu(this);
-		}
-
-		void Reactor::BuildItems()
+		/*void Reactor::BuildItems()
 		{
 			m_itemSizePositions.clear();
 
@@ -732,19 +597,9 @@ namespace Berta
 					position.Y += menuBoxItemHeight;
 				}
 			}
-		}
+		}*/
 
-		void Reactor::SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
-		{
-			m_items = &items;
-		}
-
-		void Reactor::SetMenuOwner(Menu* menuOwner)
-		{
-			m_menuOwner = menuOwner;
-		}
-
-		Size Reactor::GetMenuBoxSize()
+		/*Size Reactor::GetMenuBoxSize()
 		{
 			auto parent = m_control->Handle();
 
@@ -777,9 +632,9 @@ namespace Berta
 				2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
 				2 + itemTextPadding * 2u + (uint32_t)(m_items->size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
 			};
-		}
+		}*/
 
-		void Reactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
+		/*void Reactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
 		{
 			auto window = m_control->Handle();
 			int two = window->ToScale(2);
@@ -901,7 +756,7 @@ namespace Berta
 			m_selectedIndex = selectedIndex;
 
 			return hasChanged;
-		}
+		}*/
 	}
 	
 	MenuBox::MenuBox(Window* parent, const Point& position)
@@ -937,15 +792,14 @@ namespace Berta
 		GetReactor().BuildItems();
 	}*/
 
-	void MenuBox::InitFromData(const Menu& menuData)
+	void MenuBox::InitFromData(Menu& menuData)
 	{
 		auto& module = GetReactor().GetModule();
 		// Pasamos los datos al reactor para que calcule tamaños
-		module.LoadItems(menuData.GetItems());
+		module.InitFromData(menuData);
     
 		// Calcula el tamaño de la ventana en base a los textos e íconos
-		auto boxSize = module.CalculateMenuBoxSize();
-		SetSize(boxSize);
+		SetSize(module.m_calculatedBoxSize);
 	}
 
 	/*void MenuBox::SetIgnoreFirstMouseUp(bool value)
@@ -960,24 +814,20 @@ namespace Berta
 		Show();
 	}*/
 
-	Size MenuBox::GetMenuBoxSize()
-	{
-		return GetReactor().GetMenuBoxSize();
-	}
-
 	bool MenuBox::MenuItem::GetEnabled() const
 	{
-		return m_target.m_isEnabled;
+		//return m_target.is;
+		return true;
 	}
 
 	void MenuBox::MenuItem::SetEnabled(bool isEnabled)
 	{
-		m_target.m_isEnabled = isEnabled;
+		//m_target.m_isEnabled = isEnabled;
 	}
 
 	void MenuBox::MenuItem::SetText(const std::wstring& text)
 	{
-		m_target.m_text = text;
+		//m_target.m_text = text;
 	}
 
 	void ReactorCore::MenuBox::Module::CalculateLayout(const Menu& menuData)
@@ -1078,46 +928,31 @@ namespace Berta
 			m_pendingSubMenuIndex = std::nullopt; // Ya no está pendiente
 
 			// 3. Obtenemos los datos del submenú
-			const auto& itemData = std::get<Menu::MenuSubMenu>(m_menuData->GetItems()[indexToOpen]);
-		        
-			if (itemData.isEnabled && itemData.subMenu) // Solo si está habilitado y tiene datos
+			if (auto* subMenuData = std::get_if<Menu::MenuSubMenu>(&m_menuData->GetItem(indexToOpen)))
 			{
-				auto& menuManager = Foundation::GetInstance().GetMenuManager();
+				if (subMenuData->isEnabled && subMenuData->subMenu) // Solo si está habilitado y tiene datos
+				{
+					auto& menuManager = Foundation::GetInstance().GetMenuManager();
 		            
-				// 4. Si había otro submenú de este mismo nivel abierto, lo cerramos
-				// (Tu MenuManager podría necesitar saber qué popups son hijos de quién, 
-				// pero cerrar el submenú actual es la idea básica).
+					// 4. Si había otro submenú de este mismo nivel abierto, lo cerramos
+					// (Tu MenuManager podría necesitar saber qué popups son hijos de quién, 
+					// pero cerrar el submenú actual es la idea básica).
 		            
-				// 5. Calculamos la posición geométrica basándonos en la caché
-				const auto& cache = m_layoutCache[indexToOpen];
+					// 5. Calculamos la posición geométrica basándonos en la caché
+					const auto& cache = m_layoutCache[indexToOpen];
 		            
-				// Aparece a la derecha del ítem actual. 
-				// TODO: Podrías necesitar convertir 'cache.bounds' a coordenadas de pantalla
-				// dependiendo de cómo maneja las coordenadas tu framework.
-				Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
+					// Aparece a la derecha del ítem actual. 
+					// TODO: Podrías necesitar convertir 'cache.bounds' a coordenadas de pantalla
+					// dependiendo de cómo maneja las coordenadas tu framework.
+					Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
 
-				// 6. ¡Abrimos el submenú!
-				menuManager.ShowContextMenu(*(itemData.subMenu), m_owner, popupPos);
+					// 6. ¡Abrimos el submenú!
+					menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
 		            
-				m_openedSubMenuIndex = indexToOpen;
+					m_openedSubMenuIndex = indexToOpen;
+				}
 			}
 		});
-	}
-
-	void ReactorCore::MenuBox::Module::LoadItems(const std::vector<Menu::MenuItemData>& items)
-	{
-		// 1. Guardamos una copia (o referencia constante) de los datos puros
-		m_itemsData = items;
-
-		// 2. Redimensionamos la caché geométrica de inmediato.
-		// Esto es crucial para el rendimiento, evitamos reasignaciones (reallocations)
-		m_layoutCache.clear();
-		m_layoutCache.resize(m_itemsData.size());
-
-		// 3. Reseteamos los estados de interacción
-		m_hoveredIndex = std::nullopt;
-		m_pendingSubMenuIndex = std::nullopt;
-		m_openedSubMenuIndex = std::nullopt;
 	}
 
 	void ReactorCore::MenuBox::Module::ExecuteHoveredItem()
@@ -1129,7 +964,8 @@ namespace Berta
 
 		size_t index = m_hoveredIndex.value();
     
-		std::visit([&](auto& arg) {
+		std::visit([&](auto& arg)
+		{
 			using T = std::decay_t<decltype(arg)>;
 
 			if constexpr (std::is_same_v<T, Menu::MenuAction>)

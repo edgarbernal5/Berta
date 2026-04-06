@@ -125,7 +125,7 @@ namespace Berta
 #endif*/
     }
 
-    void MenuManager::ShowContextMenu(const Menu& menuData, Window* owner, const Point& position)
+    void MenuManager::ShowContextMenu(Menu& menuData, Window* owner, const Point& position)
     {
         // 1. MenuManager crea la representación visual
         auto menuBox = new Berta::MenuBox(owner, position);

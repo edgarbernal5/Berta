@@ -23,7 +23,7 @@ namespace Berta
 	*/
 	namespace ReactorCore::MenuBar
 	{
-		class Reactor : public ControlReactor, public ReactorCore::MenuBox::MenuItemReactor
+		class Reactor : public ControlReactor
 		{
 		public:
 			void Init(ControlBase& control, Graphics* graphics) override;
@@ -36,16 +36,6 @@ namespace Berta
 			void Resize(Graphics& graphics, const ArgResize& args) override;
 
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
-			void MoveToNextItem(bool upwards) override;
-			bool EnterSubMenu() override { return false; };
-			bool ExitSubMenu() override { return false; };
-			void Select() override;
-			void Quit() override;
-
-			bool OnClickSubMenu(const ArgMouse& args) override { return false; }
-
-			Window* Owner() const override;
 
 			struct MenuBarItemData
 			{
@@ -97,7 +87,6 @@ namespace Berta
 			const Module& GetModule() const { return m_module; }
 
 		private:
-			MenuItemReactor* GetLastMenuItem() const;
 			Module m_module;
 		};
 	}

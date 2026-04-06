@@ -82,7 +82,7 @@ namespace Berta
 
 		bool IsWindowBorderless(Window* window);
 		void DisposeMenu();
-		void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor);
+		//void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor);
 
 		void Exit();
 

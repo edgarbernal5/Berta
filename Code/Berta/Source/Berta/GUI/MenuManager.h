@@ -29,7 +29,7 @@ namespace Berta
 		Window* GetActiveMenu(bool fromKeyboard = false) const;
 		Window* FindMenu(const Point& mousePosition) const;
 
-		void ShowContextMenu(const Menu& menuData, Window* owner, const Point& position);
+		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
 		void ShowMenuBarPopup(const Menu& menuData, Window* owner);
 		
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);

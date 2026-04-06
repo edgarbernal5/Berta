@@ -26,7 +26,7 @@ namespace Berta
 			auto window = m_module.m_owner;
 			bool enabled = m_module.m_control->GetEnabled();
 
-			graphics.FillRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground);
+			/*graphics.FillRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground);
 
 			auto& items = m_module.m_items;
 			auto itemMargin = window->ToScale(4u);
@@ -48,7 +48,7 @@ namespace Berta
 					graphics.DrawString(textPosition, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 				}
 				GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, { itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, window->Appearance->Foreground);
-			}
+			}*/
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -71,7 +71,7 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
-			if (!args.ButtonState.LeftButton)
+			/*if (!args.ButtonState.LeftButton)
 			{
 				return;
 			}
@@ -100,12 +100,12 @@ namespace Berta
 			{
 				GUI::DisposeMenu();
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}
+			}*/
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
-			int selectedItem = m_module.FindItem(args.Position);
+			/*int selectedItem = m_module.FindItem(args.Position);
 
 			if (m_module.IsMenuOpen())
 			{
@@ -132,7 +132,7 @@ namespace Berta
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
 				}
 			}
-			m_module.m_lastMousePosition = args.Position;
+			m_module.m_lastMousePosition = args.Position;*/
 		}
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
@@ -142,7 +142,7 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			if (m_module.IsMenuOpen())
+			/*if (m_module.IsMenuOpen())
 			{
 				auto lastMenuItem = GetLastMenuItem();
 				if (args.Key == KeyboardKey::ArrowUp)
@@ -175,54 +175,12 @@ namespace Berta
 				{
 					lastMenuItem->Quit();
 				}
-			}
-		}
-
-		void Reactor::MoveToNextItem(bool upwards)
-		{
-			if (!m_module.IsMenuOpen())
-			{
-				return;
-			}
-			int direction = upwards ? -1 : 1;
-			int selectedItem = m_module.m_interactionData.m_selectedItemIndex;
-			int totalItems = static_cast<int>(m_module.m_items.size());
-			selectedItem = (selectedItem + direction + totalItems) % totalItems;
-			GUI::DisposeMenu(m_module.GetActiveMenuBox()->GetItemReactor());
-
-			m_module.SelectIndex(selectedItem);
-			m_module.OpenMenu(false);
-			m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-		
-			GUI::UpdateWindow(m_module.m_owner);
-		}
-
-		void Reactor::Select()
-		{
-		}
-
-		void Reactor::Quit()
-		{
-		}
-
-		Window* Reactor::Owner() const
-		{
-			return m_module.m_owner;
-		}
-
-		ReactorCore::MenuBox::MenuItemReactor* Reactor::GetLastMenuItem() const
-		{
-			auto activeMenuItemReactor = (MenuItemReactor*)this;
-			while (activeMenuItemReactor->Next() != nullptr)
-			{
-				activeMenuItemReactor = activeMenuItemReactor->Next();
-			}
-			return activeMenuItemReactor;
+			}*/
 		}
 
 		int Reactor::Module::FindItem(const Point& position) const
 		{
-			auto& items = m_items;
+			/*auto& items = m_items;
 
 			for (size_t i = 0; i < items.size(); i++)
 			{
@@ -232,13 +190,13 @@ namespace Berta
 				{
 					return static_cast<int>(i);
 				}
-			}
+			}*/
 			return -1;
 		}
 
 		void Reactor::Module::OpenMenu(bool ignoreFirstMouseUp)
 		{
-			auto window = m_owner;
+			/*auto window = m_owner;
 			auto itemData = m_items[m_interactionData.m_selectedItemIndex].get();
 			auto& activeMenuPtr = m_interactionData.m_activeMenu;
 			if (activeMenuPtr == &itemData->menu)
@@ -259,7 +217,7 @@ namespace Berta
 			};
 
 			//TODO: focus window
-			activeMenuPtr->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);
+			activeMenuPtr->ShowPopup(m_owner, boxPosition, true, ignoreFirstMouseUp);*/
 		}
 
 		void Reactor::Module::SelectIndex(int index)
@@ -269,17 +227,18 @@ namespace Berta
 
 		Berta::MenuBox* Reactor::Module::GetActiveMenuBox() const
 		{
-			return m_interactionData.m_activeMenu->m_menuBox;
+			//return m_interactionData.m_activeMenu->m_menuBox;
+			return nullptr;
 		}
 
 		Menu& Reactor::Module::At(size_t index)
 		{
-			return m_items[index]->menu;
+			return m_items[index].menu;
 		}
 
 		void Reactor::Module::BuildItems(size_t startIndex)
 		{
-			if (startIndex >= m_items.size())
+			/*if (startIndex >= m_items.size())
 			{
 				return;
 			}
@@ -309,12 +268,12 @@ namespace Berta
 				itemData.center = center;
 
 				offset.X += static_cast<int>(itemSize.Width);
-			}
+			}*/
 		}
 
 		Menu& Reactor::Module::PushBack(const std::wstring& text)
 		{
-			wchar_t accessKey;
+			/*wchar_t accessKey;
 			std::size_t accessKeyPosition;
 			auto transformedText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
 
@@ -322,7 +281,8 @@ namespace Berta
 			auto& newItem = m_items.emplace_back(new Reactor::MenuBarItemData{ transformedText, accessKey, accessKeyPosition });
 			BuildItems(startIndex);
 
-			return newItem->menu;
+			return newItem->menu;*/
+			return *(new Menu());
 		}
 	}
 
