@@ -278,21 +278,18 @@ namespace Berta
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
-			// 1. Si el mouse sale de la ventana, cancelamos la intención de abrir un submenú
 			m_module.m_pendingSubMenuIndex = std::nullopt;
 			m_module.m_hoverTimer.Stop();
 
-			// 2. UX Estándar de SO: Si hay un submenú abierto, el ítem padre 
-			// DEBE quedarse resaltado (hovered) aunque el mouse se haya ido.
 			if (m_module.m_openedSubMenuIndex.has_value())
 			{
 				m_module.m_hoveredIndex = m_module.m_openedSubMenuIndex;
 			}
 			else
 			{
-				// Si no hay submenús abiertos, limpiamos la selección
 				m_module.m_hoveredIndex = std::nullopt;
 			}
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -303,13 +300,11 @@ namespace Berta
 		{
 			std::optional<std::size_t> newHoveredIndex = std::nullopt;
 			
-			// 1. Hit-Testing rápido contra la caché
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
 			{
 				if (m_module.m_layoutCache[i].bounds.Contains(args.Position))
 				{
-					// Solo se puede hacer hover sobre ítems habilitados y que no sean separadores
-					if (!std::holds_alternative<Menu::MenuSeparator>(m_module.m_menuData->GetItems()[i]))
+					if (!std::holds_alternative<Menu::MenuSeparator>(m_module.m_menuData->GetItem(i)))
 					{
 						newHoveredIndex = i;
 					}
@@ -317,7 +312,6 @@ namespace Berta
 				}
 			}
 
-			// 2. Si el ratón se movió a un ítem DIFERENTE
 			if (m_module.m_hoveredIndex != newHoveredIndex)
 			{
 				m_module.m_hoveredIndex = newHoveredIndex;
@@ -326,6 +320,13 @@ namespace Berta
 				m_module.m_pendingSubMenuIndex = std::nullopt;
 				m_module.m_hoverTimer.Stop();
 
+				if (m_module.m_openedSubMenuIndex.has_value() && m_module.m_openedSubMenuIndex != newHoveredIndex)
+				{
+					Foundation::GetInstance().GetMenuManager().CloseChildrenOf(m_module.m_owner);
+					
+					m_module.m_openedSubMenuIndex = std::nullopt; 
+				}
+				
 				if (m_module.m_hoveredIndex.has_value())
 				{
 					size_t index = m_module.m_hoveredIndex.value();
@@ -336,12 +337,6 @@ namespace Berta
 						m_module.m_pendingSubMenuIndex = index;
 						m_module.m_hoverTimer.SetInterval(Module::SubMenuDelayMs);
 						m_module.m_hoverTimer.Start();
-					}
-					else if (std::holds_alternative<Menu::MenuAction>(itemData))
-					{
-						// Opcional: Si el ratón se posa sobre una acción normal, 
-						// podrías iniciar un timer para CERRAR el submenú abierto actualmente.
-						// (Para simplificar, Win32 suele cerrarlo si abres otro submenú o haces clic).
 					}
 				}
 			}

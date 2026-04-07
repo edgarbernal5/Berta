@@ -85,6 +85,16 @@ namespace Berta
         }
     }
 
+    void MenuManager::CloseChildrenOf(Window* parent)
+    {
+        auto it = std::find(m_popups.begin(), m_popups.end(), parent);
+        if (it != m_popups.end() && std::next(it) != m_popups.end())
+        {
+            Window* firstChild = *std::next(it);
+            Close(firstChild); 
+        }
+    }
+
     Window* MenuManager::GetActiveMenu(bool fromKeyboard) const
     {
         if (m_popups.empty())
