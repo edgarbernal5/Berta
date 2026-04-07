@@ -19,7 +19,7 @@ namespace Berta
         return !m_popups.empty();
     }
 
-    void MenuManager::Close(Window* popupWindow)
+    void MenuManager::Close(const Window* popupWindow)
     {
         if (!popupWindow || m_popups.empty())
         {

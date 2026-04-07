@@ -375,11 +375,11 @@ int main()
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"&File");
 
-	menuFile.Append("New");
-	/*auto newSubmenu = menuFile.CreateSubMenu(0);
-	newSubmenu->Append("Tab");
+	auto newSubMenu = std::make_unique<Berta::Menu>();
+	newSubMenu->Append("Tab");
+	menuFile.AppendSubMenu(L"New", std::move(newSubMenu));
 
-	menuFile.Append("Exit", [](Berta::MenuItem& item)
+	menuFile.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
@@ -387,12 +387,12 @@ int main()
 	auto& menuWindow = menuBar.PushBack(L"W&indow");
 	menuWindow.Append("Load layout");
 	menuWindow.Append("Reset layout");
-	menuWindow.Append("Custom");
-	auto customSubmenu = menuWindow.CreateSubMenu(2);
+	auto customSubmenu = std::make_unique<Berta::Menu>();
 	customSubmenu->Append("O&ne");
 	customSubmenu->Append("Tw&o");
 	customSubmenu->AppendSeparator();
-	customSubmenu->Append("More");*/
+	customSubmenu->Append("More");
+	menuWindow.AppendSubMenu(L"Custom", std::move(customSubmenu));
 
 	auto& helpMenu = menuBar.PushBack(L"Help");
 	helpMenu.Append("About");

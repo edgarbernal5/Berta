@@ -14,9 +14,9 @@ int main()
 
 	Berta::MenuBar menuBar(form, { 15,15,200,45 });
 
-	Berta::Image cutImage("Resources\\Icons\\Icono9_16.png");
-	Berta::Image imageImage("Resources\\Icons\\Image 128.png");
-	Berta::Image hddImage("Resources\\Icons\\Hard drive 3 128.png");
+	Berta::Image cutImage("..\\..\\Resources\\Icons\\Icono9_16.png");
+	Berta::Image imageImage("..\\..\\Resources\\Icons\\Image 128.png");
+	Berta::Image hddImage("..\\..\\Resources\\Icons\\Hard drive 3 128.png");
 
 	auto& fileMenu = menuBar.PushBack("File");
 	auto newSubMenu = std::make_unique<Berta::Menu>();
@@ -35,9 +35,11 @@ int main()
 	editMenu.Append("Undo");
 	editMenu.Append("Redo");
 	editMenu.AppendSeparator();
-	editMenu.Append("Cut");
-
-	editMenu.SetImage(3, cutImage);
+	editMenu.Append("Cut").SetImage(cutImage).SetEnabled(false);
+	editMenu.Append("Copy").SetImage(cutImage).SetEnabled(false);
+	
+	auto& viewMenu = menuBar.PushBack("View");
+	viewMenu.AppendCheckbox(L"Side bar", true);
 
 	auto& helpMenu = menuBar.PushBack("Help");
 	helpMenu.Append("About");
@@ -74,7 +76,7 @@ int main()
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
-			//popupMenu.ShowPopup(form.Handle(), args);
+			popupMenu.ShowPopup(form.Handle(), args);
 		});
 
 	form.Show();

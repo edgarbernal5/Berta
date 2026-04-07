@@ -150,7 +150,6 @@ namespace Berta
 			auto& interaction = m_module.m_interaction;
 			auto& items = m_module.m_items;
 
-			// 1. Manejo de "Alt + Letra" (Access Keys) interceptado desde Foundation
 			//if (args.IsSystem && args.Character != 0)
 			if (false)
 			{
@@ -166,7 +165,6 @@ namespace Berta
 				}
 			}
 
-			// 2. Manejo de Navegación Estándar (Flechas)
 			if (interaction.m_selectedIndex.has_value())
 			{
 				switch (args.Key)
@@ -182,7 +180,7 @@ namespace Berta
 				case KeyboardKey::ArrowDown:
 				case KeyboardKey::Enter:
 					interaction.m_isMenuOpen = true;
-					m_module.OpenMenu(true); // Foco al primer ítem
+					m_module.OpenMenu(true);
 					break;
 
 				case KeyboardKey::Escape:

@@ -20,15 +20,15 @@ namespace Berta
 	class MenuManager
 	{
 	public:
-
 		bool AnyPopupActive() const;
 
-		void Close(Window* popupWindow);
+		void Close(const Window* popupWindow);
 		void CloseAll();
 		void CloseChildrenOf(Window* parent);
 		
 		Window* GetActiveMenu(bool fromKeyboard = false) const;
 		Window* FindMenu(const Point& mousePosition) const;
+		Window* GetOwner() const { return m_owner; }
 		size_t GetPopupCount() const;
 
 		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);

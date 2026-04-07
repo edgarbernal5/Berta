@@ -95,6 +95,8 @@ namespace Berta
 			return m_items.at(index); 
 		}
 		
+		void ShowPopup(Window* owner, const ArgMouse& args);
+		
 		void SetText(size_t index, const std::wstring& text);
 		std::wstring GetText(size_t index) const;
 		

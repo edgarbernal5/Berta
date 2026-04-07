@@ -387,7 +387,18 @@ int main()
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
-	menuFile.Append(L"New", [](Berta::MenuItem item) {});
+	
+	auto newSubMenu = std::make_unique<Berta::Menu>();
+	auto complexSubMenu = std::make_unique<Berta::Menu>();
+	
+	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem item) {});
+	
+	newSubMenu->Append(L"Texture", [](Berta::MenuItem item) {});
+	newSubMenu->AppendSubMenu(L"Scene", std::move(complexSubMenu));
+	newSubMenu->Append(L"Complex", [](Berta::MenuItem item) {});
+	
+	menuFile.AppendSubMenu(L"New", std::move(newSubMenu));
+	
 	menuFile.Append(L"Open file...", [](Berta::MenuItem item) {});
 	menuFile.AppendSeparator();
 	menuFile.Append(L"Exit", [](Berta::MenuItem item)
@@ -404,23 +415,11 @@ int main()
 
 	Berta::Image image3("..\\..\\Resources\\Icons\\Icono5_2_16.png");
 	menuFile.SetImage(3, image3);
-
-	auto newSubMenu = std::make_unique<Berta::Menu>();
-	newSubMenu->Append(L"Texture", [](Berta::MenuItem item) {});
-	newSubMenu->Append(L"Scene", [](Berta::MenuItem item) {});
-	newSubMenu->Append(L"Complex", [](Berta::MenuItem item) {});
-	menuFile.AppendSubMenu(L"L", std::move(newSubMenu));
 	
-	/*auto complexSubMenu = std::make_unique<Berta::Menu>();
-	auto complexSubMenu = newSubMenu->CreateSubMenu(2);
-	newSubmenu->CreateSubMenu(1);
-	//newSubmenu->SetEnabled(1, false);
-	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
-
 	auto& menuEdit = menuBar.PushBack(L"Edit");
 	menuEdit.Append(L"Undo", [](Berta::MenuItem item) {});
 
-	menuBar.PushBack(L"Help");*/
+	menuBar.PushBack(L"Help");
 
 	form.GetEvents().Resize.Connect([&menuBar](const Berta::ArgResize& args)
 		{

@@ -51,6 +51,11 @@ namespace Berta
 		return {this, m_items.size() - 1};
 	}
 
+	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
+	{
+		Foundation::GetInstance().GetMenuManager().ShowContextMenu(*this, owner, args.Position);
+	}
+
 	void Menu::SetText(size_t index, const std::wstring& text)
 	{
 		if (index >= m_items.size())
@@ -95,7 +100,6 @@ namespace Berta
 			return;
 		}
 		
-		// Usamos std::visit para modificar solo si es un tipo que soporta imagen
 		std::visit([&image](auto& item)
 		{
 			using T = std::decay_t<decltype(item)>;
@@ -202,6 +206,8 @@ namespace Berta
 			auto window = m_module.m_owner;
 			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
 			int leftPaneWidth = window->ToScale(appearance->MenuBoxLeftPaneWidth);
+			auto menuArrowWidth = window->ToScale(appearance->MenuBoxSubMenuArrowWidth);
+			auto smallIconSize = window->ToScale(window->Appearance->SmallIconSize);
 			
 			graphics.FillRectangle(window->ClientSize.ToRectangle(), appearance->MenuBackground);
 			graphics.DrawRectangle(window->ClientSize.ToRectangle(), appearance->BoxBorderColor);
@@ -242,10 +248,31 @@ namespace Berta
 							appearance->ButtonDisabledBackground;
 
 						graphics.DrawString(cache.textPosition, itemData.text, mainColor);
-
+						if constexpr (std::is_same_v<T, Menu::MenuAction> || std::is_same_v<T, Menu::MenuSubMenu>)
+						{
+							if (itemData.image)
+							{
+								int iconSize = window->ToScale(appearance->SmallIconSize);
+								int iconX = cache.bounds.X + (leftPaneWidth - iconSize) / 2;
+								int iconY = cache.bounds.Y + (cache.bounds.Height - iconSize) / 2;
+								
+								Rectangle destRect { iconX, iconY, (uint32_t)iconSize, (uint32_t)iconSize };
+								Rectangle srcRect = itemData.image.GetSize().ToRectangle();
+								
+								itemData.image.Paste(srcRect, graphics, destRect);
+							}
+						}
 						if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
 						{
-							graphics.DrawString(cache.arrowPosition, L"►", mainColor);
+							int arrowWidth = window->ToScale(4);
+							int arrowLength = window->ToScale(2);
+							graphics.DrawArrow({ cache.arrowPosition.X , cache.arrowPosition.Y, menuArrowWidth, menuArrowWidth },
+								arrowLength,
+								arrowWidth,
+								Graphics::ArrowDirection::Right,
+								itemData.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor,
+								true,
+								itemData.isEnabled ? (window->Appearance->Foreground) : window->Appearance->BoxBorderDisabledColor);
 						}
 						else if constexpr (std::is_same_v<T, Menu::MenuCheckbox>)
 						{
@@ -253,7 +280,7 @@ namespace Berta
 							{
 								int checkSize = window->ToScale(appearance->CheckboxSize);
 								int checkY = cache.bounds.Y + (cache.bounds.Height - checkSize) / 2;
-								// Centramos el checkbox dentro del "Left Pane"
+								
 								int checkX = (leftPaneWidth - checkSize) / 2; 
                             
 								m_module.DrawCheckmark(graphics, { checkX, checkY }, checkSize, mainColor);
@@ -294,6 +321,29 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
+			if (m_module.m_owner->ClientSize.ToRectangle().Contains(args.Position))
+			{
+				return;
+			}
+			
+			auto& manager = Foundation::GetInstance().GetMenuManager();
+			Point screenPos = GUI::GetWindowPosition(m_module.m_owner);
+
+			if (!manager.FindMenu(screenPos))
+			{
+				Window* owner = manager.GetOwner();
+				bool clickedOwner = false;
+				if (owner)
+				{
+					Point localOwnerPos = GUI::GetMousePositionToWindow(owner);
+					clickedOwner = owner->ClientSize.ToRectangle().Contains(localOwnerPos);
+				}
+
+				if (!clickedOwner)
+				{
+					manager.CloseAll();
+				}
+			}
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -350,7 +400,6 @@ namespace Berta
 				return;
 			}
 
-			// 2. Si soltamos el clic sobre un ítem válido, disparamos la lógica central
 			if (m_module.m_hoveredIndex.has_value())
 			{
 				m_module.ExecuteHoveredItem();
@@ -359,6 +408,7 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
 			switch (args.Key)
 			{
 			case KeyboardKey::ArrowDown:
@@ -371,219 +421,24 @@ namespace Berta
 				if (m_module.m_hoveredIndex.has_value()) {
 					m_module.OpenHoveredSubMenu(true);
 				} else {
-					Foundation::GetInstance().GetMenuManager().NavigateTopLevel(1);
+					menuManager.NavigateTopLevel(1);
 				}
 				break;
 			case KeyboardKey::ArrowLeft:
-				if (Foundation::GetInstance().GetMenuManager().GetPopupCount() > 1) {
-					Foundation::GetInstance().GetMenuManager().Close(m_module.m_owner);
+				if (menuManager.GetPopupCount() > 1) {
+					menuManager.Close(m_module.m_owner);
 				} else {
-					Foundation::GetInstance().GetMenuManager().NavigateTopLevel(-1);
+					menuManager.NavigateTopLevel(-1);
 				}
 				break;
 			case KeyboardKey::Enter:
 				m_module.ExecuteHoveredItem();
 				break;
 			case KeyboardKey::Escape:
-				Foundation::GetInstance().GetMenuManager().CloseAll();
+				menuManager.CloseAll();
 				break;
 			}
 		}
-
-		/*void Reactor::BuildItems()
-		{
-			m_itemSizePositions.clear();
-
-			auto window = m_control->Handle();
-			auto menuBoxLeftPaneWidth = window->ToScale(m_appearance->MenuBoxLeftPaneWidth);
-			auto itemTextPadding = window->ToScale(ItemTextPadding);
-			auto menuBoxItemHeight = window->ToScale(m_appearance->MenuBoxItemHeight);
-			auto separatorHeight = window->ToScale(SeparatorHeight);
-
-			Point position{ 1 + static_cast<int>(itemTextPadding), 1 + static_cast<int>(itemTextPadding) };
-			uint32_t separators = 0;
-			uint32_t maxWidth = 0;
-			uint32_t sizeOfNormalItem = window->ClientSize.Width - 2u - itemTextPadding * 2u;
-
-			for (size_t i = 0; i < m_items->size(); i++)
-			{
-				auto& item = m_items->at(i);
-				auto& itemSizePosition = m_itemSizePositions.emplace_back();
-				if (item->m_isSeparator)
-				{
-					itemSizePosition.m_position = position;
-					itemSizePosition.m_size = { sizeOfNormalItem , menuBoxItemHeight };
-
-					position.Y += separatorHeight;
-				}
-				else
-				{
-					itemSizePosition.m_position = position;
-					itemSizePosition.m_size = { sizeOfNormalItem , menuBoxItemHeight };
-
-					position.Y += menuBoxItemHeight;
-				}
-			}
-		}*/
-
-		/*Size Reactor::GetMenuBoxSize()
-		{
-			auto parent = m_control->Handle();
-
-			Size size;
-			uint32_t separators = 0;
-			uint32_t maxWidth = 0;
-			bool hasSubmenu = false;
-			for (size_t i = 0; i < m_items->size(); i++)
-			{
-				if (m_items->at(i)->m_isSeparator)
-				{
-					++separators;
-				}
-				else
-				{
-					auto textSize = parent->Renderer.GetGraphics().GetTextExtent((m_items->at(i)->m_text));
-					maxWidth = (std::max)(maxWidth, textSize.Width);
-					hasSubmenu |= m_items->at(i)->m_subMenu != nullptr;
-				}
-			}
-
-			auto menuBoxLeftPaneWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxLeftPaneWidth);
-			auto itemTextPadding = parent->ToScale(ItemTextPadding);
-			auto menuBoxSubMenuArrowWidth = hasSubmenu ? parent->ToScale(m_menuBox->GetAppearance().MenuBoxSubMenuArrowWidth) : 0;
-			auto separatorHeight = parent->ToScale(SeparatorHeight);
-			auto menuBoxItemHeight = parent->ToScale(m_menuBox->GetAppearance().MenuBoxItemHeight);
-			auto menuBoxShortcutWidth = parent->ToScale(m_menuBox->GetAppearance().MenuBoxShortcutWidth);
-
-			return {
-				2 + menuBoxLeftPaneWidth + maxWidth + itemTextPadding * 2u + menuBoxSubMenuArrowWidth + menuBoxShortcutWidth,
-				2 + itemTextPadding * 2u + (uint32_t)(m_items->size() - separators) * (menuBoxItemHeight) + separators * separatorHeight
-			};
-		}*/
-
-		/*void Reactor::OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp)
-		{
-			auto window = m_control->Handle();
-			int two = window->ToScale(2);
-			int four = window->ToScale(4);
-
-			subMenu->m_parentMenu = parentMenu;
-			Point position
-			{
-				(int)m_control->GetSize().Width - four,
-				m_itemSizePositions[selectedIndex].m_position.Y
-			};
-			subMenu->ShowPopup(window, position, !m_menuOwner, ignoreFirstMouseUp);
-
-			m_next = subMenu->m_menuBox->GetItemReactor();
-			m_next->m_prev = this;
-
-			subMenu->m_menuBox->GetEvents().Destroy.Connect([this](const ArgDestroy& args)
-			{
-				m_openedSubMenuIndex = -1;
-				m_next = nullptr;
-			});
-		}
-
-		int Reactor::FindItem(const ArgMouse& args)
-		{
-			if (!Rectangle{ m_control->Handle()->ClientSize }.Contains(args.Position))
-			{
-				return -1;
-			}
-
-			for (size_t i = 0; i < m_itemSizePositions.size(); i++)
-			{
-				auto& item = m_itemSizePositions[i];
-				if (!m_items->at(i)->m_isSeparator && Rectangle { item.m_position, item.m_size }.Contains(args.Position))
-				{
-					return static_cast<int>(i);
-				}
-			}
-			return -1;
-		}
-
-		bool Reactor::MouseMoveInternal(const ArgMouse& args)
-		{
-			int selectedIndex = FindItem(args);
-			if (selectedIndex == m_selectedIndex)
-			{
-				return false;
-			}
-
-			if (selectedIndex != -1 && !m_items->at(selectedIndex)->m_isEnabled)
-			{
-				if (m_openedSubMenuIndex != -1)
-				{
-					m_selectedSubMenuIndex = -1;
-					m_openedSubMenuIndex = -1;
-					m_subMenuTimer.Stop();
-
-					GUI::DisposeMenu(m_next);
-					m_next = nullptr;
-				}
-				selectedIndex = -1;
-			}
-			else
-			{
-				if (selectedIndex != -1 && m_items->at(selectedIndex)->m_subMenu)
-				{
-					auto& subMenu = m_items->at(selectedIndex)->m_subMenu;
-					if (!subMenu->m_menuBox)
-					{
-						if (m_openedSubMenuIndex == -1)
-						{
-							m_selectedSubMenuIndex = selectedIndex;
-							if (m_selectedSubMenuIndex >= 0)
-							{
-								m_subMenuTimer.Stop();
-							}
-							m_subMenuTimer.Start();
-						}
-						else
-						{
-							GUI::DisposeMenu(m_next);
-							m_next = nullptr;
-
-							m_openedSubMenuIndex = -1;
-							m_selectedSubMenuIndex = selectedIndex;
-							m_subMenuTimer.Start();
-						}
-					}
-				}
-				else if (selectedIndex != -1 && m_openedSubMenuIndex != -1 && !m_items->at(selectedIndex)->m_subMenu)
-				{
-					m_selectedSubMenuIndex = -1;
-					m_openedSubMenuIndex = -1;
-					m_subMenuTimer.Stop();
-					GUI::DisposeMenu(m_next);
-					m_next = nullptr;
-				}
-				else if (m_selectedSubMenuIndex != -1 && m_selectedSubMenuIndex != m_openedSubMenuIndex)
-				{
-					m_subMenuTimer.Stop();
-					m_selectedSubMenuIndex = -1;
-				}
-				else if (selectedIndex == -1 && m_openedSubMenuIndex != -1)
-				{
-					auto& openedSubItem = m_itemSizePositions.at(m_openedSubMenuIndex);
-					auto tolerance = (int)(openedSubItem.m_size.Height >> 2);
-					if (args.Position.Y >= (openedSubItem.m_position.Y - tolerance) && args.Position.Y <= (openedSubItem.m_position.Y + tolerance) + (int)openedSubItem.m_size.Height)
-					{
-						selectedIndex = m_openedSubMenuIndex;
-					}
-					else
-					{
-						selectedIndex = m_openedSubMenuIndex;
-					}
-				}
-			}
-		
-			bool hasChanged = selectedIndex != m_selectedIndex;
-			m_selectedIndex = selectedIndex;
-
-			return hasChanged;
-		}*/
 	}
 	
 	MenuBox::MenuBox(Window* parent, const Point& position)
@@ -744,7 +599,8 @@ namespace Berta
 					
 					if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
 					{
-						cache.arrowPosition = { finalWidth - arrowWidth, textY };
+						int arrowY = currentY + (itemHeight - arrowWidth) / 2;
+						cache.arrowPosition = { finalWidth - arrowWidth, arrowY };
 					}
 					else if constexpr (std::is_same_v<T, Menu::MenuAction>)
 					{
