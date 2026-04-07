@@ -232,9 +232,7 @@ namespace Berta
 		MenuBox(Window* parent, const Point& position);
 		~MenuBox() override;
 
-		//void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
 		void InitFromData(Menu& menuData);
-		//void SetIgnoreFirstMouseUp(bool value);
 	private:
 #if BT_DEBUG
 		static int g_globalId;

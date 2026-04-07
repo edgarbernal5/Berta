@@ -38,17 +38,19 @@ namespace Berta
         
         if (m_popups.empty())
         {
-            GUI::ReleaseCapture(m_owner);
-            m_owner = nullptr;
+            if (m_owner)
+            {
+                GUI::ReleaseCapture(m_owner);
+                m_owner = nullptr;
+            }
             m_fromMenuBar = false;
         }
 
         for (auto rit = popupsToClose.rbegin(); rit != popupsToClose.rend(); ++rit)
         {
-            Window* popup = *rit;
-            if (popup)
+            if (*rit)
             {
-                GUI::DisposeWindow(popup);
+                GUI::DisposeWindow(*rit);
             }
         }
     }
@@ -61,18 +63,22 @@ namespace Berta
         }
         
         auto popupsToClose = m_popups;
-        
-        GUI::ReleaseCapture(m_owner);
+        Window* safeOwner = m_owner;
         
         m_popups.clear();
         m_owner = nullptr;
         m_fromMenuBar = false;
         
-        for (Window* popup : popupsToClose)
+        if (safeOwner)
         {
-            if (popup)
+            GUI::ReleaseCapture(safeOwner);
+        }
+        
+        for (auto rit = popupsToClose.rbegin(); rit != popupsToClose.rend(); ++rit)
+        {
+            if (*rit)
             {
-                GUI::DisposeWindow(popup);
+                GUI::DisposeWindow(*rit);
             }
         }
         

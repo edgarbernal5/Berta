@@ -207,7 +207,6 @@ namespace Berta
 			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
 			int leftPaneWidth = window->ToScale(appearance->MenuBoxLeftPaneWidth);
 			auto menuArrowWidth = window->ToScale(appearance->MenuBoxSubMenuArrowWidth);
-			auto smallIconSize = window->ToScale(window->Appearance->SmallIconSize);
 			
 			graphics.FillRectangle(window->ClientSize.ToRectangle(), appearance->MenuBackground);
 			graphics.DrawRectangle(window->ClientSize.ToRectangle(), appearance->BoxBorderColor);
