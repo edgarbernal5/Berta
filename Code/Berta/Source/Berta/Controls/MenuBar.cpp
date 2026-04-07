@@ -24,14 +24,11 @@ namespace Berta
 		void Reactor::Update(Graphics& graphics)
 		{
 			auto window = m_module.m_owner;
-			auto appearance = window->Appearance.get();
+			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
 			bool enabled = m_module.m_control->GetEnabled();
 
-			// 1. Dibujar fondo de la barra
-			graphics.DrawRectangle(window->ClientSize.ToRectangle(), 
-				enabled ? appearance->ButtonBackground : appearance->ButtonDisabledBackground, true);
+			graphics.FillRectangle(window->ClientSize.ToRectangle(), enabled ? appearance->ButtonBackground : appearance->ButtonDisabledBackground);
 
-			// 2. Dibujar ítems desde la caché
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
 			{
 				const auto& itemData = m_module.m_items[i];
@@ -40,174 +37,92 @@ namespace Berta
 				bool isSelected = (m_module.m_interaction.m_selectedIndex == i);
 				bool isOpen = m_module.m_interaction.m_isMenuOpen;
 
-				// A) Fondos dinámicos
 				if (isSelected && enabled)
 				{
 					Color bgColor = isOpen ? appearance->BoxPressedBackground : appearance->ButtonHighlightBackground;
-					graphics.DrawRectangle(cache.bounds, bgColor, true);
+					graphics.FillRectangle(cache.bounds, bgColor);
 				}
 
-				// B) Texto principal
 				Color textColor = enabled ? appearance->Foreground : appearance->ButtonDisabledBackground;
 				graphics.DrawString(cache.textPosition, itemData.text, textColor);
 
-				// C) Subrayado de AccessKey (Ej: la 'A' de Archivo)
 				if (enabled && itemData.accessKey != 0)
 				{
 					GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, 
 						itemData.accessKeyPosition, cache.textPosition, textColor);
 				}
 			}
-			
-			/*graphics.FillRectangle(window->ClientSize.ToRectangle(), enabled ? window->Appearance->ButtonBackground : window->Appearance->ButtonDisabledBackground);
-
-			auto& items = m_module.m_items;
-			auto itemMargin = window->ToScale(4u);
-
-			for (size_t i = 0; i < items.size(); i++)
-			{
-				auto& itemData = *(items[i]);
-
-				auto textPosition = Point{ itemData.position.X + static_cast<int>(itemData.center.Width), itemData.position.Y + static_cast<int>(itemData.center.Height) };
-				if (m_module.m_interactionData.m_selectedItemIndex == static_cast<int>(i))
-				{
-					graphics.FillRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, m_module.IsMenuOpen() ? window->Appearance->MenuBackground : window->Appearance->HighlightColor);
-
-					graphics.DrawString(textPosition, itemData.text, window->Appearance->Foreground);
-					graphics.DrawRectangle({ itemData.position.X, itemData.position.Y, itemData.size.Width, itemData.size.Height }, window->Appearance->BoxBorderColor);
-				}
-				else
-				{
-					graphics.DrawString(textPosition, itemData.text, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
-				}
-				GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, { itemData.position.X + (int)itemData.center.Width, itemData.position.Y + (int)itemData.center.Height }, window->Appearance->Foreground);
-			}*/
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
 			if (!m_module.m_interaction.m_isMenuOpen)
 			{
-				m_module.m_interaction.m_selectedIndex = std::nullopt;
+				if (m_module.m_interaction.m_selectedIndex.has_value())
+				{
+					m_module.m_interaction.m_selectedIndex = std::nullopt;
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
 			}
-			
-			/*if (m_module.IsMenuOpen())
-			{
-				return;
-			}
-			auto savedIndex = m_module.m_interactionData.m_selectedItemIndex;
-			if (savedIndex != -1)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}*/
 		}
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
 			if (m_module.m_interaction.m_selectedIndex.has_value())
 			{
-				// Toggle: Si está abierto lo cerramos, si está cerrado lo abrimos
 				m_module.m_interaction.m_isMenuOpen = !m_module.m_interaction.m_isMenuOpen;
-
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+				
 				if (m_module.m_interaction.m_isMenuOpen)
 				{
-					m_module.OpenMenu(false); // Abrimos con el ratón, sin auto-foco de teclado
+					m_module.OpenMenu(false);
 				}
 				else
 				{
-					//Foundation::GetInstance().GetMenuManager().CloseAll();
+					Foundation::GetInstance().GetMenuManager().CloseAll();
 				}
 			}
-			
-			/*if (!args.ButtonState.LeftButton)
-			{
-				return;
-			}
-
-			int selectedItem = m_module.FindItem(args.Position);
-			int prevSelectedItem = m_module.m_interactionData.m_selectedItemIndex;
-			m_module.SelectIndex(selectedItem);
-			if (selectedItem != -1)
-			{
-				if (m_module.IsMenuOpen() && prevSelectedItem == selectedItem)
-				{
-					GUI::DisposeMenu();
-				}
-				else
-				{
-					m_module.OpenMenu();
-					if (m_module.IsMenuOpen())
-					{
-						m_next = m_module.m_interactionData.m_activeMenu->m_menuBox->GetItemReactor();
-					}
-				}
-
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}
-			else
-			{
-				GUI::DisposeMenu();
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}*/
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
-			std::optional<std::size_t> newHoveredIndex = std::nullopt;
+			std::optional<std::size_t> hitIndex = std::nullopt;
 
-			// Hit-Testing directo (O(N) sobre N muy pequeño)
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
 			{
 				if (m_module.m_layoutCache[i].bounds.Contains(args.Position))
 				{
-					newHoveredIndex = i;
+					hitIndex = i;
 					break;
 				}
 			}
 
-			if (m_module.m_interaction.m_selectedIndex != newHoveredIndex)
+			if (hitIndex.has_value() && m_module.m_interaction.m_selectedIndex != hitIndex)
 			{
-				m_module.m_interaction.m_selectedIndex = newHoveredIndex;
-            
-				// Si el usuario ya tenía un menú abierto y pasa el mouse sobre otro ítem de la barra,
-				// cambiamos de menú automáticamente (comportamiento clásico de Win32/macOS).
-				if (m_module.m_interaction.m_isMenuOpen && newHoveredIndex.has_value())
+				m_module.m_interaction.m_selectedIndex = hitIndex;
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+
+				if (m_module.m_interaction.m_isMenuOpen)
 				{
 					m_module.OpenMenu(false);
 				}
 			}
-			
-			/*int selectedItem = m_module.FindItem(args.Position);
-
-			if (m_module.IsMenuOpen())
+			else if (!m_module.m_interaction.m_isMenuOpen && !hitIndex.has_value())
 			{
-				if (selectedItem != -1 && selectedItem != m_module.m_interactionData.m_selectedItemIndex && m_module.m_lastMousePosition != args.Position) // check last mouse position, or might be better if the keyboard is captured ?
+				if (m_module.m_interaction.m_selectedIndex.has_value())
 				{
-					if (m_module.GetActiveMenuBox())
-					{
-						GUI::DisposeMenu(m_module.GetActiveMenuBox()->GetItemReactor());
-					}
-
-					m_module.SelectIndex(selectedItem);
-					m_module.OpenMenu(false);
-					m_next = m_module.GetActiveMenuBox()->GetItemReactor();
-
-					GUI::UpdateWindow(m_module.m_owner);
-				}
-			}
-			else
-			{
-				if (selectedItem != m_module.m_interactionData.m_selectedItemIndex)
-				{
-					m_module.SelectIndex(selectedItem);
-
+					m_module.m_interaction.m_selectedIndex = std::nullopt;
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
 				}
 			}
-			m_module.m_lastMousePosition = args.Position;*/
 		}
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
+		{
+			m_module.CalculateLayout();
+		}
+
+		void Reactor::DpiChanged(Graphics& graphics)
 		{
 			m_module.CalculateLayout();
 		}
@@ -238,62 +153,27 @@ namespace Berta
 			{
 				switch (args.Key)
 				{
-				case VK_RIGHT:
+				case KeyboardKey::ArrowRight:
 					m_module.MoveSelection(1);
 					break;
 
-				case VK_LEFT:
+				case KeyboardKey::ArrowLeft:
 					m_module.MoveSelection(-1);
 					break;
                     
-				case VK_DOWN:
-				case VK_RETURN:
+				case KeyboardKey::ArrowDown:
+				case KeyboardKey::Enter:
 					interaction.m_isMenuOpen = true;
 					m_module.OpenMenu(true); // Foco al primer ítem
 					break;
 
-				case VK_ESCAPE:
+				case KeyboardKey::Escape:
 					interaction.m_selectedIndex = std::nullopt;
 					interaction.m_isMenuOpen = false;
-					//Foundation::GetInstance().GetMenuManager().CloseAll();
+					Foundation::GetInstance().GetMenuManager().CloseAll();
 					break;
 				}
 			}
-			
-			/*if (m_module.IsMenuOpen())
-			{
-				auto lastMenuItem = GetLastMenuItem();
-				if (args.Key == KeyboardKey::ArrowUp)
-				{
-					lastMenuItem->MoveToNextItem(true);
-				}
-				else if (args.Key == KeyboardKey::ArrowDown)
-				{
-					lastMenuItem->MoveToNextItem(false);
-				}
-				else if (args.Key == KeyboardKey::ArrowLeft)
-				{
-					if (!lastMenuItem->ExitSubMenu())
-					{
-						MoveToNextItem(true);
-					}
-				}
-				else if (args.Key == KeyboardKey::ArrowRight)
-				{
-					if (!lastMenuItem->EnterSubMenu())
-					{
-						MoveToNextItem(false);
-					}
-				}
-				else if(args.Key == KeyboardKey::Enter)
-				{
-					lastMenuItem->Select();
-				}
-				else if (args.Key == KeyboardKey::Escape)
-				{
-					lastMenuItem->Quit();
-				}
-			}*/
 		}
 
 		Menu& Reactor::Module::At(size_t index)
@@ -323,13 +203,14 @@ namespace Berta
 			}
 
 			auto& graphics = m_owner->Renderer.GetGraphics();
+			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
+			
 			m_layoutCache.clear();
 			m_layoutCache.resize(m_items.size());
 
-			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
-			int paddingX = m_owner->ToScale(appearance->ItemPaddingInner);
-			int barHeight = m_owner->ClientSize.Height;
-			int currentX = m_owner->ToScale(2u); // Margen inicial izquierdo
+			int paddingX = (int)m_owner->ToScale(appearance->ItemPaddingInner);
+			int barHeight = (int)m_owner->ClientSize.Height;
+			int currentX = m_owner->ToScale(2); // Margen inicial izquierdo
 
 			for (size_t i = 0; i < m_items.size(); ++i)
 			{
@@ -337,7 +218,7 @@ namespace Berta
 				auto& cache = m_layoutCache[i];
 
 				auto textSize = graphics.GetTextExtent(itemData.text);
-				int itemWidth = textSize.Width + (paddingX * 2);
+				int itemWidth = (int)textSize.Width + (paddingX * 2);
 
 				cache.bounds = { currentX, 0, (uint32_t)itemWidth, (uint32_t)barHeight };
             
@@ -351,46 +232,57 @@ namespace Berta
 
 		void Reactor::Module::OpenMenu(bool focusFirstItem)
 		{
-			if (!m_interaction.m_selectedIndex.has_value()) return;
+			if (!m_interaction.m_selectedIndex.has_value())
+			{
+				return;
+			}
         
 			size_t index = m_interaction.m_selectedIndex.value();
 			auto& itemData = m_items[index];
 			auto& cache = m_layoutCache[index];
 
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
-        
-			// 1. Cerramos cualquier popup abierto previamente (Ej. Si pasamos de Archivo a Edición)
 			menuManager.CloseAll();
-
-			// 2. Le indicamos a Berta que este menú nace de la barra superior (para el enrutamiento de teclado)
-			// (Nota: Si tu MenuManager tiene un setter para m_fromMenuBar, podrías usarlo aquí, 
-			// o pasar un flag en ShowContextMenu)
-        
-			// 3. Calculamos la posición: Inicia en X de su hitbox, Y justo debajo de la barra
+			
+			m_interaction.m_selectedIndex = index;
+			m_interaction.m_isMenuOpen = true;
+			
 			Point popupPos = { cache.bounds.X, cache.bounds.Y + (int)cache.bounds.Height };
-        
-			// Convertimos a coordenadas globales de pantalla
-			popupPos = GUI::GetPointClientToScreen(m_owner, popupPos);
+			menuManager.ShowMenuBarPopup(itemData.menu, m_owner, popupPos);
 
-			// 4. ¡Instanciamos la Vista del menú!
-			menuManager.ShowContextMenu(itemData.menu, m_owner, popupPos);
-
-			// 5. Si fue abierto con teclado, pasamos el foco al primer elemento del menú recién creado
+			Window* activePopup = menuManager.GetActiveMenu(false);
+			if (activePopup)
+			{
+				activePopup->Events->Destroy.Connect([this](const ArgDestroy& args)
+				{
+					auto& manager = Foundation::GetInstance().GetMenuManager();
+					if (manager.GetPopupCount() == 0)
+					{
+						m_interaction.m_isMenuOpen = false;
+			    
+						Point localPos = Berta::GUI::GetMousePositionToWindow(m_owner);
+			    
+						if (!m_owner->ClientSize.ToRectangle().Contains(localPos))
+						{
+							m_interaction.m_selectedIndex = std::nullopt;
+						}
+			    
+						GUI::MarkAsNeedUpdate(m_owner);
+					}
+				});
+			}
+			
 			if (focusFirstItem)
 			{
-				Window* activePopup = menuManager.GetActiveMenu(false);
-				if (activePopup)
-				{
-					ArgKeyboard downArgs;
-					downArgs.Key = VK_DOWN;
-					//Foundation::GetInstance().ProcessEvents(activePopup, nullptr, &ControlEvents::KeyPressed, downArgs);
-				}
 			}
 		}
 
 		void Reactor::Module::MoveSelection(int step)
 		{
-			if (m_items.empty()) return;
+			if (m_items.empty())
+			{
+				return;
+			}
 
 			int count = static_cast<int>(m_items.size());
 			int currentIndex = m_interaction.m_selectedIndex.value_or(step > 0 ? -1 : count); 
@@ -400,6 +292,8 @@ namespace Berta
         
 			m_interaction.m_selectedIndex = currentIndex;
 
+			GUI::MarkAsNeedUpdate(m_owner);
+			
 			// Si el usuario estaba navegando con teclado mientras un menú estaba abierto,
 			// al cambiar de columna debemos abrir el menú contiguo inmediatamente.
 			if (m_interaction.m_isMenuOpen)

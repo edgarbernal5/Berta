@@ -67,8 +67,8 @@ namespace Berta
 		struct MenuCheckbox 
 		{
 			std::wstring text;
-			bool isChecked{ false };             // Estado actual
-			ToggleCallback onToggle;  // Callback que recibe el nuevo estado
+			bool isChecked{ false };
+			ToggleCallback onToggle;
 			bool isEnabled{ true };
 		};
 
@@ -79,27 +79,6 @@ namespace Berta
 			std::unique_ptr<Menu> subMenu;
 			bool isEnabled{ true };
 		};
-		
-		/*struct Item
-		{
-			Item() : m_isSeparator(true) {}
-			Item(const std::wstring& _text, ClickCallback _onClick) : 
-				m_text(_text), 
-				m_isSeparator(false),
-				m_onClick(_onClick)
-			{
-				m_text = GUI::GetAccessKeyText(_text, m_accessKey, &m_accessKeyPosition);
-			}
-
-			std::wstring m_text;
-			bool m_isSeparator{ false };
-			bool m_isEnabled{ true };
-			ClickCallback m_onClick;
-			std::unique_ptr<Menu> m_subMenu;
-			Image m_image;
-			wchar_t m_accessKey{ 0 };
-			std::size_t	m_accessKeyPosition{ 0 };
-		};*/
 		
 		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu, MenuCheckbox>;
 
@@ -113,7 +92,6 @@ namespace Berta
 		
 		MenuItemData& GetItem(size_t index) 
 		{ 
-			// Usamos .at() para tener protección contra desbordamientos (Out of Bounds) en modo Debug
 			return m_items.at(index); 
 		}
 		
@@ -166,19 +144,29 @@ namespace Berta
 	{		
 		struct Appearance : public ControlAppearance
 		{
-			uint32_t MenuBarItemHeight = 18;
+			uint32_t ItemTextPadding = 4;        // Margen interno de los textos
+			uint32_t SeparatorHeight = 3;        // Grosor de la línea separadora
+        
+			uint32_t MenuBoxLeftPaneWidth = 32;  // Espacio para íconos/checkboxes
+			uint32_t MenuBoxItemHeight = 24;     // Altura de los botones
+			uint32_t MenuBoxSubMenuArrowWidth = 20;// Espacio reservado para la flecha ►
+			uint32_t MenuBoxShortcutWidth = 40;  // Espacio reservado para atajos (Ctrl+S)
+        
+			uint32_t CheckboxSize = 12;          // Tamaño de la palomita
+			
+			/*uint32_t MenuBarItemHeight = 18;
 			uint32_t MenuBoxLeftPaneWidth = 32;
 			uint32_t MenuBoxItemHeight = 20;
 			uint32_t MenuBoxSubMenuArrowWidth = 20;
-			uint32_t MenuBoxShortcutWidth = 20;
+			uint32_t MenuBoxShortcutWidth = 20;*/
 		};
 		
 		struct ItemLayoutCache
 		{
-			Rectangle bounds;       // Área total (para detectar clics y dibujar el fondo 'hover')
-			Point textPosition;     // Origen del texto principal
-			Point shortcutPosition; // Origen del texto del atajo de teclado (ej. Ctrl+C)
-			Point arrowPosition;    // Origen de la flecha si es un submenú
+			Rectangle bounds;
+			Point textPosition;
+			Point shortcutPosition;
+			Point arrowPosition;
 		};
 		
 		struct Module

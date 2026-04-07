@@ -30,13 +30,14 @@ namespace Berta
 		Window* FindMenu(const Point& mousePosition) const;
 
 		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
-		void ShowMenuBarPopup(const Menu& menuData, Window* owner);
-		
-		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
+		void ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position);
 		
 		void NavigateTopLevel(int step);
 		size_t GetPopupCount() const;
+		
 	private:
+		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
+		
 		Window* m_owner{ nullptr };
 		std::vector<Window*> m_popups;
 		bool m_fromMenuBar{ false };
