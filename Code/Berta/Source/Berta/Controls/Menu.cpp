@@ -611,41 +611,14 @@ namespace Berta
 #endif
 	}
 
-	/*void MenuBox::Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::MenuItemData>>& items)
-	{
-		menuOwner->m_menuBox = this;
-
-		GetReactor().SetItems(items);
-		GetReactor().SetMenuOwner(menuOwner);
-
-		auto boxSize = GetMenuBoxSize();
-		SetSize(boxSize);
-
-		GetReactor().BuildItems();
-	}*/
-
 	void MenuBox::InitFromData(Menu& menuData)
 	{
 		auto& module = GetReactor().GetModule();
-		// Pasamos los datos al reactor para que calcule tamaños
 		module.InitFromData(menuData);
-    
-		// Calcula el tamaño de la ventana en base a los textos e íconos
+		
 		SetSize(module.m_calculatedBoxSize);
 	}
-
-	/*void MenuBox::SetIgnoreFirstMouseUp(bool value)
-	{
-		GetReactor().SetIgnoreFirstMouseUp(value);
-	}*/
-
-	/*void MenuBox::Popup(bool fromMenuBar)
-	{
-		auto& menuManager = Foundation::GetInstance().GetMenuManager();
-		menuManager.ShowPopup(m_handle, GetOwner(), fromMenuBar);
-		Show();
-	}*/
-
+	
 	bool MenuBox::MenuItem::GetEnabled() const
 	{
 		return IsValid() ? m_owner->GetEnabled(m_index) : false;
@@ -717,7 +690,6 @@ namespace Berta
         
 		m_layoutCache.resize(items.size());
         
-		// 1. Escalar medidas del Theme
 		int leftPaneWidth = m_owner->ToScale(appearance->MenuBoxLeftPaneWidth);
 		int itemHeight = m_owner->ToScale(appearance->MenuBoxItemHeight);
 		int padding = m_owner->ToScale(appearance->ItemTextPadding);
@@ -728,7 +700,6 @@ namespace Berta
 		int maxTextWidth = 0;
 		int maxShortcutWidth = 0;
 		
-		// PASADA 1: Encontrar el texto más largo
 		for (const auto& itemData : items)
 		{
 			std::visit([&](const auto& arg)
@@ -742,19 +713,16 @@ namespace Berta
 				else if constexpr (std::is_same_v<T, Menu::MenuAction>)
 				{
 					auto tSize = graphics.GetTextExtent(arg.text);
-					auto sSize = graphics.GetTextExtent(arg.shortcutText); // Medimos el atajo
+					auto sSize = graphics.GetTextExtent(arg.shortcutText);
 					if (tSize.Width > maxTextWidth) maxTextWidth = tSize.Width;
 					if (sSize.Width > maxShortcutWidth) maxShortcutWidth = sSize.Width;
 				}
 			}, itemData);
 		}
 
-		// El ancho total del menú ahora incluye la columna extra
 		int finalWidth = leftPaneWidth + padding + maxTextWidth + padding + shortcutWidth + arrowWidth;
-		//int finalWidth = paddingX + iconWidth + maxTextWidth + paddingX + maxShortcutWidth + paddingX;
 		int currentY = window->ToScale(2);
 
-		// PASADA 2: Asignar coordenadas (Caché)
 		for (size_t i = 0; i < items.size(); ++i)
 		{
 			auto& cache = m_layoutCache[i];
@@ -805,7 +773,6 @@ namespace Berta
 		m_menuData = &menuData;
 		CalculateLayout(menuData);
     
-		// Asignamos el tamaño de la ventana (MenuBox) basándonos en el cálculo
 		m_control->SetSize(m_calculatedBoxSize); //TODO
 	}
 
@@ -815,17 +782,14 @@ namespace Berta
 		m_hoverTimer.SetInterval(400);
 		m_hoverTimer.Connect([this](const ArgTimer& args)
 		{
-			// 1. Detenemos el timer
 			m_hoverTimer.Stop();
 			
-			// 2. Extraemos el índice seguro
 			size_t indexToOpen = m_pendingSubMenuIndex.value();
-			m_pendingSubMenuIndex = std::nullopt; // Ya no está pendiente
+			m_pendingSubMenuIndex = std::nullopt;
 
-			// 3. Obtenemos los datos del submenú
 			if (auto* subMenuData = std::get_if<Menu::MenuSubMenu>(&m_menuData->GetItem(indexToOpen)))
 			{
-				if (subMenuData->isEnabled && subMenuData->subMenu) // Solo si está habilitado y tiene datos
+				if (subMenuData->isEnabled && subMenuData->subMenu)
 				{
 					auto& menuManager = Foundation::GetInstance().GetMenuManager();
 		            
@@ -833,15 +797,9 @@ namespace Berta
 					// (Tu MenuManager podría necesitar saber qué popups son hijos de quién, 
 					// pero cerrar el submenú actual es la idea básica).
 		            
-					// 5. Calculamos la posición geométrica basándonos en la caché
 					const auto& cache = m_layoutCache[indexToOpen];
-		            
-					// Aparece a la derecha del ítem actual. 
-					// TODO: Podrías necesitar convertir 'cache.bounds' a coordenadas de pantalla
-					// dependiendo de cómo maneja las coordenadas tu framework.
+					
 					Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
-
-					// 6. ¡Abrimos el submenú!
 					menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
 		            
 					m_openedSubMenuIndex = indexToOpen;
@@ -926,28 +884,15 @@ namespace Berta
                 // que estén abiertos en este mismo nivel, antes de abrir el nuevo.
                 // menuManager.CloseSiblings(m_module.m_owner); 
 
-                // 5. Calculamos la posición geométrica usando nuestra Caché de Layout
                 const auto& cache = m_layoutCache[indexToOpen];
                 
-                // Aparece a la derecha del menú actual, alineado con la altura del ítem.
-                // (Sumamos el ancho total para que aparezca "afuera").
                 Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
-
-                // Si tu ventana actual necesita convertir esto a coordenadas de pantalla completas:
-                // popupPos = m_module.m_owner->PointToScreen(popupPos);
-
-                // 6. ¡Abrimos el submenú usando nuestra Fábrica (Manager)!
                 menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
                 
-                // 7. Registramos que este es el submenú actualmente abierto
                 m_openedSubMenuIndex = indexToOpen;
 
-                // 8. Navegación por teclado: Si lo abrimos con la flecha Derecha, 
-                // el foco debe pasar automáticamente al primer ítem del nuevo submenú.
                 if (selectFirstItem)
                 {
-                    // Como ShowContextMenu acaba de agregar la ventana a la pila de popups,
-                    // obtenemos la ventana más reciente (la que acabamos de crear).
                     Window* newlyOpenedMenu = menuManager.GetActiveMenu(false);
                     
                     if (newlyOpenedMenu)
@@ -973,26 +918,22 @@ namespace Berta
 		
 		int count = static_cast<int>(items.size());
         
-		// Si no hay nada seleccionado, empezamos desde arriba (o abajo si step es negativo)
 		int currentIndex = m_hoveredIndex.value_or(step > 0 ? -1 : count); 
 
-		// Iteramos para buscar el siguiente ítem válido (saltando separadores)
 		for (int i = 0; i < count; ++i)
 		{
-			// Aritmética modular para que el menú sea cíclico (da la vuelta)
 			currentIndex = (currentIndex + step + count) % count;
 
-			// Verificamos si el ítem es válido para ser seleccionado usando std::visit
 			bool isValid = std::visit([](const auto& item)
 			{
 				using T = std::decay_t<decltype(item)>;
 				if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
 				{
-					return false; // Nunca seleccionamos separadores
+					return false;
 				}
 				else
 				{
-					return item.isEnabled; // Solo seleccionamos si está habilitado
+					return item.isEnabled;
 				}
 			}, items[currentIndex]);
 

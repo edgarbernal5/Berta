@@ -56,7 +56,7 @@ namespace Berta
 		struct MenuAction
 		{
 			std::wstring text;
-			std::wstring shortcutText; //Ej. L"Ctrl+S"
+			std::wstring shortcutText;
 			Image image;
 			ClickCallback onClick;
 			wchar_t accessKey{ 0 };
@@ -109,8 +109,6 @@ namespace Berta
 		
 	private:
 		std::vector<MenuItemData> m_items;
-		Window* m_parentWindow{ nullptr };
-		Menu* m_parentMenu{ nullptr };
 		DestroyCallback m_destroyCallback;
 	};
 	
@@ -135,6 +133,7 @@ namespace Berta
 		MenuItem& SetChecked(bool checked);
 		bool IsChecked() const;
 		MenuItem& Toggle();
+		
 	private:
 		Menu* m_owner{ nullptr };
 		size_t m_index{ 0 };
@@ -192,7 +191,7 @@ namespace Berta
 			std::vector<ItemLayoutCache> m_layoutCache;
 			Size m_calculatedBoxSize;
 			
-			bool m_ignoreFirstMouseUp{ true };
+			bool m_ignoreFirstMouseUp{ false };
 			std::optional<std::size_t> m_hoveredIndex;
 			std::optional<std::size_t> m_pendingSubMenuIndex;
 			std::optional<std::size_t> m_openedSubMenuIndex;
@@ -214,35 +213,10 @@ namespace Berta
 
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-			//void BuildItems();
-			//void SetItems(std::vector<std::unique_ptr<Menu::MenuItemData>>& items);
-			//void SetMenuOwner(Menu* menuOwner);
-			
-			//Size GetMenuBoxSize();
-
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
+			
 		private:
-			struct MenuBoxItem
-			{
-				Point m_position;
-				Size m_size;
-			};
-			enum SubMenuAction : uint8_t
-			{
-				None,
-				Open,
-				Close
-			};
-			
-			
-			//void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
-			//int FindItem(const ArgMouse& args);
-			//bool MouseMoveInternal(const ArgMouse& args);
-
-			//Berta::MenuBox* m_menuBox{ nullptr };
-			//Menu* m_menuOwner{ nullptr };
-			
 			Module m_module;
 		};
 	}

@@ -28,18 +28,22 @@ namespace Berta
 		
 		Window* GetActiveMenu(bool fromKeyboard = false) const;
 		Window* FindMenu(const Point& mousePosition) const;
+		size_t GetPopupCount() const;
 
 		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
 		void ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position);
 		
+		void ClearListeners();
+		void SubscribeOnClose(std::function<void()> listener);
+		
 		void NavigateTopLevel(int step);
-		size_t GetPopupCount() const;
 		
 	private:
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
 		
 		Window* m_owner{ nullptr };
 		std::vector<Window*> m_popups;
+		std::vector<std::function<void()>> m_onCloseListeners;
 		bool m_fromMenuBar{ false };
 	};
 }

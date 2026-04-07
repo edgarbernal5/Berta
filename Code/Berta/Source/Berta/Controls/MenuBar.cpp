@@ -19,6 +19,24 @@ namespace Berta
 		{
 			m_module.m_control = &control;
 			m_module.m_owner = control.Handle();
+			
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
+			menuManager.SubscribeOnClose([this]() 
+			{
+				// Solo nos importa reaccionar si nuestra barra creía tener un menú abierto
+				if (m_module.m_interaction.m_isMenuOpen)
+				{
+					m_module.m_interaction.m_isMenuOpen = false;
+					
+					Point localPos = GUI::GetMousePositionToWindow(m_module.m_owner);
+					if (!m_module.m_owner->ClientSize.ToRectangle().Contains(localPos))
+					{
+						m_module.m_interaction.m_selectedIndex = std::nullopt;
+					}
+
+					GUI::UpdateWindow(m_module.m_owner);
+				}
+			});
 		}
 
 		void Reactor::Update(Graphics& graphics)
@@ -186,11 +204,10 @@ namespace Berta
 			wchar_t accessKey;
 			std::size_t accessKeyPosition;
         
-			// Lógica de atajos (ej. "&Archivo" -> extrae 'A')
 			auto cleanText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
 
 			m_items.push_back(MenuBarItemData{ cleanText, accessKey, accessKeyPosition, true, Menu{} });
-			CalculateLayout(); // Recalculamos al agregar un nuevo ítem
+			CalculateLayout();
 
 			return m_items.back().menu;
 		}
@@ -210,7 +227,7 @@ namespace Berta
 
 			int paddingX = (int)m_owner->ToScale(appearance->ItemPaddingInner);
 			int barHeight = (int)m_owner->ClientSize.Height;
-			int currentX = m_owner->ToScale(2); // Margen inicial izquierdo
+			int currentX = m_owner->ToScale(2);
 
 			for (size_t i = 0; i < m_items.size(); ++i)
 			{
@@ -251,26 +268,6 @@ namespace Berta
 			menuManager.ShowMenuBarPopup(itemData.menu, m_owner, popupPos);
 
 			Window* activePopup = menuManager.GetActiveMenu(false);
-			if (activePopup)
-			{
-				activePopup->Events->Destroy.Connect([this](const ArgDestroy& args)
-				{
-					auto& manager = Foundation::GetInstance().GetMenuManager();
-					if (manager.GetPopupCount() == 0)
-					{
-						m_interaction.m_isMenuOpen = false;
-			    
-						Point localPos = Berta::GUI::GetMousePositionToWindow(m_owner);
-			    
-						if (!m_owner->ClientSize.ToRectangle().Contains(localPos))
-						{
-							m_interaction.m_selectedIndex = std::nullopt;
-						}
-			    
-						GUI::MarkAsNeedUpdate(m_owner);
-					}
-				});
-			}
 			
 			if (focusFirstItem)
 			{

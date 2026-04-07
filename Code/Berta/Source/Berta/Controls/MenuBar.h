@@ -18,11 +18,7 @@
 namespace Berta
 {
 	class MenuBar;
-
-	//TODO:
-	/*
-	Ok. Habría que implementar otros mensajes wm_syschar o wm_syschardown o wm_char (realmente no recuerdo bien los nombres pero revisar en mí implementación en Foundation de win32
-	*/
+	
 	namespace ReactorCore::MenuBar
 	{
 		struct Appearance : public ControlAppearance
@@ -50,8 +46,7 @@ namespace Berta
 				wchar_t accessKey{ 0 };
 				std::size_t accessKeyPosition{ 0 };
 				bool isEnabled{ true };
-            
-				// Cada categoría de la barra (Archivo, Edición) es dueña de su propio Menu
+				
 				Menu menu; 
 			};
 			
@@ -63,7 +58,7 @@ namespace Berta
 			
 			struct InteractionData
 			{
-				std::optional<std::size_t> m_selectedIndex; // C++17: Reemplaza al clásico -1
+				std::optional<std::size_t> m_selectedIndex;
 				bool m_isMenuOpen{ false };
 			};
 			
