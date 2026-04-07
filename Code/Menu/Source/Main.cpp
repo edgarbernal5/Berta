@@ -59,10 +59,6 @@ int main()
 			std::cout << "Context menu click > Paste" << std::endl;
 		});
 	popupMenu.AppendSeparator();
-	popupMenu.Append(L"Select", [](Berta::MenuItem item)
-		{
-			std::cout << "Context menu click > Select" << std::endl;
-		});
 	auto selectSubMenu = std::make_unique<Berta::Menu>();
 	selectSubMenu->Append("All", [](Berta::MenuItem item)
 		{
