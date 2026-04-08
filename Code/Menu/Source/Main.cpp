@@ -72,6 +72,9 @@ int main()
 
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
+			if (!args.ButtonState.RightButton)
+				return;
+			
 			popupMenu.ShowPopup(form.Handle(), args);
 		});
 

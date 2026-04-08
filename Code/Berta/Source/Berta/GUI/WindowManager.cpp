@@ -235,7 +235,7 @@ namespace Berta
 		window->Flags.IsDisposed = true;
 
 		ArgDestroy argDestroy;
-		foundation.ProcessEvents(window, static_cast<void(Renderer::*)(const ArgDestroy&)>(nullptr), &ControlEvents::Destroy, argDestroy);
+		foundation.ProcessEvents<ArgDestroy>(window, nullptr, &ControlEvents::Destroy, argDestroy);
 
 		while (!window->Children.empty())
 		{

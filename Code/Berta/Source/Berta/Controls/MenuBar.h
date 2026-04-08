@@ -75,6 +75,7 @@ namespace Berta
             
 				std::vector<MenuBarItemData> m_items;
 				std::vector<ItemLayoutCache> m_layoutCache;
+				std::optional<Point> m_lastMousePos{ std::nullopt };
 				InteractionData m_interaction;
 			};
 			

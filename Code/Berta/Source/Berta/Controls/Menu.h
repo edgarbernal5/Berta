@@ -27,11 +27,6 @@ namespace Berta
 	struct Menu;
 	struct MenuItem;
 	
-	namespace ReactorCore::MenuBar
-	{
-		class Reactor;
-	}
-	
 	namespace ReactorCore::MenuBox
 	{
 		class Reactor;
@@ -177,8 +172,8 @@ namespace Berta
 			void InitFromData(Menu& menuData);
 			void InitTimer();
 			void ExecuteHoveredItem();
-			void OpenHoveredSubMenu(bool selectFirstItem);
-			
+			void OpenHoveredSubMenu(bool focusFirstItem);
+			bool IsHoveredItemSubMenu() const;
 			void MoveSelection(int step);
 			
 			void DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color);
@@ -193,6 +188,7 @@ namespace Berta
 			std::vector<ItemLayoutCache> m_layoutCache;
 			Size m_calculatedBoxSize;
 			
+			std::optional<Point> m_lastMousePos { std::nullopt };
 			bool m_ignoreFirstMouseUp{ false };
 			std::optional<std::size_t> m_hoveredIndex;
 			std::optional<std::size_t> m_pendingSubMenuIndex;

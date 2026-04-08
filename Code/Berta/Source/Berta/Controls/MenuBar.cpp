@@ -23,7 +23,6 @@ namespace Berta
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
 			menuManager.SubscribeOnClose([this]() 
 			{
-				// Solo nos importa reaccionar si nuestra barra creía tener un menú abierto
 				if (m_module.m_interaction.m_isMenuOpen)
 				{
 					m_module.m_interaction.m_isMenuOpen = false;
@@ -104,6 +103,20 @@ namespace Berta
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
+			if (!m_module.m_lastMousePos.has_value())
+			{
+				m_module.m_lastMousePos = args.Position;
+				return; 
+			}
+
+			if (m_module.m_lastMousePos.value().X == args.Position.X && 
+				m_module.m_lastMousePos.value().Y == args.Position.Y)
+			{
+				return; 
+			}
+
+			m_module.m_lastMousePos = args.Position;
+			
 			std::optional<std::size_t> hitIndex = std::nullopt;
 
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
@@ -265,10 +278,12 @@ namespace Berta
 			Point popupPos = { cache.bounds.X, cache.bounds.Y + (int)cache.bounds.Height };
 			menuManager.ShowMenuBarPopup(itemData.menu, m_owner, popupPos);
 
-			Window* activePopup = menuManager.GetActiveMenu(false);
-			
+			Window* activePopup = menuManager.GetTopPopup();
 			if (focusFirstItem)
 			{
+				ArgKeyboard downArgs;
+				downArgs.Key = KeyboardKey::ArrowDown;
+				Foundation::GetInstance().ProcessEvents<ArgKeyboard>(activePopup, &Renderer::KeyPressed, nullptr, downArgs);
 			}
 		}
 
@@ -282,18 +297,15 @@ namespace Berta
 			int count = static_cast<int>(m_items.size());
 			int currentIndex = m_interaction.m_selectedIndex.value_or(step > 0 ? -1 : count); 
 
-			// Movimiento cíclico (Da la vuelta)
 			currentIndex = (currentIndex + step + count) % count;
         
 			m_interaction.m_selectedIndex = currentIndex;
 
 			GUI::MarkAsNeedUpdate(m_owner);
 			
-			// Si el usuario estaba navegando con teclado mientras un menú estaba abierto,
-			// al cambiar de columna debemos abrir el menú contiguo inmediatamente.
 			if (m_interaction.m_isMenuOpen)
 			{
-				OpenMenu(true); // true = Pasar foco automático al nuevo menú
+				OpenMenu(true);
 			}
 		}
 	}

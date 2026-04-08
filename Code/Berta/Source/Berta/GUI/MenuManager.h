@@ -26,10 +26,10 @@ namespace Berta
 		void CloseAll();
 		void CloseChildrenOf(Window* parent);
 		
-		Window* GetActiveMenu(bool fromKeyboard = false) const;
+		Window* GetRootPopup() const { return m_popups.empty() ? nullptr : m_popups.front(); }
+		Window* GetTopPopup() const;
 		Window* FindMenu(const Point& mousePosition) const;
 		Window* GetOwner() const { return m_owner; }
-		size_t GetPopupCount() const;
 
 		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
 		void ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position);

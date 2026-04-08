@@ -347,6 +347,20 @@ namespace Berta
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
+			if (!m_module.m_lastMousePos.has_value())
+			{
+				m_module.m_lastMousePos = args.Position;
+				return;
+			}
+			
+			if (m_module.m_lastMousePos.value().X == args.Position.X && 
+				m_module.m_lastMousePos.value().Y == args.Position.Y)
+			{
+				return;
+			}
+			
+			m_module.m_lastMousePos = args.Position;
+			
 			std::optional<std::size_t> newHoveredIndex = std::nullopt;
 			
 			for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
@@ -408,6 +422,8 @@ namespace Berta
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
+			bool isRootMenu = (m_module.m_owner == menuManager.GetRootPopup());
+			
 			switch (args.Key)
 			{
 			case KeyboardKey::ArrowDown:
@@ -417,26 +433,48 @@ namespace Berta
 				m_module.MoveSelection(-1); 
 				break;
 			case KeyboardKey::ArrowRight:
-				if (m_module.m_hoveredIndex.has_value()) {
+				if (m_module.IsHoveredItemSubMenu())
+				{
 					m_module.OpenHoveredSubMenu(true);
-				} else {
+				}
+				else
+				{
 					menuManager.NavigateTopLevel(1);
 				}
 				break;
 			case KeyboardKey::ArrowLeft:
-				if (menuManager.GetPopupCount() > 1) {
-					menuManager.Close(m_module.m_owner);
-				} else {
+				if (isRootMenu)
+				{
 					menuManager.NavigateTopLevel(-1);
+				}
+				else
+				{
+					menuManager.Close(m_module.m_owner);
 				}
 				break;
 			case KeyboardKey::Enter:
-				m_module.ExecuteHoveredItem();
+				if (m_module.IsHoveredItemSubMenu())
+				{
+					m_module.OpenHoveredSubMenu(true); 
+				}
+				else
+				{
+					m_module.ExecuteHoveredItem();
+				}
 				break;
 			case KeyboardKey::Escape:
-				menuManager.CloseAll();
+				if (isRootMenu)
+				{
+					menuManager.CloseAll();
+				}
+				else
+				{
+					menuManager.Close(m_module.m_owner);
+				}
 				break;
 			}
+			
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 	}
 	
@@ -704,58 +742,66 @@ namespace Berta
 			}
 			else if constexpr (std::is_same_v<T,  Menu::MenuSubMenu>)
 			{
-				OpenHoveredSubMenu(true); 
+				OpenHoveredSubMenu(false); 
 			}
 		}, m_menuData->GetItem(index));
 	}
 
-	void ReactorCore::MenuBox::Module::OpenHoveredSubMenu(bool selectFirstItem)
+	void ReactorCore::MenuBox::Module::OpenHoveredSubMenu(bool focusFirstItem)
 	{
-        if (!m_hoveredIndex.has_value() || !m_menuData)
-        {
-	        return;
-        }
-		
-        size_t indexToOpen = m_hoveredIndex.value();
-        
-        m_pendingSubMenuIndex = std::nullopt;
-        m_hoverTimer.Stop();
+		if (!m_hoveredIndex.has_value() || !m_menuData) return;
 
-        const auto& itemData = m_menuData->GetItems()[indexToOpen];
+		size_t index = m_hoveredIndex.value();
+		auto& menuManager = Foundation::GetInstance().GetMenuManager();
 
-        if (auto* subMenuData = std::get_if<Menu::MenuSubMenu>(&itemData))
-        {
-            if (subMenuData->isEnabled && subMenuData->subMenu)
-            {
-                auto& menuManager = Foundation::GetInstance().GetMenuManager();
-                
-                // --- Opcional (Depende de tu implementación en MenuManager) ---
-                // Aquí podrías decirle a MenuManager que cierre otros submenús hermanos
-                // que estén abiertos en este mismo nivel, antes de abrir el nuevo.
-                // menuManager.CloseSiblings(m_module.m_owner); 
+		if (m_openedSubMenuIndex == index)
+		{
+			if (menuManager.GetTopPopup() == m_owner)
+			{
+				m_openedSubMenuIndex = std::nullopt; 
+			}
+			else
+			{
+				return; 
+			}
+		}
 
-                const auto& cache = m_layoutCache[indexToOpen];
-                
-                Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
-                menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
-                
-                m_openedSubMenuIndex = indexToOpen;
+		const auto& itemData = m_menuData->GetItems()[index];
+		if (auto subMenu = std::get_if<Menu::MenuSubMenu>(&itemData))
+		{
+			const auto& cache = m_layoutCache[index];
+			Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
 
-                if (selectFirstItem)
-                {
-                    Window* newlyOpenedMenu = menuManager.GetActiveMenu(false);
-                    
-                    if (newlyOpenedMenu)
-                    {
-                        // Simulamos presionar "Abajo" en el nuevo menú para seleccionar su primer ítem
-                        //ArgKeyboard args;
-                        //args.Key = VK_DOWN;
-                        //Foundation::GetInstance().ProcessEvents(
-                        //    newlyOpenedMenu, nullptr, &ControlEvents::KeyPressed, args);
-                    }
-                }
-            }
-        }
+			menuManager.ShowContextMenu(*(subMenu->subMenu), m_owner, popupPos);
+
+			m_openedSubMenuIndex = index;
+
+			Window* activePopup = menuManager.GetTopPopup();
+			if (activePopup && focusFirstItem)
+			{
+				ArgKeyboard downArgs;
+				downArgs.Key = KeyboardKey::ArrowDown;
+				Foundation::GetInstance().ProcessEvents<ArgKeyboard>(activePopup, &Renderer::KeyPressed, nullptr, downArgs);
+			}
+		}
+	}
+
+	bool ReactorCore::MenuBox::Module::IsHoveredItemSubMenu() const
+	{
+		if (!m_hoveredIndex.has_value() || !m_menuData)
+		{
+			return false;
+		}
+
+		size_t index = m_hoveredIndex.value();
+
+		const auto& items = m_menuData->GetItems();
+		if (index >= items.size())
+		{
+			return false;
+		}
+
+		return std::holds_alternative<Menu::MenuSubMenu>(items[index]);
 	}
 
 	void ReactorCore::MenuBox::Module::MoveSelection(int step)
@@ -768,7 +814,7 @@ namespace Berta
 		
 		int count = static_cast<int>(items.size());
         
-		int currentIndex = m_hoveredIndex.value_or(step > 0 ? -1 : count); 
+		int currentIndex = static_cast<int>(m_hoveredIndex.value_or(step > 0 ? -1 : count)); 
 
 		for (int i = 0; i < count; ++i)
 		{
@@ -790,9 +836,6 @@ namespace Berta
 			if (isValid)
 			{
 				m_hoveredIndex = currentIndex;
-                
-				// Opcional: si el ítem está fuera de la pantalla (en caso de scroll),
-				// aquí podrías ajustar el offset de la ventana.
 				return;
 			}
 		}

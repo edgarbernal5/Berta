@@ -10,6 +10,9 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/Controls/Menu.h"
 
+#include "Berta/GUI/EnumTypes.h"
+#include "Berta/Core/Foundation.h"
+
 #include <stack>
 
 namespace Berta
@@ -101,16 +104,11 @@ namespace Berta
         }
     }
 
-    Window* MenuManager::GetActiveMenu(bool fromKeyboard) const
+    Window* MenuManager::GetTopPopup() const
     {
         if (m_popups.empty())
         {
             return nullptr;
-        }
-
-        if (fromKeyboard && m_fromMenuBar)
-        {
-            return m_popups.front();
         }
 
         return m_popups.back();
@@ -129,11 +127,6 @@ namespace Berta
             }
         }
         return nullptr;
-    }
-
-    size_t MenuManager::GetPopupCount() const
-    {
-        return m_popups.size();
     }
 
     void MenuManager::ShowContextMenu(Menu& menuData, Window* owner, const Point& position)
@@ -185,13 +178,9 @@ namespace Berta
         {
             return;
         }
-        
-        CloseAll();
 
-        //ArgKeyboard args;
-        //args.Key = (step > 0) ? VK_RIGHT : VK_LEFT;
-    
-        // Le decimos a la MenuBar que se mueva y vuelva a abrir el nuevo submenú
-        //Foundation::GetInstance().ProcessEvents(m_owner, nullptr, &ControlEvents::KeyPressed, args);
+        ArgKeyboard args;
+        args.Key = (step > 0) ? KeyboardKey::ArrowRight : KeyboardKey::ArrowLeft;
+        Foundation::GetInstance().ProcessEvents<ArgKeyboard>(m_owner, &Renderer::KeyPressed, nullptr, args);
     }
 }
