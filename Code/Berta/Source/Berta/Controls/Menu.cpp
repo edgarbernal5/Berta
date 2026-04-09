@@ -22,7 +22,7 @@ namespace Berta
 	
 	MenuItem Menu::Append(const std::string& text, ClickCallback onClick)
 	{
-		std::wstring wstr = StringUtils::UTF8ToWide(text);
+		const auto wstr = StringUtils::UTF8ToWide(text);
 		m_items.emplace_back(MenuAction{ wstr, L"", Image{}, std::move(onClick) });
 		return {this, m_items.size() - 1};
 	}
@@ -147,19 +147,6 @@ namespace Berta
 		}, m_items[index]);
 	}
 
-	void Menu::SetChecked(size_t index, bool checked)
-	{
-		if (index >= m_items.size())
-		{
-			return;
-		}
-		
-		if (auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
-		{
-			checkbox->isChecked = checked;
-		}
-	}
-
 	bool Menu::IsChecked(size_t index) const
 	{
 		if (index >= m_items.size())
@@ -174,15 +161,92 @@ namespace Berta
 		return false;
 	}
 
+	void Menu::SetChecked(size_t index, bool checked)
+	{
+		if (index >= m_items.size())
+		{
+			return;
+		}
+		
+		if (auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
+		{
+			checkbox->isChecked = checked;
+		}
+	}
+
 	void Menu::ToggleCheckbox(size_t index)
 	{
-		if (index >= m_items.size()) return;
-
-		// Solo cambiamos el estado si realmente es un MenuCheckbox
+		if (index >= m_items.size())
+		{
+			return;
+		}
+		
 		if (auto* checkbox = std::get_if<MenuCheckbox>(&m_items[index]))
 		{
 			checkbox->isChecked = !checkbox->isChecked;
 		}
+	}
+	
+	bool MenuBox::MenuItem::GetEnabled() const
+	{
+		return IsValid() ? m_owner->GetEnabled(m_index) : false;
+	}
+
+	MenuItem& MenuBox::MenuItem::SetEnabled(bool enabled)
+	{
+		if (IsValid())
+		{
+			m_owner->SetEnabled(m_index, enabled);
+		}
+		return *this;
+	}
+
+	std::wstring MenuItem::GetText() const
+	{
+		return IsValid() ? m_owner->GetText(m_index) : L"";
+	}
+	
+	MenuItem& MenuBox::MenuItem::SetText(const std::wstring& text)
+	{
+		if (IsValid())
+		{
+			m_owner->SetText(m_index, text);
+		}
+		
+		return *this;
+	}
+
+	MenuItem& MenuItem::SetImage(const Image& image)
+	{
+		if (IsValid())
+		{
+			m_owner->SetImage(m_index, image);
+		}
+		return *this;
+	}
+
+	MenuItem& MenuItem::SetChecked(bool checked)
+	{
+		if (IsValid())
+		{
+			m_owner->SetChecked(m_index, checked);
+		}
+		
+		return *this;
+	}
+
+	bool MenuItem::IsChecked() const
+	{
+		return IsValid() ? m_owner->IsChecked(m_index) : false;
+	}
+
+	MenuItem& MenuItem::Toggle()
+	{
+		if (IsValid())
+		{
+			m_owner->ToggleCheckbox(m_index);
+		}
+		return *this;
 	}
 	
 	namespace ReactorCore::MenuBox
@@ -216,7 +280,6 @@ namespace Berta
 				const auto& cache = m_module.m_layoutCache[i];
 				bool isHovered = (m_module.m_hoveredIndex.has_value() && m_module.m_hoveredIndex.value() == i);
 				
-				// C++17 std::visit: Resolvemos el tipo de ítem en tiempo de compilación
 				std::visit([&](const auto& itemData)
 				{
 					using T = std::decay_t<decltype(itemData)>;
@@ -236,7 +299,7 @@ namespace Berta
 							Rectangle highlightRect = { 
 							window->ToScale(2), 
 							cache.bounds.Y, 
-							cache.bounds.Width - window->ToScale(4u), 
+							cache.bounds.Width - window->ToScale(2u) * 2u, 
 							cache.bounds.Height 
 						};
 							graphics.FillRectangle(highlightRect, appearance->HighlightColor);
@@ -325,12 +388,12 @@ namespace Berta
 				return;
 			}
 			
-			auto& manager = Foundation::GetInstance().GetMenuManager();
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
 			Point screenPos = GUI::GetWindowPosition(m_module.m_owner);
 
-			if (!manager.FindMenu(screenPos))
+			if (!menuManager.FindMenu(screenPos))
 			{
-				Window* owner = manager.GetOwner();
+				Window* owner = menuManager.GetOwner();
 				bool clickedOwner = false;
 				if (owner)
 				{
@@ -340,7 +403,7 @@ namespace Berta
 
 				if (!clickedOwner)
 				{
-					manager.CloseAll();
+					menuManager.CloseAll();
 				}
 			}
 		}
@@ -476,8 +539,307 @@ namespace Berta
 			
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
+		
+		void Module::CalculateLayout(const Menu& menuData)
+		{
+			auto& window = m_owner;
+			auto& graphics = window->Renderer.GetGraphics();
+			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
+			const auto& items = menuData.GetItems();
+        
+			m_layoutCache.resize(items.size());
+        
+			int leftPaneWidth = m_owner->ToScale(appearance->MenuBoxLeftPaneWidth);
+			int itemHeight = m_owner->ToScale(appearance->MenuBoxItemHeight);
+			int padding = m_owner->ToScale(appearance->ItemTextPadding);
+			int arrowWidth = m_owner->ToScale(appearance->MenuBoxSubMenuArrowWidth);
+			int shortcutWidth = m_owner->ToScale(appearance->MenuBoxShortcutWidth);
+			auto separatorHeight = m_owner->ToScale(appearance->SeparatorHeight);
+		
+			uint32_t maxTextWidth = 0;
+			uint32_t maxShortcutWidth = 0;
+		
+			for (const auto& itemData : items)
+			{
+				std::visit([&](const auto& arg)
+				{
+					using T = std::decay_t<decltype(arg)>;
+					if constexpr (!std::is_same_v<T, Menu::MenuSeparator>)
+					{
+						auto textSize = graphics.GetTextExtent(arg.text);
+						if (textSize.Width > maxTextWidth) maxTextWidth = textSize.Width;
+					}
+					else if constexpr (std::is_same_v<T, Menu::MenuAction>)
+					{
+						auto tSize = graphics.GetTextExtent(arg.text);
+						auto sSize = graphics.GetTextExtent(arg.shortcutText);
+						if (tSize.Width > maxTextWidth) maxTextWidth = tSize.Width;
+						if (sSize.Width > maxShortcutWidth) maxShortcutWidth = sSize.Width;
+					}
+				}, itemData);
+			}
+
+			uint32_t finalWidth = leftPaneWidth + padding + maxTextWidth + padding + shortcutWidth + arrowWidth;
+			int currentY = window->ToScale(2);
+
+			for (size_t i = 0; i < items.size(); ++i)
+			{
+				auto& cache = m_layoutCache[i];
+				std::visit([&](const auto& arg)
+				{
+					using T = std::decay_t<decltype(arg)>;
+					if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
+					{
+						cache.bounds = { 0, currentY, finalWidth, separatorHeight };
+						currentY += (int)cache.bounds.Height;
+					}
+					else
+					{
+						cache.bounds = { 0, currentY, finalWidth, (uint32_t)itemHeight };
+					
+						auto textSize = graphics.GetTextExtent(arg.text);
+						if (textSize.Width > maxTextWidth)
+						{
+							maxTextWidth = textSize.Width;
+						}
+					
+						int textY = currentY + (itemHeight - textSize.Height) / 2;
+						cache.textPosition = { leftPaneWidth + padding, textY };
+					
+						if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
+						{
+							int arrowY = currentY + (itemHeight - arrowWidth) / 2;
+							cache.arrowPosition = { (int)finalWidth - arrowWidth, arrowY };
+						}
+						else if constexpr (std::is_same_v<T, Menu::MenuAction>)
+						{
+							if (!arg.shortcutText.empty())
+							{
+								auto sSize = graphics.GetTextExtent(arg.shortcutText);
+								cache.shortcutPosition = { (int)finalWidth - shortcutWidth - padding, textY };
+							}
+						}
+					
+						currentY += itemHeight;
+					}
+				}, items[i]);
+			}
+		
+			m_calculatedBoxSize = { finalWidth, (uint32_t)(currentY + m_owner->ToScale(2u)) };
+		}
+
+		void Module::InitFromData(Menu& menuData)
+		{
+			m_menuData = &menuData;
+			CalculateLayout(menuData);
+    
+			m_control->SetSize(m_calculatedBoxSize);
+		}
+
+		void Module::InitTimer()
+		{
+			m_hoverTimer.SetOwner(m_owner);
+			m_hoverTimer.SetInterval(SubMenuDelayMs);
+			m_hoverTimer.Connect([this](const ArgTimer& args)
+			{
+				m_hoverTimer.Stop();
+			
+				size_t indexToOpen = m_pendingSubMenuIndex.value();
+				m_pendingSubMenuIndex = std::nullopt;
+
+				if (auto* subMenuData = std::get_if<Menu::MenuSubMenu>(&m_menuData->GetItem(indexToOpen)))
+				{
+					if (subMenuData->isEnabled && subMenuData->subMenu)
+					{
+						auto& menuManager = Foundation::GetInstance().GetMenuManager();
+						const auto& cache = m_layoutCache[indexToOpen];
+					
+						Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
+						menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
+		            
+						m_openedSubMenuIndex = indexToOpen;
+					}
+				}
+			});
+		}
+
+		void Module::ExecuteHoveredItem()
+		{
+			if (!m_hoveredIndex.has_value() || !m_menuData)
+			{
+				return;
+			}
+
+			size_t index = m_hoveredIndex.value();
+    
+			std::visit([&](auto& arg)
+			{
+				using T = std::decay_t<decltype(arg)>;
+
+				if constexpr (std::is_same_v<T, Menu::MenuAction>)
+				{
+					if (arg.isEnabled)
+					{
+						auto callback = arg.onClick;
+						Menu* safeMenuData = m_menuData;
+						Foundation::GetInstance().GetMenuManager().CloseAll();
+
+						if (callback)
+						{
+							callback(MenuItem(safeMenuData, index));
+						}
+					}
+				}
+				else if constexpr (std::is_same_v<T,  Menu::MenuCheckbox>)
+				{
+					if (arg.isEnabled)
+					{
+						m_menuData->ToggleCheckbox(index);
+						bool newState = arg.isChecked;
+						auto callback = arg.onToggle;
+						Menu* safeMenuData = m_menuData;
+
+						Foundation::GetInstance().GetMenuManager().CloseAll();
+
+						if (callback)
+						{
+							callback(MenuItem(safeMenuData, index), newState);
+						}
+					}
+				}
+				else if constexpr (std::is_same_v<T,  Menu::MenuSubMenu>)
+				{
+					OpenHoveredSubMenu(false); 
+				}
+			}, m_menuData->GetItem(index));
+		}
+
+		void Module::OpenHoveredSubMenu(bool focusFirstItem)
+		{
+			if (!m_hoveredIndex.has_value() || !m_menuData) return;
+
+			size_t index = m_hoveredIndex.value();
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
+
+			if (m_openedSubMenuIndex == index)
+			{
+				if (menuManager.GetTopPopup() == m_owner)
+				{
+					m_openedSubMenuIndex = std::nullopt; 
+				}
+				else
+				{
+					return; 
+				}
+			}
+
+			const auto& itemData = m_menuData->GetItems()[index];
+			if (auto subMenu = std::get_if<Menu::MenuSubMenu>(&itemData))
+			{
+				const auto& cache = m_layoutCache[index];
+				Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
+
+				menuManager.ShowContextMenu(*(subMenu->subMenu), m_owner, popupPos);
+
+				m_openedSubMenuIndex = index;
+
+				Window* activePopup = menuManager.GetTopPopup();
+				if (activePopup && focusFirstItem)
+				{
+					ArgKeyboard downArgs;
+					downArgs.Key = KeyboardKey::ArrowDown;
+					Foundation::GetInstance().ProcessEvents<ArgKeyboard>(activePopup, &Renderer::KeyPressed, nullptr, downArgs);
+				}
+			}
+		}
+
+		bool Module::IsHoveredItemSubMenu() const
+		{
+			if (!m_hoveredIndex.has_value() || !m_menuData)
+			{
+				return false;
+			}
+
+			size_t index = m_hoveredIndex.value();
+
+			const auto& items = m_menuData->GetItems();
+			if (index >= items.size())
+			{
+				return false;
+			}
+
+			return std::holds_alternative<Menu::MenuSubMenu>(items[index]);
+		}
+
+		void Module::MoveSelection(int step)
+		{
+			const auto& items = m_menuData->GetItems();
+			if (items.empty())
+			{
+				return;
+			}
+		
+			int count = static_cast<int>(items.size());
+        
+			int currentIndex = static_cast<int>(m_hoveredIndex.value_or(step > 0 ? -1 : count)); 
+
+			for (int i = 0; i < count; ++i)
+			{
+				currentIndex = (currentIndex + step + count) % count;
+
+				bool isValid = std::visit([](const auto& item)
+				{
+					using T = std::decay_t<decltype(item)>;
+					if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
+					{
+						return false;
+					}
+					else
+					{
+						return item.isEnabled;
+					}
+				}, items[currentIndex]);
+
+				if (isValid)
+				{
+					m_hoveredIndex = currentIndex;
+					return;
+				}
+			}
+		}
+
+		void Module::DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color)
+		{
+			// Definimos los tres puntos de la "palomita" basados en el tamaño de su caja (size x size)
+			// P1: Empieza en el 20% de X y 50% de Y (lado izquierdo, a la mitad)
+			Point p1 = { 
+				position.X + static_cast<int>(size * 0.2f), 
+				position.Y + static_cast<int>(size * 0.5f) 
+			};
+        
+			// P2: Baja hasta el 45% de X y 75% de Y (el vértice inferior)
+			Point p2 = { 
+				position.X + static_cast<int>(size * 0.45f), 
+				position.Y + static_cast<int>(size * 0.75f) 
+			};
+        
+			// P3: Sube hasta el 80% de X y 25% de Y (la punta derecha alta)
+			Point p3 = { 
+				position.X + static_cast<int>(size * 0.8f), 
+				position.Y + static_cast<int>(size * 0.25f) 
+			};
+
+			// Dibujamos las dos líneas que forman el checkmark
+			graphics.DrawLine(p1, p2, color);
+			graphics.DrawLine(p2, p3, color);
+
+			// Opcional: Si tu API Graphics no soporta grosor (thickness) en DrawLine, 
+			// puedes hacer la línea "más gorda" desplazando todo 1 píxel hacia abajo o a la derecha:
+			graphics.DrawLine({ p1.X, p1.Y + 1 }, { p2.X, p2.Y + 1 }, color);
+			graphics.DrawLine({ p2.X, p2.Y + 1 }, { p3.X, p3.Y + 1 }, color);
+		}
 	}
-	
+
 	MenuBox::MenuBox(Window* parent, const Point& position)
 	{
 		Create(parent, false, { position.X, position.Y, 1, 1 }, FormStyle::Float(false), false);
@@ -504,371 +866,5 @@ namespace Berta
 		module.InitFromData(menuData);
 		
 		SetSize(module.m_calculatedBoxSize);
-	}
-	
-	bool MenuBox::MenuItem::GetEnabled() const
-	{
-		return IsValid() ? m_owner->GetEnabled(m_index) : false;
-	}
-
-	MenuItem& MenuBox::MenuItem::SetEnabled(bool enabled)
-	{
-		if (IsValid())
-		{
-			m_owner->SetEnabled(m_index, enabled);
-		}
-		return *this;
-	}
-
-	std::wstring MenuItem::GetText() const
-	{
-		return IsValid() ? m_owner->GetText(m_index) : L"";
-	}
-
-	MenuItem& MenuBox::MenuItem::SetText(const std::wstring& text)
-	{
-		if (IsValid())
-		{
-			m_owner->SetText(m_index, text);
-		}
-		
-		return *this;
-	}
-
-	MenuItem& MenuItem::SetImage(const Image& image)
-	{
-		if (IsValid())
-		{
-			m_owner->SetImage(m_index, image);
-		}
-		return *this;
-	}
-
-	MenuItem& MenuItem::SetChecked(bool checked)
-	{
-		if (IsValid())
-		{
-			m_owner->SetChecked(m_index, checked);
-		}
-		
-		return *this;
-	}
-
-	bool MenuItem::IsChecked() const
-	{
-		return IsValid() ? m_owner->IsChecked(m_index) : false;
-	}
-
-	MenuItem& MenuItem::Toggle()
-	{
-		if (IsValid())
-		{
-			m_owner->ToggleCheckbox(m_index);
-		}
-		return *this;
-	}
-
-	void ReactorCore::MenuBox::Module::CalculateLayout(const Menu& menuData)
-	{
-		auto& window = m_owner;
-		auto& graphics = window->Renderer.GetGraphics();
-		auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
-		const auto& items = menuData.GetItems();
-        
-		m_layoutCache.resize(items.size());
-        
-		int leftPaneWidth = m_owner->ToScale(appearance->MenuBoxLeftPaneWidth);
-		int itemHeight = m_owner->ToScale(appearance->MenuBoxItemHeight);
-		int padding = m_owner->ToScale(appearance->ItemTextPadding);
-		int arrowWidth = m_owner->ToScale(appearance->MenuBoxSubMenuArrowWidth);
-		int shortcutWidth = m_owner->ToScale(appearance->MenuBoxShortcutWidth);
-		int separatorHeight = m_owner->ToScale(appearance->SeparatorHeight);
-		
-		int maxTextWidth = 0;
-		int maxShortcutWidth = 0;
-		
-		for (const auto& itemData : items)
-		{
-			std::visit([&](const auto& arg)
-			{
-				using T = std::decay_t<decltype(arg)>;
-				if constexpr (!std::is_same_v<T, Menu::MenuSeparator>)
-				{
-					auto textSize = graphics.GetTextExtent(arg.text);
-					if (textSize.Width > maxTextWidth) maxTextWidth = textSize.Width;
-				}
-				else if constexpr (std::is_same_v<T, Menu::MenuAction>)
-				{
-					auto tSize = graphics.GetTextExtent(arg.text);
-					auto sSize = graphics.GetTextExtent(arg.shortcutText);
-					if (tSize.Width > maxTextWidth) maxTextWidth = tSize.Width;
-					if (sSize.Width > maxShortcutWidth) maxShortcutWidth = sSize.Width;
-				}
-			}, itemData);
-		}
-
-		int finalWidth = leftPaneWidth + padding + maxTextWidth + padding + shortcutWidth + arrowWidth;
-		int currentY = window->ToScale(2);
-
-		for (size_t i = 0; i < items.size(); ++i)
-		{
-			auto& cache = m_layoutCache[i];
-			std::visit([&](const auto& arg)
-			{
-				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
-				{
-					cache.bounds = { 0, currentY, (uint32_t)finalWidth, window->ToScale(3u) };
-					currentY += (int)cache.bounds.Height;
-				}
-				else
-				{
-					cache.bounds = { 0, currentY, (uint32_t)finalWidth, (uint32_t)itemHeight };
-					
-					auto textSize = graphics.GetTextExtent(arg.text);
-					if (textSize.Width > maxTextWidth)
-					{
-						maxTextWidth = textSize.Width;
-					}
-					
-					int textY = currentY + (itemHeight - textSize.Height) / 2;
-					cache.textPosition = { leftPaneWidth + padding, textY };
-					
-					if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
-					{
-						int arrowY = currentY + (itemHeight - arrowWidth) / 2;
-						cache.arrowPosition = { finalWidth - arrowWidth, arrowY };
-					}
-					else if constexpr (std::is_same_v<T, Menu::MenuAction>)
-					{
-						if (!arg.shortcutText.empty())
-						{
-							auto sSize = graphics.GetTextExtent(arg.shortcutText);
-							cache.shortcutPosition = { finalWidth - shortcutWidth - padding, textY };
-						}
-					}
-					
-					currentY += itemHeight;
-				}
-			}, items[i]);
-		}
-		
-		m_calculatedBoxSize = { (uint32_t)finalWidth, (uint32_t)(currentY + m_owner->ToScale(2u)) };
-	}
-
-	void ReactorCore::MenuBox::Module::InitFromData(Menu& menuData)
-	{
-		m_menuData = &menuData;
-		CalculateLayout(menuData);
-    
-		m_control->SetSize(m_calculatedBoxSize); //TODO
-	}
-
-	void ReactorCore::MenuBox::Module::InitTimer()
-	{
-		m_hoverTimer.SetOwner(m_owner);
-		m_hoverTimer.SetInterval(400);
-		m_hoverTimer.Connect([this](const ArgTimer& args)
-		{
-			m_hoverTimer.Stop();
-			
-			size_t indexToOpen = m_pendingSubMenuIndex.value();
-			m_pendingSubMenuIndex = std::nullopt;
-
-			if (auto* subMenuData = std::get_if<Menu::MenuSubMenu>(&m_menuData->GetItem(indexToOpen)))
-			{
-				if (subMenuData->isEnabled && subMenuData->subMenu)
-				{
-					auto& menuManager = Foundation::GetInstance().GetMenuManager();
-		            
-					// 4. Si había otro submenú de este mismo nivel abierto, lo cerramos
-					// (Tu MenuManager podría necesitar saber qué popups son hijos de quién, 
-					// pero cerrar el submenú actual es la idea básica).
-		            
-					const auto& cache = m_layoutCache[indexToOpen];
-					
-					Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
-					menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
-		            
-					m_openedSubMenuIndex = indexToOpen;
-				}
-			}
-		});
-	}
-
-	void ReactorCore::MenuBox::Module::ExecuteHoveredItem()
-	{
-		if (!m_hoveredIndex.has_value() || !m_menuData)
-		{
-			return;
-		}
-
-		size_t index = m_hoveredIndex.value();
-    
-		std::visit([&](auto& arg)
-		{
-			using T = std::decay_t<decltype(arg)>;
-
-			if constexpr (std::is_same_v<T, Menu::MenuAction>)
-			{
-				if (arg.isEnabled)
-				{
-					auto callback = arg.onClick;
-					Menu* safeMenuData = m_menuData;
-					Foundation::GetInstance().GetMenuManager().CloseAll();
-
-					if (callback)
-					{
-						callback(MenuItem(safeMenuData, index));
-					}
-				}
-			}
-			else if constexpr (std::is_same_v<T,  Menu::MenuCheckbox>)
-			{
-				if (arg.isEnabled)
-				{
-					m_menuData->ToggleCheckbox(index);
-					bool newState = arg.isChecked;
-					auto callback = arg.onToggle;
-					Menu* safeMenuData = m_menuData;
-
-					Foundation::GetInstance().GetMenuManager().CloseAll();
-
-					if (callback)
-					{
-						callback(MenuItem(safeMenuData, index), newState);
-					}
-				}
-			}
-			else if constexpr (std::is_same_v<T,  Menu::MenuSubMenu>)
-			{
-				OpenHoveredSubMenu(false); 
-			}
-		}, m_menuData->GetItem(index));
-	}
-
-	void ReactorCore::MenuBox::Module::OpenHoveredSubMenu(bool focusFirstItem)
-	{
-		if (!m_hoveredIndex.has_value() || !m_menuData) return;
-
-		size_t index = m_hoveredIndex.value();
-		auto& menuManager = Foundation::GetInstance().GetMenuManager();
-
-		if (m_openedSubMenuIndex == index)
-		{
-			if (menuManager.GetTopPopup() == m_owner)
-			{
-				m_openedSubMenuIndex = std::nullopt; 
-			}
-			else
-			{
-				return; 
-			}
-		}
-
-		const auto& itemData = m_menuData->GetItems()[index];
-		if (auto subMenu = std::get_if<Menu::MenuSubMenu>(&itemData))
-		{
-			const auto& cache = m_layoutCache[index];
-			Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
-
-			menuManager.ShowContextMenu(*(subMenu->subMenu), m_owner, popupPos);
-
-			m_openedSubMenuIndex = index;
-
-			Window* activePopup = menuManager.GetTopPopup();
-			if (activePopup && focusFirstItem)
-			{
-				ArgKeyboard downArgs;
-				downArgs.Key = KeyboardKey::ArrowDown;
-				Foundation::GetInstance().ProcessEvents<ArgKeyboard>(activePopup, &Renderer::KeyPressed, nullptr, downArgs);
-			}
-		}
-	}
-
-	bool ReactorCore::MenuBox::Module::IsHoveredItemSubMenu() const
-	{
-		if (!m_hoveredIndex.has_value() || !m_menuData)
-		{
-			return false;
-		}
-
-		size_t index = m_hoveredIndex.value();
-
-		const auto& items = m_menuData->GetItems();
-		if (index >= items.size())
-		{
-			return false;
-		}
-
-		return std::holds_alternative<Menu::MenuSubMenu>(items[index]);
-	}
-
-	void ReactorCore::MenuBox::Module::MoveSelection(int step)
-	{
-		const auto& items = m_menuData->GetItems();
-		if (items.empty())
-		{
-			return;
-		}
-		
-		int count = static_cast<int>(items.size());
-        
-		int currentIndex = static_cast<int>(m_hoveredIndex.value_or(step > 0 ? -1 : count)); 
-
-		for (int i = 0; i < count; ++i)
-		{
-			currentIndex = (currentIndex + step + count) % count;
-
-			bool isValid = std::visit([](const auto& item)
-			{
-				using T = std::decay_t<decltype(item)>;
-				if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
-				{
-					return false;
-				}
-				else
-				{
-					return item.isEnabled;
-				}
-			}, items[currentIndex]);
-
-			if (isValid)
-			{
-				m_hoveredIndex = currentIndex;
-				return;
-			}
-		}
-	}
-
-	void ReactorCore::MenuBox::Module::DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color)
-	{
-		// Definimos los tres puntos de la "palomita" basados en el tamaño de su caja (size x size)
-		// P1: Empieza en el 20% de X y 50% de Y (lado izquierdo, a la mitad)
-		Point p1 = { 
-			position.X + static_cast<int>(size * 0.2f), 
-			position.Y + static_cast<int>(size * 0.5f) 
-		};
-        
-		// P2: Baja hasta el 45% de X y 75% de Y (el vértice inferior)
-		Point p2 = { 
-			position.X + static_cast<int>(size * 0.45f), 
-			position.Y + static_cast<int>(size * 0.75f) 
-		};
-        
-		// P3: Sube hasta el 80% de X y 25% de Y (la punta derecha alta)
-		Point p3 = { 
-			position.X + static_cast<int>(size * 0.8f), 
-			position.Y + static_cast<int>(size * 0.25f) 
-		};
-
-		// Dibujamos las dos líneas que forman el checkmark
-		graphics.DrawLine(p1, p2, color);
-		graphics.DrawLine(p2, p3, color);
-
-		// Opcional: Si tu API Graphics no soporta grosor (thickness) en DrawLine, 
-		// puedes hacer la línea "más gorda" desplazando todo 1 píxel hacia abajo o a la derecha:
-		graphics.DrawLine({ p1.X, p1.Y + 1 }, { p2.X, p2.Y + 1 }, color);
-		graphics.DrawLine({ p2.X, p2.Y + 1 }, { p3.X, p3.Y + 1 }, color);
 	}
 }

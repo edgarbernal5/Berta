@@ -36,7 +36,6 @@ namespace Berta
 	{
 		using ClickCallback = std::function<void(MenuItem)>;
 		using ToggleCallback = std::function<void(MenuItem, bool)>;
-		using DestroyCallback = std::function<void()>;
 		
 		Menu() = default;
 		~Menu() = default;
@@ -106,7 +105,6 @@ namespace Berta
 		
 	private:
 		std::vector<MenuItemData> m_items;
-		DestroyCallback m_destroyCallback;
 	};
 	
 	struct MenuItem
@@ -140,21 +138,15 @@ namespace Berta
 	{		
 		struct Appearance : public ControlAppearance
 		{
-			uint32_t ItemTextPadding = 4;        // Margen interno de los textos
-			uint32_t SeparatorHeight = 3;        // Grosor de la línea separadora
+			uint32_t ItemTextPadding = 4;
+			uint32_t SeparatorHeight = 3;
         
-			uint32_t MenuBoxLeftPaneWidth = 32;  // Espacio para íconos/checkboxes
-			uint32_t MenuBoxItemHeight = 24;     // Altura de los botones
-			uint32_t MenuBoxSubMenuArrowWidth = 20;// Espacio reservado para la flecha ►
-			uint32_t MenuBoxShortcutWidth = 40;  // Espacio reservado para atajos (Ctrl+S)
-        
-			uint32_t CheckboxSize = 12;          // Tamaño de la palomita
-			
-			/*uint32_t MenuBarItemHeight = 18;
 			uint32_t MenuBoxLeftPaneWidth = 32;
-			uint32_t MenuBoxItemHeight = 20;
+			uint32_t MenuBoxItemHeight = 22;
 			uint32_t MenuBoxSubMenuArrowWidth = 20;
-			uint32_t MenuBoxShortcutWidth = 20;*/
+			uint32_t MenuBoxShortcutWidth = 40;
+        
+			uint32_t CheckboxSize = 12;
 		};
 		
 		struct ItemLayoutCache
@@ -193,7 +185,7 @@ namespace Berta
 			std::optional<std::size_t> m_hoveredIndex;
 			std::optional<std::size_t> m_pendingSubMenuIndex;
 			std::optional<std::size_t> m_openedSubMenuIndex;
-			Timer m_hoverTimer; // El temporizador de la vista
+			Timer m_hoverTimer;
 			static constexpr float SubMenuDelayMs = 400.0f;
 		};
 		
@@ -229,6 +221,7 @@ namespace Berta
 		~MenuBox() override;
 
 		void InitFromData(Menu& menuData);
+		
 	private:
 #if BT_DEBUG
 		static int g_globalId;

@@ -838,6 +838,7 @@ namespace Berta
 				{
 					target = menuManager.GetTopPopup();
 				}
+				
 				if (isKeyReleased)
 				{
 					foundation.ProcessEvents(target, &Renderer::KeyReleased, &ControlEvents::KeyReleased, argKeyboard);

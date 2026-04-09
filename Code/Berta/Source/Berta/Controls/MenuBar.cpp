@@ -51,7 +51,7 @@ namespace Berta
 				const auto& itemData = m_module.m_items[i];
 				const auto& cache = m_module.m_layoutCache[i];
             
-				bool isSelected = (m_module.m_interaction.m_selectedIndex == i);
+				bool isSelected = m_module.m_interaction.m_selectedIndex == i;
 				bool isOpen = m_module.m_interaction.m_isMenuOpen;
 
 				if (isSelected && enabled)
@@ -88,8 +88,6 @@ namespace Berta
 			if (m_module.m_interaction.m_selectedIndex.has_value())
 			{
 				m_module.m_interaction.m_isMenuOpen = !m_module.m_interaction.m_isMenuOpen;
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-				
 				if (m_module.m_interaction.m_isMenuOpen)
 				{
 					m_module.OpenMenu(false);
@@ -98,6 +96,8 @@ namespace Berta
 				{
 					Foundation::GetInstance().GetMenuManager().CloseAll();
 				}
+				
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
 
@@ -249,8 +249,7 @@ namespace Berta
 				int itemWidth = (int)textSize.Width + (paddingX * 2);
 
 				cache.bounds = { currentX, 0, (uint32_t)itemWidth, (uint32_t)barHeight };
-            
-				// Centrado vertical
+				
 				int textY = (barHeight - textSize.Height) / 2;
 				cache.textPosition = { currentX + paddingX, textY };
 
@@ -279,7 +278,7 @@ namespace Berta
 			menuManager.ShowMenuBarPopup(itemData.menu, m_owner, popupPos);
 
 			Window* activePopup = menuManager.GetTopPopup();
-			if (focusFirstItem)
+			if (activePopup && focusFirstItem)
 			{
 				ArgKeyboard downArgs;
 				downArgs.Key = KeyboardKey::ArrowDown;

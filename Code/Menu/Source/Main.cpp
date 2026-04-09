@@ -22,9 +22,22 @@ int main()
 	auto newSubMenu = std::make_unique<Berta::Menu>();
 	newSubMenu->Append("Scene");
 	newSubMenu->Append("Texture");
+	auto prefabSubMenu = std::make_unique<Berta::Menu>();
+	prefabSubMenu->Append(L"Variant");
 	newSubMenu->AppendSeparator();
+	newSubMenu->AppendSubMenu(L"Prefab", std::move(prefabSubMenu));
+	
 	newSubMenu->SetImage(0, hddImage);
+	
 	fileMenu.AppendSubMenu(L"New", std::move(newSubMenu));
+	fileMenu.AppendSeparator();
+	
+	auto openSubMenu = std::make_unique<Berta::Menu>();
+	openSubMenu->Append("Berta");
+	openSubMenu->Append("Bruno");
+	openSubMenu->AppendSeparator();
+	openSubMenu->AppendCheckbox(L"Save recent projects", true);
+	fileMenu.AppendSubMenu(L"Open", std::move(openSubMenu));
 	fileMenu.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
