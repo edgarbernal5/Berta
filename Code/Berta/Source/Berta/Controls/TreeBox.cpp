@@ -110,12 +110,11 @@ namespace Berta
 		}
 	}
 
-	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
+	void TreeBoxReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_module.m_window = control.Handle();
+		m_module.m_window = m_control->Handle();
 		m_module.m_control = m_control;
-		m_module.m_graphics = graphics;
+		m_module.m_graphics = m_graphics;
 		
 		m_module.InitScrollableView();
 	}

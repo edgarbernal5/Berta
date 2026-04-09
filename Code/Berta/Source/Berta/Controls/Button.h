@@ -13,19 +13,18 @@
 
 namespace Berta
 {
-	namespace ReactorCore::Button
+	namespace Internal::Button
 	{
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
-
+			
 		private:
 			enum class State : uint8_t
 			{
@@ -37,7 +36,7 @@ namespace Berta
 		};
 	}
 	
-	class Button : public Control<ReactorCore::Button::Reactor>
+	class Button : public Control<Internal::Button::Reactor>
 	{
 	public:
 		Button() = default;

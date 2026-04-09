@@ -14,17 +14,16 @@
 
 namespace Berta
 {
-	namespace ReactorCore::PropertyGrid
+	namespace Internal::PropertyGrid
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_control = &control;
-			m_module.m_owner = control.Handle();
+			m_module.m_owner = m_control->Handle();
 
 			m_module.m_appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
 			m_module.m_events = reinterpret_cast<Events*>(m_module.m_owner->Events.get());
 
-			m_module.m_graphics = graphics;
+			m_module.m_graphics = m_graphics;
 			m_module.CalculateViewport(m_module.m_viewport);
 		}
 

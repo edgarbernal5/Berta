@@ -249,14 +249,12 @@ namespace Berta
 		return *this;
 	}
 	
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			ControlReactor::Init(control, graphics);
-			
-			m_module.m_control = &control;
-			m_module.m_owner = control.Handle();
+			m_module.m_control = m_control;
+			m_module.m_owner = m_control->Handle();
 			m_module.InitTimer();
 		}
 

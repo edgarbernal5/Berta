@@ -17,7 +17,7 @@ namespace Berta
 	class ControlReactor;
 	struct ControlEvents;
 
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{
 		class MenuItemReactor;
 	}

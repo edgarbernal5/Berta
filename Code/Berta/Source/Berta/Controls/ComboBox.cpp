@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	namespace ReactorCore::ComboBox
+	namespace Internal::ComboBox
 	{
 		Reactor::~Reactor()
 		{
@@ -32,11 +32,10 @@ namespace Berta
 			}
 		}
 
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_control = &control;
-			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(&control);
-			m_module.m_textEditor = new TextEditor(*m_control, graphics);
+			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(&m_control);
+			m_module.m_textEditor = new TextEditor(*m_control, m_graphics);
 
 			auto window = m_control->Handle();
 			window->Events->Focus.Connect([&](const ArgFocus& args)
@@ -333,7 +332,7 @@ namespace Berta
 			EmitSelectionEvent(selectedIndex);
 		}
 
-		void ItemProxy::SetText(const std::wstring& text)
+		void ComboBoxItem::SetText(const std::wstring& text)
 		{
 			if (m_module->Data.m_items.at(m_index).m_text == text)
 			{
@@ -344,7 +343,7 @@ namespace Berta
 			m_module->UpdateItem(m_index);
 		}
 
-		void ItemProxy::SetImage(const Image& icon)
+		void ComboBoxItem::SetImage(const Image& icon)
 		{
 			if (m_module->Data.m_items.at(m_index).m_icon == icon)
 			{
@@ -389,7 +388,7 @@ namespace Berta
 #endif
 	}
 
-	ComboBox::ItemProxy ComboBox::At(size_t index)
+	ComboBox::ComboBoxItem ComboBox::At(size_t index)
 	{
 		auto& module = GetReactor().GetModule();
 		if (index < module.Count())

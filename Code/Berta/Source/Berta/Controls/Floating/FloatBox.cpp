@@ -15,12 +15,11 @@ namespace Berta
 	{
 	}
 
-	void FloatBoxReactor::Init(ControlBase& control, Graphics* graphics)
+	void FloatBoxReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_floatBox = reinterpret_cast<FloatBox*>(&control);
+		m_floatBox = reinterpret_cast<FloatBox*>(m_control);
 
-		m_comboBoxAppearance = reinterpret_cast<ReactorCore::ComboBox::Appearance*>(m_floatBox->GetOwner()->Appearance.get());
+		m_comboBoxAppearance = reinterpret_cast<Internal::ComboBox::Appearance*>(m_floatBox->GetOwner()->Appearance.get());
 	}
 
 	void FloatBoxReactor::Update(Graphics& graphics)

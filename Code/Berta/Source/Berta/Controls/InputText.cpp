@@ -12,12 +12,11 @@
 
 namespace Berta
 {
-	namespace ReactorCore::InputText
+	namespace Internal::InputText
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_control = &control;
-			m_textEditor = std::make_unique<TextEditor>(*m_control, graphics);
+			m_textEditor = std::make_unique<TextEditor>(*m_control, m_graphics);
 
 			m_textEditor->SetEditorArea(GetEditorArea());
 			m_textEditor->SetValueChangedCallback([this]()

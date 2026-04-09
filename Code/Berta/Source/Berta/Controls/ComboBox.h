@@ -21,7 +21,7 @@ namespace Berta
 	class FloatBox;
 	class ComboBox;
 	
-	namespace ReactorCore::ComboBox
+	namespace Internal::ComboBox
 	{
 		struct Appearance : public ControlAppearance
 		{
@@ -29,14 +29,13 @@ namespace Berta
 			uint32_t ComboBoxItemHeight = 20;
 		};
 		
-		class ItemProxy;
+		class ComboBoxItem;
 
 		class Reactor : public ControlReactor
 		{
 		public:
 			~Reactor() override;
 
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -87,15 +86,19 @@ namespace Berta
 
 			const Module& GetModule() const { return m_module; }
 			Module& GetModule() { return m_module; }
+			
+		protected:
+			void DoOnInit() override;
+			
 		private:
 			Module m_module;
 		};
 		
-		class ItemProxy
+		class ComboBoxItem
 		{
 		public:
-			ItemProxy() = default;
-			ItemProxy(size_t index, Reactor::Module* module) : m_index(index), m_module(module)
+			ComboBoxItem() = default;
+			ComboBoxItem(size_t index, Reactor::Module* module) : m_index(index), m_module(module)
 			{
 			}
 			
@@ -117,7 +120,7 @@ namespace Berta
 		std::optional<size_t> SelectedIndex;
 	};
 
-	namespace ReactorCore::ComboBox
+	namespace Internal::ComboBox
 	{
 		struct Events : public ControlEvents
 		{
@@ -125,16 +128,16 @@ namespace Berta
 		};
 	}
 	
-	class ComboBox : public Control<ReactorCore::ComboBox::Reactor, ReactorCore::ComboBox::Events, ReactorCore::ComboBox::Appearance>
+	class ComboBox : public Control<Internal::ComboBox::Reactor, Internal::ComboBox::Events, Internal::ComboBox::Appearance>
 	{
 	public:
-		using ItemProxy = ReactorCore::ComboBox::ItemProxy;
+		using ComboBoxItem = Internal::ComboBox::ComboBoxItem;
 		
 	public:
 		ComboBox() = default;
 		ComboBox(Window* parent, const Rectangle& rectangle = {});
 
-		ItemProxy At(size_t index);
+		ComboBoxItem At(size_t index);
 		void Clear();
 		size_t Count() const;
 		void Erase(size_t index);

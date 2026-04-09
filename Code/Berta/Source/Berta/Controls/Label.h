@@ -13,12 +13,11 @@
 
 namespace Berta
 {
-	namespace ReactorCore::Label
+	namespace Internal::Label
 	{
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			struct Module
@@ -34,12 +33,14 @@ namespace Berta
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 			
+		protected:
+			void DoOnInit() override;
 		private:
 			Module m_module;
 		};
 	}
 
-	class Label : public Control<ReactorCore::Label::Reactor>
+	class Label : public Control<Internal::Label::Reactor>
 	{
 	public:
 		Label() = default;

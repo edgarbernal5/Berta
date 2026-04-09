@@ -15,11 +15,9 @@ namespace Berta
 	constexpr int SLIDER_TIMER_REPEAT_DELAY = 50;
 	constexpr uint32_t MIN_SCROLLBOX_SIZE = 6u;
 
-	void SliderReactor::Init(ControlBase& control, Graphics* graphics)
+	void SliderReactor::DoOnInit()
 	{
-		m_control = &control;
-
-		m_timer.SetOwner(control.Handle());
+		m_timer.SetOwner(m_control->Handle());
 		m_timer.Connect([this](const ArgTimer& args)
 		{
 			DoScrollStep(true);

@@ -11,13 +11,8 @@
 
 namespace Berta
 {
-	namespace ReactorCore::Button
+	namespace Internal::Button
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
-		{
-			m_control = &control;
-		}
-
 		void Reactor::Update(Graphics& graphics)
 		{
 			auto window = m_control->Handle();

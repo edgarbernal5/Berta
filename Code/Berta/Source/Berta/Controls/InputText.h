@@ -15,14 +15,13 @@
 
 namespace Berta
 {
-	namespace ReactorCore::InputText
+	namespace Internal::InputText
 	{
 		struct Events;
 
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 		
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -38,6 +37,10 @@ namespace Berta
 			void Resize(Graphics& graphics, const ArgResize& args) override;
 
 			TextEditor* GetEditor() const;
+			
+		protected:
+			void DoOnInit() override;
+			
 		private:
 			Rectangle GetEditorArea() const;
 			std::unique_ptr<TextEditor> m_textEditor{ nullptr };
@@ -50,7 +53,7 @@ namespace Berta
 		//std::wstring NewValue;
 	};
 	
-	namespace ReactorCore::InputText
+	namespace Internal::InputText
 	{
 		struct Events : public ControlEvents
 		{
@@ -58,7 +61,7 @@ namespace Berta
 		};
 	}
 	
-	class InputText : public Control<ReactorCore::InputText::Reactor, ReactorCore::InputText::Events>
+	class InputText : public Control<Internal::InputText::Reactor, Internal::InputText::Events>
 	{
 	public:
 		InputText() = default;

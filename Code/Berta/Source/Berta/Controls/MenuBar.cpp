@@ -13,15 +13,15 @@
 
 namespace Berta
 {
-	namespace ReactorCore::MenuBar
+	namespace Internal::MenuBar
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_module.m_control = &control;
-			m_module.m_owner = control.Handle();
+			m_module.m_control = m_control;
+			m_module.m_owner = m_control->Handle();
 			
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
-			menuManager.SubscribeOnClose([this]() 
+			m_module.m_closeListenerId = menuManager.SubscribeOnClose([this]() 
 			{
 				if (m_module.m_interaction.m_isMenuOpen)
 				{
@@ -238,7 +238,7 @@ namespace Berta
 
 			int paddingX = (int)m_owner->ToScale(appearance->ItemPaddingInner);
 			int barHeight = (int)m_owner->ClientSize.Height;
-			int currentX = m_owner->ToScale(2);
+			int currentX = 0;
 
 			for (size_t i = 0; i < m_items.size(); ++i)
 			{
@@ -248,9 +248,9 @@ namespace Berta
 				auto textSize = graphics.GetTextExtent(itemData.text);
 				int itemWidth = (int)textSize.Width + (paddingX * 2);
 
-				cache.bounds = { currentX, 0, (uint32_t)itemWidth, (uint32_t)barHeight };
+				cache.bounds = { currentX, 0, static_cast<uint32_t>(itemWidth), static_cast<uint32_t>(barHeight) };
 				
-				int textY = (barHeight - textSize.Height) / 2;
+				int textY = (barHeight - static_cast<int>(textSize.Height)) / 2;
 				cache.textPosition = { currentX + paddingX, textY };
 
 				currentX += itemWidth;
@@ -294,7 +294,7 @@ namespace Berta
 			}
 
 			int count = static_cast<int>(m_items.size());
-			int currentIndex = m_interaction.m_selectedIndex.value_or(step > 0 ? -1 : count); 
+			int currentIndex = static_cast<int>(m_interaction.m_selectedIndex.value_or(step > 0 ? -1 : count)); 
 
 			currentIndex = (currentIndex + step + count) % count;
         
@@ -316,6 +316,17 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "MenuBar";
 #endif
+	}
+
+	MenuBar::~MenuBar()
+	{
+		auto& module = GetReactor().GetModule();
+		if (module.m_closeListenerId != 0)
+		{
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
+			menuManager.UnsubscribeOnClose(module.m_closeListenerId);
+			module.m_closeListenerId = 0;
+		}
 	}
 
 	Menu& MenuBar::At(size_t index)

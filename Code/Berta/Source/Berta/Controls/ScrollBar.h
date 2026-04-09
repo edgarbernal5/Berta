@@ -29,7 +29,6 @@ namespace Berta
 	class ScrollBarReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
@@ -49,6 +48,9 @@ namespace Berta
 		ScrollBarUnit GetStepValue() const { return m_step; }
 		ScrollBarUnit GetPageStepValue() const { return m_pageStep; }
 
+	protected:
+		void DoOnInit() override;
+		
 	private:
 		enum class InteractionArea : uint8_t
 		{

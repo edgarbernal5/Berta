@@ -13,14 +13,13 @@
 
 namespace Berta
 {
-	namespace ReactorCore::CheckBox
+	namespace Internal::CheckBox
 	{
 		struct Events;
 		
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -40,8 +39,11 @@ namespace Berta
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 
+		protected:
+			void DoOnInit() override;
+			
 		private:
-			enum class State
+			enum class State : uint8_t
 			{
 				Normal,
 				Pressed,
@@ -57,7 +59,7 @@ namespace Berta
 		bool IsChecked{ false };
 	};
 	
-	namespace ReactorCore::CheckBox
+	namespace Internal::CheckBox
 	{
 		struct Events : public ControlEvents
 		{
@@ -65,7 +67,7 @@ namespace Berta
 		};
 	}
 
-	class CheckBox : public Control<ReactorCore::CheckBox::Reactor, ReactorCore::CheckBox::Events>
+	class CheckBox : public Control<Internal::CheckBox::Reactor, Internal::CheckBox::Events>
 	{
 	public:
 		CheckBox() = default;

@@ -27,7 +27,7 @@ namespace Berta
 	struct Menu;
 	struct MenuItem;
 	
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{
 		class Reactor;
 	}
@@ -134,7 +134,7 @@ namespace Berta
 		size_t m_index{ 0 };
 	};
 	
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{		
 		struct Appearance : public ControlAppearance
 		{
@@ -186,13 +186,12 @@ namespace Berta
 			std::optional<std::size_t> m_pendingSubMenuIndex;
 			std::optional<std::size_t> m_openedSubMenuIndex;
 			Timer m_hoverTimer;
-			static constexpr float SubMenuDelayMs = 400.0f;
+			static constexpr uint32_t SubMenuDelayMs = 400u;
 		};
 		
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -206,12 +205,15 @@ namespace Berta
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 			
+		protected:
+			void DoOnInit() override;
+			
 		private:
 			Module m_module;
 		};
 	}
 
-	class MenuBox : public Control<ReactorCore::MenuBox::Reactor, FormEvents, ReactorCore::MenuBox::Appearance>
+	class MenuBox : public Control<Internal::MenuBox::Reactor, FormEvents, Internal::MenuBox::Appearance>
 	{
 	public:
 		using MenuItem = Berta::MenuItem;

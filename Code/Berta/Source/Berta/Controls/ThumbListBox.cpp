@@ -13,13 +13,12 @@
 
 namespace Berta
 {
-	void ThumbListBoxReactor::Init(ControlBase& control, Graphics* graphics)
+	void ThumbListBoxReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_module.m_window = control.Handle();
+		m_module.m_window = m_control->Handle();
 		m_module.m_control = m_control;
 		
-		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(control.Handle()->Events.get());
+		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(m_control->Handle()->Events.get());
 		
 		m_module.InitScrollableView();
 	}

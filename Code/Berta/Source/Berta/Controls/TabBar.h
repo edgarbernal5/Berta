@@ -69,7 +69,6 @@ namespace Berta
 	class TabBarReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
@@ -126,6 +125,9 @@ namespace Berta
 		
 		Module& GetModule() { return m_module; }
 		const Module& GetModule() const { return m_module; }
+		
+	protected:
+		void DoOnInit() override;
 		
 	private:
 		Module m_module;

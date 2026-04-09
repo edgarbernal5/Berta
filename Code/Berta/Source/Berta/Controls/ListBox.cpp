@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	namespace ReactorCore::ListBox
+	namespace Internal::ListBox
 	{
 		size_t ItemCollection::Append(const std::string& text)
 		{
@@ -168,10 +168,9 @@ namespace Berta
 			}
 		}
 
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_control = &control;
-			m_module.m_window = control.Handle();
+			m_module.m_window = m_control->Handle();
 			m_module.m_control = m_control;
 
 			m_module.m_headers.Init(m_module.m_window);
@@ -195,11 +194,11 @@ namespace Berta
 				m_module.m_items.Sort(visualColumnIndex, m_module.m_isSortAscending);
 			});
 			
-			m_module.m_headers.SetOnRequestColumnAutoWidth([this, graphics](size_t logicalColumnIndex) -> uint32_t
+			m_module.m_headers.SetOnRequestColumnAutoWidth([this](size_t logicalColumnIndex) -> uint32_t
 			{
 				const auto& headers = m_module.m_headers.GetHeaders();
 				std::string headerText = headers[logicalColumnIndex].Text;
-				uint32_t maxWidth = graphics->GetTextExtent(headerText).Width;
+				uint32_t maxWidth = m_graphics->GetTextExtent(headerText).Width;
 
 				auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
 				auto listItemIconSize = m_module.m_window->ToScale(appearance->ListItemIconSize);
@@ -215,7 +214,7 @@ namespace Berta
 					{
 						std::string cellText = item->m_cells[logicalColumnIndex].m_text; 
 		                
-						auto textWidth = graphics->GetTextExtent(cellText).Width;
+						auto textWidth = m_graphics->GetTextExtent(cellText).Width;
 						if (showIcons)
 						{
 							textWidth += listItemIconSize + 2u * listItemIconMargin;

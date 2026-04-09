@@ -22,10 +22,9 @@ namespace Berta
 		}
 	}
 	
-	void TabBarReactor::Init(ControlBase& control, Graphics* graphics)
+	void TabBarReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_module.m_owner = control.Handle();
+		m_module.m_owner = m_control->Handle();
 		m_module.m_events = reinterpret_cast<TabBarEvents*>(m_module.m_owner->Events.get());
 	}
 

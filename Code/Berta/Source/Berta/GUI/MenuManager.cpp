@@ -85,11 +85,11 @@ namespace Berta
             }
         }
         
-        for (const auto& listener : m_onCloseListeners)
+        for (const auto& listenerPair : m_onCloseListeners)
         {
-            if (listener)
+            if (listenerPair.second) 
             {
-                listener();
+                listenerPair.second();
             }
         }
     }
@@ -150,9 +150,20 @@ namespace Berta
         m_onCloseListeners.clear();
     }
 
-    void MenuManager::SubscribeOnClose(std::function<void()> listener)
+    uint32_t MenuManager::SubscribeOnClose(std::function<void()> listener)
     {
-        m_onCloseListeners.push_back(std::move(listener));
+        uint32_t id = m_nextListenerId++;
+        m_onCloseListeners.push_back({ id, std::move(listener) });
+        return id;
+    }
+
+    void MenuManager::UnsubscribeOnClose(uint32_t listenerId)
+    {
+        m_onCloseListeners.erase(
+            std::remove_if(m_onCloseListeners.begin(), m_onCloseListeners.end(),
+                [listenerId](const auto& pair) { return pair.first == listenerId; }),
+            m_onCloseListeners.end()
+        );
     }
 
     void MenuManager::ShowPopup(Window* window, Window* owner, bool fromMenuBar)

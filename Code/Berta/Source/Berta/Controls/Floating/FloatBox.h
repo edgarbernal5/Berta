@@ -17,7 +17,7 @@ namespace Berta
 {
 	class FloatBox;
 
-	namespace ReactorCore::ComboBox
+	namespace Internal::ComboBox
 	{
 		struct Appearance;
 	}
@@ -27,7 +27,6 @@ namespace Berta
 	public:
 		~FloatBoxReactor();
 
-		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
@@ -46,15 +45,17 @@ namespace Berta
 		};
 
 		State& GetState() {	return m_state; }
-
-
 		bool MoveSelectedItem(int direction);
+		
+	protected:
+		void DoOnInit() override;
+		
 	private:
 		bool IsInside(const Point& point);
 		void UpdateScrollBar();
 
 		FloatBox* m_floatBox{ nullptr };
-		ReactorCore::ComboBox::Appearance* m_comboBoxAppearance{ nullptr };
+		Internal::ComboBox::Appearance* m_comboBoxAppearance{ nullptr };
 
 		Float::InteractionData* m_interactionData{ nullptr };
 		State m_state;

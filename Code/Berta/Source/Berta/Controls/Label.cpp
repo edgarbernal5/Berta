@@ -11,13 +11,11 @@
 
 namespace Berta
 {
-	namespace ReactorCore::Label
+	namespace Internal::Label
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			ControlReactor::Init(control, graphics);
-			
-			m_module.m_owner = control.Handle();
+			m_module.m_owner = m_control->Handle();
 		}
 
 		void Reactor::Update(Graphics& graphics)

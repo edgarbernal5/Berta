@@ -8,7 +8,6 @@
 #define BT_MENU_MANAGER_HEADER
 
 #include "Berta/GUI/Window.h"
-//#include "Berta/Controls/Menu.h"
 namespace Berta
 {
 	struct Menu;
@@ -35,7 +34,8 @@ namespace Berta
 		void ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position);
 		
 		void ClearListeners();
-		void SubscribeOnClose(std::function<void()> listener);
+		uint32_t SubscribeOnClose(std::function<void()> listener);
+		void UnsubscribeOnClose(uint32_t listenerId);
 		
 		void NavigateTopLevel(int step);
 		
@@ -43,8 +43,9 @@ namespace Berta
 		void ShowPopup(Window* window, Window* owner, bool fromMenuBar);
 		
 		Window* m_owner{ nullptr };
+		uint32_t m_nextListenerId { 1 };
+		std::vector<std::pair<uint32_t, std::function<void()>>> m_onCloseListeners;
 		std::vector<Window*> m_popups;
-		std::vector<std::function<void()>> m_onCloseListeners;
 		bool m_fromMenuBar{ false };
 	};
 }

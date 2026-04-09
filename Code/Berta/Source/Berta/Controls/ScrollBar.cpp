@@ -17,18 +17,16 @@ namespace Berta
 	constexpr int ARROW_WIDTH = 6;
 	constexpr int ARROW_LENGTH = 3;
 
-	void ScrollBarReactor::Init(ControlBase& control, Graphics* graphics)
+	void ScrollBarReactor::DoOnInit()
 	{
-		m_control = &control;
-
-		m_timer.SetOwner(control.Handle());
+		m_timer.SetOwner(m_control->Handle());
 		m_timer.Connect([this](const ArgTimer& args)
 		{
 			DoScrollStep(true);
 			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
 		});
 
-		GUI::MakeWindowActive(control, false, control.GetParent());
+		GUI::MakeWindowActive(*m_control, false, m_control->GetParent());
 	}
 
 	void ScrollBarReactor::Update(Graphics& graphics)

@@ -29,7 +29,6 @@ namespace Berta
 	class SliderReactor : public ControlReactor
 	{
 	public:
-		void Init(ControlBase& control, Graphics* graphics) override;
 		void Update(Graphics& graphics) override;
 
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
@@ -49,6 +48,9 @@ namespace Berta
 		int GetStepValue() const { return m_step; }
 		int GetPageStepValue() const { return m_pageStep; }
 
+	protected:
+		void DoOnInit() override;
+		
 	private:
 		enum class InteractionArea
 		{

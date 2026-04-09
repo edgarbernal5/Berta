@@ -18,7 +18,7 @@
 
 namespace Berta
 {
-	namespace ReactorCore::PropertyGrid
+	namespace Internal::PropertyGrid
 	{
 		struct Events;
 		struct CategoryItem;
@@ -227,7 +227,6 @@ namespace Berta
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
@@ -238,6 +237,9 @@ namespace Berta
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 
+		protected:
+			void DoOnInit() override;
+			
 		private:
 			Module m_module;
 		};
@@ -245,11 +247,11 @@ namespace Berta
 
 	struct ArgPropertyGrid
 	{
-		ReactorCore::PropertyGrid::PropertyItem Property;
-		ArgPropertyGrid(const ReactorCore::PropertyGrid::PropertyItem& item) : Property(item) {}
+		Internal::PropertyGrid::PropertyItem Property;
+		ArgPropertyGrid(const Internal::PropertyGrid::PropertyItem& item) : Property(item) {}
 	};
 
-	namespace ReactorCore::PropertyGrid
+	namespace Internal::PropertyGrid
 	{
 		struct Events : public ControlEvents
 		{
@@ -258,13 +260,13 @@ namespace Berta
 		};
 	}
 
-	class PropertyGrid : public Control<ReactorCore::PropertyGrid::Reactor, ReactorCore::PropertyGrid::Events, ReactorCore::PropertyGrid::Appearance>
+	class PropertyGrid : public Control<Internal::PropertyGrid::Reactor, Internal::PropertyGrid::Events, Internal::PropertyGrid::Appearance>
 	{
 	public:
-		using CategoryItem = ReactorCore::PropertyGrid::CategoryItem;
-		using PropertyItem = ReactorCore::PropertyGrid::PropertyItem;
-		using PropertyGridFieldBase = ReactorCore::PropertyGrid::PropertyGridFieldBase;
-		using PropertyGridFieldBasePtr = ReactorCore::PropertyGrid::PropertyGridFieldBasePtr;
+		using CategoryItem = Internal::PropertyGrid::CategoryItem;
+		using PropertyItem = Internal::PropertyGrid::PropertyItem;
+		using PropertyGridFieldBase = Internal::PropertyGrid::PropertyGridFieldBase;
+		using PropertyGridFieldBasePtr = Internal::PropertyGrid::PropertyGridFieldBasePtr;
 
 	public:
 		PropertyGrid() = default;
