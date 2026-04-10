@@ -87,7 +87,7 @@ namespace Berta
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
 			bool Borderless : 1; //TODO
-		}Flags{0};
+		}Flags{false};
 
 		int DeferredCounter{ 0 };
 		DrawBatchActivator* DrawBatch{ nullptr };
@@ -103,6 +103,9 @@ namespace Berta
 			std::function<void()> CustomPaint;
 		};
 		RenderFormData RenderForAttributes;
+		
+		Window* MenuBar{ nullptr };
+		
 		bool HasCustomPaint() const;
 
 		void Init(ControlBase* control);
@@ -134,7 +137,7 @@ namespace Berta
 			return static_cast<uint32_t>(units / DPIScaleFactor);
 		}
 
-		Berta::Size ToScale(Berta::Size units) const
+		Size ToScale(Berta::Size units) const
 		{
 			return (units * DPIScaleFactor);
 		}

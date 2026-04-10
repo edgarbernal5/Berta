@@ -162,7 +162,28 @@ namespace Berta
 		{
 			auto& interaction = m_module.m_interaction;
 			auto& items = m_module.m_items;
-
+			/*auto& menuManager = Foundation::GetInstance().GetMenuManager();
+			if (args.Key == KeyboardKey::Alt)
+			{
+				if (menuManager.AnyPopupActive() || m_module.m_interaction.m_selectedIndex.has_value())
+				{
+					menuManager.CloseAll();
+					m_module.m_interaction.m_selectedIndex = std::nullopt;
+					m_module.m_interaction.m_isMenuOpen = false;
+				}
+				else if (!m_module.m_items.empty())
+				{
+					// Si la app estaba en reposo, activamos el primer ítem (solo resaltado, sin abrir popups)
+					m_module.m_interaction.m_selectedIndex = 0;
+					m_module.m_interaction.m_isMenuOpen = false;
+				}
+        
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+				return;
+			}
+			if (!m_module.m_interaction.m_selectedIndex.has_value())
+				return;*/
+			
 			//if (args.IsSystem && args.Character != 0)
 			if (false)
 			{
@@ -199,7 +220,7 @@ namespace Berta
 				case KeyboardKey::Escape:
 					interaction.m_selectedIndex = std::nullopt;
 					interaction.m_isMenuOpen = false;
-					Foundation::GetInstance().GetMenuManager().CloseAll();
+					menuManager.CloseAll();
 					break;
 				}
 			}
@@ -217,7 +238,7 @@ namespace Berta
         
 			auto cleanText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
 
-			m_items.push_back(MenuBarItemData{ cleanText, accessKey, accessKeyPosition, true, Menu{} });
+			m_items.emplace_back(MenuBarItemData{ cleanText, accessKey, accessKeyPosition, true, Menu{} });
 			CalculateLayout();
 
 			return m_items.back().menu;
@@ -313,6 +334,7 @@ namespace Berta
 	{
 		Create(parent, true, rectangle);
 
+		GUI::SetMenuBar(m_handle);
 #if BT_DEBUG
 		m_handle->Name = "MenuBar";
 #endif

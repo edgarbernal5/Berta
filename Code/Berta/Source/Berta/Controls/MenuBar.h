@@ -48,7 +48,7 @@ namespace Berta
 				std::size_t accessKeyPosition{ 0 };
 				bool isEnabled{ true };
 				
-				Menu menu; 
+				Menu menu;
 			};
 			
 			struct ItemLayoutCache

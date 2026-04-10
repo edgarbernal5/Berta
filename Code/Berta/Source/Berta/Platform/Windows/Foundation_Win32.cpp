@@ -17,6 +17,7 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
+#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Paint/DrawBatchActivator.h"
 
 #if BT_DEBUG
@@ -168,6 +169,14 @@ namespace Berta
 		{WM_SYSCOMMAND,		"WM_SYSCOMMAND"},
 		
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		
+		{WM_CHAR,			"WM_CHAR"},
+		{WM_SYSCHAR,			"WM_SYSCHAR"},
+		{WM_KEYDOWN,			"WM_KEYDOWN"},
+		{WM_KEYUP,			"WM_KEYUP"},
+		{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
+		{WM_SYSKEYUP,		"WM_SYSKEYUP"},
+		
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
@@ -275,7 +284,9 @@ namespace Berta
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
 			if (g_debugLastMessageCount[hWnd] > 0)
+			{
 				g_debugLastMessageCount[hWnd] = 0;
+			}
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId[hWnd] = message;
@@ -604,6 +615,49 @@ namespace Berta
 				wasHandled = false;
 				break;
 			}
+			/*
+			Mensajes de Teclas Comunes (WM_KEYDOWN, WM_KEYUP, WM_CHAR) 
+			Se disparan cuando el foco está en tu aplicación y el usuario presiona o suelta teclas sin usar la tecla ALT. 
+			WM_KEYDOWN: Se envía cuando se presiona una tecla. Proporciona un código de tecla virtual (como VK_A o VK_F1), que identifica la tecla física.
+			WM_KEYUP: Se envía cuando se suelta la tecla.
+			WM_CHAR: Es un mensaje de carácter. No se genera directamente por el hardware, sino por la función TranslateMessage a partir de un WM_KEYDOWN. Traduce la tecla física en un símbolo (por ejemplo, convierte Shift + A en el carácter 'A'). 
+			
+			Mensajes de Sistema (WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR) 
+			Se utilizan para combinaciones de teclas que tienen un significado especial para el sistema operativo, típicamente aquellas que involucran la tecla ALT.
+			WM_SYSKEYDOWN: Se genera cuando el usuario presiona una tecla mientras mantiene presionada ALT, o si no hay ninguna ventana con el foco del teclado.
+			WM_SYSKEYUP: Se envía cuando se suelta una tecla del sistema.
+			WM_SYSCHAR: Similar a WM_CHAR, pero para teclas de sistema. Se genera cuando TranslateMessage procesa un WM_SYSKEYDOWN (por ejemplo, al presionar ALT + carácter).
+			 */
+		/*case WM_SYSCOMMAND:
+			if ((wParam & 0xFFF0) == SC_KEYMENU)
+			{
+				if (lParam == 0) // El usuario presionó y soltó ALT sin combinarla
+				{
+					Window* menuBarWindow = GUI::GetMenuBar(nativeWindow);
+					if (menuBarWindow)
+					{
+						wasHandled = true;
+						
+						ArgKeyboard args;
+						args.Key = KeyboardKey::Alt;
+						foundation.ProcessEvents<ArgKeyboard>(menuBarWindow, &Renderer::KeyPressed, nullptr, args);
+					}
+					else if (lParam == VK_SPACE)
+					{
+						// Alt + Espacio: Dejamos que Windows muestre su menú clásico en la barra de título
+						
+						wasHandled = false;
+					}
+					else
+					{
+						// Alt + [Letra]: Lo bloqueamos aquí para evitar el "Ding" y el Freeze de Win32.
+						// Tu función HandleKeyboardMessages (en WM_SYSCHAR) atrapará la letra real y la procesará.
+						
+						wasHandled = true;
+					}
+				}
+			}
+			break;*/
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
@@ -940,7 +994,7 @@ namespace Berta
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
-		case WM_SYSCOMMAND:
+		//case WM_SYSCOMMAND:
 		case WM_MOUSEACTIVATE:
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:

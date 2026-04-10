@@ -18,7 +18,7 @@ int main()
 	Berta::Image imageImage("..\\..\\Resources\\Icons\\Image 128.png");
 	Berta::Image hddImage("..\\..\\Resources\\Icons\\Hard drive 3 128.png");
 
-	auto& fileMenu = menuBar.PushBack("File");
+	auto& fileMenu = menuBar.PushBack("&File");
 	auto newSubMenu = std::make_unique<Berta::Menu>();
 	newSubMenu->Append("Scene");
 	newSubMenu->Append("Texture");
@@ -44,7 +44,7 @@ int main()
 		});
 	fileMenu.SetImage(0, imageImage);
 
-	auto& editMenu = menuBar.PushBack("Edit");
+	auto& editMenu = menuBar.PushBack("&Edit");
 	editMenu.Append("Undo");
 	editMenu.Append("Redo");
 	editMenu.AppendSeparator();
