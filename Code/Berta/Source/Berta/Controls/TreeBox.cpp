@@ -110,12 +110,11 @@ namespace Berta
 		}
 	}
 
-	void TreeBoxReactor::Init(ControlBase& control, Graphics* graphics)
+	void TreeBoxReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_module.m_window = control.Handle();
+		m_module.m_window = m_control->Handle();
 		m_module.m_control = m_control;
-		m_module.m_graphics = graphics;
+		m_module.m_graphics = m_graphics;
 		
 		m_module.InitScrollableView();
 	}
@@ -893,7 +892,7 @@ namespace Berta
 			CollectVisibleNodes(root->children[i], 0, 0, isLast);
 		}
 
-		int maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
+		auto maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
 		int rightPadding = 10; 
     
 		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());

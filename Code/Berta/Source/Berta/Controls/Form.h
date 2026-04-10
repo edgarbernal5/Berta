@@ -19,18 +19,17 @@ namespace Berta
 {
 	class ControlBase;
 	
-	namespace ReactorCore::Form
+	namespace Internal::Form
 	{
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
-		
+			
 		private:
 		};
 		
-		class FormBase : public Control<ReactorCore::Form::Reactor, FormEvents>
+		class FormBase : public Control<Internal::Form::Reactor, FormEvents>
 		{
 		public:
 			explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);
@@ -39,11 +38,7 @@ namespace Berta
 
 			API::NativeWindowHandle NativeHandle() const;
 
-			Layout& GetLayout()
-			{
-				return m_layout;
-			}
-
+			Layout& GetLayout() { return m_layout; }
 			void SetLayout(const std::string& layoutText);
 
 			void SetCustomPaintCallback(std::function<void()> callback);
@@ -53,7 +48,7 @@ namespace Berta
 		};
 	}
 
-	class Form : public ReactorCore::Form::FormBase
+	class Form : public Internal::Form::FormBase
 	{
 	public:
 		explicit Form(const Size& size, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
@@ -65,7 +60,7 @@ namespace Berta
 	private:
 	};
 
-	class NestedForm : public ReactorCore::Form::FormBase
+	class NestedForm : public Internal::Form::FormBase
 	{
 	public:
 		NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle = { false, false, false, false, false, false }, bool isRenderForm = false);

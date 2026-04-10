@@ -8,6 +8,10 @@
 #include "MenuManager.h"
 
 #include "Berta/GUI/Interface.h"
+#include "Berta/Controls/Menu.h"
+
+#include "Berta/GUI/EnumTypes.h"
+#include "Berta/Core/Foundation.h"
 
 #include <stack>
 
@@ -18,43 +22,39 @@ namespace Berta
         return !m_popups.empty();
     }
 
-    void MenuManager::Close(Window* popupWindow)
+    void MenuManager::Close(const Window* popupWindow)
     {
-        if (m_popups.empty())
-            return;
-
-        std::stack<Window*> popups;
-        for (size_t i = 0; i < m_popups.size(); i++)
+        if (!popupWindow || m_popups.empty())
         {
-            if (m_popups[i] == popupWindow)
-            {
-                for (size_t j = i; j < m_popups.size(); j++)
-                {
-                    popups.push(m_popups[j]);
-                }
-                break;
-            }
+            return;
         }
 
-        while (!popups.empty())
+        auto it = std::find(m_popups.begin(), m_popups.end(), popupWindow);
+        if (it == m_popups.end())
         {
-            auto current = popups.top();
-            popups.pop();
+            return;
+        }
 
-            for (size_t i = 0; i < m_popups.size(); i++)
-            {
-                if (m_popups[i] == current)
-                {
-                    m_popups.erase(m_popups.begin() + i);
-                    break;
-                }
-            }
+        std::vector<Window*> popupsToClose(it, m_popups.end());
 
-            if (m_fromMenuBar && m_popups.empty())
+        m_popups.erase(it, m_popups.end());
+        
+        if (m_popups.empty())
+        {
+            if (m_owner)
             {
-                break;
+                GUI::ReleaseCapture(m_owner);
+                m_owner = nullptr;
             }
-            GUI::DisposeWindow(current);
+            m_fromMenuBar = false;
+        }
+
+        for (auto rit = popupsToClose.rbegin(); rit != popupsToClose.rend(); ++rit)
+        {
+            if (*rit)
+            {
+                GUI::DisposeWindow(*rit);
+            }
         }
     }
 
@@ -64,23 +64,51 @@ namespace Berta
         {
             return;
         }
-
-        GUI::ReleaseCapture(m_owner);
-        Close(m_popups[0]);
-        m_fromMenuBar = false;
+        
+        auto popupsToClose = m_popups;
+        Window* safeOwner = m_owner;
+        
+        m_popups.clear();
         m_owner = nullptr;
+        m_fromMenuBar = false;
+        
+        if (safeOwner)
+        {
+            GUI::ReleaseCapture(safeOwner);
+        }
+        
+        for (auto rit = popupsToClose.rbegin(); rit != popupsToClose.rend(); ++rit)
+        {
+            if (*rit)
+            {
+                GUI::DisposeWindow(*rit);
+            }
+        }
+        
+        for (const auto& listenerPair : m_onCloseListeners)
+        {
+            if (listenerPair.second) 
+            {
+                listenerPair.second();
+            }
+        }
     }
 
-    Window* MenuManager::GetActiveMenu(bool fromKeyboard) const
+    void MenuManager::CloseChildrenOf(Window* parent)
+    {
+        auto it = std::find(m_popups.begin(), m_popups.end(), parent);
+        if (it != m_popups.end() && std::next(it) != m_popups.end())
+        {
+            Window* firstChild = *std::next(it);
+            Close(firstChild); 
+        }
+    }
+
+    Window* MenuManager::GetTopPopup() const
     {
         if (m_popups.empty())
         {
             return nullptr;
-        }
-
-        if (fromKeyboard && m_fromMenuBar)
-        {
-            return m_popups[0];
         }
 
         return m_popups.back();
@@ -88,24 +116,54 @@ namespace Berta
 
     Window* MenuManager::FindMenu(const Point& mousePosition) const
     {
-#ifdef BT_PLATFORM_WINDOWS
-        for (int i = m_popups.size() - 1; i >=0 ; --i)
+        for (auto it = m_popups.rbegin(); it != m_popups.rend(); ++it)
         {
-            POINT screenToClientPoint{ mousePosition.X, mousePosition.Y };
-            auto menuWindow = m_popups[i];
-            ::ScreenToClient(menuWindow->RootHandle.Handle, &screenToClientPoint);
+            Window* menuWindow = *it;
+            Point localPosition = GUI::GetPointScreenToClient(menuWindow, mousePosition);
 
-            auto localPosition = Point{ (int)screenToClientPoint.x, (int)screenToClientPoint.y } - GUI::GetWindowRootPosition(menuWindow);
             if (menuWindow->ClientSize.IsInside(localPosition))
             {
                 return menuWindow;
             }
         }
+        return nullptr;
+    }
 
-        return nullptr;
-#else
-        return nullptr;
-#endif
+    void MenuManager::ShowContextMenu(Menu& menuData, Window* owner, const Point& position)
+    {
+        auto menuBox = new Berta::MenuBox(owner, position);
+        menuBox->InitFromData(menuData); 
+        
+        ShowPopup(menuBox->Handle(), owner, false);
+    }
+
+    void MenuManager::ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position)
+    {
+        auto menuBox = new Berta::MenuBox(owner, position);
+        menuBox->InitFromData(menuData); 
+        
+        ShowPopup(menuBox->Handle(), owner, true);
+    }
+
+    void MenuManager::ClearListeners()
+    {
+        m_onCloseListeners.clear();
+    }
+
+    uint32_t MenuManager::SubscribeOnClose(std::function<void()> listener)
+    {
+        uint32_t id = m_nextListenerId++;
+        m_onCloseListeners.push_back({ id, std::move(listener) });
+        return id;
+    }
+
+    void MenuManager::UnsubscribeOnClose(uint32_t listenerId)
+    {
+        m_onCloseListeners.erase(
+            std::remove_if(m_onCloseListeners.begin(), m_onCloseListeners.end(),
+                [listenerId](const auto& pair) { return pair.first == listenerId; }),
+            m_onCloseListeners.end()
+        );
     }
 
     void MenuManager::ShowPopup(Window* window, Window* owner, bool fromMenuBar)
@@ -115,14 +173,25 @@ namespace Berta
             m_owner = fromMenuBar ? owner : window;
             GUI::Capture(m_owner);
         }
+        
         if (fromMenuBar)
         {
-            if (std::find(m_popups.begin(), m_popups.end(), owner) == m_popups.end())
-            {
-                m_popups.emplace_back(owner);
-            }
             m_fromMenuBar = true;
         }
+        
         m_popups.emplace_back(window);
+        GUI::ShowWindow(window, true);
+    }
+
+    void MenuManager::NavigateTopLevel(int step)
+    {
+        if (!m_fromMenuBar || m_popups.empty() || m_owner == nullptr)
+        {
+            return;
+        }
+
+        ArgKeyboard args;
+        args.Key = (step > 0) ? KeyboardKey::ArrowRight : KeyboardKey::ArrowLeft;
+        Foundation::GetInstance().ProcessEvents<ArgKeyboard>(m_owner, &Renderer::KeyPressed, nullptr, args);
     }
 }

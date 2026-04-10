@@ -15,6 +15,7 @@ namespace Berta
 	{
 		m_control = &control;
 		m_graphics = graphics;
+		DoOnInit();
 	}
 
 	void ControlReactor::Shutdown()
@@ -82,6 +83,10 @@ namespace Berta
 	}
 
 	void ControlReactor::DpiChanged(Graphics& graphics)
+	{
+	}
+
+	void ControlReactor::DoOnInit()
 	{
 	}
 }

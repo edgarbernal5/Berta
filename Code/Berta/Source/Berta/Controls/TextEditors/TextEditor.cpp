@@ -126,7 +126,7 @@ namespace Berta
 			m_selection.m_endPosition = newPosition;
 			
 			bool selectionTimerRunning = m_selectionTimer.IsRunning();
-			bool insideEditorArea = m_editorArea.IsInside(args.Position);
+			bool insideEditorArea = m_editorArea.Contains(args.Position);
 			if (!selectionTimerRunning && !insideEditorArea)
 			{
 				std::cout << "start timmeerr. mouse pos = " << args.Position <<". area="<<m_editorArea << std::endl;

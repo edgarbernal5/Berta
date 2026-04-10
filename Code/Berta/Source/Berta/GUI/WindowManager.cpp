@@ -235,7 +235,7 @@ namespace Berta
 		window->Flags.IsDisposed = true;
 
 		ArgDestroy argDestroy;
-		foundation.ProcessEvents(window, static_cast<void(Renderer::*)(const ArgDestroy&)>(nullptr), &ControlEvents::Destroy, argDestroy);
+		foundation.ProcessEvents<ArgDestroy>(window, nullptr, &ControlEvents::Destroy, argDestroy);
 
 		while (!window->Children.empty())
 		{
@@ -538,7 +538,7 @@ namespace Berta
 	void WindowManager::Capture(Window* window, bool redirectToChildren)
 	{
 #if BT_DEBUG
-		//BT_CORE_TRACE << " - Capture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
+		BT_CORE_TRACE << " - Capture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
 #else
 		//BT_CORE_TRACE << " - Capture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 #endif
@@ -565,7 +565,7 @@ namespace Berta
 	void WindowManager::ReleaseCapture(Window* window)
 	{
 #if BT_DEBUG
-		//BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
+		BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << (m_capture.WindowPtr ? m_capture.WindowPtr->Name : "nulo") << ". window " << (window ? window->Name : "nulo") << std::endl;
 #else
 		//BT_CORE_TRACE << " - ReleaseCapture / WindowPtr = " << m_capture.WindowPtr << ". window " << window << std::endl;
 #endif
@@ -1039,7 +1039,7 @@ namespace Berta
 			absolutePosition,
 			window->ClientSize
 		};
-		return rect.IsInside(point);
+		return rect.Contains(point);
 	}
 
 	Window* WindowManager::FindInTree(Window* window, const Point& point)

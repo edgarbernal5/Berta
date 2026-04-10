@@ -570,12 +570,6 @@ namespace Berta::GUI
 		menuManager.CloseAll();
 	}
 
-	void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor)
-	{
-		auto& menuManager = Foundation::GetInstance().GetMenuManager();
-		menuManager.Close(rootReactor->Owner());
-	}
-
 	void Exit()
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
@@ -608,6 +602,28 @@ namespace Berta::GUI
 		}
 
 		window->Appearance->Background = newColor;
+	}
+
+	Window* GetMenuBar(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->RootWindow->MenuBar;
+		}
+
+		return nullptr;
+	}
+
+	void SetMenuBar(Window* menuBar)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(menuBar))
+		{
+			return;
+		}
+
+		menuBar->RootWindow->MenuBar = menuBar;
 	}
 
 	std::wstring GetAccessKeyText(const std::wstring& text, wchar_t &accessKey, std::size_t* accessKeyPosition)

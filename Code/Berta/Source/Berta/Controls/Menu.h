@@ -11,8 +11,11 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/Core/Timer.h"
 #include "Berta/Paint/Image.h"
+
 #include <string>
 #include <functional>
+#include <optional>
+#include <variant>
 #include <vector>
 
 namespace Berta
@@ -24,123 +27,171 @@ namespace Berta
 	struct Menu;
 	struct MenuItem;
 	
-	namespace ReactorCore::MenuBar
-	{
-		class Reactor;
-	}
-	
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{
 		class Reactor;
 	}
 	
 	struct Menu
 	{
-		friend class Berta::MenuBox;
-		friend class ReactorCore::MenuBox::Reactor;
-		friend class ReactorCore::MenuBar::Reactor;
+		using ClickCallback = std::function<void(MenuItem)>;
+		using ToggleCallback = std::function<void(MenuItem, bool)>;
+		
+		Menu() = default;
+		~Menu() = default;
+		
+		Menu(const Menu&) = delete;
+		Menu& operator=(const Menu&) = delete;
+		Menu(Menu&&) noexcept = default;
+		Menu& operator=(Menu&&) noexcept = default;
+		
+		struct MenuSeparator {};
 
-		using ClickCallback = std::function<void(MenuItem&)>;
-		using DestroyCallback = std::function<void()>;
-
-		void Append(const std::string& text, ClickCallback onClick = {});
-		void Append(const std::wstring& text, ClickCallback onClick = {});
-		void AppendSeparator();
-		void ShowPopup(Window* owner, const ArgMouse& args);
-		Menu* CreateSubMenu(std::size_t index);
-		void SetImage(size_t index, const Image& image);
-		void SetEnabled(size_t index, bool enabled);
-
-		Berta::MenuBox* GetMenuBox() const { return m_menuBox; }
-		void CloseMenuBox();
-
-		struct Item
+		struct MenuAction
 		{
-			Item() : m_isSeparator(true) {}
-			Item(const std::wstring& _text, ClickCallback _onClick) : 
-				m_text(_text), 
-				m_isSeparator(false),
-				m_onClick(_onClick)
-			{
-				m_text = GUI::GetAccessKeyText(_text, m_accessKey, &m_accessKeyPosition);
-			}
-
-			std::wstring m_text;
-			bool m_isSeparator{ false };
-			bool m_isEnabled{ true };
-			ClickCallback m_onClick;
-			std::unique_ptr<Menu> m_subMenu;
-			Image m_image;
-			wchar_t m_accessKey{ 0 };
-			std::size_t	m_accessKeyPosition{ 0 };
+			std::wstring text;
+			std::wstring shortcutText;
+			Image image;
+			ClickCallback onClick;
+			wchar_t accessKey{ 0 };
+			std::size_t accessKeyPosition{ 0 };
+			bool isEnabled{ true };
 		};
 		
-	private:
-		void ShowPopup(Window* owner, const Point& position, bool fromMenuBar, bool ignoreFirstMouseUp = true);
-		Size GetMenuBoxSize(Window* parent) const;
+		struct MenuCheckbox 
+		{
+			std::wstring text;
+			bool isChecked{ false };
+			ToggleCallback onToggle;
+			bool isEnabled{ true };
+		};
 
-		std::vector<std::unique_ptr<Item>> m_items;
-		Berta::MenuBox* m_menuBox{ nullptr };
-		Window* m_parentWindow{ nullptr };
-		Menu* m_parentMenu{ nullptr };
-		DestroyCallback m_destroyCallback;
+		struct MenuSubMenu
+		{
+			std::wstring text;
+			Image image;
+			std::unique_ptr<Menu> subMenu;
+			bool isEnabled{ true };
+		};
+		
+		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu, MenuCheckbox>;
+
+		MenuItem Append(const std::string& text, ClickCallback onClick = {});
+		MenuItem Append(const std::wstring& text, ClickCallback onClick = {});
+		MenuItem AppendSeparator();
+		MenuItem AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu);
+		MenuItem AppendCheckbox(const std::wstring& text, bool initialState, ToggleCallback onToggle = {});
+		
+		const std::vector<MenuItemData>& GetItems() const { return m_items; }
+		
+		MenuItemData& GetItem(size_t index) 
+		{ 
+			return m_items.at(index); 
+		}
+		
+		void ShowPopup(Window* owner, const ArgMouse& args);
+		
+		void SetText(size_t index, const std::wstring& text);
+		std::wstring GetText(size_t index) const;
+		
+		void SetImage(size_t index, const Image& image);
+		
+		bool GetEnabled(size_t index) const;
+		void SetEnabled(size_t index, bool enabled);
+		
+		bool IsChecked(size_t index) const;
+		void SetChecked(size_t index, bool checked);
+		void ToggleCheckbox(size_t index);
+		
+	private:
+		std::vector<MenuItemData> m_items;
 	};
 	
 	struct MenuItem
 	{
-		MenuItem(Menu::Item& target) : m_target(target) {}
-
+		MenuItem() = default;
+		MenuItem(Menu* owner, size_t index) : m_owner(owner), m_index(index) {}
+		
+		bool IsValid() const { return m_owner != nullptr; }
+		operator bool() const { return IsValid(); }
+		
+		//method chaining
+		
 		bool GetEnabled() const;
-		void SetEnabled(bool isEnabled);
-		void SetText(const std::wstring& text);
+		MenuItem& SetEnabled(bool enabled);
+		
+		std::wstring GetText() const;
+		MenuItem& SetText(const std::wstring& text);
+		
+		MenuItem& SetImage(const Image& image);
+		
+		MenuItem& SetChecked(bool checked);
+		bool IsChecked() const;
+		MenuItem& Toggle();
 		
 	private:
-		Menu::Item& m_target;
+		Menu* m_owner{ nullptr };
+		size_t m_index{ 0 };
 	};
 	
-	namespace ReactorCore::MenuBox
+	namespace Internal::MenuBox
 	{		
 		struct Appearance : public ControlAppearance
 		{
-			uint32_t MenuBarItemHeight = 18;
+			uint32_t ItemTextPadding = 4;
+			uint32_t SeparatorHeight = 3;
+        
 			uint32_t MenuBoxLeftPaneWidth = 32;
-			uint32_t MenuBoxItemHeight = 20;
+			uint32_t MenuBoxItemHeight = 22;
 			uint32_t MenuBoxSubMenuArrowWidth = 20;
-			uint32_t MenuBoxShortcutWidth = 20;
-		};
-
-		class MenuItemReactor
-		{
-		public:
-			friend class ReactorCore::MenuBox::Reactor;
-		
-		public:
-			virtual ~MenuItemReactor() = default;
-
-			virtual bool OnClickSubMenu(const ArgMouse& args) = 0;
-
-			virtual void MoveToNextItem(bool upwards) = 0;
-			virtual bool ExitSubMenu() = 0;
-			virtual bool EnterSubMenu() = 0;
-			virtual void Select() = 0;
-			virtual void Quit() = 0;
-
-			virtual MenuItemReactor* Prev() const { return m_prev; }
-			virtual MenuItemReactor* Next() const { return m_next; }
-
-			virtual Window* Owner() const = 0;
-
-		protected:
-			MenuItemReactor* m_next{ nullptr };
-			MenuItemReactor* m_prev{ nullptr };
+			uint32_t MenuBoxShortcutWidth = 40;
+        
+			uint32_t CheckboxSize = 12;
 		};
 		
-		class Reactor : public ControlReactor, public MenuItemReactor
+		struct ItemLayoutCache
+		{
+			Rectangle bounds;
+			Point textPosition;
+			Point shortcutPosition;
+			Point arrowPosition;
+		};
+		
+		struct Module
+		{
+			void CalculateLayout(const Menu& menuData);
+			
+			void InitFromData(Menu& menuData);
+			void InitTimer();
+			void ExecuteHoveredItem();
+			void OpenHoveredSubMenu(bool focusFirstItem);
+			bool IsHoveredItemSubMenu() const;
+			void MoveSelection(int step);
+			
+			void DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color);
+			
+			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
+			
+			Window* m_owner { nullptr };
+			ControlBase* m_control { nullptr };
+			
+			Menu* m_menuData{ nullptr };
+			
+			std::vector<ItemLayoutCache> m_layoutCache;
+			Size m_calculatedBoxSize;
+			
+			std::optional<Point> m_lastMousePos { std::nullopt };
+			bool m_ignoreFirstMouseUp{ false };
+			std::optional<std::size_t> m_hoveredIndex;
+			std::optional<std::size_t> m_pendingSubMenuIndex;
+			std::optional<std::size_t> m_openedSubMenuIndex;
+			Timer m_hoverTimer;
+			static constexpr uint32_t SubMenuDelayMs = 400u;
+		};
+		
+		class Reactor : public ControlReactor
 		{
 		public:
-			~Reactor() = default;
-
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -151,79 +202,32 @@ namespace Berta
 
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 
-			bool OnClickSubMenu(const ArgMouse& args) override;
-			Window* Owner() const override;
-
-			void MoveToNextItem(bool upwards) override;
-			bool ExitSubMenu() override;
-			bool EnterSubMenu() override;
-			void Select() override;
-			void Quit() override;
-
-			Menu* GetMenuOwner() const { return m_menuOwner; }
-
-			void BuildItems();
-			void SetItems(std::vector<std::unique_ptr<Menu::Item>>& items);
-			void SetMenuOwner(Menu* menuOwner);
-			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
-			Size GetMenuBoxSize();
-
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
+			
+		protected:
+			void DoOnInit() override;
+			
 		private:
-			struct MenuBoxItem
-			{
-				Point m_position;
-				Size m_size;
-			};
-			enum SubMenuAction : uint8_t
-			{
-				None,
-				Open,
-				Close
-			};
-
-			void OpenSubMenu(Menu* subMenu, Menu* parentMenu, int selectedIndex, bool ignoreFirstMouseUp = true);
-			int FindItem(const ArgMouse& args);
-			bool MouseMoveInternal(const ArgMouse& args);
-			MenuItemReactor* GetLastMenuItem() const;
-
-			Berta::MenuBox* m_menuBox{ nullptr };
-			Menu* m_menuOwner{ nullptr };
-			Appearance* m_appearance{ nullptr };
-			bool m_ignoreFirstMouseUp{ true };
-			std::vector<std::unique_ptr<Menu::Item>>* m_items{ nullptr };
-			std::vector<MenuBoxItem> m_itemSizePositions;
-			Timer m_subMenuTimer;
-			int m_selectedIndex{ -1 };
-			int m_selectedSubMenuIndex{ -1 };
-			int m_openedSubMenuIndex{ -1 };
+			Module m_module;
 		};
 	}
 
-	class MenuBox : public Control<ReactorCore::MenuBox::Reactor, FormEvents, ReactorCore::MenuBox::Appearance>
+	class MenuBox : public Control<Internal::MenuBox::Reactor, FormEvents, Internal::MenuBox::Appearance>
 	{
 	public:
 		using MenuItem = Berta::MenuItem;
-		using MenuItemReactor = ReactorCore::MenuBox::MenuItemReactor;
-		
-		friend struct Menu;
-		friend class ReactorCore::MenuBox::Reactor;
-		friend class ReactorCore::MenuBar::Reactor;
 
 	public:
 		MenuBox(Window* parent, const Point& position);
-		~MenuBox();
+		~MenuBox() override;
 
-		void Init(Menu* menuOwner, std::vector<std::unique_ptr<Menu::Item>>& items);
-		void SetIgnoreFirstMouseUp(bool value);
-
-		void Popup(bool fromMenuBar = false);
+		void InitFromData(Menu& menuData);
+		
 	private:
 #if BT_DEBUG
 		static int g_globalId;
 #endif
-
-		MenuItemReactor* GetItemReactor() { return &GetReactor(); }
-		Size GetMenuBoxSize();
 	};
 }
 

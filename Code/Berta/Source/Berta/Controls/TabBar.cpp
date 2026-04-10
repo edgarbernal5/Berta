@@ -22,10 +22,9 @@ namespace Berta
 		}
 	}
 	
-	void TabBarReactor::Init(ControlBase& control, Graphics* graphics)
+	void TabBarReactor::DoOnInit()
 	{
-		m_control = &control;
-		m_module.m_owner = control.Handle();
+		m_module.m_owner = m_control->Handle();
 		m_module.m_events = reinterpret_cast<TabBarEvents*>(m_module.m_owner->Events.get());
 	}
 
@@ -227,6 +226,7 @@ namespace Berta
 			m_module.m_mouseDownCloseBtnIndex = m_module.m_hoveredCloseBtnIndex;
 			return;
 		}
+		
 		if (m_module.m_hoveredTabIndex.has_value())
 		{
 			size_t selectedIndex = m_module.m_hoveredTabIndex.value();
@@ -264,7 +264,7 @@ namespace Berta
 				Rectangle absCloseBtn = tabItem.CloseButtonArea;
 				absCloseBtn.X += tabItem.Position.X;
 				absCloseBtn.Y += tabItem.Position.Y;
-				if (absCloseBtn.IsInside(args.Position))
+				if (absCloseBtn.Contains(args.Position))
 				{
 					newHoveredCloseBtn = newHoveredTab;
 				}
@@ -502,6 +502,7 @@ namespace Berta
 			
 			GUI::ShowWindow(m_panels[newIdx].PanelPtr.get(), true);
 		}
+		
 		ArgTabBar closedArgs{ index, idCopy };
 		m_events->TabClosed.Emit(closedArgs);
 		
@@ -567,7 +568,7 @@ namespace Berta
 	{
 		for (size_t i = 0; i < m_panels.size(); ++i)
 		{
-			if (Rectangle{ m_panels[i].Position, m_panels[i].Size }.IsInside(position))
+			if (Rectangle{ m_panels[i].Position, m_panels[i].Size }.Contains(position))
 			{
 				return i;
 			}

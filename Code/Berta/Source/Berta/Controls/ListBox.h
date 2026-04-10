@@ -18,13 +18,12 @@
 #include <string>
 #include <vector>
 #include <any>
-#include <unordered_set>
 
 namespace Berta
 {
 	constexpr uint32_t LISTBOX_MIN_HEADER_WIDTH = 80u;
 	
-	namespace ReactorCore::ListBox
+	namespace Internal::ListBox
 	{
 		struct ListBoxItem;
 
@@ -195,7 +194,6 @@ namespace Berta
 		class Reactor : public ControlReactor
 		{
 		public:
-			void Init(ControlBase& control, Graphics* graphics) override;
 			void Update(Graphics& graphics) override;
 			void DblClick(Graphics& graphics, const ArgMouse& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
@@ -261,6 +259,9 @@ namespace Berta
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 
+		protected:
+			void DoOnInit() override;
+			
 		private:
 			Module m_module;
 		};
@@ -313,10 +314,10 @@ namespace Berta
 
 	struct ArgListBox
 	{
-		std::vector<ReactorCore::ListBox::ListBoxItem> Selected;
+		std::vector<Internal::ListBox::ListBoxItem> Selected;
 	};
 
-	namespace ReactorCore::ListBox
+	namespace Internal::ListBox
 	{
 		struct Events : public ControlEvents
 		{
@@ -324,10 +325,10 @@ namespace Berta
 		};
 	}
 	
-	class ListBox : public Control<ReactorCore::ListBox::Reactor, ReactorCore::ListBox::Events, ReactorCore::ListBox::Appearance>
+	class ListBox : public Control<Internal::ListBox::Reactor, Internal::ListBox::Events, Internal::ListBox::Appearance>
 	{
 	public:
-		using ListBoxItem = ReactorCore::ListBox::ListBoxItem;
+		using ListBoxItem = Internal::ListBox::ListBoxItem;
 		
 	public:
 		ListBox() = default;

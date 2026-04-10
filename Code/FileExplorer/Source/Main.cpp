@@ -311,13 +311,13 @@ int main()
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack("File");
-	menuFile.Append("Exit", [](Berta::MenuItem& item)
+	menuFile.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
 
 	auto& menuHelp = menuBar.PushBack("Help");
-	menuHelp.Append("About", [](Berta::MenuItem& item)
+	menuHelp.Append("About", [](Berta::MenuItem item)
 		{
 
 		});

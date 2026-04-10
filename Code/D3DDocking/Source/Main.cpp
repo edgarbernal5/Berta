@@ -16,7 +16,7 @@
 
 struct TreeItemData
 {
-	std::string path;
+	std::wstring path;
 };
 class TabExplorer : public Berta::Panel
 {
@@ -33,15 +33,15 @@ public:
 		{
 			if (drives & (1 << i))
 			{
-				std::string letter = std::string(1, 'A' + i) + ":/";
-				std::string text = std::string(1, 'A' + i) + ":";
+				std::wstring letter = std::wstring(1, 'A' + i) + L":/";
+				std::wstring text = std::wstring(1, 'A' + i) + L":";
 
 				auto newItem = m_treeBox.Insert(letter, text);
 				newItem.SetIcon(m_hardDriveImg);
 				TreeItemData nodeData{ letter };
 				newItem.SetUserData(nodeData);
 
-				m_treeBox.Insert(letter + ".../", "...");
+				m_treeBox.Insert(letter + L".../", L"...");
 			}
 		}
 
@@ -54,7 +54,7 @@ public:
 
 				auto& treeItem = args.Items[0];
 				auto userData = treeItem.GetUserData<TreeItemData>();
-				auto path = m_treeBox.GetKeyPath(treeItem, '/') + "/";
+				auto path = m_treeBox.GetKeyPath(treeItem, '/') + L"/";
 
 				try
 				{
@@ -90,9 +90,9 @@ public:
 				if (!args.IsExpanded)
 					return;
 
-				if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == "...")
+				if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == L"...")
 				{
-					auto path = m_treeBox.GetKeyPath(args.Item, '/') + "/";
+					auto path = m_treeBox.GetKeyPath(args.Item, '/') + L"/";
 
 					auto child = args.Item.FirstChild();
 					m_treeBox.Erase(child);
@@ -102,9 +102,9 @@ public:
 						{
 							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 							{
-								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								auto newItem = m_treeBox.Insert(entry.path().wstring(), entry.path().filename().wstring());
 								newItem.SetIcon(m_folderImg);
-								TreeItemData itemData{ entry.path().string() };
+								TreeItemData itemData{ entry.path().wstring() };
 								newItem.SetUserData(itemData);
 								auto subEntryPath = entry.path().string() + "/";
 								for (const auto& subEntry : std::filesystem::directory_iterator(subEntryPath))
@@ -113,7 +113,7 @@ public:
 									{
 										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
 										{
-											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											m_treeBox.Insert(entry.path().wstring() + L"/...", L"...");
 											break;
 										}
 									}
@@ -142,7 +142,7 @@ public:
 
 				auto treeItemSelected = m_treeBox.GetSelected().at(0);
 				auto pathTreeItemSelected = m_treeBox.GetKeyPath(treeItemSelected, '/');
-				auto newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+				auto newSelected = m_treeBox.Find(pathTreeItemSelected + L"/" +  Berta::StringUtils::UTF8ToWide(first.GetText(0)));
 				if (newSelected)
 				{
 					treeItemSelected.Expand();
@@ -150,9 +150,9 @@ public:
 					return;
 				}
 
-				if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == "...")
+				if (treeItemSelected.FirstChild() && treeItemSelected.FirstChild().GetText() == L"...")
 				{
-					auto path = m_treeBox.GetKeyPath(treeItemSelected, '/') + "/";
+					auto path = m_treeBox.GetKeyPath(treeItemSelected, '/') + L"/";
 
 					auto child = treeItemSelected.FirstChild();
 					m_treeBox.Erase(child);
@@ -162,9 +162,9 @@ public:
 						{
 							if (std::filesystem::is_directory(entry.symlink_status()) && !std::filesystem::is_symlink(entry))
 							{
-								auto newItem = m_treeBox.Insert(entry.path().string(), entry.path().filename().string());
+								auto newItem = m_treeBox.Insert(entry.path().wstring(), entry.path().filename().wstring());
 								newItem.SetIcon(m_folderImg);
-								TreeItemData itemData{ entry.path().string() };
+								TreeItemData itemData{ entry.path().wstring() };
 								newItem.SetUserData(itemData);
 
 								auto subEntryPath = entry.path().string() + "/";
@@ -174,7 +174,7 @@ public:
 									{
 										if (std::filesystem::is_directory(subEntry.symlink_status()) && !std::filesystem::is_symlink(subEntry))
 										{
-											m_treeBox.Insert(entry.path().string() + "/...", "...");
+											m_treeBox.Insert(entry.path().wstring() + L"/...", L"...");
 											break;
 										}
 									}
@@ -191,7 +191,7 @@ public:
 						}
 					}
 
-					newSelected = m_treeBox.Find(pathTreeItemSelected + "/" + first.GetText(0));
+					newSelected = m_treeBox.Find(pathTreeItemSelected + L"/" + Berta::StringUtils::UTF8ToWide(first.GetText(0)));
 					if (newSelected)
 					{
 						treeItemSelected.Expand();
@@ -375,11 +375,11 @@ int main()
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"&File");
 
-	menuFile.Append("New");
-	auto newSubmenu = menuFile.CreateSubMenu(0);
-	newSubmenu->Append("Tab");
+	auto newSubMenu = std::make_unique<Berta::Menu>();
+	newSubMenu->Append("Tab");
+	menuFile.AppendSubMenu(L"New", std::move(newSubMenu));
 
-	menuFile.Append("Exit", [](Berta::MenuItem& item)
+	menuFile.Append("Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
@@ -387,12 +387,12 @@ int main()
 	auto& menuWindow = menuBar.PushBack(L"W&indow");
 	menuWindow.Append("Load layout");
 	menuWindow.Append("Reset layout");
-	menuWindow.Append("Custom");
-	auto customSubmenu = menuWindow.CreateSubMenu(2);
+	auto customSubmenu = std::make_unique<Berta::Menu>();
 	customSubmenu->Append("O&ne");
 	customSubmenu->Append("Tw&o");
 	customSubmenu->AppendSeparator();
 	customSubmenu->Append("More");
+	menuWindow.AppendSubMenu(L"Custom", std::move(customSubmenu));
 
 	auto& helpMenu = menuBar.PushBack(L"Help");
 	helpMenu.Append("About");

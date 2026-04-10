@@ -11,12 +11,10 @@
 
 namespace Berta
 {
-	namespace ReactorCore::CheckBox
+	namespace Internal::CheckBox
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
+		void Reactor::DoOnInit()
 		{
-			m_control = &control;
-
 			m_module.m_window = m_control->Handle();
 			m_module.m_events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
 		}

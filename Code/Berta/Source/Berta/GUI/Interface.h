@@ -9,18 +9,12 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Window.h"
-#include "Berta/Platform/Windows/Messages.h"
 
 namespace Berta
 {
 	class ControlBase;
 	class ControlReactor;
 	struct ControlEvents;
-
-	namespace ReactorCore::MenuBox
-	{
-		class MenuItemReactor;
-	}
 	
 	namespace GUI
 	{
@@ -82,13 +76,15 @@ namespace Berta
 
 		bool IsWindowBorderless(Window* window);
 		void DisposeMenu();
-		void DisposeMenu(ReactorCore::MenuBox::MenuItemReactor* rootReactor);
 
 		void Exit();
 
 		Color GetBackgroundColor(Window* window);
 		void SetBackgroundColor(Window* window, const Color& newColor);
 
+		Window* GetMenuBar(Window* window);
+		void SetMenuBar(Window* menuBar);
+		
 		//TODO: mover estas funciones a otro namespace/archivo/clase
 		std::wstring GetAccessKeyText(const std::wstring& text, wchar_t& accessKey, std::size_t* accessKeyPosition);
 		void DrawAccessKeyUnderline(Graphics& graphics, const std::wstring& wstr, wchar_t accessKey, std::size_t accessKeyPosition, const Point& position, const Color& color);

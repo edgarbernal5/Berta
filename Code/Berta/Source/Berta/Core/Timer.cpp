@@ -88,6 +88,11 @@ namespace Berta
 		Start();
 	}
 
+	void Timer::Connect(std::function<void(const ArgTimer&)> callback)
+	{
+		m_tickEvent.Connect(callback);
+	}
+
 	void Timer::Run()
 	{
 		std::unique_lock<std::mutex> lock(m_conditionMutex);
@@ -104,7 +109,7 @@ namespace Berta
 			API::SendCustomMessage(m_owner->RootHandle, [this]()
 			{
 				ArgTimer argTimer;
-				m_tick.Emit(argTimer);
+				m_tickEvent.Emit(argTimer);
 			});
 		}
 	}

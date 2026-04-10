@@ -17,6 +17,7 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
+#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Paint/DrawBatchActivator.h"
 
 #if BT_DEBUG
@@ -165,7 +166,17 @@ namespace Berta
 		{WM_SETFOCUS,		"WM_SETFOCUS"},
 		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
 
+		{WM_SYSCOMMAND,		"WM_SYSCOMMAND"},
+		
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
+		
+		{WM_CHAR,			"WM_CHAR"},
+		{WM_SYSCHAR,			"WM_SYSCHAR"},
+		{WM_KEYDOWN,			"WM_KEYDOWN"},
+		{WM_KEYUP,			"WM_KEYUP"},
+		{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
+		{WM_SYSKEYUP,		"WM_SYSKEYUP"},
+		
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
 		//{WM_WINDOWPOSCHANGING,		"WM_WINDOWPOSCHANGING"},
@@ -193,6 +204,8 @@ namespace Berta
 	//	{WM_KILLFOCUS,		"WM_KILLFOCUS"},
 	//	{WM_CLOSE,			"WM_CLOSE"},
 
+	//	{WM_SYSCOMMAND,		"WM_SYSCOMMAND"},
+	
 	//	{WM_CHAR,			"WM_CHAR"},
 	//	{WM_KEYDOWN,		"WM_KEYDOWN"},
 	//	{WM_KEYUP,			"WM_KEYUP"},
@@ -271,7 +284,9 @@ namespace Berta
 				debugBuilder << ">> WndProc message: " << it->second << ". hWnd = " << hWnd;// << std::endl;
 			}
 			if (g_debugLastMessageCount[hWnd] > 0)
+			{
 				g_debugLastMessageCount[hWnd] = 0;
+			}
 
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId[hWnd] = message;
@@ -340,552 +355,597 @@ namespace Berta
 		switch (message)
 		{
 		case static_cast<uint32_t>(CustomMessageId::CustomCallback):
-		{
-			if (wParam)
 			{
-				auto argParam = reinterpret_cast<CustomCallbackMessage*>(wParam);
-				if (argParam->Body)
+				if (wParam)
 				{
-					argParam->Body();
+					auto argParam = reinterpret_cast<CustomCallbackMessage*>(wParam);
+					if (argParam->Body)
+					{
+						argParam->Body();
+					}
+
+					//TODO: improve memory management here.
+					delete argParam;
 				}
-
-				//TODO: improve memory management here.
-				delete argParam;
+				wasHandled = false;
+				break;
 			}
-			wasHandled = false;
-			break;
-		}
 		case WM_ERASEBKGND:
-		{
-			return TRUE;
-		}
+			{
+				return TRUE;
+			}
 
-		//WM_NCPAINT, WM_NCCALCSIZE
-		//https://github.com/rossy/borderless-window/blob/master/borderless-window.c#L347
-		//https://devblog.cyotek.com/post/painting-the-borders-of-a-custom-control-using-wm-ncpaint
+			//WM_NCPAINT, WM_NCCALCSIZE
+			//https://github.com/rossy/borderless-window/blob/master/borderless-window.c#L347
+			//https://devblog.cyotek.com/post/painting-the-borders-of-a-custom-control-using-wm-ncpaint
 
 		case WM_ACTIVATEAPP:
-		{
-			ArgActivated argActivated{};
-			argActivated.IsActivated = wParam ? true : false;
-			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
-			events->Activated.Emit(argActivated);
+			{
+				ArgActivated argActivated{};
+				argActivated.IsActivated = wParam ? true : false;
+				auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
+				events->Activated.Emit(argActivated);
 
-			wasHandled = false;
-			break;
-		}
+				wasHandled = false;
+				break;
+			}
 
 		case WM_NCACTIVATE:
 			return ::DefWindowProc(hWnd, message, wParam, -1);	//DefWindowProc won't repaint the window border if lParam (normally a HRGN) is - 1.
-																		//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+			//https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
 		case WM_GETMINMAXINFO:
-		{
-			auto pMinMax = reinterpret_cast<::MINMAXINFO*>(lParam);
-			bool changed = false;
-			if (!nativeWindow->MinSize.IsEmpty())
 			{
-				pMinMax->ptMinTrackSize.x = nativeWindow->MinSize.Width;
-				pMinMax->ptMinTrackSize.y = nativeWindow->MinSize.Height;
-				changed = true;
-			}
+				auto pMinMax = reinterpret_cast<::MINMAXINFO*>(lParam);
+				bool changed = false;
+				if (!nativeWindow->MinSize.IsEmpty())
+				{
+					pMinMax->ptMinTrackSize.x = nativeWindow->MinSize.Width;
+					pMinMax->ptMinTrackSize.y = nativeWindow->MinSize.Height;
+					changed = true;
+				}
 
-			if (!nativeWindow->MaxSize.IsEmpty())
-			{
-				pMinMax->ptMaxTrackSize.x = nativeWindow->MaxSize.Width;
-				pMinMax->ptMaxTrackSize.y = nativeWindow->MaxSize.Height;
-				changed = true;
-			}
+				if (!nativeWindow->MaxSize.IsEmpty())
+				{
+					pMinMax->ptMaxTrackSize.x = nativeWindow->MaxSize.Width;
+					pMinMax->ptMaxTrackSize.y = nativeWindow->MaxSize.Height;
+					changed = true;
+				}
 
-			if (changed)
-			{
-				return 0;
+				if (changed)
+				{
+					return 0;
+				}
+				wasHandled = false;
+				break;
 			}
-			wasHandled = false;
-			break;
-		}
 		case WM_SHOWWINDOW:
-		{
-			bool isVisible = (wParam == TRUE);
-			if (nativeWindow->Visible != isVisible)
 			{
-				nativeWindow->Visible = isVisible;
-
-				ArgVisibility argVisibility;
-				argVisibility.IsVisible = isVisible;
-				nativeWindow->Events->Visibility.Emit(argVisibility);
-
-				auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
-				if (targetWindow)
+				bool isVisible = (wParam == TRUE);
+				if (nativeWindow->Visible != isVisible)
 				{
-					API::RefreshWindow(nativeWindowHandle);
-				}
-			}
-			wasHandled = false;
-			break;
-		}
-		case WM_PAINT:
-		{
-			//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
-			if (nativeWindow->Type == WindowType::RenderForm)
-			{
-				::PAINTSTRUCT ps;
-				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+					nativeWindow->Visible = isVisible;
 
-				HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
-				::FillRect(hdc, &ps.rcPaint, hBrush);
-				::DeleteObject(hBrush);
+					ArgVisibility argVisibility;
+					argVisibility.IsVisible = isVisible;
+					nativeWindow->Events->Visibility.Emit(argVisibility);
 
-				Rectangle areaToUpdate;
-				areaToUpdate.FromRECT(ps.rcPaint);
-#if BT_DEBUG
-				//BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
-				//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
-#else
-				//BT_CORE_DEBUG << "   area to update " << areaToUpdate << std::endl;
-				//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << std::endl;
-#endif
-				if (nativeWindow->HasCustomPaint())
-				{
-					nativeWindow->RenderForAttributes.CustomPaint();
-				}
-				::EndPaint(hWnd, &ps);
-				//::BeginPaint() already validated the update area.
-			}
-			else
-			{
-#if BT_DEBUG
-				//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
-#else
-				//ScopedTimer scopedTimer("WM_PAINT");
-#endif
-				windowManager.UpdateTree(nativeWindow);
-
-				//nativeWindow->Flags.isBatching = false;
-				::ValidateRect(hWnd, nullptr);
-			}
-
-			wasHandled = true;
-			break;
-		}
-		//case WM_MOVING:
-		case WM_MOVE:
-		{
-			int x = static_cast<short>(LOWORD(lParam));
-			int y = static_cast<short>(HIWORD(lParam));
-#if BT_DEBUG
-			//BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
-#else
-//			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << std::endl;
-#endif
-			ArgMove argMove;
-			argMove.NewPosition.X = x;
-			argMove.NewPosition.Y = y;
-			foundation.ProcessEvents(nativeWindow, &Renderer::Move, &ControlEvents::Move, argMove);
-
-			wasHandled = true;
-			break;
-		}
-		//case WM_SIZING:
-		//{
-		//	::RECT* rect = reinterpret_cast<RECT*>(lParam);
-		//	uint32_t newWidth = static_cast<uint32_t>(rect->right - rect->left) - nativeWindow->BorderSize.Width;
-		//	uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
-		//	
-		//	Size newSize{ newWidth , newHeight };
-		//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
-		//	{
-		//		windowManager.Resize(nativeWindow, newSize, false);
-		//	}
-		//	wasHandled = true;
-		//	break;
-		//}
-		case WM_SIZE:
-		{
-			Size newSize{ (uint32_t)LOWORD(lParam) , (uint32_t)HIWORD(lParam) };
-#if BT_DEBUG
-			//BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
-#else
-			BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
-#endif
-			if (newSize.Width > 0 && newSize.Height > 0)
-			{
-				if (nativeWindow->RootPaintHandle.RenderTarget)
-				{
-					auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
-					if (FAILED(hr))
+					auto targetWindow = isVisible ? nativeWindow : nativeWindow->FindFirstNonPanelAncestor();
+					if (targetWindow)
 					{
-						BT_CORE_ERROR << "Error while resizing HWND render target." << std::endl;
+						API::RefreshWindow(nativeWindowHandle);
 					}
 				}
-
-				windowManager.Resize(nativeWindow, newSize, false);
-
-				if (nativeWindow->HasCustomPaint())
+				wasHandled = false;
+				break;
+			}
+		case WM_PAINT:
+			{
+				//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
+				if (nativeWindow->Type == WindowType::RenderForm)
 				{
-					API::RefreshWindow(nativeWindowHandle);
+					::PAINTSTRUCT ps;
+					auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+
+					HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
+					::FillRect(hdc, &ps.rcPaint, hBrush);
+					::DeleteObject(hBrush);
+
+					Rectangle areaToUpdate;
+					areaToUpdate.FromRECT(ps.rcPaint);
+#if BT_DEBUG
+					//BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
+					//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
+#else
+					//BT_CORE_DEBUG << "   area to update " << areaToUpdate << std::endl;
+					//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << std::endl;
+#endif
+					if (nativeWindow->HasCustomPaint())
+					{
+						nativeWindow->RenderForAttributes.CustomPaint();
+					}
+					::EndPaint(hWnd, &ps);
+					//::BeginPaint() already validated the update area.
 				}
-				//else
-				//{
-				//	API::RefreshWindow(nativeWindowHandle);
-				//}
+				else
+				{
+#if BT_DEBUG
+					//ScopedTimer scopedTimer("WM_PAINT / window = " + nativeWindow->Name);
+#else
+					//ScopedTimer scopedTimer("WM_PAINT");
+#endif
+					windowManager.UpdateTree(nativeWindow);
+
+					//nativeWindow->Flags.isBatching = false;
+					::ValidateRect(hWnd, nullptr);
+				}
+
+				wasHandled = true;
+				break;
 			}
+			//case WM_MOVING:
+		case WM_MOVE:
+			{
+				int x = static_cast<short>(LOWORD(lParam));
+				int y = static_cast<short>(HIWORD(lParam));
+#if BT_DEBUG
+				//BT_CORE_DEBUG << " move x = " << x << ", y = " << y << ". window = " << nativeWindow->Name << std::endl;
+#else
+				//			BT_CORE_DEBUG << " move x = " << x << ", y = " << y << std::endl;
+#endif
+				ArgMove argMove;
+				argMove.NewPosition.X = x;
+				argMove.NewPosition.Y = y;
+				foundation.ProcessEvents(nativeWindow, &Renderer::Move, &ControlEvents::Move, argMove);
+
+				wasHandled = true;
+				break;
+			}
+			//case WM_SIZING:
+			//{
+			//	::RECT* rect = reinterpret_cast<RECT*>(lParam);
+			//	uint32_t newWidth = static_cast<uint32_t>(rect->right - rect->left) - nativeWindow->BorderSize.Width;
+			//	uint32_t newHeight = static_cast<uint32_t>(rect->bottom - rect->top) - nativeWindow->BorderSize.Height;
+			//	
+			//	Size newSize{ newWidth , newHeight };
+			//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+			//	{
+			//		windowManager.Resize(nativeWindow, newSize, false);
+			//	}
+			//	wasHandled = true;
+			//	break;
+			//}
+		case WM_SIZE:
+			{
+				Size newSize{ (uint32_t)LOWORD(lParam) , (uint32_t)HIWORD(lParam) };
+#if BT_DEBUG
+				//BT_CORE_DEBUG << "   Size: new size " << newSize << ". window = " << nativeWindow->Name << std::endl;
+#else
+				BT_CORE_DEBUG << "   Size: new size " << newSize << std::endl;
+#endif
+				if (newSize.Width > 0 && newSize.Height > 0)
+				{
+					if (nativeWindow->RootPaintHandle.RenderTarget)
+					{
+						auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
+						if (FAILED(hr))
+						{
+							BT_CORE_ERROR << "Error while resizing HWND render target." << std::endl;
+						}
+					}
+
+					windowManager.Resize(nativeWindow, newSize, false);
+
+					if (nativeWindow->HasCustomPaint())
+					{
+						API::RefreshWindow(nativeWindowHandle);
+					}
+					//else
+					//{
+					//	API::RefreshWindow(nativeWindowHandle);
+					//}
+				}
 			
-			wasHandled = true;
-			break;
-		}
-		//case WM_WINDOWPOSCHANGING:
-		//{
-		//	::WINDOWPOS* pwp = (::WINDOWPOS*)lParam;
-		//	Size newSize{ (uint32_t)pwp->cx , (uint32_t)pwp->cy };
-		//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
-		//	{
-		//		//windowManager.Resize(nativeWindow, newSize, false);
-		//		//nativeWindow->CustomPaint();
-		//	}
+				wasHandled = true;
+				break;
+			}
+			//case WM_WINDOWPOSCHANGING:
+			//{
+			//	::WINDOWPOS* pwp = (::WINDOWPOS*)lParam;
+			//	Size newSize{ (uint32_t)pwp->cx , (uint32_t)pwp->cy };
+			//	if (nativeWindow->Type == WindowType::RenderForm && nativeWindow->CustomPaint)
+			//	{
+			//		//windowManager.Resize(nativeWindow, newSize, false);
+			//		//nativeWindow->CustomPaint();
+			//	}
 
-		//	wasHandled = true;
-		//	break;
-		//}
-		//case WM_WINDOWPOSCHANGED:
+			//	wasHandled = true;
+			//	break;
+			//}
+			//case WM_WINDOWPOSCHANGED:
 		case WM_DPICHANGED:
-		{
-			uint32_t newDPI = HIWORD(wParam);
-			windowManager.ChangeDPI(nativeWindow, newDPI, nativeWindow->RootHandle);
+			{
+				uint32_t newDPI = HIWORD(wParam);
+				windowManager.ChangeDPI(nativeWindow, newDPI, nativeWindow->RootHandle);
 
-			auto rect = reinterpret_cast<const RECT*>(lParam);
+				auto rect = reinterpret_cast<const RECT*>(lParam);
 
-			::SetWindowPos(hWnd,
-				NULL,
-				rect->left,
-				rect->top,
-				rect->right - rect->left,
-				rect->bottom - rect->top,
-				SWP_NOZORDER | SWP_NOACTIVATE);
+				::SetWindowPos(hWnd,
+					NULL,
+					rect->left,
+					rect->top,
+					rect->right - rect->left,
+					rect->bottom - rect->top,
+					SWP_NOZORDER | SWP_NOACTIVATE);
 
-			API::RefreshWindow(nativeWindowHandle, true);
-			wasHandled = false;
-			break;
-		}
+				API::RefreshWindow(nativeWindowHandle, true);
+				wasHandled = false;
+				break;
+			}
 		case WM_SETFOCUS:
-		{
-			if (rootFocusedWindow)
 			{
-				ArgFocus argFocus{ true };
-				foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				if (rootFocusedWindow)
+				{
+					ArgFocus argFocus{ true };
+					foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				}
+				wasHandled = false;
+				break;
 			}
-			wasHandled = false;
-			break;
-		}
 		case WM_KILLFOCUS:
-		{
-			if (menuManager.AnyPopupActive())
 			{
-				menuManager.CloseAll();
-			}
+				if (menuManager.AnyPopupActive())
+				{
+					menuManager.CloseAll();
+				}
 
-			if (rootFocusedWindow)
-			{
-				ArgFocus argFocus{ false };
-				foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				if (rootFocusedWindow)
+				{
+					ArgFocus argFocus{ false };
+					foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+				}
+				wasHandled = false;
+				break;
 			}
-			wasHandled = false;
-			break;
-		}
 		case WM_MOUSEACTIVATE: //This is not sent while mouse is captured
-		{
-			if (!nativeWindow->Flags.MakeActive)
 			{
-				return MA_NOACTIVATE;
+				if (!nativeWindow->Flags.MakeActive)
+				{
+					return MA_NOACTIVATE;
+				}
+				wasHandled = false;
+				break;
 			}
-			wasHandled = false;
-			break;
-		}
+			/*
+			Mensajes de Teclas Comunes (WM_KEYDOWN, WM_KEYUP, WM_CHAR) 
+			Se disparan cuando el foco está en tu aplicación y el usuario presiona o suelta teclas sin usar la tecla ALT. 
+			WM_KEYDOWN: Se envía cuando se presiona una tecla. Proporciona un código de tecla virtual (como VK_A o VK_F1), que identifica la tecla física.
+			WM_KEYUP: Se envía cuando se suelta la tecla.
+			WM_CHAR: Es un mensaje de carácter. No se genera directamente por el hardware, sino por la función TranslateMessage a partir de un WM_KEYDOWN. Traduce la tecla física en un símbolo (por ejemplo, convierte Shift + A en el carácter 'A'). 
+			
+			Mensajes de Sistema (WM_SYSKEYDOWN, WM_SYSKEYUP, WM_SYSCHAR) 
+			Se utilizan para combinaciones de teclas que tienen un significado especial para el sistema operativo, típicamente aquellas que involucran la tecla ALT.
+			WM_SYSKEYDOWN: Se genera cuando el usuario presiona una tecla mientras mantiene presionada ALT, o si no hay ninguna ventana con el foco del teclado.
+			WM_SYSKEYUP: Se envía cuando se suelta una tecla del sistema.
+			WM_SYSCHAR: Similar a WM_CHAR, pero para teclas de sistema. Se genera cuando TranslateMessage procesa un WM_SYSKEYDOWN (por ejemplo, al presionar ALT + carácter).
+			 */
+		/*case WM_SYSCOMMAND:
+			if ((wParam & 0xFFF0) == SC_KEYMENU)
+			{
+				if (lParam == 0) // El usuario presionó y soltó ALT sin combinarla
+				{
+					Window* menuBarWindow = GUI::GetMenuBar(nativeWindow);
+					if (menuBarWindow)
+					{
+						wasHandled = true;
+						
+						ArgKeyboard args;
+						args.Key = KeyboardKey::Alt;
+						foundation.ProcessEvents<ArgKeyboard>(menuBarWindow, &Renderer::KeyPressed, nullptr, args);
+					}
+					else if (lParam == VK_SPACE)
+					{
+						// Alt + Espacio: Dejamos que Windows muestre su menú clásico en la barra de título
+						
+						wasHandled = false;
+					}
+					else
+					{
+						// Alt + [Letra]: Lo bloqueamos aquí para evitar el "Ding" y el Freeze de Win32.
+						// Tu función HandleKeyboardMessages (en WM_SYSCHAR) atrapará la letra real y la procesará.
+						
+						wasHandled = true;
+					}
+				}
+			}
+			break;*/
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
-		{
-			wasHandled = true;
-			int x = static_cast<short>(LOWORD(lParam));
-			int y = static_cast<short>(HIWORD(lParam));
-
-			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window->Flags.IsEnabled)
 			{
-				rootPressedWindow = window;
+				wasHandled = true;
+				int x = static_cast<short>(LOWORD(lParam));
+				int y = static_cast<short>(HIWORD(lParam));
 
-				auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
-				if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
+				auto window = windowManager.Find(nativeWindow, { x, y });
+				if (window && window->Flags.IsEnabled)
 				{
-					if (rootFocusedWindow != focusWindow)
+					rootPressedWindow = window;
+
+					auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
+					if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
 					{
-						if (rootFocusedWindow)
+						if (rootFocusedWindow != focusWindow)
 						{
-							ArgFocus argFocus{ false };
-							foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+							if (rootFocusedWindow)
+							{
+								ArgFocus argFocus{ false };
+								foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+							}
+							if (focusWindow)
+							{
+								ArgFocus argFocus{ true, ArgFocus::Reason::MousePress };
+								foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+							}
 						}
-						if (focusWindow)
-						{
-							ArgFocus argFocus{ true, ArgFocus::Reason::MousePress };
-							foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
-						}
+						rootFocusedWindow = focusWindow;
 					}
-					rootFocusedWindow = focusWindow;
+
+					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+					auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+				
+					ArgMouse argMouseDown;
+					InitArgs(argMouseDown,pointToClient - windowManager.GetWindowRootPosition(window), wParam);
+
+					foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
+				}
+			
+				break;
+			}
+		case WM_MOUSEMOVE:
+			{
+				wasHandled = true;
+				int x = ((int)(short)LOWORD(lParam));
+				int y = ((int)(short)HIWORD(lParam));
+			
+				auto window = windowManager.Find(nativeWindow, { x, y });
+				if (window && window != rootHoveredWindow)
+				{
+					if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
+					{
+						auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+						auto pointToClient = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pointToScreen);
+
+						ArgMouse argMouseLeave;					
+						InitArgs(argMouseLeave,pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow), wParam);
+
+						foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
+					}
+					rootHoveredWindow = nullptr;
 				}
 
-				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-				
-				ArgMouse argMouseDown;
-				InitArgs(argMouseDown,pointToClient - windowManager.GetWindowRootPosition(window), wParam);
-
-				foundation.ProcessEvents(window, &Renderer::MouseDown, &ControlEvents::MouseDown, argMouseDown);
-			}
-			
-			break;
-		}
-		case WM_MOUSEMOVE:
-		{
-			wasHandled = true;
-			int x = ((int)(short)LOWORD(lParam));
-			int y = ((int)(short)HIWORD(lParam));
-			
-			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window != rootHoveredWindow)
-			{
-				if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
+				if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
 				{
 					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-					auto pointToClient = API::GetPointScreenToClient(rootHoveredWindow->RootHandle, pointToScreen);
-
-					ArgMouse argMouseLeave;					
-					InitArgs(argMouseLeave,pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow), wParam);
-
-					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
-				}
-				rootHoveredWindow = nullptr;
-			}
-
-			if (window && window->Flags.IsEnabled && !window->Flags.IsDisposed)
-			{
-				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
-				if (window != rootHoveredWindow)
-				{
-					if (window->ClientSize.IsInside(position))
+					auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+					Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+					if (window != rootHoveredWindow)
 					{
-						ArgMouse argMouseEnter;
-						InitArgs(argMouseEnter,position, wParam);
+						if (window->ClientSize.IsInside(position))
+						{
+							ArgMouse argMouseEnter;
+							InitArgs(argMouseEnter,position, wParam);
 
-						foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
+							foundation.ProcessEvents(window, &Renderer::MouseEnter, &ControlEvents::MouseEnter, argMouseEnter);
+						}
+						rootHoveredWindow = window;
 					}
-					rootHoveredWindow = window;
-				}
 
-				if (rootHoveredWindow)
-				{
-					ArgMouse argMouseMove;
-					InitArgs(argMouseMove,position, wParam);
+					if (rootHoveredWindow)
+					{
+						ArgMouse argMouseMove;
+						InitArgs(argMouseMove,position, wParam);
 
-					foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
-				}
-				if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
-				{
+						foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
+					}
+					if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
+					{
 #if BT_DEBUG
-					//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
+						//BT_CORE_DEBUG << " - keep track / name " << window->Name << ". hWnd " << hWnd << std::endl;
 #else
-					//BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
+						//BT_CORE_DEBUG << " - keep track / window " << window << ". hWnd " << hWnd << std::endl;
 #endif
-					trackEvent.hwndTrack = hWnd;
-					::TrackMouseEvent(&trackEvent);
-					rootWindowData->IsTracking = true;
+						trackEvent.hwndTrack = hWnd;
+						::TrackMouseEvent(&trackEvent);
+						rootWindowData->IsTracking = true;
+					}
 				}
-			}
 			
-			break;
-		}
+				break;
+			}
 		case WM_LBUTTONUP:
 		case WM_MBUTTONUP:
 		case WM_RBUTTONUP:
-		{
-			wasHandled = true;
-			int x = ((int)(short)LOWORD(lParam));
-			int y = ((int)(short)HIWORD(lParam));
-
-			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window->Flags.IsEnabled)
 			{
-				auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-				auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-				Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+				wasHandled = true;
+				int x = ((int)(short)LOWORD(lParam));
+				int y = ((int)(short)HIWORD(lParam));
 
-				ArgMouse argMouseUp;
-				InitArgs(argMouseUp, position, message);
-				
-				if (window->ClientSize.IsInside(argMouseUp.Position) && window == rootPressedWindow)
+				auto window = windowManager.Find(nativeWindow, { x, y });
+				if (window && window->Flags.IsEnabled)
 				{
-					ArgClick argClick;
-					foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
+					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
+					auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
+					Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+
+					ArgMouse argMouseUp;
+					InitArgs(argMouseUp, position, message);
+				
+					if (window->ClientSize.IsInside(argMouseUp.Position) && window == rootPressedWindow)
+					{
+						ArgClick argClick;
+						foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
+					}
+
+					foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
+
+					rootReleasedWindow = rootPressedWindow;
 				}
+				rootPressedWindow = nullptr;
 
-				foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
-
-				rootReleasedWindow = rootPressedWindow;
+				break;
 			}
-			rootPressedWindow = nullptr;
-
-			break;
-		}
 		case WM_LBUTTONDBLCLK:
-		{
-			wasHandled = true;
-			int x = ((int)(short)LOWORD(lParam));
-			int y = ((int)(short)HIWORD(lParam));
-
-			auto window = windowManager.Find(nativeWindow, { x, y });
-			if (window && window->Flags.IsEnabled && window == rootReleasedWindow)
 			{
-				ArgMouse argMouse{};
-				InitArgs(argMouse,Point{ x, y } - windowManager.GetWindowRootPosition(window), wParam);
+				wasHandled = true;
+				int x = ((int)(short)LOWORD(lParam));
+				int y = ((int)(short)HIWORD(lParam));
 
-				foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
+				auto window = windowManager.Find(nativeWindow, { x, y });
+				if (window && window->Flags.IsEnabled && window == rootReleasedWindow)
+				{
+					ArgMouse argMouse{};
+					InitArgs(argMouse,Point{ x, y } - windowManager.GetWindowRootPosition(window), wParam);
+
+					foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
+				}
+				rootReleasedWindow = nullptr;
+				break;
 			}
-			rootReleasedWindow = nullptr;
-			break;
-		}
 		case WM_MOUSELEAVE:
-		{
-			wasHandled = true;
-			rootWindowData->IsTracking = false;
-			if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 			{
-				ArgMouse argMouseLeave;
-				foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
+				wasHandled = true;
+				rootWindowData->IsTracking = false;
+				if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
+				{
+					ArgMouse argMouseLeave;
+					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
 
-				rootHoveredWindow = nullptr;
+					rootHoveredWindow = nullptr;
+				}
+				break;
 			}
-			break;
-		}
 		case WM_MOUSEHWHEEL:
 		case WM_MOUSEWHEEL:
-		{
-			wasHandled = true;
-
-			int wheelDelta = ((int)(short)HIWORD(wParam));
-			int x = ((int)(short)LOWORD(lParam));
-			int y = ((int)(short)HIWORD(lParam));
-			auto screenToClientPoint = API::GetPointScreenToClient(nativeWindow->RootHandle, { x, y });
-
-			auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.X), static_cast<int>(screenToClientPoint.Y) });
-			if (window)
 			{
-				ArgWheel argWheel{};
-				argWheel.WheelDelta = wheelDelta;
-				argWheel.IsVertical = message == WM_MOUSEWHEEL;
+				wasHandled = true;
 
-				foundation.ProcessEvents(window, &Renderer::MouseWheel, &ControlEvents::MouseWheel, argWheel);
+				int wheelDelta = ((int)(short)HIWORD(wParam));
+				int x = ((int)(short)LOWORD(lParam));
+				int y = ((int)(short)HIWORD(lParam));
+				auto screenToClientPoint = API::GetPointScreenToClient(nativeWindow->RootHandle, { x, y });
+
+				auto window = windowManager.Find(nativeWindow, { static_cast<int>(screenToClientPoint.X), static_cast<int>(screenToClientPoint.Y) });
+				if (window)
+				{
+					ArgWheel argWheel{};
+					argWheel.WheelDelta = wheelDelta;
+					argWheel.IsVertical = message == WM_MOUSEWHEEL;
+
+					foundation.ProcessEvents(window, &Renderer::MouseWheel, &ControlEvents::MouseWheel, argWheel);
+				}
+				break;
 			}
-			break;
-		}
-		case WM_CHAR:
-		{
-			wasHandled = true;
-
-			ArgKeyboard argKeyboard{};
-			argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
-			argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
-			argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
-
-			argKeyboard.Key = static_cast<wchar_t>(wParam);
-
-			auto window = rootFocusedWindow;
-			if (window == nullptr)
+		case WM_CHAR://case WM_SYSCHAR: //TODO
 			{
-				window = nativeWindow;
+				wasHandled = true;
+
+				ArgKeyboard argKeyboard{};
+				argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
+				argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+				argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
+
+				argKeyboard.Key = static_cast<wchar_t>(wParam);
+
+				auto window = rootFocusedWindow;
+				if (window == nullptr)
+				{
+					window = nativeWindow;
+				}
+
+				foundation.ProcessEvents(window, &Renderer::KeyChar, &ControlEvents::KeyChar, argKeyboard);
+
+				break;
 			}
-
-			foundation.ProcessEvents(window, &Renderer::KeyChar, &ControlEvents::KeyChar, argKeyboard);
-
-			break;
-		}
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
-		{
-			ArgKeyboard argKeyboard{};
-			argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
-			argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
-			argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
-			argKeyboard.Key = static_cast<wchar_t>(wParam);
+			{
+				//wasHandled = true;
+				ArgKeyboard argKeyboard{};
+				argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
+				argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+				argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
+				argKeyboard.Key = static_cast<wchar_t>(wParam);
 
-			auto window = rootFocusedWindow;
-			if (window == nullptr)
-			{
-				window = nativeWindow;
-			}
+				auto window = rootFocusedWindow;
+				if (window == nullptr)
+				{
+					window = nativeWindow;
+				}
 			
-			WORD keyFlags = HIWORD(lParam);
-			BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
+				WORD keyFlags = HIWORD(lParam);
+				BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 
-			auto target = window;
-			if (menuManager.AnyPopupActive())
-			{
-				target = menuManager.GetActiveMenu(true);
-			}
-			if (isKeyReleased)
-			{
-				foundation.ProcessEvents(target, &Renderer::KeyReleased, &ControlEvents::KeyReleased, argKeyboard);
-			}
-			else
-			{
-				foundation.ProcessEvents(target, &Renderer::KeyPressed, &ControlEvents::KeyPressed, argKeyboard);
-			}
+				auto target = window;
+				if (menuManager.AnyPopupActive())
+				{
+					target = menuManager.GetTopPopup();
+				}
+				
+				if (isKeyReleased)
+				{
+					foundation.ProcessEvents(target, &Renderer::KeyReleased, &ControlEvents::KeyReleased, argKeyboard);
+				}
+				else
+				{
+					foundation.ProcessEvents(target, &Renderer::KeyPressed, &ControlEvents::KeyPressed, argKeyboard);
+				}
 			
-			break;
-		}
+				break;
+			}
 		case WM_ENTERSIZEMOVE:
-		{
-			foundation.EventEnterSizeMove(nativeWindow);
-			break;
-		}
+			{
+				foundation.EventEnterSizeMove(nativeWindow);
+				break;
+			}
 		case WM_EXITSIZEMOVE:
-		{
-			foundation.EventExitSizeMove(nativeWindow);
-			break;
-		}
+			{
+				foundation.EventExitSizeMove(nativeWindow);
+				break;
+			}
 		case WM_CLOSE:
-		{
-			ArgDisposing argDisposing{ false };
-			auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
-			events->Disposing.Emit(argDisposing);
-			if (argDisposing.Cancel)
 			{
-				wasHandled = true;
-			}
+				ArgDisposing argDisposing{ false };
+				auto events = dynamic_cast<FormEvents*>(nativeWindow->Events.get());
+				events->Disposing.Emit(argDisposing);
+				if (argDisposing.Cancel)
+				{
+					wasHandled = true;
+				}
 			
-			break;
-		}
+				break;
+			}
 		case WM_DESTROY: // WM_DESTROY, next WM_NCDESTROY
-		{
-			windowManager.Destroy(nativeWindow);
-			wasHandled = true;
-			
-			break;
-		}
-		case WM_NCDESTROY:
-		{
-			windowManager.Remove(nativeWindow);
-			if (windowManager.NativeWindowCount() == 0)
 			{
-				::PostQuitMessage(0);
-			}
-			else
-			{
+				windowManager.Destroy(nativeWindow);
 				wasHandled = true;
+			
+				break;
 			}
-			break;
-		}
+		case WM_NCDESTROY:
+			{
+				windowManager.Remove(nativeWindow);
+				if (windowManager.NativeWindowCount() == 0)
+				{
+					::PostQuitMessage(0);
+				}
+				else
+				{
+					wasHandled = true;
+				}
+				break;
+			}
 		}
 
 #ifdef BT_PRINT_WND_MESSAGES
@@ -934,6 +994,7 @@ namespace Berta
 		case WM_DPICHANGED:
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
+		//case WM_SYSCOMMAND:
 		case WM_MOUSEACTIVATE:
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:

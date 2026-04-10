@@ -17,18 +17,16 @@ namespace Berta
 	constexpr int ARROW_WIDTH = 6;
 	constexpr int ARROW_LENGTH = 3;
 
-	void ScrollBarReactor::Init(ControlBase& control, Graphics* graphics)
+	void ScrollBarReactor::DoOnInit()
 	{
-		m_control = &control;
-
-		m_timer.SetOwner(control.Handle());
+		m_timer.SetOwner(m_control->Handle());
 		m_timer.Connect([this](const ArgTimer& args)
 		{
 			DoScrollStep(true);
 			m_timer.SetInterval(SCROLL_TIMER_REPEAT_DELAY);
 		});
 
-		GUI::MakeWindowActive(control, false, control.GetParent());
+		GUI::MakeWindowActive(*m_control, false, m_control->GetParent());
 	}
 
 	void ScrollBarReactor::Update(Graphics& graphics)
@@ -308,11 +306,11 @@ namespace Berta
 
 		if (m_isVertical)
 		{
-			if (Rectangle{ 0, 0, window->ClientSize.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, 0, window->ClientSize.Width, buttonSize }.Contains(position))
 			{
 				return InteractionArea::Button1;
 			}
-			if (Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize }.IsInside(position))
+			if (Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize }.Contains(position))
 			{
 				return InteractionArea::Button2;
 			}
@@ -321,7 +319,7 @@ namespace Berta
 			{
 				auto scrollBoxRect = GetScrollBoxRect();
 
-				if (scrollBoxRect.IsInside(position))
+				if (scrollBoxRect.Contains(position))
 				{
 					return InteractionArea::Scrollbox;
 				}
@@ -329,11 +327,11 @@ namespace Berta
 				return InteractionArea::ScrollTrack;
 			}
 		}
-		if (Rectangle{ 0, 0, buttonSize, window->ClientSize.Height }.IsInside(position))
+		if (Rectangle{ 0, 0, buttonSize, window->ClientSize.Height }.Contains(position))
 		{
 			return InteractionArea::Button1;
 		}
-		if (Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height }.IsInside(position))
+		if (Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height }.Contains(position))
 		{
 			return InteractionArea::Button2;
 		}
@@ -342,7 +340,7 @@ namespace Berta
 		{
 			auto scrollBoxRect = GetScrollBoxRect();
 
-			if (scrollBoxRect.IsInside(position))
+			if (scrollBoxRect.Contains(position))
 			{
 				return InteractionArea::Scrollbox;
 			}

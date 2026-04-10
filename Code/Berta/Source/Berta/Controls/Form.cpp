@@ -11,13 +11,8 @@
 
 namespace Berta
 {
-	namespace ReactorCore::Form
+	namespace Internal::Form
 	{
-		void Reactor::Init(ControlBase& control, Graphics* graphics)
-		{
-			m_control = &control;
-		}
-
 		void Reactor::Update(Graphics& graphics)
 		{
 #if BT_DEBUG

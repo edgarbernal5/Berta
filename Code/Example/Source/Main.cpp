@@ -387,10 +387,21 @@ int main()
 
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"File");
-	menuFile.Append(L"New", [](Berta::MenuItem& item) {});
-	menuFile.Append(L"Open file...", [](Berta::MenuItem& item) {});
+	
+	auto newSubMenu = std::make_unique<Berta::Menu>();
+	auto complexSubMenu = std::make_unique<Berta::Menu>();
+	
+	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem item) {});
+	
+	newSubMenu->Append(L"Texture", [](Berta::MenuItem item) {});
+	newSubMenu->AppendSubMenu(L"Scene", std::move(complexSubMenu));
+	newSubMenu->Append(L"Complex", [](Berta::MenuItem item) {});
+	
+	menuFile.AppendSubMenu(L"New", std::move(newSubMenu));
+	
+	menuFile.Append(L"Open file...", [](Berta::MenuItem item) {});
 	menuFile.AppendSeparator();
-	menuFile.Append(L"Exit", [](Berta::MenuItem& item)
+	menuFile.Append(L"Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});
@@ -404,18 +415,9 @@ int main()
 
 	Berta::Image image3("..\\..\\Resources\\Icons\\Icono5_2_16.png");
 	menuFile.SetImage(3, image3);
-
-	auto newSubmenu = menuFile.CreateSubMenu(0);
-	newSubmenu->Append(L"Texture", [](Berta::MenuItem& item) {});
-	newSubmenu->Append(L"Scene", [](Berta::MenuItem& item) {});
-	newSubmenu->Append(L"Complex", [](Berta::MenuItem& item) {});
-	auto complexSubMenu = newSubmenu->CreateSubMenu(2);
-	newSubmenu->CreateSubMenu(1);
-	//newSubmenu->SetEnabled(1, false);
-	complexSubMenu->Append(L"Complex 1", [](Berta::MenuItem& item) {});
-
+	
 	auto& menuEdit = menuBar.PushBack(L"Edit");
-	menuEdit.Append(L"Undo", [](Berta::MenuItem& item) {});
+	menuEdit.Append(L"Undo", [](Berta::MenuItem item) {});
 
 	menuBar.PushBack(L"Help");
 
@@ -545,20 +547,20 @@ int main()
 			std::cout << "Tab Input > Visibility = " << args.IsVisible << std::endl;
 		});
 
-	Berta::Menu popupMenu;
-	popupMenu.Append(L"Example", [](Berta::MenuItem& item)
+	/*Berta::Menu popupMenu;
+	popupMenu.Append(L"Example", [](Berta::MenuItem item)
 		{
 			std::cout << "Context menu click > Example" << std::endl;
 		});
 	popupMenu.Append(L"Example Submenu");
 	auto subMenuContext = popupMenu.CreateSubMenu(1);
-	subMenuContext->Append(L"hola", [](Berta::MenuItem& item)
+	subMenuContext->Append(L"hola", [](Berta::MenuItem item)
 		{
 			std::cout << "Context sub menu click > hola" << std::endl;
 		});
 	subMenuContext->Append(L"hola 2");
 	auto subsubMenu = subMenuContext->CreateSubMenu(1);
-	subsubMenu->Append(L"hola 3", [](Berta::MenuItem& item)
+	subsubMenu->Append(L"hola 3", [](Berta::MenuItem item)
 		{
 			std::cout << "Context sub menu click > hola 3" << std::endl;
 		});
@@ -566,7 +568,7 @@ int main()
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
 			popupMenu.ShowPopup(form.Handle(), args);
-		});
+		});*/
 	
 	auto currentPosition = tabbar.GetPosition();
 	auto margin = tabbar.Handle()->ToScale(2);
