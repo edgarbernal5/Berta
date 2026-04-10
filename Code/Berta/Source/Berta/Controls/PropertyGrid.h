@@ -94,18 +94,22 @@ namespace Berta
 			FieldControlContainer() = default;
 			FieldControlContainer(Window* parent, const Rectangle& rect = {});
 		};
-
+		
+		struct PropertyFieldData
+		{
+			std::unique_ptr<PropertyGridFieldBase> field;
+			std::unique_ptr<FieldControlContainer> container;
+		};
+		
 		struct CategoryType
 		{
 			CategoryType() = default;
-			CategoryType(const std::string& name) : m_name(name) {}
+			CategoryType(std::string_view name) : m_name(name) {}
 
 			std::string m_name;
-
 			bool m_isExpanded{ true };
 			Rectangle m_area{};
-			std::vector<std::unique_ptr<PropertyGridFieldBase>> m_properties;
-			std::vector<std::unique_ptr<FieldControlContainer>> m_fieldContainers;
+			std::vector<PropertyFieldData> m_items;
 		};
 
 		struct ViewportData
@@ -173,7 +177,7 @@ namespace Berta
 			CategoryType* m_category{ nullptr };
 		};
 
-		class ListModule
+		/*class ListModule
 		{
 		public:
 			ListModule() = default;
@@ -192,13 +196,13 @@ namespace Berta
 			}
 		private:
 			std::vector<CategoryType> m_categories;
-		};
+		};*/
 
 		struct Module
 		{
-			CategoryItem Append(const std::string& categoryName);
+			CategoryItem Append(std::string_view categoryName);
 			void BuildItems();
-			CategoryItem Find(const std::string& categoryName);
+			CategoryItem Find(std::string_view categoryName);
 			void Clear();
 			void CalculateViewport(ViewportData& viewportData);
 			void CalculateContentSize(ViewportData& viewportData);
@@ -214,7 +218,7 @@ namespace Berta
 
 			Point m_scrollOffset{};
 			ViewportData m_viewport;
-			ListModule m_listModule;
+			std::vector<CategoryType> m_categories;
 			Window* m_owner{ nullptr };
 			Appearance* m_appearance{ nullptr };
 			std::unique_ptr<ScrollBar> m_scrollBar;

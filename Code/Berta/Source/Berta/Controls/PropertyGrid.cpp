@@ -123,19 +123,16 @@ namespace Berta
 			}
 		}
 
-		CategoryItem Module::Find(const std::string& categoryName)
+		CategoryItem Module::Find(std::string_view categoryName)
 		{
-			auto it = m_listModule.Begin();
-			while (it != m_listModule.End())
-			{
-				if (it->m_name == categoryName)
-				{
-					return { this, &(*it) };
-				}
-				++it;
-			}
+			auto it = std::find_if(m_categories.begin(), m_categories.end(), 
+			[categoryName](const CategoryType& cat) { return cat.m_name == categoryName; });
 
-			return { };
+			if (it != m_categories.end())
+			{
+				return { this, &(*it) };
+			}
+			return {};
 		}
 
 		void Module::Clear()
@@ -474,7 +471,7 @@ namespace Berta
 			m_category->m_properties.emplace_back(std::move(propGridFieldPtr));
 			auto newField = m_category->m_properties.back().get();
 
-			std::unique_ptr<FieldControlContainer> containerPtr(new FieldControlContainer(m_module->m_owner));
+			auto containerPtr = std::make_unique<FieldControlContainer>(m_module->m_owner);
 			newField->SetModule(m_module);
 			newField->Init(containerPtr->Handle());
 
@@ -644,7 +641,7 @@ namespace Berta
 		{
 		}
 
-		CategoryItem Module::Append(const std::string& categoryName)
+		CategoryItem Module::Append(std::string_view categoryName)
 		{
 			auto category = Find(categoryName);
 			if (category)
