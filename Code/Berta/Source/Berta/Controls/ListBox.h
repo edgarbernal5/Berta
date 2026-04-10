@@ -325,7 +325,7 @@ namespace Berta
 		};
 	}
 	
-	class ListBox : public Control<Internal::ListBox::Reactor, Internal::ListBox::Events, Internal::ListBox::Appearance>
+	class ListBox : public Control<Category::ControlTag, Internal::ListBox::Reactor, Internal::ListBox::Events, Internal::ListBox::Appearance>
 	{
 	public:
 		using ListBoxItem = Internal::ListBox::ListBoxItem;

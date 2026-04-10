@@ -213,7 +213,7 @@ namespace Berta
 		};
 	}
 
-	class MenuBox : public Control<Internal::MenuBox::Reactor, FormEvents, Internal::MenuBox::Appearance>
+	class MenuBox : public Control<Category::RootTag, Internal::MenuBox::Reactor, FormEvents, Internal::MenuBox::Appearance>
 	{
 	public:
 		using MenuItem = Berta::MenuItem;

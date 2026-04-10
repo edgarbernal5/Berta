@@ -20,7 +20,7 @@ namespace Berta
 		void Update(Graphics& graphics) override;
 	};
 
-	class DockPanel : public Control<DockPanelReactor>
+	class DockPanel : public Control<Category::ControlTag, DockPanelReactor>
 	{
 	public:
 		DockPanel() = default;

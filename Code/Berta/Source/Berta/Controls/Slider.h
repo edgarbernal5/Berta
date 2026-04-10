@@ -89,7 +89,7 @@ namespace Berta
 		bool m_trackPageUp{ false };
 	};
 
-	class Slider : public Control<SliderReactor, SliderEvents>
+	class Slider : public Control<Category::ControlTag, SliderReactor, SliderEvents>
 	{
 	public:
 		Slider() = default;

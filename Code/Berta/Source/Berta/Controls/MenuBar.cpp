@@ -162,8 +162,8 @@ namespace Berta
 		{
 			auto& interaction = m_module.m_interaction;
 			auto& items = m_module.m_items;
-			/*auto& menuManager = Foundation::GetInstance().GetMenuManager();
-			if (args.Key == KeyboardKey::Alt)
+			auto& menuManager = Foundation::GetInstance().GetMenuManager();
+			/*if (args.Key == KeyboardKey::Alt)
 			{
 				if (menuManager.AnyPopupActive() || m_module.m_interaction.m_selectedIndex.has_value())
 				{

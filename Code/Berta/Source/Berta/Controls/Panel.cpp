@@ -11,7 +11,7 @@ namespace Berta
 {
 	Panel::Panel(Window* parent, const Rectangle& rectangle, bool visible)
 	{
-		Create(parent, true, rectangle, visible, true);
+		Create(parent, true, rectangle, visible);
 
 #if BT_DEBUG
 		m_handle->Name = "Panel";
@@ -20,7 +20,7 @@ namespace Berta
 
 	Panel::Panel(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, bool visible)
 	{
-		Create(parent, isUnscaleRect, rectangle, visible, true);
+		Create(parent, isUnscaleRect, rectangle, visible);
 
 #if BT_DEBUG
 		m_handle->Name = "Panel";

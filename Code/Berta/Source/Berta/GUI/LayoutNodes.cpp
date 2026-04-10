@@ -649,7 +649,8 @@ namespace Berta
 	void DockArea::Create(Window* parent, PaneInfo* paneInfo)
 	{
 		m_hostWindow = parent;
-		Control<ControlReactor>::Create(parent, false, { 0,0,1,1 }, true, true);
+		Control::Create(parent, false, { 0,0,1,1 }, true);
+		
 #if BT_DEBUG
 		m_handle->Name = "DockArea-" + paneInfo->id;
 #endif
@@ -691,7 +692,7 @@ namespace Berta
 			m_mouseInteraction.m_dragStartLocalPos = IsFloating() ? m_nativeContainer->GetPosition() : this->GetPosition();
 			m_mouseInteraction.m_dragStartCaptionPos = args.Position;
 
-			m_savedDPI = this->Handle()->DPI;
+			m_mouseInteraction.m_savedDPI = this->Handle()->DPI;
 		});
 
 		m_caption->GetEvents().MouseMove.Connect([this](const ArgMouse& args)
@@ -748,9 +749,9 @@ namespace Berta
 				auto newPosition = screenMousePos - m_mouseInteraction.m_dragStartPos;
 				newPosition += m_mouseInteraction.m_dragStartLocalPos;
 
-				if (m_savedDPI != m_nativeContainer->Handle()->DPI)
+				if (m_mouseInteraction.m_savedDPI != m_nativeContainer->Handle()->DPI)
 				{
-					float adjustScaleFactor = (float)m_nativeContainer->Handle()->DPI / m_savedDPI;
+					float adjustScaleFactor = (float)m_nativeContainer->Handle()->DPI / m_mouseInteraction.m_savedDPI;
 					m_mouseInteraction.m_dragStartCaptionPos.X = static_cast<int>(m_mouseInteraction.m_dragStartCaptionPos.X * adjustScaleFactor);
 					m_mouseInteraction.m_dragStartCaptionPos.Y = static_cast<int>(m_mouseInteraction.m_dragStartCaptionPos.Y * adjustScaleFactor);
 
@@ -759,7 +760,7 @@ namespace Berta
 					m_mouseInteraction.m_dragStartPos = screenMousePos;
 					m_mouseInteraction.m_dragStartLocalPos = API::GetWindowPosition(m_nativeContainer->Handle()->RootHandle) + upperLeftOffset - m_mouseInteraction.m_dragStartCaptionPos;
 					
-					m_savedDPI = m_nativeContainer->Handle()->DPI;
+					m_mouseInteraction.m_savedDPI = m_nativeContainer->Handle()->DPI;
 				}
 				
 				m_mouseInteraction.m_hasChanged = true;

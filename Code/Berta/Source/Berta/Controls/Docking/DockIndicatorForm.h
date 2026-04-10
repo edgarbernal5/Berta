@@ -28,7 +28,7 @@ namespace Berta
 		DockPosition m_dockPosition;
 	};
 
-	class DockIndicatorForm : public Control<DockIndicatorFormReactor, FormEvents>
+	class DockIndicatorForm : public Control<Category::RootTag, DockIndicatorFormReactor, FormEvents>
 	{
 	public:
 		explicit DockIndicatorForm(Window* owner, const Size& size, const FormStyle& windowStyle = { false, false, false, false, true, false });

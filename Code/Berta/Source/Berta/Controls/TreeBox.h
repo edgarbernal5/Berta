@@ -422,7 +422,7 @@ namespace Berta
 		Event<ArgTreeBoxSelection> Selected;
 	};
 
-	class TreeBox : public Control<TreeBoxReactor, TreeBoxEvents, TreeBoxAppearance>
+	class TreeBox : public Control<Category::ControlTag, TreeBoxReactor, TreeBoxEvents, TreeBoxAppearance>
 	{
 	public:
 		TreeBox() = default;

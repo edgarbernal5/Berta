@@ -92,7 +92,7 @@ namespace Berta
 		};
 	}
 
-	class MenuBar : public Control<Internal::MenuBar::Reactor, ControlEvents, Internal::MenuBar::Appearance>
+	class MenuBar : public Control<Category::ControlTag, Internal::MenuBar::Reactor, ControlEvents, Internal::MenuBar::Appearance>
 	{
 	public:
 		MenuBar() = default;

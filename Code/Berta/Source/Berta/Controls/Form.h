@@ -29,7 +29,7 @@ namespace Berta
 		private:
 		};
 		
-		class FormBase : public Control<Internal::Form::Reactor, FormEvents>
+		class FormBase : public Control<Category::RootTag, Internal::Form::Reactor, FormEvents>
 		{
 		public:
 			explicit FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm);

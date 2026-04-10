@@ -61,7 +61,7 @@ namespace Berta
 		};
 	}
 	
-	class InputText : public Control<Internal::InputText::Reactor, Internal::InputText::Events>
+	class InputText : public Control<Category::ControlTag, Internal::InputText::Reactor, Internal::InputText::Events>
 	{
 	public:
 		InputText() = default;

@@ -15,8 +15,10 @@
 
 namespace Berta
 {
+	
 	class ControlWindowInterface;
 
+	//Type Erasure
 	class ControlBase
 	{
 	public:
@@ -129,8 +131,9 @@ namespace Berta
 
 		Window* m_handle{ nullptr };
 	};
-
-	template <typename Reactor, typename Events = ControlEvents, typename Appearance = ControlAppearance>
+	
+	//Control
+	template <typename CategoryTag, typename Reactor, typename Events = ControlEvents, typename Appearance = ControlAppearance>
 	class Control : public ControlBase
 	{
 	public:
@@ -138,28 +141,125 @@ namespace Berta
 		using EventsType = Events;
 		using AppearanceType = Appearance;
 
-	public:
 		Control()
 		{
+			// Validaciones en tiempo de compilación para garantizar el uso correcto de Berta
+			static_assert(std::is_same<CategoryTag, Category::ControlTag>::value, 
+				"Esta plantilla es exclusiva para controles hijos (WidgetTag)");
+			
 			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
 			static_assert(std::is_base_of<ControlEvents, Events>::value, "Events must be derived from ControlEvents");
 			static_assert(std::is_base_of<ControlAppearance, Appearance>::value, "Appearance must be derived from ControlAppearance");
 		}
 
-		virtual ~Control()
+		~Control() override
 		{
 			GUI::DisposeWindow(m_handle);
 		}
 
-		Control(const Control&) = delete;
-		Control& operator=(const Control&) = delete;
+		AppearanceType& GetAppearance() const { return *m_appearance; }
+		EventsType& GetEvents() const { return *m_events; }
+		
+		void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true)
+		{
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, false);
+			m_appearance = std::make_shared<AppearanceType>();
+			m_events = std::make_shared<EventsType>();
+			GUI::SetEvents(m_handle, m_events);
+			GUI::SetAppearance(m_handle, m_appearance);
 
-		Control(Control&&) = delete;
-		Control& operator=(Control&&) = delete;
+			GUI::InitRendererReactor(this, m_reactor);
+			if (visible)
+			{
+				GUI::ShowWindow(m_handle, true);
+			}
+		}
+	protected:
+		void DoOnNotifyDestroy() override
+		{
+			m_events = std::make_shared<EventsType>();
+		}
+		
+		ReactorType& GetReactor() { return m_reactor; }
+		const ReactorType& GetReactor() const { return m_reactor; }
+		
+	private:
+		ReactorType m_reactor;
+		std::shared_ptr<EventsType> m_events;
+		std::shared_ptr<AppearanceType> m_appearance;
+	};
+	
+	//Panel
+	template <typename Reactor, typename Events, typename Appearance>
+	class Control<Category::PanelTag, Reactor, Events, Appearance> : public ControlBase
+	{
+	public:
+		using ReactorType = Reactor;
+		using EventsType = Events;
+		using AppearanceType = Appearance;
+
+		Control()
+		{			
+			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
+			static_assert(std::is_base_of<ControlEvents, Events>::value, "Events must be derived from ControlEvents");
+			static_assert(std::is_base_of<ControlAppearance, Appearance>::value, "Appearance must be derived from ControlAppearance");
+		}
+
+		~Control() override
+		{
+			GUI::DisposeWindow(m_handle);
+		}
 
 		AppearanceType& GetAppearance() const { return *m_appearance; }
 		EventsType& GetEvents() const { return *m_events; }
+		
+		void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true)
+		{
+			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, true);
+			m_appearance = std::make_shared<AppearanceType>();
+			m_events = std::make_shared<EventsType>();
+			GUI::SetEvents(m_handle, m_events);
+			GUI::SetAppearance(m_handle, m_appearance);
+			
+			if (visible)
+			{
+				GUI::ShowWindow(m_handle, true);
+			}
+		}
+	protected:
+		void DoOnNotifyDestroy() override
+		{
+			m_events = std::make_shared<EventsType>();
+		}
+		
+		ReactorType& GetReactor() { return m_reactor; }
+		const ReactorType& GetReactor() const { return m_reactor; }
+		
+	private:
+		ReactorType m_reactor;
+		std::shared_ptr<EventsType> m_events;
+		std::shared_ptr<AppearanceType> m_appearance;
+	};
+	
+	//Root
+	template <typename Reactor, typename Events, typename Appearance>
+	class Control<Category::RootTag, Reactor, Events, Appearance> : public ControlBase
+	{
+	public:
+		using ReactorType = Reactor;
+		using EventsType = Events;
+		using AppearanceType = Appearance;
 
+		Control()
+		{
+			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor debe heredar de ControlReactor");
+		}
+
+		~Control() override { GUI::DisposeWindow(m_handle); }
+
+		AppearanceType& GetAppearance() const { return *m_appearance; }
+		EventsType& GetEvents() const { return *m_events; }
+		
 		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, bool isRenderForm = false)
 		{
 			m_handle = GUI::CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, this, isRenderForm);
@@ -168,40 +268,17 @@ namespace Berta
 			GUI::SetEvents(m_handle, m_events);
 			GUI::SetAppearance(m_handle, m_appearance);
 
-			//if (!isRenderForm)
-			{
-				GUI::InitRendererReactor(this, m_reactor);
-			}
+			GUI::InitRendererReactor(this, m_reactor);
 		}
-
-		virtual void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true, bool isPanel = false)
-		{
-			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, isPanel);
-			m_appearance = std::make_shared<AppearanceType>();
-			m_events = std::make_shared<EventsType>();
-			GUI::SetEvents(m_handle, m_events);
-			GUI::SetAppearance(m_handle, m_appearance);
-
-			if (!isPanel)
-			{
-				GUI::InitRendererReactor(this, m_reactor);
-			}
-
-			if (visible)
-			{
-				GUI::ShowWindow(m_handle, true);
-			}
-		}
-
 	protected:
-		virtual void DoOnNotifyDestroy() override
+		void DoOnNotifyDestroy() override
 		{
 			m_events = std::make_shared<EventsType>();
 		}
-
+		
 		ReactorType& GetReactor() { return m_reactor; }
 		const ReactorType& GetReactor() const { return m_reactor; }
-
+		
 	private:
 		ReactorType m_reactor;
 		std::shared_ptr<EventsType> m_events;

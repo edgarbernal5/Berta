@@ -244,7 +244,7 @@ namespace Berta
 		ThumbListBoxReactor::Module* m_module;
 	};
 
-	class ThumbListBox : public Control<ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>
+	class ThumbListBox : public Control<Category::ControlTag, ThumbListBoxReactor, ThumbListBoxEvents, ThumbListBoxAppearance>
 	{
 	public:
 		ThumbListBox() = default;

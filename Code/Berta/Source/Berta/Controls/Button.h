@@ -36,7 +36,7 @@ namespace Berta
 		};
 	}
 	
-	class Button : public Control<Internal::Button::Reactor>
+	class Button : public Control<Category::ControlTag, Internal::Button::Reactor>
 	{
 	public:
 		Button() = default;

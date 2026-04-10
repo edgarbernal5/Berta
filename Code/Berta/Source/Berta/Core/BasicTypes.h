@@ -15,6 +15,14 @@
 
 namespace Berta
 {
+	//Tags
+	namespace Category 
+	{
+		struct RootTag {}; 
+		struct ControlTag {}; 
+		struct PanelTag {}; 
+	}
+	
 	struct Size;
 	struct Rectangle;
 

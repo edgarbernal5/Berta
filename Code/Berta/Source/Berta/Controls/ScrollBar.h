@@ -89,7 +89,7 @@ namespace Berta
 		bool m_trackPageUp{ false };
 	};
 
-	class ScrollBar : public Control<ScrollBarReactor, ScrollBarEvents>
+	class ScrollBar : public Control<Category::ControlTag, ScrollBarReactor, ScrollBarEvents>
 	{
 	public:
 		ScrollBar() = default;

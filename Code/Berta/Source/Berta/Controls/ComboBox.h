@@ -128,7 +128,7 @@ namespace Berta
 		};
 	}
 	
-	class ComboBox : public Control<Internal::ComboBox::Reactor, Internal::ComboBox::Events, Internal::ComboBox::Appearance>
+	class ComboBox : public Control<Category::ControlTag, Internal::ComboBox::Reactor, Internal::ComboBox::Events, Internal::ComboBox::Appearance>
 	{
 	public:
 		using ComboBoxItem = Internal::ComboBox::ComboBoxItem;

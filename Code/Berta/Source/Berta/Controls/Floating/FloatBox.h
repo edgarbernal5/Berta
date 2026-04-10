@@ -64,11 +64,10 @@ namespace Berta
 		std::unique_ptr<ScrollBar> m_scrollBar;
 	};
 
-	class FloatBox : public Control<FloatBoxReactor, FormEvents>
+	class FloatBox : public Control<Category::RootTag, FloatBoxReactor, FormEvents>
 	{
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);
-		~FloatBox() = default;
 
 		bool OnKeyPressed(const ArgKeyboard& args);
 		void Init(Float::InteractionData& state)

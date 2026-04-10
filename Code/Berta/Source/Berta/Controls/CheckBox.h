@@ -67,7 +67,7 @@ namespace Berta
 		};
 	}
 
-	class CheckBox : public Control<Internal::CheckBox::Reactor, Internal::CheckBox::Events>
+	class CheckBox : public Control<Category::ControlTag, Internal::CheckBox::Reactor, Internal::CheckBox::Events>
 	{
 	public:
 		CheckBox() = default;

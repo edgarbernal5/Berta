@@ -430,7 +430,7 @@ namespace Berta
         State m_buttonStatus{ State::None };
     };
 
-    class DockAreaCaption : public Control<DockAreaCaptionReactor>
+    class DockAreaCaption : public Control<Category::ControlTag, DockAreaCaptionReactor>
     {
     public:
         DockAreaCaption() = default;
@@ -440,7 +440,7 @@ namespace Berta
         bool HaveClickedCloseButton() const;
     };
 
-    class DockArea : public Control<ControlReactor>
+    class DockArea : public Control<Category::PanelTag, ControlReactor>
     {
     public:
         DockArea() = default;
@@ -457,6 +457,7 @@ namespace Berta
             Point m_dragStartPos{ };
             Point m_dragStartLocalPos{ };
             Point m_dragStartCaptionPos{ };
+            uint32_t m_savedDPI{ 0 };
         };
 
         bool IsFloating() const
@@ -465,7 +466,6 @@ namespace Berta
         }
 
         MouseInteraction m_mouseInteraction;
-        uint32_t m_savedDPI{ 0 };
         Window* m_hostWindow{ nullptr };
         DockEventsNotifier* m_eventsNotifier{ nullptr };
         std::unique_ptr<Form> m_nativeContainer;

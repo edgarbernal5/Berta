@@ -40,7 +40,7 @@ namespace Berta
 		};
 	}
 
-	class Label : public Control<Internal::Label::Reactor>
+	class Label : public Control<Category::ControlTag, Internal::Label::Reactor>
 	{
 	public:
 		Label() = default;

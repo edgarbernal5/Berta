@@ -12,7 +12,7 @@
 
 namespace Berta
 {
-	class Panel : public Control<ControlReactor>
+	class Panel : public Control<Category::PanelTag, ControlReactor>
 	{
 	public:
 		Panel() = default;

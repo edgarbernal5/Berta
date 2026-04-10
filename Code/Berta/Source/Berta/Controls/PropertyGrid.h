@@ -260,7 +260,7 @@ namespace Berta
 		};
 	}
 
-	class PropertyGrid : public Control<Internal::PropertyGrid::Reactor, Internal::PropertyGrid::Events, Internal::PropertyGrid::Appearance>
+	class PropertyGrid : public Control<Category::ControlTag, Internal::PropertyGrid::Reactor, Internal::PropertyGrid::Events, Internal::PropertyGrid::Appearance>
 	{
 	public:
 		using CategoryItem = Internal::PropertyGrid::CategoryItem;

@@ -154,7 +154,7 @@ namespace Berta
 		TabBarReactor::Module* m_module{ nullptr };
 	};
 
-	class TabBar : public Control<TabBarReactor, TabBarEvents, TabBarAppearance>
+	class TabBar : public Control<Category::ControlTag, TabBarReactor, TabBarEvents, TabBarAppearance>
 	{
 	public:
 		TabBar() = default;
