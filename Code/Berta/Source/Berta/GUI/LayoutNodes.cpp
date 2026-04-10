@@ -789,7 +789,8 @@ namespace Berta
 
 		m_tabBar = std::make_unique<TabBar>(this->Handle(), Rectangle{0,0,1u,1u});
 		m_tabBar->SetTabRowPosition(TabRowPosition::Bottom);
-
+		m_tabBar->ShowCloseButton(false);
+		
 		m_tabBar->GetEvents().TabChanged.Connect([this](const ArgTabBar& args)
 		{
 			m_caption->SetCaption(std::string(args.Id));
