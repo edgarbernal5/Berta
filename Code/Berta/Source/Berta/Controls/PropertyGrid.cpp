@@ -81,7 +81,6 @@ namespace Berta
 				m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded = !m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded;
 				m_module.m_mouseInteraction.m_selectedCategory = nullptr;
 
-				m_module.CalculateViewport(m_module.m_viewport);
 				m_module.BuildItems();
 				m_module.UpdateScrollBar();
 
@@ -89,9 +88,14 @@ namespace Berta
 			}
 		}
 
+		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
+		{
+			m_module.m_scrollableView->HandleMouseWheel(args);
+		}
+
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
 		{
-			m_module.CalculateViewport(m_module.m_viewport);
+			m_module.m_scrollableView->SetViewRect(Rectangle(0, 0, args.NewSize.Width, args.NewSize.Height));
 			m_module.BuildItems();
 			m_module.UpdateScrollBar();
 		}
@@ -100,20 +104,20 @@ namespace Berta
 		{
 			auto one = m_owner->ToScale(1);
 			Point offset{};
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
 				Rectangle categoryRect{ offset.X + m_viewport.m_backgroundRect.X,
 					offset.Y + m_viewport.m_backgroundRect.Y,
 					m_viewport.m_backgroundRect.Width - m_viewport.m_backgroundRect.X * 2, m_viewport.m_categoryItemHeight };
 
-				it->m_area = categoryRect;
+				category.m_area = categoryRect;
 				offset.Y += static_cast<int>(categoryRect.Height);
 
-				if (it->m_isExpanded)
+				if (category.m_isExpanded)
 				{
-					for (size_t i = 0; i < it->m_properties.size(); i++)
+					for (size_t i = 0; i < category.m_properties.size(); i++)
 					{
-						auto field = it->m_properties[i].get();
+						auto field = category.m_properties[i].get();
 						auto fieldSize = field->GetSize();
 
 						offset.Y += static_cast<int>(fieldSize);
@@ -144,7 +148,7 @@ namespace Berta
 			m_mouseInteraction.m_lastPropertySelected = nullptr;
 		}
 
-		void Module::CalculateViewport(ViewportData& viewportData)
+		/*void Module::CalculateViewport(ViewportData& viewportData)
 		{
 			viewportData.m_backgroundRect = m_owner->ClientSize.ToRectangle();
 			viewportData.m_backgroundRect.X = viewportData.m_backgroundRect.Y = 1;
@@ -162,19 +166,19 @@ namespace Berta
 			{
 				viewportData.m_backgroundRect.Width -= m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
 			}
-		}
+		}*/
 
 		void Module::CalculateContentSize(ViewportData& viewportData)
 		{
 			viewportData.m_contentSize = viewportData.m_categoryItemHeight * static_cast<uint32_t>(m_listModule.Size());
 
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
-				if (it->m_isExpanded)
+				if (category.m_isExpanded)
 				{
-					for (size_t i = 0; i < it->m_properties.size(); i++)
+					for (size_t i = 0; i < category.m_properties.size(); i++)
 					{
-						auto field = it->m_properties[i].get();
+						auto field = category.m_properties[i].get();
 						auto fieldSize = field->GetSize();
 
 						viewportData.m_contentSize += fieldSize;
@@ -210,7 +214,7 @@ namespace Berta
 
 		void Module::UpdateScrollBar()
 		{
-			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+			/*auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
 			if (m_viewport.m_needVerticalScroll)
 			{
 				Rectangle scrollRect{ static_cast<int>(m_owner->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_owner->ClientSize.Height - 2u };
@@ -240,7 +244,21 @@ namespace Berta
 			{
 				m_scrollBar.reset();
 				m_scrollOffset.Y = 0;
-			}
+			}*/
+		}
+
+		void Module::InitScrollableView()
+		{
+			m_scrollableView = std::make_unique<ScrollableView>(m_owner);
+			
+			m_scrollableView->SetScrollStep(22, 0); // 22 es tu CategoryHeight actual
+			m_scrollableView->SetOnScrollChange([this]()
+			{
+				if (m_owner)
+				{
+					//GUI::InvalidateWindowArea(m_owner, m_scrollableView->GetClientArea());
+				}
+			});
 		}
 
 		void Module::Draw()
@@ -250,13 +268,13 @@ namespace Berta
 			graphics.FillRectangle(clientRect, m_owner->Appearance->BoxBackground);
 
 			auto one = m_owner->ToScale(1);
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
-				Rectangle categoryRect = it->m_area;
+				Rectangle categoryRect = category.m_area;
 				categoryRect.X += m_viewport.m_backgroundRect.X - m_scrollOffset.X;
 				categoryRect.Y += m_viewport.m_backgroundRect.Y - m_scrollOffset.Y;
 
-				bool isCategoryHovered = m_mouseInteraction.m_hoveredCategory == &(*it);
+				bool isCategoryHovered = m_mouseInteraction.m_hoveredCategory == &(category);
 				if (isCategoryHovered)
 				{
 					graphics.DrawRoundRectBox(categoryRect, m_appearance->ButtonHighlightBackground, m_appearance->BoxBorderColor, true);
@@ -276,29 +294,29 @@ namespace Berta
 				graphics.DrawArrow(expanderRect,
 					arrowLength,
 					arrowWidth,
-					it->m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
+					category.m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
 					m_appearance->Foreground2nd,
 					true,
-					it->m_isExpanded ? m_appearance->Foreground2nd : m_appearance->BoxBackground
+					category.m_isExpanded ? m_appearance->Foreground2nd : m_appearance->BoxBackground
 				);
 
 				Point textOffset = { expanderRect.X + static_cast<int>(expanderRect.Width) + m_viewport.m_categoryTextOffset,static_cast<int>(m_viewport.m_categoryItemHeight) - static_cast<int>(graphics.GetTextExtent().Height) };
 				textOffset.Y >>= 1;
 
-				graphics.DrawString({ textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_appearance->Foreground);
+				graphics.DrawString({ textOffset.X,categoryRect.Y + textOffset.Y }, category.m_name, m_appearance->Foreground);
 
 				Point scrollOffset{ categoryRect.X,categoryRect.Y };
 				scrollOffset.Y += categoryRect.Height;
 
-				for (size_t i = 0; i < it->m_properties.size(); i++)
+				for (size_t i = 0; i < category.m_properties.size(); i++)
 				{
 					auto field = it->m_properties[i].get();
-					bool fieldVisible = it->m_isExpanded;
+					bool fieldVisible = category.m_isExpanded;
 					auto fieldContainer = it->m_fieldContainers[i].get();
 					auto fieldSize = field->GetSize();
 
 					bool isSelected = field == m_mouseInteraction.m_lastPropertySelected;
-					if (it->m_isExpanded)
+					if (category.m_isExpanded)
 					{
 						if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_viewport.m_backgroundRect.Y > static_cast<int>(m_viewport.m_backgroundRect.Height))
 						{
@@ -318,7 +336,7 @@ namespace Berta
 						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->Red : m_appearance->Foreground);
 					}
 					
-					if (it->m_isExpanded)
+					if (category.m_isExpanded)
 					{
 						scrollOffset.Y += fieldSize;
 					}
@@ -332,32 +350,32 @@ namespace Berta
 		CategoryType* Module::GetCategoryOnMouse(const Point& mousePosition)
 		{
 			Point offsetPosition = mousePosition + m_scrollOffset;
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
-				if (it->m_area.Contains(offsetPosition))
-					return &(*it);
+				if (category.m_area.Contains(offsetPosition))
+					return &category;
 			}
 			return nullptr;
 		}
 
 		PropertyGridFieldBase* Module::GetCategoryPropertyOnMouse(const Point& mousePosition)
 		{
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
-				Rectangle categoryRect = it->m_area;
+				Rectangle& categoryRect = category.m_area;
 
 				Point scrollOffset{ categoryRect.X,categoryRect.Y };
 				scrollOffset.Y += static_cast<int>(categoryRect.Height);
 				scrollOffset.Y -= m_scrollOffset.Y;
 
-				if (!it->m_isExpanded)
+				if (!category.m_isExpanded)
 				{
 					continue;
 				}
 
-				for (size_t i = 0; i < it->m_properties.size(); i++)
+				for (size_t i = 0; i < category.m_properties.size(); i++)
 				{
-					auto field = it->m_properties[i].get();
+					auto field = category.m_properties[i].get();
 					auto fieldSizeInt = static_cast<int>(field->GetSize());
 					if (mousePosition.Y >= scrollOffset.Y && mousePosition.Y < scrollOffset.Y + fieldSizeInt)
 					{
@@ -382,19 +400,19 @@ namespace Berta
 				0
 			};
 			bool found = false;
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (auto& category : m_categories)
 			{
-				const Rectangle& categoryRect = it->m_area;
+				const Rectangle& categoryRect = category.m_area;
 				itemBounds.Y += static_cast<int>(categoryRect.Height);
 
-				if (!it->m_isExpanded)
+				if (!category.m_isExpanded)
 				{
 					continue;
 				}
 
-				for (size_t i = 0; i < it->m_properties.size(); i++)
+				for (size_t i = 0; i < category.m_properties.size(); i++)
 				{
-					auto field = it->m_properties[i].get();
+					auto field = category.m_properties[i].get();
 					if (field == propGridField)
 					{
 						itemBounds.Height = field->GetSize();
@@ -541,7 +559,7 @@ namespace Berta
 			SetEnabled(IsEnabled());
 		}
 
-		std::string PropertyGridFieldBase::GetLabel() const
+		std::string_view PropertyGridFieldBase::GetLabel() const
 		{
 			return m_label;
 		}
@@ -552,36 +570,6 @@ namespace Berta
 				return;
 
 			m_label = label;
-		}
-
-		std::string PropertyGridFieldBase::GetValue() const
-		{
-			return m_value;
-		}
-
-		void PropertyGridFieldBase::SetValue(const std::string& value)
-		{
-			if (m_value == value)
-			{
-				return;
-			}
-
-			m_value = value;
-			Update();
-		}
-
-		std::string PropertyGridFieldBase::GetDefaultValue() const
-		{
-			return m_defaultValue;
-		}
-
-		void PropertyGridFieldBase::SetDefaultValue(const std::string& value)
-		{
-			if (m_defaultValue == value)
-				return;
-
-			m_defaultValue = value;
-			Update();
 		}
 
 		bool PropertyGridFieldBase::IsEnabled() const

@@ -18,15 +18,17 @@ namespace Berta
 	class PropertyGridFieldString : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldString(const std::string& label, const std::string& value = "") :
-			PropertyGridFieldBase(label, value)
+		using GetterFn = std::function<std::string>;
+		using SetterFn = std::function<void(const std::string&)>;
+		
+		PropertyGridFieldString(const std::string& label, GetterFn getter, SetterFn setter)
+			: PropertyGridFieldBase(label), m_getter(getter), m_setter(setter) 
 		{
 		}
 
 		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
 		
 		virtual void SetEnabled(bool enabled) override;
-		virtual void SetValue(const std::string& value) override;
 
 		virtual void SetEditable(bool isEditable);
 		virtual bool IsEditable() const;
@@ -35,7 +37,9 @@ namespace Berta
 
 	protected:
 		virtual void Create(Window* parent) override;
-
+		
+		GetterFn m_getter;
+		SetterFn m_setter;
 		InputText m_inputText;
 	private:
 	};

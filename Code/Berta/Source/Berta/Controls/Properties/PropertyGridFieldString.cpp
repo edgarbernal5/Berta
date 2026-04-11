@@ -35,11 +35,11 @@ namespace Berta
 		m_inputText.SetEnabled(enabled);
 	}
 
-	void PropertyGridFieldString::SetValue(const std::string& value)
+	/*void PropertyGridFieldString::SetValue(const std::string& value)
 	{
 		PropertyGridFieldBase::SetValue(value);
 		m_inputText.SetCaption(value);
-	}
+	}*/
 
 	void PropertyGridFieldString::SetEditable(bool isEditable)
 	{
@@ -59,7 +59,7 @@ namespace Berta
 	void PropertyGridFieldString::Create(Window* parent)
 	{
 		m_inputText.Create(parent);
-		m_inputText.SetCaption(m_value);
+		//m_inputText.SetCaption(m_value);
 		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
 
 		m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
@@ -69,9 +69,9 @@ namespace Berta
 
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{
-				if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
+				//if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
 				{
-					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
+					//PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
 					EmitEvent();
 				}
 			});
@@ -84,9 +84,9 @@ namespace Berta
 					return;
 				}
 
-				if (m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
+				//if (m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
 				{
-					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
+					//PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
 					EmitEvent();
 				}
 			});

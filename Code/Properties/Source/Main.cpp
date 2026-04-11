@@ -32,7 +32,7 @@ int main()
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 
 	auto categoryTransform = propertyGrid.Append("Transform");
-	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Name", "Car")));
+	/*categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Name", "Car")));
 	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Tag", "Blue, Green")));
 	for (size_t i = 0; i < 3; i++)
 	{
@@ -64,7 +64,7 @@ int main()
 	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSliderFloat));
 	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
 	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringButton("Mesh file", "")));
-
+	*/
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
 			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
