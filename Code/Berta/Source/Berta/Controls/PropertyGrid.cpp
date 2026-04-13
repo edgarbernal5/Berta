@@ -91,7 +91,7 @@ namespace Berta
 				Rectangle catRect{ 0, currentY, width, config.CategoryHeight };
 
 				// 1. ¿Clic en la Categoría?
-				if (catRect.Contains({ clickX, clickY }))
+				if (catRect.Contains(Point{ clickX, clickY }))
 				{
 					category.m_isExpanded = !category.m_isExpanded;
 					m_module.m_layout.CalculateLayout(m_module.m_model);
@@ -108,7 +108,7 @@ namespace Berta
 				{
 					for (auto& item : category.m_properties)
 					{
-						Rectangle propRect{ 0, currentY, width, config.PropertyHeight };
+						Rectangle propRect{ 0, currentY, width, item.field->GetHeight() };
 
 						if (propRect.Contains({ clickX, clickY }))
 						{
@@ -122,7 +122,7 @@ namespace Berta
 							return; // Salimos temprano, ya procesamos el clic
 						}
 
-						currentY += config.PropertyHeight;
+						currentY += item.field->GetHeight();
 					}
 				}
 			}
