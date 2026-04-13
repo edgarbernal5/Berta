@@ -10,7 +10,7 @@
 
 namespace Berta::Internal::PropertyGrid
 {
-    CategoryType& PropertyGridModel::AppendCategory(std::string_view categoryName)
+    /*CategoryType& PropertyGridModel::AppendCategory(std::string_view categoryName)
     {
         // Si ya existe, la retornamos
         if (auto* existing = FindCategory(categoryName))
@@ -38,5 +38,5 @@ namespace Berta::Internal::PropertyGrid
     void PropertyGridModel::Clear()
     {
         m_categories.clear();
-    }
+    }*/
 }

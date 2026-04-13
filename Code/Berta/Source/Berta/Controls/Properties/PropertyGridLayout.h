@@ -7,21 +7,22 @@
 #define BT_PROPERTY_GRID_LAYOUT_HEADER
 
 #include "PropertyGridModel.h"
-#include "Berta/Controls/ScrollableView.h"
+#include "Berta/GUI/ScrollableView.h"
 #include "Berta/GUI/Window.h"
-#include "Berta/Paint/Graphics.h" // O tu equivalente para dibujar
+#include "Berta/Paint/Graphics.h"
 
 #include <memory>
 
 namespace Berta::Internal::PropertyGrid
 {
+    /*
     // Opcional: Podrías inyectar Appearance directamente
     struct LayoutConfig
     {
         uint32_t CategoryHeight{ 22 };
         uint32_t PropertyHeight{ 22 };
         uint32_t LabelWidth{ 120 };
-        Color TextColor{ 255, 255, 255 };
+        Color TextColor{ 0, 255, 255, 255 };
     };
 
     class PropertyGridLayout
@@ -47,7 +48,7 @@ namespace Berta::Internal::PropertyGrid
         Window* m_owner{ nullptr };
         std::unique_ptr<ScrollableView> m_internalScrollManager;
         LayoutConfig m_config;
-    };
+    };*/
 }
 
 #endif

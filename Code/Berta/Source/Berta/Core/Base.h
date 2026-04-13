@@ -44,6 +44,18 @@ namespace Berta::StringUtils
 
 	std::vector<std::string> Split(const std::string& str, char delimiter);
 	std::vector<std::wstring> Split(const std::wstring& str, wchar_t delimiter);
+	
+	using StringHash = uint32_t;
+	
+	constexpr StringHash HashString(std::string_view str)
+	{
+		StringHash hash = 2166136261u;
+		for (char c : str) {
+			hash ^= static_cast<StringHash>(c);
+			hash *= 16777619u;
+		}
+		return hash;
+	}
 }
 
 #include "BasicTypes.h"

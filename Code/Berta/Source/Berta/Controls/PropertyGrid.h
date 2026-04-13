@@ -58,14 +58,22 @@ namespace Berta
 			virtual std::string_view GetLabel() const;
 			virtual void SetLabel(const std::string& label);
 
+			[[nodiscard]] virtual std::string GetValueAsString() const = 0;
+			
 			virtual bool IsEnabled() const;
 			virtual void SetEnabled(bool enabled);
 
-			virtual uint32_t GetSize() const
+			virtual uint32_t GetHeight() const
 			{
-				return m_parent->ToScale(m_size);
+				return m_parent->ToScale(m_height);
 			}
-
+			
+			virtual void OnMouseClick(const Point& localPosition, uint32_t labelWidth) 
+			{
+				// Comportamiento base vacío. 
+				// Las clases derivadas decidirán qué hacer con este clic.
+			}
+			
 			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
 
 			void EmitEvent();
@@ -84,7 +92,7 @@ namespace Berta
 
 			std::string	m_label;
 
-			uint32_t m_size{ 24 };
+			uint32_t m_height{ 24 };
 			bool m_enabled{ true };
 
 		private:
@@ -98,11 +106,6 @@ namespace Berta
 			FieldControlContainer(Window* parent, const Rectangle& rect = {});
 		};
 		
-		struct PropertyFieldData
-		{
-			std::unique_ptr<PropertyGridFieldBase> field;
-			std::unique_ptr<FieldControlContainer> container;
-		};
 		
 		/*
 		 *TODO
@@ -118,7 +121,46 @@ namespace Berta
 		// grid.RegisterField<int, PropertyGridFieldInt>();
 		*/
 		
+		struct PropertyFieldData
+		{
+			std::unique_ptr<PropertyGridFieldBase> field;
+			std::unique_ptr<FieldControlContainer> container;
+		};
+
 		struct CategoryType
+		{
+			StringUtils::StringHash m_id;
+			std::string m_name;
+			bool m_isExpanded{ true };
+			std::vector<PropertyFieldData> m_properties;
+
+			explicit CategoryType(std::string_view name) : m_id(StringUtils::HashString(name)), m_name(name) {}
+		};
+
+		class PropertyGridModel
+		{
+		public:
+			PropertyGridModel() = default;
+			~PropertyGridModel() = default;
+
+			// Búsqueda y modificación (C++17 string_view)
+			CategoryItem AppendCategory(std::string_view categoryName);
+			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
+        
+			void AppendPropertyToCategory(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
+			void SetPropertyEnabled(StringUtils::StringHash catId, StringUtils::StringHash propId, bool enabled);
+			std::string GetPropertyValueAsString(StringUtils::StringHash catId, StringUtils::StringHash propId);
+			void Clear();
+
+			// Getters para la iteración en la Vista
+			[[nodiscard]] const std::vector<CategoryType>& GetCategories() const { return m_categories; }
+			std::vector<CategoryType>& GetCategories() { return m_categories; }
+
+		private:
+			PropertyFieldData* FindPropertyById(StringUtils::StringHash catId, StringUtils::StringHash propId);
+			std::vector<CategoryType> m_categories;
+		};
+		/*struct CategoryType
 		{
 			CategoryType() = default;
 			CategoryType(std::string_view name) : m_name(name) {}
@@ -127,7 +169,7 @@ namespace Berta
 			bool m_isExpanded{ true };
 			Rectangle m_area{};
 			std::vector<PropertyFieldData> m_items;
-		};
+		};*/
 
 		struct MouseInteraction
 		{
@@ -141,12 +183,9 @@ namespace Berta
 		class PropertyItem
 		{
 		public:
-			friend struct Module;
-
-		public:
 			PropertyItem() = default;
-			PropertyItem(Module* module, PropertyGridFieldBase* propGridField) :
-				m_module(module), m_propGridField(propGridField)
+			PropertyItem(PropertyGridModel* model, uint32_t catId, uint32_t propId) :
+				m_model(model), m_catId(catId), m_propId(propId)
 			{
 			}
 			
@@ -154,36 +193,86 @@ namespace Berta
 
 			std::string GetLabel() const;
 			PropertyItem& SetLabel(const std::string& label);
-
-			std::string GetValue() const;
-			PropertyItem& SetValue(const std::string& value, bool emitEvent = false);
-
+			
+			/*[[nodiscard]] std::string GetValueAsString() const {
+				return m_model ? m_model->GetPropertyValueAsString(m_catId, m_propId) : "";
+			}*/
+			
 			bool IsEnabled() const;
 			PropertyItem& SetEnabled(bool enabled);
-			
-			PropertyGridFieldBase* GetPropertyFieldPtr() const { return m_propGridField; }
 
 		private:
-			Module* m_module{ nullptr };
-			PropertyGridFieldBase* m_propGridField{ nullptr };
+			PropertyGridModel* m_model{ nullptr };
+			uint32_t m_catId{ 0 };
+			uint32_t m_propId{ 0 };
 		};
 
 		struct CategoryItem
 		{
+			// Constructor vacío crea un handle inválido
 			CategoryItem() = default;
-			CategoryItem(Module* module, CategoryType* category) :
-				m_module(module), m_category(category)
+        
+			CategoryItem(PropertyGridModel* model, uint32_t categoryId)
+				: m_model(model), m_id(categoryId) {}
+
+			// --- FLUENT API ---
+			// El Handle delega la acción al modelo usando su ID seguro
+        
+			/*template <typename TControl, typename... Args>
+			CategoryItem& EmplaceProperty(Args&&... args)
 			{
+				if (m_model)
+				{
+					StringUtils::StringHash propId = StringUtils::HashString(label);
+					
+					// El modelo busca la categoría de forma segura y le añade la propiedad
+					m_model->EmplacePropertyToCategory(m_id, std::make_unique<TControl>(std::forward<Args>(args)...));
+				}
+				return *this;
+			}*/
+
+			// Para usar con el ObjectPool
+			PropertyItem AppendProperty(std::unique_ptr<PropertyGridFieldBase> field)
+			{
+				if (m_model && field) {
+					uint32_t propId = StringUtils::HashString(field->GetLabel());
+					m_model->AppendPropertyToCategory(m_id, std::move(field));
+					return PropertyItem(m_model, m_id, propId);
+				}
+				return {};
 			}
 
-			PropertyItem Append(PropertyGridFieldBasePtr propGridFieldPtr);
+			[[nodiscard]] bool IsValid() const { return m_model != nullptr; }
 
-			operator bool() const;
-
-			Module* m_module{ nullptr };
-			CategoryType* m_category{ nullptr };
+		private:
+			PropertyGridModel* m_model{ nullptr };
+			uint32_t m_id{ 0 }; // El StringHash FNV-1a de la categoría
 		};
 		
+		class PropertyGridLayout
+		{
+		public:
+			PropertyGridLayout(Window* owner, const Appearance& config = {});
+			~PropertyGridLayout() = default;
+
+			// Recorre el modelo, suma las alturas de lo que está expandido y avisa al scroll
+			void CalculateLayout(const PropertyGridModel& model);
+
+			// Dibuja aplicando el offset de m_scrollableView
+			void Draw(Graphics& graphics, const PropertyGridModel& model);
+
+			// Expuesto públicamente para que el Reactor enrute eventos (MouseWheel, etc)
+			ScrollableView* m_scrollableView{ nullptr };
+
+			// Permite actualizar la configuración visual en caliente
+			void SetConfig(const Appearance& config) { m_config = config; }
+			[[nodiscard]] const Appearance& GetConfig() const { return m_config; }
+
+		private:
+			Window* m_owner{ nullptr };
+			std::unique_ptr<ScrollableView> m_internalScrollManager;
+			Appearance m_config;
+		};
 		/*class ListModule
 		{
 		public:
@@ -208,24 +297,21 @@ namespace Berta
 		struct Module
 		{
 			CategoryItem Append(std::string_view categoryName);
-			void BuildItems();
 			CategoryItem Find(std::string_view categoryName);
+			
 			void Clear();
-			void CalculateContentSize(ViewportData& viewportData);
 			void Draw();
 			void EmitEvent(PropertyItem item) const;
 			void EmitSelectionEvent(PropertyItem item);
 			void Update();
 			void UpdateScrollBar();
 			
-			void InitScrollableView();
-			
 			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
 			PropertyGridFieldBase* GetCategoryPropertyOnMouse(const Point& mousePosition);
 			void ScrollToView(PropertyGridFieldBase* propGridField);
 
-			std::unique_ptr<ScrollableView> m_scrollableView;
-			std::vector<CategoryType> m_categories;
+			PropertyGridModel m_model;
+			PropertyGridLayout m_layout;
 			Window* m_owner{ nullptr };
 			Appearance* m_appearance{ nullptr };
 

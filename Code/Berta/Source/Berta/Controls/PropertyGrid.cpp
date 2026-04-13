@@ -24,12 +24,11 @@ namespace Berta
 			m_module.m_events = reinterpret_cast<Events*>(m_module.m_owner->Events.get());
 
 			m_module.m_graphics = m_graphics;
-			m_module.CalculateViewport(m_module.m_viewport);
 		}
 
 		void Reactor::Update(Graphics& graphics)
 		{
-			m_module.Draw();
+			m_module.m_layout.Draw(graphics, m_module.m_model);
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -43,7 +42,7 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
-			auto category = m_module.GetCategoryOnMouse(args.Position);
+			/*auto category = m_module.GetCategoryOnMouse(args.Position);
 			bool needRefresh = category != m_module.m_mouseInteraction.m_selectedCategory;
 			m_module.m_mouseInteraction.m_selectedCategory = category;
 			PropertyGridFieldBase* lastPropertySelected = nullptr;
@@ -58,12 +57,12 @@ namespace Berta
 			if (needRefresh)
 			{
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}
+			}*/
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
-			if (args.ButtonState.LeftButton)
+			/*if (args.ButtonState.LeftButton)
 				return;
 
 			auto category = m_module.GetCategoryOnMouse(args.Position);
@@ -71,36 +70,89 @@ namespace Berta
 			{
 				m_module.m_mouseInteraction.m_hoveredCategory = category;
 				GUI::UpdateWindow(m_module.m_owner);
-			}
+			}*/
 		}
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			if (m_module.m_mouseInteraction.m_selectedCategory)
+			if (!args.ButtonState.LeftButton)
+				return;
+
+			Point scrollOffset = m_module.m_layout.m_scrollableView->GetScrollOffset();
+			int clickX = args.Position.X;
+			int clickY = args.Position.Y + scrollOffset.Y; 
+
+			int currentY = 0;
+			const auto& config = m_module.m_layout.GetConfig();
+			auto width = m_module.m_layout.m_scrollableView->GetClientArea().Width;
+
+			for (auto& category : m_module.m_model.GetCategories())
+			{
+				Rectangle catRect{ 0, currentY, width, config.CategoryHeight };
+
+				// 1. ¿Clic en la Categoría?
+				if (catRect.Contains({ clickX, clickY }))
+				{
+					category.m_isExpanded = !category.m_isExpanded;
+					m_module.m_layout.CalculateLayout(m_module.m_model);
+					//if (auto owner = m_control->Handle()) {
+						//GUI::InvalidateWindowArea(owner, m_module.m_layout.m_scrollableView->GetClientArea());
+					//}
+					return; 
+				}
+
+				currentY += config.CategoryHeight;
+
+				// 2. ¿Clic en alguna Propiedad?
+				if (category.m_isExpanded)
+				{
+					for (auto& item : category.m_properties)
+					{
+						Rectangle propRect{ 0, currentY, width, config.PropertyHeight };
+
+						if (propRect.Contains({ clickX, clickY }))
+						{
+							// Traducimos el clic global a coordenadas locales de la propiedad
+							// Esto facilita saber si se hizo clic en la etiqueta o en el control
+							Point localClick = { clickX - propRect.X, clickY - propRect.Y };
+
+							// Le delegamos la acción al control real
+							item.field->OnMouseClick(localClick, config.LabelWidth);
+
+							return; // Salimos temprano, ya procesamos el clic
+						}
+
+						currentY += config.PropertyHeight;
+					}
+				}
+			}
+			
+			/*if (m_module.m_mouseInteraction.m_selectedCategory)
 			{
 				m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded = !m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded;
 				m_module.m_mouseInteraction.m_selectedCategory = nullptr;
 
-				m_module.BuildItems();
+				
 				m_module.UpdateScrollBar();
 
 				GUI::UpdateWindow(m_module.m_owner);
-			}
+			}*/
 		}
 
 		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 		{
-			m_module.m_scrollableView->HandleMouseWheel(args);
+			m_module.m_layout.m_scrollableView->HandleMouseWheel(args);
 		}
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
 		{
-			m_module.m_scrollableView->SetViewRect(Rectangle(0, 0, args.NewSize.Width, args.NewSize.Height));
-			m_module.BuildItems();
+			m_module.m_layout.m_scrollableView->SetViewRect(Rectangle(0, 0, args.NewSize.Width, args.NewSize.Height));
+		
+			m_module.m_layout.CalculateLayout(m_module.m_model);
 			m_module.UpdateScrollBar();
 		}
 
-		void Module::BuildItems()
+		/*void Module::BuildItems()
 		{
 			auto one = m_owner->ToScale(1);
 			Point offset{};
@@ -125,14 +177,14 @@ namespace Berta
 				}
 				offset.Y += one;
 			}
-		}
+		}*/
 
 		CategoryItem Module::Find(std::string_view categoryName)
 		{
-			auto it = std::find_if(m_categories.begin(), m_categories.end(), 
+			auto it = std::find_if(m_model.GetCategories().begin(), m_model.GetCategories().end(), 
 			[categoryName](const CategoryType& cat) { return cat.m_name == categoryName; });
 
-			if (it != m_categories.end())
+			if (it != m_model.GetCategories().end())
 			{
 				return { this, &(*it) };
 			}
@@ -141,8 +193,8 @@ namespace Berta
 
 		void Module::Clear()
 		{
-			m_listModule.Clear();
-			CalculateViewport(m_viewport);
+			//m_listModule.Clear();
+			m_layout.CalculateLayout(m_model);
 			UpdateScrollBar();
 			
 			m_mouseInteraction.m_lastPropertySelected = nullptr;
@@ -168,7 +220,7 @@ namespace Berta
 			}
 		}*/
 
-		void Module::CalculateContentSize(ViewportData& viewportData)
+		/*void Module::CalculateContentSize(ViewportData& viewportData)
 		{
 			viewportData.m_contentSize = viewportData.m_categoryItemHeight * static_cast<uint32_t>(m_listModule.Size());
 
@@ -185,7 +237,7 @@ namespace Berta
 					}
 				}
 			}
-		}
+		}*/
 
 		void Module::EmitEvent(PropertyItem item) const
 		{
@@ -245,20 +297,6 @@ namespace Berta
 				m_scrollBar.reset();
 				m_scrollOffset.Y = 0;
 			}*/
-		}
-
-		void Module::InitScrollableView()
-		{
-			m_scrollableView = std::make_unique<ScrollableView>(m_owner);
-			
-			m_scrollableView->SetScrollStep(22, 0); // 22 es tu CategoryHeight actual
-			m_scrollableView->SetOnScrollChange([this]()
-			{
-				if (m_owner)
-				{
-					//GUI::InvalidateWindowArea(m_owner, m_scrollableView->GetClientArea());
-				}
-			});
 		}
 
 		void Module::Draw()
@@ -507,6 +545,88 @@ namespace Berta
 			return m_module != nullptr && m_category != nullptr;
 		}
 
+		PropertyGridLayout::PropertyGridLayout(Window* owner, const LayoutConfig& config)
+        : m_owner(owner), m_config(config)
+    {
+        m_internalScrollManager = std::make_unique<ScrollableView>(m_owner);
+        m_scrollableView = m_internalScrollManager.get();
+
+        // Configuración inicial del scroll
+        m_scrollableView->SetScrollStep(m_config.CategoryHeight, 0);
+        
+        m_scrollableView->SetOnScrollChange([this]() {
+            if (m_owner) {
+                // Invalidamos para repintar al scrollear
+                //GUI::InvalidateWindowArea(m_owner, m_scrollableView->GetClientArea()); 
+            }
+        });
+    }
+
+    void PropertyGridLayout::CalculateLayout(const PropertyGridModel& model)
+    {
+        uint32_t totalHeight = 0;
+        uint32_t maxWidth = m_scrollableView->GetClientArea().Width; // O un ancho fijo si no quieres scroll horizontal
+
+        for (const auto& category : model.GetCategories())
+        {
+            // La categoría siempre ocupa espacio
+            totalHeight += m_config.CategoryHeight;
+
+            // Si está expandida, sumamos el espacio de sus propiedades
+            if (category.m_isExpanded)
+            {
+                // Asumiendo que todas las propiedades tienen el mismo alto. 
+                // Si tienen alto dinámico, deberás preguntar a cada item.
+                totalHeight += static_cast<uint32_t>(category.m_properties.size()) * m_config.PropertyHeight;
+            }
+        }
+
+        // Le informamos al scroll el tamaño total del lienzo interno
+        m_scrollableView->SetContentSize({ static_cast<int>(maxWidth), static_cast<int>(totalHeight) });
+    }
+
+    void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model)
+    {
+        Point offset = m_scrollableView->GetScrollOffset();
+        Rectangle visibleRect = m_scrollableView->GetVisibleRect();
+
+        // Empezamos a dibujar en negativo según el scroll
+        int currentY = -offset.Y; 
+        int width = visibleRect.Width;
+
+        for (const auto& category : model.GetCategories())
+        {
+            // --- DIBUJAR CATEGORÍA ---
+            Rectangle catArea{ 0, currentY, width, static_cast<int>(m_config.CategoryHeight) };
+            
+            // Culling (Optimización: solo dibujamos si está dentro de la pantalla)
+            if (catArea.Y + catArea.Height > 0 && catArea.Y < visibleRect.Height)
+            {
+                // Aquí dibujas el fondo de la categoría, el triángulo de expandir y el texto
+                // graphics.FillRectangle(catArea, Color::DarkGray);
+                // graphics.DrawString({15, currentY}, category.m_name, m_config.TextColor);
+            }
+            
+            currentY += m_config.CategoryHeight;
+
+            // --- DIBUJAR PROPIEDADES ---
+            if (category.m_isExpanded)
+            {
+                for (const auto& item : category.m_properties)
+                {
+                    Rectangle propArea{ 0, currentY, width, static_cast<int>(m_config.PropertyHeight) };
+
+                    if (propArea.Y + propArea.Height > 0 && propArea.Y < visibleRect.Height)
+                    {
+                        // Inyectamos el área calculada a la propiedad para que se dibuje
+                        item.field->Draw(graphics, propArea, m_config.LabelWidth, m_config.TextColor);
+                    }
+                    currentY += m_config.PropertyHeight;
+                }
+            }
+        }
+    }
+
 		PropertyItem::operator bool() const
 		{
 			return m_module && m_propGridField;
@@ -525,22 +645,6 @@ namespace Berta
 			return *this;
 		}
 
-		std::string PropertyItem::GetValue() const
-		{
-			return m_propGridField->GetValue();
-		}
-
-		PropertyItem& PropertyItem::SetValue(const std::string& value, bool emitEvent)
-		{
-			m_propGridField->SetValue(value);
-
-			if (emitEvent)
-			{
-				m_module->EmitEvent(*this);
-			}
-			return *this;
-		}
-
 		bool PropertyItem::IsEnabled() const
 		{
 			return m_propGridField->IsEnabled();
@@ -548,7 +652,10 @@ namespace Berta
 
 		PropertyItem& PropertyItem::SetEnabled(bool enabled)
 		{
-			m_propGridField->SetEnabled(enabled);
+			if (m_model)
+			{
+				m_model->SetPropertyEnabled(m_catId, m_propId, enabled);
+			}
 			return *this;
 		}
 
@@ -629,13 +736,51 @@ namespace Berta
 		{
 		}
 
+		CategoryItem PropertyGridModel::AppendCategory(std::string_view categoryName)
+		{
+			StringUtils::StringHash hash = StringUtils::HashString(categoryName);
+            
+			// Si no existe, la creamos
+			if (!FindCategoryById(hash)) {
+				m_categories.emplace_back(categoryName); // CategoryType se crea con el hash
+			}
+
+			return CategoryItem(this, hash);
+		}
+
+		CategoryType* PropertyGridModel::FindCategoryById(StringUtils::StringHash id)
+		{
+			for (auto& cat : m_categories) {
+				if (cat.m_id == id) return &cat;
+			}
+			return nullptr;
+		}
+
+		void PropertyGridModel::AppendPropertyToCategory(StringUtils::StringHash catId,
+			std::unique_ptr<PropertyGridFieldBase> field)
+		{
+		}
+
+		void PropertyGridModel::SetPropertyEnabled(StringUtils::StringHash catId, StringUtils::StringHash propId,
+			bool enabled)
+		{
+		}
+
+		std::string PropertyGridModel::GetPropertyValueAsString(StringUtils::StringHash catId,
+			StringUtils::StringHash propId)
+		{
+			return "";
+		}
+
+		void PropertyGridModel::Clear()
+		{
+			m_categories.clear();
+		}
+
 		CategoryItem Module::Append(std::string_view categoryName)
 		{
-			auto category = Find(categoryName);
-			if (category)
-			{
-				return category;
-			}
+			auto category = m_model.AppendCategory(categoryName);
+			
 
 			CategoryItem newCategory = { this, m_listModule.CreateCategory(categoryName) };
 			CalculateViewport(m_viewport);
@@ -667,7 +812,7 @@ namespace Berta
 
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
 	{
-		return { nullptr,nullptr };
+		return { nullptr, 0 };
 	}
 
 	PropertyGrid::CategoryItem PropertyGrid::Find(const std::string& categoryName)

@@ -24,14 +24,34 @@ private:
 	Berta::InputText m_inputText;
 };
 
+struct AppState 
+{
+	std::string CarName{ "Car" };
+	std::string Tags{ "Blue, Green" };
+	int EnginePower{ 5 };
+	float MaxMaterials{ 0.0f };
+	// ...
+};
+
 int main()
 {
 	Berta::Form form(Berta::Size(750u, 650u), { true, true, true });
 	form.SetCaption("Property Grid - Example");
 
+	AppState myApp;
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 
 	auto categoryTransform = propertyGrid.Append("Transform");
+
+	// pg_string lee y escribe directamente en myApp.CarName
+	categoryTransform.m_properties.push_back({
+		std::make_unique<pg_string>(
+			"Name",
+			[&myApp]() { return myApp.CarName; },
+			[&myApp](const std::string& val) { myApp.CarName = val; }
+		)
+	});
+	
 	/*categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Name", "Car")));
 	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Tag", "Blue, Green")));
 	for (size_t i = 0; i < 3; i++)

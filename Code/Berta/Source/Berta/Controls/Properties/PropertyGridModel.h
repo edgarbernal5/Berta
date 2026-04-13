@@ -14,7 +14,7 @@
 // Forward declarations de tus clases base de Berta
 namespace Berta::Internal::PropertyGrid
 {
-    class PropertyGridFieldBase;
+    /*class PropertyGridFieldBase;
     
     // Agrupamos el dato para evitar vectores paralelos (Mejora de caché)
     struct PropertyFieldData 
@@ -50,7 +50,7 @@ namespace Berta::Internal::PropertyGrid
 
     private:
         std::vector<CategoryType> m_categories;
-    };
+    };*/
 }
 
 #endif

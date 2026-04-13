@@ -12,7 +12,7 @@
 
 namespace Berta::Internal::PropertyGrid
 {
-    PropertyGridLayout::PropertyGridLayout(Window* owner, const LayoutConfig& config)
+    /*PropertyGridLayout::PropertyGridLayout(Window* owner, const LayoutConfig& config)
         : m_owner(owner), m_config(config)
     {
         m_internalScrollManager = std::make_unique<ScrollableView>(m_owner);
@@ -92,5 +92,5 @@ namespace Berta::Internal::PropertyGrid
                 }
             }
         }
-    }
+    }*/
 }
