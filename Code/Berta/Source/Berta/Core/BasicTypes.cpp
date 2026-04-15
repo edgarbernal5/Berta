@@ -71,7 +71,7 @@ namespace Berta
 	}
 #endif
 
-	bool Rectangle::Intersect(const Rectangle& other) const
+	bool Rectangle::Intersects(const Rectangle& other) const
 	{
 		return !(this->X + (int)this->Width <= other.X || other.X + (int)other.Width <= this->X ||
 			this->Y + (int)this->Height <= other.Y || other.Y + (int)other.Height <= this->Y);

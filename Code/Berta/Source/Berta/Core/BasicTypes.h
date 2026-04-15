@@ -178,7 +178,7 @@ namespace Berta
 		{
 			return Width == 0 && Height == 0;
 		}
-		bool Intersect(const Rectangle& other) const;
+		bool Intersects(const Rectangle& other) const;
 		bool Contains(const Rectangle& other) const;
 
 		bool operator==(const Rectangle& other) const noexcept

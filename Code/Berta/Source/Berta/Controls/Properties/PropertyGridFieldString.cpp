@@ -11,9 +11,9 @@
 
 namespace Berta
 {
-	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	/*void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, config);
 
 		Rectangle valueRect = area;
 
@@ -39,7 +39,7 @@ namespace Berta
 	{
 		PropertyGridFieldBase::SetValue(value);
 		m_inputText.SetCaption(value);
-	}*/
+	}
 
 	void PropertyGridFieldString::SetEditable(bool isEditable)
 	{
@@ -90,5 +90,5 @@ namespace Berta
 					EmitEvent();
 				}
 			});
-	}
+	}*/
 }

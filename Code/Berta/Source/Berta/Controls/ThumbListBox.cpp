@@ -257,7 +257,7 @@ namespace Berta
 							if (index < m_module.m_items.size()) 
 							{
 								Rectangle itemRect = m_module.GetItemBounds(index);
-								if (lassoWorldRect.Intersect(itemRect)) 
+								if (lassoWorldRect.Intersects(itemRect)) 
 								{
 									m_module.m_selectionController.SetSelected(index, true);
 								}

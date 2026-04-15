@@ -145,7 +145,7 @@ namespace Berta
 		{
 			// Validaciones en tiempo de compilación para garantizar el uso correcto de Berta
 			static_assert(std::is_same<CategoryTag, Category::ControlTag>::value, 
-				"Esta plantilla es exclusiva para controles hijos (WidgetTag)");
+				"Esta plantilla es exclusiva para controles hijos (Controlag)");
 			
 			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
 			static_assert(std::is_base_of<ControlEvents, Events>::value, "Events must be derived from ControlEvents");
