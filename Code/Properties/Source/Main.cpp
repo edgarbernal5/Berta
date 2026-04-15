@@ -44,13 +44,12 @@ int main()
 	auto categoryTransform = propertyGrid.Append("Transform");
 
 	// pg_string lee y escribe directamente en myApp.CarName
-	/*categoryTransform.m_properties.push_back({
-		std::make_unique<pg_string>(
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
+		(
 			"Name",
 			[&myApp]() { return myApp.CarName; },
 			[&myApp](const std::string& val) { myApp.CarName = val; }
-		)
-	});*/
+		);
 	
 	/*categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Name", "Car")));
 	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Tag", "Blue, Green")));

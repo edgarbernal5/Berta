@@ -11,7 +11,7 @@
 
 namespace Berta
 {
-	/*void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
+	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
 	{
 		PropertyGridFieldBase::Draw(graphics, area, labelWidth, config);
 
@@ -29,16 +29,15 @@ namespace Berta
 		m_inputText.Show();
 	}
 
+	std::string PropertyGridFieldString::GetValueAsString() const
+	{
+		return m_getter();
+	}
+
 	void PropertyGridFieldString::SetEnabled(bool enabled)
 	{
 		PropertyGridFieldBase::SetEnabled(enabled);
 		m_inputText.SetEnabled(enabled);
-	}
-
-	/*void PropertyGridFieldString::SetValue(const std::string& value)
-	{
-		PropertyGridFieldBase::SetValue(value);
-		m_inputText.SetCaption(value);
 	}
 
 	void PropertyGridFieldString::SetEditable(bool isEditable)
@@ -90,5 +89,5 @@ namespace Berta
 					EmitEvent();
 				}
 			});
-	}*/
+	}
 }

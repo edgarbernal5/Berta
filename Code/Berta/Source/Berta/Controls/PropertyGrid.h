@@ -36,7 +36,7 @@ namespace Berta
 		{
 		public:
 			PropertyGridFieldBase() = default;
-			PropertyGridFieldBase(const std::string& label) :
+			PropertyGridFieldBase(std::string_view label) :
 				m_label(label)
 			{
 			}
@@ -239,30 +239,22 @@ namespace Berta
 			CategoryItem AppendCategory(std::string_view name);
 			CategoryItem AppendSubCategory(std::string_view name);
 			
-			/*template <typename TControl, typename... Args>
-			CategoryItem& EmplaceProperty(Args&&... args)
+			template <typename TControl, typename... Args>
+			PropertyItem EmplaceProperty(std::string_view label, Args&&... args)
 			{
-				if (m_model)
-				{
-					StringUtils::StringHash propId = StringUtils::HashString(label);
-					
-					// El modelo busca la categoría de forma segura y le añade la propiedad
-					m_model->EmplacePropertyToCategory(m_id, std::make_unique<TControl>(std::forward<Args>(args)...));
-				}
-				return *this;
-			}*/
+				return AppendProperty(std::make_unique<TControl>(label, std::forward<Args>(args)...));
+			}
 
-			// Para usar con el ObjectPool
-			/*PropertyItem AppendProperty(std::unique_ptr<PropertyGridFieldBase> field)
+			PropertyItem AppendProperty(std::unique_ptr<Internal::PropertyGrid::PropertyGridFieldBase> field)
 			{
 				if (m_model && field)
 				{
 					uint32_t propId = StringUtils::HashString(field->GetLabel());
 					m_model->AppendPropertyToCategory(m_id, std::move(field));
-					return PropertyItem(m_model, m_id, propId);
+					return {m_model, m_id, propId};
 				}
 				return {};
-			}*/
+			}
 
 			[[nodiscard]] bool IsValid() const { return m_model != nullptr; }
 
