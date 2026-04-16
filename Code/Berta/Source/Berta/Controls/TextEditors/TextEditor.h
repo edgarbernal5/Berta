@@ -41,6 +41,7 @@ namespace Berta
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgMouse& args);
 		void OnResize(ArgResize args);
+		void OnDpiChanged();
 
 		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
 

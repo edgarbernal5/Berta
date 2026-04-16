@@ -354,6 +354,12 @@ namespace Berta
 		AdjustView();
 	}
 
+	void TextEditor::OnDpiChanged()
+	{
+		RecomputeWordWrap();
+		AdjustView();
+	}
+
 	void TextEditor::ActivateCaret()
 	{
 		auto& currentLine = m_lines[m_selection.m_endPosition.line];

@@ -35,6 +35,7 @@ namespace Berta
 			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
 			void DblClick(Graphics& graphics, const ArgMouse& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
+			void DpiChanged(Graphics& graphics) override;
 
 			TextEditor* GetEditor() const;
 			

@@ -113,6 +113,11 @@ namespace Berta
 			m_textEditor->OnResize(args);
 		}
 
+		void Reactor::DpiChanged(Graphics& graphics)
+		{
+			m_textEditor->OnDpiChanged();
+		}
+
 		TextEditor* Reactor::GetEditor() const
 		{
 			return m_textEditor.get();
