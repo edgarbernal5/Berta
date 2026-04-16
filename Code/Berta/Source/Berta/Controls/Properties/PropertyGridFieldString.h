@@ -39,6 +39,7 @@ namespace Berta
 
 	protected:
 		virtual void Create(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
 		
 		GetterFn m_getter;
 		SetterFn m_setter;

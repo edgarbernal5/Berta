@@ -76,11 +76,14 @@ namespace Berta
 			void ScrollToView();
 			void Update();
 			
+			void SetVisibility(bool visible);
+			
 			std::function<void()> OnValueChanged;
 			std::function<void()> OnSelected;
 		protected:
 			virtual void Create(Window* parent) = 0;
 			virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
+			virtual void OnVisibilityChanged(bool visible) {}
 			
 			void NotifyValueChanged();
 			void NotifySelected();
@@ -91,6 +94,7 @@ namespace Berta
 
 			uint32_t m_height{ 24 };
 			bool m_enabled{ true };
+			bool m_isVisible{ true };
 		};
 		
 		class FieldControlContainer : public Panel
@@ -161,11 +165,9 @@ namespace Berta
 			void Init(Window* ownerWindow);
 			
 			CategoryType& AppendRootCategory(std::string_view categoryName);
-			// Añadir subcategoría a un padre específico
 			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
 			void AppendPropertyToCategory(StringUtils::StringHash categoryId, std::unique_ptr<PropertyGridFieldBase> field);
         
-			// Búsqueda Segura (Recursiva)
 			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
 			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash catId, StringUtils::StringHash propId);
 			
@@ -179,7 +181,6 @@ namespace Berta
 			
 			std::string GetPropertyValueAsString(StringUtils::StringHash catId, StringUtils::StringHash propId);
 			
-			// Getters para la iteración en la Vista
 			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
 			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
 			
@@ -217,9 +218,7 @@ namespace Berta
 			std::string_view GetLabel() const;
 			PropertyItem& SetLabel(std::string_view newLabel);
 			
-			[[nodiscard]] std::string GetValueAsString() const {
-				return m_model ? m_model->GetPropertyValueAsString(m_catId, m_propId) : "";
-			}
+			[[nodiscard]] std::string GetValueAsString() const;
 			
 			bool IsEnabled() const;
 			PropertyItem& SetEnabled(bool enabled);
@@ -232,14 +231,10 @@ namespace Berta
 
 		struct CategoryItem
 		{
-			// Constructor vacío crea un handle inválido
 			CategoryItem() = default;
-        
 			CategoryItem(PropertyGridModel* model, uint32_t categoryId)
 				: m_model(model), m_id(categoryId) {}
 
-			// --- FLUENT API ---
-			// El Handle delega la acción al modelo usando su ID seguro
 			CategoryItem AppendCategory(std::string_view name);
 			CategoryItem AppendSubCategory(std::string_view name);
 			
@@ -249,22 +244,12 @@ namespace Berta
 				return AppendProperty(std::make_unique<TControl>(label, std::forward<Args>(args)...));
 			}
 
-			PropertyItem AppendProperty(std::unique_ptr<Internal::PropertyGrid::PropertyGridFieldBase> field)
-			{
-				if (m_model && field)
-				{
-					uint32_t propId = StringUtils::HashString(field->GetLabel());
-					m_model->AppendPropertyToCategory(m_id, std::move(field));
-					return {m_model, m_id, propId};
-				}
-				return {};
-			}
+			PropertyItem AppendProperty(std::unique_ptr<PropertyGridFieldBase> field);
 
-			[[nodiscard]] bool IsValid() const { return m_model != nullptr; }
-
+			operator bool() const;
 		private:
 			PropertyGridModel* m_model{ nullptr };
-			uint32_t m_id{ 0 }; // El StringHash FNV-1a de la categoría
+			uint32_t m_id{ 0 };
 		};
 		
 		class PropertyGridLayout
@@ -274,16 +259,12 @@ namespace Berta
 			~PropertyGridLayout() = default;
 
 			void Init(Window* owner, const Appearance& config = {});
-			// Recorre el modelo, suma las alturas de lo que está expandido y avisa al scroll
 			void CalculateLayout(const PropertyGridModel& model);
 
-			// Dibuja aplicando el offset de m_scrollableView
 			void Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance);
 
-			// Expuesto públicamente para que el Reactor enrute eventos (MouseWheel, etc)
 			ScrollableView* m_scrollableView{ nullptr };
 
-			// Permite actualizar la configuración visual en caliente
 			void SetConfig(const Appearance& config) { m_config = config; }
 			[[nodiscard]] const Appearance& GetConfig() const { return m_config; }
 			
@@ -292,6 +273,7 @@ namespace Berta
 			int DrawRecursive(Graphics& graphics, const CategoryType& cat, int y);
 			void DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, const Appearance& config);
 			[[nodiscard]] bool IsVisible(const Rectangle& area) const;
+			void HideCategoryRecursive(const CategoryType& cat);
 			
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
@@ -326,6 +308,7 @@ namespace Berta
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 			void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
+			void DpiChanged(Graphics& graphics) override;
 
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }

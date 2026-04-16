@@ -23,10 +23,12 @@ namespace Berta
 		if (valueRect.Width == 0)
 			return;
 
-		//valueRect.X = 0;
-		//valueRect.Y = 0;
+		valueRect.X += 2;
+		valueRect.Y += 2;
+		valueRect.Width -= 4;
+		valueRect.Height -= 4;
+		
 		m_inputText.SetArea(valueRect);
-		m_inputText.Show();
 	}
 
 	std::string PropertyGridFieldString::GetValueAsString() const
@@ -89,5 +91,17 @@ namespace Berta
 					NotifyValueChanged();
 				}
 			});
+	}
+
+	void PropertyGridFieldString::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			m_inputText.Show();
+		}
+		else
+		{
+			m_inputText.Hide();
+		}
 	}
 }
