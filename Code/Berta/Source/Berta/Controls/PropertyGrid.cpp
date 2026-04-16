@@ -67,7 +67,7 @@ namespace Berta
 			if (m_isVisible == visible) return; 
             
 			m_isVisible = visible;
-			OnVisibilityChanged(visible); // Disparamos el evento virtual
+			OnVisibilityChanged(visible);
 		}
 
 		void PropertyGridFieldBase::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
