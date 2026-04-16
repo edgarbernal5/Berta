@@ -42,8 +42,6 @@ int main()
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 
 	auto categoryTransform = propertyGrid.Append("Transform");
-
-	// pg_string lee y escribe directamente en myApp.CarName
 	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
 			"Name",
@@ -86,7 +84,7 @@ int main()
 	*/
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
-			//std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
+			std::cout << "Property changed! Label = " << args.Property.GetLabel() << std::endl;
 		});
 
 

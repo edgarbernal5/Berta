@@ -73,27 +73,24 @@ namespace Berta
 			
 			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Appearance& config);
 
-			void EmitEvent();
-			void EmitSelectionEvent();
 			void ScrollToView();
 			void Update();
 			
-			//TODO
-			//Event<> OnValueChanged;
+			std::function<void()> OnValueChanged;
+			std::function<void()> OnSelected;
 		protected:
 			virtual void Create(Window* parent) = 0;
 			virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
-			void SetModule(Module* m_module);
-
+			
+			void NotifyValueChanged();
+			void NotifySelected();
+			
 			Window* m_parent{ nullptr };
 
 			std::string	m_label;
 
 			uint32_t m_height{ 24 };
 			bool m_enabled{ true };
-
-		private:
-			Module* m_module{ nullptr };
 		};
 		
 		class FieldControlContainer : public Panel
@@ -122,7 +119,7 @@ namespace Berta
 			StringUtils::StringHash m_id;
 			
 			std::unique_ptr<PropertyGridFieldBase> field;
-			std::unique_ptr<FieldControlContainer> container;
+			//std::unique_ptr<FieldControlContainer> container;
 			
 			// 1. Prohibir Copias explícitamente (= delete)
 			PropertyFieldData(const PropertyFieldData&) = delete;
@@ -161,6 +158,8 @@ namespace Berta
 			PropertyGridModel() = default;
 			~PropertyGridModel() = default;
 			
+			void Init(Window* ownerWindow);
+			
 			CategoryType& AppendRootCategory(std::string_view categoryName);
 			// Añadir subcategoría a un padre específico
 			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
@@ -183,10 +182,15 @@ namespace Berta
 			// Getters para la iteración en la Vista
 			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
 			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
-
+			
+			std::function<void()> OnVisualsChanged;
+			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertyModified;
+			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertySelected;
 		private:
 			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
+			void InitCategoryRecursive(CategoryType& cat);
 			
+			Window* m_ownerWindow{ nullptr };
 			std::vector<CategoryType> m_rootCategories;
 		};
 
@@ -211,11 +215,11 @@ namespace Berta
 			operator bool() const;
 
 			std::string_view GetLabel() const;
-			PropertyItem& SetLabel(std::string_view newlabel);
+			PropertyItem& SetLabel(std::string_view newLabel);
 			
-			/*[[nodiscard]] std::string GetValueAsString() const {
+			[[nodiscard]] std::string GetValueAsString() const {
 				return m_model ? m_model->GetPropertyValueAsString(m_catId, m_propId) : "";
-			}*/
+			}
 			
 			bool IsEnabled() const;
 			PropertyItem& SetEnabled(bool enabled);
@@ -297,16 +301,9 @@ namespace Berta
 
 		struct Module
 		{
-			CategoryItem Append(std::string_view categoryName);
-			
-			void Clear();
 			void Draw();
-			void EmitEvent(PropertyItem item) const;
-			void EmitSelectionEvent(PropertyItem item);
 			void Update();
-			void UpdateScrollBar();
 			
-			void ScrollToView(PropertyGridFieldBase* propGridField);
 			int ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY);
 			
 			PropertyGridModel m_model;
@@ -335,6 +332,7 @@ namespace Berta
 
 		protected:
 			void DoOnInit() override;
+			void OnLayoutChanged();
 			
 		private:
 			Module m_module;
