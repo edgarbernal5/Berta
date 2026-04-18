@@ -18,20 +18,29 @@ namespace Berta
 	class PropertyGridFieldVector3 : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldVector3(const std::string& label, const std::string& value) :
-			PropertyGridFieldBase(label, value)
+		using GetterFn = std::function<std::string()>;
+		using SetterFn = std::function<void(const std::string&)>;
+		
+	public:
+		PropertyGridFieldVector3(std::string_view label, GetterFn getter, SetterFn setter) :
+			PropertyGridFieldBase(label), m_getter(getter), m_setter(setter) 
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
-
+		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config) override;
+		
+		std::string GetValueAsString() const override;
+		
 		void SetEnabled(bool enabled) override;
-		void SetValue(const std::string& value) override;
 
 	protected:
 		void Create(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
 
 	private:
+		GetterFn m_getter;
+		SetterFn m_setter;
+		
 		InputText m_inputTexts[3];
 		std::string m_inputTextLabels[3]{ "X", "Y", "Z" };
 	};

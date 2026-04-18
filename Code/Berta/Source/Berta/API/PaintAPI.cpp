@@ -23,6 +23,8 @@ namespace Berta
 			m_textFormat->Release();
 			m_textFormat = nullptr;
 		}
+		
+		m_metricsCached = false;
 #endif
 	}
 

@@ -67,9 +67,9 @@ namespace Berta
 		PropertyGridFieldVector3::SetValue(m_value);
 	}
 
-	void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+		PropertyGridFieldBase::Draw(graphics, area, labelWidth, config);
 
 		Rectangle valueRect = area;
 
@@ -94,7 +94,7 @@ namespace Berta
 			inputRect.X += x;
 			int innerLabelOffsetX = (int)((innerLabelWidth - inputTextExtent.Width)) >> 1;
 			int innerLabelOffsetY = (int)((area.Height - innerLabelExtents.Height)) >> 1;
-			graphics.DrawString({ inputRect.X + innerLabelOffsetX, inputRect.Y + innerLabelOffsetY }, m_inputTextLabels[i], textColor);
+			graphics.DrawString({ inputRect.X + innerLabelOffsetX, inputRect.Y + innerLabelOffsetY }, m_inputTextLabels[i], config.Foreground);
 
 			inputRect.X += innerLabelWidth - panelSaved.X;
 			inputRect.Y -= panelSaved.Y;
@@ -106,6 +106,11 @@ namespace Berta
 			x += eachSize;
 		}
 	}
+	
+	std::string PropertyGridFieldVector3::GetValueAsString() const
+	{
+		return "";
+	}
 
 	void PropertyGridFieldVector3::SetEnabled(bool enabled)
 	{
@@ -116,7 +121,24 @@ namespace Berta
 		}
 	}
 
-	void PropertyGridFieldVector3::SetValue(const std::string& value)
+	void PropertyGridFieldVector3::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			for (size_t i = 0; i < 3; ++i)
+			{
+				m_inputTexts[i].Show();
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < 3; ++i)
+			{
+				m_inputTexts[i].Hide();
+			}
+		}
+	}
+	/*void PropertyGridFieldVector3::SetValue(const std::string& value)
 	{
 		std::stringstream ss(value);
 		std::string item;
@@ -143,5 +165,5 @@ namespace Berta
 		}
 
 		PropertyGridFieldBase::SetValue(std::to_string(items[0]) + "/" + std::to_string(items[1]) + "/" + std::to_string(items[2]));
-	}
+	}*/
 }

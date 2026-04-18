@@ -21,8 +21,9 @@ namespace Berta
 		using GetterFn = std::function<std::string()>;
 		using SetterFn = std::function<void(const std::string&)>;
 		
-		PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter)
-			: PropertyGridFieldBase(label), m_getter(getter), m_setter(setter) 
+	public:
+		PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter) :
+			PropertyGridFieldBase(label), m_getter(getter), m_setter(setter) 
 		{
 		}
 
@@ -41,6 +42,7 @@ namespace Berta
 		virtual void Create(Window* parent) override;
 		void OnVisibilityChanged(bool visible) override;
 		
+	private:
 		GetterFn m_getter;
 		SetterFn m_setter;
 		InputText m_inputText;
