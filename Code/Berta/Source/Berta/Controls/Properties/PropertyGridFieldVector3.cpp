@@ -31,10 +31,10 @@ namespace Berta
 					if (args.Key == KeyboardKey::Enter)
 					{
 						auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
-						if (newValue != PropertyGridFieldBase::GetValue())
+						//if (newValue != PropertyGridFieldBase::GetValue())
 						{
-							PropertyGridFieldBase::SetValue(newValue);
-							EmitEvent();
+							//PropertyGridFieldBase::SetValue(newValue);
+							//EmitEvent();
 						}
 					}
 				});
@@ -51,20 +51,20 @@ namespace Berta
 				{
 					if (args.Focused)
 					{
-						EmitSelectionEvent();
+						//EmitSelectionEvent();
 						return;
 					}
 
-					auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
+					/*auto newValue = m_inputTexts[0].GetCaption() + "/" + m_inputTexts[1].GetCaption() + "/" + m_inputTexts[2].GetCaption();
 					if (newValue != PropertyGridFieldBase::GetValue())
 					{
 						PropertyGridFieldBase::SetValue(newValue);
 						EmitEvent();
-					}
+					}*/
 				});
 		}
 
-		PropertyGridFieldVector3::SetValue(m_value);
+		//PropertyGridFieldVector3::SetValue(m_value);
 	}
 
 	void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
