@@ -248,15 +248,15 @@ namespace Berta
 			PropertyGridLayout() = default;
 			~PropertyGridLayout() = default;
 
-			void Init(Window* owner, const Appearance& config = {});
+			void Init(Window* owner, Appearance* config);
 			void CalculateLayout(const PropertyGridModel& model);
 
 			void Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance);
 
 			ScrollableView* m_scrollableView{ nullptr };
 
-			void SetConfig(const Appearance& config) { m_config = config; }
-			[[nodiscard]] const Appearance& GetConfig() const { return m_config; }
+			void SetConfig(Appearance* config) { m_config = config; }
+			[[nodiscard]] Appearance* GetConfig() const { return m_config; }
 			
 			void SetHoverState(StringUtils::StringHash catId, StringUtils::StringHash propId) 
 			{ 
@@ -268,7 +268,7 @@ namespace Berta
 			uint32_t CalculateCategoryHeight(const CategoryType& cat);
 			
 			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int y);
-			void DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, const Appearance& config);
+			void DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, Appearance* config);
 			
 			[[nodiscard]] bool IsVisible(const Rectangle& area) const;
 			void HideCategoryRecursive(const CategoryType& cat);
@@ -278,7 +278,8 @@ namespace Berta
 			
 			StringUtils::StringHash m_hoveredCatId { 0 };
 			StringUtils::StringHash m_hoveredPropId { 0 };
-			Appearance m_config;
+			Appearance* m_config;
+			
 			bool m_isInitialized { false };
 		};
 
@@ -287,7 +288,7 @@ namespace Berta
 			void Draw();
 			void Update();
 			
-			int ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY);
+			int ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY, Appearance* appearance);
 			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId);
 			
 			PropertyGridModel m_model;
@@ -296,7 +297,6 @@ namespace Berta
 			StringUtils::StringHash m_lastHoveredProp { 0 };
 			
 			Window* m_owner{ nullptr };
-			Appearance* m_appearance{ nullptr };
 
 			Events* m_events{ nullptr };
 			Graphics* m_graphics{ nullptr };
