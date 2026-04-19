@@ -31,7 +31,7 @@ namespace Berta
 			uint32_t CategoryHeight = 22u;
 			uint32_t ExpanderButtonSize = 12u;
 			
-			Color HoverBackgroundColor{ 60, 60, 60, 255 };
+			Color HoverBackgroundColor{ 0xFFCBD3D6 };
 			Color SelectedBackgroundColor{ 0, 112, 192, 255 };
 			Color SelectedTextColor{ 255, 255, 255, 255 };
 			Color NormalTextColor{ 200, 200, 200, 255 };
@@ -60,8 +60,11 @@ namespace Berta
 
 			[[nodiscard]] virtual std::string GetValueAsString() const = 0;
 			
-			virtual bool IsEnabled() const;
-			virtual void SetEnabled(bool enabled);
+			bool IsEnabled() const;
+			void SetEnabled(bool enabled);
+
+			bool IsShowingLabel() const { return m_showLabel; }
+			void SetShowLabel(bool show) { m_showLabel = show; }
 
 			virtual uint32_t GetHeight() const
 			{
@@ -72,10 +75,10 @@ namespace Berta
 			{
 			}
 			
-			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Appearance& config);
+			virtual void Draw(Graphics& graphics, const Rectangle& area, const Appearance& config) = 0;
 
-			void ScrollToView();
-			void Update();
+			virtual void SetFocus() = 0;
+			virtual void Refresh() = 0;
 			
 			void SetVisibility(bool visible);
 			
@@ -83,9 +86,9 @@ namespace Berta
 			std::function<void()> OnSelected;
 			
 		protected:
-			virtual void Create(Window* parent) = 0;
-			virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
+			virtual void OnCreate(Window* parent) = 0;
 			virtual void OnVisibilityChanged(bool visible) {}
+			virtual void OnEnableChanged(bool enabled) {}
 			
 			void NotifyValueChanged();
 			void NotifySelected();
@@ -95,8 +98,9 @@ namespace Berta
 			std::string	m_label;
 
 			uint32_t m_height{ 24 };
-			bool m_enabled{ true };
-			bool m_isVisible{ true };
+			bool m_enabled { true };
+			bool m_isVisible { true };
+			bool m_showLabel { true };
 		};
 		
 		/*

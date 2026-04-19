@@ -19,7 +19,7 @@ namespace Berta
 		void PropertyGridFieldBase::Init(Window* parent)
 		{
 			m_parent = parent;
-			Create(parent);
+			OnCreate(parent);
 			SetEnabled(IsEnabled());
 		}
 
@@ -44,22 +44,7 @@ namespace Berta
 		void PropertyGridFieldBase::SetEnabled(bool enabled)
 		{
 			m_enabled = enabled;
-		}
-
-		void PropertyGridFieldBase::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
-		{
-			Rectangle labelArea = area;
-			labelArea.Width = labelWidth;
-
-			DrawLabel(graphics, labelArea, config.Foreground);
-		}
-
-		void PropertyGridFieldBase::ScrollToView()
-		{
-		}
-
-		void PropertyGridFieldBase::Update()
-		{
+			OnEnableChanged(enabled);
 		}
 
 		void PropertyGridFieldBase::SetVisibility(bool visible)
@@ -68,15 +53,6 @@ namespace Berta
             
 			m_isVisible = visible;
 			OnVisibilityChanged(visible);
-		}
-
-		void PropertyGridFieldBase::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
-		{
-			auto& textExtents = graphics.GetTextExtent();
-			Point position = area;
-			position.Y += static_cast<int>((area.Height - textExtents.Height) >> 1);
-
-			graphics.DrawString(position, m_label, textColor);
 		}
 
 		void PropertyGridFieldBase::NotifyValueChanged()
@@ -445,32 +421,51 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					Rectangle propArea{ indent + 10, y, width - (indent + 10), prop.field->GetHeight() };
+					Rectangle fullPropArea{ indent + 10, y, width - (indent + 10), prop.field->GetHeight() };
 					
-					if (IsVisible(propArea))
+					if (IsVisible(fullPropArea))
 					{
-						int labelWidth = (width - indent) / 2;
+						Rectangle propArea = fullPropArea;
 						
 						bool isSelected = (cat.m_id == model.GetSelectedCatId() && prop.m_id == model.GetSelectedPropId());
 						bool isHovered = (cat.m_id == m_hoveredCatId && prop.m_id == m_hoveredPropId);
 						
 						if (isSelected)
 						{
-							graphics.FillRectangle(propArea, m_config->SelectedBackgroundColor);
+							graphics.FillRectangle(fullPropArea, m_config->SelectedBackgroundColor);
 						}
 						else if (isHovered)
 						{
-							graphics.FillRectangle(propArea, m_config->HoverBackgroundColor);
+							graphics.FillRectangle(fullPropArea, m_config->HoverBackgroundColor);
 						}
 						
-						prop.field->Draw(graphics, propArea, labelWidth, *m_config);
+						if (prop.field->IsShowingLabel())
+						{
+							int labelWidth = ((int)width - indent) / 2;
+							
+							Rectangle labelArea = propArea;
+							labelArea.Width = labelWidth;
+							
+							Color textColor = isSelected ? m_config->SelectedTextColor : m_config->Foreground;
+							graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop.field->GetLabel(), textColor);
+							
+							propArea.X += labelWidth;
+							propArea.Width -= labelWidth;
+						}
+						
+						propArea.X += 2;
+						propArea.Y += 2;
+						propArea.Width -= 4;
+						propArea.Height -= 4;
+						
+						prop.field->Draw(graphics, propArea, *m_config);
 						prop.field->SetVisibility(true);
 					}
 					else 
 					{
 						prop.field->SetVisibility(false);
 					}
-					y += (int)propArea.Height;
+					y += (int)fullPropArea.Height;
 				}
 				
 				for (const auto& sub : cat.m_subCategories)

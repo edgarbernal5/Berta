@@ -151,9 +151,9 @@
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridLayout.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridModel.h" />
     <ClInclude Include="Source\Berta\Core\ObjectPool.h" />
@@ -234,7 +234,6 @@
     <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridLayout.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridModel.cpp" />
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />

@@ -11,37 +11,24 @@
 
 namespace Berta
 {
-	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config)
+	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, config);
+		m_inputText.SetArea(area);
+	}
 
-		Rectangle valueRect = area;
+	void PropertyGridFieldString::SetFocus()
+	{
+	}
 
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
-
-		if (valueRect.Width == 0)
-			return;
-
-		valueRect.X += 2;
-		valueRect.Y += 2;
-		valueRect.Width -= 4;
-		valueRect.Height -= 4;
-		
-		m_inputText.SetArea(valueRect);
+	void PropertyGridFieldString::Refresh()
+	{
 	}
 
 	std::string PropertyGridFieldString::GetValueAsString() const
 	{
 		return m_getter();
 	}
-
-	void PropertyGridFieldString::SetEnabled(bool enabled)
-	{
-		PropertyGridFieldBase::SetEnabled(enabled);
-		m_inputText.SetEnabled(enabled);
-	}
-
+	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
 	{
 		m_inputText.SetEditable(isEditable);
@@ -57,7 +44,7 @@ namespace Berta
 		m_inputText.SetCharFilter(predicate);
 	}
 
-	void PropertyGridFieldString::Create(Window* parent)
+	void PropertyGridFieldString::OnCreate(Window* parent)
 	{
 		m_inputText.Create(parent);
 		m_inputText.SetCaption(m_getter());
@@ -65,7 +52,7 @@ namespace Berta
 
 		m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
-				ScrollToView();
+				
 			});
 
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
@@ -103,5 +90,10 @@ namespace Berta
 		{
 			m_inputText.Hide();
 		}
+	}
+
+	void PropertyGridFieldString::OnEnableChanged(bool enabled)
+	{
+		m_inputText.SetEnabled(enabled);
 	}
 }

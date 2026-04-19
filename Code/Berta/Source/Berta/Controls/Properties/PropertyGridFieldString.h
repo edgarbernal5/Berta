@@ -23,15 +23,15 @@ namespace Berta
 		
 	public:
 		PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter) :
-			PropertyGridFieldBase(label), m_getter(getter), m_setter(setter) 
+			PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config) override;
+		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
+		void SetFocus() override;
+		void Refresh() override;
 		std::string GetValueAsString() const override;
-		
-		virtual void SetEnabled(bool enabled) override;
 
 		virtual void SetEditable(bool isEditable);
 		virtual bool IsEditable() const;
@@ -39,8 +39,9 @@ namespace Berta
 		virtual void SetCharFilter(std::function<bool(wchar_t)> predicate);
 
 	protected:
-		virtual void Create(Window* parent) override;
+		virtual void OnCreate(Window* parent) override;
 		void OnVisibilityChanged(bool visible) override;
+		void OnEnableChanged(bool enabled) override;
 		
 	private:
 		GetterFn m_getter;

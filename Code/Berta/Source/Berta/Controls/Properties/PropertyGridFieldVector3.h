@@ -27,7 +27,7 @@ namespace Berta
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config) override;
+		void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const LayoutConfig& config) override;
 		
 		std::string GetValueAsString() const override;
 		

@@ -55,6 +55,13 @@ int main()
 			[&myApp]() { return myApp.Tags; },
 			[&myApp](const std::string& val) { myApp.Tags = val; }
 		);
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldInt>
+		(
+			"Engine power",
+			[&myApp]() { return myApp.EnginePower; },
+			[&myApp](const int& val) { myApp.EnginePower = val; }
+		);
+	
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
