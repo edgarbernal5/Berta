@@ -271,7 +271,7 @@ namespace Berta
 		private:
 			uint32_t CalculateCategoryHeight(const CategoryType& cat);
 			
-			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int y);
+			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y);
 			void DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, Appearance* config);
 			
 			[[nodiscard]] bool IsVisible(const Rectangle& area) const;

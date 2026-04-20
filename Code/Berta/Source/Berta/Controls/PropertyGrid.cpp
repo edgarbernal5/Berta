@@ -378,11 +378,13 @@ namespace Berta
 		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
 		{
 			Point offset = m_scrollableView->GetScrollOffset();
-			int currentY = -offset.Y;
+			auto clientArea = m_scrollableView->GetClientArea();
+			int currentX = -offset.X + clientArea.X;
+			int currentY = -offset.Y + clientArea.Y;
 
 			for (auto& cat : model.GetRootCategories())
 			{
-				currentY = DrawRecursive(graphics, model, cat, currentY);
+				currentY = DrawRecursive(graphics, model, cat, currentX, currentY);
 			}
 		}
 
@@ -404,10 +406,10 @@ namespace Berta
 			return height;
 		}
 
-		int PropertyGridLayout::DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int y)
+		int PropertyGridLayout::DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y)
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
-			int indent = (int)cat.m_depth * m_owner->ToScale(20);
+			int indent = x + (int)cat.m_depth * m_owner->ToScale(20);
 			auto categoryHeight = m_owner->ToScale(m_config->CategoryHeight);
 			
 			Rectangle catArea{ indent, y, width - indent, categoryHeight };
@@ -470,7 +472,7 @@ namespace Berta
 				
 				for (const auto& sub : cat.m_subCategories)
 				{
-					y = DrawRecursive(graphics, model, sub, y);
+					y = DrawRecursive(graphics, model, sub, x, y);
 				}
 			}
 			else 
