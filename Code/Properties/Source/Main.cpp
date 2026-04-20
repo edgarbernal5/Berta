@@ -62,14 +62,14 @@ int main()
 		(
 			"Engine power",
 			[&myApp]() { return myApp.EnginePower; },
-			[&myApp](const int& val) { myApp.EnginePower = val; }
+			[&myApp](int val) { myApp.EnginePower = val; }
 		);
 	
 	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldFloat>
 		(
 			"Max materials",
 			[&myApp]() { return myApp.MaxMaterials; },
-			[&myApp](const float& val) { myApp.MaxMaterials = val; }
+			[&myApp](float val) { myApp.MaxMaterials = val; }
 		);
 	
 	auto categoryEmpty = propertyGrid.Append("Empty");
@@ -77,7 +77,7 @@ int main()
 	auto subcategoryMaterials = categoryMesh.AppendSubCategory("Materials");
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
-			"hash", 
+			"Hash", 
 			[&myApp]() { return myApp.HashMaterial0; },
 			[&myApp](const std::string& val) {  }
 		);

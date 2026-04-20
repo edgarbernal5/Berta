@@ -292,6 +292,7 @@ namespace Berta
 			void Draw();
 			void Update();
 			
+			void OnLayoutChanged();
 			int ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY, Appearance* appearance);
 			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId);
 			
@@ -323,7 +324,6 @@ namespace Berta
 
 		protected:
 			void DoOnInit() override;
-			void OnLayoutChanged();
 			
 		private:
 			Module m_module;

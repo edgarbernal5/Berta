@@ -131,7 +131,7 @@ namespace Berta
                 return;
             }
 
-            try 
+            try
             {
                 T parsedValue = FromString(m_inputText.GetCaption());
                 
@@ -140,6 +140,7 @@ namespace Berta
                     m_setter(parsedValue);
                     NotifyValueChanged(); 
                 }
+                Refresh();
             } 
             catch (const std::exception&) 
             {

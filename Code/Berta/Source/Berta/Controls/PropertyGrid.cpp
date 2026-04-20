@@ -552,6 +552,13 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
+		void Module::OnLayoutChanged()
+		{
+			m_layout.CalculateLayout(m_model);
+
+			GUI::UpdateWindow(m_owner);
+		}
+
 		int Module::ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY, Appearance* appearance)
 		{
 			auto width = m_layout.m_scrollableView->GetClientArea().Width;
@@ -565,7 +572,8 @@ namespace Berta
 				if (catRect.Contains(pos))
 				{
 					cat.m_isExpanded = !cat.m_isExpanded;
-					//OnLayoutChanged();
+					OnLayoutChanged();
+					
 					return -1;
 				}
 				currentY += static_cast<int>(categoryHeight);
@@ -604,7 +612,7 @@ namespace Berta
 					return -1;
 				}
 
-				currentY += (int)catRect.Height;
+				currentY += static_cast<int>(catRect.Height);
 				
 				if (cat.m_isExpanded)
 				{
@@ -669,7 +677,7 @@ namespace Berta
 				m_module.m_lastHoveredCat = 0;
 				m_module.m_lastHoveredProp = 0;
 				m_module.m_layout.SetHoverState(0, 0);
-				OnLayoutChanged();
+				m_module.OnLayoutChanged();
 			}
 		}
 
@@ -691,7 +699,7 @@ namespace Berta
 				m_module.m_lastHoveredProp = hitPropId;
 
 				m_module.m_layout.SetHoverState(hitCatId, hitPropId);
-				OnLayoutChanged(); 
+				m_module.OnLayoutChanged(); 
 			}
 		}
 
@@ -748,13 +756,13 @@ namespace Berta
 					
 					events->PropertyChanged.Emit(arguments); 
 				}
-				OnLayoutChanged();
+				m_module.OnLayoutChanged();
 			};
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash catId, StringUtils::StringHash propId) 
 			{
 				m_module.m_model.SetSelectedProperty(catId, propId);
 
-				OnLayoutChanged();
+				m_module.OnLayoutChanged();
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
 				if (events) 
@@ -767,15 +775,8 @@ namespace Berta
 			};
 			m_module.m_model.OnVisualsChanged = [this]() 
 			{
-				OnLayoutChanged();
+				m_module.OnLayoutChanged();
 			};
-		}
-
-		void Reactor::OnLayoutChanged()
-		{
-			m_module.m_layout.CalculateLayout(m_module.m_model);
-
-			GUI::UpdateWindow(m_module.m_owner);
 		}
 	}
 
