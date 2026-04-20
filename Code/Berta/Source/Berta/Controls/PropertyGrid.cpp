@@ -520,8 +520,8 @@ namespace Berta
 				return false;
 			}
 			
-			Rectangle visibleRect = m_scrollableView->GetVisibleRect();
-			return visibleRect.Intersects(area); 
+			Rectangle clientArea = m_scrollableView->GetClientArea();
+			return clientArea.Intersects(area); 
 		}
 
 		void PropertyGridLayout::HideCategoryRecursive(const CategoryType& cat)
@@ -589,29 +589,25 @@ namespace Berta
 
 		int Module::HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId)
 		{
-			// Obtenemos el ancho disponible (para que el HitTest funcione en toda la fila)
 			auto width = m_layout.m_scrollableView->GetClientArea().Width;
 
 			for (const auto& cat : list)
 			{
 				int indent = cat.m_depth * 20;
-
-				// 1. Evaluar el encabezado de la Categoría
+				
 				Rectangle catRect{ indent, currentY, width - indent, m_owner->ToScale(m_layout.GetConfig()->CategoryHeight) };
 
 				if (catRect.Contains(pos))
 				{
 					outCatId = cat.m_id;
-					outPropId = 0; // 0 significa que tocamos la barra de la categoría, no una propiedad
-					return -1;     // -1 detiene el bucle (Cortocircuito)
+					outPropId = 0;
+					return -1;
 				}
 
-				currentY += catRect.Height;
-
-				// 2. Si la categoría está expandida, evaluamos lo que hay dentro
+				currentY += (int)catRect.Height;
+				
 				if (cat.m_isExpanded)
 				{
-					// Evaluar Propiedades
 					for (const auto& prop : cat.m_properties)
 					{
 						auto propHeight = prop.field->GetHeight();
@@ -620,23 +616,21 @@ namespace Berta
 						if (propRect.Contains(pos))
 						{
 							outCatId = cat.m_id;
-							outPropId = prop.m_id; // Aquí sí guardamos el ID de la propiedad
-							return -1;             // Colisión encontrada, abortar búsqueda
+							outPropId = prop.m_id;
+							return -1;
 						}
-						currentY += propHeight;
+						currentY += static_cast<int>(propHeight);
 					}
 
-					// Evaluar Subcategorías (Recursividad)
 					currentY = HitTestRecursive(cat.m_subCategories, pos, currentY, outCatId, outPropId);
-                
-					// Si la llamada recursiva retornó -1, significa que encontró la colisión más adentro. 
-					// Propagamos el -1 hacia arriba para detener todo.
-					if (currentY == -1) return -1; 
+					
+					if (currentY == -1)
+					{
+						return -1;
+					}
 				}
 			}
-
-			// Si llegamos aquí, el ratón no tocó nada en esta rama, retornamos el Y actual 
-			// para que la siguiente categoría sepa dónde empezar a calcular.
+			
 			return currentY;
 		}
 
@@ -689,17 +683,13 @@ namespace Berta
 			StringUtils::StringHash hitCatId = 0;
 			StringUtils::StringHash hitPropId = 0;
 
-			// Hit-Test (Usamos una función similar a ProcessClickRecursive pero sin efectos secundarios, 
-			// que simplemente retorne los IDs de lo que está bajo el mousePos).
-			m_module.HitTestRecursive(m_module.m_model.GetRootCategories(), args.Position, 0, hitCatId, hitPropId);
+			m_module.HitTestRecursive(m_module.m_model.GetRootCategories(), args.Position, -m_module.m_layout.m_scrollableView->GetScrollOffset().Y, hitCatId, hitPropId);
 
-			// ¿El usuario movió el ratón hacia una fila diferente?
 			if (hitCatId != m_module.m_lastHoveredCat || hitPropId != m_module.m_lastHoveredProp)
 			{
 				m_module.m_lastHoveredCat = hitCatId;
 				m_module.m_lastHoveredProp = hitPropId;
 
-				// Le avisamos al Layout y pedimos redibujado de Berta
 				m_module.m_layout.SetHoverState(hitCatId, hitPropId);
 				OnLayoutChanged(); 
 			}

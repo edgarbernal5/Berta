@@ -295,11 +295,11 @@ namespace Berta
 						if (isHovered && itemData.isEnabled)
 						{
 							Rectangle highlightRect = { 
-							window->ToScale(2), 
-							cache.bounds.Y, 
-							cache.bounds.Width - window->ToScale(2u) * 2u, 
-							cache.bounds.Height 
-						};
+								window->ToScale(2), 
+								cache.bounds.Y, 
+								cache.bounds.Width - window->ToScale(2u) * 2u, 
+								cache.bounds.Height 
+							};
 							graphics.FillRectangle(highlightRect, appearance->HighlightColor);
 						}
 							

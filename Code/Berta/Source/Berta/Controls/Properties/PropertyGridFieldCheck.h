@@ -18,24 +18,31 @@ namespace Berta
 	class PropertyGridFieldCheck : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldCheck(const std::string& label, const std::string& value) :
-			PropertyGridFieldBase(label, value)
+		using GetterFn = std::function<bool()>;
+		using SetterFn = std::function<void(const bool&)>;
+		
+	public:
+		PropertyGridFieldCheck(std::string_view label, GetterFn getter, SetterFn setter) :
+			PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
-
-		virtual bool IsChecked() const;
-		virtual void SetCheck(bool checked);
-
-		virtual void SetEnabled(bool enabled) override;
-		virtual void SetValue(const std::string& value) override;
-
+		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
+		
+		void SetFocus() override;
+		void Refresh() override;
+		std::string GetValueAsString() const override;
+		
 	protected:
-		void Create(Window* parent) override;
-
+		void OnCreate(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
+		void OnEnableChanged(bool enabled) override;
+		
 		CheckBox m_checkBox;
+	
 	private:
+		GetterFn m_getter;
+		SetterFn m_setter;
 	};
 }
 

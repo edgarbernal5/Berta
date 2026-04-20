@@ -47,7 +47,6 @@ namespace Berta
 		GetterFn m_getter;
 		SetterFn m_setter;
 		InputText m_inputText;
-	private:
 	};
 }
 

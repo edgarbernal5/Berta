@@ -11,82 +11,76 @@
 
 namespace Berta
 {
-	void PropertyGridFieldCheck::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldCheck::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
-
 		Rectangle valueRect = area;
-
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
-
-		if (valueRect.Width == 0)
-			return;
-
-		valueRect.X = 0;
-		valueRect.Y = 0;
-
-		auto fieldSize = GetSize();
-		valueRect.Height = fieldSize;
-		valueRect.Width = fieldSize;
+		valueRect.Height = area.Height;
+		valueRect.Width = area.Height;
 		m_checkBox.SetArea(valueRect);
-		m_checkBox.Show();
 	}
 
-	bool PropertyGridFieldCheck::IsChecked() const
+	void PropertyGridFieldCheck::SetFocus()
 	{
-		return PropertyGridFieldBase::GetValue() == "1";
+		m_checkBox.Focus(); 
 	}
 
-	void PropertyGridFieldCheck::SetCheck(bool checked)
+	void PropertyGridFieldCheck::Refresh()
 	{
-		PropertyGridFieldBase::SetValue(checked ? "1" : "0");
-		m_checkBox.SetChecked(checked);
-	}
-
-	void PropertyGridFieldCheck::SetEnabled(bool enabled)
-	{
-		PropertyGridFieldBase::SetEnabled(enabled);
-		m_checkBox.SetEnabled(enabled);
-	}
-
-	void PropertyGridFieldCheck::SetValue(const std::string& value)
-	{
-		if (value == "T" || value == "t" || value == "true" || value == "1")
+		if (m_getter) 
 		{
-			m_checkBox.SetChecked(true);
-			PropertyGridFieldBase::SetValue("1");
-		}
-		else if (value == "F" || value == "f" || value == "false" || value == "0")
-		{
-			m_checkBox.SetChecked(false);
-			PropertyGridFieldBase::SetValue("0");
+			auto value = m_getter();
+			if (m_checkBox.IsChecked() != value)
+			{
+				m_checkBox.SetChecked(value);
+			}
 		}
 	}
 
-	void PropertyGridFieldCheck::Create(Window* parent)
+	std::string PropertyGridFieldCheck::GetValueAsString() const
+	{
+		auto value = m_getter();
+		return value ? "1" : "0";
+	}
+
+	void PropertyGridFieldCheck::OnCreate(Window* parent)
 	{
 		m_checkBox.Create(parent);
-		SetValue(m_value);
+		Refresh();
 
 		m_checkBox.GetEvents().Click.Connect([this](const ArgClick& args)
 			{
-				ScrollToView();
+
 			});
 		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
 			{
-				SetCheck(args.IsChecked);
-				EmitEvent();
+				m_setter(args.IsChecked);
+				NotifyValueChanged();
 			});
 
 		m_checkBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
 				if (args.Focused)
 				{
-					EmitSelectionEvent();
-					return;
+					NotifySelected();
 				}
 			});
+	}
+
+	void PropertyGridFieldCheck::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			m_checkBox.Show();
+		}
+		else
+		{
+			m_checkBox.Hide();
+		}
+	}
+
+	void PropertyGridFieldCheck::OnEnableChanged(bool enabled)
+	{
+		m_checkBox.SetEnabled(enabled);
 	}
 }

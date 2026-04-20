@@ -31,6 +31,8 @@ struct AppState
 	int EnginePower{ 5 };
 	float MaxMaterials{ 0.0f };
 	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
+	bool CastShadows{ true };
+	bool Static{ false };
 	// ...
 };
 
@@ -78,6 +80,20 @@ int main()
 			"hash", 
 			[&myApp]() { return myApp.HashMaterial0; },
 			[&myApp](const std::string& val) {  }
+		);
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldCheck>
+		(
+			"Cast Shadows", 
+			[&myApp]() { return myApp.CastShadows; },
+			[&myApp](const bool& val) { myApp.CastShadows = val;  }
+			);
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldCheck>
+		(
+			"Static", 
+			[&myApp]() { return myApp.Static; },
+			[&myApp](const bool& val) { myApp.Static = val;  }
 		);
 	/*for (size_t i = 0; i < 3; i++)
 	{
