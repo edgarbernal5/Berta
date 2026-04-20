@@ -12,7 +12,6 @@
 #include <string>
 #include <functional>
 #include <type_traits>
-#include <stdexcept>
 #include <cwctype>
 
 namespace Berta
@@ -36,44 +35,44 @@ namespace Berta
         using Setter = std::function<void(T)>;
 
         PropertyGridFieldNumeric(std::string_view label, Getter getter, Setter setter)
-            : PropertyGridFieldBase(std::string(label)), m_getter(std::move(getter)), m_setter(std::move(setter))
+            : PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
         {}
 
         void OnCreate(Window* parent) override
         {
             m_inputText.Create(parent);
-
+            m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+            
             m_inputText.SetCharFilter([](wchar_t c)
             {
                 if constexpr (std::is_integral_v<T>)
                 {
-                    // Los enteros solo aceptan números y el signo negativo
                     return std::iswdigit(c) || c == L'-';
                 }
                 else
                 {
-                    // Los decimales (float/double) aceptan números, signo y el punto
                     return std::iswdigit(c) || c == L'-' || c == L'.';
                 }
             });
 
-            // 2. Cargar valor inicial
             Refresh(); 
 
-            // 3. Eventos de Foco y Selección
             m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
                 {
-                    NotifySelected(); // Avisar a Berta que esta propiedad está activa
-                } else {
-                    ApplyValue();     // Si perdemos el foco, guardamos el cambio
+                    NotifySelected();
+                }
+                else
+                {
+                    ApplyValue();
                 }
             });
 
-            // 4. Evento de Teclado (Enter)
-            m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args) {
-                if (args.Key == KeyboardKey::Enter) {
+            m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+            {
+                if (args.Key == KeyboardKey::Enter)
+                {
                     ApplyValue();
                 }
             });
@@ -81,7 +80,6 @@ namespace Berta
 
         void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
         {
-            // El Layout ya hizo la matemática, solo ubicamos el InputText
             m_inputText.SetArea(area);
         }
 
@@ -104,7 +102,7 @@ namespace Berta
 
 	    std::string GetValueAsString() const override
         {
-            return "";
+            return ToString(m_getter());
         }
 	protected:
 	    
@@ -123,20 +121,22 @@ namespace Berta
 	    {
 	        m_inputText.SetEnabled(enabled);
 	    }
+	    
     private:
-
-        // --- LÓGICA DE VALIDACIÓN Y APLICACIÓN ---
+	    
         void ApplyValue()
         {
-            if (!m_setter || !m_getter) return;
+            if (!m_setter || !m_getter)
+            {
+                return;
+            }
 
             try 
             {
-                // Intentamos convertir el texto a número
                 T parsedValue = FromString(m_inputText.GetCaption());
                 
-                // Si cambió respecto al motor, aplicamos y notificamos
-                if (parsedValue != m_getter()) {
+                if (parsedValue != m_getter())
+                {
                     m_setter(parsedValue);
                     NotifyValueChanged(); 
                 }
@@ -151,30 +151,37 @@ namespace Berta
             }
         }
 
-        // --- HELPERS C++17 ---
-
         std::string ToString(T val) const 
         {
-            if constexpr (std::is_floating_point_v<T>) {
-                // std::to_string para floats suele dejar ceros inútiles (ej. 1.500000)
-                // Esta limpieza elimina los ceros sobrantes.
+            if constexpr (std::is_floating_point_v<T>)
+            {
                 std::string str = std::to_string(val);
                 str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-                if (str.back() == '.') str.push_back('0'); // Mantener "1.0" en lugar de "1."
+                if (str.back() == '.')
+                {
+                    str.push_back('0');
+                }
                 return str;
-            } else {
+            }
+            else
+            {
                 return std::to_string(val);
             }
         }
 
         T FromString(const std::string& str) const 
         {
-            if constexpr (std::is_integral_v<T>) {
+            if constexpr (std::is_integral_v<T>)
+            {
                 return static_cast<T>(std::stoi(str));
-            } else if constexpr (std::is_same_v<T, float>) {
+            }
+            else if constexpr (std::is_same_v<T, float>)
+            {
                 return std::stof(str);
-            } else {
-                return std::stod(str); // double
+            }
+            else
+            {
+                return std::stod(str);
             }
         }
 
@@ -183,10 +190,6 @@ namespace Berta
         InputText m_inputText;
     };
 
-    // =========================================================================
-    // LA SOLUCIÓN ELEGANTE: Alias públicos para el uso en tu librería
-    // =========================================================================
-    
     using PropertyGridFieldInt    = PropertyGridFieldNumeric<int>;
     using PropertyGridFieldFloat  = PropertyGridFieldNumeric<float>;
     using PropertyGridFieldDouble = PropertyGridFieldNumeric<double>;

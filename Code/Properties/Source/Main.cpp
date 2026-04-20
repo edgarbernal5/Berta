@@ -30,6 +30,7 @@ struct AppState
 	std::string Tags{ "Blue, Green" };
 	int EnginePower{ 5 };
 	float MaxMaterials{ 0.0f };
+	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
 	// ...
 };
 
@@ -62,6 +63,22 @@ int main()
 			[&myApp](const int& val) { myApp.EnginePower = val; }
 		);
 	
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldFloat>
+		(
+			"Max materials",
+			[&myApp]() { return myApp.MaxMaterials; },
+			[&myApp](const float& val) { myApp.MaxMaterials = val; }
+		);
+	
+	auto categoryEmpty = propertyGrid.Append("Empty");
+	auto categoryMesh = propertyGrid.Append("Mesh");
+	auto subcategoryMaterials = categoryMesh.AppendSubCategory("Materials");
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldString>
+		(
+			"hash", 
+			[&myApp]() { return myApp.HashMaterial0; },
+			[&myApp](const std::string& val) {  }
+		);
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
