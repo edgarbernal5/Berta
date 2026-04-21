@@ -115,6 +115,7 @@ namespace Berta
         else if (m_needVerticalScroll)
         {
             UpdateVerticalScrollBar();
+            needNotifyChange = true;
         }
 
         if (!m_needHorizontalScroll && m_scrollBarHoriz)
@@ -122,11 +123,11 @@ namespace Berta
             m_scrollBarHoriz.reset();
             m_scrollOffset.X = 0;
             needNotifyChange = true;
-            NotifyChange();
         }
         else if (m_needHorizontalScroll)
         {
             UpdateHorizontalScrollBar();
+            needNotifyChange = true;
         }
         
         if (needNotifyChange)
@@ -218,8 +219,11 @@ namespace Berta
     void ScrollableView::HandleMouseWheel(const ArgWheel& args)
     {
         ScrollBar* activeBar = args.IsVertical ? m_scrollBarVert.get() : m_scrollBarHoriz.get();
-        if (!activeBar) return;
-
+        if (!activeBar)
+        {
+            return;
+        }
+        
         int direction = (args.WheelDelta > 0 ? -1 : 1) * activeBar->GetStepValue();
         int currentVal = args.IsVertical ? m_scrollOffset.Y : m_scrollOffset.X;
         

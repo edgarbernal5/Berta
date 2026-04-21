@@ -33,6 +33,7 @@ struct AppState
 	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
 	bool CastShadows{ true };
 	bool Static{ false };
+	std::optional<size_t> MaterialType{ 0 };
 	// ...
 };
 
@@ -94,7 +95,19 @@ int main()
 			"Static", 
 			[&myApp]() { return myApp.Static; },
 			[&myApp](const bool& val) { myApp.Static = val;  }
+			);
+	
+	auto materialTypeSelection = categoryMesh.EmplaceProperty<Berta::PropertyGridFieldSelection>
+		(
+			"Type", 
+			[&myApp]() { return myApp.MaterialType; },
+			[&myApp](std::optional<size_t> val) { myApp.MaterialType = val;  }
 		);
+	
+	auto selection = materialTypeSelection.As<Berta::PropertyGridFieldSelection>();
+	selection->PushItem("Opaque");
+	selection->PushItem("Diffuse");
+	
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));

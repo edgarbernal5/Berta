@@ -31,7 +31,7 @@ namespace Berta
 			uint32_t CategoryHeight = 22u;
 			uint32_t ExpanderButtonSize = 12u;
 			
-			Color HoverBackgroundColor{ 0xFFCBD3D6 };
+			Color HoverBackgroundColor{ 0xFFDDE6EB };
 			Color SelectedBackgroundColor{ 0, 112, 192, 255 };
 			Color SelectedTextColor{ 255, 255, 255, 255 };
 			Color NormalTextColor{ 200, 200, 200, 255 };
@@ -216,7 +216,28 @@ namespace Berta
 			
 			bool IsEnabled() const;
 			PropertyHandle& SetEnabled(bool enabled);
-
+			
+			template <typename T>
+			T* As() 
+			{
+				static_assert(std::is_base_of_v<PropertyGridFieldBase, T>, 
+							  "T debe heredar de PropertyGridFieldBase");
+            
+				if (!m_model)
+				{
+					return nullptr;
+				}
+				
+				auto* propData = m_model->FindPropertyById(m_catId, m_propId);
+            
+				if (!propData || !propData->field) 
+				{
+					return nullptr;
+				}
+				
+				return dynamic_cast<T*>(propData->field.get());
+			}
+			
 		private:
 			PropertyGridModel* m_model{ nullptr };
 			uint32_t m_catId{ 0 };
@@ -267,7 +288,7 @@ namespace Berta
 				m_hoveredCatId = catId; 
 				m_hoveredPropId = propId; 
 			}
-			
+			void ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId);
 		private:
 			uint32_t CalculateCategoryHeight(const CategoryType& cat);
 			
@@ -276,6 +297,7 @@ namespace Berta
 			
 			[[nodiscard]] bool IsVisible(const Rectangle& area) const;
 			void HideCategoryRecursive(const CategoryType& cat);
+			bool FindItemRectRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY, Rectangle& outRect) const;
 			
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
@@ -363,6 +385,8 @@ namespace Berta
 		void Clear();
 		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
 		//CategoryItem Find(std::string_view categoryName);
+		
+		void RefreshAll();
 	};
 }
 

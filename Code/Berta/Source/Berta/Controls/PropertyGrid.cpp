@@ -372,7 +372,7 @@ namespace Berta
 			{
 				totalHeight += CalculateCategoryHeight(cat);
 			}
-			m_scrollableView->SetContentSize({ m_scrollableView->GetClientArea().Width, totalHeight });
+			m_scrollableView->SetContentSize({ 0, totalHeight });
 		}
 
 		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
@@ -385,6 +385,37 @@ namespace Berta
 			for (auto& cat : model.GetRootCategories())
 			{
 				currentY = DrawRecursive(graphics, model, cat, currentX, currentY);
+			}
+		}
+
+		void PropertyGridLayout::ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId)
+		{
+			if (!m_scrollableView)
+			{
+				return;
+			}
+			int currentY = 0;
+			Rectangle itemRect;
+
+			if (FindItemRectRecursive(model.GetRootCategories(), catId, propId, currentY, itemRect))
+			{
+				Rectangle viewport = m_scrollableView->GetVisibleRect();
+
+				int newScrollY = viewport.Y;
+
+				if (itemRect.Y < viewport.Y) 
+				{
+					newScrollY = itemRect.Y;
+				}
+				else if ((itemRect.Y + itemRect.Height) > (viewport.Y + viewport.Height)) 
+				{
+					newScrollY = (itemRect.Y + itemRect.Height) - viewport.Height;
+				}
+				
+				if (newScrollY != viewport.Y)
+				{
+					m_scrollableView->SetScrollToY(newScrollY); 
+				}
 			}
 		}
 
@@ -409,10 +440,10 @@ namespace Berta
 		int PropertyGridLayout::DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y)
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
-			int indent = x + (int)cat.m_depth * m_owner->ToScale(20);
+			int indent = (int)cat.m_depth * m_owner->ToScale(20);
 			auto categoryHeight = m_owner->ToScale(m_config->CategoryHeight);
 			
-			Rectangle catArea{ indent, y, width - indent, categoryHeight };
+			Rectangle catArea{ x + indent, y, width - indent, categoryHeight };
 			if (IsVisible(catArea))
 			{
 				DrawCategoryHeader(graphics, catArea, cat, m_config);
@@ -423,7 +454,7 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					Rectangle fullPropArea{ indent + 10, y, width - (indent + 10), prop.field->GetHeight() };
+					Rectangle fullPropArea{ x + indent + 10, y, width - (indent + 10), prop.field->GetHeight() };
 					
 					if (IsVisible(fullPropArea))
 					{
@@ -507,7 +538,7 @@ namespace Berta
 			);
 			
 			int textX = expanderArea.X + (int)expanderArea.Width + offset;
-			Point textPos = { textX, area.Y + ((int)area.Height - (int)graphics.GetTextExtent().Height) / 2 }; // Centrado verticalmente
+			Point textPos = { textX, area.Y + ((int)area.Height - (int)graphics.GetTextExtent().Height) / 2 };
     
 			graphics.DrawString(textPos, cat.m_name, config->Foreground);
 
@@ -540,6 +571,49 @@ namespace Berta
 			{
 				HideCategoryRecursive(subCat);
 			}
+		}
+
+		bool PropertyGridLayout::FindItemRectRecursive(const std::vector<CategoryType>& list,
+			StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY,
+			Rectangle& outRect) const
+		{
+			auto width = m_scrollableView->GetClientArea().Width;
+
+			for (const auto& cat : list)
+			{
+				auto indent = cat.m_depth * m_owner->ToScale(20u);
+				Rectangle catRect{ (int)indent, currentY, width - indent, m_owner->ToScale(m_config->CategoryHeight) };
+
+				// ¿Es esta la categoría que buscamos (y no buscamos una propiedad)?
+				if (cat.m_id == targetCat && targetProp == 0) {
+					outRect = catRect;
+					return true; 
+				}
+
+				currentY += (int)catRect.Height;
+
+				if (cat.m_isExpanded)
+				{
+					for (const auto& prop : cat.m_properties)
+					{
+						auto propHeight = prop.field->GetHeight();
+						Rectangle propRect{ (int)indent + 10, currentY, width - (indent + 10), propHeight };
+
+						// ¿Es esta la propiedad que buscamos?
+						if (cat.m_id == targetCat && prop.m_id == targetProp) {
+							outRect = propRect;
+							return true;
+						}
+						currentY += propHeight;
+					}
+
+					// Buscar en subcategorías
+					if (FindItemRectRecursive(cat.m_subCategories, targetCat, targetProp, currentY, outRect)) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
 		void Module::Draw()
@@ -763,7 +837,7 @@ namespace Berta
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash catId, StringUtils::StringHash propId) 
 			{
 				m_module.m_model.SetSelectedProperty(catId, propId);
-
+				m_module.m_layout.ScrollToItem(m_module.m_model, catId, propId);
 				m_module.OnLayoutChanged();
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
@@ -810,6 +884,10 @@ namespace Berta
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
 	{
 		return { nullptr, 0 };
+	}
+
+	void PropertyGrid::RefreshAll()
+	{
 	}
 
 	/*PropertyGrid::CategoryItem PropertyGrid::Find(std::string_view categoryName)
