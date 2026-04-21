@@ -148,6 +148,7 @@ namespace Berta
 		void PushBack(const std::string& text, const Image& icon);
 
 		std::optional<size_t> GetSelectedIndex() { return GetReactor().GetModule().GetSelectedIndex(); }
+		
 		// Allows user to deselect by passing std::nullopt
 		void SetSelectedIndex(std::optional<size_t> index);
 
