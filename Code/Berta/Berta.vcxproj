@@ -236,7 +236,6 @@
     <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridLayout.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridModel.cpp" />

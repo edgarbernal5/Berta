@@ -295,20 +295,28 @@ namespace Berta
 			}
 		}
 
-		void Reactor::Module::PushBack(const std::wstring& text)
+		void Reactor::Module::PushBack(const std::wstring& text, const std::any& userData)
 		{
-			Data.m_items.emplace_back(Float::InteractionData::ItemType{ text });
+			Data.m_items.emplace_back(text, userData );
 		}
 
-		void Reactor::Module::PushBack(const std::wstring& text, const Image& icon)
+		void Reactor::Module::PushBack(const std::wstring& text, const Image& icon, const std::any& userData)
 		{
-			Data.m_items.emplace_back(Float::InteractionData::ItemType{ text, icon });
+			Data.m_items.emplace_back(text, icon, userData);
 			Data.m_drawImages = true;
 		}
 
 		std::optional<size_t> Reactor::Module::GetSelectedIndex() const
 		{
 			return Data.m_selectedIndex;
+		}
+
+		std::any Reactor::Module::GetItemData(size_t index) const
+		{
+			if (index >= Data.m_items.size())
+				return {};
+			
+			return Data.m_items[index].m_userData;
 		}
 
 		void Reactor::Module::SetSelectedIndex(std::optional<size_t> index)
@@ -418,31 +426,46 @@ namespace Berta
 		return DoOnCaption();
 	}
 
+	std::any ComboBox::GetSelectedData() const
+	{
+		auto selectedIndex = GetSelectedIndex();
+		if (selectedIndex.has_value())
+		{
+			return GetItemData(selectedIndex.value());
+		}
+		return {};
+	}
+
+	std::any ComboBox::GetItemData(size_t index) const
+	{
+		return GetReactor().GetModule().GetItemData(index);
+	}
+
 	void ComboBox::SetSelectedIndex(std::optional<size_t> index)
 	{
 		GetReactor().GetModule().SetSelectedIndex(index);
 	}
 
-	void ComboBox::PushBack(const std::wstring& text)
+	void ComboBox::PushBack(const std::wstring& text, const std::any& userData)
 	{
-		GetReactor().GetModule().PushBack(text);
+		GetReactor().GetModule().PushBack(text, userData);
 	}
 
-	void ComboBox::PushBack(const std::string& text)
+	void ComboBox::PushBack(const std::string& text, const std::any& userData)
 	{
 		std::wstring wText = StringUtils::UTF8ToWide(text);
-		GetReactor().GetModule().PushBack(wText);
+		GetReactor().GetModule().PushBack(wText, userData);
 	}
 
-	void ComboBox::PushBack(const std::wstring& text, const Image& icon)
+	void ComboBox::PushBack(const std::wstring& text, const Image& icon, const std::any& userData)
 	{
-		GetReactor().GetModule().PushBack(text, icon);
+		GetReactor().GetModule().PushBack(text, icon, userData);
 	}
 
-	void ComboBox::PushBack(const std::string& text, const Image& icon)
+	void ComboBox::PushBack(const std::string& text, const Image& icon, const std::any& userData)
 	{
 		std::wstring wText = StringUtils::UTF8ToWide(text);
-		GetReactor().GetModule().PushBack(wText, icon);
+		GetReactor().GetModule().PushBack(wText, icon, userData);
 	}
 
 	void ComboBox::SetEditable(bool editable)

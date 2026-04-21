@@ -24,6 +24,12 @@ private:
 	Berta::InputText m_inputText;
 };
 
+enum class MaterialTypeEnum
+{
+	Opaque,
+	Transparent,
+	Additive
+};
 struct AppState 
 {
 	std::string CarName{ "Car" };
@@ -33,7 +39,7 @@ struct AppState
 	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
 	bool CastShadows{ true };
 	bool Static{ false };
-	std::optional<size_t> MaterialType{ 0 };
+	MaterialTypeEnum MaterialType { MaterialTypeEnum::Additive };
 	// ...
 };
 
@@ -97,17 +103,21 @@ int main()
 			[&myApp](const bool& val) { myApp.Static = val;  }
 			);
 	
-	auto materialTypeSelection = categoryMesh.EmplaceProperty<Berta::PropertyGridFieldSelection>
+	auto materialTypeSelection = categoryMesh.EmplaceProperty<Berta::PropertyGridFieldSelection<MaterialTypeEnum>>
 		(
 			"Type", 
 			[&myApp]() { return myApp.MaterialType; },
-			[&myApp](std::optional<size_t> val) { myApp.MaterialType = val;  }
+			[&myApp](MaterialTypeEnum val) { myApp.MaterialType = val;  },
+			
+			std::vector<std::pair<std::string, MaterialTypeEnum>> {
+				{ "Opaque",      MaterialTypeEnum::Opaque },
+				{ "Transparent", MaterialTypeEnum::Transparent },
+				{ "Additive",    MaterialTypeEnum::Additive }
+			}
 		);
 	
-	auto selection = materialTypeSelection.As<Berta::PropertyGridFieldSelection>();
-	selection->PushItem("Opaque");
-	selection->PushItem("Diffuse");
-	
+	auto selection = materialTypeSelection.As<Berta::PropertyGridFieldSelection<MaterialTypeEnum>>();
+	//selection.set
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
@@ -141,7 +151,7 @@ int main()
 	*/
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
-			std::cout << "Property changed! Label = " << args.Property.GetLabel() << std::endl;
+			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << args.Property.GetValueAsString() << std::endl;
 		});
 
 

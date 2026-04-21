@@ -12,42 +12,144 @@
 
 #include <string>
 #include <vector>
+#include <functional>
+#include <any>
 
 namespace Berta
 {
-	class PropertyGridFieldSelection : public PropertyGrid::PropertyGridFieldBase
-	{
-	public:
-		using GetterFn = std::function<std::optional<size_t>()>;
-		using SetterFn = std::function<void(std::optional<size_t>)>;
-		
-	public:
-		PropertyGridFieldSelection(std::string_view label, GetterFn getter, SetterFn setter) :
-			PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
-		{
-		}
+    template <typename T>
+    class PropertyGridFieldSelection : public Internal::PropertyGrid::PropertyGridFieldBase
+    {
+    public:
+        using Getter = std::function<T()>;
+        using Setter = std::function<void(T)>;
+        
+        using OptionList = std::vector<std::pair<std::string, T>>;
 
-		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
-		
-		void SetFocus() override;
-		void Refresh() override;
-		std::string GetValueAsString() const override;
-		
-		virtual void SetOption(std::optional<size_t> index);
+        PropertyGridFieldSelection(std::string_view label, Getter getter, Setter setter, OptionList options)
+            : PropertyGridFieldBase(std::string(label)), 
+              m_getter(std::move(getter)), 
+              m_setter(std::move(setter)),
+              m_options(std::move(options))
+        {}
 
-		virtual void PushItem(const std::string& optionText);
-		virtual void Set(const std::vector<std::string> & options, bool clear = true);
+        void OnCreate(Window* parent) override
+        {
+            m_comboBox.Create(parent);
 
-	protected:
-		void OnCreate(Window* parent) override;
-		void OnVisibilityChanged(bool visible) override;
-		void OnEnableChanged(bool enabled) override;
-		
-		GetterFn m_getter;
-		SetterFn m_setter;
-		ComboBox m_comboBox;
-	private:
-	};
+            for (const auto& option : m_options)
+            {
+                m_comboBox.PushBack(option.first, std::make_any<T>(option.second));
+            }
+
+            Refresh();
+
+            m_comboBox.GetEvents().Selected.Connect([this](const ArgComboBox& args) 
+            {
+                if (args.SelectedIndex.has_value())
+                {
+                    std::any payload = m_comboBox.GetSelectedData();
+                    
+                    if (payload.has_value() && payload.type() == typeid(T))
+                    {
+                        T selectedValue = std::any_cast<T>(payload);
+                        
+                        if (m_getter && selectedValue != m_getter())
+                        {
+                            m_setter(selectedValue);
+                            NotifyValueChanged();
+                        }
+                    }
+                }
+            });
+            
+            m_comboBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+            {
+                if (args.Focused)
+                {
+                    NotifySelected();
+                }
+            });
+        }
+
+        void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
+        {
+            m_comboBox.SetArea(area);
+        }
+
+        void Refresh() override
+        {
+            if (!m_getter)
+            {
+                return;
+            }
+
+            T currentVal = m_getter();
+            std::optional<size_t> foundIndex = std::nullopt;
+
+            for (size_t i = 0; i < m_options.size(); ++i)
+            {
+                if (m_options[i].second == currentVal)
+                {
+                    foundIndex = i;
+                    break;
+                }
+            }
+
+            if (m_comboBox.GetSelectedIndex() != foundIndex)
+            {
+                m_comboBox.SetSelectedIndex(foundIndex);
+            }
+        }
+
+        std::string GetValueAsString() const override
+        {
+            if (!m_getter)
+            {
+                return "";
+            }
+
+            T currentVal = m_getter();
+    
+            for (const auto& [text, value] : m_options)
+            {
+                if (value == currentVal)
+                {
+                    return text;
+                }
+            }
+            return "";
+        }
+
+        void SetFocus() override 
+        { 
+            m_comboBox.Focus(); 
+        }
+
+    protected:
+        void OnVisibilityChanged(bool visible) override
+        {
+            if (visible)
+            {
+                m_comboBox.Show();
+            }
+            else
+            {
+                m_comboBox.Hide();
+            }
+        }
+
+        void OnEnableChanged(bool enabled) override
+        {
+            m_comboBox.SetEnabled(enabled);
+        }
+
+    private:
+        Getter m_getter;
+        Setter m_setter;
+        OptionList m_options;
+        ComboBox m_comboBox;
+    };
 }
 
 #endif
