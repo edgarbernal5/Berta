@@ -18,10 +18,19 @@ namespace Berta
 
 	void PropertyGridFieldString::SetFocus()
 	{
+		m_inputText.Focus();
 	}
 
 	void PropertyGridFieldString::Refresh()
 	{
+		if (m_getter) 
+		{
+			std::string value = m_getter();
+			if (m_inputText.GetCaption() != value) 
+			{
+				m_inputText.SetCaption(value);
+			}
+		}
 	}
 
 	std::string PropertyGridFieldString::GetValueAsString() const
@@ -49,11 +58,6 @@ namespace Berta
 		m_inputText.Create(parent);
 		m_inputText.SetCaption(m_getter());
 		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
-
-		m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
-			{
-				
-			});
 
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{

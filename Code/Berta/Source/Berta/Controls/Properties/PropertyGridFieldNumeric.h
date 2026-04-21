@@ -87,10 +87,10 @@ namespace Berta
         {
             if (m_getter) 
             {
-                std::string motorValue = ToString(m_getter());
-                if (m_inputText.GetCaption() != motorValue)
+                std::string value = ToString(m_getter());
+                if (m_inputText.GetCaption() != value)
                 {
-                    m_inputText.SetCaption(motorValue);
+                    m_inputText.SetCaption(value);
                 }
             }
         }
@@ -144,10 +144,6 @@ namespace Berta
             } 
             catch (const std::exception&) 
             {
-                // SEGURIDAD: Si el usuario escribió basura como "---" o ".",
-                // std::stoi/stof lanzará una excepción. En lugar de crashear el motor,
-                // simplemente cancelamos el cambio y restauramos el valor visual 
-                // para que coincida con el motor.
                 Refresh(); 
             }
         }

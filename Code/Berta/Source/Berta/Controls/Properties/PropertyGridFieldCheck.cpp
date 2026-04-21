@@ -38,19 +38,18 @@ namespace Berta
 
 	std::string PropertyGridFieldCheck::GetValueAsString() const
 	{
-		auto value = m_getter();
-		return value ? "1" : "0";
+		if (m_getter)
+		{
+			auto value = m_getter();
+			return value ? "1" : "0";
+		}
+		return "";
 	}
 
 	void PropertyGridFieldCheck::OnCreate(Window* parent)
 	{
 		m_checkBox.Create(parent);
 		Refresh();
-
-		m_checkBox.GetEvents().Click.Connect([this](const ArgClick& args)
-			{
-
-			});
 		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
 			{

@@ -11,7 +11,6 @@
 #include "Berta/Controls/CheckBox.h"
 
 #include <string>
-#include <vector>
 
 namespace Berta
 {
