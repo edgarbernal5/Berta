@@ -18,23 +18,33 @@ namespace Berta
 	class PropertyGridFieldSelection : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldSelection(const std::string& label) :
-			PropertyGridFieldBase(label)
+		using GetterFn = std::function<std::optional<size_t>()>;
+		using SetterFn = std::function<void(std::optional<size_t>)>;
+		
+	public:
+		PropertyGridFieldSelection(std::string_view label, GetterFn getter, SetterFn setter) :
+			PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
+		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
-		virtual void SetEnabled(bool enabled) override;
-		virtual void SetValue(const std::string& value) override;
+		void SetFocus() override;
+		void Refresh() override;
+		std::string GetValueAsString() const override;
+		
 		virtual void SetOption(std::optional<size_t> index);
 
 		virtual void PushItem(const std::string& optionText);
 		virtual void Set(const std::vector<std::string> & options, bool clear = true);
 
 	protected:
-		void Create(Window* parent) override;
-
+		void OnCreate(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
+		void OnEnableChanged(bool enabled) override;
+		
+		GetterFn m_getter;
+		SetterFn m_setter;
 		ComboBox m_comboBox;
 	private:
 	};

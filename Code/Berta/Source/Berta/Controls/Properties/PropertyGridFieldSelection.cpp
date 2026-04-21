@@ -11,53 +11,33 @@
 
 namespace Berta
 {
-	void PropertyGridFieldSelection::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldSelection::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
-
-		Rectangle valueRect = area;
-
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
-
-		if (valueRect.Width == 0)
-			return;
-
-		valueRect.X = 0;
-		valueRect.Y = 0;
-		m_comboBox.SetArea(valueRect);
-		m_comboBox.Show();
+		m_comboBox.SetArea(area);
 	}
 
-	void PropertyGridFieldSelection::SetEnabled(bool enabled)
+	void PropertyGridFieldSelection::SetFocus()
 	{
-		PropertyGridFieldBase::SetEnabled(enabled);
-		m_comboBox.SetEnabled(enabled);
+		m_comboBox.Focus();
 	}
 
-	void PropertyGridFieldSelection::SetValue(const std::string& value)
+	void PropertyGridFieldSelection::Refresh()
 	{
-		try
-		{
-			int indexValue{};
-			std::istringstream iss(value);
-			iss >> indexValue;
+	}
 
-			m_comboBox.SetSelectedIndex(indexValue);
-			PropertyGridFieldBase::SetValue(value);
-		}
-		catch (...)
-		{
-		}
+	std::string PropertyGridFieldSelection::GetValueAsString() const
+	{
+		return "";
 	}
 
 	void PropertyGridFieldSelection::SetOption(std::optional<size_t> index)
 	{
 		if (index && index >= m_comboBox.Count())
-			return;
+		{
+			return;	
+		}
 
 		m_comboBox.SetSelectedIndex(index);
-		PropertyGridFieldBase::SetValue(std::to_string(*index));
 	}
 
 	void PropertyGridFieldSelection::PushItem(const std::string& optionText)
@@ -68,37 +48,50 @@ namespace Berta
 	void PropertyGridFieldSelection::Set(const std::vector<std::string>& options, bool clear)
 	{
 		if (clear)
-			m_comboBox.Clear();
+		{
+			m_comboBox.Clear();	
+		}
 
 		for (auto& itemText : options)
 		{
 			m_comboBox.PushBack(itemText);
 		}
 	}
-
-	void PropertyGridFieldSelection::Create(Window* parent)
+	
+	void PropertyGridFieldSelection::OnCreate(Window* parent)
 	{
 		m_comboBox.Create(parent);
-		m_comboBox.SetCaption(m_value);
-
-		m_comboBox.GetEvents().MouseDown.Connect([this](const ArgMouse& args)
-			{
-				ScrollToView();
-			});
+		Refresh();
 
 		m_comboBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
 				if (args.Focused)
 				{
-					EmitSelectionEvent();
-					return;
+					NotifySelected();
 				}
 			});
 
 		m_comboBox.GetEvents().Selected.Connect([this](const ArgComboBox& args)
 			{
 				SetOption(args.SelectedIndex);
-				EmitEvent();
+				NotifyValueChanged();
 			});
+	}
+
+	void PropertyGridFieldSelection::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			m_comboBox.Show();
+		}
+		else
+		{
+			m_comboBox.Hide();
+		}
+	}
+
+	void PropertyGridFieldSelection::OnEnableChanged(bool enabled)
+	{
+		m_comboBox.SetEnabled(enabled);
 	}
 }
