@@ -573,9 +573,7 @@ namespace Berta
 			}
 		}
 
-		bool PropertyGridLayout::FindItemRectRecursive(const std::vector<CategoryType>& list,
-			StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY,
-			Rectangle& outRect) const
+		bool PropertyGridLayout::FindItemRectRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY, Rectangle& outRect) const
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
 
@@ -583,14 +581,14 @@ namespace Berta
 			{
 				auto indent = cat.m_depth * m_owner->ToScale(20u);
 				Rectangle catRect{ (int)indent, currentY, width - indent, m_owner->ToScale(m_config->CategoryHeight) };
-
-				// ¿Es esta la categoría que buscamos (y no buscamos una propiedad)?
-				if (cat.m_id == targetCat && targetProp == 0) {
+				
+				if (cat.m_id == targetCat && targetProp == 0)
+				{
 					outRect = catRect;
 					return true; 
 				}
 
-				currentY += (int)catRect.Height;
+				currentY += static_cast<int>(catRect.Height);
 
 				if (cat.m_isExpanded)
 				{
@@ -599,16 +597,16 @@ namespace Berta
 						auto propHeight = prop.field->GetHeight();
 						Rectangle propRect{ (int)indent + 10, currentY, width - (indent + 10), propHeight };
 
-						// ¿Es esta la propiedad que buscamos?
-						if (cat.m_id == targetCat && prop.m_id == targetProp) {
+						if (cat.m_id == targetCat && prop.m_id == targetProp)
+						{
 							outRect = propRect;
 							return true;
 						}
-						currentY += propHeight;
+						currentY += static_cast<int>(propHeight);
 					}
 
-					// Buscar en subcategorías
-					if (FindItemRectRecursive(cat.m_subCategories, targetCat, targetProp, currentY, outRect)) {
+					if (FindItemRectRecursive(cat.m_subCategories, targetCat, targetProp, currentY, outRect))
+					{
 						return true;
 					}
 				}
