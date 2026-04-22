@@ -146,7 +146,7 @@ namespace Berta
 			uint32_t MenuBoxSubMenuArrowWidth = 20;
 			uint32_t MenuBoxShortcutWidth = 40;
         
-			uint32_t CheckboxSize = 12;
+			uint32_t CheckboxSize = 13;
 		};
 		
 		struct ItemLayoutCache

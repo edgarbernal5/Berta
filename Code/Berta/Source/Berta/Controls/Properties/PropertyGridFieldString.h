@@ -7,6 +7,8 @@
 #ifndef BT_PROPERTY_GRID_FIELD_STRING_HEADER
 #define BT_PROPERTY_GRID_FIELD_STRING_HEADER
 
+#include <optional>
+
 #include "Berta/Controls/PropertyGrid.h"
 #include "Berta/Controls/InputText.h"
 
@@ -18,7 +20,7 @@ namespace Berta
 	class PropertyGridFieldString : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		using GetterFn = std::function<std::string()>;
+		using GetterFn = std::function<std::optional<std::string>()>;
 		using SetterFn = std::function<void(const std::string&)>;
 		
 	public:
@@ -44,6 +46,8 @@ namespace Berta
 		void OnEnableChanged(bool enabled) override;
 		
 	private:
+		void ApplyValue();
+		
 		GetterFn m_getter;
 		SetterFn m_setter;
 		InputText m_inputText;

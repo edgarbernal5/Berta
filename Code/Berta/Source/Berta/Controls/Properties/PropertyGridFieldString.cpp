@@ -23,19 +23,36 @@ namespace Berta
 
 	void PropertyGridFieldString::Refresh()
 	{
-		if (m_getter) 
+		if (!m_getter)
 		{
-			std::string value = m_getter();
-			if (m_inputText.GetCaption() != value) 
+			return;
+		}
+		
+		std::optional<std::string> currentOpt = m_getter();
+		if (currentOpt.has_value())
+		{
+			if (m_inputText.GetCaption() != currentOpt.value())
 			{
-				m_inputText.SetCaption(value);
+				m_inputText.SetCaption(currentOpt.value());
+			}
+		}
+		else
+		{
+			if (m_inputText.GetCaption() != "---")
+			{
+				m_inputText.SetCaption("---");
 			}
 		}
 	}
 
 	std::string PropertyGridFieldString::GetValueAsString() const
 	{
-		return m_getter();
+		if (m_getter)
+		{
+			std::optional<std::string> currentOpt = m_getter();
+			return currentOpt.has_value() ? currentOpt.value() : "---";
+		}
+		return "";
 	}
 	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
@@ -56,15 +73,14 @@ namespace Berta
 	void PropertyGridFieldString::OnCreate(Window* parent)
 	{
 		m_inputText.Create(parent);
-		m_inputText.SetCaption(m_getter());
 		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
-
+		Refresh();
+		
 		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{
-				if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != m_getter())
+				if (args.Key == KeyboardKey::Enter)
 				{
-					m_setter(m_inputText.GetCaption());
-					NotifyValueChanged();
+					ApplyValue();
 				}
 			});
 
@@ -76,11 +92,7 @@ namespace Berta
 					return;
 				}
 
-				if (m_inputText.GetCaption() != m_getter())
-				{
-					m_setter(m_inputText.GetCaption());
-					NotifyValueChanged();
-				}
+				ApplyValue();
 			});
 	}
 
@@ -99,5 +111,29 @@ namespace Berta
 	void PropertyGridFieldString::OnEnableChanged(bool enabled)
 	{
 		m_inputText.SetEnabled(enabled);
+	}
+
+	void PropertyGridFieldString::ApplyValue()
+	{
+		if (!m_setter || !m_getter)
+		{
+			return;
+		}
+
+		std::string uiValue = m_inputText.GetCaption();
+		std::optional<std::string> currentOpt = m_getter();
+
+		if (!currentOpt.has_value() && uiValue == "---") 
+		{
+			return;
+		}
+
+		if (!currentOpt.has_value() || currentOpt.value() != uiValue)
+		{
+			m_setter(uiValue);
+			NotifyValueChanged();
+		}
+
+		Refresh();
 	}
 }
