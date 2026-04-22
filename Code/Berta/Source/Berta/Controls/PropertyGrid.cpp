@@ -186,6 +186,8 @@ namespace Berta
 		void PropertyGridModel::Clear()
 		{
 			m_rootCategories.clear();
+			m_selectedCatId = 0;
+			m_selectedPropId = 0;
 		}
 
 		bool PropertyGridModel::GetPropertyEnabled(StringUtils::StringHash catId, StringUtils::StringHash propId)
@@ -977,6 +979,7 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		module.m_model.Clear();
+		module.m_layout.SetHoverState(0, 0);
 		module.m_layout.CalculateLayout(module.m_model);
 	}
 
