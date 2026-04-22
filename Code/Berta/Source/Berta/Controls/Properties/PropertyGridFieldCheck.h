@@ -7,6 +7,8 @@
 #ifndef BT_PROPERTY_GRID_FIELD_CHECK_HEADER
 #define BT_PROPERTY_GRID_FIELD_CHECK_HEADER
 
+#include <optional>
+
 #include "Berta/Controls/PropertyGrid.h"
 #include "Berta/Controls/CheckBox.h"
 
@@ -17,8 +19,8 @@ namespace Berta
 	class PropertyGridFieldCheck : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		using GetterFn = std::function<bool()>;
-		using SetterFn = std::function<void(const bool&)>;
+		using GetterFn = std::function<std::optional<bool>()>;
+		using SetterFn = std::function<void(bool)>;
 		
 	public:
 		PropertyGridFieldCheck(std::string_view label, GetterFn getter, SetterFn setter) :

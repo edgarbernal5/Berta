@@ -13,6 +13,7 @@
 #include <functional>
 #include <type_traits>
 #include <cwctype>
+#include <optional>
 
 namespace Berta
 {
@@ -31,7 +32,7 @@ namespace Berta
         static_assert(std::is_arithmetic_v<T>, "El tipo T debe ser numérico.");
 
     public:
-        using Getter = std::function<T()>;
+        using Getter = std::function<std::optional<T>()>;
         using Setter = std::function<void(T)>;
 
         PropertyGridFieldNumeric(std::string_view label, Getter getter, Setter setter)
@@ -87,10 +88,21 @@ namespace Berta
         {
             if (m_getter) 
             {
-                std::string value = ToString(m_getter());
-                if (m_inputText.GetCaption() != value)
+                std::optional<T> currentOpt = m_getter();
+                if (currentOpt.has_value()) 
                 {
-                    m_inputText.SetCaption(value);
+                    std::string str = ToString(currentOpt.value());
+                    if (m_inputText.GetCaption() != str)
+                    {
+                        m_inputText.SetCaption(str);
+                    }
+                }
+                else 
+                {
+                    if (m_inputText.GetCaption() != "---")
+                    {
+                        m_inputText.SetCaption("---");
+                    }
                 }
             }
         }
@@ -102,8 +114,19 @@ namespace Berta
 
 	    std::string GetValueAsString() const override
         {
-            return ToString(m_getter());
+            if (m_getter)
+            {
+                std::optional<T> currentState = m_getter();
+                if (currentState.has_value())
+                {
+                    return ToString(currentState.value());
+                }
+                return "---"; 
+            }
+            
+            return "";
         }
+	    
 	protected:
 	    
 	    void OnVisibilityChanged(bool visible) override
@@ -134,8 +157,9 @@ namespace Berta
             try
             {
                 T parsedValue = FromString(m_inputText.GetCaption());
+                std::optional<T> currentState = m_getter();
                 
-                if (parsedValue != m_getter())
+                if (!currentState.has_value() || parsedValue != currentState.value())
                 {
                     m_setter(parsedValue);
                     NotifyValueChanged(); 

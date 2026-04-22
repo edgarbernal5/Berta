@@ -8,6 +8,7 @@
 #include "CheckBox.h"
 
 #include "Berta/GUI/Interface.h"
+#include "Berta/Controls/Checking/CheckBoxHelpers.h"
 
 namespace Berta
 {
@@ -31,22 +32,25 @@ namespace Berta
 			graphics.FillRectangle(checkBoxRect, window->Appearance->BoxBackground);
 			graphics.DrawRectangle(checkBoxRect, window->Appearance->BoxBorderColor);
 
-			if (m_module.m_isChecked)
+			if (m_module.m_checkState == CheckState::Checked)
 			{
-				auto one = window->ToScale(1);
-				auto two = window->ToScale(2);
-				auto three = window->ToScale(3);
-				auto five = window->ToScale(5);
-				auto six = window->ToScale(6);
-				auto lineWidth = window->ToScale(2.0f);
+				int checkX = checkBoxRect.X;
+				int checkY = checkBoxRect.Y;
+				//if (checkY % 2 == 0) checkY--;
 				
-				graphics.DrawLine({ checkBoxRect.X + one * 2, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - six },
-					{ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - three }, lineWidth,
-					window->Appearance->Foreground2nd);
-				
-				graphics.DrawLine({ checkBoxRect.X + five, checkBoxRect.Y + static_cast<int>(checkBoxRect.Height) - three },
-					{ checkBoxRect.X + static_cast<int>(checkBoxRect.Width) - three, checkBoxRect.Y + one * 2 }, lineWidth,
-					window->Appearance->Foreground2nd);
+				Berta::Internal::CheckBox::DrawCheckmark(graphics, 
+					{ checkX, checkY }, 
+					static_cast<int>(checkboxHeight),
+					window->Appearance->Foreground2nd, 1.5f);
+			} 
+			else if (m_module.m_checkState == CheckState::Indeterminate)
+			{
+				Rectangle indeterminateRect = checkBoxRect;
+				indeterminateRect.X += 2;
+				indeterminateRect.Y += 2;
+				indeterminateRect.Width -= 4;
+				indeterminateRect.Height -= 4;
+				graphics.FillRectangle(indeterminateRect, window->Appearance->HighlightColor);
 			}
 
 			int positionY = static_cast<int>((window->ClientSize.Height - graphics.GetTextExtent().Height) >> 1);
@@ -84,7 +88,14 @@ namespace Berta
 			if (m_control->Handle()->ClientSize.IsInside(args.Position))
 			{
 				m_status = State::Hovered;
-				m_module.m_isChecked = !m_module.m_isChecked;
+				if (m_module.m_checkState == CheckState::Checked)
+				{
+					m_module.m_checkState = CheckState::Unchecked;
+				}
+				else
+				{
+					m_module.m_checkState = CheckState::Checked;
+				}
 				m_module.EmitCheckedChangedEvent();
 			}
 			else
@@ -95,7 +106,7 @@ namespace Berta
 
 		void Reactor::Module::EmitCheckedChangedEvent() const
 		{
-			ArgCheckBox argCheckBox{ m_isChecked };
+			ArgCheckBox argCheckBox{ m_checkState };
 			m_events->CheckedChanged.Emit(argCheckBox);
 		}
 	}
@@ -131,16 +142,31 @@ namespace Berta
 
 	bool CheckBox::IsChecked() const
 	{
-		return GetReactor().GetModule().m_isChecked;
+		return GetReactor().GetModule().m_checkState == CheckState::Checked;
 	}
 
 	void CheckBox::SetChecked(bool isChecked)
 	{
 		auto& module = GetReactor().GetModule();
-		if (module.m_isChecked == isChecked)
+		if (module.m_checkState == CheckState::Checked)
 			return;
 		
-		module.m_isChecked = isChecked;
+		module.m_checkState = isChecked ? CheckState::Checked : CheckState::Unchecked;
+		GUI::UpdateWindow(m_handle);
+	}
+
+	CheckState CheckBox::GetState() const
+	{
+		return GetReactor().GetModule().m_checkState;
+	}
+
+	void CheckBox::SetState(CheckState state)
+	{
+		auto& module = GetReactor().GetModule();
+		if (module.m_checkState == state)
+			return;
+		
+		module.m_checkState = state;
 		GUI::UpdateWindow(m_handle);
 	}
 }

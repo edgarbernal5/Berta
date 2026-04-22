@@ -31,7 +31,7 @@ namespace Berta
 			{
 				void EmitCheckedChangedEvent() const;
 
-				bool m_isChecked{ false };
+				CheckState m_checkState{ CheckState::Unchecked };
 				Window* m_window{ nullptr };
 				Events* m_events{ nullptr };
 			};
@@ -56,7 +56,7 @@ namespace Berta
 	
 	struct ArgCheckBox
 	{
-		bool IsChecked{ false };
+		CheckState State { CheckState::None };
 	};
 	
 	namespace Internal::CheckBox
@@ -77,6 +77,9 @@ namespace Berta
 
 		bool IsChecked() const;
 		void SetChecked(bool isChecked);
+		
+		CheckState GetState() const;
+		void SetState(CheckState state);
 	};
 }
 

@@ -168,8 +168,6 @@ namespace Berta
 			bool IsHoveredItemSubMenu() const;
 			void MoveSelection(int step);
 			
-			void DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color);
-			
 			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
 			
 			Window* m_owner { nullptr };
@@ -194,7 +192,6 @@ namespace Berta
 		public:
 			void Update(Graphics& graphics) override;
 
-			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseMove(Graphics& graphics, const ArgMouse& args) override;

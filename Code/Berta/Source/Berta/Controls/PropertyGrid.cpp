@@ -852,6 +852,7 @@ namespace Berta
 			
 			StringUtils::StringHash hitCat = 0, hitProp = 0;
 			m_module.HitTestRecursive(m_module.m_model.GetRootCategories(), clickPos, 0, hitCat, hitProp);
+			
 			if (hitCat == m_module.m_pressedCatId && hitProp == m_module.m_pressedPropId)
 			{
 				if (hitCat != 0)

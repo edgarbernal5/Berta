@@ -338,7 +338,7 @@ public:
 
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const Berta::ArgCheckBox& args)
 			{
-				m_thumbListBox.EnableMultiselection(args.IsChecked);
+				m_thumbListBox.EnableMultiselection(args.State == Berta::CheckState::Checked);
 			});
 
 		m_checkBox.SetChecked(m_thumbListBox.IsEnabledMultiselection());
@@ -529,7 +529,26 @@ int main()
 			std::cout << "BUTTON > Clear Click" << std::endl;
 			tabbar.Clear();
 		});
+	
+	Berta::CheckBox checkBoxIndeterminate(form, { 180,90+30,100,30 }, "Check indeterminate");
 
+	checkBoxIndeterminate.GetEvents().CheckedChanged.Connect([](const Berta::ArgCheckBox& args)
+		{
+			
+		});
+
+	checkBoxIndeterminate.SetState(Berta::CheckState::Indeterminate);
+	
+	Berta::Button buttoncheckBoxIndeterminate(form, { 180,90,75,25 }, L"Indeterminate!");
+#ifdef BT_DEBUG
+	buttoncheckBoxIndeterminate.SetDebugName("buttoncheckBoxIndeterminate");
+#endif
+	buttoncheckBoxIndeterminate.GetEvents().Click.Connect([&checkBoxIndeterminate](const Berta::ArgClick& args)
+		{
+			std::cout << "BUTTON > Indeterminate Click" << std::endl;
+			checkBoxIndeterminate.SetState(Berta::CheckState::Indeterminate);
+		});
+	
 	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
 			std::cout << "form > Visibility = " << args.IsVisible << std::endl;

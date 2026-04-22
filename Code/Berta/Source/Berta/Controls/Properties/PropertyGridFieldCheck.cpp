@@ -26,13 +26,30 @@ namespace Berta
 
 	void PropertyGridFieldCheck::Refresh()
 	{
-		if (m_getter) 
+		if (!m_getter)
 		{
-			auto value = m_getter();
-			if (m_checkBox.IsChecked() != value)
-			{
-				m_checkBox.SetChecked(value);
-			}
+			return;
+		}
+		
+		std::optional<bool> currentState = m_getter();
+		CheckState targetState;
+
+		if (!currentState.has_value())
+		{
+			targetState = CheckState::Indeterminate;
+		}
+		else if (currentState.value() == true)
+		{
+			targetState = CheckState::Checked;
+		}
+		else
+		{
+			targetState = CheckState::Unchecked;
+		}
+		
+		if (m_checkBox.GetState() != targetState)
+		{
+			m_checkBox.SetState(targetState);
 		}
 	}
 
@@ -52,18 +69,33 @@ namespace Berta
 		Refresh();
 		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
+		{
+			if (!m_getter || !m_setter) return;
+			
+			std::optional<bool> currentState = m_getter();
+
+			bool newValue;
+			if (!currentState.has_value())
 			{
-				m_setter(args.IsChecked);
-				NotifyValueChanged();
-			});
+				newValue = true; 
+			}
+			else
+			{
+					
+				newValue = !currentState.value();
+			}
+
+			m_setter(newValue);
+			NotifyValueChanged();
+		});
 
 		m_checkBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		{
+			if (args.Focused)
 			{
-				if (args.Focused)
-				{
-					NotifySelected();
-				}
-			});
+				NotifySelected();
+			}
+		});
 	}
 
 	void PropertyGridFieldCheck::OnVisibilityChanged(bool visible)

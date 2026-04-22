@@ -13,6 +13,7 @@
 #include "Berta/GUI/EnumTypes.h"
 
 #include "Berta/Core/Foundation.h"
+#include "Berta/Controls/Checking/CheckBoxHelpers.h"
 
 namespace Berta
 {
@@ -339,11 +340,10 @@ namespace Berta
 							if (itemData.isChecked)
 							{
 								int checkSize = window->ToScale(appearance->CheckboxSize);
-								int checkY = cache.bounds.Y + (cache.bounds.Height - checkSize) / 2;
+								int checkY = cache.bounds.Y + ((int)cache.bounds.Height - checkSize) / 2;
+								int checkX = (leftPaneWidth - checkSize) / 2;
 								
-								int checkX = (leftPaneWidth - checkSize) / 2; 
-                            
-								m_module.DrawCheckmark(graphics, { checkX, checkY }, checkSize, mainColor);
+								Berta::Internal::CheckBox::DrawCheckmark(graphics, { checkX, checkY }, checkSize, mainColor);
 							}
 						}
 						else if constexpr (std::is_same_v<T, Menu::MenuAction>)
@@ -357,10 +357,6 @@ namespace Berta
 					}
 				}, m_module.m_menuData->GetItems()[i]);
 			}
-		}
-
-		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
-		{
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -565,14 +561,23 @@ namespace Berta
 					if constexpr (!std::is_same_v<T, Menu::MenuSeparator>)
 					{
 						auto textSize = graphics.GetTextExtent(arg.text);
-						if (textSize.Width > maxTextWidth) maxTextWidth = textSize.Width;
+						if (textSize.Width > maxTextWidth)
+						{
+							maxTextWidth = textSize.Width;
+						}
 					}
 					else if constexpr (std::is_same_v<T, Menu::MenuAction>)
 					{
 						auto tSize = graphics.GetTextExtent(arg.text);
 						auto sSize = graphics.GetTextExtent(arg.shortcutText);
-						if (tSize.Width > maxTextWidth) maxTextWidth = tSize.Width;
-						if (sSize.Width > maxShortcutWidth) maxShortcutWidth = sSize.Width;
+						if (tSize.Width > maxTextWidth)
+						{
+							maxTextWidth = tSize.Width;
+						}
+						if (sSize.Width > maxShortcutWidth)
+						{
+							maxShortcutWidth = sSize.Width;
+						}
 					}
 				}, itemData);
 			}
@@ -589,7 +594,7 @@ namespace Berta
 					if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
 					{
 						cache.bounds = { 0, currentY, finalWidth, separatorHeight };
-						currentY += (int)cache.bounds.Height;
+						currentY += static_cast<int>(cache.bounds.Height);
 					}
 					else
 					{
@@ -714,8 +719,11 @@ namespace Berta
 
 		void Module::OpenHoveredSubMenu(bool focusFirstItem)
 		{
-			if (!m_hoveredIndex.has_value() || !m_menuData) return;
-
+			if (!m_hoveredIndex.has_value() || !m_menuData)
+			{
+				return;
+			}
+			
 			size_t index = m_hoveredIndex.value();
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
 
@@ -804,37 +812,6 @@ namespace Berta
 					return;
 				}
 			}
-		}
-
-		void Module::DrawCheckmark(Graphics& graphics, const Point& position, int size, Color color)
-		{
-			// Definimos los tres puntos de la "palomita" basados en el tamaño de su caja (size x size)
-			// P1: Empieza en el 20% de X y 50% de Y (lado izquierdo, a la mitad)
-			Point p1 = { 
-				position.X + static_cast<int>(size * 0.2f), 
-				position.Y + static_cast<int>(size * 0.5f) 
-			};
-        
-			// P2: Baja hasta el 45% de X y 75% de Y (el vértice inferior)
-			Point p2 = { 
-				position.X + static_cast<int>(size * 0.45f), 
-				position.Y + static_cast<int>(size * 0.75f) 
-			};
-        
-			// P3: Sube hasta el 80% de X y 25% de Y (la punta derecha alta)
-			Point p3 = { 
-				position.X + static_cast<int>(size * 0.8f), 
-				position.Y + static_cast<int>(size * 0.25f) 
-			};
-
-			// Dibujamos las dos líneas que forman el checkmark
-			graphics.DrawLine(p1, p2, color);
-			graphics.DrawLine(p2, p3, color);
-
-			// Opcional: Si tu API Graphics no soporta grosor (thickness) en DrawLine, 
-			// puedes hacer la línea "más gorda" desplazando todo 1 píxel hacia abajo o a la derecha:
-			graphics.DrawLine({ p1.X, p1.Y + 1 }, { p2.X, p2.Y + 1 }, color);
-			graphics.DrawLine({ p2.X, p2.Y + 1 }, { p3.X, p3.Y + 1 }, color);
 		}
 	}
 

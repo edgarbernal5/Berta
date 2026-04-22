@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
+    <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
@@ -234,6 +235,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Checking\CheckBoxHelpers.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
@@ -247,7 +249,7 @@
     <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
-    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp"/>
+    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp" />
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp" />
