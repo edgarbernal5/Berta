@@ -135,13 +135,16 @@ namespace Berta
 			StringUtils::StringHash m_id;
 			std::string m_name;
 			uint32_t m_depth{ 0 };
+			Image m_icon;
 			bool m_isExpanded{ true };
 			
 			std::vector<PropertyFieldData> m_properties;
 			std::vector<CategoryType> m_subCategories;
 			
 			explicit CategoryType(std::string_view name, int depth) : 
-				m_id(StringUtils::HashString(name)), m_name(name), m_depth(depth) {}
+				m_id(StringUtils::HashString(name)), m_name(name), m_depth(depth)
+			{
+			}
 			
 			CategoryType(const CategoryType&) = delete;
 			CategoryType& operator=(const CategoryType&) = delete;
@@ -183,6 +186,11 @@ namespace Berta
 			[[nodiscard]] StringUtils::StringHash GetSelectedCatId() const { return m_selectedCatId; }
 			[[nodiscard]] StringUtils::StringHash GetSelectedPropId() const { return m_selectedPropId; }
 			
+			bool IsShowingCategoryIcons() const { return m_drawImages; }
+			void ShowCategoryIcons(bool visible) { m_drawImages = visible; }
+			
+			void SetCategoryIcon(StringUtils::StringHash catId, const Image& icon);
+			
 			std::function<void()> OnVisualsChanged;
 			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertyModified;
 			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertySelected;
@@ -194,6 +202,7 @@ namespace Berta
 			StringUtils::StringHash m_selectedCatId{ 0 };
 			StringUtils::StringHash m_selectedPropId{ 0 };
 			std::vector<CategoryType> m_rootCategories;
+			bool m_drawImages { false };
 		};
 
 		using PropertyGridFieldBasePtr = std::unique_ptr<PropertyGridFieldBase>;
@@ -220,8 +229,7 @@ namespace Berta
 			template <typename T>
 			T* As() 
 			{
-				static_assert(std::is_base_of_v<PropertyGridFieldBase, T>, 
-							  "T debe heredar de PropertyGridFieldBase");
+				static_assert(std::is_base_of_v<PropertyGridFieldBase, T>, "T must inherit from PropertyGridFieldBase");
             
 				if (!m_model)
 				{
@@ -261,6 +269,8 @@ namespace Berta
 
 			PropertyHandle AppendProperty(std::unique_ptr<PropertyGridFieldBase> field);
 
+			CategoryHandle& SetIcon(const Image& icon);
+			
 			operator bool() const;
 		private:
 			PropertyGridModel* m_model{ nullptr };
@@ -288,16 +298,20 @@ namespace Berta
 				m_hoveredCatId = catId; 
 				m_hoveredPropId = propId; 
 			}
+			
+			void RefreshVisibleOnly(const PropertyGridModel& model);
 			void ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId);
 		private:
 			uint32_t CalculateCategoryHeight(const CategoryType& cat);
 			
 			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y);
-			void DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, Appearance* config);
+			void DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config);
 			
 			[[nodiscard]] bool IsVisible(const Rectangle& area) const;
 			void HideCategoryRecursive(const CategoryType& cat);
 			bool FindItemRectRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY, Rectangle& outRect) const;
+			
+			bool RefreshVisibleRecursive(const std::vector<CategoryType>& list, int& currentY, const Rectangle& viewport);
 			
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
@@ -355,7 +369,13 @@ namespace Berta
 	struct ArgPropertyGrid
 	{
 		Internal::PropertyGrid::PropertyHandle Property;
-		ArgPropertyGrid(const Internal::PropertyGrid::PropertyHandle& item) : Property(item) {}
+		explicit ArgPropertyGrid(const Internal::PropertyGrid::PropertyHandle& item) : Property(item) {}
+	};
+	
+	struct ArgPropertyGridCategory
+	{
+		Internal::PropertyGrid::CategoryHandle Category;
+		explicit ArgPropertyGridCategory(const Internal::PropertyGrid::CategoryHandle& item) : Category(item) {}
 	};
 
 	namespace Internal::PropertyGrid
@@ -364,6 +384,12 @@ namespace Berta
 		{
 			Event<ArgPropertyGrid> PropertyChanged;
 			Event<ArgPropertyGrid> SelectionChanged;
+			
+			Event<ArgPropertyGrid> PropertyRightClicked;
+			Event<ArgPropertyGrid> PropertyDoubleClicked;
+			
+			Event<ArgPropertyGridCategory> CategoryClicked;
+			Event<ArgPropertyGridCategory> CategoryRightClicked;
 		};
 	}
 	
@@ -387,6 +413,7 @@ namespace Berta
 		//CategoryItem Find(std::string_view categoryName);
 		
 		void RefreshAll();
+		void ShowCategoryIcons(bool visible);
 	};
 }
 

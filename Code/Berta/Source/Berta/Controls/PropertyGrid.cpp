@@ -31,7 +31,9 @@ namespace Berta
 		void PropertyGridFieldBase::SetLabel(std::string_view newLabel)
 		{
 			if (m_label == newLabel)
+			{
 				return;
+			}
 
 			m_label = newLabel;
 		}
@@ -43,14 +45,21 @@ namespace Berta
 
 		void PropertyGridFieldBase::SetEnabled(bool enabled)
 		{
+			if (m_enabled == enabled)
+			{
+				return;
+			}
 			m_enabled = enabled;
 			OnEnableChanged(enabled);
 		}
 
 		void PropertyGridFieldBase::SetVisibility(bool visible)
 		{
-			if (m_isVisible == visible) return; 
-            
+			if (m_isVisible == visible)
+			{
+				return;
+			}
+			
 			m_isVisible = visible;
 			OnVisibilityChanged(visible);
 		}
@@ -233,6 +242,14 @@ namespace Berta
 			m_selectedPropId = propId;
 		}
 
+		void PropertyGridModel::SetCategoryIcon(StringUtils::StringHash catId, const Image& icon)
+		{
+			if (CategoryType* cat = FindCategoryById(catId))
+			{
+				cat->m_icon = icon;
+			}
+		}
+
 		CategoryType* PropertyGridModel::FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list)
 		{
 			for (auto& cat : list)
@@ -338,6 +355,15 @@ namespace Berta
 				return {m_model, m_id, propId};
 			}
 			return {};
+		}
+
+		CategoryHandle& CategoryHandle::SetIcon(const Image& icon)
+		{
+			if (m_model)
+			{
+				m_model->SetCategoryIcon(m_id, icon);
+			}
+			return *this;
 		}
 
 		CategoryHandle::operator bool() const
@@ -446,7 +472,7 @@ namespace Berta
 			Rectangle catArea{ x + indent, y, width - indent, categoryHeight };
 			if (IsVisible(catArea))
 			{
-				DrawCategoryHeader(graphics, catArea, cat, m_config);
+				DrawCategoryHeader(graphics, model, catArea, cat, m_config);
 			}
 			y += (int)categoryHeight;
 
@@ -513,7 +539,7 @@ namespace Berta
 			return y;
 		}
 
-		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const Rectangle& area, const CategoryType& cat, Appearance* config)
+		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config)
 		{
 			Color bgColor = config->Background;
 			graphics.FillRectangle(area, bgColor);
@@ -537,6 +563,17 @@ namespace Berta
 				cat.m_isExpanded ? config->Foreground2nd : config->BoxBackground
 			);
 			
+			if (model.IsShowingCategoryIcons())
+			{
+				auto iconPaddingX = m_owner->ToScale(2);
+				auto iconSize = m_owner->ToScale(config->SmallIconSize);
+				if (cat.m_icon)
+				{
+					Rectangle iconRect{ area.X + expanderArea.X + (int)expanderArea.Width + iconPaddingX, area.Y + (((int)area.Height - (int)iconSize) >> 1), iconSize, iconSize };
+					cat.m_icon.Paste(graphics, iconRect);
+				}
+				offset += (int)iconSize + iconPaddingX * 2;
+			}
 			int textX = expanderArea.X + (int)expanderArea.Width + offset;
 			Point textPos = { textX, area.Y + ((int)area.Height - (int)graphics.GetTextExtent().Height) / 2 };
     
@@ -614,6 +651,62 @@ namespace Berta
 			return false;
 		}
 
+		void PropertyGridLayout::RefreshVisibleOnly(const PropertyGridModel& model)
+		{
+			if (!m_scrollableView) return;
+
+			Rectangle viewport = m_scrollableView->GetVisibleRect();
+			int startY = 0;
+        
+			RefreshVisibleRecursive(model.GetRootCategories(), startY, viewport);
+		}
+
+		bool PropertyGridLayout::RefreshVisibleRecursive(const std::vector<CategoryType>& list, int& currentY, const Rectangle& viewport)
+		{
+			int viewportBottom = viewport.Y + (int)viewport.Height;
+
+			for (const auto& cat : list)
+			{
+				auto indent = cat.m_depth * m_owner->ToScale(20u);
+				Rectangle catRect{ (int)indent, currentY, viewport.Width, m_owner->ToScale(m_config->CategoryHeight) };
+
+				currentY += (int)catRect.Height;
+
+				if (currentY > viewportBottom)
+				{
+					return false;
+				}
+				
+				if (cat.m_isExpanded)
+				{
+					for (const auto& prop : cat.m_properties)
+					{
+						auto propHeight = prop.field->GetHeight();
+						Rectangle propRect{ (int)indent + 10, currentY, viewport.Width, propHeight };
+						
+						if (propRect.Intersects(viewport)) 
+						{
+							prop.field->Refresh();
+						}
+
+						currentY += (int)propHeight;
+
+						if (currentY > viewportBottom) 
+						{
+							return false;
+						}
+					}
+					
+					if (!RefreshVisibleRecursive(cat.m_subCategories, currentY, viewport))
+					{
+						return false;
+					}
+				}
+			}
+        
+			return true;
+		}
+
 		void Module::Draw()
 		{
 		}
@@ -675,9 +768,9 @@ namespace Berta
 
 			for (const auto& cat : list)
 			{
-				int indent = cat.m_depth * 20;
+				auto indent = cat.m_depth * m_owner->ToScale(20u) ;
 				
-				Rectangle catRect{ indent, currentY, width - indent, m_owner->ToScale(m_layout.GetConfig()->CategoryHeight) };
+				Rectangle catRect{ (int)indent, currentY, width - indent, m_owner->ToScale(m_layout.GetConfig()->CategoryHeight) };
 
 				if (catRect.Contains(pos))
 				{
@@ -693,7 +786,7 @@ namespace Berta
 					for (const auto& prop : cat.m_properties)
 					{
 						auto propHeight = prop.field->GetHeight();
-						Rectangle propRect{ indent + 10, currentY, width - (indent + 10), propHeight };
+						Rectangle propRect{ (int)indent + 10, currentY, width - (indent + 10), propHeight };
 
 						if (propRect.Contains(pos))
 						{
@@ -886,6 +979,16 @@ namespace Berta
 
 	void PropertyGrid::RefreshAll()
 	{
+		auto& module = GetReactor().GetModule();
+		module.m_layout.RefreshVisibleOnly(module.m_model);
+		module.OnLayoutChanged();
+	}
+
+	void PropertyGrid::ShowCategoryIcons(bool visible)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_model.ShowCategoryIcons(visible);
+		module.OnLayoutChanged();
 	}
 
 	/*PropertyGrid::CategoryItem PropertyGrid::Find(std::string_view categoryName)

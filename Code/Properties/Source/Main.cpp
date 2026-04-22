@@ -48,9 +48,15 @@ int main()
 	Berta::Form form(Berta::Size(750u, 650u), { true, true, true });
 	form.SetCaption("Property Grid - Example");
 
+	Berta::Image m_folderOpenImg{ "..\\..\\Resources\\Icons\\Folder 128.png" };
+	Berta::Image m_fileImg{ "..\\..\\Resources\\Icons\\File 128.png" };
+	Berta::Image m_hardDriveImg{ "..\\..\\Resources\\Icons\\Hard drive 3 128.png" };
+
+	
 	AppState myApp;
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
-
+	propertyGrid.ShowCategoryIcons(true);
+	
 	auto categoryTransform = propertyGrid.Append("Transform");
 	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
@@ -58,6 +64,8 @@ int main()
 			[&myApp]() { return myApp.CarName; },
 			[&myApp](const std::string& val) { myApp.CarName = val; }
 		);
+	
+	categoryTransform.SetIcon(m_hardDriveImg);
 	
 	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
@@ -80,7 +88,8 @@ int main()
 		);
 	
 	auto categoryEmpty = propertyGrid.Append("Empty");
-	auto categoryMesh = propertyGrid.Append("Mesh");
+	auto categoryMesh = propertyGrid.Append("Mesh").SetIcon(m_folderOpenImg);
+	
 	auto subcategoryMaterials = categoryMesh.AppendSubCategory("Materials");
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldString>
 		(

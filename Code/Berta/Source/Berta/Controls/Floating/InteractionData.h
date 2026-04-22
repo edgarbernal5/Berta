@@ -23,9 +23,10 @@ namespace Berta::Float
 			Image m_icon;
 			std::any m_userData;
 			
-			ItemType(std::wstring text, std::any userData) : m_text{ text }, m_userData{ userData } {}
-			ItemType(std::wstring text, Image icon, std::any userData) : m_text{ text }, m_icon{ icon }, m_userData{ userData } {}
+			ItemType(const std::wstring& text, const std::any& userData) : m_text{ text }, m_userData{ userData } {}
+			ItemType(const std::wstring& text, const Image& icon, const std::any& userData) : m_text{ text }, m_icon{ icon }, m_userData{ userData } {}
 		};
+		
 		std::vector<ItemType> m_items;
 		bool m_drawImages{ false };
 
