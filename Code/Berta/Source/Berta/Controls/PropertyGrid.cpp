@@ -242,6 +242,14 @@ namespace Berta
 			m_selectedPropId = propId;
 		}
 
+		void PropertyGridModel::ToggleCategoryExpansion(StringUtils::StringHash catId)
+		{
+			if (CategoryType* category = FindCategoryById(catId))
+			{
+				category->m_isExpanded = !category->m_isExpanded;
+			}
+		}
+
 		void PropertyGridModel::SetCategoryIcon(StringUtils::StringHash catId, const Image& icon)
 		{
 			if (CategoryType* cat = FindCategoryById(catId))
@@ -726,42 +734,6 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
-		int Module::ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY, Appearance* appearance)
-		{
-			auto width = m_layout.m_scrollableView->GetClientArea().Width;
-			uint32_t categoryHeight = m_owner->ToScale(appearance->CategoryHeight);
-			
-			for (auto& cat : list)
-			{
-				auto indent = cat.m_depth * m_owner->ToScale(20u);
-				Rectangle catRect{ static_cast<int>(indent), currentY, width - indent, categoryHeight };
-
-				if (catRect.Contains(pos))
-				{
-					cat.m_isExpanded = !cat.m_isExpanded;
-					OnLayoutChanged();
-					
-					return -1;
-				}
-				currentY += static_cast<int>(categoryHeight);
-
-				if (cat.m_isExpanded)
-				{
-					for (auto& prop : cat.m_properties)
-					{
-						currentY += static_cast<int>(prop.field->GetHeight());
-					}
-					
-					currentY = ProcessClickRecursive(cat.m_subCategories, pos, currentY, appearance);
-					if (currentY == -1)
-					{
-						return -1;
-					}
-				}
-			}
-			return currentY;
-		}
-
 		int Module::HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId)
 		{
 			auto width = m_layout.m_scrollableView->GetClientArea().Width;
@@ -850,7 +822,10 @@ namespace Berta
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
+			auto offset = m_module.m_layout.m_scrollableView->GetScrollOffset();
+			Point clickPos = { args.Position.X + offset.X, args.Position.Y + offset.Y };
 			
+			m_module.HitTestRecursive(m_module.m_model.GetRootCategories(), clickPos, 0, m_module.m_pressedCatId, m_module.m_pressedPropId);
 		}
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
@@ -872,12 +847,44 @@ namespace Berta
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			if (!args.ButtonState.LeftButton)
-				return;
-
-			auto appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
-			Point clickPos = { args.Position.X, args.Position.Y + m_module.m_layout.m_scrollableView->GetScrollOffset().Y };
-			m_module.ProcessClickRecursive(m_module.m_model.GetRootCategories(), clickPos, 0, appearance);
+			auto offset = m_module.m_layout.m_scrollableView->GetScrollOffset();
+			Point clickPos = { args.Position.X + offset.X, args.Position.Y + offset.Y };
+			
+			StringUtils::StringHash hitCat = 0, hitProp = 0;
+			m_module.HitTestRecursive(m_module.m_model.GetRootCategories(), clickPos, 0, hitCat, hitProp);
+			if (hitCat == m_module.m_pressedCatId && hitProp == m_module.m_pressedPropId)
+			{
+				if (hitCat != 0)
+				{
+					if (hitProp != 0)
+					{
+						if (args.ButtonState.RightButton)
+						{
+							ArgPropertyGrid arguments{ PropertyHandle(&m_module.m_model, hitCat, hitProp) };
+							m_module.m_events->PropertyRightClicked.Emit(arguments);
+						}
+					}
+					else
+					{
+						if (args.ButtonState.RightButton)
+						{
+							ArgPropertyGridCategory arguments{ CategoryHandle(&m_module.m_model, hitCat) };
+							m_module.m_events->CategoryRightClicked.Emit(arguments);
+						}
+						else if (args.ButtonState.LeftButton)
+						{
+							m_module.m_model.ToggleCategoryExpansion(hitCat);
+							m_module.OnLayoutChanged();
+							
+							ArgPropertyGridCategory arguments{ CategoryHandle(&m_module.m_model, hitCat) };
+							m_module.m_events->CategoryClicked.Emit(arguments);
+						}
+					}
+				}
+			}
+			
+			m_module.m_pressedCatId = 0;
+			m_module.m_pressedPropId = 0;
 			
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}

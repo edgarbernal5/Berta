@@ -186,6 +186,8 @@ namespace Berta
 			[[nodiscard]] StringUtils::StringHash GetSelectedCatId() const { return m_selectedCatId; }
 			[[nodiscard]] StringUtils::StringHash GetSelectedPropId() const { return m_selectedPropId; }
 			
+			void ToggleCategoryExpansion(StringUtils::StringHash catId);
+			
 			bool IsShowingCategoryIcons() const { return m_drawImages; }
 			void ShowCategoryIcons(bool visible) { m_drawImages = visible; }
 			
@@ -329,13 +331,14 @@ namespace Berta
 			void Update();
 			
 			void OnLayoutChanged();
-			int ProcessClickRecursive(std::vector<CategoryType>& list, Point pos, int currentY, Appearance* appearance);
 			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId);
 			
 			PropertyGridModel m_model;
 			PropertyGridLayout m_layout;
 			StringUtils::StringHash m_lastHoveredCat { 0 };
 			StringUtils::StringHash m_lastHoveredProp { 0 };
+			StringUtils::StringHash m_pressedCatId{ 0 };
+			StringUtils::StringHash m_pressedPropId{ 0 };
 			
 			Window* m_owner{ nullptr };
 
