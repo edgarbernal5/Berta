@@ -11,93 +11,101 @@
 
 namespace Berta
 {
-	void PropertyGridFieldColor::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldColor::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+		
+		m_colorRegion.SetArea(area);
+	}
 
-		Rectangle valueRect = area;
+	void PropertyGridFieldColor::SetFocus()
+	{
+	}
 
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
-
-		if (valueRect.Width == 0)
+	void PropertyGridFieldColor::Refresh()
+	{
+		if (!m_getter)
+		{
 			return;
-
-		valueRect.X = 0;
-		valueRect.Y = 0;
-		m_colorRegion.SetArea(valueRect);
-		m_colorRegion.Show();
-	}
-
-	void PropertyGridFieldColor::SetEnabled(bool enabled)
-	{
-		PropertyGridFieldBase::SetEnabled(enabled);
-		m_colorRegion.SetEnabled(enabled);
-	}
-
-	void PropertyGridFieldColor::SetValue(const std::string& value)
-	{
-		std::stringstream ss(value);
-		std::string item;
-		std::vector<int> items;
-
-		try
-		{
-			while (getline(ss, item, ','))
-			{
-				items.push_back(item.empty() ? 0 : std::clamp(std::stoi(item), 0, 255));
-			}
-		}
-		catch (...)
-		{
-			items.clear();
 		}
 
-		if (items.size() != 4)
-			return;
-
-		m_color = Color(items[0], items[1], items[2], items[3]);
-		m_colorRegion.SetBackgroundColor(m_color);
-		PropertyGridFieldBase::SetValue(std::to_string(items[0]) + "," + std::to_string(items[1]) + "," + std::to_string(items[2]) + "," + std::to_string(items[3]));
+		std::optional<Color> currentOpt = m_getter();
+		if (currentOpt.has_value())
+		{
+			m_colorRegion.SetBackgroundColor(currentOpt.value());
+			m_colorRegion.SetCaption("");
+		}
+		else
+		{
+			m_colorRegion.SetBackgroundColor(Color(128, 128, 128, 255));
+			m_colorRegion.SetCaption("---");
+		}
 	}
 
-	void PropertyGridFieldColor::SetValue(const Color& value)
+	std::string PropertyGridFieldColor::GetValueAsString() const
 	{
-		PropertyGridFieldColor::SetValue(std::to_string(value.GetR()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetB()) + "," + std::to_string(value.GetA()));
+		if (!m_getter)
+		{
+			return "";
+		}
+		
+		auto currentValue = m_getter();
+		if (currentValue.has_value())
+		{
+			Color c = currentValue.value();
+			return std::to_string(c.GetR()) + "," + std::to_string(c.GetG()) + "," + 
+				   std::to_string(c.GetB()) + "," + std::to_string(c.GetA());
+		}
+		return "---";
 	}
 
-	Color PropertyGridFieldColor::ToColor() const
-	{
-		return m_color;
-	}
-
-	void PropertyGridFieldColor::SetButtonClick(std::function<void(PropertyGridFieldColor*)> callback)
+	void PropertyGridFieldColor::SetButtonClick(ClickCallback callback)
 	{
 		m_clickCallback = std::move(callback);
 	}
 
-	void PropertyGridFieldColor::Create(Window* parent)
+	void PropertyGridFieldColor::OnCreate(Window* parent)
 	{
 		m_colorRegion.Create(parent);
 
 		m_colorRegion.GetEvents().Click.Connect([this](const ArgClick& args)
+		{
+			NotifySelected();
+			if (m_clickCallback && m_getter)
 			{
-				ScrollToView();
-				if (m_clickCallback)
+				std::optional<Color> result = m_clickCallback(m_getter());
+				if (result.has_value()) 
 				{
-					m_clickCallback(this);
+					m_setter(result.value());
+					NotifyValueChanged();
+					Refresh();
 				}
-			});
-
+			}
+		});
 		m_colorRegion.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
 				if (args.Focused)
 				{
-					EmitSelectionEvent();
-					return;
+					NotifySelected();
 				}
 			});
+		
+		Refresh();
+	}
 
-		PropertyGridFieldColor::SetValue(m_value);
+	void PropertyGridFieldColor::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			m_colorRegion.Show();
+		}
+		else
+		{
+			m_colorRegion.Hide();
+		}
+	}
+
+	void PropertyGridFieldColor::OnEnableChanged(bool enabled)
+	{
+		m_colorRegion.SetEnabled(enabled);
 	}
 }

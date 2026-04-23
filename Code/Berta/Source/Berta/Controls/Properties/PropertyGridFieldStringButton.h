@@ -18,23 +18,28 @@ namespace Berta
 	class PropertyGridFieldStringButton : public PropertyGridFieldString
 	{
 	public:
-		PropertyGridFieldStringButton(const std::string& label, const std::string& value) :
-			PropertyGridFieldString(label, value)
+		using ClickCallback = std::function<std::optional<std::string>(std::optional<std::string> currentValue)>;
+		
+	public:
+		PropertyGridFieldStringButton(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick)
+			: PropertyGridFieldString(label, std::move(getter), std::move(setter)), m_clickCallback(std::move(onButtonClick))
 		{
+			m_buttonText = "...";
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
+		virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
-		virtual void SetEnabled(bool enabled) override;
-
-		void SetButtonClick(std::function<void(PropertyGridFieldStringButton*)> callback);
+		void SetButtonClick(ClickCallback callback);
 
 	protected:
-		virtual void Create(Window* parent) override;
+		virtual void OnCreate(Window* parent) override;
+		virtual void OnVisibilityChanged(bool visible) override;
+		virtual void OnEnableChanged(bool enabled) override;
 
-		std::string m_buttonText = "...";
+	private:
+		std::string m_buttonText;
 		Button m_button;
-		std::function<void(PropertyGridFieldStringButton*)> m_clickCallback;
+		ClickCallback m_clickCallback;
 
 	private:
 	};

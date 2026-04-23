@@ -29,10 +29,10 @@ namespace Berta
 		{
 		}
 
-		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
+		virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
-		void SetFocus() override;
-		void Refresh() override;
+		virtual void SetFocus() override;
+		virtual void Refresh() override;
 		std::string GetValueAsString() const override;
 
 		virtual void SetEditable(bool isEditable);
@@ -42,15 +42,15 @@ namespace Berta
 
 	protected:
 		virtual void OnCreate(Window* parent) override;
-		void OnVisibilityChanged(bool visible) override;
-		void OnEnableChanged(bool enabled) override;
-		
-	private:
-		void ApplyValue();
+		virtual void OnVisibilityChanged(bool visible) override;
+		virtual void OnEnableChanged(bool enabled) override;
 		
 		GetterFn m_getter;
 		SetterFn m_setter;
 		InputText m_inputText;
+		
+	private:
+		void ApplyValue();
 	};
 }
 

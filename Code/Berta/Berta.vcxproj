@@ -153,10 +153,12 @@
     <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridLayout.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridModel.h" />
     <ClInclude Include="Source\Berta\Core\ObjectPool.h" />
@@ -238,7 +240,9 @@
     <ClCompile Include="Source\Berta\Controls\Checking\CheckBoxHelpers.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridLayout.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridModel.cpp" />
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />

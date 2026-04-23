@@ -30,6 +30,7 @@ enum class MaterialTypeEnum
 	Transparent,
 	Additive
 };
+
 struct AppState 
 {
 	std::string CarName{ "Car" };
@@ -40,6 +41,9 @@ struct AppState
 	bool CastShadows{ true };
 	bool Static{ false };
 	MaterialTypeEnum MaterialType { MaterialTypeEnum::Additive };
+	
+	std::string MeshFilter{ "/home/edgar/meshfilter.x" };
+	Berta::Color TintColor{255,0,0,255};
 	// ...
 };
 
@@ -87,7 +91,7 @@ int main()
 			[&myApp](float val) { myApp.MaxMaterials = val; }
 		);
 	
-	auto categoryEmpty = propertyGrid.Append("Empty");
+	propertyGrid.Append("Empty");
 	auto categoryMesh = propertyGrid.Append("Mesh").SetIcon(m_folderOpenImg);
 	
 	auto subcategoryMaterials = categoryMesh.AppendSubCategory("Materials");
@@ -127,6 +131,31 @@ int main()
 	
 	auto selection = materialTypeSelection.As<Berta::PropertyGridFieldSelection<MaterialTypeEnum>>();
 	//selection.set
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldStringButton>
+		(
+			"Mesh Filter", 
+			[&myApp]() { return myApp.MeshFilter; },
+			[&myApp](const std::string& val) { myApp.MeshFilter = val; },
+			[](std::optional<std::string> currentValue) -> std::optional<std::string>
+			{
+				std::cout << "Opening file explorer...." << std::endl;
+				std::string newPath = "/home/new_path/filefilter.x";
+				std::cout << "newPath = " << newPath << std::endl;
+				return newPath;
+			});
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldColor>(
+		"Tint Color",
+		[&myApp]() { return myApp.TintColor; },
+			[&myApp](Berta::Color val) { myApp.TintColor = val; },
+			[](std::optional<Berta::Color> currentColor) -> std::optional<Berta::Color>
+			{
+				std::cout << "Opening color picker...." << std::endl;
+				std::cout << "ERROR...." << std::endl;
+
+				return std::nullopt;
+			});
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
