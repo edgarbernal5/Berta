@@ -404,7 +404,7 @@ namespace Berta
         virtual void RequestClose() = 0;
     };
 
-    constexpr int DockAreaCaptionButtonSize = 14;
+    constexpr int DOCK_AREA_CAPTION_BUTTON_SIZE = 14;
 
     class DockAreaCaptionReactor : public ControlReactor
     {

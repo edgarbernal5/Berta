@@ -455,7 +455,7 @@ namespace Berta
 					if (std::holds_alternative<Menu::MenuSubMenu>(itemData) && m_module.m_openedSubMenuIndex != index)
 					{
 						m_module.m_pendingSubMenuIndex = index;
-						m_module.m_hoverTimer.SetInterval(Module::SubMenuDelayMs);
+						m_module.m_hoverTimer.SetInterval(Module::SUB_MENU_DELAY_MS);
 						m_module.m_hoverTimer.Start();
 					}
 				}
@@ -642,7 +642,7 @@ namespace Berta
 		void Module::InitTimer()
 		{
 			m_hoverTimer.SetOwner(m_owner);
-			m_hoverTimer.SetInterval(SubMenuDelayMs);
+			m_hoverTimer.SetInterval(SUB_MENU_DELAY_MS);
 			m_hoverTimer.Connect([this](const ArgTimer& args)
 			{
 				m_hoverTimer.Stop();

@@ -37,7 +37,7 @@ namespace Berta
 			{
 				return;
 			}
-			constexpr int scrollSpeed = 20;
+			
 			auto savedOffsetView = m_offsetView;
 			
 			Size contentSize = GetContentTextExtent();
@@ -46,22 +46,22 @@ namespace Berta
 			
 			if (m_selectionDirection.Y == -1)
 			{
-				m_offsetView.Y = std::min<int>(maxScrollY, m_offsetView.Y + scrollSpeed);
+				m_offsetView.Y = std::min<int>(maxScrollY, m_offsetView.Y + TEXT_EDITOR_SCROLL_SPEED);
 			}
 			else if (m_selectionDirection.Y == 1)
 			{
-				m_offsetView.Y = std::max<int>(0, m_offsetView.Y - scrollSpeed);
+				m_offsetView.Y = std::max<int>(0, m_offsetView.Y - TEXT_EDITOR_SCROLL_SPEED);
 			}
 			
 			if (!m_features.wordWrap)
 			{
 				if (m_selectionDirection.X == -1)
 				{
-					m_offsetView.X = std::min<int>(maxScrollX, m_offsetView.X + scrollSpeed);
+					m_offsetView.X = std::min<int>(maxScrollX, m_offsetView.X + TEXT_EDITOR_SCROLL_SPEED);
 				}
 				else if (m_selectionDirection.X == 1)
 				{
-					m_offsetView.X = std::max<int>(0, m_offsetView.X - scrollSpeed);
+					m_offsetView.X = std::max<int>(0, m_offsetView.X - TEXT_EDITOR_SCROLL_SPEED);
 				}
 			}
 			

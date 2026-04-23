@@ -18,7 +18,7 @@ namespace Berta
 		namespace
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			constexpr std::wstring_view DefaultWindowTitle = L"Berta Window";
+			constexpr std::wstring_view DEFAULT_WINDOW_TITLE = L"Berta Window";
 
 			constexpr RECT CreateScaledRect(const Rectangle& rectangle, float scalingFactor)
 			{
@@ -86,7 +86,7 @@ namespace Berta
 			(
 				styleEx,
 				isNested ? L"BertaNestedInternalClass" : L"BertaInternalClass",
-				DefaultWindowTitle.data(),
+				DEFAULT_WINDOW_TITLE.data(),
 				style,
 				windowPosition.x,
 				windowPosition.y,

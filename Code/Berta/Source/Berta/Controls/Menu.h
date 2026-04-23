@@ -20,8 +20,8 @@
 
 namespace Berta
 {
-	constexpr uint32_t ItemTextPadding = 2;
-	constexpr uint32_t SeparatorHeight = 3;
+	constexpr uint32_t MENU_ITEM_TEXT_PADDING = 2;
+	constexpr uint32_t MENU_SEPARATOR_HEIGHT = 3;
 
 	class MenuBox;
 	struct Menu;
@@ -184,7 +184,7 @@ namespace Berta
 			std::optional<std::size_t> m_pendingSubMenuIndex;
 			std::optional<std::size_t> m_openedSubMenuIndex;
 			Timer m_hoverTimer;
-			static constexpr uint32_t SubMenuDelayMs = 400u;
+			static constexpr uint32_t SUB_MENU_DELAY_MS = 400u;
 		};
 		
 		class Reactor : public ControlReactor

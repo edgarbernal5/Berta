@@ -18,6 +18,8 @@
 
 namespace Berta
 {
+	constexpr int TEXT_EDITOR_SCROLL_SPEED = 20;
+	
 	struct Window;
 	class Caret;
 
