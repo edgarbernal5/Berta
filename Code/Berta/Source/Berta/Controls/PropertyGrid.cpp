@@ -477,6 +477,7 @@ namespace Berta
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
 			int indent = (int)cat.m_depth * m_owner->ToScale(20);
+			auto indentPadding = m_owner->ToScale(PG_INDENT_PADDING);
 			auto categoryHeight = m_owner->ToScale(m_config->CategoryHeight);
 			
 			Rectangle catArea{ x + indent, y, width - indent, categoryHeight };
@@ -490,7 +491,7 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					Rectangle fullPropArea{ x + indent + 10, y, width - (indent + 10), prop.field->GetHeight() };
+					Rectangle fullPropArea{ x + indent + indentPadding, y, width - (indent + indentPadding), prop.field->GetHeight() };
 					
 					if (IsVisible(fullPropArea))
 					{
@@ -623,6 +624,7 @@ namespace Berta
 		bool PropertyGridLayout::FindItemRectRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY, Rectangle& outRect) const
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
+			auto indentPadding = m_owner->ToScale(PG_INDENT_PADDING);
 
 			for (const auto& cat : list)
 			{
@@ -642,7 +644,7 @@ namespace Berta
 					for (const auto& prop : cat.m_properties)
 					{
 						auto propHeight = prop.field->GetHeight();
-						Rectangle propRect{ (int)indent + 10, currentY, width - (indent + 10), propHeight };
+						Rectangle propRect{ (int)indent + indentPadding, currentY, width - (indent + indentPadding), propHeight };
 
 						if (cat.m_id == targetCat && prop.m_id == targetProp)
 						{
@@ -674,6 +676,7 @@ namespace Berta
 		bool PropertyGridLayout::RefreshVisibleRecursive(const std::vector<CategoryType>& list, int& currentY, const Rectangle& viewport)
 		{
 			int viewportBottom = viewport.Y + (int)viewport.Height;
+			auto indentPadding = m_owner->ToScale(PG_INDENT_PADDING);
 
 			for (const auto& cat : list)
 			{
@@ -692,7 +695,7 @@ namespace Berta
 					for (const auto& prop : cat.m_properties)
 					{
 						auto propHeight = prop.field->GetHeight();
-						Rectangle propRect{ (int)indent + 10, currentY, viewport.Width, propHeight };
+						Rectangle propRect{ (int)indent + indentPadding, currentY, viewport.Width, propHeight };
 						
 						if (propRect.Intersects(viewport)) 
 						{
@@ -739,7 +742,8 @@ namespace Berta
 		int Module::HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId)
 		{
 			auto width = m_layout.m_scrollableView->GetClientArea().Width;
-
+			auto indentPadding = m_owner->ToScale(PG_INDENT_PADDING);
+			
 			for (const auto& cat : list)
 			{
 				auto indent = cat.m_depth * m_owner->ToScale(20u) ;
@@ -760,7 +764,7 @@ namespace Berta
 					for (const auto& prop : cat.m_properties)
 					{
 						auto propHeight = prop.field->GetHeight();
-						Rectangle propRect{ (int)indent + 10, currentY, width - (indent + 10), propHeight };
+						Rectangle propRect{ (int)indent + indentPadding, currentY, width - (indent + indentPadding), propHeight };
 
 						if (propRect.Contains(pos))
 						{

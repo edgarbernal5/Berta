@@ -22,6 +22,8 @@ namespace Berta
 {
 	namespace Internal::PropertyGrid
 	{
+		constexpr int PG_INDENT_PADDING = 10;
+		
 		struct Events;
 		struct CategoryHandle;
 		struct Module;
