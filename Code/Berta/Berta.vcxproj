@@ -157,6 +157,7 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridLayout.h" />

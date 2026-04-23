@@ -27,7 +27,7 @@ namespace Berta
         using OptionList = std::vector<std::pair<std::string, T>>;
 
         PropertyGridFieldSelection(std::string_view label, Getter getter, Setter setter, OptionList options)
-            : PropertyGridFieldBase(std::string(label)), 
+            : PropertyGridFieldBase(label), 
               m_getter(std::move(getter)), 
               m_setter(std::move(setter)),
               m_options(std::move(options))

@@ -4,200 +4,189 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_PROPERTY_GRID_FIELD_NUMBER_SLIDER_HEADER
-#define BT_PROPERTY_GRID_FIELD_NUMBER_SLIDER_HEADER
+#ifndef BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
+#define BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
 
-#include "Berta/Controls/Properties/FieldNumberBase.h"
 #include "Berta/Controls/PropertyGrid.h"
 #include "Berta/Controls/Slider.h"
 #include "Berta/Controls/InputText.h"
 
 namespace Berta
 {
-	template<typename TNumber, typename = std::enable_if_t<IsNumeric<TNumber>::value>>
-	class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase, public FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>
+	template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
+	class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldSlider(const std::string& label, const std::string& value) :
-			PropertyGridFieldBase(label, value),
-			FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>()
+		using GetterFn = std::function<std::optional<TNumber>()>;
+		using SetterFn = std::function<void(TNumber)>;
+
+	public:
+		PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal)
+			: PropertyGridFieldBase(label), 
+			  m_getter(std::move(getter)), m_setter(std::move(setter)),
+			  m_min(minVal), m_max(maxVal)
+		{}
+
+		void OnCreate(Window* parent) override
+        {
+            m_inputText.Create(parent);
+            m_slider.Create(parent);
+
+		    m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+            m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
+
+            m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+            {
+                if (args.Focused)
+                {
+                    NotifySelected();
+                }
+                else
+                {
+                    ApplyTextValue();
+                }
+            });
+		    
+            m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+            {
+                if (args.Key == KeyboardKey::Enter)
+                {
+                    ApplyTextValue();
+                }
+            });
+
+            m_slider.GetEvents().ValueChanged.Connect([this](ArgSlider args)
+            {
+                ApplySliderValue(static_cast<TNumber>(args.Value));
+            });
+		    m_slider.MakeActive(false, m_inputText);
+            Refresh();
+        }
+
+        void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
+        {
+            int textWidth = area.Width * 0.3f;
+            int margin = m_parent->ToScale(4);
+
+            Rectangle textRect = { area.X, area.Y, (uint32_t)textWidth, area.Height };
+            Rectangle sliderRect = { area.X + textWidth + margin, area.Y, area.Width - textWidth - margin, area.Height };
+
+            m_inputText.SetArea(textRect);
+            m_slider.SetArea(sliderRect);
+        }
+	    
+        void SetFocus() override
 		{
+		    m_inputText.Focus();    
 		}
+	    
+        void Refresh() override
+        {
+            if (!m_getter)
+            {
+                return;
+            }
+		    
+            std::optional<TNumber> currentOpt = m_getter();
+            if (currentOpt.has_value())
+            {
+                TNumber val = currentOpt.value();
+                std::string strVal = std::to_string(val);
+                
+                if (m_inputText.GetCaption() != strVal)
+                {
+                    m_inputText.SetCaption(strVal);
+                }
+                if (m_slider.GetValue() != static_cast<float>(val))
+                {
+                    m_slider.SetValue(static_cast<float>(val));
+                }
+            }
+            else
+            {
+                if (m_inputText.GetCaption() != "---")
+                {
+                    m_inputText.SetCaption("---");
+                }
+            }
+        }
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override
-		{
-			PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+        std::string GetValueAsString() const override
+        {
+            if (!m_getter)
+            {
+                return "";
+            }
+		    
+            auto val = m_getter();
+            return val.has_value() ? std::to_string(val.value()) : "---";
+        }
 
-			Rectangle valueRect = area;
+    protected:
+        void OnVisibilityChanged(bool visible) override
+        {
+            if (visible)
+            {
+                m_inputText.Show();
+                m_slider.Show();
+            }
+            else
+            {
+                m_inputText.Hide();
+                m_slider.Hide();
+            }
+        }
+	    
+	    void OnEnableChanged(bool enabled) override
+	    {
+            m_inputText.SetEnabled(enabled); 
+            m_slider.SetEnabled(enabled);
+        }
 
-			valueRect.X += static_cast<int>(labelWidth);
-			valueRect.Width -= labelWidth;
+    private:
+        void ApplyTextValue()
+        {
+            std::string str = m_inputText.GetCaption();
+            if (str == "---")
+            {
+                return;
+            }
 
-			if (valueRect.Width == 0)
-				return;
+            try
+            {
+                TNumber parsedValue;
+                std::istringstream iss(str);
+                iss >> parsedValue;
 
-			valueRect.X = 0;
-			valueRect.Y = 0;
+                parsedValue = std::clamp(parsedValue, m_min, m_max);
 
-			auto txtValueWidth = m_parent->ToScale(60);
-			auto margin = m_parent->ToScale(4);
-			valueRect.Width -= txtValueWidth + margin;
-			m_slider.SetArea(valueRect);
-			m_slider.Show();
+                if (!m_getter() || m_getter().value() != parsedValue)
+                {
+                    m_setter(parsedValue);
+                    NotifyValueChanged();
+                }
+            } 
+            catch (...)
+            {
+            }
+            Refresh();
+        }
 
-			valueRect.X += valueRect.Width + margin;
-			valueRect.Width = txtValueWidth;
+        void ApplySliderValue(TNumber newValue)
+        {
+            if (!m_getter() || m_getter().value() != newValue)
+            {
+                m_setter(newValue);
+                m_inputText.SetCaption(std::to_string(newValue)); 
+                NotifyValueChanged();
+            }
+        }
 
-			m_valueInputText.SetArea(valueRect);
-			m_valueInputText.Show();
-		}
-
-		virtual void SetEnabled(bool enabled) override
-		{
-			PropertyGridFieldBase::SetEnabled(enabled);
-			m_slider.SetEnabled(enabled);
-			m_valueInputText.SetEnabled(enabled);
-		}
-
-		void SetValue(const std::string& value) override
-		{
-			try
-			{
-				TNumber numberValue{};
-				std::istringstream iss(value);
-				iss >> numberValue;
-
-				PropertyGridFieldBase::SetValue(value);
-				m_slider.SetValue(static_cast<int>(numberValue));
-				m_valueInputText.SetText(value);
-			}
-			catch (...)
-			{
-			}
-		}
-
-		void SetValue(TNumber value) override
-		{
-			auto newString = std::to_string(value);
-			PropertyGridFieldBase::SetValue(newString);
-			m_slider.SetValue(static_cast<int>(value));
-			m_valueInputText.SetText(newString);
-		}
-
-		TNumber ToNumber() const override
-		{
-			TNumber result{};
-			try
-			{
-				std::istringstream iss(PropertyGridFieldBase::GetValue());
-				iss >> result;
-			}
-			catch (...)
-			{
-			}
-			return result;
-		}
-
-		void SetMinMax(TNumber min, TNumber max) override
-		{
-			FieldNumberBase<TNumber, std::enable_if_t<IsNumeric<TNumber>::value>>::SetMinMax(min, max);
-			m_slider.SetMinMax(static_cast<int>(min), static_cast<int>(max));
-			m_valueInputText.SetText(std::to_wstring(m_slider.GetValue()));
-		}
-
-	protected:
-		void Create(Window* parent) override
-		{
-			m_slider.Create(parent);
-
-			m_slider.GetEvents().Click.Connect([this](const ArgClick& args)
-			{
-				ScrollToView();
-			});
-			m_slider.GetEvents().ValueChanged.Connect([this](const ArgSlider& args)
-				{
-					TNumber result = static_cast<TNumber>(args.Value);
-					
-					SetValue(result);
-					EmitEvent();
-				});
-
-			m_valueInputText.Create(parent);
-			m_valueInputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
-				{
-					if (args.Key == KeyboardKey::Enter && m_valueInputText.GetCaption() != PropertyGridFieldBase::GetValue())
-					{
-						TNumber result{};
-						if (this->ValidateUserInput(result))
-						{
-							SetValue(result);
-							EmitEvent();
-						}
-						else
-						{
-							m_valueInputText.SetCaption(m_value);
-						}
-					}
-				});
-
-			m_valueInputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
-				{
-					if (args.Focused)
-					{
-						EmitSelectionEvent();
-						return;
-					}
-
-					TNumber result{};
-					if (this->ValidateUserInput(result) && m_valueInputText.GetCaption() != PropertyGridFieldBase::GetValue())
-					{
-						SetValue(result);
-						EmitEvent();
-					}
-					else
-					{
-						m_valueInputText.SetCaption(m_value);
-					}
-				});
-
-			m_valueInputText.SetCharFilter([this](wchar_t chr)
-				{
-					auto isDigit = std::isdigit(chr);
-					auto isMinus = false;
-					if constexpr (std::is_signed_v<TNumber>)
-					{
-						isMinus = chr == '-' && m_valueInputText.GetCaretPosition().column == 0 && m_valueInputText.GetCaption().find('-') == std::string::npos;
-					}
-					return isDigit || isMinus;
-				});
-
-			m_slider.MakeActive(false, m_valueInputText);
-
-			SetValue(m_value);
-		}
-
-	protected:
-		virtual bool ValidateUserInput(TNumber& outValue) override
-		{
-			try
-			{
-				std::istringstream iss(m_valueInputText.GetCaption());
-				iss >> outValue;
-				if (this->m_useMinMax)
-				{
-					outValue = std::clamp(outValue, this->m_min, this->m_max);
-				}
-			}
-			catch (...)
-			{
-				return false;
-			}
-			return true;
-		}
-
-	private:
+		GetterFn m_getter;
+		SetterFn m_setter;
+		TNumber m_min, m_max;
+		InputText m_inputText;
 		Slider m_slider;
-		InputText m_valueInputText;
 	};
 
 	using PropertyGridFieldSliderInt = PropertyGridFieldSlider<int>;

@@ -44,6 +44,8 @@ struct AppState
 	
 	std::string MeshFilter{ "/home/edgar/meshfilter.x" };
 	Berta::Color TintColor{255,0,0,255};
+	float Roughness=255.0f;
+	int Threshold=3;
 	// ...
 };
 
@@ -156,6 +158,18 @@ int main()
 
 				return std::nullopt;
 			});
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderFloat>(
+		"Roughness",
+		[&myApp]() { return myApp.Roughness; },
+			[&myApp](float val) { myApp.Roughness = val; },
+			0.0f, 255.0f);
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderInt>(
+		"Threshold",
+		[&myApp]() { return myApp.Threshold; },
+			[&myApp](int val) { myApp.Threshold = val; },
+			-5, 5);
 	/*for (size_t i = 0; i < 3; i++)
 	{
 		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
