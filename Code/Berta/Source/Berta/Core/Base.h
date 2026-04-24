@@ -47,14 +47,19 @@ namespace Berta::StringUtils
 	
 	using StringHash = uint32_t;
 	
-	constexpr StringHash HashString(std::string_view str)
+	constexpr StringHash Hash(std::string_view strView)
 	{
 		StringHash hash = 2166136261u;
-		for (char c : str) {
+		for (char c : strView) {
 			hash ^= static_cast<StringHash>(c);
 			hash *= 16777619u;
 		}
 		return hash;
+	}
+	
+	inline StringHash HashCombine(StringHash seed, StringHash value)
+	{
+		return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
 }
 
