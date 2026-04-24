@@ -7,6 +7,8 @@
 #ifndef BT_PROPERTY_GRID_HEADER
 #define BT_PROPERTY_GRID_HEADER
 
+#include <deque>
+
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
@@ -23,6 +25,7 @@ namespace Berta
 	namespace Internal::PropertyGrid
 	{
 		constexpr int PG_INDENT_PADDING = 10;
+		constexpr int PG_DRAG_THRESHOLD_SQ = 16;
 		
 		struct Events;
 		struct CategoryHandle;
@@ -140,11 +143,11 @@ namespace Berta
 			Image m_icon;
 			bool m_isExpanded{ true };
 			
-			std::vector<PropertyFieldData> m_properties;
+			std::deque<PropertyFieldData> m_properties;
 			std::vector<CategoryType> m_subCategories;
 			
 			explicit CategoryType(std::string_view name, int depth) : 
-				m_id(StringUtils::HashString(name)), m_name(name), m_depth(depth)
+				m_id(StringUtils::Hash(name)), m_name(name), m_depth(depth)
 			{
 			}
 			
@@ -165,28 +168,28 @@ namespace Berta
 			
 			CategoryType& AppendRootCategory(std::string_view categoryName);
 			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
-			void AppendPropertyToCategory(StringUtils::StringHash categoryId, std::unique_ptr<PropertyGridFieldBase> field);
+			void AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field);
         
 			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
-			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash catId, StringUtils::StringHash propId);
+			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId);
 			
 			void Clear();
 
-			bool GetPropertyEnabled(StringUtils::StringHash catId, StringUtils::StringHash propId);
-			void SetPropertyEnabled(StringUtils::StringHash catId, StringUtils::StringHash propId, bool enabled);
+			bool GetPropertyEnabled(StringUtils::StringHash propId);
+			void SetPropertyEnabled(StringUtils::StringHash propId, bool enabled);
 			
-			std::string_view GetPropertyLabel(StringUtils::StringHash catId, StringUtils::StringHash propId);
-			void SetPropertyLabel(StringUtils::StringHash catId, StringUtils::StringHash propId, std::string_view newLabel);
+			std::string_view GetPropertyLabel(StringUtils::StringHash propId);
+			void SetPropertyLabel(StringUtils::StringHash propId, std::string_view newLabel);
 			
-			std::string GetPropertyValueAsString(StringUtils::StringHash catId, StringUtils::StringHash propId);
+			std::string GetPropertyValueAsString(StringUtils::StringHash propId);
 			
 			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
 			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
 			
-			void SetSelectedProperty(StringUtils::StringHash catId, StringUtils::StringHash propId);
+			bool IsCategory(StringUtils::StringHash itemId);
 			
-			[[nodiscard]] StringUtils::StringHash GetSelectedCatId() const { return m_selectedCatId; }
-			[[nodiscard]] StringUtils::StringHash GetSelectedPropId() const { return m_selectedPropId; }
+			void SetSelectedItemId(StringUtils::StringHash id) { m_selectedItemId = id; }
+			StringUtils::StringHash GetSelectedItemId() const { return m_selectedItemId; }
 			
 			void ToggleCategoryExpansion(StringUtils::StringHash catId);
 			
@@ -195,16 +198,23 @@ namespace Berta
 			
 			void SetCategoryIcon(StringUtils::StringHash catId, const Image& icon);
 			
+			bool IsRootCategory(StringUtils::StringHash catId);
+			void MoveRootCategory(size_t fromIndex, size_t toIndex);
+			size_t GetRootCategoryIndex(StringUtils::StringHash catId);
+			StringUtils::StringHash GetParentCategory(StringUtils::StringHash propId) const;
+			
 			std::function<void()> OnVisualsChanged;
-			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertyModified;
-			std::function<void(StringUtils::StringHash catId, StringUtils::StringHash propId)> OnPropertySelected;
+			std::function<void(StringUtils::StringHash propId)> OnPropertyModified;
+			std::function<void(StringUtils::StringHash propId)> OnPropertySelected;
 		private:
 			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
 			void InitCategoryRecursive(CategoryType& cat);
-
+			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
+			
 			Window* m_ownerWindow{ nullptr };
-			StringUtils::StringHash m_selectedCatId{ 0 };
-			StringUtils::StringHash m_selectedPropId{ 0 };
+			std::unordered_map<StringUtils::StringHash, PropertyFieldData*> m_propertyLookup;
+			
+			StringUtils::StringHash m_selectedItemId{ 0 };
 			std::vector<CategoryType> m_rootCategories;
 			bool m_drawImages { false };
 		};
@@ -215,9 +225,10 @@ namespace Berta
 		{
 		public:
 			PropertyHandle() = default;
-			PropertyHandle(PropertyGridModel* model, uint32_t catId, uint32_t propId) :
-				m_model(model), m_catId(catId), m_propId(propId)
+			PropertyHandle(PropertyGridModel* model, StringUtils::StringHash uniqueId) :
+				m_model(model), m_uniqueId(uniqueId)
 			{
+				
 			}
 			
 			operator bool() const;
@@ -231,7 +242,7 @@ namespace Berta
 			PropertyHandle& SetEnabled(bool enabled);
 			
 			template <typename T>
-			T* As() 
+			T* As()
 			{
 				static_assert(std::is_base_of_v<PropertyGridFieldBase, T>, "T must inherit from PropertyGridFieldBase");
             
@@ -240,7 +251,7 @@ namespace Berta
 					return nullptr;
 				}
 				
-				auto* propData = m_model->FindPropertyById(m_catId, m_propId);
+				auto* propData = m_model->FindPropertyById(m_uniqueId);
             
 				if (!propData || !propData->field) 
 				{
@@ -249,11 +260,10 @@ namespace Berta
 				
 				return dynamic_cast<T*>(propData->field.get());
 			}
-			
+			bool operator==(const PropertyHandle& other) const { return m_uniqueId == other.m_uniqueId; }
 		private:
 			PropertyGridModel* m_model{ nullptr };
-			uint32_t m_catId{ 0 };
-			uint32_t m_propId{ 0 };
+			uint32_t m_uniqueId{ 0 };
 		};
 
 		struct CategoryHandle
@@ -268,17 +278,17 @@ namespace Berta
 			template <typename TControl, typename... Args>
 			PropertyHandle EmplaceProperty(std::string_view label, Args&&... args)
 			{
-				return AppendProperty(std::make_unique<TControl>(label, std::forward<Args>(args)...));
+				return AppendProperty(m_id, std::make_unique<TControl>(label, std::forward<Args>(args)...));
 			}
 
-			PropertyHandle AppendProperty(std::unique_ptr<PropertyGridFieldBase> field);
+			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
 			CategoryHandle& SetIcon(const Image& icon);
 			
 			operator bool() const;
 		private:
 			PropertyGridModel* m_model{ nullptr };
-			uint32_t m_id{ 0 };
+			StringUtils::StringHash m_id{ 0 };
 		};
 		
 		class PropertyGridLayout
@@ -297,14 +307,17 @@ namespace Berta
 			void SetConfig(Appearance* config) { m_config = config; }
 			[[nodiscard]] Appearance* GetConfig() const { return m_config; }
 			
-			void SetHoverState(StringUtils::StringHash catId, StringUtils::StringHash propId) 
+			void SetHoverState(StringUtils::StringHash itemId) 
 			{ 
-				m_hoveredCatId = catId; 
-				m_hoveredPropId = propId; 
+				m_hoveredItemId = itemId;
 			}
+			
+			const std::vector<StringUtils::StringHash>& GetVisibleItemsList() const { return m_visibleItems; }
 			
 			void RefreshVisibleOnly(const PropertyGridModel& model);
 			void ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId);
+			
+			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
 			uint32_t CalculateCategoryHeight(const CategoryType& cat);
 			
@@ -320,11 +333,12 @@ namespace Berta
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
 			
-			StringUtils::StringHash m_hoveredCatId { 0 };
-			StringUtils::StringHash m_hoveredPropId { 0 };
+			StringUtils::StringHash m_hoveredItemId { 0 };
 			Appearance* m_config;
-			
+			std::vector<StringUtils::StringHash> m_visibleItems;
 			bool m_isInitialized { false };
+			bool m_showDropIndicator = false;
+			size_t m_dropIndicatorIndex = 0;
 		};
 
 		struct Module
@@ -333,14 +347,17 @@ namespace Berta
 			void Update();
 			
 			void OnLayoutChanged();
-			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outCatId, StringUtils::StringHash& outPropId);
+			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outItemId);
 			
 			PropertyGridModel m_model;
 			PropertyGridLayout m_layout;
-			StringUtils::StringHash m_lastHoveredCat { 0 };
-			StringUtils::StringHash m_lastHoveredProp { 0 };
-			StringUtils::StringHash m_pressedCatId{ 0 };
-			StringUtils::StringHash m_pressedPropId{ 0 };
+			StringUtils::StringHash m_lastHoveredItemId { 0 };
+			StringUtils::StringHash m_pressedItemId{ 0 };
+			Point m_mouseDownPos{0, 0};
+			bool m_isWaitingForDrag = false;
+			bool m_isDraggingCategory = false;
+			size_t m_draggedCatIndex = 0;
+			size_t m_hoveredDropIndex = 0;
 			
 			Window* m_owner{ nullptr };
 
@@ -357,6 +374,7 @@ namespace Berta
 			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 			void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
 			void DpiChanged(Graphics& graphics) override;
 
