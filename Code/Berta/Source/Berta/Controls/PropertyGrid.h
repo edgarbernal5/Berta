@@ -146,8 +146,8 @@ namespace Berta
 			std::deque<PropertyFieldData> m_properties;
 			std::vector<CategoryType> m_subCategories;
 			
-			explicit CategoryType(std::string_view name, int depth) : 
-				m_id(StringUtils::Hash(name)), m_name(name), m_depth(depth)
+			explicit CategoryType(StringUtils::StringHash hashId, std::string_view name, int depth) : 
+				m_id(hashId), m_name(name), m_depth(depth)
 			{
 			}
 			
@@ -186,11 +186,12 @@ namespace Berta
 			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
 			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
 			
-			bool IsCategory(StringUtils::StringHash itemId);
+			bool IsCategory(StringUtils::StringHash itemId) const;
 			
 			void SetSelectedItemId(StringUtils::StringHash id) { m_selectedItemId = id; }
 			StringUtils::StringHash GetSelectedItemId() const { return m_selectedItemId; }
 			
+			bool IsCategoryExpanded(StringUtils::StringHash catId);
 			void ToggleCategoryExpansion(StringUtils::StringHash catId);
 			
 			bool IsShowingCategoryIcons() const { return m_drawImages; }
@@ -202,6 +203,7 @@ namespace Berta
 			void MoveRootCategory(size_t fromIndex, size_t toIndex);
 			size_t GetRootCategoryIndex(StringUtils::StringHash catId);
 			StringUtils::StringHash GetParentCategory(StringUtils::StringHash propId) const;
+			StringUtils::StringHash GetParentId(StringUtils::StringHash childId) const;
 			
 			std::function<void()> OnVisualsChanged;
 			std::function<void(StringUtils::StringHash propId)> OnPropertyModified;
@@ -210,6 +212,8 @@ namespace Berta
 			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
 			void InitCategoryRecursive(CategoryType& cat);
 			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
+			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
+			StringUtils::StringHash GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const;
 			
 			Window* m_ownerWindow{ nullptr };
 			std::unordered_map<StringUtils::StringHash, PropertyFieldData*> m_propertyLookup;
@@ -315,11 +319,12 @@ namespace Berta
 			const std::vector<StringUtils::StringHash>& GetVisibleItemsList() const { return m_visibleItems; }
 			
 			void RefreshVisibleOnly(const PropertyGridModel& model);
-			void ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId);
+			void ScrollToItem(StringUtils::StringHash targetId);
+			Rectangle GetItemRect(StringUtils::StringHash id) const;
 			
 			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
-			uint32_t CalculateCategoryHeight(const CategoryType& cat);
+			int CalculateRecursive(const CategoryType& cat, int currentX, int currentY);
 			
 			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y);
 			void DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config);
@@ -335,6 +340,7 @@ namespace Berta
 			
 			StringUtils::StringHash m_hoveredItemId { 0 };
 			Appearance* m_config;
+			std::unordered_map<StringUtils::StringHash, Rectangle> m_itemRects;
 			std::vector<StringUtils::StringHash> m_visibleItems;
 			bool m_isInitialized { false };
 			bool m_showDropIndicator = false;

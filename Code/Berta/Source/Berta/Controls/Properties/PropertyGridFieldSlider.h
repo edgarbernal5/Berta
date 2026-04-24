@@ -13,28 +13,32 @@
 
 namespace Berta
 {
-	template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
-	class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase
-	{
-	public:
-		using GetterFn = std::function<std::optional<TNumber>()>;
-		using SetterFn = std::function<void(TNumber)>;
+    template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
+    class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase
+    {
+    public:
+        using GetterFn = std::function<std::optional<TNumber>()>;
+        using SetterFn = std::function<void(TNumber)>;
 
-	public:
-		PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal)
-			: PropertyGridFieldBase(label), 
-			  m_getter(std::move(getter)), m_setter(std::move(setter)),
-			  m_min(minVal), m_max(maxVal)
-		{}
+    public:
+        PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal) : 
+            PropertyGridFieldBase(label), 
+            m_getter(std::move(getter)),
+            m_setter(std::move(setter)),
+            m_min(minVal), 
+            m_max(maxVal)
+        {
+        }
 
-		void OnCreate(Window* parent) override
+        void OnCreate(Window* parent) override
         {
             m_inputText.Create(parent);
             m_slider.Create(parent);
-
-		    m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+		    
+            m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
             m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
-
+		    
+            Refresh();
             m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
@@ -59,8 +63,7 @@ namespace Berta
             {
                 ApplySliderValue(static_cast<TNumber>(args.Value));
             });
-		    m_slider.MakeActive(false, m_inputText);
-            Refresh();
+            m_slider.MakeActive(false, m_inputText);
         }
 
         void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
@@ -76,9 +79,9 @@ namespace Berta
         }
 	    
         void SetFocus() override
-		{
-		    m_inputText.Focus();    
-		}
+        {
+            m_inputText.Focus();    
+        }
 	    
         void Refresh() override
         {
@@ -137,8 +140,8 @@ namespace Berta
             }
         }
 	    
-	    void OnEnableChanged(bool enabled) override
-	    {
+        void OnEnableChanged(bool enabled) override
+        {
             m_inputText.SetEnabled(enabled); 
             m_slider.SetEnabled(enabled);
         }
@@ -182,15 +185,15 @@ namespace Berta
             }
         }
 
-		GetterFn m_getter;
-		SetterFn m_setter;
-		TNumber m_min, m_max;
-		InputText m_inputText;
-		Slider m_slider;
-	};
+        GetterFn m_getter;
+        SetterFn m_setter;
+        TNumber m_min, m_max;
+        InputText m_inputText;
+        Slider m_slider;
+    };
 
-	using PropertyGridFieldSliderInt = PropertyGridFieldSlider<int>;
-	using PropertyGridFieldSliderFloat = PropertyGridFieldSlider<float>;
+    using PropertyGridFieldSliderInt = PropertyGridFieldSlider<int>;
+    using PropertyGridFieldSliderFloat = PropertyGridFieldSlider<float>;
 }
 
 #endif

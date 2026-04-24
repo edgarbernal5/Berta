@@ -102,7 +102,8 @@ namespace Berta
 			{
 				return *existing;
 			}
-			return m_rootCategories.emplace_back(categoryName, 0);
+			StringUtils::StringHash localHash = StringUtils::Hash(categoryName);
+			return m_rootCategories.emplace_back(localHash, categoryName, 0u);
 		}
 
 		CategoryType* PropertyGridModel::AppendSubCategory(StringUtils::StringHash parentId, std::string_view name)
@@ -113,18 +114,19 @@ namespace Berta
 				return nullptr;
 			}
 			
-			StringUtils::StringHash childId = StringUtils::Hash(name);
+			StringUtils::StringHash localHash = StringUtils::Hash(name);
+			StringUtils::StringHash globalId = StringUtils::HashCombine(parentId, localHash);
         
 			// Evitar duplicados en el mismo nivel
 			auto it = std::find_if(parent->m_subCategories.begin(), parent->m_subCategories.end(),
-			                       [childId](const CategoryType& c) { return c.m_id == childId; });
+			                       [globalId](const CategoryType& c) { return c.m_id == globalId; });
 
 			if (it != parent->m_subCategories.end())
 			{
 				return &(*it);
 			}
 			
-			return &parent->m_subCategories.emplace_back(name, parent->m_depth + 1u);
+			return &parent->m_subCategories.emplace_back(globalId, name, parent->m_depth + 1u);
 		}
 
 		void PropertyGridModel::AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field)
@@ -226,7 +228,7 @@ namespace Berta
 			return {};
 		}
 
-		bool PropertyGridModel::IsCategory(StringUtils::StringHash itemId)
+		bool PropertyGridModel::IsCategory(StringUtils::StringHash itemId) const
 		{
 			for (const auto& rootCat : m_rootCategories)
 			{
@@ -234,6 +236,15 @@ namespace Berta
 				{
 					return true;
 				}
+			}
+			return false;
+		}
+
+		bool PropertyGridModel::IsCategoryExpanded(StringUtils::StringHash catId)
+		{
+			if (CategoryType* category = FindCategoryById(catId))
+			{
+				return category->m_isExpanded;
 			}
 			return false;
 		}
@@ -295,20 +306,22 @@ namespace Berta
 
 		StringUtils::StringHash PropertyGridModel::GetParentCategory(StringUtils::StringHash propId) const
 		{
-			for (const auto& cat : m_rootCategories)
-			{
-				// Buscamos si la propiedad está dentro de esta categoría
-				auto it = std::find_if(cat.m_properties.begin(), cat.m_properties.end(),
-					[propId](const auto& prop) { return prop.m_id == propId; });
+			return GetParentCategoryRecursive(m_rootCategories, propId);
+		}
 
-				if (it != cat.m_properties.end())
+		StringUtils::StringHash PropertyGridModel::GetParentId(StringUtils::StringHash childId) const
+		{
+			for (const auto& rootCat : m_rootCategories)
+			{
+				if (rootCat.m_id == childId)
 				{
-					return cat.m_id; // ¡Encontramos al padre!
+					return 0; 
 				}
-            
-				// Nota: Si tienes subcategorías, tendrías que hacer esto recursivamente
-				// buscando dentro de cat.m_subCategories.
-				
+
+				StringUtils::StringHash foundParent = GetParentIdRecursive(rootCat, childId);
+				if (foundParent != 0) {
+					return foundParent;
+				}
 			}
 			return 0;
 		}
@@ -361,6 +374,52 @@ namespace Berta
 			}
 
 			return false;
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentCategoryRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash propId) const
+		{
+			for (const auto& cat : list)
+			{
+				auto it = std::find_if(cat.m_properties.begin(), cat.m_properties.end(),
+					[propId](const auto& prop) { return prop.m_id == propId; });
+
+				if (it != cat.m_properties.end())
+				{
+					return cat.m_id;
+				}
+				
+				auto subHash = GetParentCategoryRecursive(cat.m_subCategories, propId);
+				if (subHash)
+				{
+					return subHash;
+				}
+				
+			}
+			return 0;
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const
+		{
+			for (const auto& prop : currentCat.m_properties)
+			{
+				if (prop.m_id == targetId) {
+					return currentCat.m_id;
+				}
+			}
+
+			for (const auto& subCat : currentCat.m_subCategories)
+			{
+				if (subCat.m_id == targetId) {
+					return currentCat.m_id;
+				}
+
+				StringUtils::StringHash foundInSub = GetParentIdRecursive(subCat, targetId);
+				if (foundInSub != 0) {
+					return foundInSub;
+				}
+			}
+
+			return 0;
 		}
 
 		PropertyHandle::operator bool() const
@@ -477,14 +536,15 @@ namespace Berta
 
 		void PropertyGridLayout::CalculateLayout(const PropertyGridModel& model)
 		{
+			m_itemRects.clear();
 			m_visibleItems.clear();
 			
-			uint32_t totalHeight = 0;
+			uint32_t currentY = 0;
 			for (auto& cat : model.GetRootCategories())
 			{
-				totalHeight += CalculateCategoryHeight(cat);
+				currentY = CalculateRecursive(cat, 0, currentY);
 			}
-			m_scrollableView->SetContentSize({ 0, totalHeight });
+			m_scrollableView->SetContentSize({ 0, currentY });
 		}
 
 		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
@@ -496,6 +556,19 @@ namespace Berta
 			uint32_t dropLineHeight = m_owner->ToScale(3u);
 			int dropLineHalf = static_cast<int>(dropLineHeight >> 1);
 			const auto& rootCategories = model.GetRootCategories();
+			
+			for (StringUtils::StringHash id : m_visibleItems)
+			{
+				Rectangle rect = GetItemRect(id);
+				if ((rect.Y + static_cast<int>(rect.Height) < currentY) || (rect.Y > currentY + (int)clientArea.Height))
+				{
+					continue;
+				}
+				if (model.IsCategory(id))
+				{
+				}
+			}
+			
 			for (size_t i = 0; i < rootCategories.size(); ++i)
 			{
 				auto savedCurrentY = currentY;
@@ -516,7 +589,10 @@ namespace Berta
 
 		void PropertyGridLayout::RefreshVisibleOnly(const PropertyGridModel& model)
 		{
-			if (!m_scrollableView) return;
+			if (!m_scrollableView)
+			{
+				return;
+			}
 
 			Rectangle viewport = m_scrollableView->GetVisibleRect();
 			int startY = 0;
@@ -524,35 +600,42 @@ namespace Berta
 			RefreshVisibleRecursive(model.GetRootCategories(), startY, viewport);
 		}
 
-		void PropertyGridLayout::ScrollToItem(const PropertyGridModel& model, StringUtils::StringHash catId, StringUtils::StringHash propId)
+		void PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
 		{
 			if (!m_scrollableView)
 			{
 				return;
 			}
-			
-			int currentY = 0;
-			Rectangle itemRect;
+			Rectangle itemRect = GetItemRect(targetId);
+			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
+			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height);
 
-			if (FindItemRectRecursive(model.GetRootCategories(), catId, propId, currentY, itemRect))
+			Rectangle viewport = m_scrollableView->GetVisibleRect();
+			if (itemRect.Y < currentScrollY) 
 			{
-				Rectangle viewport = m_scrollableView->GetVisibleRect();
-				int newScrollY = viewport.Y;
-
-				if (itemRect.Y < viewport.Y) 
-				{
-					newScrollY = itemRect.Y;
-				}
-				else if ((itemRect.Y + itemRect.Height) > (viewport.Y + viewport.Height)) 
-				{
-					newScrollY = (itemRect.Y + itemRect.Height) - viewport.Height;
-				}
-				
-				if (newScrollY != viewport.Y)
-				{
-					m_scrollableView->SetScrollToY(newScrollY); 
-				}
+				currentScrollY=itemRect.Y;
 			}
+			else if (itemRect.Y + static_cast<int>(itemRect.Height) > currentScrollY + visibleHeight) 
+			{
+				currentScrollY = itemRect.Y + static_cast<int>(itemRect.Height) - visibleHeight;
+			}
+
+			if (currentScrollY != viewport.Y)
+			{
+				m_scrollableView->SetScrollToY(currentScrollY); 
+			}
+			
+		}
+
+		Rectangle PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
+		{
+			auto it = m_itemRects.find(id);
+			if (it != m_itemRects.end())
+			{
+				return it->second;
+			}
+    
+			return Rectangle{ 0, 0, 0, 0 };
 		}
 
 		void PropertyGridLayout::SetDropIndicator(bool show, size_t targetIndex)
@@ -561,31 +644,42 @@ namespace Berta
 			m_dropIndicatorIndex = targetIndex;
 		}
 
-		uint32_t PropertyGridLayout::CalculateCategoryHeight(const CategoryType& cat)
+		int PropertyGridLayout::CalculateRecursive(const CategoryType& cat, int currentX, int currentY)
 		{
-			uint32_t height = m_owner->ToScale(m_config->CategoryHeight);
+			uint32_t categoryHeaderHeight = m_owner->ToScale(m_config->CategoryHeight);
+			auto clientArea = m_scrollableView->GetClientArea();
+			Rectangle catRect = { currentX, currentY, clientArea.Width, categoryHeaderHeight };
+			
+			m_itemRects[cat.m_id] = catRect;
 			m_visibleItems.push_back(cat.m_id);
+			
+			currentY += static_cast<int>(categoryHeaderHeight);
 			
 			if (cat.m_isExpanded)
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					height += prop.field->GetHeight();
+					auto propHeight = prop.field->GetHeight();
+					Rectangle propRect = { currentX + PG_INDENT_PADDING, currentY, clientArea.Width - PG_INDENT_PADDING, propHeight };
+					
+					m_itemRects[prop.m_id] = propRect;
 					m_visibleItems.push_back(prop.m_id);
+					
+					currentY += static_cast<int>(propHeight);
 				}
 				
 				for (const auto& sub : cat.m_subCategories)
 				{
-					height += CalculateCategoryHeight(sub);
+					currentY = CalculateRecursive(sub, currentX + PG_INDENT_PADDING, currentY);
 				}
 			}
-			return height;
+			return currentY;
 		}
 
 		int PropertyGridLayout::DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y)
 		{
 			auto width = m_scrollableView->GetClientArea().Width;
-			int indent = (int)cat.m_depth * m_owner->ToScale(20);
+			int indent = static_cast<int>(cat.m_depth) * m_owner->ToScale(20);
 			auto indentPadding = m_owner->ToScale(PG_INDENT_PADDING);
 			auto categoryHeight = m_owner->ToScale(m_config->CategoryHeight);
 			
@@ -595,7 +689,7 @@ namespace Berta
 				DrawCategoryHeader(graphics, model, catArea, cat, m_config);
 			}
 			
-			y += (int)categoryHeight;
+			y += static_cast<int>(categoryHeight);
 			if (cat.m_isExpanded)
 			{
 				for (const auto& prop : cat.m_properties)
@@ -644,7 +738,8 @@ namespace Berta
 					{
 						prop.field->SetVisibility(false);
 					}
-					y += (int)fullPropArea.Height;
+					
+					y += static_cast<int>(fullPropArea.Height);
 				}
 				
 				for (const auto& sub : cat.m_subCategories)
@@ -662,9 +757,8 @@ namespace Berta
 		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config)
 		{
 			bool isSelected = cat.m_id == model.GetSelectedItemId();
-			bool isHovered = cat.m_id == m_hoveredItemId;
 			
-			Color bgColor = config->Background;
+			Color bgColor = isSelected ? config->MenuBackground : config->Background;
 			graphics.FillRectangle(area, bgColor);
 
 			int offset = m_owner->ToScale(4);
@@ -1074,6 +1168,7 @@ namespace Berta
 				currentIndex = std::distance(visibleItems.begin(), it);
 			}
 			bool selectionChanged = false;
+			bool layoutChanged = false;
 			switch (args.Key)
 			{
 			case KeyboardKey::ArrowDown:
@@ -1090,31 +1185,58 @@ namespace Berta
 					selectionChanged = true;
 				}
 				break;
+			case KeyboardKey::ArrowRight:
+				if (m_module.m_model.IsCategory(currentId) && !m_module.m_model.IsCategoryExpanded(currentId)) {
+					m_module.m_model.ToggleCategoryExpansion(currentId);
+					layoutChanged = true;
+				}
+				break;
+			case KeyboardKey::ArrowLeft:
+				if (m_module.m_model.IsCategory(currentId) && m_module.m_model.IsCategoryExpanded(currentId)) {
+					m_module.m_model.ToggleCategoryExpansion(currentId);
+					layoutChanged = true;
+				}
+				else
+				{
+					StringUtils::StringHash parentId = m_module.m_model.GetParentId(currentId);
+					if (parentId != 0)
+					{
+						m_module.m_model.SetSelectedItemId(parentId);
+
+						auto parentIt = std::find(visibleItems.begin(), visibleItems.end(), parentId);
+						if (parentIt != visibleItems.end())
+						{
+							currentIndex = std::distance(visibleItems.begin(), parentIt);
+							selectionChanged = true;
+						}
+					}
+				}
+				break;
 			}
-			
+			if (layoutChanged)
+			{
+				m_module.m_layout.CalculateLayout(m_module.m_model);
+			}
 			if (selectionChanged)
 			{
 				StringUtils::StringHash newSelectedId = visibleItems[currentIndex];
         
-				// Actualizamos el modelo para que dibuje el fondo azul
 				m_module.m_model.SetSelectedItemId(newSelectedId); 
 
-				// PREPARAMOS TU SCROLLTOITEM
 				if (m_module.m_model.IsRootCategory(newSelectedId)) 
 				{
-					// Si es una categoría, propId es 0
-					m_module.m_layout.ScrollToItem(m_module.m_model, newSelectedId, 0);
+					m_module.m_layout.ScrollToItem(newSelectedId);
 				}
 				else 
 				{
-					// Es una propiedad. Necesitamos saber quién es su padre.
-					// Asumo que tu modelo tiene una forma de saber la categoría de una propiedad.
-					// Si no la tienes, te sugiero crear un método GetParentCategory(propId)
 					StringUtils::StringHash parentCatId = m_module.m_model.GetParentCategory(newSelectedId); 
             
-					m_module.m_layout.ScrollToItem(m_module.m_model, parentCatId, newSelectedId);
+					m_module.m_layout.ScrollToItem(newSelectedId);
 				}
-
+			}
+			
+			if (layoutChanged || selectionChanged)
+			{
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
@@ -1160,7 +1282,7 @@ namespace Berta
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
 			{
 				m_module.m_model.SetSelectedItemId(propId);
-				m_module.m_layout.ScrollToItem(m_module.m_model, 0, propId);
+				m_module.m_layout.ScrollToItem(propId);
 				m_module.OnLayoutChanged();
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
