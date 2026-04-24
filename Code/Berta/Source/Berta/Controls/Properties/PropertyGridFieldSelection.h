@@ -31,7 +31,8 @@ namespace Berta
               m_getter(std::move(getter)), 
               m_setter(std::move(setter)),
               m_options(std::move(options))
-        {}
+        {
+        }
 
         void OnCreate(Window* parent) override
         {
