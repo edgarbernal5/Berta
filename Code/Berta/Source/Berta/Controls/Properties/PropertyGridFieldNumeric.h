@@ -29,7 +29,7 @@ namespace Berta
 	template <typename T>
     class PropertyGridFieldNumeric : public Internal::PropertyGrid::PropertyGridFieldBase
     {
-        static_assert(std::is_arithmetic_v<T>, "El tipo T debe ser numérico.");
+        static_assert(std::is_arithmetic_v<T>, "Type T must be numeric.");
 
     public:
         using Getter = std::function<std::optional<T>()>;
@@ -146,7 +146,27 @@ namespace Berta
 	    }
 	    
     private:
-	    
+	    std::string FormatValue(T value) const
+	    {
+	        if constexpr (std::is_floating_point_v<T>) 
+	        {
+	            std::ostringstream out;
+	            out << std::fixed << std::setprecision(3) << value;
+            
+	            std::string str = out.str();
+	            str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+	            if (str.back() == '.')
+	            {
+	                str.pop_back();
+	            }
+            
+	            return str;
+	        }
+	        else 
+	        {
+	            return std::to_string(value);
+	        }
+	    }
         void ApplyValue()
         {
             if (!m_setter || !m_getter)
