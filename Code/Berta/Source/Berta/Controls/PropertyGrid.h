@@ -85,6 +85,7 @@ namespace Berta
 			virtual void SetFocus() = 0;
 			virtual void Refresh() = 0;
 			
+			bool IsVisible() const;
 			void SetVisibility(bool visible);
 			
 			std::function<void()> OnValueChanged;
@@ -171,7 +172,7 @@ namespace Berta
 			void AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field);
         
 			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
-			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId);
+			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId) const;
 			
 			void Clear();
 
@@ -295,6 +296,17 @@ namespace Berta
 			StringUtils::StringHash m_id{ 0 };
 		};
 		
+		struct LayoutNodeCache
+		{
+			StringUtils::StringHash m_id;
+			bool m_isCategory;
+			Rectangle m_itemRect;
+			
+			LayoutNodeCache(StringUtils::StringHash id, bool isCategory, const Rectangle& itemRect) :
+				m_id(id), m_isCategory(isCategory), m_itemRect(itemRect)
+			{}
+		};
+		
 		class PropertyGridLayout
 		{
 		public:
@@ -316,7 +328,7 @@ namespace Berta
 				m_hoveredItemId = itemId;
 			}
 			
-			const std::vector<StringUtils::StringHash>& GetVisibleItemsList() const { return m_visibleItems; }
+			const std::vector<LayoutNodeCache>& GetVisibleItemsList() const { return m_visibleItems; }
 			
 			void RefreshVisibleOnly(const PropertyGridModel& model);
 			void ScrollToItem(StringUtils::StringHash targetId);
@@ -335,13 +347,16 @@ namespace Berta
 			
 			bool RefreshVisibleRecursive(const std::vector<CategoryType>& list, int& currentY, const Rectangle& viewport);
 			
+			void SyncControlsVisibility(const PropertyGridModel& model);
+			void HideAllControlsRecursive(const CategoryType& cat) const;
+			
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
 			
 			StringUtils::StringHash m_hoveredItemId { 0 };
 			Appearance* m_config;
 			std::unordered_map<StringUtils::StringHash, Rectangle> m_itemRects;
-			std::vector<StringUtils::StringHash> m_visibleItems;
+			std::vector<LayoutNodeCache> m_visibleItems;
 			bool m_isInitialized { false };
 			bool m_showDropIndicator = false;
 			size_t m_dropIndicatorIndex = 0;

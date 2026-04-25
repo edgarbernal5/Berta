@@ -53,6 +53,11 @@ namespace Berta
 			OnEnableChanged(enabled);
 		}
 
+		bool PropertyGridFieldBase::IsVisible() const
+		{
+			return m_isVisible;
+		}
+
 		void PropertyGridFieldBase::SetVisibility(bool visible)
 		{
 			if (m_isVisible == visible)
@@ -168,7 +173,7 @@ namespace Berta
 			return FindRecursive(id, m_rootCategories);
 		}
 
-		PropertyFieldData* PropertyGridModel::FindPropertyById(StringUtils::StringHash m_uniqueId)
+		PropertyFieldData* PropertyGridModel::FindPropertyById(StringUtils::StringHash m_uniqueId) const
 		{
 			auto it = m_propertyLookup.find(m_uniqueId);
 			return (it != m_propertyLookup.end()) ? it->second : nullptr;
@@ -402,14 +407,16 @@ namespace Berta
 		{
 			for (const auto& prop : currentCat.m_properties)
 			{
-				if (prop.m_id == targetId) {
+				if (prop.m_id == targetId)
+				{
 					return currentCat.m_id;
 				}
 			}
 
 			for (const auto& subCat : currentCat.m_subCategories)
 			{
-				if (subCat.m_id == targetId) {
+				if (subCat.m_id == targetId)
+				{
 					return currentCat.m_id;
 				}
 
@@ -544,6 +551,8 @@ namespace Berta
 			{
 				currentY = CalculateRecursive(cat, 0, currentY);
 			}
+			SyncControlsVisibility(model);
+			
 			m_scrollableView->SetContentSize({ 0, currentY });
 		}
 
@@ -556,20 +565,79 @@ namespace Berta
 			uint32_t dropLineHeight = m_owner->ToScale(3u);
 			int dropLineHalf = static_cast<int>(dropLineHeight >> 1);
 			const auto& rootCategories = model.GetRootCategories();
-			
-			for (StringUtils::StringHash id : m_visibleItems)
+			int viewTop = clientArea.Y; 
+			int viewBottom = clientArea.Y + (int)clientArea.Height;
+			bool isBelowView = false;
+			for (auto& [itemId, isCategory, itemRect] : m_visibleItems)
 			{
-				Rectangle rect = GetItemRect(id);
-				if ((rect.Y + static_cast<int>(rect.Height) < currentY) || (rect.Y > currentY + (int)clientArea.Height))
+				if (isBelowView)
 				{
+					if (!isCategory) 
+					{
+						auto prop = model.FindPropertyById(itemId);
+						if (prop && prop->field && prop->field->IsVisible()) {
+							prop->field->SetVisibility(false);
+						}
+					}
+					continue; 
+				}
+				
+				Rectangle rect =itemRect;
+				rect.X += currentX;
+				rect.Y += currentY;
+				rect.Width=clientArea.Width;
+				bool isCulled = (rect.Y + (int)rect.Height <= viewTop) || (rect.Y >= viewBottom);
+				if (isCulled)
+				{
+					if (!isCategory) 
+					{
+						auto prop = model.FindPropertyById(itemId);
+						if (prop && prop->field && prop->field->IsVisible())
+						{
+							BT_CORE_TRACE << " // Invisible . field = " << prop->field->GetLabel() << std::endl;
+							prop->field->SetVisibility(false);
+						}
+					}
+            
+					if (rect.Y >= viewBottom) 
+					{
+						isBelowView = true; 
+					}
+					
 					continue;
 				}
-				if (model.IsCategory(id))
+				
+				bool isSelected = itemId == model.GetSelectedItemId();
+				bool isHovered = itemId == m_hoveredItemId;
+				if (isCategory)
 				{
+				}
+				else
+				{
+					auto prop = model.FindPropertyById(itemId);
+					if (prop && prop->field)
+					{
+						// Si estaba oculto por el scroll y acaba de entrar, lo encendemos
+						if (!prop->field->IsVisible()) {
+							prop->field->SetVisibility(true);
+						}
+
+						// 1. Dividimos el rectángulo (Label vs Control)
+						int splitterX = rect.Width * 0.4f;
+						Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
+
+						// 2. ACTUALIZAMOS EL BOUNDS DEL CONTROL (Con el Y ajustado por el scroll)
+						prop->field->Draw(graphics, controlRect, *appearance);
+						BT_CORE_TRACE << " // Draw . field = " << prop->field->GetLabel() << std::endl;
+					}
+					Rectangle labelArea = rect;
+					
+					Color textColor = isSelected ? m_config->SelectedTextColor : m_config->Foreground;
+					graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop->field->GetLabel(), textColor);
 				}
 			}
 			
-			for (size_t i = 0; i < rootCategories.size(); ++i)
+			/*for (size_t i = 0; i < rootCategories.size(); ++i)
 			{
 				auto savedCurrentY = currentY;
 				currentY = DrawRecursive(graphics, model, rootCategories[i], currentX, currentY);
@@ -578,13 +646,13 @@ namespace Berta
 					Rectangle lineRect = { clientArea.X, savedCurrentY + 1 - dropLineHalf, clientArea.Width, dropLineHeight };
 					graphics.FillRectangle(lineRect, Color(0, 120, 215, 255));
 				}
-			}
+			}*/
 			
-			if (m_showDropIndicator && m_dropIndicatorIndex == rootCategories.size())
+			/*if (m_showDropIndicator && m_dropIndicatorIndex == rootCategories.size())
 			{
 				Rectangle lineRect = { clientArea.X, currentY + 1 - dropLineHalf, clientArea.Width, dropLineHeight };
 				graphics.FillRectangle(lineRect, Color(0, 120, 215, 255));
-			}
+			}*/
 		}
 
 		void PropertyGridLayout::RefreshVisibleOnly(const PropertyGridModel& model)
@@ -651,7 +719,7 @@ namespace Berta
 			Rectangle catRect = { currentX, currentY, clientArea.Width, categoryHeaderHeight };
 			
 			m_itemRects[cat.m_id] = catRect;
-			m_visibleItems.push_back(cat.m_id);
+			m_visibleItems.emplace_back(cat.m_id, true, catRect);
 			
 			currentY += static_cast<int>(categoryHeaderHeight);
 			
@@ -663,7 +731,7 @@ namespace Berta
 					Rectangle propRect = { currentX + PG_INDENT_PADDING, currentY, clientArea.Width - PG_INDENT_PADDING, propHeight };
 					
 					m_itemRects[prop.m_id] = propRect;
-					m_visibleItems.push_back(prop.m_id);
+					m_visibleItems.emplace_back(prop.m_id, false, propRect);
 					
 					currentY += static_cast<int>(propHeight);
 				}
@@ -916,6 +984,36 @@ namespace Berta
 			return true;
 		}
 
+		void PropertyGridLayout::SyncControlsVisibility(const PropertyGridModel& model)
+		{
+			for (const auto& rootCat : model.GetRootCategories())
+			{
+				HideAllControlsRecursive(rootCat);
+			}
+
+			for (auto& [id, isCategory, rect] : m_visibleItems)
+			{
+				if (!isCategory)
+				{
+					auto prop = model.FindPropertyById(id);
+					if (prop && prop->field)
+					{
+						prop->field->SetVisibility(true);
+					}
+				}
+			}
+		}
+
+		void PropertyGridLayout::HideAllControlsRecursive(const CategoryType& cat) const
+		{
+			for (const auto& prop : cat.m_properties) {
+				if (prop.field) prop.field->SetVisibility(false);
+			}
+			for (const auto& subCat : cat.m_subCategories) {
+				HideAllControlsRecursive(subCat);
+			}
+		}
+
 		void Module::Draw()
 		{
 		}
@@ -1160,8 +1258,9 @@ namespace Berta
 			}
 			
 			auto currentId = m_module.m_model.GetSelectedItemId();
-			auto it = std::find(visibleItems.begin(), visibleItems.end(), currentId);
-    
+			auto it = std::find_if(visibleItems.begin(), visibleItems.end(), 
+				[currentId](const auto& prop) { return prop.m_id == currentId; });
+			
 			size_t currentIndex = 0;
 			if (it != visibleItems.end())
 			{
@@ -1203,7 +1302,10 @@ namespace Berta
 					{
 						m_module.m_model.SetSelectedItemId(parentId);
 
-						auto parentIt = std::find(visibleItems.begin(), visibleItems.end(), parentId);
+						//auto parentIt = std::find(visibleItems.begin(), visibleItems.end(), parentId);
+						auto parentIt = std::find_if(visibleItems.begin(), visibleItems.end(), 
+						[parentId](const auto& prop) { return prop.m_id == parentId; });
+			
 						if (parentIt != visibleItems.end())
 						{
 							currentIndex = std::distance(visibleItems.begin(), parentIt);
@@ -1219,19 +1321,19 @@ namespace Berta
 			}
 			if (selectionChanged)
 			{
-				StringUtils::StringHash newSelectedId = visibleItems[currentIndex];
+				auto& newSelectedItem = visibleItems[currentIndex];
         
-				m_module.m_model.SetSelectedItemId(newSelectedId); 
+				m_module.m_model.SetSelectedItemId(newSelectedItem.m_id); 
 
-				if (m_module.m_model.IsRootCategory(newSelectedId)) 
+				if (m_module.m_model.IsRootCategory(newSelectedItem.m_id)) 
 				{
-					m_module.m_layout.ScrollToItem(newSelectedId);
+					m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
 				}
 				else 
 				{
-					StringUtils::StringHash parentCatId = m_module.m_model.GetParentCategory(newSelectedId); 
+					StringUtils::StringHash parentCatId = m_module.m_model.GetParentCategory(newSelectedItem.m_id); 
             
-					m_module.m_layout.ScrollToItem(newSelectedId);
+					m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
 				}
 			}
 			
