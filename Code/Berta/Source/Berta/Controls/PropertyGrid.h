@@ -171,6 +171,7 @@ namespace Berta
 			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
 			void AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field);
         
+			[[nodiscard]] const CategoryType* FindCategoryById(StringUtils::StringHash id) const;
 			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
 			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId) const;
 			
@@ -211,6 +212,7 @@ namespace Berta
 			std::function<void(StringUtils::StringHash propId)> OnPropertySelected;
 		private:
 			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
+			const CategoryType* FindRecursive(StringUtils::StringHash id, const  std::vector<CategoryType>& list) const;
 			void InitCategoryRecursive(CategoryType& cat);
 			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
 			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
@@ -336,16 +338,9 @@ namespace Berta
 			
 			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
-			int CalculateRecursive(const CategoryType& cat, int currentX, int currentY);
+			uint32_t CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY);
 			
-			int DrawRecursive(Graphics& graphics, const PropertyGridModel& model, const CategoryType& cat, int x, int y);
 			void DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config);
-			
-			[[nodiscard]] bool IsVisible(const Rectangle& area) const;
-			void HideCategoryRecursive(const CategoryType& cat);
-			bool FindItemRectRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash targetCat, StringUtils::StringHash targetProp, int& currentY, Rectangle& outRect) const;
-			
-			bool RefreshVisibleRecursive(const std::vector<CategoryType>& list, int& currentY, const Rectangle& viewport);
 			
 			void SyncControlsVisibility(const PropertyGridModel& model);
 			void HideAllControlsRecursive(const CategoryType& cat) const;
@@ -368,7 +363,7 @@ namespace Berta
 			void Update();
 			
 			void OnLayoutChanged();
-			int HitTestRecursive(const std::vector<CategoryType>& list, Point pos, int currentY, StringUtils::StringHash& outItemId);
+			StringUtils::StringHash HitTest(Point mousePos);
 			
 			PropertyGridModel m_model;
 			PropertyGridLayout m_layout;
