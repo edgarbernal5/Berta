@@ -1206,7 +1206,7 @@ namespace Berta
 				{
 					m_module.m_model.MoveRootCategory(m_module.m_draggedCatIndex, m_module.m_hoveredDropIndex);
             
-					// Opcional: Emitir evento para que el motor (Bruno) sepa que el usuario reordenó algo
+					// Opcional: Emitir evento
 					// auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
 					// if (events) events->CategoryReordered.emit();
             
