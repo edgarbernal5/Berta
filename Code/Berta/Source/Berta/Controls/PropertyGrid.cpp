@@ -1042,11 +1042,11 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
-		StringUtils::StringHash Module::HitTest(Point mousePos)
+		Module::HitResult Module::HitTest(Point mousePos)
 		{
 			if (!m_layout.m_scrollableView)
 			{
-				return 0;
+				return {};
 			}
 			
 			auto offset = m_layout.m_scrollableView->GetScrollOffset();
@@ -1062,7 +1062,7 @@ namespace Berta
 
 				if (hitRect.Contains(virtualPos))
 				{
-					return itemId; 
+					return { itemId, isCategory };
 				}
 
 				if (virtualPos.Y < hitRect.Y) {
@@ -1070,7 +1070,7 @@ namespace Berta
 				}
 			}
 
-			return 0;
+			return {};
 		}
 
 		void Reactor::Update(Graphics& graphics)
@@ -1114,11 +1114,17 @@ namespace Berta
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
 			m_module.m_mouseDownPos = args.Position;
-			m_module.m_pressedItemId = m_module.HitTest(args.Position);
+			auto hit = m_module.HitTest(args.Position);
+			m_module.m_pressedItemId = hit.id;
 			
 			if (args.ButtonState.LeftButton && m_module.m_pressedItemId != 0)
 			{
-				if (m_module.m_model.IsRootCategory(m_module.m_pressedItemId)) 
+				if (!hit.isCategory)
+				{
+					m_module.m_model.SetSelectedItemId(m_module.m_pressedItemId);
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
+				else if (m_module.m_model.IsRootCategory(m_module.m_pressedItemId)) 
 				{
 					m_module.m_isWaitingForDrag = true;
 					m_module.m_draggedCatIndex = m_module.m_model.GetRootCategoryIndex(m_module.m_pressedItemId);
@@ -1128,7 +1134,8 @@ namespace Berta
 
 		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
 		{
-			StringUtils::StringHash hitItemId = m_module.HitTest(args.Position);
+			auto hit = m_module.HitTest(args.Position);
+			StringUtils::StringHash hitItemId = hit.id;
 			
 			if (m_module.m_isWaitingForDrag)
 			{
@@ -1189,7 +1196,8 @@ namespace Berta
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{			
-			StringUtils::StringHash releaseItemId = releaseItemId = m_module.HitTest(args.Position);
+			auto hit = m_module.HitTest(args.Position);
+			StringUtils::StringHash releaseItemId = hit.id;
 			
 			if (m_module.m_isDraggingCategory)
 			{

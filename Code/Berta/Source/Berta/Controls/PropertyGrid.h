@@ -368,12 +368,19 @@ namespace Berta
 
 		struct Module
 		{
+			struct HitResult 
+			{
+				StringUtils::StringHash id = 0;
+				bool isCategory = false;
+    
+				operator bool() const { return id != 0; }
+			};
 			void Draw();
 			void Update();
 			
 			void ClearReferences(StringUtils::StringHash deletedId);
 			void OnLayoutChanged();
-			StringUtils::StringHash HitTest(Point mousePos);
+			HitResult HitTest(Point mousePos);
 			
 			PropertyGridModel m_model;
 			PropertyGridLayout m_layout;
