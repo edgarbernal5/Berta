@@ -176,7 +176,9 @@ namespace Berta
 			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId) const;
 			
 			void Clear();
-
+			bool RemoveProperty(StringUtils::StringHash propId);
+			bool RemoveCategory(StringUtils::StringHash catId);
+			
 			bool GetPropertyEnabled(StringUtils::StringHash propId);
 			void SetPropertyEnabled(StringUtils::StringHash propId, bool enabled);
 			
@@ -217,6 +219,9 @@ namespace Berta
 			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
 			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
 			StringUtils::StringHash GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const;
+			bool RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId);
+			bool RemoveSubCategoryRecursive(CategoryType& parentCat, StringUtils::StringHash targetCatId);
+			void CleanUpCategoryLookup(const CategoryType& category);
 			
 			Window* m_ownerWindow{ nullptr };
 			std::unordered_map<StringUtils::StringHash, PropertyFieldData*> m_propertyLookup;
@@ -235,8 +240,9 @@ namespace Berta
 			PropertyHandle(PropertyGridModel* model, StringUtils::StringHash uniqueId) :
 				m_model(model), m_uniqueId(uniqueId)
 			{
-				
 			}
+			
+			StringUtils::StringHash GetId() const { return m_uniqueId; }
 			
 			operator bool() const;
 
@@ -279,6 +285,8 @@ namespace Berta
 			CategoryHandle(PropertyGridModel* model, uint32_t categoryId)
 				: m_model(model), m_id(categoryId) {}
 
+			StringUtils::StringHash GetId() const { return m_id; }
+			
 			CategoryHandle AppendCategory(std::string_view name);
 			CategoryHandle AppendSubCategory(std::string_view name);
 			
@@ -325,7 +333,8 @@ namespace Berta
 			void SetConfig(Appearance* config) { m_config = config; }
 			[[nodiscard]] Appearance* GetConfig() const { return m_config; }
 			
-			void SetHoverState(StringUtils::StringHash itemId) 
+			StringUtils::StringHash GetHoveredItemId() const { return m_hoveredItemId; }
+			void SetHoverItemId(StringUtils::StringHash itemId) 
 			{ 
 				m_hoveredItemId = itemId;
 			}
@@ -362,6 +371,7 @@ namespace Berta
 			void Draw();
 			void Update();
 			
+			void ClearReferences(StringUtils::StringHash deletedId);
 			void OnLayoutChanged();
 			StringUtils::StringHash HitTest(Point mousePos);
 			
@@ -450,6 +460,9 @@ namespace Berta
 		void Clear();
 		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
 		//CategoryItem Find(std::string_view categoryName);
+		
+		void Erase(CategoryItem categoryItem);
+		void Erase(PropertyItem propertyItem);
 		
 		void RefreshAll();
 		void ShowCategoryIcons(bool visible);

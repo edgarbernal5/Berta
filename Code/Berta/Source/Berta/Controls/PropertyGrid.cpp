@@ -190,6 +190,42 @@ namespace Berta
 			m_selectedItemId = 0;
 		}
 
+		bool PropertyGridModel::RemoveProperty(StringUtils::StringHash propId)
+		{
+			m_propertyLookup.erase(propId);
+			
+			for (auto& rootCat : m_rootCategories)
+			{
+				if (RemovePropertyRecursive(rootCat, propId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool PropertyGridModel::RemoveCategory(StringUtils::StringHash catId)
+		{
+			auto it = std::find_if(m_rootCategories.begin(), m_rootCategories.end(),
+				[catId](const auto& cat) { return cat.m_id == catId; });
+
+			if (it != m_rootCategories.end())
+			{
+				CleanUpCategoryLookup(*it);
+				m_rootCategories.erase(it);
+				return true;
+			}
+
+			for (auto& rootCat : m_rootCategories)
+			{
+				if (RemoveSubCategoryRecursive(rootCat, catId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		bool PropertyGridModel::GetPropertyEnabled(StringUtils::StringHash propId)
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
@@ -463,6 +499,62 @@ namespace Berta
 			}
 
 			return 0;
+		}
+
+		bool PropertyGridModel::RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId)
+		{
+			auto it = std::find_if(category.m_properties.begin(), category.m_properties.end(),
+				[propId](const auto& prop) { return prop.m_id == propId; });
+
+			if (it != category.m_properties.end())
+			{
+				category.m_properties.erase(it);
+				return true;
+			}
+
+			for (auto& subCat : category.m_subCategories)
+			{
+				if (RemovePropertyRecursive(subCat, propId))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool PropertyGridModel::RemoveSubCategoryRecursive(CategoryType& parentCat, StringUtils::StringHash targetCatId)
+		{
+			auto it = std::find_if(parentCat.m_subCategories.begin(), parentCat.m_subCategories.end(),
+			[targetCatId](const auto& cat) { return cat.m_id == targetCatId; });
+
+			if (it != parentCat.m_subCategories.end())
+			{
+				CleanUpCategoryLookup(*it); // Limpiar caché
+				parentCat.m_subCategories.erase(it);
+				return true;
+			}
+
+			for (auto& subCat : parentCat.m_subCategories)
+			{
+				if (RemoveSubCategoryRecursive(subCat, targetCatId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		void PropertyGridModel::CleanUpCategoryLookup(const CategoryType& category)
+		{
+			for (const auto& prop : category.m_properties)
+			{
+				m_propertyLookup.erase(prop.m_id);
+			}
+			for (const auto& subCat : category.m_subCategories)
+			{
+				CleanUpCategoryLookup(subCat);
+			}
 		}
 
 		PropertyHandle::operator bool() const
@@ -930,6 +1022,19 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
+		void Module::ClearReferences(StringUtils::StringHash deletedId)
+		{
+			if (m_model.GetSelectedItemId() == deletedId)
+			{
+				m_model.SetSelectedItemId(0);
+			}
+    
+			if (m_layout.GetHoveredItemId() == deletedId)
+			{
+				m_layout.SetHoverItemId(0);
+			}
+		}
+
 		void Module::OnLayoutChanged()
 		{
 			m_layout.CalculateLayout(m_model);
@@ -1001,7 +1106,7 @@ namespace Berta
 			if (m_module.m_lastHoveredItemId != 0)
 			{
 				m_module.m_lastHoveredItemId = 0;
-				m_module.m_layout.SetHoverState(0);
+				m_module.m_layout.SetHoverItemId(0);
 				m_module.OnLayoutChanged();
 			}
 		}
@@ -1076,7 +1181,7 @@ namespace Berta
 			{
 				m_module.m_lastHoveredItemId = hitItemId;
 
-				m_module.m_layout.SetHoverState(hitItemId);
+				m_module.m_layout.SetHoverItemId(hitItemId);
 				m_module.OnLayoutChanged();
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
@@ -1324,13 +1429,38 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		module.m_model.Clear();
-		module.m_layout.SetHoverState(0);
+		module.m_layout.SetHoverItemId(0);
 		module.m_layout.CalculateLayout(module.m_model);
 	}
 
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
 	{
 		return { nullptr, 0 };
+	}
+
+	void PropertyGrid::Erase(CategoryItem categoryItem)
+	{
+		auto& module = GetReactor().GetModule();
+		if (module.m_model.RemoveCategory(categoryItem.GetId()))
+		{
+			module.ClearReferences(categoryItem.GetId());
+			module.m_layout.CalculateLayout(module.m_model);
+			
+			GUI::UpdateWindow(module.m_owner);
+		}
+	}
+
+	void PropertyGrid::Erase(PropertyItem propertyItem)
+	{
+		auto& module = GetReactor().GetModule();
+        
+		if (module.m_model.RemoveProperty(propertyItem.GetId()))
+		{
+			module.ClearReferences(propertyItem.GetId());
+			module.m_layout.CalculateLayout(module.m_model);
+			
+			GUI::UpdateWindow(module.m_owner);
+		}
 	}
 
 	void PropertyGrid::RefreshAll()
