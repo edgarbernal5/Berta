@@ -170,37 +170,7 @@ int main()
 		[&myApp]() { return myApp.Threshold; },
 			[&myApp](int val) { myApp.Threshold = val; },
 			-5, 5);
-	/*for (size_t i = 0; i < 3; i++)
-	{
-		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
-	}
-
-	auto categoryEmpty = propertyGrid.Append("Empty");
-	auto categoryMesh = propertyGrid.Append("Mesh");
-
-	auto meshIdProp = new Berta::PropertyGridFieldString("Mesh ID", "71d3eed6-d363-428a-bc81-01576539b297");
 	
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(meshIdProp)); meshIdProp->SetEditable(false);
-
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringInt("Mesh Count", "0")));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldCheck("Enabled", "0")));
-	std::vector<std::string> options{"None", "Material 1", "Material 2" };
-	auto pgfSelection = new Berta::PropertyGridFieldSelection("Material");
-	pgfSelection->Set(options);
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSelection));
-
-	auto pgfSlider = new Berta::PropertyGridFieldSliderInt("Max Materials", "0");
-	pgfSlider->SetMinMax(0, 10);
-
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSlider));
-
-	auto pgfSliderFloat = new Berta::PropertyGridFieldSliderFloat("Max Materials Float", "0.0");
-	pgfSliderFloat->SetMinMax(0, 15.0);
-
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSliderFloat));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringButton("Mesh file", "")));
-	*/
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
 			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << args.Property.GetValueAsString() << std::endl;

@@ -20,7 +20,7 @@ namespace Berta
 		inputArea.Width -= (buttonWidth + margin);
 
 		Rectangle buttonArea = area;
-		buttonArea.X += (int)inputArea.Width + margin;
+		buttonArea.X += static_cast<int>(inputArea.Width) + margin;
 		buttonArea.Width = buttonWidth;
 
 		PropertyGridFieldString::Draw(graphics, inputArea, config);
