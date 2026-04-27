@@ -21,12 +21,12 @@ namespace Berta
     class PropertyGridFieldSelection : public Internal::PropertyGrid::PropertyGridFieldBase
     {
     public:
-        using Getter = std::function<T()>;
-        using Setter = std::function<void(T)>;
+        using GetterFn = std::function<T()>;
+        using SetterFn = std::function<void(T)>;
         
         using OptionList = std::vector<std::pair<std::string, T>>;
 
-        PropertyGridFieldSelection(std::string_view label, Getter getter, Setter setter, OptionList options)
+        PropertyGridFieldSelection(std::string_view label, GetterFn getter, SetterFn setter, OptionList options)
             : PropertyGridFieldBase(label), 
               m_getter(std::move(getter)), 
               m_setter(std::move(setter)),
@@ -146,8 +146,8 @@ namespace Berta
         }
 
     private:
-        Getter m_getter;
-        Setter m_setter;
+        GetterFn m_getter;
+        SetterFn m_setter;
         OptionList m_options;
         ComboBox m_comboBox;
     };

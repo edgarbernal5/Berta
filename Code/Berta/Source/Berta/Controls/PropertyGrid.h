@@ -380,7 +380,7 @@ namespace Berta
 			
 			void ClearReferences(StringUtils::StringHash deletedId);
 			void OnLayoutChanged();
-			HitResult HitTest(Point mousePos);
+			HitResult HitTest(Point mousePos) const;
 			
 			PropertyGridModel m_model;
 			PropertyGridLayout m_layout;

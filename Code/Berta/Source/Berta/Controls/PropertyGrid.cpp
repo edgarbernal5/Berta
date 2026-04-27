@@ -1042,7 +1042,7 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
-		Module::HitResult Module::HitTest(Point mousePos)
+		Module::HitResult Module::HitTest(Point mousePos) const
 		{
 			if (!m_layout.m_scrollableView)
 			{
@@ -1277,6 +1277,7 @@ namespace Berta
 			{
 				currentIndex = std::distance(visibleItems.begin(), it);
 			}
+			
 			bool selectionChanged = false;
 			bool layoutChanged = false;
 			switch (args.Key)
@@ -1336,17 +1337,7 @@ namespace Berta
 				auto& newSelectedItem = visibleItems[currentIndex];
         
 				m_module.m_model.SetSelectedItemId(newSelectedItem.m_id); 
-
-				if (m_module.m_model.IsRootCategory(newSelectedItem.m_id)) 
-				{
-					m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
-				}
-				else 
-				{
-					StringUtils::StringHash parentCatId = m_module.m_model.GetParentCategory(newSelectedItem.m_id); 
-            
-					m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
-				}
+				m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
 			}
 			
 			if (layoutChanged || selectionChanged)

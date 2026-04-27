@@ -32,10 +32,10 @@ namespace Berta
         static_assert(std::is_arithmetic_v<T>, "Type T must be numeric.");
 
     public:
-        using Getter = std::function<std::optional<T>()>;
-        using Setter = std::function<void(T)>;
+        using GetterFn = std::function<std::optional<T>()>;
+        using SetterFn = std::function<void(T)>;
 
-        PropertyGridFieldNumeric(std::string_view label, Getter getter, Setter setter)
+        PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
             : PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
         {}
 
@@ -226,8 +226,8 @@ namespace Berta
             }
         }
 
-        Getter m_getter;
-        Setter m_setter;
+        GetterFn m_getter;
+        SetterFn m_setter;
         InputText m_inputText;
     };
 
