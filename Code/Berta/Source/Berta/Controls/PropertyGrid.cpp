@@ -377,7 +377,8 @@ namespace Berta
 				}
 
 				StringUtils::StringHash foundParent = GetParentIdRecursive(rootCat, childId);
-				if (foundParent != 0) {
+				if (foundParent != 0)
+				{
 					return foundParent;
 				}
 			}
@@ -493,7 +494,8 @@ namespace Berta
 				}
 
 				StringUtils::StringHash foundInSub = GetParentIdRecursive(subCat, targetId);
-				if (foundInSub != 0) {
+				if (foundInSub != 0)
+				{
 					return foundInSub;
 				}
 			}
@@ -761,6 +763,7 @@ namespace Berta
 						{
 							prop->field->SetVisibility(true);
 						}
+						Color separatorColor = m_config->ScrollBarBackground;
 						if (prop->field->IsShowingLabel())
 						{
 							Rectangle labelArea = rect;
@@ -771,6 +774,12 @@ namespace Berta
 							
 							propArea.X += labelWidth;
 							propArea.Width -= labelWidth;
+							
+							graphics.DrawLine({ propArea.X, rect.Y }, { propArea.X, rect.Y + (int)rect.Height - 1 }, separatorColor);
+							
+							auto splitterWidth = m_owner->ToScale(1);
+							propArea.X += splitterWidth;
+							propArea.Width -= splitterWidth;
 						}
 						propArea.X += 2;
 						propArea.Y += 2;
@@ -780,6 +789,8 @@ namespace Berta
 						//Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
 						
 						prop->field->Draw(graphics, propArea, *appearance);
+						
+						graphics.DrawLine({ rect.X, rect.Y + (int)rect.Height - 1 }, { rect.X + (int)rect.Width, rect.Y + (int)rect.Height - 1 }, separatorColor);
 					}
 				}
 			}
@@ -877,7 +888,6 @@ namespace Berta
 			{
 				m_scrollableView->SetScrollToY(currentScrollY); 
 			}
-			
 		}
 
 		Rectangle PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
@@ -1065,7 +1075,8 @@ namespace Berta
 					return { itemId, isCategory };
 				}
 
-				if (virtualPos.Y < hitRect.Y) {
+				if (virtualPos.Y < hitRect.Y)
+				{
 					break;
 				}
 			}
@@ -1382,6 +1393,7 @@ namespace Berta
 					
 					events->PropertyChanged.Emit(arguments); 
 				}
+				m_module.m_layout.ScrollToItem(propId);
 				m_module.OnLayoutChanged();
 			};
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
