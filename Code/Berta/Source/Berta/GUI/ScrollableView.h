@@ -54,6 +54,7 @@ namespace Berta
 		
 		void SetScrollToX(int offsetX);
 		void SetScrollToY(int offsetY);
+		void ResetScroll();
 		
 		bool HasVerticalScroll() const { return m_scrollBarVert != nullptr; }
 		bool HasHorizontalScroll() const  { return m_scrollBarHoriz != nullptr; }

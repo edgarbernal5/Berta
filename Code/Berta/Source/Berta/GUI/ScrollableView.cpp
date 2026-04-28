@@ -103,6 +103,15 @@ namespace Berta
         m_scrollBarVert->SetValue(offsetY);
     }
 
+    void ScrollableView::ResetScroll()
+    {
+        if (m_scrollBarVert)
+            m_scrollBarVert->SetValue(0);
+        
+        if (m_scrollBarHoriz)
+            m_scrollBarHoriz->SetValue(0);
+    }
+
     void ScrollableView::UpdateScrollBars()
     {
         bool needNotifyChange = false;
