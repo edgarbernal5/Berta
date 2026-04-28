@@ -27,60 +27,41 @@ namespace Berta
 		m_graphics(*graphics),
 		m_owner(owner)
 	{
-		m_caret = new Caret(owner, Size{1,0});
-
+		m_caret = std::make_unique<Caret>(owner, Size{1,0});
+		m_scrollableView = std::make_unique<ScrollableView>(owner);
+		m_scrollableView->SetOnScrollChange([this]()
+		{
+			GUI::UpdateWindow(m_owner);
+		});
+		
 		m_selectionTimer.SetOwner(m_owner);
 		m_selectionTimer.Connect([this](const ArgTimer& args)
 		{
-			BT_CORE_DEBUG << "timer tick... isSelecting=" << m_selection.m_isSelecting << ". m_offsetView " << m_offsetView << ". m_selectionDirection " << m_selectionDirection << std::endl;
 			if (!m_selection.m_isSelecting)
 			{
 				return;
 			}
 			
-			auto savedOffsetView = m_offsetView;
-			
-			Size contentSize = GetContentTextExtent();
-			const int maxScrollX = std::max<int>(0, static_cast<int>(contentSize.Width) - static_cast<int>(m_editorArea.Width));
-			const int maxScrollY = std::max<int>(0, static_cast<int>(contentSize.Height) - static_cast<int>(m_editorArea.Height));
-			
-			if (m_selectionDirection.Y == -1)
+			Point currentScroll = m_scrollableView->GetScrollOffset();
+			Point newScroll = currentScroll;
+
+			if (m_selectionDirection.Y != 0)
 			{
-				m_offsetView.Y = std::min<int>(maxScrollY, m_offsetView.Y + TEXT_EDITOR_SCROLL_SPEED);
+				newScroll.Y -= (m_selectionDirection.Y * TEXT_EDITOR_SCROLL_SPEED);
 			}
-			else if (m_selectionDirection.Y == 1)
+			if (!m_features.wordWrap && m_selectionDirection.X != 0)
 			{
-				m_offsetView.Y = std::max<int>(0, m_offsetView.Y - TEXT_EDITOR_SCROLL_SPEED);
+				newScroll.X -= (m_selectionDirection.X * TEXT_EDITOR_SCROLL_SPEED);
 			}
-			
-			if (!m_features.wordWrap)
-			{
-				if (m_selectionDirection.X == -1)
-				{
-					m_offsetView.X = std::min<int>(maxScrollX, m_offsetView.X + TEXT_EDITOR_SCROLL_SPEED);
-				}
-				else if (m_selectionDirection.X == 1)
-				{
-					m_offsetView.X = std::max<int>(0, m_offsetView.X - TEXT_EDITOR_SCROLL_SPEED);
-				}
-			}
-			
-			if (savedOffsetView != m_offsetView)
+            
+			m_scrollableView->SetScrollToX(newScroll.X);
+			m_scrollableView->SetScrollToY(newScroll.Y);
+            
+			if (currentScroll != m_scrollableView->GetScrollOffset())
 			{
 				m_selection.m_endPosition = GetPositionUnderMouse(m_lastMousePosition);
-				//AdjustView();
-				GUI::UpdateWindow(m_owner);
 			}
 		});
-	}
-
-	TextEditor::~TextEditor()
-	{
-		if (m_caret)
-		{
-			delete m_caret;
-			m_caret = nullptr;
-		}
 	}
 
 	void TextEditor::OnMouseEnter(const ArgMouse& args)
@@ -360,14 +341,374 @@ namespace Berta
 		AdjustView();
 	}
 
+	std::wstring TextEditor::GetContent() const
+	{
+		if (m_lines.empty())
+		{
+			return L"";
+		}
+		std::wstring content = m_lines[0];
+		for (size_t i = 1; i < m_lines.size(); ++i)
+		{
+			content += L"\r\n" + m_lines[i];
+		}
+		return content;
+	}
+
+	void TextEditor::SetContent(const std::wstring& newContent)
+	{
+		m_lines.clear();
+		if (newContent.empty())
+		{
+			m_lines.emplace_back(L"");
+		}
+		else
+		{
+			std::size_t start = 0, end;
+			while ((end = newContent.find(L'\n', start)) != std::wstring::npos)
+			{
+				std::wstring line = newContent.substr(start, end - start);
+				
+				if (!line.empty() && line.back() == L'\r')
+				{
+					line.pop_back();
+				}
+				m_lines.emplace_back(line);
+				start = end + 1;
+			}
+			m_lines.emplace_back(newContent.substr(start));
+		}
+
+		m_selection.Reset({ 0, 0 });
+		m_scrollableView->ResetScroll();
+    
+		RecomputeWordWrap();
+	}
+
+	void TextEditor::SetContent(const std::string& newContent)
+	{
+		SetContent(StringUtils::UTF8ToWide(newContent));
+	}
+
+	std::wstring TextEditor::GetSelectedText() const
+	{
+		TextPosition start = m_selection.Min();
+		TextPosition end = m_selection.Max();
+
+		if (start == end)
+		{
+			return L"";
+		}
+		
+		std::wstring result;
+		for (size_t i = start.line; i <= end.line; ++i)
+		{
+			std::wstring_view lineView = m_lines[i];
+			size_t startCol = (i == start.line) ? start.column : 0;
+			size_t endCol = (i == end.line) ? end.column : lineView.size();
+
+			result += lineView.substr(startCol, endCol - startCol);
+
+			if (i < end.line)
+			{
+				result += L"\r\n";
+			}
+		}
+		return result;
+	}
+
+	void TextEditor::Copy()
+	{
+		std::wstring selectedText = GetSelectedText();
+		if (!selectedText.empty())
+		{
+			return;
+		}
+		Platform::SetClipboardText(selectedText, m_owner->RootHandle);
+	}
+
+	void TextEditor::Cut()
+	{
+		if (m_selection.m_startPosition == m_selection.m_endPosition)
+		{
+			return;
+		}
+		Copy();
+		DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+	}
+
+	void TextEditor::Paste()
+	{
+		std::wstring clipboardText;
+		if (!Platform::GetClipboardText(clipboardText) || clipboardText.empty())
+		{
+			return;
+		}
+
+		if (m_selection.m_startPosition != m_selection.m_endPosition)
+		{
+			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+		}
+
+		TextPosition pos = m_selection.m_endPosition;
+    
+		std::vector<std::wstring> newLines;
+		size_t start = 0, end;
+		while ((end = clipboardText.find(L"\r\n", start)) != std::wstring::npos)
+		{
+			newLines.emplace_back(clipboardText.substr(start, end - start));
+			start = end + 2;
+		}
+		newLines.emplace_back(clipboardText.substr(start));
+
+		if (newLines.size() == 1)
+		{
+			m_lines[pos.line].insert(pos.column, newLines[0]);
+			pos.column += newLines[0].size();
+		}
+		else
+		{
+			std::wstring currentLine = m_lines[pos.line];
+			std::wstring prefix = currentLine.substr(0, pos.column);
+			std::wstring suffix = currentLine.substr(pos.column);
+
+			m_lines[pos.line] = prefix + newLines[0];
+        
+			m_lines.insert(m_lines.begin() + pos.line + 1, newLines.begin() + 1, newLines.end());
+			
+			pos.line += newLines.size() - 1;
+			pos.column = newLines.back().size();
+			m_lines[pos.line] += suffix;
+		}
+
+		RecomputeWordWrap();
+		m_selection.Reset(pos);
+		AdjustView();
+	}
+
+	void TextEditor::SetEditorArea(const Rectangle& area)
+	{
+		m_editorArea = area;
+	}
+
+	void TextEditor::Render()
+	{
+		bool enabled = GUI::IsWindowEnabled(m_owner);
+		m_graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
+		
+		auto lineHeight = GetLineHeight();
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		int viewportTop = currentOffset.Y;
+		int viewportBottom = currentOffset.Y + static_cast<int>(m_editorArea.Height);
+
+		size_t firstLineIndex = GetFirstVisibleVisualLine();
+		
+		auto one = m_owner->ToScale(1);
+		auto two = m_owner->ToScale(2);
+		
+		TextPosition startPosition = m_selection.Min();
+		TextPosition endPosition = m_selection.Max();
+		
+		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
+		{
+			const auto& vl = m_visualLines[i];
+			const int vlPosY = static_cast<int>(vl.y);
+			if (vlPosY > viewportBottom)
+			{
+				break; 
+			}
+			
+			const int drawX = -currentOffset.X;
+			const int drawY = vlPosY - viewportTop + m_editorArea.Y;
+			if (drawY + static_cast<int>(lineHeight) < m_editorArea.Y || drawY > static_cast<int>(m_editorArea.Height) + m_editorArea.Y)
+			{
+				continue;
+			}
+			
+			std::wstring_view fragment = std::wstring_view(m_lines[vl.logicalLineIndex]).substr(vl.charStart, vl.charLength);
+			
+			if (startPosition != endPosition && vl.logicalLineIndex >= startPosition.line && vl.logicalLineIndex <= endPosition.line)
+			{
+				size_t selStartInV = (vl.logicalLineIndex == startPosition.line) ? (std::max)(vl.charStart, startPosition.column) : vl.charStart;
+				size_t selEndInV = (vl.logicalLineIndex == endPosition.line) ? (std::min)(vl.charStart + vl.charLength, endPosition.column) : (vl.charStart + vl.charLength);
+
+				if (selStartInV < selEndInV)
+				{
+					auto x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
+					auto w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
+					m_graphics.FillRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128));
+				}
+			}
+			EnsureLayout(vl);
+			if (vl.m_textHandle)
+			{
+				m_graphics.DrawTextLayout(vl.m_textHandle, { drawX + m_editorArea.X, drawY + m_editorArea.Y }, m_owner->Appearance->Foreground);
+			}
+			//m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
+			
+			//Caret
+			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
+				m_selection.m_endPosition.column >= vl.charStart && 
+				m_selection.m_endPosition.column <= vl.charStart + vl.charLength)
+			{
+				auto caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
+				m_caret->SetPosition({ drawX + static_cast<int>(caretX), drawY });
+			}
+		}
+		
+		if (m_caret->IsVisible())
+		{
+			auto caretHeight= m_graphics.GetCaretHeight();
+			m_graphics.DrawLine({ m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y }, { m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
+		}
+		
+		if (m_scrollableView->HasVerticalScroll() && m_scrollableView->HasHorizontalScroll())
+		{
+			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+			m_graphics.FillRectangle({ static_cast<int>(m_owner->ClientSize.Width - scrollSize) - 1, static_cast<int>(m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_owner->Appearance->Background);
+		}
+		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
+	}
+
+	bool TextEditor::IsEditable() const
+	{
+		return m_features.isEditable;
+	}
+
+	void TextEditor::SetEditable(bool isEditable)
+	{
+		m_features.isEditable = isEditable;
+	}
+
+	void TextEditor::SetMultiline(bool enable)
+	{
+		if (m_features.isMultiLines == enable)
+		{
+			return;
+		}
+		
+		m_features.isMultiLines = enable;
+		for(auto& vl : m_visualLines)
+		{
+			vl.m_textHandle.Release();
+		}
+		RecomputeWordWrap();
+	}
+
+	void TextEditor::SetWordWrap(bool enabled)
+	{
+		if (m_features.wordWrap == enabled)
+		{
+			return;
+		}
+		
+		m_features.wordWrap = enabled;
+		for(auto& vl : m_visualLines)
+		{
+			vl.m_textHandle.Release();
+		}
+		RecomputeWordWrap();
+	}
+
+	void TextEditor::SetCharFilter(std::function<bool(wchar_t)> predicate)
+	{
+		m_predicate = std::move(predicate);
+	}
+
+	TextPosition TextEditor::GetEndPosition() const
+	{
+		return m_selection.m_endPosition;
+	}
+
+	bool TextEditor::Deselect()
+	{
+		if (m_selection.IsEmpty())
+		{
+			return false;
+		}
+		m_selection.Reset(m_selection.m_endPosition);
+		
+		return true;
+	}
+
+	bool TextEditor::SelectAll()
+	{
+		if (m_lines.empty())
+		{
+			return false;
+		}
+		m_selection.m_startPosition = { 0, 0 };
+		m_selection.m_endPosition = { m_lines.size() - 1, m_lines.back().size() };
+    
+		AdjustView();
+		return true;
+	}
+
+	void TextEditor::LoadFile(const std::string& path)
+	{
+		std::ifstream file(path, std::ios::binary);
+		if (!file.is_open())
+		{
+			return;
+		}
+
+		std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    
+		std::string_view view(content);
+		if (view.size() >= 3 && static_cast<unsigned char>(view[0]) == 0xEF && static_cast<unsigned char>(view[1]) == 0xBB && static_cast<unsigned char>(view[2]) == 0xBF)
+		{
+			view.remove_prefix(3);
+		}
+
+		std::wstring wContent = StringUtils::UTF8ToWide(std::string(view));
+
+		m_lines.clear();
+		std::size_t start = 0, end;
+		while ((end = wContent.find_first_of(L"\r\n", start)) != std::wstring::npos)
+		{
+			m_lines.push_back(wContent.substr(start, end - start));
+			if (wContent[end] == L'\r' && end + 1 < wContent.size() && wContent[end + 1] == L'\n')
+			{
+				start = end + 2;
+			}
+			else
+			{
+				start = end + 1;
+			}
+		}
+		m_lines.push_back(wContent.substr(start));
+
+		RecomputeWordWrap();
+		m_selection.Reset({ 0, 0 });
+	}
+
+	void TextEditor::SaveFile(const std::string& path) const
+	{
+		std::wstring fullContent;
+		for (size_t i = 0; i < m_lines.size(); ++i)
+		{
+			fullContent += m_lines[i];
+			if (i < m_lines.size() - 1)
+			{
+				fullContent += L"\r\n";
+			}
+		}
+
+		std::string utf8Content = StringUtils::WideToUTF8(fullContent);
+
+		std::ofstream file(path, std::ios::binary);
+		file.write(utf8Content.c_str(), utf8Content.size());
+	}
+
 	void TextEditor::ActivateCaret()
 	{
 		auto& currentLine = m_lines[m_selection.m_endPosition.line];
 		auto extent = m_graphics.GetTextExtent(currentLine.substr(0, m_selection.m_endPosition.column));
-    
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		
 		Point caretPos;
-		caretPos.X = static_cast<int>(extent.Width) + m_offsetView.X;
-		caretPos.Y = static_cast<int>(m_selection.m_endPosition.line * GetLineHeight()) + m_offsetView.Y;
+		caretPos.X = static_cast<int>(extent.Width) + currentOffset.X;
+		caretPos.Y = static_cast<int>(m_selection.m_endPosition.line * GetLineHeight()) + currentOffset.Y;
 		
 		m_caret->SetPosition(caretPos);
 		m_caret->Activate();
@@ -410,6 +751,7 @@ namespace Berta
 		}
 		m_selection.m_startPosition = position;
 		
+		UpdateScrollMetrics();
 		AdjustView();
 		EmitValueChanged();
 	}
@@ -450,7 +792,8 @@ namespace Berta
 		const auto& targetVl = m_visualLines[targetVlIdx];
 
 		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
-		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + m_offsetView.X);
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + currentOffset.X);
 
 		EnsureLayout(targetVl);
     
@@ -681,10 +1024,10 @@ namespace Berta
 		}
 		//binary search
 		const auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), position.line,
-			[](const VisualLine& vl, size_t lineIdx)
-			{
-				return vl.logicalLineIndex < lineIdx;
-			});
+		                                 [](const VisualLine& vl, size_t lineIdx)
+		                                 {
+			                                 return vl.logicalLineIndex < lineIdx;
+		                                 });
 		
 		if (it == m_visualLines.end() || it->logicalLineIndex != position.line)
 		{
@@ -700,7 +1043,7 @@ namespace Berta
 				break;
 			}
 			if (position.column >= m_visualLines[i].charStart && 
-						position.column < m_visualLines[i].charStart + m_visualLines[i].charLength)
+				position.column < m_visualLines[i].charStart + m_visualLines[i].charLength)
 			{
 				return i;
 			}
@@ -722,358 +1065,6 @@ namespace Berta
 		return m_graphics.GetTextExtent("Ay").Height;
 	}
 
-	std::wstring TextEditor::GetContent() const
-	{
-		if (m_lines.empty())
-		{
-			return L"";
-		}
-		std::wstring content = m_lines[0];
-		for (size_t i = 1; i < m_lines.size(); ++i)
-		{
-			content += L"\r\n" + m_lines[i];
-		}
-		return content;
-	}
-
-	void TextEditor::SetContent(const std::wstring& newContent)
-	{
-		m_lines.clear();
-		if (newContent.empty())
-		{
-			m_lines.emplace_back(L"");
-		}
-		else
-		{
-			std::size_t start = 0, end;
-			while ((end = newContent.find(L'\n', start)) != std::wstring::npos)
-			{
-				std::wstring line = newContent.substr(start, end - start);
-				
-				if (!line.empty() && line.back() == L'\r')
-				{
-					line.pop_back();
-				}
-				m_lines.emplace_back(line);
-				start = end + 1;
-			}
-			m_lines.emplace_back(newContent.substr(start));
-		}
-
-		m_selection.Reset({ 0, 0 });
-		m_offsetView = {0, 0};
-    
-		RecomputeWordWrap();
-	}
-
-	void TextEditor::SetContent(const std::string& newContent)
-	{
-		SetContent(StringUtils::UTF8ToWide(newContent));
-	}
-
-	std::wstring TextEditor::GetSelectedText() const
-	{
-		TextPosition start = m_selection.Min();
-		TextPosition end = m_selection.Max();
-
-		if (start == end)
-		{
-			return L"";
-		}
-		
-		std::wstring result;
-		for (size_t i = start.line; i <= end.line; ++i)
-		{
-			std::wstring_view lineView = m_lines[i];
-			size_t startCol = (i == start.line) ? start.column : 0;
-			size_t endCol = (i == end.line) ? end.column : lineView.size();
-
-			result += lineView.substr(startCol, endCol - startCol);
-
-			if (i < end.line)
-			{
-				result += L"\r\n";
-			}
-		}
-		return result;
-	}
-
-	void TextEditor::Copy()
-	{
-		std::wstring selectedText = GetSelectedText();
-		if (!selectedText.empty())
-		{
-			return;
-		}
-		Platform::SetClipboardText(selectedText, m_owner->RootHandle);
-	}
-
-	void TextEditor::Cut()
-	{
-		if (m_selection.m_startPosition == m_selection.m_endPosition)
-		{
-			return;
-		}
-		Copy();
-		DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
-	}
-
-	void TextEditor::Paste()
-	{
-		std::wstring clipboardText;
-		if (!Platform::GetClipboardText(clipboardText) || clipboardText.empty())
-		{
-			return;
-		}
-
-		if (m_selection.m_startPosition != m_selection.m_endPosition)
-		{
-			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
-		}
-
-		TextPosition pos = m_selection.m_endPosition;
-    
-		std::vector<std::wstring> newLines;
-		size_t start = 0, end;
-		while ((end = clipboardText.find(L"\r\n", start)) != std::wstring::npos)
-		{
-			newLines.emplace_back(clipboardText.substr(start, end - start));
-			start = end + 2;
-		}
-		newLines.emplace_back(clipboardText.substr(start));
-
-		if (newLines.size() == 1)
-		{
-			m_lines[pos.line].insert(pos.column, newLines[0]);
-			pos.column += newLines[0].size();
-		}
-		else
-		{
-			std::wstring currentLine = m_lines[pos.line];
-			std::wstring prefix = currentLine.substr(0, pos.column);
-			std::wstring suffix = currentLine.substr(pos.column);
-
-			m_lines[pos.line] = prefix + newLines[0];
-        
-			m_lines.insert(m_lines.begin() + pos.line + 1, newLines.begin() + 1, newLines.end());
-			
-			pos.line += newLines.size() - 1;
-			pos.column = newLines.back().size();
-			m_lines[pos.line] += suffix;
-		}
-
-		RecomputeWordWrap();
-		m_selection.Reset(pos);
-		AdjustView();
-	}
-
-	void TextEditor::SetEditorArea(const Rectangle& area)
-	{
-		m_editorArea = area;
-	}
-
-	void TextEditor::Render()
-	{
-		bool enabled = GUI::IsWindowEnabled(m_owner);
-		m_graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
-		
-		auto lineHeight = GetLineHeight();
-		int viewportTop = m_offsetView.Y;
-		int viewportBottom = m_offsetView.Y + static_cast<int>(m_editorArea.Height);
-
-		size_t firstLineIndex = GetFirstVisibleVisualLine();
-		
-		auto one = m_owner->ToScale(1);
-		auto two = m_owner->ToScale(2);
-		
-		TextPosition startPosition = m_selection.Min();
-		TextPosition endPosition = m_selection.Max();
-		
-		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
-		{
-			const auto& vl = m_visualLines[i];
-			const int vlPosY = static_cast<int>(vl.y);
-			if (vlPosY > viewportBottom)
-			{
-				break; 
-			}
-			
-			const int drawX = -m_offsetView.X;
-			const int drawY = vlPosY - viewportTop + m_editorArea.Y;
-			if (drawY + static_cast<int>(lineHeight) < m_editorArea.Y || drawY > static_cast<int>(m_editorArea.Height) + m_editorArea.Y)
-			{
-				continue;
-			}
-			
-			std::wstring_view fragment = std::wstring_view(m_lines[vl.logicalLineIndex]).substr(vl.charStart, vl.charLength);
-			
-			if (startPosition != endPosition && vl.logicalLineIndex >= startPosition.line && vl.logicalLineIndex <= endPosition.line)
-			{
-				size_t selStartInV = (vl.logicalLineIndex == startPosition.line) ? (std::max)(vl.charStart, startPosition.column) : vl.charStart;
-				size_t selEndInV = (vl.logicalLineIndex == endPosition.line) ? (std::min)(vl.charStart + vl.charLength, endPosition.column) : (vl.charStart + vl.charLength);
-
-				if (selStartInV < selEndInV)
-				{
-					auto x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
-					auto w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
-					m_graphics.FillRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128));
-				}
-			}
-			EnsureLayout(vl);
-			if (vl.m_textHandle)
-			{
-				m_graphics.DrawTextLayout(vl.m_textHandle, { drawX + m_editorArea.X, drawY + m_editorArea.Y }, m_owner->Appearance->Foreground);
-			}
-			//m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
-			
-			//Caret
-			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
-				m_selection.m_endPosition.column >= vl.charStart && 
-				m_selection.m_endPosition.column <= vl.charStart + vl.charLength)
-			{
-				auto caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
-				m_caret->SetPosition({ drawX + static_cast<int>(caretX), drawY });
-			}
-		}
-		
-		if (m_caret->IsVisible())
-		{
-			auto caretHeight= m_graphics.GetCaretHeight();
-			m_graphics.DrawLine({ m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y }, { m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
-		}
-		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
-	}
-
-	bool TextEditor::IsEditable() const
-	{
-		return m_features.isEditable;
-	}
-
-	void TextEditor::SetEditable(bool isEditable)
-	{
-		m_features.isEditable = isEditable;
-	}
-
-	void TextEditor::SetMultiline(bool enable)
-	{
-		if (m_features.isMultiLines == enable)
-		{
-			return;
-		}
-		
-		m_features.isMultiLines = enable;
-		for(auto& vl : m_visualLines)
-		{
-			vl.m_textHandle.Release();
-		}
-		RecomputeWordWrap();
-	}
-
-	void TextEditor::SetWordWrap(bool enabled)
-	{
-		if (m_features.wordWrap == enabled)
-		{
-			return;
-		}
-		
-		m_features.wordWrap = enabled;
-		for(auto& vl : m_visualLines)
-		{
-			vl.m_textHandle.Release();
-		}
-		RecomputeWordWrap();
-	}
-
-	void TextEditor::SetCharFilter(std::function<bool(wchar_t)> predicate)
-	{
-		m_predicate = std::move(predicate);
-	}
-
-	TextPosition TextEditor::GetEndPosition() const
-	{
-		return m_selection.m_endPosition;
-	}
-
-	bool TextEditor::Deselect()
-	{
-		if (m_selection.IsEmpty())
-		{
-			return false;
-		}
-		m_selection.Reset(m_selection.m_endPosition);
-		
-		return true;
-	}
-
-	bool TextEditor::SelectAll()
-	{
-		if (m_lines.empty())
-		{
-			return false;
-		}
-		m_selection.m_startPosition = { 0, 0 };
-		m_selection.m_endPosition = { m_lines.size() - 1, m_lines.back().size() };
-    
-		AdjustView();
-		return true;
-	}
-
-	void TextEditor::LoadFile(const std::string& path)
-	{
-		std::ifstream file(path, std::ios::binary);
-		if (!file.is_open())
-		{
-			return;
-		}
-
-		std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    
-		std::string_view view(content);
-		if (view.size() >= 3 && static_cast<unsigned char>(view[0]) == 0xEF && static_cast<unsigned char>(view[1]) == 0xBB && static_cast<unsigned char>(view[2]) == 0xBF)
-		{
-			view.remove_prefix(3);
-		}
-
-		std::wstring wContent = StringUtils::UTF8ToWide(std::string(view));
-
-		m_lines.clear();
-		std::size_t start = 0, end;
-		while ((end = wContent.find_first_of(L"\r\n", start)) != std::wstring::npos)
-		{
-			m_lines.push_back(wContent.substr(start, end - start));
-			if (wContent[end] == L'\r' && end + 1 < wContent.size() && wContent[end + 1] == L'\n')
-			{
-				start = end + 2;
-			}
-			else
-			{
-				start = end + 1;
-			}
-		}
-		m_lines.push_back(wContent.substr(start));
-
-		RecomputeWordWrap();
-		m_selection.Reset({ 0, 0 });
-	}
-
-	void TextEditor::SaveFile(const std::string& path) const
-	{
-		std::wstring fullContent;
-		for (size_t i = 0; i < m_lines.size(); ++i)
-		{
-			fullContent += m_lines[i];
-			if (i < m_lines.size() - 1)
-			{
-				fullContent += L"\r\n";
-			}
-		}
-
-		std::string utf8Content = StringUtils::WideToUTF8(fullContent);
-
-		std::ofstream file(path, std::ios::binary);
-		file.write(utf8Content.c_str(), utf8Content.size());
-	}
-
 	void TextEditor::AdjustView()
 	{
 		auto viewHeight = static_cast<int>(m_editorArea.Height);
@@ -1084,6 +1075,7 @@ namespace Berta
 		{
 			return;
 		}
+		auto currentOffset = m_scrollableView->GetScrollOffset();
 		
 		const auto& vl = m_visualLines[vIdx];
 		if (m_features.wordWrap || m_features.isMultiLines)
@@ -1091,18 +1083,18 @@ namespace Berta
 			auto lineHeight = static_cast<int>(GetLineHeight());
 			int caretY = static_cast<int>(vl.y);
 			
-			if (caretY + lineHeight - m_offsetView.Y > viewHeight)
+			if (caretY + lineHeight - currentOffset.Y > viewHeight)
 			{
-				m_offsetView.Y = caretY + lineHeight - viewHeight;
+				currentOffset.Y = caretY + lineHeight - viewHeight;
 			}
-			else if (caretY - m_offsetView.Y < 0)
+			else if (caretY - currentOffset.Y < 0)
 			{
-				m_offsetView.Y = caretY;
+				currentOffset.Y = caretY;
 			}
 		}
 		else
 		{
-			m_offsetView.Y = 0;
+			currentOffset.Y = 0;
 		}
 		
 		if (!m_features.wordWrap)
@@ -1110,19 +1102,22 @@ namespace Berta
 			std::wstring textToCaret = m_lines[vl.logicalLineIndex].substr(vl.charStart, m_selection.m_endPosition.column - vl.charStart);
 			int caretX = static_cast<int>(m_graphics.GetTextExtent(textToCaret).Width);
 
-			if (caretX > m_offsetView.X + viewWidth)
+			if (caretX > currentOffset.X + viewWidth)
 			{
-				m_offsetView.X = caretX - viewWidth;
+				currentOffset.X = caretX - viewWidth;
 			}
-			else if (caretX - m_offsetView.X < 0)
+			else if (caretX - currentOffset.X < 0)
 			{
-				m_offsetView.X = caretX;
+				currentOffset.X = caretX;
 			}
 		}
 		else
 		{
-			m_offsetView.X = 0;
+			currentOffset.X = 0;
 		}
+		
+		m_scrollableView->SetScrollToX(currentOffset.X);
+		m_scrollableView->SetScrollToY(currentOffset.Y);
 	}
 
 	TextPosition TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
@@ -1131,14 +1126,14 @@ namespace Berta
 		{
 			return { 0, 0 };
 		}
-		
-		int relativeY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		int relativeY = mousePosition.Y - m_editorArea.Y + currentOffset.Y;
 		auto lineHeight = GetLineHeight();
 		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), relativeY,
-			[lineHeight](const VisualLine& vl, int y)
-			{
-				return static_cast<int>(vl.y) + static_cast<int>(lineHeight) < y;
-			});
+		                           [lineHeight](const VisualLine& vl, int y)
+		                           {
+			                           return static_cast<int>(vl.y) + static_cast<int>(lineHeight) < y;
+		                           });
 		
 		if (it == m_visualLines.end())
 		{
@@ -1146,7 +1141,7 @@ namespace Berta
 		}
 #ifdef BT_PLATFORM_WINDOWS
 		const auto& vl = *it;
-		float localX = static_cast<float>(mousePosition.X - m_editorArea.X + m_offsetView.X);
+		float localX = static_cast<float>(mousePosition.X - m_editorArea.X + currentOffset.X);
 		float localY = static_cast<float>(relativeY - vl.y);
 
 		EnsureLayout(vl);
@@ -1342,7 +1337,7 @@ namespace Berta
 	{
 		size_t vlIdx = GetVisualLineIndexFromPos(pos);
 		const auto& vl = m_visualLines[vlIdx];
-		
+		auto currentOffset = m_scrollableView->GetScrollOffset();
 		EnsureLayout(vl);
 
 		float localX = 0.0f;
@@ -1365,8 +1360,8 @@ namespace Berta
 #endif
 		}
 
-		int x = m_editorArea.X - m_offsetView.X + static_cast<int>(localX);
-		int y = m_editorArea.Y - m_offsetView.Y + static_cast<int>(vl.y);
+		int x = m_editorArea.X - currentOffset.X + static_cast<int>(localX);
+		int y = m_editorArea.Y - currentOffset.Y + static_cast<int>(vl.y);
 
 		return { x, y };
 	}
@@ -1393,6 +1388,7 @@ namespace Berta
 		{
 			m_cachedMaxWidth = m_editorArea.Width;
 		}
+		UpdateScrollMetrics();
 	}
 
 	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList)
@@ -1480,25 +1476,25 @@ namespace Berta
 
 		// (O(log N))
 		auto itStart = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), startLine,
-		[](const VisualLine& vl, size_t idx)
-		{
-			return vl.logicalLineIndex < idx;
-		});
+		                                [](const VisualLine& vl, size_t idx)
+		                                {
+			                                return vl.logicalLineIndex < idx;
+		                                });
 
 		size_t visualStartIndex = std::distance(m_visualLines.begin(), itStart);
 
 		size_t affectedEndLine = startLine + (lineCountDelta < 0 ? -lineCountDelta : 0);
 		auto itEnd = std::lower_bound(itStart, m_visualLines.end(), affectedEndLine + 1,
-			[](const VisualLine& vl, size_t idx)
-			{
-				return vl.logicalLineIndex < idx;
-			});
+		                              [](const VisualLine& vl, size_t idx)
+		                              {
+			                              return vl.logicalLineIndex < idx;
+		                              });
 
 		uint32_t originalYStart = (itStart != m_visualLines.end()) ? itStart->y : 
-								   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+			                          (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
     
 		uint32_t nextLineYBefore = (itEnd != m_visualLines.end()) ? itEnd->y : 
-									(m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+			                           (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
 
 		m_visualLines.erase(itStart, itEnd);
 
@@ -1528,11 +1524,12 @@ namespace Berta
 		{
 			return 0;
 		}
-		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), m_offsetView.Y,
-			[this](const VisualLine& vl, int scrollY)
-			{
-				return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
-			});
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), currentOffset.Y,
+		                           [this](const VisualLine& vl, int scrollY)
+		                           {
+			                           return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
+		                           });
 
 		if (it == m_visualLines.end())
 		{
@@ -1630,5 +1627,24 @@ namespace Berta
 			totalWidth += GetCharWidthW(c);
 		}
 		return totalWidth;
+	}
+
+	void TextEditor::UpdateScrollMetrics()
+	{
+		if (!m_scrollableView) return;
+
+		Size contentSize = GetContentTextExtent();
+
+		// Lógica Word Wrap
+		// Si el ajuste de líneas está activo, anclamos el ancho del contenido al 
+		// ancho del área de edición para evitar el scroll horizontal.
+		if (m_features.wordWrap)
+		{
+			contentSize.Width = m_editorArea.Width;
+		}
+
+		// Sincronizamos las dimensiones con nuestro gestor de scroll
+		m_scrollableView->SetViewRect(m_editorArea);
+		m_scrollableView->SetContentSize(contentSize);
 	}
 }

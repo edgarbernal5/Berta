@@ -9,19 +9,20 @@
 
 #include <string>
 #include <functional>
+#include <memory>
 
 #include "Berta/Controls/TextEditors/TextEditorBase.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"
-//#include "Berta/GUI/Caret.h"
+#include "Berta/GUI/Caret.h"
 #include "Berta/Core/Timer.h"
+#include "Berta/GUI/ScrollableView.h"
 
 namespace Berta
 {
 	constexpr int TEXT_EDITOR_SCROLL_SPEED = 20;
 	
 	struct Window;
-	class Caret;
 
 	class TextEditor
 	{
@@ -30,7 +31,7 @@ namespace Berta
 
 	public:
 		TextEditor(Window* owner, Graphics* graphics);
-		~TextEditor();
+		~TextEditor() = default;
 		
 		void OnMouseEnter(const ArgMouse& args);
 		void OnMouseLeave(const ArgMouse& args);
@@ -126,7 +127,7 @@ namespace Berta
 		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
 		Point GetPointFromPosition(TextPosition pos) const;
 		
-		Size GetContentTextExtent() const;
+		[[nodiscard]] Size GetContentTextExtent() const;
 		
 		void RecomputeWordWrap();
 		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList);
@@ -143,7 +144,7 @@ namespace Berta
 		uint32_t GetCharWidthW(wchar_t c);
 		uint32_t GetStringWidth(std::wstring_view text);
 		void ClearFontCache() { m_charWidthCache.clear(); }
-
+		void UpdateScrollMetrics();
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
 		std::unordered_map<wchar_t, uint32_t> m_charWidthCache; //TODO: mover esto a una clase
@@ -152,7 +153,8 @@ namespace Berta
 		Rectangle m_editorArea;
 		
 		Graphics& m_graphics;
-		Point m_offsetView{ 0, 0 };
+		std::unique_ptr<ScrollableView> m_scrollableView;
+		std::unique_ptr<Caret> m_caret;
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };
 		bool m_wasDblClick{ false };
@@ -162,7 +164,6 @@ namespace Berta
 		Timer m_selectionTimer;
 		Point m_selectionDirection{ 0,0 };
 		uint32_t m_cachedMaxWidth { 0 };
-		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
 		
 		TextEditorCallback m_valueChangedCallback;
