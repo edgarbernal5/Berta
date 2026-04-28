@@ -775,20 +775,21 @@ namespace Berta
 							propArea.X += labelWidth;
 							propArea.Width -= labelWidth;
 							
-							graphics.DrawLine({ propArea.X, rect.Y }, { propArea.X, rect.Y + (int)rect.Height - 1 }, separatorColor);
+							//graphics.DrawLine({ propArea.X, rect.Y }, { propArea.X, rect.Y + (int)rect.Height - 1 }, separatorColor);
 							
-							auto splitterWidth = m_owner->ToScale(1);
-							propArea.X += splitterWidth;
-							propArea.Width -= splitterWidth;
+							//auto splitterWidth = m_owner->ToScale(1);
+							//propArea.X += splitterWidth;
+							//propArea.Width -= splitterWidth;
 						}
-						propArea.X += 2;
-						propArea.Y += 2;
-						propArea.Width -= 4;
-						propArea.Height -= 4;
+						Rectangle paddedRect = propArea;
+						paddedRect.X += 2;
+						paddedRect.Y += 2;
+						paddedRect.Width -= 4;
+						paddedRect.Height -= 4;
 						//int splitterX = rect.Width * 0.4f;
 						//Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
 						
-						prop->field->Draw(graphics, propArea, *appearance);
+						prop->field->Draw(graphics, paddedRect, *appearance);
 						
 						graphics.DrawLine({ rect.X, rect.Y + (int)rect.Height - 1 }, { rect.X + (int)rect.Width, rect.Y + (int)rect.Height - 1 }, separatorColor);
 					}
