@@ -577,11 +577,11 @@ namespace Berta
 					rect->bottom - rect->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 				
-				ArgResize argResize;
+				/*ArgResize argResize;
 				argResize.NewSize.Width = rect->right - rect->left;
 				argResize.NewSize.Height = rect->bottom - rect->top;
 				foundation.ProcessEvents<ArgResize>(nativeWindow, nullptr, &ControlEvents::Resize, argResize);
-				
+				*/
 				API::RefreshWindow(nativeWindowHandle, true);
 				wasHandled = false;
 				break;

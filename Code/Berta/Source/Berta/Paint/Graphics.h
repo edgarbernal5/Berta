@@ -8,6 +8,7 @@
 #define BT_GRAPHICS_HEADER
 
 #include <memory>
+#include <stack>
 #include <string_view>
 
 #include "Berta/Core/BasicTypes.h"
@@ -119,6 +120,9 @@ namespace Berta
 		void SetTransform(const Rectangle& area);
 		void SetClipping(const Rectangle& area) const;
 		void EndClipping();
+		
+		void PushTranslation(int x, int y);
+		void PopTranslation();
 
 		void Swap(Graphics& other);
 		void Release();
@@ -154,7 +158,10 @@ namespace Berta
 		ID2D1PathGeometry* CreateTopRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
 		ID2D1PathGeometry* CreateBottomRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
 		
+		std::stack<D2D1_MATRIX_3X2_F> m_transformStack;
+		
 		ID2D1RenderTarget* m_targetRT{ nullptr };
+		
 		ResourceCache m_resourceCache;
 #endif
 	};

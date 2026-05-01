@@ -12,19 +12,11 @@
 
 namespace Berta
 {
-	struct ScrollMetrics
+	enum class ScrollBarVisibility : uint8_t
 	{
-		Size contentSize;
-		Size viewportSize;
-		Point currentOffset;
-	};
-	
-	class IScrollable
-	{
-	public:
-		virtual ~IScrollable() = default;
-		virtual ScrollMetrics GetScrollMetrics() const = 0;
-		virtual void OnScrollCallback(const Point& newOffset) = 0;
+		Auto,
+		Visible,
+		Hidden
 	};
 	
 	class ScrollableView
@@ -42,11 +34,12 @@ namespace Berta
 		
 		void SetScrollStep(int vertical, int horizontal);
 		void SetOnScrollChange(OnScrollCallback callback);
+		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
 		
 		void CalculateViewport();
 		void HandleMouseWheel(const ArgWheel& args);
         
-		bool EnsureVisibility(const Rectangle& targetBounds) const; 
+		bool EnsureVisibility(const Rectangle& targetBounds); 
 		
 		Rectangle GetClientArea() const { return m_viewportRect; } 
 		Rectangle GetVisibleRect() const; 
@@ -58,10 +51,10 @@ namespace Berta
 		
 		bool HasVerticalScroll() const { return m_scrollBarVert != nullptr; }
 		bool HasHorizontalScroll() const  { return m_scrollBarHoriz != nullptr; }
+		
 	private:
 		void UpdateScrollBars();
-		void UpdateVerticalScrollBar();
-		void UpdateHorizontalScrollBar();
+		bool UpdateScrollBarInstance(bool isVertical, bool contentExceeds);
 		void NotifyChange() const;
 		
 		Window* m_owner; 
@@ -76,9 +69,9 @@ namespace Berta
 		Point m_scrollOffset{ 0, 0 };
 		Size m_scrollStep{ 20, 20 }; 
 
-		bool m_needVerticalScroll{ false };
-		bool m_needHorizontalScroll{ false };
-
+		ScrollBarVisibility m_vVisibility{ ScrollBarVisibility::Auto };
+		ScrollBarVisibility m_hVisibility{ ScrollBarVisibility::Auto };
+		
 		std::unique_ptr<ScrollBar> m_scrollBarVert;
 		std::unique_ptr<ScrollBar> m_scrollBarHoriz;
 	};

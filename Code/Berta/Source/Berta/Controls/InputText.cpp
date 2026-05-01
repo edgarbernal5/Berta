@@ -260,6 +260,15 @@ namespace Berta
 		}
 	}
 
+	void InputText::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetScrollBarVisibility(vertical, horizontal);
+		}
+	}
+
 	void InputText::DoOnCaption(const std::wstring& caption)
 	{
 		auto editor = GetReactor().GetEditor();
