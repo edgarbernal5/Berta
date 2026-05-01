@@ -87,6 +87,7 @@ namespace Berta
 
 		void SetFocusBehavior(TextFocusBehavior behavior);
 		
+		void SetScrollBarVisibility(ScrollBarVisibility both);
 		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;

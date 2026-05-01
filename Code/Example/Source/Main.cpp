@@ -436,6 +436,7 @@ int main()
 	
 	std::wstring textLong = L"Hola. Este es un texto muy largo que probaré durante el desarrollo de un editor de texto que estoy creando junto a GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. No tengo más nada que decir, pero escribiré muchas cosas con acentos y un texto largo vacío sin sentido solo para alcanzar el máximo de caracteres posibles de Mercadolibre y dejar una buena impresión sin impresora. Gracias";
 	Berta::InputText inputText(form, { 110,28,200,25 });
+	inputText.SetScrollBarVisibility(Berta::ScrollBarVisibility::Hidden);
 	inputText.SetCaption(textLong);
 	inputText.GetEvents().TextChanged.Connect([&inputText](const Berta::ArgTextChanged& args)
 		{

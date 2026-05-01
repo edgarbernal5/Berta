@@ -260,6 +260,15 @@ namespace Berta
 		}
 	}
 
+	void InputText::SetScrollBarVisibility(ScrollBarVisibility both)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetScrollBarVisibility(both, both);
+		}
+	}
+
 	void InputText::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
 	{
 		auto editor = GetReactor().GetEditor();
