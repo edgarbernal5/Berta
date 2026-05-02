@@ -150,16 +150,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
+    <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\Appearance.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringNumber.h" />
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridLayout.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridModel.h" />
     <ClInclude Include="Source\Berta\Core\ObjectPool.h" />
     <ClInclude Include="Source\Berta\Core\ScopedTimer.h" />
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
@@ -192,7 +195,7 @@
     <ClInclude Include="Source\Berta\Controls\ComboBox.h" />
     <ClInclude Include="Source\Berta\Controls\Floating\FloatBox.h" />
     <ClInclude Include="Source\Berta\GUI\Caret.h" />
-    <ClInclude Include="Source\Berta\Controls\InputText.h" />
+    <ClInclude Include="Source\Berta\Controls\TextBox.h" />
     <ClInclude Include="Source\Berta\Core\Colors.h" />
     <ClInclude Include="Source\Berta\Core\Event.h" />
     <ClInclude Include="Source\Berta\Core\Timer.h" />
@@ -236,12 +239,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Checking\CheckBoxHelpers.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp" />
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.cpp" />
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridLayout.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridModel.cpp" />
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />
     <ClCompile Include="Source\Berta\API\PaintAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
@@ -250,7 +255,7 @@
     <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
-    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp"/>
+    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp" />
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp" />
@@ -271,7 +276,7 @@
     <ClCompile Include="Source\Berta\Controls\MenuBar.cpp" />
     <ClCompile Include="Source\Berta\Controls\ScrollBar.cpp" />
     <ClCompile Include="Source\Berta\GUI\Caret.cpp" />
-    <ClCompile Include="Source\Berta\Controls\InputText.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextBox.cpp" />
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />
     <ClCompile Include="Source\Berta\Core\Timer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />

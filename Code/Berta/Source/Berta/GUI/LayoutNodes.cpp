@@ -622,7 +622,7 @@ namespace Berta
 	void DockAreaCaptionReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 		auto window = m_control->Handle();
-		auto buttonSize = window->ToScale(DockAreaCaptionButtonSize);
+		auto buttonSize = window->ToScale(DOCK_AREA_CAPTION_BUTTON_SIZE);
 		auto offsetY = ((int)args.NewSize.Height - buttonSize) >> 1;
 
 		auto two = window->ToScale(2);

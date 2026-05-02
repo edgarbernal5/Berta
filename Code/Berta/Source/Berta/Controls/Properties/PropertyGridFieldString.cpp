@@ -11,84 +11,131 @@
 
 namespace Berta
 {
-	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+		m_textBox.SetArea(area);
+	}
 
-		Rectangle valueRect = area;
+	void PropertyGridFieldString::SetFocus()
+	{
+		m_textBox.Focus();
+	}
 
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
-
-		if (valueRect.Width == 0)
+	void PropertyGridFieldString::Refresh()
+	{
+		if (!m_getter)
+		{
 			return;
-
-		valueRect.X = 0;
-		valueRect.Y = 0;
-		m_inputText.SetArea(valueRect);
-		m_inputText.Show();
+		}
+		
+		std::optional<std::string> currentOpt = m_getter();
+		if (currentOpt.has_value())
+		{
+			if (m_textBox.GetCaption() != currentOpt.value())
+			{
+				m_textBox.SetCaption(currentOpt.value());
+			}
+		}
+		else
+		{
+			if (m_textBox.GetCaption() != "---")
+			{
+				m_textBox.SetCaption("---");
+			}
+		}
 	}
 
-	void PropertyGridFieldString::SetEnabled(bool enabled)
+	std::string PropertyGridFieldString::GetValueAsString() const
 	{
-		PropertyGridFieldBase::SetEnabled(enabled);
-		m_inputText.SetEnabled(enabled);
+		if (m_getter)
+		{
+			std::optional<std::string> currentOpt = m_getter();
+			return currentOpt.has_value() ? currentOpt.value() : "---";
+		}
+		return "";
 	}
-
-	void PropertyGridFieldString::SetValue(const std::string& value)
-	{
-		PropertyGridFieldBase::SetValue(value);
-		m_inputText.SetCaption(value);
-	}
-
+	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
 	{
-		m_inputText.SetEditable(isEditable);
+		m_textBox.SetEditable(isEditable);
 	}
 
 	bool PropertyGridFieldString::IsEditable() const
 	{
-		return m_inputText.IsEditable();
+		return m_textBox.IsEditable();
 	}
 
 	void PropertyGridFieldString::SetCharFilter(std::function<bool(wchar_t)> predicate)
 	{
-		m_inputText.SetCharFilter(predicate);
+		m_textBox.SetCharFilter(predicate);
 	}
 
-	void PropertyGridFieldString::Create(Window* parent)
+	void PropertyGridFieldString::OnCreate(Window* parent)
 	{
-		m_inputText.Create(parent);
-		m_inputText.SetCaption(m_value);
-		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
-
-		m_inputText.GetEvents().Click.Connect([this](const ArgClick& args)
+		m_textBox.Create(parent);
+		m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+		m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
+		
+		Refresh();
+		
+		m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{
-				ScrollToView();
-			});
-
-		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
-			{
-				if (args.Key == KeyboardKey::Enter && m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
+				if (args.Key == KeyboardKey::Enter)
 				{
-					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
-					EmitEvent();
+					ApplyValue();
 				}
 			});
 
-		m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
 				if (args.Focused)
 				{
-					EmitSelectionEvent();
+					NotifySelected();
 					return;
 				}
 
-				if (m_inputText.GetCaption() != PropertyGridFieldBase::GetValue())
-				{
-					PropertyGridFieldBase::SetValue(m_inputText.GetCaption());
-					EmitEvent();
-				}
+				ApplyValue();
 			});
+	}
+
+	void PropertyGridFieldString::OnVisibilityChanged(bool visible)
+	{
+		if (visible)
+		{
+			m_textBox.Show();
+		}
+		else
+		{
+			m_textBox.Hide();
+		}
+	}
+
+	void PropertyGridFieldString::OnEnableChanged(bool enabled)
+	{
+		m_textBox.SetEnabled(enabled);
+	}
+
+	void PropertyGridFieldString::ApplyValue()
+	{
+		if (!m_setter || !m_getter)
+		{
+			return;
+		}
+
+		std::string uiValue = m_textBox.GetCaption();
+		std::optional<std::string> currentOpt = m_getter();
+
+		if (!currentOpt.has_value() && uiValue == "---") 
+		{
+			return;
+		}
+
+		if (!currentOpt.has_value() || currentOpt.value() != uiValue)
+		{
+			m_setter(uiValue);
+			NotifyValueChanged();
+		}
+
+		Refresh();
 	}
 }

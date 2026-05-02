@@ -9,17 +9,20 @@
 
 #include <string>
 #include <functional>
+#include <memory>
 
 #include "Berta/Controls/TextEditors/TextEditorBase.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"
-//#include "Berta/GUI/Caret.h"
+#include "Berta/GUI/Caret.h"
 #include "Berta/Core/Timer.h"
+#include "Berta/GUI/ScrollableView.h"
 
 namespace Berta
 {
+	constexpr int TEXT_EDITOR_SCROLL_SPEED = 20;
+	
 	struct Window;
-	class Caret;
 
 	class TextEditor
 	{
@@ -28,7 +31,7 @@ namespace Berta
 
 	public:
 		TextEditor(Window* owner, Graphics* graphics);
-		~TextEditor();
+		~TextEditor() = default;
 		
 		void OnMouseEnter(const ArgMouse& args);
 		void OnMouseLeave(const ArgMouse& args);
@@ -41,6 +44,7 @@ namespace Berta
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgMouse& args);
 		void OnResize(ArgResize args);
+		void OnDpiChanged();
 
 		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
 
@@ -49,13 +53,15 @@ namespace Berta
 		void SetContent(const std::string& newContent);
 		std::wstring GetSelectedText() const;
 		
-		void Copy();
 		void Cut();
+		void Copy() const;
 		void Paste();
 		
 		void SetEditorArea(const Rectangle& area);
 		void Render();
 
+		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
+		
 		bool IsEditable() const;
 		void SetEditable(bool isEditable);
 		
@@ -83,6 +89,13 @@ namespace Berta
 			bool isMultiLines{ false };
 			bool wordWrap{ false };
 		};
+		
+		enum class CharClass : uint8_t
+		{
+			Alphanumeric,
+			Whitespace,
+			Punctuation
+		};
 
 		struct Selection
 		{
@@ -98,10 +111,10 @@ namespace Berta
 			void Reset(TextPosition position) { m_startPosition = m_endPosition = position; }
 		};
 
-		void ActivateCaret();
-		void DeactivateCaret();
+		void ActivateCaret() const;
+		void DeactivateCaret() const;
 
-		void InsertChar(wchar_t chr);
+		void InsertChar(wchar_t wChr);
 
 		void MoveCaretHome(bool select);
 		void MoveCaretEnd(bool select);
@@ -115,41 +128,53 @@ namespace Berta
 		
 		void DeleteRange(TextPosition start, TextPosition end);
 		
+		void RenderVisibleLines();
+		void RenderCaret();
+		void RenderUIElements();
+		void DrawSelectionBackground(const VisualLine& vl) const;
+                                		
+		[[nodiscard]] std::pair<uint32_t, uint32_t> GetSelectionRangeForLine(const VisualLine& vl) const;
 		size_t GetVisualLineIndexFromPos(TextPosition position) const;
 		uint32_t GetLineHeight() const;
 		
-		void AdjustView();
+		void AdjustView() const;
 		TextPosition GetPositionUnderMouse(const Point& mousePosition) const;
 		TextPosition GetPositionNextWord(TextPosition currentPosition, int direction) const;
 		Point GetPointFromPosition(TextPosition pos) const;
+		void UpdateCaretPosition();
 		
-		Size GetContentTextExtent() const;
+		[[nodiscard]] Size GetContentTextExtent() const;
 		
 		void RecomputeWordWrap();
-		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList);
+		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth);
 		void UpdateLinesIncremental(size_t startLine, int lineCountDelta);
 		size_t GetFirstVisibleVisualLine() const;
 		
 		void EnsureLayout(const VisualLine& vl) const;
-		void InvalidateLayoutsForLogicalLine(size_t logicalIndex);
+		void InvalidateLayoutsForLogicalLine(size_t logicalIndex) const;
 		
 		void EmitValueChanged() const;
 		
 		Color GetBackgroundColor() const;
 		
-		uint32_t GetCharWidthW(wchar_t c);
-		uint32_t GetStringWidth(std::wstring_view text);
-		void ClearFontCache() { m_charWidthCache.clear(); }
-
+		void UpdateScrollMetrics() const;
+		void CommitDocumentChange();
+		
+		[[nodiscard]] Point ToEditorSpace(Point windowPoint) const;
+		[[nodiscard]] Point ToWindowSpace(Point editorPoint) const;
+		
+		[[nodiscard]] static CharClass GetCharClass(wchar_t c);
+		[[nodiscard]] std::pair<TextPosition, TextPosition> GetWordBounds(TextPosition pos) const;
+		
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
-		std::unordered_map<wchar_t, uint32_t> m_charWidthCache; //TODO: mover esto a una clase
 		
 		Selection m_selection;
 		Rectangle m_editorArea;
 		
 		Graphics& m_graphics;
-		Point m_offsetView{ 0, 0 };
+		std::unique_ptr<ScrollableView> m_scrollableView;
+		std::unique_ptr<Caret> m_caret;
 		bool m_shiftPressed{ false };
 		bool m_ctrlPressed{ false };
 		bool m_wasDblClick{ false };
@@ -159,7 +184,6 @@ namespace Berta
 		Timer m_selectionTimer;
 		Point m_selectionDirection{ 0,0 };
 		uint32_t m_cachedMaxWidth { 0 };
-		Caret* m_caret{ nullptr };
 		Window* m_owner{ nullptr };
 		
 		TextEditorCallback m_valueChangedCallback;

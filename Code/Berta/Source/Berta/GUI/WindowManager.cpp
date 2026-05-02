@@ -898,7 +898,15 @@ namespace Berta
 		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
 
 		window->Renderer.DpiChanged();
-
+		
+		/*if (window->IsNative() && window->RootHandle == nativeWindowHandle)
+		{
+			auto& foundation = Foundation::GetInstance();
+			ArgResize argResize;
+			argResize.NewSize = window->ClientSize;
+			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+		}*/
+		
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);

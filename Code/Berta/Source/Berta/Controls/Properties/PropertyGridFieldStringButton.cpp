@@ -11,61 +11,70 @@
 
 namespace Berta
 {
-	void PropertyGridFieldStringButton::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
+	void PropertyGridFieldStringButton::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		PropertyGridFieldBase::Draw(graphics, area, labelWidth, textColor);
+		int buttonWidth = m_parent->ToScale(24);
+		int margin = m_parent->ToScale(2);
 
-		Rectangle valueRect = area;
+		Rectangle inputArea = area;
+		inputArea.Width -= (buttonWidth + margin);
 
-		valueRect.X += static_cast<int>(labelWidth);
-		valueRect.Width -= labelWidth;
+		Rectangle buttonArea = area;
+		buttonArea.X += static_cast<int>(inputArea.Width) + margin;
+		buttonArea.Width = buttonWidth;
 
-		if (valueRect.Width == 0)
-			return;
-
-		valueRect.X = 0;
-		valueRect.Y = 0;
-		auto buttonSize = m_parent->ToScale(24);
-		auto margin = m_parent->ToScale(2);
-		valueRect.Width -= buttonSize + margin;
-
-		m_inputText.SetArea(valueRect);
-		m_inputText.Show();
-
-		valueRect.X += valueRect.Width + margin;
-		valueRect.Width = buttonSize;
-
-		m_button.SetArea(valueRect);
-		m_button.Show();
+		PropertyGridFieldString::Draw(graphics, inputArea, config);
+		
+		m_button.SetArea(buttonArea);
 	}
 
-	void PropertyGridFieldStringButton::SetEnabled(bool enabled)
-	{
-		PropertyGridFieldString::SetEnabled(enabled);
-		m_button.SetEnabled(enabled);
-	}
-
-	void PropertyGridFieldStringButton::SetButtonClick(std::function<void(PropertyGridFieldStringButton*)> callback)
+	void PropertyGridFieldStringButton::SetButtonClick(ClickCallback callback)
 	{
 		m_clickCallback = std::move(callback);
 	}
 
-	void PropertyGridFieldStringButton::Create(Window* parent)
+	void PropertyGridFieldStringButton::OnCreate(Window* parent)
 	{
-		PropertyGridFieldString::Create(parent);
+		PropertyGridFieldString::OnCreate(parent);
 
 		m_button.Create(parent);
 		m_button.SetCaption(m_buttonText);
 
 		m_button.GetEvents().Click.Connect([this](const ArgClick& args)
+		{
+			NotifySelected();
+			if (m_clickCallback && m_getter)
 			{
-				ScrollToView();
-				if (m_clickCallback)
+				std::optional<std::string> result = m_clickCallback(m_getter());
+				if (result.has_value() && m_setter) 
 				{
-					m_clickCallback(this);
+					//this->SetValue(result.value());
+					m_setter(result.value());
+					NotifyValueChanged();
+					Refresh();
 				}
-			});
+			}
+		});
 
-		m_button.MakeActive(false, m_inputText);
+		m_button.MakeActive(false, m_textBox);
+	}
+
+	void PropertyGridFieldStringButton::OnVisibilityChanged(bool visible)
+	{
+		PropertyGridFieldString::OnVisibilityChanged(visible);
+		if (visible)
+		{
+			m_button.Show();
+		}
+		else
+		{
+			m_button.Hide();
+		}
+	}
+	
+	void PropertyGridFieldStringButton::OnEnableChanged(bool enabled)
+	{
+		PropertyGridFieldString::OnEnableChanged(enabled);
+		m_button.SetEnabled(enabled);
 	}
 }

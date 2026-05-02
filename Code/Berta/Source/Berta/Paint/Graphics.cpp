@@ -365,18 +365,20 @@ namespace Berta
 		}
 		
 #ifdef BT_PLATFORM_WINDOWS
-		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
-		{
-			return;
-		}
 
-		D2D1_RECT_F d2dRect = validRectangle;
+		D2D1_RECT_F d2dRect = rect;
 		
 		auto fillBrush = m_resourceCache.GetBrush(fillColor);
 		if (fillBrush)
 		{
 			m_targetRT->FillRectangle(&d2dRect, fillBrush);
+		}
+#else
+		
+		Rectangle validRectangle;
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
+		{
+			return;
 		}
 #endif
 	}
@@ -389,14 +391,7 @@ namespace Berta
 		}
 		
 #ifdef BT_PLATFORM_WINDOWS
-
-		Rectangle validRectangle;
-		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
-		{
-			return;
-		}
-
-		D2D1_RECT_F d2dRect = validRectangle;
+		D2D1_RECT_F d2dRect = rect;
 		
 		auto borderBrush = m_resourceCache.GetBrush(borderColor);
 		auto solidBrush = m_resourceCache.GetBrush(solidColor);
@@ -413,6 +408,12 @@ namespace Berta
 			d2dRect.bottom -= 0.5f;
 
 			m_targetRT->DrawRectangle(&d2dRect, borderBrush, strokeWidth);
+		}
+#else
+		Rectangle validRectangle;
+		if (!LayoutUtils::GetIntersectionRect(GetSize().ToRectangle(), rect, validRectangle))
+		{
+			return;
 		}
 #endif
 	}
@@ -1226,4 +1227,32 @@ namespace Berta
 		m_targetRT->PopAxisAlignedClip();
 #endif
 	}
+
+	void Graphics::PushTranslation(int x, int y)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		D2D1_MATRIX_3X2_F currentTransform;
+		m_targetRT->GetTransform(&currentTransform);
+    
+		m_transformStack.push(currentTransform);
+
+		D2D1_MATRIX_3X2_F translation = D2D1::Matrix3x2F::Translation(
+			static_cast<float>(x), 
+			static_cast<float>(y)
+		);
+    
+		m_targetRT->SetTransform(translation * currentTransform);
+#endif
+	}
+
+	void Graphics::PopTranslation()
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (!m_transformStack.empty()) {
+			m_targetRT->SetTransform(m_transformStack.top());
+			m_transformStack.pop();
+		}
+#endif
+	}
+
 }

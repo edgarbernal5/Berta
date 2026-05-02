@@ -7,221 +7,317 @@
 #ifndef BT_PROPERTY_GRID_HEADER
 #define BT_PROPERTY_GRID_HEADER
 
+#include <deque>
+
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
-#include "Berta/Controls/Panel.h"
 #include "Berta/Paint/Image.h"
 
 #include <string>
 #include <vector>
 
+#include "Berta/GUI/ScrollableView.h"
+#include "Properties/PropertyGridFieldBase.h"
+
 namespace Berta
 {
 	namespace Internal::PropertyGrid
 	{
+		constexpr int PG_INDENT_PADDING = 10;
+		constexpr int PG_DRAG_THRESHOLD_SQ = 16;
+		
 		struct Events;
-		struct CategoryItem;
+		struct CategoryHandle;
 		struct Module;
-
-		struct Appearance : public ControlAppearance
-		{
-			uint32_t CategoryHeight = 22u;
-			uint32_t ExpanderButtonSize = 12u;
-		};
-
-		class PropertyGridFieldBase
-		{
+		
+		/*
+		 *TODO
+		using FieldCreator = std::function<std::unique_ptr<PropertyGridFieldBase>()>;
+		std::unordered_map<std::type_index, FieldCreator> m_fieldRegistry;
 		public:
-			friend struct CategoryItem;
-
-		public:
-			PropertyGridFieldBase() = default;
-			PropertyGridFieldBase(const std::string& label, const std::string& value = "") :
-				m_label(label), m_value(value), m_defaultValue(value)
-			{
-			}
-
-			virtual ~PropertyGridFieldBase() = default;
-
-			void Init(Window* parent);
-
-			virtual std::string GetLabel() const;
-			virtual void SetLabel(const std::string& label);
-
-			virtual std::string GetValue() const;
-			virtual void SetValue(const std::string& value);
-
-			virtual std::string GetDefaultValue() const;
-			virtual void SetDefaultValue(const std::string& value);
-
-			virtual bool IsEnabled() const;
-			virtual void SetEnabled(bool enabled);
-
-			virtual uint32_t GetSize() const
-			{
-				return m_parent->ToScale(m_size);
-			}
-
-			virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor);
-
-			void EmitEvent();
-			void EmitSelectionEvent();
-			void ScrollToView();
-			void Update();
-
-		protected:
-			virtual void Create(Window* parent) = 0;
-			virtual void DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor);
-			void SetModule(Module* m_module);
-
-			Window* m_parent{ nullptr };
-
-			std::string	m_label;
-			std::string	m_value;
-			std::string	m_defaultValue;
-
-			uint32_t m_size{ 24 };
-			bool m_enabled{ true };
-
-		private:
-			Module* m_module{ nullptr };
-		};
-
-		class FieldControlContainer : public Panel
+		template<typename T, typename FieldType>
+		void RegisterField() {
+			m_fieldRegistry[typeid(T)] = []() { return std::make_unique<FieldType>(); };
+		}
+		// En la inicialización de Berta:
+		grid.RegisterField<std::string, PropertyGridFieldString>();
+		// grid.RegisterField<int, PropertyGridFieldInt>();
+		*/
+		
+		struct PropertyFieldData
 		{
-		public:
-			FieldControlContainer() = default;
-			FieldControlContainer(Window* parent, const Rectangle& rect = {});
+			StringUtils::StringHash m_id;
+			
+			std::unique_ptr<PropertyGridFieldBase> field;
+			
+			PropertyFieldData(const PropertyFieldData&) = delete;
+			PropertyFieldData& operator=(const PropertyFieldData&) = delete;
+			
+			PropertyFieldData(PropertyFieldData&&) noexcept = default;
+			PropertyFieldData& operator=(PropertyFieldData&&) noexcept = default;
 		};
 
 		struct CategoryType
 		{
-			CategoryType() = default;
-			CategoryType(const std::string& name) : m_name(name) {}
-
+			StringUtils::StringHash m_id;
 			std::string m_name;
-
+			uint32_t m_depth{ 0 };
+			Image m_icon;
 			bool m_isExpanded{ true };
-			Rectangle m_area{};
-			std::vector<std::unique_ptr<PropertyGridFieldBase>> m_properties;
-			std::vector<std::unique_ptr<FieldControlContainer>> m_fieldContainers;
+			
+			std::deque<PropertyFieldData> m_properties;
+			std::vector<CategoryType> m_subCategories;
+			
+			explicit CategoryType(StringUtils::StringHash hashId, std::string_view name, int depth) : 
+				m_id(hashId), m_name(name), m_depth(depth)
+			{
+			}
+			
+			CategoryType(const CategoryType&) = delete;
+			CategoryType& operator=(const CategoryType&) = delete;
+
+			CategoryType(CategoryType&&) noexcept = default;
+			CategoryType& operator=(CategoryType&&) noexcept = default;
 		};
 
-		struct ViewportData
+		class PropertyGridModel
 		{
-			Rectangle m_backgroundRect{};
-			bool m_needVerticalScroll{ false };
-			uint32_t m_contentSize{};
-			uint32_t m_categoryItemHeight{ 0 };
-			int m_categoryTextOffset{ 0 };
-			uint32_t m_expanderButtonSize{ 0 };
-		};
-
-		struct MouseInteraction
-		{
-			CategoryType* m_hoveredCategory{ nullptr };
-			CategoryType* m_selectedCategory{ nullptr };
-			PropertyGridFieldBase* m_lastPropertySelected{ nullptr };
+		public:
+			PropertyGridModel() = default;
+			~PropertyGridModel() = default;
+			
+			void Init(Window* ownerWindow);
+			
+			CategoryType& AppendRootCategory(std::string_view categoryName);
+			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
+			void AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field);
+        
+			[[nodiscard]] const CategoryType* FindCategoryById(StringUtils::StringHash id) const;
+			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
+			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId) const;
+			
+			void Clear();
+			bool RemoveProperty(StringUtils::StringHash propId);
+			bool RemoveCategory(StringUtils::StringHash catId);
+			
+			bool GetPropertyEnabled(StringUtils::StringHash propId);
+			void SetPropertyEnabled(StringUtils::StringHash propId, bool enabled);
+			
+			std::string_view GetPropertyLabel(StringUtils::StringHash propId);
+			void SetPropertyLabel(StringUtils::StringHash propId, std::string_view newLabel);
+			
+			std::string GetPropertyValueAsString(StringUtils::StringHash propId);
+			
+			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
+			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
+			
+			bool IsCategory(StringUtils::StringHash itemId) const;
+			
+			void SetSelectedItemId(StringUtils::StringHash id) { m_selectedItemId = id; }
+			StringUtils::StringHash GetSelectedItemId() const { return m_selectedItemId; }
+			
+			bool IsCategoryExpanded(StringUtils::StringHash catId);
+			void ToggleCategoryExpansion(StringUtils::StringHash catId);
+			
+			bool IsShowingCategoryIcons() const { return m_drawImages; }
+			void ShowCategoryIcons(bool visible) { m_drawImages = visible; }
+			
+			void SetCategoryIcon(StringUtils::StringHash catId, const Image& icon);
+			
+			bool IsRootCategory(StringUtils::StringHash catId);
+			void MoveRootCategory(size_t fromIndex, size_t toIndex);
+			size_t GetRootCategoryIndex(StringUtils::StringHash catId);
+			StringUtils::StringHash GetParentCategory(StringUtils::StringHash propId) const;
+			StringUtils::StringHash GetParentId(StringUtils::StringHash childId) const;
+			
+			std::function<void()> OnVisualsChanged;
+			std::function<void(StringUtils::StringHash propId)> OnPropertyModified;
+			std::function<void(StringUtils::StringHash propId)> OnPropertySelected;
+		private:
+			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
+			const CategoryType* FindRecursive(StringUtils::StringHash id, const  std::vector<CategoryType>& list) const;
+			void InitCategoryRecursive(CategoryType& cat);
+			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
+			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
+			StringUtils::StringHash GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const;
+			bool RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId);
+			bool RemoveSubCategoryRecursive(CategoryType& parentCat, StringUtils::StringHash targetCatId);
+			void CleanUpCategoryLookup(const CategoryType& category);
+			
+			Window* m_ownerWindow{ nullptr };
+			std::unordered_map<StringUtils::StringHash, PropertyFieldData*> m_propertyLookup;
+			
+			StringUtils::StringHash m_selectedItemId{ 0 };
+			std::vector<CategoryType> m_rootCategories;
+			bool m_drawImages { false };
 		};
 
 		using PropertyGridFieldBasePtr = std::unique_ptr<PropertyGridFieldBase>;
 
-		class PropertyItem
+		class PropertyHandle
 		{
 		public:
-			friend struct Module;
-
-		public:
-			PropertyItem() = default;
-			PropertyItem(Module* module, PropertyGridFieldBase* propGridField) :
-				m_module(module), m_propGridField(propGridField)
+			PropertyHandle() = default;
+			PropertyHandle(PropertyGridModel* model, StringUtils::StringHash uniqueId) :
+				m_model(model), m_uniqueId(uniqueId)
 			{
 			}
 			
+			StringUtils::StringHash GetId() const { return m_uniqueId; }
+			
 			operator bool() const;
 
-			std::string GetLabel() const;
-			PropertyItem& SetLabel(const std::string& label);
-
-			std::string GetValue() const;
-			PropertyItem& SetValue(const std::string& value, bool emitEvent = false);
-
+			std::string_view GetLabel() const;
+			PropertyHandle& SetLabel(std::string_view newLabel);
+			
+			[[nodiscard]] std::string GetValueAsString() const;
+			
 			bool IsEnabled() const;
-			PropertyItem& SetEnabled(bool enabled);
+			PropertyHandle& SetEnabled(bool enabled);
 			
-			PropertyGridFieldBase* GetPropertyFieldPtr() const { return m_propGridField; }
-
+			template <typename T>
+			T* As()
+			{
+				static_assert(std::is_base_of_v<PropertyGridFieldBase, T>, "T must inherit from PropertyGridFieldBase");
+            
+				if (!m_model)
+				{
+					return nullptr;
+				}
+				
+				auto* propData = m_model->FindPropertyById(m_uniqueId);
+            
+				if (!propData || !propData->field) 
+				{
+					return nullptr;
+				}
+				
+				return dynamic_cast<T*>(propData->field.get());
+			}
+			bool operator==(const PropertyHandle& other) const { return m_uniqueId == other.m_uniqueId; }
 		private:
-			Module* m_module{ nullptr };
-			PropertyGridFieldBase* m_propGridField{ nullptr };
+			PropertyGridModel* m_model{ nullptr };
+			uint32_t m_uniqueId{ 0 };
 		};
 
-		struct CategoryItem
+		struct CategoryHandle
 		{
-			CategoryItem() = default;
-			CategoryItem(Module* module, CategoryType* category) :
-				m_module(module), m_category(category)
+			CategoryHandle() = default;
+			CategoryHandle(PropertyGridModel* model, uint32_t categoryId)
+				: m_model(model), m_id(categoryId) {}
+
+			StringUtils::StringHash GetId() const { return m_id; }
+			
+			CategoryHandle AppendCategory(std::string_view name);
+			CategoryHandle AppendSubCategory(std::string_view name);
+			
+			template <typename TControl, typename... Args>
+			PropertyHandle EmplaceProperty(std::string_view label, Args&&... args)
 			{
+				return AppendProperty(m_id, std::make_unique<TControl>(label, std::forward<Args>(args)...));
 			}
 
-			PropertyItem Append(PropertyGridFieldBasePtr propGridFieldPtr);
+			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
+			CategoryHandle& SetIcon(const Image& icon);
+			
 			operator bool() const;
-
-			Module* m_module{ nullptr };
-			CategoryType* m_category{ nullptr };
+		private:
+			PropertyGridModel* m_model{ nullptr };
+			StringUtils::StringHash m_id{ 0 };
 		};
-
-		class ListModule
+		
+		struct LayoutNodeCache
+		{
+			StringUtils::StringHash m_id;
+			bool m_isCategory;
+			Rectangle m_itemRect;
+			
+			LayoutNodeCache(StringUtils::StringHash id, bool isCategory, const Rectangle& itemRect) :
+				m_id(id), m_isCategory(isCategory), m_itemRect(itemRect)
+			{}
+		};
+		
+		class PropertyGridLayout
 		{
 		public:
-			ListModule() = default;
-			CategoryType* CreateCategory(const std::string& categoryName);
+			PropertyGridLayout() = default;
+			~PropertyGridLayout() = default;
 
-			std::vector<CategoryType>::iterator Begin();
-			std::vector<CategoryType>::const_iterator Begin() const;
-			std::vector<CategoryType>::iterator End();
-			std::vector<CategoryType>::const_iterator End() const;
+			void Init(Window* owner, Appearance* config);
+			void CalculateLayout(const PropertyGridModel& model);
 
-			void Clear();
+			void Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance);
+
+			ScrollableView* m_scrollableView{ nullptr };
+
+			void SetConfig(Appearance* config) { m_config = config; }
+			[[nodiscard]] Appearance* GetConfig() const { return m_config; }
 			
-			size_t Size() const
-			{
-				return m_categories.size();
+			StringUtils::StringHash GetHoveredItemId() const { return m_hoveredItemId; }
+			void SetHoverItemId(StringUtils::StringHash itemId) 
+			{ 
+				m_hoveredItemId = itemId;
 			}
+			
+			const std::vector<LayoutNodeCache>& GetVisibleItemsList() const { return m_visibleItems; }
+			
+			void RefreshVisibleOnly(const PropertyGridModel& model);
+			void ScrollToItem(StringUtils::StringHash targetId);
+			Rectangle GetItemRect(StringUtils::StringHash id) const;
+			
+			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
-			std::vector<CategoryType> m_categories;
+			uint32_t CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY);
+			
+			void DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config);
+			
+			void SyncControlsVisibility(const PropertyGridModel& model);
+			void HideAllControlsRecursive(const CategoryType& cat) const;
+			
+			Window* m_owner{ nullptr };
+			std::unique_ptr<ScrollableView> m_internalScrollManager;
+			
+			StringUtils::StringHash m_hoveredItemId { 0 };
+			Appearance* m_config;
+			std::unordered_map<StringUtils::StringHash, Rectangle> m_itemRects;
+			std::vector<LayoutNodeCache> m_visibleItems;
+			bool m_isInitialized { false };
+			bool m_showDropIndicator = false;
+			size_t m_dropIndicatorIndex = 0;
 		};
 
 		struct Module
 		{
-			CategoryItem Append(const std::string& categoryName);
-			void BuildItems();
-			CategoryItem Find(const std::string& categoryName);
-			void Clear();
-			void CalculateViewport(ViewportData& viewportData);
-			void CalculateContentSize(ViewportData& viewportData);
+			struct HitResult 
+			{
+				StringUtils::StringHash id = 0;
+				bool isCategory = false;
+    
+				operator bool() const { return id != 0; }
+			};
 			void Draw();
-			void EmitEvent(PropertyItem item) const;
-			void EmitSelectionEvent(PropertyItem item);
 			void Update();
-			void UpdateScrollBar();
 			
-			CategoryType* GetCategoryOnMouse(const Point& mousePosition);
-			PropertyGridFieldBase* GetCategoryPropertyOnMouse(const Point& mousePosition);
-			void ScrollToView(PropertyGridFieldBase* propGridField);
-
-			Point m_scrollOffset{};
-			ViewportData m_viewport;
-			ListModule m_listModule;
+			void ClearReferences(StringUtils::StringHash deletedId);
+			void OnLayoutChanged();
+			HitResult HitTest(Point mousePos) const;
+			
+			PropertyGridModel m_model;
+			PropertyGridLayout m_layout;
+			StringUtils::StringHash m_lastHoveredItemId { 0 };
+			StringUtils::StringHash m_pressedItemId{ 0 };
+			Point m_mouseDownPos{0, 0};
+			bool m_isWaitingForDrag = false;
+			bool m_isDraggingCategory = false;
+			size_t m_draggedCatIndex = 0;
+			size_t m_hoveredDropIndex = 0;
+			
 			Window* m_owner{ nullptr };
-			Appearance* m_appearance{ nullptr };
-			std::unique_ptr<ScrollBar> m_scrollBar;
 
 			Events* m_events{ nullptr };
 			Graphics* m_graphics{ nullptr };
-			MouseInteraction m_mouseInteraction;
 		};
 
 		class Reactor : public ControlReactor
@@ -232,7 +328,10 @@ namespace Berta
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+			void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
+			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
+			void DpiChanged(Graphics& graphics) override;
 
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
@@ -243,12 +342,18 @@ namespace Berta
 		private:
 			Module m_module;
 		};
-	};	
+	};
 
 	struct ArgPropertyGrid
 	{
-		Internal::PropertyGrid::PropertyItem Property;
-		ArgPropertyGrid(const Internal::PropertyGrid::PropertyItem& item) : Property(item) {}
+		Internal::PropertyGrid::PropertyHandle Property;
+		explicit ArgPropertyGrid(const Internal::PropertyGrid::PropertyHandle& item) : Property(item) {}
+	};
+	
+	struct ArgPropertyGridCategory
+	{
+		Internal::PropertyGrid::CategoryHandle Category;
+		explicit ArgPropertyGridCategory(const Internal::PropertyGrid::CategoryHandle& item) : Category(item) {}
 	};
 
 	namespace Internal::PropertyGrid
@@ -257,14 +362,20 @@ namespace Berta
 		{
 			Event<ArgPropertyGrid> PropertyChanged;
 			Event<ArgPropertyGrid> SelectionChanged;
+			
+			Event<ArgPropertyGrid> PropertyRightClicked;
+			Event<ArgPropertyGrid> PropertyDoubleClicked;
+			
+			Event<ArgPropertyGridCategory> CategoryClicked;
+			Event<ArgPropertyGridCategory> CategoryRightClicked;
 		};
 	}
 
 	class PropertyGrid : public Control<Category::ControlTag, Internal::PropertyGrid::Reactor, Internal::PropertyGrid::Events, Internal::PropertyGrid::Appearance>
 	{
 	public:
-		using CategoryItem = Internal::PropertyGrid::CategoryItem;
-		using PropertyItem = Internal::PropertyGrid::PropertyItem;
+		using CategoryItem = Internal::PropertyGrid::CategoryHandle;
+		using PropertyItem = Internal::PropertyGrid::PropertyHandle;
 		using PropertyGridFieldBase = Internal::PropertyGrid::PropertyGridFieldBase;
 		using PropertyGridFieldBasePtr = Internal::PropertyGrid::PropertyGridFieldBasePtr;
 
@@ -272,10 +383,16 @@ namespace Berta
 		PropertyGrid() = default;
 		PropertyGrid(Window* parent, const Rectangle& rectangle = {});
 
-		CategoryItem Append(const std::string& categoryName);
+		CategoryItem Append(std::string_view categoryName);
 		void Clear();
 		CategoryItem Insert(CategoryItem existingCategory, const std::string& categoryName);
-		CategoryItem Find(const std::string& categoryName);
+		//CategoryItem Find(std::string_view categoryName);
+		
+		void Erase(CategoryItem categoryItem);
+		void Erase(PropertyItem propertyItem);
+		
+		void RefreshAll();
+		void ShowCategoryIcons(bool visible);
 	};
 }
 

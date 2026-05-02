@@ -147,12 +147,12 @@ namespace Berta
 	{
 		//{WM_MOVE,			"WM_MOVE"},
 		//{WM_MOVING,			"WM_MOVING"},
-		//{WM_SIZE,			"WM_SIZE"},
+		{WM_SIZE,			"WM_SIZE"},
 		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_PAINT,			"WM_PAINT"},
-		//{WM_DPICHANGED,		"WM_DPICHANGED"},
+		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
 		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
@@ -566,7 +566,7 @@ namespace Berta
 			{
 				uint32_t newDPI = HIWORD(wParam);
 				windowManager.ChangeDPI(nativeWindow, newDPI, nativeWindow->RootHandle);
-
+				
 				auto rect = reinterpret_cast<const RECT*>(lParam);
 
 				::SetWindowPos(hWnd,
@@ -576,7 +576,8 @@ namespace Berta
 					rect->right - rect->left,
 					rect->bottom - rect->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
-
+				
+				
 				API::RefreshWindow(nativeWindowHandle, true);
 				wasHandled = false;
 				break;

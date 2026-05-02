@@ -16,191 +16,945 @@ namespace Berta
 {
 	namespace Internal::PropertyGrid
 	{
-		void Reactor::DoOnInit()
+		void PropertyGridModel::Init(Window* ownerWindow)
 		{
-			m_module.m_owner = m_control->Handle();
-
-			m_module.m_appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
-			m_module.m_events = reinterpret_cast<Events*>(m_module.m_owner->Events.get());
-
-			m_module.m_graphics = m_graphics;
-			m_module.CalculateViewport(m_module.m_viewport);
-		}
-
-		void Reactor::Update(Graphics& graphics)
-		{
-			m_module.Draw();
-		}
-
-		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
-		{
-			if (m_module.m_mouseInteraction.m_hoveredCategory)
+			if (m_ownerWindow == ownerWindow)
 			{
-				m_module.m_mouseInteraction.m_hoveredCategory = nullptr;
-				GUI::UpdateWindow(m_module.m_owner);
-			}
-		}
-
-		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
-		{
-			auto category = m_module.GetCategoryOnMouse(args.Position);
-			bool needRefresh = category != m_module.m_mouseInteraction.m_selectedCategory;
-			m_module.m_mouseInteraction.m_selectedCategory = category;
-			PropertyGridFieldBase* lastPropertySelected = nullptr;
-
-			if (!category)
-			{
-				lastPropertySelected = m_module.GetCategoryPropertyOnMouse(args.Position);
-			}
-			needRefresh |= m_module.m_mouseInteraction.m_lastPropertySelected != lastPropertySelected;
-			m_module.m_mouseInteraction.m_lastPropertySelected = lastPropertySelected;
-
-			if (needRefresh)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_owner);
-			}
-		}
-
-		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
-		{
-			if (args.ButtonState.LeftButton)
 				return;
-
-			auto category = m_module.GetCategoryOnMouse(args.Position);
-			if (category != m_module.m_mouseInteraction.m_hoveredCategory)
+			}
+        
+			m_ownerWindow = ownerWindow;
+			for (auto& cat : m_rootCategories)
 			{
-				m_module.m_mouseInteraction.m_hoveredCategory = category;
-				GUI::UpdateWindow(m_module.m_owner);
+				InitCategoryRecursive(cat);
 			}
 		}
 
-		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+		CategoryType& PropertyGridModel::AppendRootCategory(std::string_view categoryName)
 		{
-			if (m_module.m_mouseInteraction.m_selectedCategory)
+			StringUtils::StringHash id = StringUtils::Hash(categoryName);
+            
+			if (auto* existing = FindCategoryById(id))
 			{
-				m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded = !m_module.m_mouseInteraction.m_selectedCategory->m_isExpanded;
-				m_module.m_mouseInteraction.m_selectedCategory = nullptr;
-
-				m_module.CalculateViewport(m_module.m_viewport);
-				m_module.BuildItems();
-				m_module.UpdateScrollBar();
-
-				GUI::UpdateWindow(m_module.m_owner);
+				return *existing;
 			}
+			StringUtils::StringHash localHash = StringUtils::Hash(categoryName);
+			return m_rootCategories.emplace_back(localHash, categoryName, 0u);
 		}
 
-		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
+		CategoryType* PropertyGridModel::AppendSubCategory(StringUtils::StringHash parentId, std::string_view name)
 		{
-			m_module.CalculateViewport(m_module.m_viewport);
-			m_module.BuildItems();
-			m_module.UpdateScrollBar();
-		}
-
-		void Module::BuildItems()
-		{
-			auto one = m_owner->ToScale(1);
-			Point offset{};
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			CategoryType* parent = FindCategoryById(parentId);
+			if (!parent)
 			{
-				Rectangle categoryRect{ offset.X + m_viewport.m_backgroundRect.X,
-					offset.Y + m_viewport.m_backgroundRect.Y,
-					m_viewport.m_backgroundRect.Width - m_viewport.m_backgroundRect.X * 2, m_viewport.m_categoryItemHeight };
-
-				it->m_area = categoryRect;
-				offset.Y += static_cast<int>(categoryRect.Height);
-
-				if (it->m_isExpanded)
-				{
-					for (size_t i = 0; i < it->m_properties.size(); i++)
-					{
-						auto field = it->m_properties[i].get();
-						auto fieldSize = field->GetSize();
-
-						offset.Y += static_cast<int>(fieldSize);
-					}
-				}
-				offset.Y += one;
+				return nullptr;
 			}
-		}
-
-		CategoryItem Module::Find(const std::string& categoryName)
-		{
-			auto it = m_listModule.Begin();
-			while (it != m_listModule.End())
-			{
-				if (it->m_name == categoryName)
-				{
-					return { this, &(*it) };
-				}
-				++it;
-			}
-
-			return { };
-		}
-
-		void Module::Clear()
-		{
-			m_listModule.Clear();
-			CalculateViewport(m_viewport);
-			UpdateScrollBar();
 			
-			m_mouseInteraction.m_lastPropertySelected = nullptr;
+			StringUtils::StringHash localHash = StringUtils::Hash(name);
+			StringUtils::StringHash globalId = StringUtils::HashCombine(parentId, localHash);
+        
+			// Evitar duplicados en el mismo nivel
+			auto it = std::find_if(parent->m_subCategories.begin(), parent->m_subCategories.end(),
+			                       [globalId](const CategoryType& c) { return c.m_id == globalId; });
+
+			if (it != parent->m_subCategories.end())
+			{
+				return &(*it);
+			}
+			
+			return &parent->m_subCategories.emplace_back(globalId, name, parent->m_depth + 1u);
 		}
 
-		void Module::CalculateViewport(ViewportData& viewportData)
+		void PropertyGridModel::AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field)
 		{
-			viewportData.m_backgroundRect = m_owner->ClientSize.ToRectangle();
-			viewportData.m_backgroundRect.X = viewportData.m_backgroundRect.Y = 1;
-			viewportData.m_backgroundRect.Width -= 2u;
-			viewportData.m_backgroundRect.Height -= 2u;
-
-			viewportData.m_categoryItemHeight = m_owner->ToScale(m_appearance->CategoryHeight);
-			viewportData.m_expanderButtonSize = m_owner->ToScale(m_appearance->ExpanderButtonSize);
-			viewportData.m_categoryTextOffset = m_owner->ToScale(4);
-
-			CalculateContentSize(viewportData);
-
-			viewportData.m_needVerticalScroll = viewportData.m_contentSize > viewportData.m_backgroundRect.Height;
-			if (viewportData.m_needVerticalScroll)
+			if (!field)
 			{
-				viewportData.m_backgroundRect.Width -= m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+				return;
+			}
+				
+			field->OnValueChanged = [this, propId]()
+			{
+				if (OnPropertyModified)
+				{
+					OnPropertyModified(propId);
+				}
+			};
+			field->OnSelected = [this, propId]()
+			{
+				if (OnPropertySelected)
+				{
+					OnPropertySelected(propId);
+				}
+			};
+			
+			if (m_ownerWindow)
+			{
+				field->Init(m_ownerWindow); 
+			}
+			if (CategoryType* cat = FindCategoryById(categoryId))
+			{
+				cat->m_properties.push_back({ propId, std::move(field) });
+				PropertyFieldData* pointerToMemory = &cat->m_properties.back();
+				m_propertyLookup[propId] = pointerToMemory;
 			}
 		}
 
-		void Module::CalculateContentSize(ViewportData& viewportData)
+		const CategoryType* PropertyGridModel::FindCategoryById(StringUtils::StringHash id) const
 		{
-			viewportData.m_contentSize = viewportData.m_categoryItemHeight * static_cast<uint32_t>(m_listModule.Size());
+			return FindRecursive(id, m_rootCategories);
+		}
 
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+		CategoryType* PropertyGridModel::FindCategoryById(StringUtils::StringHash id)
+		{
+			return FindRecursive(id, m_rootCategories);
+		}
+
+		PropertyFieldData* PropertyGridModel::FindPropertyById(StringUtils::StringHash m_uniqueId) const
+		{
+			auto it = m_propertyLookup.find(m_uniqueId);
+			return (it != m_propertyLookup.end()) ? it->second : nullptr;
+		}
+
+		void PropertyGridModel::Clear()
+		{
+			m_rootCategories.clear();
+			m_selectedItemId = 0;
+		}
+
+		bool PropertyGridModel::RemoveProperty(StringUtils::StringHash propId)
+		{
+			m_propertyLookup.erase(propId);
+			
+			for (auto& rootCat : m_rootCategories)
 			{
-				if (it->m_isExpanded)
+				if (RemovePropertyRecursive(rootCat, propId))
 				{
-					for (size_t i = 0; i < it->m_properties.size(); i++)
-					{
-						auto field = it->m_properties[i].get();
-						auto fieldSize = field->GetSize();
+					return true;
+				}
+			}
+			return false;
+		}
 
-						viewportData.m_contentSize += fieldSize;
+		bool PropertyGridModel::RemoveCategory(StringUtils::StringHash catId)
+		{
+			auto it = std::find_if(m_rootCategories.begin(), m_rootCategories.end(),
+				[catId](const auto& cat) { return cat.m_id == catId; });
+
+			if (it != m_rootCategories.end())
+			{
+				CleanUpCategoryLookup(*it);
+				m_rootCategories.erase(it);
+				return true;
+			}
+
+			for (auto& rootCat : m_rootCategories)
+			{
+				if (RemoveSubCategoryRecursive(rootCat, catId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool PropertyGridModel::GetPropertyEnabled(StringUtils::StringHash propId)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				return prop->field->IsEnabled();
+			}
+			return false;
+		}
+
+		void PropertyGridModel::SetPropertyEnabled(StringUtils::StringHash propId, bool enabled)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				prop->field->SetEnabled(enabled);
+			}
+		}
+
+		std::string_view PropertyGridModel::GetPropertyLabel(StringUtils::StringHash propId)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				return prop->field->GetLabel();
+			}
+			return "";
+		}
+
+		void PropertyGridModel::SetPropertyLabel(StringUtils::StringHash propId, std::string_view newLabel)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				prop->field->SetLabel(newLabel);
+				if (OnVisualsChanged)
+				{
+					OnVisualsChanged(); 
+				}
+			}
+		}
+
+		std::string PropertyGridModel::GetPropertyValueAsString(StringUtils::StringHash propId)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				return prop->field->GetValueAsString();
+			}
+        
+			return {};
+		}
+
+		bool PropertyGridModel::IsCategory(StringUtils::StringHash itemId) const
+		{
+			for (const auto& rootCat : m_rootCategories)
+			{
+				if (IsCategoryRecursive(rootCat, itemId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool PropertyGridModel::IsCategoryExpanded(StringUtils::StringHash catId)
+		{
+			if (CategoryType* category = FindCategoryById(catId))
+			{
+				return category->m_isExpanded;
+			}
+			return false;
+		}
+
+		void PropertyGridModel::ToggleCategoryExpansion(StringUtils::StringHash catId)
+		{
+			if (CategoryType* category = FindCategoryById(catId))
+			{
+				category->m_isExpanded = !category->m_isExpanded;
+			}
+		}
+
+		void PropertyGridModel::SetCategoryIcon(StringUtils::StringHash catId, const Image& icon)
+		{
+			if (CategoryType* cat = FindCategoryById(catId))
+			{
+				cat->m_icon = icon;
+			}
+		}
+
+		bool PropertyGridModel::IsRootCategory(StringUtils::StringHash catId)
+		{
+			return std::any_of(m_rootCategories.begin(), m_rootCategories.end(),
+			                   [catId](const auto& cat) { return cat.m_id == catId; });
+			
+			//1. Evitar iteradores manuales si solo quieres saber si algo existe:
+			// Refactor más limpio si extraes esto a la caché, o mantenlo así que está muy bien.
+		}
+
+		void PropertyGridModel::MoveRootCategory(size_t fromIndex, size_t toIndex)
+		{
+			if (fromIndex == toIndex)
+			{
+				return;
+			}
+			if (fromIndex >= m_rootCategories.size())
+			{
+				return;
+			}
+
+			if (toIndex >= m_rootCategories.size())
+				toIndex = m_rootCategories.size() - 1;
+			
+			auto itFrom = m_rootCategories.begin() + fromIndex;
+			auto itTo = m_rootCategories.begin() + toIndex;
+
+			// std::rotate empuja inteligentemente la memoria de los punteros
+			// sin instanciar copias pesadas. Es 100% exception-safe.
+			if (fromIndex < toIndex)
+			{
+				std::rotate(itFrom, itFrom + 1, itTo + 1);
+			}
+			else
+			{
+				std::rotate(itTo, itFrom, itFrom + 1);
+			}
+		}
+
+		size_t PropertyGridModel::GetRootCategoryIndex(StringUtils::StringHash catId)
+		{
+			auto it = std::find_if(m_rootCategories.begin(), m_rootCategories.end(),
+			                       [catId](const auto& cat) { return cat.m_id == catId; });
+
+			if (it != m_rootCategories.end()) 
+			{
+				return std::distance(m_rootCategories.begin(), it);
+			}
+
+			return 0;
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentCategory(StringUtils::StringHash propId) const
+		{
+			return GetParentCategoryRecursive(m_rootCategories, propId);
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentId(StringUtils::StringHash childId) const
+		{
+			for (const auto& rootCat : m_rootCategories)
+			{
+				if (rootCat.m_id == childId)
+				{
+					return 0; 
+				}
+
+				StringUtils::StringHash foundParent = GetParentIdRecursive(rootCat, childId);
+				if (foundParent != 0)
+				{
+					return foundParent;
+				}
+			}
+			return 0;
+		}
+
+		CategoryType* PropertyGridModel::FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list)
+		{
+			for (auto& cat : list)
+			{
+				if (cat.m_id == id)
+				{
+					return &cat;
+				}
+				if (!cat.m_subCategories.empty())
+				{
+					if (auto* found = FindRecursive(id, cat.m_subCategories))
+					{
+						return found;
+					}
+				}
+			}
+			return nullptr;
+		}
+
+		const CategoryType* PropertyGridModel::FindRecursive(StringUtils::StringHash id, const std::vector<CategoryType>& list) const
+		{
+			for (const auto& cat : list)
+			{
+				if (cat.m_id == id)
+				{
+					return &cat;
+				}
+				if (!cat.m_subCategories.empty())
+				{
+					if (const auto* found = FindRecursive(id, cat.m_subCategories))
+					{
+						return found;
+					}
+				}
+			}
+			return nullptr;
+		}
+
+		void PropertyGridModel::InitCategoryRecursive(CategoryType& cat)
+		{
+			for (auto& prop : cat.m_properties)
+			{
+				prop.field->Init(m_ownerWindow); 
+			}
+			
+			for (auto& subCat : cat.m_subCategories)
+			{
+				InitCategoryRecursive(subCat);
+			}
+		}
+
+		bool PropertyGridModel::IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const
+		{
+			if (category.m_id == id)
+			{
+				return true;
+			}
+
+			for (const auto& subCat : category.m_subCategories)
+			{
+				if (IsCategoryRecursive(subCat, id))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentCategoryRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash propId) const
+		{
+			for (const auto& cat : list)
+			{
+				auto it = std::find_if(cat.m_properties.begin(), cat.m_properties.end(),
+					[propId](const auto& prop) { return prop.m_id == propId; });
+
+				if (it != cat.m_properties.end())
+				{
+					return cat.m_id;
+				}
+				
+				auto subHash = GetParentCategoryRecursive(cat.m_subCategories, propId);
+				if (subHash)
+				{
+					return subHash;
+				}
+				
+			}
+			return 0;
+		}
+
+		StringUtils::StringHash PropertyGridModel::GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const
+		{
+			for (const auto& prop : currentCat.m_properties)
+			{
+				if (prop.m_id == targetId)
+				{
+					return currentCat.m_id;
+				}
+			}
+
+			for (const auto& subCat : currentCat.m_subCategories)
+			{
+				if (subCat.m_id == targetId)
+				{
+					return currentCat.m_id;
+				}
+
+				StringUtils::StringHash foundInSub = GetParentIdRecursive(subCat, targetId);
+				if (foundInSub != 0)
+				{
+					return foundInSub;
+				}
+			}
+
+			return 0;
+		}
+
+		bool PropertyGridModel::RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId)
+		{
+			auto it = std::find_if(category.m_properties.begin(), category.m_properties.end(),
+				[propId](const auto& prop) { return prop.m_id == propId; });
+
+			if (it != category.m_properties.end())
+			{
+				category.m_properties.erase(it);
+				return true;
+			}
+
+			for (auto& subCat : category.m_subCategories)
+			{
+				if (RemovePropertyRecursive(subCat, propId))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool PropertyGridModel::RemoveSubCategoryRecursive(CategoryType& parentCat, StringUtils::StringHash targetCatId)
+		{
+			auto it = std::find_if(parentCat.m_subCategories.begin(), parentCat.m_subCategories.end(),
+			[targetCatId](const auto& cat) { return cat.m_id == targetCatId; });
+
+			if (it != parentCat.m_subCategories.end())
+			{
+				CleanUpCategoryLookup(*it); // Limpiar caché
+				parentCat.m_subCategories.erase(it);
+				return true;
+			}
+
+			for (auto& subCat : parentCat.m_subCategories)
+			{
+				if (RemoveSubCategoryRecursive(subCat, targetCatId))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		void PropertyGridModel::CleanUpCategoryLookup(const CategoryType& category)
+		{
+			for (const auto& prop : category.m_properties)
+			{
+				m_propertyLookup.erase(prop.m_id);
+			}
+			for (const auto& subCat : category.m_subCategories)
+			{
+				CleanUpCategoryLookup(subCat);
+			}
+		}
+
+		PropertyHandle::operator bool() const
+		{
+			return m_model;
+		}
+
+		std::string_view PropertyHandle::GetLabel() const
+		{
+			return m_model ? m_model->GetPropertyLabel(m_uniqueId) : "";
+		}
+
+		PropertyHandle& PropertyHandle::SetLabel(std::string_view newLabel)
+		{
+			if (m_model)
+			{
+				m_model->SetPropertyLabel(m_uniqueId, newLabel);
+			}
+			return *this;
+		}
+
+		std::string PropertyHandle::GetValueAsString() const
+		{
+			return m_model ? m_model->GetPropertyValueAsString(m_uniqueId) : "";
+		}
+
+		bool PropertyHandle::IsEnabled() const
+		{
+			if (m_model)
+			{
+				return m_model->GetPropertyEnabled(m_uniqueId);
+			}
+			return false;
+		}
+
+		PropertyHandle& PropertyHandle::SetEnabled(bool enabled)
+		{
+			if (m_model)
+			{
+				m_model->SetPropertyEnabled(m_uniqueId, enabled);
+			}
+			return *this;
+		}
+
+		CategoryHandle CategoryHandle::AppendCategory(std::string_view name)
+		{
+			CategoryType& rawCategory = m_model->AppendRootCategory(name);
+
+			m_model->OnVisualsChanged();
+
+			return {m_model, rawCategory.m_id};
+		}
+
+		CategoryHandle CategoryHandle::AppendSubCategory(std::string_view name)
+		{
+			if (m_model)
+			{
+				CategoryType* rawSubCat = m_model->AppendSubCategory(m_id, name);
+				if (rawSubCat)
+				{
+					return {m_model, rawSubCat->m_id};
+				}
+			}
+			return {};
+		}
+
+		PropertyHandle CategoryHandle::AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field)
+		{
+			if (m_model && field)
+			{
+				StringUtils::StringHash propLocalHash = StringUtils::Hash(field->GetLabel());
+				StringUtils::StringHash globalUniqueId = StringUtils::HashCombine(catId, propLocalHash);
+				
+				m_model->AppendPropertyToCategory(catId, globalUniqueId, std::move(field));
+				
+				return {m_model, globalUniqueId};
+			}
+			return {};
+		}
+
+		CategoryHandle& CategoryHandle::SetIcon(const Image& icon)
+		{
+			if (m_model)
+			{
+				m_model->SetCategoryIcon(m_id, icon);
+			}
+			return *this;
+		}
+
+		CategoryHandle::operator bool() const
+		{
+			return m_model != nullptr;
+		}
+
+		void PropertyGridLayout::Init(Window* owner, Appearance* config)
+		{
+			if (m_isInitialized)
+			{
+				return;
+			}
+			
+			m_owner = owner;
+			m_config = config;
+			m_internalScrollManager = std::make_unique<ScrollableView>(m_owner);
+			m_scrollableView = m_internalScrollManager.get();
+
+			m_scrollableView->SetScrollStep(static_cast<int>(m_owner->ToScale(config->CategoryHeight)), 0);
+			m_scrollableView->SetOnScrollChange([this]()
+			{
+				GUI::MarkAsNeedUpdate(m_owner);
+			});
+			
+			m_isInitialized = true;
+		}
+
+		void PropertyGridLayout::CalculateLayout(const PropertyGridModel& model)
+		{
+			m_itemRects.clear();
+			m_visibleItems.clear();
+			
+			uint32_t currentY = 0;
+			for (auto& cat : model.GetRootCategories())
+			{
+				currentY = CalculateRecursive(cat, 0, currentY);
+			}
+			SyncControlsVisibility(model);
+			
+			m_scrollableView->SetContentSize({ 0, currentY });
+		}
+
+		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
+		{
+			Point offset = m_scrollableView->GetScrollOffset();
+			auto clientArea = m_scrollableView->GetClientArea();
+			int currentX = -offset.X + clientArea.X;
+			int currentY = -offset.Y + clientArea.Y;
+
+			int viewTop = clientArea.Y; 
+			int viewBottom = clientArea.Y + static_cast<int>(clientArea.Height);
+			bool isBelowView = false;
+			
+			for (auto& [itemId, isCategory, itemRect] : m_visibleItems)
+			{
+				if (isBelowView)
+				{
+					if (!isCategory) 
+					{
+						auto prop = model.FindPropertyById(itemId);
+						if (prop && prop->field && prop->field->IsVisible())
+						{
+							prop->field->SetVisibility(false);
+						}
+					}
+					continue; 
+				}
+				
+				Rectangle rect = itemRect;
+				rect.Width = clientArea.Width - rect.X;
+				rect.X += currentX;
+				rect.Y += currentY;
+				if ((rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom))
+				{
+					if (!isCategory) 
+					{
+						auto prop = model.FindPropertyById(itemId);
+						if (prop && prop->field && prop->field->IsVisible())
+						{
+							prop->field->SetVisibility(false);
+						}
+					}
+            
+					if (rect.Y >= viewBottom) 
+					{
+						isBelowView = true; 
+					}
+					
+					continue;
+				}
+				
+				bool isSelected = itemId == model.GetSelectedItemId();
+				bool isHovered = itemId == m_hoveredItemId;
+				if (isCategory)
+				{
+					if (const CategoryType* cat = model.FindCategoryById(itemId))
+					{
+						DrawCategoryHeader(graphics, model, rect, *cat, m_config);
+					}
+				}
+				else
+				{
+					auto propArea = rect;
+					if (isSelected)
+					{
+						graphics.FillRectangle(propArea, m_config->SelectedBackgroundColor);
+					}
+					else if (isHovered)
+					{
+						graphics.FillRectangle(propArea, m_config->HoverBackgroundColor);
+					}
+					
+					auto prop = model.FindPropertyById(itemId);
+					if (prop && prop->field)
+					{
+						if (!prop->field->IsVisible())
+						{
+							prop->field->SetVisibility(true);
+						}
+						Color separatorColor = m_config->ScrollBarBackground;
+						if (prop->field->IsShowingLabel())
+						{
+							Rectangle labelArea = rect;
+					
+							int labelWidth = (int)rect.Width / 2;
+							Color textColor = isSelected ? m_config->SelectedTextColor : m_config->Foreground;
+							graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop->field->GetLabel(), textColor);
+							
+							propArea.X += labelWidth;
+							propArea.Width -= labelWidth;
+							
+							//graphics.DrawLine({ propArea.X, rect.Y }, { propArea.X, rect.Y + (int)rect.Height - 1 }, separatorColor);
+							
+							//auto splitterWidth = m_owner->ToScale(1);
+							//propArea.X += splitterWidth;
+							//propArea.Width -= splitterWidth;
+						}
+						Rectangle paddedRect = propArea;
+						paddedRect.X += 2;
+						paddedRect.Y += 2;
+						paddedRect.Width -= 4;
+						paddedRect.Height -= 4;
+						//int splitterX = rect.Width * 0.4f;
+						//Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
+						
+						prop->field->Draw(graphics, paddedRect, *appearance);
+						
+						graphics.DrawLine({ rect.X, rect.Y + (int)rect.Height - 1 }, { rect.X + (int)rect.Width, rect.Y + (int)rect.Height - 1 }, separatorColor);
+					}
+				}
+			}
+			if (m_showDropIndicator)
+			{
+				int logicalDropY = 0;
+				const auto& rootCategories = model.GetRootCategories();
+
+				if (m_dropIndicatorIndex < rootCategories.size())
+				{
+					StringUtils::StringHash targetCatId = rootCategories[m_dropIndicatorIndex].m_id;
+					Rectangle rect = GetItemRect(targetCatId);
+					logicalDropY = rect.Y; 
+				}
+				else if (!m_visibleItems.empty())
+				{
+					auto [lastItemId, isCat, lastRect] = m_visibleItems.back();
+					logicalDropY = lastRect.Y + static_cast<int>(lastRect.Height);
+				}
+
+				int screenDropY = logicalDropY + currentY; // currentY ya tiene el -offset.Y + clientArea.Y
+
+				if (screenDropY >= viewTop && screenDropY <= viewBottom)
+				{
+					uint32_t dropLineHeight = m_owner->ToScale(3u);
+					int dropLineHalf = static_cast<int>(dropLineHeight >> 1);
+
+					Rectangle lineRect = { 
+						clientArea.X, 
+						screenDropY - dropLineHalf, 
+						clientArea.Width, 
+						dropLineHeight 
+					};
+
+					graphics.FillRectangle(lineRect, Color(0, 120, 215, 255));
+				}
+			}
+		}
+
+		void PropertyGridLayout::RefreshVisibleOnly(const PropertyGridModel& model)
+		{
+			if (!m_scrollableView)
+			{
+				return;
+			}
+
+			auto clientArea = m_scrollableView->GetClientArea();
+			Point offset = m_scrollableView->GetScrollOffset();
+			int currentY = -offset.Y + clientArea.Y;
+			int viewTop = clientArea.Y; 
+			int viewBottom = clientArea.Y + static_cast<int>(clientArea.Height);
+        
+			for (const auto& [itemId, isCategory, itemRect] : m_visibleItems)
+			{
+				Rectangle rect = itemRect;
+				rect.Y += currentY;
+				
+				bool isCulled = (rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom);
+				if (isCulled || isCategory)
+				{
+					continue;
+				}
+				auto prop = model.FindPropertyById(itemId);
+				if (prop && prop->field)
+				{
+					if (!prop->field->IsVisible())
+					{
+						prop->field->Refresh();
 					}
 				}
 			}
 		}
 
-		void Module::EmitEvent(PropertyItem item) const
+		void PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
 		{
-			ArgPropertyGrid args(item);
-			m_events->PropertyChanged.Emit(args);
+			if (!m_scrollableView)
+			{
+				return;
+			}
+			Rectangle itemRect = GetItemRect(targetId);
+			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
+			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height);
+
+			Rectangle viewport = m_scrollableView->GetVisibleRect();
+			if (itemRect.Y < currentScrollY) 
+			{
+				currentScrollY=itemRect.Y;
+			}
+			else if (itemRect.Y + static_cast<int>(itemRect.Height) > currentScrollY + visibleHeight) 
+			{
+				currentScrollY = itemRect.Y + static_cast<int>(itemRect.Height) - visibleHeight;
+			}
+
+			if (currentScrollY != viewport.Y)
+			{
+				m_scrollableView->SetScrollToY(currentScrollY); 
+			}
 		}
 
-		void Module::EmitSelectionEvent(PropertyItem item)
+		Rectangle PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
 		{
-			if (m_mouseInteraction.m_lastPropertySelected == item.m_propGridField)
-				return;
+			auto it = m_itemRects.find(id);
+			if (it != m_itemRects.end())
+			{
+				return it->second;
+			}
+    
+			return Rectangle{ 0, 0, 0, 0 };
+		}
 
-			ArgPropertyGrid args(item);
-			m_events->SelectionChanged.Emit(args);
+		void PropertyGridLayout::SetDropIndicator(bool show, size_t targetIndex)
+		{
+			m_showDropIndicator = show;
+			m_dropIndicatorIndex = targetIndex;
+		}
 
-			m_mouseInteraction.m_lastPropertySelected = item.m_propGridField;
+		uint32_t PropertyGridLayout::CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY)
+		{
+			uint32_t categoryHeaderHeight = m_owner->ToScale(m_config->CategoryHeight);
+			auto clientArea = m_scrollableView->GetClientArea();
+			Rectangle catRect = { currentX, static_cast<int>(currentY), clientArea.Width, categoryHeaderHeight };
+			
+			m_itemRects[cat.m_id] = catRect;
+			m_visibleItems.emplace_back(cat.m_id, true, catRect);
+			
+			currentY += categoryHeaderHeight;
+			
+			if (cat.m_isExpanded)
+			{
+				for (const auto& prop : cat.m_properties)
+				{
+					auto propHeight = prop.field->GetHeight();
+					Rectangle propRect = { currentX + PG_INDENT_PADDING, static_cast<int>(currentY), clientArea.Width - PG_INDENT_PADDING, propHeight };
+					
+					m_itemRects[prop.m_id] = propRect;
+					m_visibleItems.emplace_back(prop.m_id, false, propRect);
+					
+					currentY += propHeight;
+				}
+				
+				for (const auto& sub : cat.m_subCategories)
+				{
+					currentY = CalculateRecursive(sub, currentX + PG_INDENT_PADDING, currentY);
+				}
+			}
+			return currentY;
+		}
+
+		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config)
+		{
+			bool isSelected = cat.m_id == model.GetSelectedItemId();
+			
+			Color bgColor = isSelected ? config->MenuBackground : config->Background;
+			graphics.FillRectangle(area, bgColor);
+
+			int offset = m_owner->ToScale(4);
+			int expanderSize = m_owner->ToScale(14);
+			int centerY = area.Y + ((int)area.Height - expanderSize) / 2;
+			Rectangle expanderArea{ area.X + offset, centerY, (uint32_t)expanderSize, (uint32_t)expanderSize };
+
+			int arrowWidth = m_owner->ToScale(4);
+			int arrowLength = m_owner->ToScale(2);
+
+			graphics.DrawArrow
+			(
+				expanderArea,
+				arrowLength,
+				arrowWidth,
+				cat.m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
+				config->Foreground2nd,
+				true,
+				cat.m_isExpanded ? config->Foreground2nd : config->BoxBackground
+			);
+			
+			if (model.IsShowingCategoryIcons())
+			{
+				auto iconPaddingX = m_owner->ToScale(2);
+				auto iconSize = m_owner->ToScale(config->SmallIconSize);
+				if (cat.m_icon)
+				{
+					Rectangle iconRect{ area.X + expanderArea.X + (int)expanderArea.Width + iconPaddingX, area.Y + (((int)area.Height - (int)iconSize) >> 1), iconSize, iconSize };
+					cat.m_icon.Paste(graphics, iconRect);
+				}
+				offset += (int)iconSize + iconPaddingX * 2;
+			}
+			int textX = expanderArea.X + (int)expanderArea.Width + offset;
+			Point textPos = { textX, area.Y + ((int)area.Height - (int)graphics.GetTextExtent().Height) / 2 };
+    
+			graphics.DrawString(textPos, cat.m_name, config->Foreground);
+
+			Color separatorColor = config->BoxBorderColor;
+			graphics.DrawLine({ area.X, area.Y + (int)area.Height - 1 }, { area.X + (int)area.Width, area.Y + (int)area.Height - 1 }, separatorColor);
+		}
+
+		void PropertyGridLayout::SyncControlsVisibility(const PropertyGridModel& model)
+		{
+			for (const auto& rootCat : model.GetRootCategories())
+			{
+				HideAllControlsRecursive(rootCat);
+			}
+
+			for (const auto& [id, isCategory, rect] : m_visibleItems)
+			{
+				if (!isCategory)
+				{
+					auto prop = model.FindPropertyById(id);
+					if (prop && prop->field)
+					{
+						prop->field->SetVisibility(true);
+					}
+				}
+			}
+		}
+
+		void PropertyGridLayout::HideAllControlsRecursive(const CategoryType& cat) const
+		{
+			for (const auto& prop : cat.m_properties)
+			{
+				if (prop.field)
+				{
+					prop.field->SetVisibility(false);
+				}
+			}
+			for (const auto& subCat : cat.m_subCategories)
+			{
+				HideAllControlsRecursive(subCat);
+			}
+		}
+
+		void Module::Draw()
+		{
 		}
 
 		void Module::Update()
@@ -211,453 +965,389 @@ namespace Berta
 			GUI::UpdateWindow(m_owner);
 		}
 
-		void Module::UpdateScrollBar()
+		void Module::ClearReferences(StringUtils::StringHash deletedId)
 		{
-			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-			if (m_viewport.m_needVerticalScroll)
+			if (m_model.GetSelectedItemId() == deletedId)
 			{
-				Rectangle scrollRect{ static_cast<int>(m_owner->ClientSize.Width - scrollSize) - 1, 1, scrollSize, m_owner->ClientSize.Height - 2u };
-
-				if (!m_scrollBar)
-				{
-					m_scrollBar = std::make_unique<ScrollBar>(m_owner, false, scrollRect);
-					m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
-						{
-							m_scrollOffset.Y = args.Value;
-
-							GUI::UpdateWindow(m_owner);
-						});
-				}
-				else
-				{
-					GUI::MoveWindow(m_scrollBar->Handle(), scrollRect);
-				}
-
-				m_scrollBar->SetMinMax(0, static_cast<int>(m_viewport.m_contentSize - m_viewport.m_backgroundRect.Height));
-				m_scrollBar->SetPageStepValue(m_viewport.m_backgroundRect.Height);
-				m_scrollBar->SetStepValue(m_owner->ToScale(24));
-
-				m_scrollOffset.Y = m_scrollBar->GetValue();
+				m_model.SetSelectedItemId(0);
 			}
-			else if (m_scrollBar)
+    
+			if (m_layout.GetHoveredItemId() == deletedId)
 			{
-				m_scrollBar.reset();
-				m_scrollOffset.Y = 0;
+				m_layout.SetHoverItemId(0);
 			}
 		}
 
-		void Module::Draw()
+		void Module::OnLayoutChanged()
 		{
-			auto& graphics = *m_graphics;
-			auto clientRect = m_owner->ClientSize.ToRectangle();
-			graphics.FillRectangle(clientRect, m_owner->Appearance->BoxBackground);
+			m_layout.CalculateLayout(m_model);
 
-			auto one = m_owner->ToScale(1);
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
-			{
-				Rectangle categoryRect = it->m_area;
-				categoryRect.X += m_viewport.m_backgroundRect.X - m_scrollOffset.X;
-				categoryRect.Y += m_viewport.m_backgroundRect.Y - m_scrollOffset.Y;
-
-				bool isCategoryHovered = m_mouseInteraction.m_hoveredCategory == &(*it);
-				if (isCategoryHovered)
-				{
-					graphics.DrawRoundRectBox(categoryRect, m_appearance->ButtonHighlightBackground, m_appearance->BoxBorderColor, true);
-				}
-				else
-				{
-					graphics.DrawRoundRectBox(categoryRect, m_appearance->ButtonBackground, m_appearance->BoxBorderColor, true);
-				}
-
-				Rectangle expanderRect{ categoryRect.X + m_viewport.m_categoryTextOffset,
-					categoryRect.Y + static_cast<int>((m_viewport.m_categoryItemHeight - m_viewport.m_expanderButtonSize) >> 1),
-					m_viewport.m_expanderButtonSize, m_viewport.m_expanderButtonSize };
-
-				int arrowWidth = m_owner->ToScale(4);
-				int arrowLength = m_owner->ToScale(2);
-
-				graphics.DrawArrow(expanderRect,
-					arrowLength,
-					arrowWidth,
-					it->m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
-					m_appearance->Foreground2nd,
-					true,
-					it->m_isExpanded ? m_appearance->Foreground2nd : m_appearance->BoxBackground
-				);
-
-				Point textOffset = { expanderRect.X + static_cast<int>(expanderRect.Width) + m_viewport.m_categoryTextOffset,static_cast<int>(m_viewport.m_categoryItemHeight) - static_cast<int>(graphics.GetTextExtent().Height) };
-				textOffset.Y >>= 1;
-
-				graphics.DrawString({ textOffset.X,categoryRect.Y + textOffset.Y }, it->m_name, m_appearance->Foreground);
-
-				Point scrollOffset{ categoryRect.X,categoryRect.Y };
-				scrollOffset.Y += categoryRect.Height;
-
-				for (size_t i = 0; i < it->m_properties.size(); i++)
-				{
-					auto field = it->m_properties[i].get();
-					bool fieldVisible = it->m_isExpanded;
-					auto fieldContainer = it->m_fieldContainers[i].get();
-					auto fieldSize = field->GetSize();
-
-					bool isSelected = field == m_mouseInteraction.m_lastPropertySelected;
-					if (it->m_isExpanded)
-					{
-						if (scrollOffset.Y + static_cast<int>(fieldSize) < 0 || scrollOffset.Y - m_viewport.m_backgroundRect.Y > static_cast<int>(m_viewport.m_backgroundRect.Height))
-						{
-							fieldVisible = false;
-						}
-					}
-
-					if (fieldVisible)
-					{
-						Rectangle fieldArea{ scrollOffset.X + one, scrollOffset.Y + one,m_viewport.m_backgroundRect.Width - one * 2,fieldSize - one * 2 };
-						Rectangle fieldContainerArea = fieldArea;
-						fieldContainerArea.X += static_cast<int>(fieldArea.Width >> 1);
-						fieldContainerArea.Width -= fieldArea.Width >> 1;
-
-						GUI::MoveWindow(*fieldContainer, fieldContainerArea);
-
-						field->Draw(graphics, fieldArea, m_viewport.m_backgroundRect.Width >> 1, isSelected ? m_appearance->Red : m_appearance->Foreground);
-					}
-					
-					if (it->m_isExpanded)
-					{
-						scrollOffset.Y += fieldSize;
-					}
-					GUI::ShowWindow(*fieldContainer, fieldVisible);
-				}
-			}
-
-			graphics.DrawRectangle(clientRect, m_owner->Appearance->BoxBorderColor);
+			GUI::UpdateWindow(m_owner);
 		}
 
-		CategoryType* Module::GetCategoryOnMouse(const Point& mousePosition)
+		Module::HitResult Module::HitTest(Point mousePos) const
 		{
-			Point offsetPosition = mousePosition + m_scrollOffset;
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			if (!m_layout.m_scrollableView)
 			{
-				if (it->m_area.Contains(offsetPosition))
-					return &(*it);
+				return {};
 			}
-			return nullptr;
-		}
+			
+			auto offset = m_layout.m_scrollableView->GetScrollOffset();
+			auto clientArea = m_layout.m_scrollableView->GetClientArea();
+    
+			Point virtualPos = { mousePos.X - clientArea.X + offset.X, 
+								 mousePos.Y - clientArea.Y + offset.Y };
 
-		PropertyGridFieldBase* Module::GetCategoryPropertyOnMouse(const Point& mousePosition)
-		{
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
+			for (const auto& [itemId, isCategory, baseRect] : m_layout.GetVisibleItemsList())
 			{
-				Rectangle categoryRect = it->m_area;
+				Rectangle hitRect = baseRect;
+				hitRect.Width = clientArea.Width;
 
-				Point scrollOffset{ categoryRect.X,categoryRect.Y };
-				scrollOffset.Y += static_cast<int>(categoryRect.Height);
-				scrollOffset.Y -= m_scrollOffset.Y;
-
-				if (!it->m_isExpanded)
+				if (hitRect.Contains(virtualPos))
 				{
-					continue;
+					return { itemId, isCategory };
 				}
 
-				for (size_t i = 0; i < it->m_properties.size(); i++)
-				{
-					auto field = it->m_properties[i].get();
-					auto fieldSizeInt = static_cast<int>(field->GetSize());
-					if (mousePosition.Y >= scrollOffset.Y && mousePosition.Y < scrollOffset.Y + fieldSizeInt)
-					{
-						return field;
-					}
-
-					scrollOffset.Y += fieldSizeInt;
-				}
-			}
-			return nullptr;
-		}
-
-		void Module::ScrollToView(PropertyGridFieldBase* propGridField)
-		{
-            if (!m_scrollBar)
-            {
-                return;
-            }
-            
-			Rectangle itemBounds{ m_viewport.m_backgroundRect.X, - m_scrollOffset.Y,
-				m_viewport.m_backgroundRect.Width, 
-				0
-			};
-			bool found = false;
-			for (auto it = m_listModule.Begin(); it < m_listModule.End(); ++it)
-			{
-				const Rectangle& categoryRect = it->m_area;
-				itemBounds.Y += static_cast<int>(categoryRect.Height);
-
-				if (!it->m_isExpanded)
-				{
-					continue;
-				}
-
-				for (size_t i = 0; i < it->m_properties.size(); i++)
-				{
-					auto field = it->m_properties[i].get();
-					if (field == propGridField)
-					{
-						itemBounds.Height = field->GetSize();
-						found = true;
-						break;
-					}
-					
-					itemBounds.Y += static_cast<int>(field->GetSize());
-				}
-				
-				if (found)
+				if (virtualPos.Y < hitRect.Y)
 				{
 					break;
 				}
 			}
+
+			return {};
+		}
+
+		void Reactor::Update(Graphics& graphics)
+		{
+			auto appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
 			
-			if (itemBounds.Y >= 0 && itemBounds.Y +  static_cast<int>(itemBounds.Height) <= static_cast<int>(m_viewport.m_backgroundRect.Height))
+			auto globalRect = m_module.m_owner->ClientSize.ToRectangle();
+			graphics.FillRectangle(globalRect, m_module.m_owner->Appearance->BoxBackground);
+			if (!m_control->IsBorderless())
 			{
+				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
+				
+				Rectangle localBorderRect = m_control->GetClientArea();
+				graphics.SetClipping(localBorderRect);
+			}
+			
+			m_module.m_layout.Draw(graphics, m_module.m_model, appearance);
+			
+			if (m_module.m_layout.m_scrollableView->HasVerticalScroll() && m_module.m_layout.m_scrollableView->HasHorizontalScroll())
+			{
+				auto scrollSize = m_module.m_owner->ToScale(m_module.m_owner->Appearance->ScrollBarSize);
+				graphics.FillRectangle({ (int)(m_module.m_owner->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_owner->Appearance->Background);
+			}
+		
+			if (!m_control->IsBorderless())
+			{
+				graphics.EndClipping();
+			}
+		}
+
+		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
+		{
+			if (m_module.m_lastHoveredItemId != 0)
+			{
+				m_module.m_lastHoveredItemId = 0;
+				m_module.m_layout.SetHoverItemId(0);
+				m_module.OnLayoutChanged();
+			}
+		}
+
+		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
+		{
+			m_module.m_mouseDownPos = args.Position;
+			auto hit = m_module.HitTest(args.Position);
+			m_module.m_pressedItemId = hit.id;
+			
+			if (args.ButtonState.LeftButton && m_module.m_pressedItemId != 0)
+			{
+				if (!hit.isCategory)
+				{
+					m_module.m_model.SetSelectedItemId(m_module.m_pressedItemId);
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
+				else if (m_module.m_model.IsRootCategory(m_module.m_pressedItemId)) 
+				{
+					m_module.m_isWaitingForDrag = true;
+					m_module.m_draggedCatIndex = m_module.m_model.GetRootCategoryIndex(m_module.m_pressedItemId);
+				}
+			}
+		}
+
+		void Reactor::MouseMove(Graphics& graphics, const ArgMouse& args)
+		{
+			auto hit = m_module.HitTest(args.Position);
+			StringUtils::StringHash hitItemId = hit.id;
+			
+			if (m_module.m_isWaitingForDrag)
+			{
+				int dx = args.Position.X - m_module.m_mouseDownPos.X;
+				int dy = args.Position.Y - m_module.m_mouseDownPos.Y;
+        
+				if ((dx * dx + dy * dy) > PG_DRAG_THRESHOLD_SQ)
+				{
+					m_module.m_isWaitingForDrag = false;
+					m_module.m_isDraggingCategory = true;
+					m_module.m_hoveredDropIndex = m_module.m_draggedCatIndex;
+					GUI::Capture(m_module.m_owner);
+				}
+			}
+			if (m_module.m_isDraggingCategory)
+			{
+				if (hitItemId != 0 && m_module.m_model.IsRootCategory(hitItemId))
+				{
+					size_t newHoverIndex = m_module.m_model.GetRootCategoryIndex(hitItemId);
+					if (newHoverIndex != m_module.m_hoveredDropIndex)
+					{
+						m_module.m_hoveredDropIndex = newHoverIndex;
+						m_module.m_layout.SetDropIndicator(true, m_module.m_hoveredDropIndex);
+						//m_module.OnLayoutChanged();
+						GUI::MarkAsNeedUpdate(m_module.m_owner);
+					}
+				}
+				else if (hitItemId == 0 && !m_module.m_layout.GetVisibleItemsList().empty())
+				{
+					auto mousePos = args.Position + m_module.m_layout.m_scrollableView->GetScrollOffset();
+					
+					auto [id, isCategory, rect] = m_module.m_layout.GetVisibleItemsList().back();
+					if (mousePos.Y <= 0)
+					{
+						m_module.m_hoveredDropIndex = 0;
+						m_module.m_layout.SetDropIndicator(true, m_module.m_hoveredDropIndex);
+						GUI::MarkAsNeedUpdate(m_module.m_owner);
+					}
+					else if (mousePos.Y > rect.Y + static_cast<int>(rect.Height))
+					{
+						m_module.m_hoveredDropIndex = m_module.m_layout.GetVisibleItemsList().size();
+						m_module.m_layout.SetDropIndicator(true, m_module.m_hoveredDropIndex);
+						GUI::MarkAsNeedUpdate(m_module.m_owner);
+					}
+				}
 				return;
 			}
-
-			if (found)
+			
+			if (hitItemId != m_module.m_lastHoveredItemId)
 			{
-				int offsetAdjustment;
-				if (itemBounds.Y + static_cast<int>(itemBounds.Height) >= static_cast<int>(m_viewport.m_backgroundRect.Height))
+				m_module.m_lastHoveredItemId = hitItemId;
+
+				m_module.m_layout.SetHoverItemId(hitItemId);
+				m_module.OnLayoutChanged();
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+			}
+		}
+
+		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
+		{			
+			auto hit = m_module.HitTest(args.Position);
+			StringUtils::StringHash releaseItemId = hit.id;
+			
+			if (m_module.m_isDraggingCategory)
+			{
+				GUI::ReleaseCapture(m_module.m_owner);
+				if (m_module.m_draggedCatIndex != m_module.m_hoveredDropIndex)
 				{
-					offsetAdjustment = itemBounds.Y + static_cast<int>(itemBounds.Height - m_viewport.m_backgroundRect.Height);
+					m_module.m_model.MoveRootCategory(m_module.m_draggedCatIndex, m_module.m_hoveredDropIndex);
+            
+					// Opcional: Emitir evento
+					// auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
+					// if (events) events->CategoryReordered.emit();
+            
+					m_module.OnLayoutChanged();
+				}
+			}
+			else if (releaseItemId != 0 && releaseItemId == m_module.m_pressedItemId)
+			{
+				if (m_module.m_model.IsCategory(releaseItemId))
+				{
+					if (args.ButtonState.RightButton)
+					{
+						ArgPropertyGridCategory arguments{ CategoryHandle(&m_module.m_model, releaseItemId) };
+						m_module.m_events->CategoryRightClicked.Emit(arguments);
+					}
+					else
+					{
+						m_module.m_model.ToggleCategoryExpansion(releaseItemId);
+						//m_module.m_model.SetSelectedIndex(FindItemIndexInVisibleList(hitCat));
+						m_module.OnLayoutChanged();
+						
+						ArgPropertyGridCategory arguments{ CategoryHandle(&m_module.m_model, releaseItemId) };
+						m_module.m_events->CategoryClicked.Emit(arguments);
+					}
 				}
 				else
 				{
-					offsetAdjustment = itemBounds.Y;
+					if (args.ButtonState.RightButton)
+					{
+						ArgPropertyGrid arguments{ PropertyHandle(&m_module.m_model, releaseItemId) };
+						m_module.m_events->PropertyRightClicked.Emit(arguments);
+					}
+					else
+					{
+						// Clic en Propiedad (Seleccionar)
+						//m_module.m_model.SetSelectedIndex(FindItemIndexInVisibleList(hitProp));
+					}
 				}
-				m_scrollOffset.Y = std::clamp(m_scrollOffset.Y + offsetAdjustment, m_scrollBar->GetMin(), m_scrollBar->GetMax());
-		
-				m_scrollBar->SetValue(m_scrollOffset.Y);
 			}
 			
-			GUI::UpdateWindow(m_owner);
-		}
-
-		CategoryType* ListModule::CreateCategory(const std::string& categoryName)
-		{
-			m_categories.emplace_back(categoryName);
-			return &m_categories.back();
-		}
-
-		std::vector<CategoryType>::iterator ListModule::Begin()
-		{
-			return m_categories.begin();
-		}
-
-		std::vector<CategoryType>::const_iterator ListModule::Begin() const
-		{
-			return m_categories.cbegin();
-		}
-
-		std::vector<CategoryType>::iterator ListModule::End()
-		{
-			return m_categories.end();
-		}
-
-		std::vector<CategoryType>::const_iterator ListModule::End() const
-		{
-			return m_categories.cend();
-		}
-
-		void ListModule::Clear()
-		{
-			m_categories.clear();
-		}
-
-		PropertyItem CategoryItem::Append(PropertyGridFieldBasePtr propGridFieldPtr)
-		{
-			m_category->m_properties.emplace_back(std::move(propGridFieldPtr));
-			auto newField = m_category->m_properties.back().get();
-
-			std::unique_ptr<FieldControlContainer> containerPtr(new FieldControlContainer(m_module->m_owner));
-			newField->SetModule(m_module);
-			newField->Init(containerPtr->Handle());
-
-			m_category->m_fieldContainers.emplace_back(std::move(containerPtr));
-
-			m_module->CalculateViewport(m_module->m_viewport);
-			m_module->BuildItems();
-			m_module->UpdateScrollBar();
+			m_module.m_isDraggingCategory = false;
+			m_module.m_isWaitingForDrag = false;
+			m_module.m_pressedItemId = 0;
+			m_module.m_layout.SetDropIndicator(false);
 			
-			return { m_module, newField };
+			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 
-		CategoryItem::operator bool() const
+		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 		{
-			return m_module != nullptr && m_category != nullptr;
+			m_module.m_layout.m_scrollableView->HandleMouseWheel(args);
 		}
 
-		PropertyItem::operator bool() const
+		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			return m_module && m_propGridField;
-		}
-
-		std::string PropertyItem::GetLabel() const
-		{
-			return m_propGridField->GetLabel();
-		}
-
-		PropertyItem& PropertyItem::SetLabel(const std::string& label)
-		{
-			m_propGridField->SetLabel(label);
-			m_module->Update();
-
-			return *this;
-		}
-
-		std::string PropertyItem::GetValue() const
-		{
-			return m_propGridField->GetValue();
-		}
-
-		PropertyItem& PropertyItem::SetValue(const std::string& value, bool emitEvent)
-		{
-			m_propGridField->SetValue(value);
-
-			if (emitEvent)
-			{
-				m_module->EmitEvent(*this);
-			}
-			return *this;
-		}
-
-		bool PropertyItem::IsEnabled() const
-		{
-			return m_propGridField->IsEnabled();
-		}
-
-		PropertyItem& PropertyItem::SetEnabled(bool enabled)
-		{
-			m_propGridField->SetEnabled(enabled);
-			return *this;
-		}
-
-		void PropertyGridFieldBase::Init(Window* parent)
-		{
-			m_parent = parent;
-			Create(parent);
-			SetEnabled(IsEnabled());
-		}
-
-		std::string PropertyGridFieldBase::GetLabel() const
-		{
-			return m_label;
-		}
-
-		void PropertyGridFieldBase::SetLabel(const std::string& label)
-		{
-			if (m_label == label)
-				return;
-
-			m_label = label;
-		}
-
-		std::string PropertyGridFieldBase::GetValue() const
-		{
-			return m_value;
-		}
-
-		void PropertyGridFieldBase::SetValue(const std::string& value)
-		{
-			if (m_value == value)
+			const auto& visibleItems = m_module.m_layout.GetVisibleItemsList();
+			if (visibleItems.empty())
 			{
 				return;
 			}
-
-			m_value = value;
-			Update();
-		}
-
-		std::string PropertyGridFieldBase::GetDefaultValue() const
-		{
-			return m_defaultValue;
-		}
-
-		void PropertyGridFieldBase::SetDefaultValue(const std::string& value)
-		{
-			if (m_defaultValue == value)
-				return;
-
-			m_defaultValue = value;
-			Update();
-		}
-
-		bool PropertyGridFieldBase::IsEnabled() const
-		{
-			return m_enabled;
-		}
-
-		void PropertyGridFieldBase::SetEnabled(bool enabled)
-		{
-			m_enabled = enabled;
-		}
-
-		void PropertyGridFieldBase::Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor)
-		{
-			Rectangle labelArea = area;
-			labelArea.Width = labelWidth;
-
-			DrawLabel(graphics, labelArea, textColor);
-		}
-
-		void PropertyGridFieldBase::EmitEvent()
-		{
-			m_module->EmitEvent(PropertyItem{ m_module, this });
-		}
-
-		void PropertyGridFieldBase::EmitSelectionEvent()
-		{
-			m_module->EmitSelectionEvent(PropertyItem{ m_module, this });
-		}
-
-		void PropertyGridFieldBase::ScrollToView()
-		{
-			m_module->ScrollToView(this);
-		}
-
-		void PropertyGridFieldBase::Update()
-		{
-			m_module->Update();
-		}
-
-		void PropertyGridFieldBase::DrawLabel(Graphics& graphics, const Rectangle& area, const Color& textColor)
-		{
-			auto& textExtents = graphics.GetTextExtent();
-			Point position = area;
-			position.Y += static_cast<int>((area.Height - textExtents.Height) >> 1);
-
-			graphics.DrawString(position, m_label, textColor);
-		}
-
-		void PropertyGridFieldBase::SetModule(Module* module)
-		{
-			m_module = module;
-		}
-
-		FieldControlContainer::FieldControlContainer(Window* parent, const Rectangle& rect) :
-			Panel(parent, rect)
-		{
-		}
-
-		CategoryItem Module::Append(const std::string& categoryName)
-		{
-			auto category = Find(categoryName);
-			if (category)
+			
+			auto currentId = m_module.m_model.GetSelectedItemId();
+			auto it = std::find_if(visibleItems.begin(), visibleItems.end(), 
+				[currentId](const auto& prop) { return prop.m_id == currentId; });
+			
+			size_t currentIndex = 0;
+			if (it != visibleItems.end())
 			{
-				return category;
+				currentIndex = std::distance(visibleItems.begin(), it);
 			}
+			
+			bool selectionChanged = false;
+			bool layoutChanged = false;
+			switch (args.Key)
+			{
+			case KeyboardKey::ArrowDown:
+				if (currentIndex < visibleItems.size() - 1)
+				{
+					currentIndex++;
+					selectionChanged = true;
+				}
+				break;
+			case KeyboardKey::ArrowUp:
+				if (currentIndex > 0)
+				{
+					currentIndex--;
+					selectionChanged = true;
+				}
+				break;
+			case KeyboardKey::ArrowRight:
+				if (m_module.m_model.IsCategory(currentId) && !m_module.m_model.IsCategoryExpanded(currentId))
+				{
+					m_module.m_model.ToggleCategoryExpansion(currentId);
+					layoutChanged = true;
+				}
+				break;
+			case KeyboardKey::ArrowLeft:
+				if (m_module.m_model.IsCategory(currentId) && m_module.m_model.IsCategoryExpanded(currentId))
+				{
+					m_module.m_model.ToggleCategoryExpansion(currentId);
+					layoutChanged = true;
+				}
+				else
+				{
+					StringUtils::StringHash parentId = m_module.m_model.GetParentId(currentId);
+					if (parentId != 0)
+					{
+						m_module.m_model.SetSelectedItemId(parentId);
 
-			CategoryItem newCategory = { this, m_listModule.CreateCategory(categoryName) };
-			CalculateViewport(m_viewport);
-			BuildItems();
-			UpdateScrollBar();
+						auto parentIt = std::find_if(visibleItems.begin(), visibleItems.end(), 
+							[parentId](const auto& prop) { return prop.m_id == parentId; });
+			
+						if (parentIt != visibleItems.end())
+						{
+							currentIndex = std::distance(visibleItems.begin(), parentIt);
+							selectionChanged = true;
+						}
+					}
+				}
+				break;
+			}
+			if (layoutChanged)
+			{
+				m_module.m_layout.CalculateLayout(m_module.m_model);
+			}
+			if (selectionChanged)
+			{
+				auto& newSelectedItem = visibleItems[currentIndex];
+        
+				m_module.m_model.SetSelectedItemId(newSelectedItem.m_id); 
+				m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
+			}
+			
+			if (layoutChanged || selectionChanged)
+			{
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
+			}
+		}
 
-			return newCategory;
+		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
+		{
+			auto clientArea = m_control->GetClientArea();
+			m_module.m_layout.m_scrollableView->SetViewRect(clientArea);
+			m_module.m_layout.CalculateLayout(m_module.m_model);
+		}
+
+		void Reactor::DpiChanged(Graphics& graphics)
+		{
+			auto clientArea = m_control->GetClientArea();
+			m_module.m_layout.m_scrollableView->SetViewRect(clientArea);
+			m_module.m_layout.CalculateLayout(m_module.m_model);
+		}
+
+		void Reactor::DoOnInit()
+		{
+			m_module.m_owner = m_control->Handle();
+
+			auto appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
+			m_module.m_events = reinterpret_cast<Events*>(m_module.m_owner->Events.get());
+
+			m_module.m_graphics = m_graphics;
+			
+			m_module.m_layout.Init(m_module.m_owner, appearance);
+			
+			m_module.m_model.Init(m_module.m_owner);
+			m_module.m_model.OnPropertyModified = [this](StringUtils::StringHash propId) 
+			{
+				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
+				if (events)
+				{
+					PropertyHandle handle(&m_module.m_model, propId);
+					ArgPropertyGrid arguments(handle);
+					
+					events->PropertyChanged.Emit(arguments); 
+				}
+				m_module.m_layout.ScrollToItem(propId);
+				m_module.OnLayoutChanged();
+			};
+			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
+			{
+				m_module.m_model.SetSelectedItemId(propId);
+				m_module.m_layout.ScrollToItem(propId);
+				m_module.OnLayoutChanged();
+				
+				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
+				if (events) 
+				{
+					PropertyHandle handle(&m_module.m_model, propId);
+					ArgPropertyGrid arguments(handle);
+					
+					events->SelectionChanged.Emit(arguments); 
+				}
+			};
+			m_module.m_model.OnVisualsChanged = [this]() 
+			{
+				m_module.OnLayoutChanged();
+			};
 		}
 	}
 
@@ -670,23 +1360,72 @@ namespace Berta
 #endif
 	}
 
-	PropertyGrid::CategoryItem PropertyGrid::Append(const std::string& categoryName)
+	PropertyGrid::CategoryItem PropertyGrid::Append(std::string_view categoryName)
 	{
-		return GetReactor().GetModule().Append(categoryName);
+		auto& module = GetReactor().GetModule();
+		auto& newCategory = module.m_model.AppendRootCategory(categoryName);
+		module.m_layout.CalculateLayout(module.m_model);
+		
+		return {&module.m_model, newCategory.m_id};
 	}
 
 	void PropertyGrid::Clear()
 	{
-		GetReactor().GetModule().Clear();
+		auto& module = GetReactor().GetModule();
+		module.m_model.Clear();
+		module.m_layout.SetHoverItemId(0);
+		module.m_layout.CalculateLayout(module.m_model);
 	}
 
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
 	{
-		return { nullptr,nullptr };
+		return { nullptr, 0 };
 	}
 
-	PropertyGrid::CategoryItem PropertyGrid::Find(const std::string& categoryName)
+	void PropertyGrid::Erase(CategoryItem categoryItem)
 	{
-		return GetReactor().GetModule().Find(categoryName);
+		auto& module = GetReactor().GetModule();
+		if (module.m_model.RemoveCategory(categoryItem.GetId()))
+		{
+			module.ClearReferences(categoryItem.GetId());
+			module.m_layout.CalculateLayout(module.m_model);
+			
+			GUI::UpdateWindow(module.m_owner);
+		}
 	}
+
+	void PropertyGrid::Erase(PropertyItem propertyItem)
+	{
+		auto& module = GetReactor().GetModule();
+        
+		if (module.m_model.RemoveProperty(propertyItem.GetId()))
+		{
+			module.ClearReferences(propertyItem.GetId());
+			module.m_layout.CalculateLayout(module.m_model);
+			
+			GUI::UpdateWindow(module.m_owner);
+		}
+	}
+
+	void PropertyGrid::RefreshAll()
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_layout.RefreshVisibleOnly(module.m_model);
+		module.OnLayoutChanged();
+	}
+
+	void PropertyGrid::ShowCategoryIcons(bool visible)
+	{
+		auto& module = GetReactor().GetModule();
+		module.m_model.ShowCategoryIcons(visible);
+		module.OnLayoutChanged();
+	}
+
+	/*PropertyGrid::CategoryItem PropertyGrid::Find(std::string_view categoryName)
+	{
+		auto& module = GetReactor().GetModule();
+		auto hash = StringUtils::HashString(categoryName);
+		module.m_model.FindCategoryById(hash);
+		return GetReactor().GetModule().m_model.Find(categoryName);
+	}*/
 }

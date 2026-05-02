@@ -5,7 +5,7 @@
 */
 
 #include "btpch.h"
-#include "InputText.h"
+#include "TextBox.h"
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
@@ -113,6 +113,11 @@ namespace Berta
 			m_textEditor->OnResize(args);
 		}
 
+		void Reactor::DpiChanged(Graphics& graphics)
+		{
+			m_textEditor->OnDpiChanged();
+		}
+
 		TextEditor* Reactor::GetEditor() const
 		{
 			return m_textEditor.get();
@@ -136,16 +141,16 @@ namespace Berta
 		}
 	}
 
-	InputText::InputText(Window* parent, const Rectangle& rectangle)
+	TextBox::TextBox(Window* parent, const Rectangle& rectangle)
 	{
 		Create(parent, true, rectangle);
 
 #if BT_DEBUG
-		m_handle->Name = "InputText";
+		m_handle->Name = "TextBox";
 #endif
 	}
 
-	TextPosition InputText::GetCaretPosition() const
+	TextPosition TextBox::GetCaretPosition() const
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -155,7 +160,7 @@ namespace Berta
 		return {};
 	}
 
-	void InputText::Deselect()
+	void TextBox::Deselect()
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor && editor->Deselect())
@@ -164,7 +169,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SelectAll()
+	void TextBox::SelectAll()
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor && editor->SelectAll())
@@ -173,7 +178,7 @@ namespace Berta
 		}
 	}
 
-	bool InputText::IsEditable() const
+	bool TextBox::IsEditable() const
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -183,7 +188,7 @@ namespace Berta
 		return false;
 	}
 
-	void InputText::SetEditable(bool isEditable)
+	void TextBox::SetEditable(bool isEditable)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -192,7 +197,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SetMultiLine(bool enabled)
+	void TextBox::SetMultiLine(bool enabled)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -202,7 +207,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SetWordWrap(bool enabled)
+	void TextBox::SetWordWrap(bool enabled)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -212,7 +217,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SetCharFilter(std::function<bool(wchar_t)> predicate)
+	void TextBox::SetCharFilter(std::function<bool(wchar_t)> predicate)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -221,12 +226,12 @@ namespace Berta
 		}
 	}
 
-	std::wstring InputText::GetText() const
+	std::wstring TextBox::GetText() const
 	{
 		return DoOnCaption();
 	}
 
-	void InputText::SetText(const std::wstring& text)
+	void TextBox::SetText(const std::wstring& text)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -236,7 +241,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SetText(const std::string& text)
+	void TextBox::SetText(const std::string& text)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -246,7 +251,7 @@ namespace Berta
 		}
 	}
 
-	void InputText::SetFocusBehavior(TextFocusBehavior behavior)
+	void TextBox::SetFocusBehavior(TextFocusBehavior behavior)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -255,7 +260,25 @@ namespace Berta
 		}
 	}
 
-	void InputText::DoOnCaption(const std::wstring& caption)
+	void TextBox::SetScrollBarVisibility(ScrollBarVisibility both)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetScrollBarVisibility(both, both);
+		}
+	}
+
+	void TextBox::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
+	{
+		auto editor = GetReactor().GetEditor();
+		if (editor)
+		{
+			editor->SetScrollBarVisibility(vertical, horizontal);
+		}
+	}
+
+	void TextBox::DoOnCaption(const std::wstring& caption)
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
@@ -264,7 +287,7 @@ namespace Berta
 		}
 	}
 
-	std::wstring InputText::DoOnCaption() const
+	std::wstring TextBox::DoOnCaption() const
 	{
 		return GetReactor().GetEditor()->GetContent();
 	}

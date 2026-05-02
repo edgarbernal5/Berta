@@ -44,6 +44,23 @@ namespace Berta::StringUtils
 
 	std::vector<std::string> Split(const std::string& str, char delimiter);
 	std::vector<std::wstring> Split(const std::wstring& str, wchar_t delimiter);
+	
+	using StringHash = uint32_t;
+	
+	constexpr StringHash Hash(std::string_view strView)
+	{
+		StringHash hash = 2166136261u;
+		for (char c : strView) {
+			hash ^= static_cast<StringHash>(c);
+			hash *= 16777619u;
+		}
+		return hash;
+	}
+	
+	inline StringHash HashCombine(StringHash seed, StringHash value)
+	{
+		return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+	}
 }
 
 #include "BasicTypes.h"

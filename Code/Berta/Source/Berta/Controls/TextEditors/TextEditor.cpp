@@ -27,60 +27,74 @@ namespace Berta
 		m_graphics(*graphics),
 		m_owner(owner)
 	{
-		m_caret = new Caret(owner, Size{1,0});
-
+		m_caret = std::make_unique<Caret>(owner, Size{1,0});
+		
+		m_scrollableView = std::make_unique<ScrollableView>(owner);
+		m_scrollableView->SetOnScrollChange([this]()
+		{
+			GUI::UpdateWindow(m_owner);
+		});
+		
 		m_selectionTimer.SetOwner(m_owner);
 		m_selectionTimer.Connect([this](const ArgTimer& args)
 		{
-			BT_CORE_DEBUG << "timer tick... isSelecting=" << m_selection.m_isSelecting << ". m_offsetView " << m_offsetView << ". m_selectionDirection " << m_selectionDirection << std::endl;
 			if (!m_selection.m_isSelecting)
 			{
 				return;
 			}
-			constexpr int scrollSpeed = 20;
-			auto savedOffsetView = m_offsetView;
 			
-			Size contentSize = GetContentTextExtent();
-			const int maxScrollX = std::max<int>(0, static_cast<int>(contentSize.Width) - static_cast<int>(m_editorArea.Width));
-			const int maxScrollY = std::max<int>(0, static_cast<int>(contentSize.Height) - static_cast<int>(m_editorArea.Height));
+			Point currentScroll = m_scrollableView->GetScrollOffset();
+			Point newScroll = currentScroll;
+
+			Rectangle viewport = m_editorArea;
 			
-			if (m_selectionDirection.Y == -1)
+			int deltaY = 0;
+			if (m_lastMousePosition.Y < viewport.Y)
 			{
-				m_offsetView.Y = std::min<int>(maxScrollY, m_offsetView.Y + scrollSpeed);
+				deltaY = m_lastMousePosition.Y - viewport.Y; 
 			}
-			else if (m_selectionDirection.Y == 1)
+			else if (m_lastMousePosition.Y > viewport.Y + viewport.Height)
 			{
-				m_offsetView.Y = std::max<int>(0, m_offsetView.Y - scrollSpeed);
+				deltaY = m_lastMousePosition.Y - (viewport.Y + viewport.Height); 
 			}
 			
+			int deltaX = 0;
 			if (!m_features.wordWrap)
 			{
-				if (m_selectionDirection.X == -1)
+				if (m_lastMousePosition.X < viewport.X)
 				{
-					m_offsetView.X = std::min<int>(maxScrollX, m_offsetView.X + scrollSpeed);
-				}
-				else if (m_selectionDirection.X == 1)
+					deltaX = m_lastMousePosition.X - viewport.X;
+				} 
+				else if (m_lastMousePosition.X > viewport.X + viewport.Width)
 				{
-					m_offsetView.X = std::max<int>(0, m_offsetView.X - scrollSpeed);
+					deltaX = m_lastMousePosition.X - (viewport.X + viewport.Width);
 				}
 			}
 			
-			if (savedOffsetView != m_offsetView)
+			if (deltaY != 0)
 			{
+				int velocityY = static_cast<int>(deltaY * 0.2f);
+				velocityY = std::clamp(velocityY, -TEXT_EDITOR_SCROLL_SPEED, TEXT_EDITOR_SCROLL_SPEED); 
+				newScroll.Y += velocityY; 
+			}
+
+			if (deltaX != 0)
+			{
+				int velocityX = static_cast<int>(deltaX * 0.2f);
+				velocityX = std::clamp(velocityX, -TEXT_EDITOR_SCROLL_SPEED, TEXT_EDITOR_SCROLL_SPEED);
+				newScroll.X += velocityX;
+			}
+            
+			if (newScroll != currentScroll)
+			{
+				m_scrollableView->SetScrollToX(newScroll.X);
+				m_scrollableView->SetScrollToY(newScroll.Y);
 				m_selection.m_endPosition = GetPositionUnderMouse(m_lastMousePosition);
-				//AdjustView();
+				
+				UpdateCaretPosition();
 				GUI::UpdateWindow(m_owner);
 			}
 		});
-	}
-
-	TextEditor::~TextEditor()
-	{
-		if (m_caret)
-		{
-			delete m_caret;
-			m_caret = nullptr;
-		}
 	}
 
 	void TextEditor::OnMouseEnter(const ArgMouse& args)
@@ -93,14 +107,11 @@ namespace Berta
 
 	void TextEditor::OnMouseDown(const ArgMouse& args)
 	{
-		if (m_selection.m_ignoreMouseDown)
+		if (m_selection.m_ignoreMouseDown || m_lines.empty())
 		{
 			return;
 		}
-		if (m_lines.empty())
-		{
-			return;
-		}
+		
 		m_lastMousePosition = args.Position;
 		m_selectionMousePosition = args.Position;
 		TextPosition clickedPos = GetPositionUnderMouse(args.Position);
@@ -115,7 +126,9 @@ namespace Berta
 			m_selection.Reset(clickedPos);
 		}
 		
+		UpdateCaretPosition();
 		GUI::Capture(m_owner);
+		GUI::MarkAsNeedUpdate(m_owner);
 	}
 
 	void TextEditor::OnMouseMove(const ArgMouse& args)
@@ -123,13 +136,18 @@ namespace Berta
 		if (m_selection.m_isSelecting)
 		{
 			TextPosition newPosition = GetPositionUnderMouse(args.Position);
-			m_selection.m_endPosition = newPosition;
+			if (m_selection.m_endPosition != newPosition)
+			{
+				m_selection.m_endPosition = newPosition;
+				UpdateCaretPosition(); 
+				GUI::MarkAsNeedUpdate(m_owner); 
+			}
 			
 			bool selectionTimerRunning = m_selectionTimer.IsRunning();
 			bool insideEditorArea = m_editorArea.Contains(args.Position);
+        
 			if (!selectionTimerRunning && !insideEditorArea)
 			{
-				std::cout << "start timmeerr. mouse pos = " << args.Position <<". area="<<m_editorArea << std::endl;
 				m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
 				m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
 				m_selectionTimer.SetInterval(90);
@@ -139,7 +157,6 @@ namespace Berta
 			{
 				if (insideEditorArea)
 				{
-					std::cout << "stop timmeerr" << std::endl;
 					m_selectionDirection = {0, 0};
 					m_selectionTimer.Stop();
 				}
@@ -150,7 +167,7 @@ namespace Berta
 				}
 			}
 		}
-		
+    
 		m_lastMousePosition = args.Position;
 	}
 
@@ -162,19 +179,17 @@ namespace Berta
 			return;
 		}
 		m_selectionTimer.Stop();
-		if (m_wasDblClick)
+		if (m_wasDblClick || m_lines.empty())
 		{
 			m_wasDblClick = false;
 			return;
 		}
-		if (m_lines.empty())
-		{
-			return;
-		}
+
 		GUI::ReleaseCapture(m_owner);
 		
 		m_selection.m_endPosition = GetPositionUnderMouse(args.Position);
 		m_selection.m_isSelecting = false;
+		GUI::MarkAsNeedUpdate(m_owner); 
 	}
 
 	bool TextEditor::OnFocus(const ArgFocus& args)
@@ -298,6 +313,10 @@ namespace Berta
 			break;
 		}
 		
+		if (redraw)
+		{
+			UpdateCaretPosition();
+		}
 		return redraw;
 	}
 
@@ -317,403 +336,32 @@ namespace Berta
 		}
 		
 		TextPosition clickPos = GetPositionUnderMouse(args.Position);
-		const std::wstring& line = m_lines[clickPos.line];
-		if (line.empty())
-		{
-			return true;
-		}
+		auto [wordStart, wordEnd] = GetWordBounds(clickPos);
 
-		size_t start = clickPos.column;
-		size_t end = clickPos.column;
-
-		auto isWordChar = [](wchar_t ch)
-		{ 
-			return std::iswalnum(ch) || ch == L'_'; 
-		};
-		bool clickingOnWord = (clickPos.column < line.size()) ? isWordChar(line[clickPos.column]) : false;
-		while (start > 0 && isWordChar(line[start - 1]) == clickingOnWord)
-		{
-			start--;
-		}
-
-		while (end < line.size() && isWordChar(line[end]) == clickingOnWord)
-		{
-			end++;
-		}
-
-		m_selection.m_startPosition = { clickPos.line, start };
-		m_selection.m_endPosition = { clickPos.line, end };
+		m_selection.m_isSelecting = false; 
     
-		ActivateCaret();
+		m_selection.m_startPosition = wordStart;
+		m_selection.m_endPosition = wordEnd;
+		
+		UpdateCaretPosition();
+		AdjustView();
 		return true;
 	}
 
 	void TextEditor::OnResize(ArgResize args)
 	{
 		RecomputeWordWrap();
+		UpdateScrollMetrics();
 		AdjustView();
+		UpdateCaretPosition();
 	}
 
-	void TextEditor::ActivateCaret()
+	void TextEditor::OnDpiChanged()
 	{
-		auto& currentLine = m_lines[m_selection.m_endPosition.line];
-		auto extent = m_graphics.GetTextExtent(currentLine.substr(0, m_selection.m_endPosition.column));
-    
-		Point caretPos;
-		caretPos.X = static_cast<int>(extent.Width) + m_offsetView.X;
-		caretPos.Y = static_cast<int>(m_selection.m_endPosition.line * GetLineHeight()) + m_offsetView.Y;
-		
-		m_caret->SetPosition(caretPos);
-		m_caret->Activate();
-	}
-
-	void TextEditor::DeactivateCaret()
-	{
-		m_caret->Deactivate();
-	}
-
-	void TextEditor::InsertChar(const wchar_t chr)
-	{
-		if (!m_selection.IsEmpty())
-		{
-			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
-			m_selection.Reset(m_selection.m_startPosition);
-		}
-		
-		TextPosition& position = m_selection.m_endPosition;
-		auto& currentLine = m_lines[m_selection.m_endPosition.line];
-    
-		if (chr == L'\n')
-		{
-			std::wstring remainder = currentLine.substr(position.column);
-			currentLine = currentLine.substr(0, position.column);
-        
-			m_lines.insert(m_lines.begin() + position.line + 1, remainder);
-			InvalidateLayoutsForLogicalLine(position.line);
-			UpdateLinesIncremental(position.line, 1);
-			
-			position.line++;
-			position.column = 0;
-		}
-		else
-		{
-			currentLine.insert(position.column, 1, chr);
-			InvalidateLayoutsForLogicalLine(position.line);
-			UpdateLinesIncremental(position.line, 0);
-			position.column++;
-		}
-		m_selection.m_startPosition = position;
-		
-		AdjustView();
-		EmitValueChanged();
-	}
-
-	void TextEditor::MoveCaretHome(bool select)
-	{
-		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart;
-
-		if (!select)
-		{
-			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
-
-	void TextEditor::MoveCaretEnd(bool select)
-	{
-		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart + m_visualLines[vIdx].charLength;
-
-		if (!select)
-		{
-			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
-
-	void TextEditor::MoveCaretVertically(int direction, bool select)
-	{
-		size_t currentVlIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
-    
-		if (direction < 0 && currentVlIdx == 0) return;
-		if (direction > 0 && currentVlIdx + 1 >= m_visualLines.size())
-			return;
-
-		size_t targetVlIdx = currentVlIdx + direction;
-		const auto& targetVl = m_visualLines[targetVlIdx];
-
-		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
-		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + m_offsetView.X);
-
-		EnsureLayout(targetVl);
-    
-		BOOL isTrailingHit, isInside;
-		DWRITE_HIT_TEST_METRICS metrics;
-
-#ifdef BT_PLATFORM_WINDOWS
-		if (targetVl.m_textHandle.IsValid())
-		{
-			targetVl.m_textHandle.m_textLayout->HitTestPoint
-			(
-				targetX, 0, &isTrailingHit, &isInside, &metrics
-			);
-
-			m_selection.m_endPosition.line = targetVl.logicalLineIndex;
-			m_selection.m_endPosition.column = targetVl.charStart + metrics.textPosition;
-			if (isTrailingHit)
-			{
-				m_selection.m_endPosition.column++;
-			}
-		}
-#endif
-		
-		if (!select)
-		{
-			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
-
-	void TextEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)
-	{
-		TextPosition& position = m_selection.m_endPosition;
-		const std::wstring& line = m_lines[position.line];
-
-		if (direction > 0)
-		{
-			if (position.column < line.size())
-			{
-				if (IS_HIGH_SURROGATE(line[position.column]) && 
-					position.column + 1 < line.size() && 
-					IS_LOW_SURROGATE(line[position.column + 1]))
-				{
-					position.column += 2;
-				}
-				else if (wordJump)
-				{
-					position = GetPositionNextWord(m_selection.m_endPosition, direction);
-				}
-				else
-				{
-					position.column += 1;
-				}
-			}
-			else if (position.line + 1 < m_lines.size())
-			{
-				position.line++;
-				position.column = 0;
-			}
-		}
-		else
-		{
-			if (position.column > 0)
-			{
-				if (IS_LOW_SURROGATE(line[position.column - 1]) && 
-					position.column > 1 && 
-					IS_HIGH_SURROGATE(line[position.column - 2]))
-				{
-					position.column -= 2;
-				}
-				else if (wordJump)
-				{
-					position = GetPositionNextWord(m_selection.m_endPosition, direction);
-				}
-				else
-				{
-					position.column -= 1;
-				}
-			}
-			else if (position.line > 0)
-			{
-				position.line--;
-				position.column = m_lines[position.line].size();
-			}
-		}
-		if (!select)
-		{
-			m_selection.m_startPosition = m_selection.m_endPosition;
-		}
-		AdjustView();
-	}
-
-	void TextEditor::HandleDelete()
-	{
-		if (!m_selection.IsEmpty())
-		{
-			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
-			RecomputeWordWrap();
-			AdjustView();
-			EmitValueChanged();
-			return;
-		}
-		
-		TextPosition& position = m_selection.m_endPosition;
-		auto& currentLine = m_lines[position.line];
-		bool changed = false;
-		
-		if (position.column < currentLine.size())
-		{
-			currentLine.erase(position.column, 1);
-			changed = true;
-		}
-		else if (position.line + 1 < m_lines.size())
-		{
-			m_lines[position.line] += m_lines[position.line + 1];
-			m_lines.erase(m_lines.begin() + position.line + 1);
-			changed = true;
-		}
-
-		m_selection.m_startPosition = position;
-		if (!changed)
-		{
-			return;
-		}
-		
 		RecomputeWordWrap();
+		UpdateScrollMetrics();
 		AdjustView();
-		EmitValueChanged();
-	}
-
-	void TextEditor::HandleBackspace()
-	{
-		if (!m_selection.IsEmpty())
-		{
-			DeleteRange(m_selection.Min(), m_selection.Max());
-			RecomputeWordWrap();
-			AdjustView();
-			EmitValueChanged();
-			return;
-		}
-		
-		bool changed = false;
-		TextPosition& pos = m_selection.m_endPosition;
-		
-		if (pos.column == 0 && pos.line > 0)
-		{
-			size_t targetLine = pos.line - 1;
-			size_t newColumn = m_lines[targetLine].size();
-        
-			m_lines[targetLine] += m_lines[pos.line];
-			m_lines.erase(m_lines.begin() + pos.line);
-			UpdateLinesIncremental(targetLine, -1); // Incremental!
-        
-			pos.line = targetLine;
-			pos.column = newColumn;
-			changed = true;
-		}
-		else if (pos.column > 0)
-		{
-			m_lines[pos.line].erase(pos.column - 1, 1);
-			UpdateLinesIncremental(pos.line, 0);
-			pos.column--;
-			changed = true;
-		}
-		else if (pos.line > 0)
-		{
-			size_t prevLine = pos.line - 1;
-			pos.column = m_lines[prevLine].size();
-			m_lines[prevLine] += m_lines[pos.line];
-			m_lines.erase(m_lines.begin() + pos.line);
-			pos.line = prevLine;
-			changed = true;
-		}
-		m_selection.m_startPosition = pos;
-		
-		if (!changed)
-		{
-			return;
-		}
-		RecomputeWordWrap();
-		AdjustView();
-		EmitValueChanged();
-	}
-
-	void TextEditor::HandleEnter()
-	{
-		if (!m_features.isMultiLines)
-		{
-			return;
-		}
-
-		InsertChar(L'\n');
-	}
-
-	void TextEditor::DeleteRange(TextPosition start, TextPosition end)
-	{
-		if (start == end)
-		{
-			return;
-		}
-
-		if (end < start)
-		{
-			std::swap(start, end);
-		}
-
-		if (start.line == end.line)
-		{
-			m_lines[start.line].erase(start.column, end.column - start.column);
-		} 
-		else
-		{
-			std::wstring head = m_lines[start.line].substr(0, start.column);
-			std::wstring tail = m_lines[end.line].substr(end.column);
-
-			m_lines[start.line] = head + tail;
-			m_lines.erase(m_lines.begin() + start.line + 1, m_lines.begin() + end.line + 1);
-		}
-
-		m_selection.Reset(start);
-	}
-
-	size_t TextEditor::GetVisualLineIndexFromPos(TextPosition position) const
-	{
-		if (m_visualLines.empty())
-		{
-			return 0;
-		}
-		//binary search
-		const auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), position.line,
-			[](const VisualLine& vl, size_t lineIdx)
-			{
-				return vl.logicalLineIndex < lineIdx;
-			});
-		
-		if (it == m_visualLines.end() || it->logicalLineIndex != position.line)
-		{
-			return m_visualLines.size() - 1;
-		}
-
-		size_t firstVisualOfLogical = std::distance(m_visualLines.begin(), it);
-		for (size_t i = firstVisualOfLogical; i < m_visualLines.size(); ++i)
-		{
-			const auto& vl = m_visualLines[i];
-			if (vl.logicalLineIndex != position.line)
-			{
-				break;
-			}
-			if (position.column >= m_visualLines[i].charStart && 
-						position.column < m_visualLines[i].charStart + m_visualLines[i].charLength)
-			{
-				return i;
-			}
-        
-			if (position.column == m_visualLines[i].charStart + m_visualLines[i].charLength)
-			{
-				if (i + 1 == m_visualLines.size() || m_visualLines[i + 1].logicalLineIndex != position.line)
-				{
-					return i;
-				}
-			}
-		}
-
-		return firstVisualOfLogical;
-	}
-
-	uint32_t TextEditor::GetLineHeight() const
-	{
-		return m_graphics.GetTextExtent("Ay").Height;
+		UpdateCaretPosition();
 	}
 
 	std::wstring TextEditor::GetContent() const
@@ -755,7 +403,7 @@ namespace Berta
 		}
 
 		m_selection.Reset({ 0, 0 });
-		m_offsetView = {0, 0};
+		m_scrollableView->ResetScroll();
     
 		RecomputeWordWrap();
 	}
@@ -792,16 +440,6 @@ namespace Berta
 		return result;
 	}
 
-	void TextEditor::Copy()
-	{
-		std::wstring selectedText = GetSelectedText();
-		if (!selectedText.empty())
-		{
-			return;
-		}
-		Platform::SetClipboardText(selectedText, m_owner->RootHandle);
-	}
-
 	void TextEditor::Cut()
 	{
 		if (m_selection.m_startPosition == m_selection.m_endPosition)
@@ -810,6 +448,16 @@ namespace Berta
 		}
 		Copy();
 		DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+	}
+
+	void TextEditor::Copy() const
+	{
+		std::wstring selectedText = GetSelectedText();
+		if (!selectedText.empty())
+		{
+			return;
+		}
+		Platform::SetClipboardText(selectedText, m_owner->RootHandle);
 	}
 
 	void TextEditor::Paste()
@@ -855,10 +503,9 @@ namespace Berta
 			pos.column = newLines.back().size();
 			m_lines[pos.line] += suffix;
 		}
-
-		RecomputeWordWrap();
+		
 		m_selection.Reset(pos);
-		AdjustView();
+		CommitDocumentChange();
 	}
 
 	void TextEditor::SetEditorArea(const Rectangle& area)
@@ -871,71 +518,23 @@ namespace Berta
 		bool enabled = GUI::IsWindowEnabled(m_owner);
 		m_graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
 		
-		auto lineHeight = GetLineHeight();
-		int viewportTop = m_offsetView.Y;
-		int viewportBottom = m_offsetView.Y + static_cast<int>(m_editorArea.Height);
+		m_graphics.SetClipping(m_editorArea);
+		
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		m_graphics.PushTranslation(m_editorArea.X - currentOffset.X, m_editorArea.Y - currentOffset.Y);
+		
+		RenderVisibleLines();
+		RenderCaret();
+		
+		m_graphics.PopTranslation();
+		m_graphics.EndClipping();
+		
+		RenderUIElements();
+	}
 
-		size_t firstLineIndex = GetFirstVisibleVisualLine();
-		
-		auto one = m_owner->ToScale(1);
-		auto two = m_owner->ToScale(2);
-		
-		TextPosition startPosition = m_selection.Min();
-		TextPosition endPosition = m_selection.Max();
-		
-		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
-		{
-			const auto& vl = m_visualLines[i];
-			const int vlPosY = static_cast<int>(vl.y);
-			if (vlPosY > viewportBottom)
-			{
-				break; 
-			}
-			
-			const int drawX = -m_offsetView.X;
-			const int drawY = vlPosY - viewportTop + m_editorArea.Y;
-			if (drawY + static_cast<int>(lineHeight) < m_editorArea.Y || drawY > static_cast<int>(m_editorArea.Height) + m_editorArea.Y)
-			{
-				continue;
-			}
-			
-			std::wstring_view fragment = std::wstring_view(m_lines[vl.logicalLineIndex]).substr(vl.charStart, vl.charLength);
-			
-			if (startPosition != endPosition && vl.logicalLineIndex >= startPosition.line && vl.logicalLineIndex <= endPosition.line)
-			{
-				size_t selStartInV = (vl.logicalLineIndex == startPosition.line) ? (std::max)(vl.charStart, startPosition.column) : vl.charStart;
-				size_t selEndInV = (vl.logicalLineIndex == endPosition.line) ? (std::min)(vl.charStart + vl.charLength, endPosition.column) : (vl.charStart + vl.charLength);
-
-				if (selStartInV < selEndInV)
-				{
-					auto x1 = m_graphics.GetTextExtent(fragment.substr(0, selStartInV - vl.charStart)).Width;
-					auto w = m_graphics.GetTextExtent(fragment.substr(selStartInV - vl.charStart, selEndInV - selStartInV)).Width;
-					m_graphics.FillRectangle(Rectangle{static_cast<int>(x1) + drawX + m_editorArea.X, drawY + m_editorArea.Y, (uint32_t)(w + one), lineHeight}, Color(0, 120, 215, 128));
-				}
-			}
-			EnsureLayout(vl);
-			if (vl.m_textHandle)
-			{
-				m_graphics.DrawTextLayout(vl.m_textHandle, { drawX + m_editorArea.X, drawY + m_editorArea.Y }, m_owner->Appearance->Foreground);
-			}
-			//m_graphics.DrawString({ drawX + m_editorArea.X, drawY + m_editorArea.Y }, fragment, m_owner->Appearance->Foreground);
-			
-			//Caret
-			if (m_selection.m_endPosition.line == vl.logicalLineIndex && 
-				m_selection.m_endPosition.column >= vl.charStart && 
-				m_selection.m_endPosition.column <= vl.charStart + vl.charLength)
-			{
-				auto caretX = m_graphics.GetTextExtent(fragment.substr(0, m_selection.m_endPosition.column - vl.charStart)).Width;
-				m_caret->SetPosition({ drawX + static_cast<int>(caretX), drawY });
-			}
-		}
-		
-		if (m_caret->IsVisible())
-		{
-			auto caretHeight= m_graphics.GetCaretHeight();
-			m_graphics.DrawLine({ m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y }, { m_editorArea.X + m_caret->GetPosition().X, m_editorArea.Y + m_caret->GetPosition().Y + static_cast<int>(caretHeight) }, m_owner->Appearance->Foreground2nd);
-		}
-		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
+	void TextEditor::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
+	{
+		m_scrollableView->SetScrollBarVisibility(vertical, horizontal);
 	}
 
 	bool TextEditor::IsEditable() const
@@ -1068,7 +667,556 @@ namespace Berta
 		file.write(utf8Content.c_str(), utf8Content.size());
 	}
 
-	void TextEditor::AdjustView()
+	void TextEditor::ActivateCaret() const
+	{
+		auto& currentLine = m_lines[m_selection.m_endPosition.line];
+		auto extent = m_graphics.GetTextExtent(currentLine.substr(0, m_selection.m_endPosition.column));
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		
+		Point caretPos;
+		caretPos.X = static_cast<int>(extent.Width) + currentOffset.X;
+		caretPos.Y = static_cast<int>(m_selection.m_endPosition.line * GetLineHeight()) + currentOffset.Y;
+		
+		m_caret->SetPosition(caretPos);
+		m_caret->Activate();
+	}
+
+	void TextEditor::DeactivateCaret() const
+	{
+		m_caret->Deactivate();
+	}
+
+	void TextEditor::InsertChar(const wchar_t wChr)
+	{
+		if (!m_selection.IsEmpty())
+		{
+			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+			m_selection.Reset(m_selection.m_startPosition);
+		}
+		
+		TextPosition& position = m_selection.m_endPosition;
+    
+		if (wChr == L'\n')
+		{
+			std::wstring remainder;
+			{
+				auto& currentLine = m_lines[position.line];
+				remainder = currentLine.substr(position.column);
+				
+				currentLine.erase(position.column); 
+			}
+        
+			InvalidateLayoutsForLogicalLine(position.line);
+			
+			m_lines.insert(m_lines.begin() + position.line + 1, std::move(remainder));
+       
+			UpdateLinesIncremental(position.line, 1);
+			
+			position.line++;
+			position.column = 0;
+		}
+		else
+		{
+			m_lines[position.line].insert(position.column, 1, wChr);
+        
+			InvalidateLayoutsForLogicalLine(position.line);
+			UpdateLinesIncremental(position.line, 0);
+			
+			position.column++;
+		}
+		m_selection.m_startPosition = position;
+		CommitDocumentChange();
+	}
+
+	void TextEditor::MoveCaretHome(bool select)
+	{
+		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart;
+
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
+		AdjustView();
+	}
+
+	void TextEditor::MoveCaretEnd(bool select)
+	{
+		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+		m_selection.m_endPosition.column = m_visualLines[vIdx].charStart + m_visualLines[vIdx].charLength;
+
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
+		AdjustView();
+	}
+
+	void TextEditor::MoveCaretVertically(int direction, bool select)
+	{
+		size_t currentVlIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
+    
+		if (direction < 0 && currentVlIdx == 0) return;
+		if (direction > 0 && currentVlIdx + 1 >= m_visualLines.size())
+			return;
+
+		size_t targetVlIdx = currentVlIdx + direction;
+		const auto& targetVl = m_visualLines[targetVlIdx];
+
+		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + currentOffset.X);
+
+		EnsureLayout(targetVl);
+    
+		BOOL isTrailingHit, isInside;
+		DWRITE_HIT_TEST_METRICS metrics;
+
+#ifdef BT_PLATFORM_WINDOWS
+		if (targetVl.m_textHandle.IsValid())
+		{
+			targetVl.m_textHandle.m_textLayout->HitTestPoint
+			(
+				targetX, 0, &isTrailingHit, &isInside, &metrics
+			);
+
+			m_selection.m_endPosition.line = targetVl.logicalLineIndex;
+			m_selection.m_endPosition.column = targetVl.charStart + metrics.textPosition;
+			if (isTrailingHit)
+			{
+				m_selection.m_endPosition.column++;
+			}
+		}
+#endif
+		
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
+		AdjustView();
+	}
+
+	void TextEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)
+	{
+		TextPosition& position = m_selection.m_endPosition;
+		const std::wstring& line = m_lines[position.line];
+
+		if (direction > 0)
+		{
+			if (position.column < line.size())
+			{
+				if (IS_HIGH_SURROGATE(line[position.column]) && 
+					position.column + 1 < line.size() && 
+					IS_LOW_SURROGATE(line[position.column + 1]))
+				{
+					position.column += 2;
+				}
+				else if (wordJump)
+				{
+					position = GetPositionNextWord(m_selection.m_endPosition, direction);
+				}
+				else
+				{
+					position.column += 1;
+				}
+			}
+			else if (position.line + 1 < m_lines.size())
+			{
+				position.line++;
+				position.column = 0;
+			}
+		}
+		else
+		{
+			if (position.column > 0)
+			{
+				if (IS_LOW_SURROGATE(line[position.column - 1]) && 
+					position.column > 1 && 
+					IS_HIGH_SURROGATE(line[position.column - 2]))
+				{
+					position.column -= 2;
+				}
+				else if (wordJump)
+				{
+					position = GetPositionNextWord(m_selection.m_endPosition, direction);
+				}
+				else
+				{
+					position.column -= 1;
+				}
+			}
+			else if (position.line > 0)
+			{
+				position.line--;
+				position.column = m_lines[position.line].size();
+			}
+		}
+		if (!select)
+		{
+			m_selection.m_startPosition = m_selection.m_endPosition;
+		}
+		AdjustView();
+	}
+
+	void TextEditor::HandleDelete()
+	{
+		if (!m_selection.IsEmpty())
+		{
+			DeleteRange(m_selection.m_startPosition, m_selection.m_endPosition);
+			CommitDocumentChange();
+			return;
+		}
+		
+		TextPosition& position = m_selection.m_endPosition;
+		if (position.line >= m_lines.size())
+		{
+			return;
+		}
+		
+		auto& currentLine = m_lines[position.line];
+		bool changed = false;
+		
+		if (position.column < currentLine.size())
+		{
+			currentLine.erase(position.column, 1);
+			InvalidateLayoutsForLogicalLine(position.line);
+			UpdateLinesIncremental(position.line, 0);
+			changed = true;
+		}
+		else if (position.line + 1 < m_lines.size())
+		{
+			m_lines[position.line] += m_lines[position.line + 1];
+			m_lines.erase(m_lines.begin() + position.line + 1);
+			InvalidateLayoutsForLogicalLine(position.line);
+			UpdateLinesIncremental(position.line, -1);
+			changed = true;
+		}
+
+		if (!changed)
+		{
+			return;
+		}
+		m_selection.m_startPosition = position;
+		CommitDocumentChange();
+	}
+
+	void TextEditor::HandleBackspace()
+	{
+		if (!m_selection.IsEmpty())
+		{
+			DeleteRange(m_selection.Min(), m_selection.Max());
+			CommitDocumentChange();
+			return;
+		}
+		
+		bool changed = false;
+		TextPosition& pos = m_selection.m_endPosition;
+		
+		if (pos.column == 0 && pos.line > 0)
+		{
+			size_t targetLine = pos.line - 1;
+			size_t newColumn = m_lines[targetLine].size();
+        
+			m_lines[targetLine] += m_lines[pos.line];
+			m_lines.erase(m_lines.begin() + pos.line);
+			UpdateLinesIncremental(targetLine, -1);
+        
+			pos.line = targetLine;
+			pos.column = newColumn;
+			changed = true;
+		}
+		else if (pos.column > 0)
+		{
+			m_lines[pos.line].erase(pos.column - 1, 1);
+			UpdateLinesIncremental(pos.line, 0);
+			pos.column--;
+			changed = true;
+		}
+		else if (pos.line > 0)
+		{
+			size_t prevLine = pos.line - 1;
+			pos.column = m_lines[prevLine].size();
+			m_lines[prevLine] += m_lines[pos.line];
+			m_lines.erase(m_lines.begin() + pos.line);
+			pos.line = prevLine;
+			changed = true;
+		}
+		m_selection.m_startPosition = pos;
+		
+		if (!changed)
+		{
+			return;
+		}
+		
+		CommitDocumentChange();
+	}
+
+	void TextEditor::HandleEnter()
+	{
+		if (!m_features.isMultiLines)
+		{
+			return;
+		}
+
+		InsertChar(L'\n');
+	}
+
+	void TextEditor::DeleteRange(TextPosition start, TextPosition end)
+	{
+		if (start == end)
+		{
+			return;
+		}
+
+		if (end < start)
+		{
+			std::swap(start, end);
+		}
+
+		if (start.line == end.line)
+		{
+			m_lines[start.line].erase(start.column, end.column - start.column);
+		} 
+		else
+		{
+			std::wstring head = m_lines[start.line].substr(0, start.column);
+			std::wstring tail = m_lines[end.line].substr(end.column);
+
+			m_lines[start.line] = head + tail;
+			m_lines.erase(m_lines.begin() + start.line + 1, m_lines.begin() + end.line + 1);
+		}
+
+		m_selection.Reset(start);
+	}
+
+	void TextEditor::RenderVisibleLines()
+	{
+		size_t firstLineIndex = GetFirstVisibleVisualLine();
+		int viewportBottom = m_scrollableView->GetScrollOffset().Y + (int)m_editorArea.Height;
+		Color textColor = m_owner->Appearance->Foreground;
+
+		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
+		{
+			const auto& vl = m_visualLines[i];
+    
+			if ((int)vl.y > viewportBottom) break; 
+
+			EnsureLayout(vl);
+
+			DrawSelectionBackground(vl);
+
+			if (vl.m_textHandle)
+			{
+				m_graphics.DrawTextLayout(vl.m_textHandle, { 0, static_cast<int>(vl.y) }, textColor);
+			}
+		}
+	}
+
+	void TextEditor::RenderCaret()
+	{
+		if (!m_caret || !m_caret->IsVisible())
+		{
+			return;
+		}
+		
+		Point logicalCaretPos = m_caret->GetPosition(); 
+        
+		auto caretHeight = m_graphics.GetCaretHeight(); 
+		Color caretColor = m_owner->Appearance->Foreground2nd;
+
+		m_graphics.DrawLine(
+			{ logicalCaretPos.X, logicalCaretPos.Y }, 
+			{ logicalCaretPos.X, logicalCaretPos.Y + static_cast<int>(caretHeight) }, 
+			caretColor
+		);
+	}
+
+	void TextEditor::RenderUIElements()
+	{
+		if (m_scrollableView && m_scrollableView->HasVerticalScroll() && m_scrollableView->HasHorizontalScroll())
+		{
+			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+			m_graphics.FillRectangle(
+				{ static_cast<int>(m_owner->ClientSize.Width - scrollSize) - 1, 
+				  static_cast<int>(m_owner->ClientSize.Height - scrollSize) - 1, 
+				  scrollSize, scrollSize }, 
+				m_owner->Appearance->Background
+			);
+		}
+
+		bool enabled = GUI::IsWindowEnabled(m_owner);
+		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
+	}
+	
+	void TextEditor::DrawSelectionBackground(const VisualLine& vl) const
+	{
+		if (!vl.m_textHandle.m_textLayout)
+		{
+			return;
+		}
+
+		if (m_selection.IsEmpty())
+		{
+			return;
+		}
+
+		auto [localStart, selLength] = GetSelectionRangeForLine(vl);
+    
+		auto startPos = m_selection.Min();
+		auto endPos = m_selection.Max();
+
+		bool isLastVisualOfLogical = (vl.charStart + vl.charLength == m_lines[vl.logicalLineIndex].length());
+    
+		bool newlineSelected = isLastVisualOfLogical && 
+							   (vl.logicalLineIndex >= startPos.line) && 
+							   (vl.logicalLineIndex < endPos.line);
+
+		if (selLength == 0 && !newlineSelected) return;
+
+		Color selColor = m_owner->Appearance->HighlightColor;
+		uint32_t uniformLineHeight = GetLineHeight();
+
+#ifdef BT_PLATFORM_WINDOWS
+		if (selLength > 0)
+		{
+			uint32_t maxHitTestMetrics = 4;
+			std::vector<DWRITE_HIT_TEST_METRICS> hitTestMetrics(maxHitTestMetrics);
+			uint32_t actualHitTestMetrics = 0;
+
+			HRESULT hr = vl.m_textHandle.m_textLayout->HitTestTextRange(
+				localStart, selLength, 0, 0,
+				hitTestMetrics.data(), maxHitTestMetrics, &actualHitTestMetrics
+			);
+
+			if (hr == E_NOT_SUFFICIENT_BUFFER) {
+				hitTestMetrics.resize(actualHitTestMetrics);
+				hr = vl.m_textHandle.m_textLayout->HitTestTextRange(
+					localStart, selLength, 0, 0,
+					hitTestMetrics.data(), static_cast<UINT32>(hitTestMetrics.size()), &actualHitTestMetrics
+				);
+			}
+
+			if (SUCCEEDED(hr)) {
+				for (uint32_t i = 0; i < actualHitTestMetrics; ++i) {
+					const auto& metrics = hitTestMetrics[i];
+					Rectangle rect{
+						static_cast<int>(metrics.left),
+						static_cast<int>(metrics.top + vl.y), 
+						static_cast<uint32_t>(metrics.width),
+						uniformLineHeight 
+					};
+					m_graphics.FillRectangle(rect, selColor);
+				}
+			}
+		}
+
+		if (newlineSelected)
+		{
+			float textWidth = 0.0f;
+			DWRITE_TEXT_METRICS textMetrics;
+        
+			if (SUCCEEDED(vl.m_textHandle.m_textLayout->GetMetrics(&textMetrics))) {
+				textWidth = textMetrics.widthIncludingTrailingWhitespace;
+			}
+
+			Rectangle newlineRect{
+				static_cast<int>(textWidth),
+				static_cast<int>(vl.y),
+				8u, // Ancho visual del "Enter" 
+				uniformLineHeight
+			};
+			m_graphics.FillRectangle(newlineRect, selColor);
+		}
+#endif
+	}
+
+	std::pair<uint32_t, uint32_t> TextEditor::GetSelectionRangeForLine(const VisualLine& vl) const
+	{
+		if (!m_selection.m_isSelecting && m_selection.m_startPosition == m_selection.m_endPosition) {
+			return { 0, 0 };
+		}
+
+		auto [startPos, endPos] = std::minmax(m_selection.m_startPosition, m_selection.m_endPosition);
+
+		if (vl.logicalLineIndex < startPos.line || vl.logicalLineIndex > endPos.line) {
+			return { 0, 0 }; 
+		}
+
+		uint32_t localStart = 0;
+		uint32_t localEnd = static_cast<uint32_t>(vl.charLength);
+
+		if (vl.logicalLineIndex == startPos.line)
+		{
+			if (startPos.column > vl.charStart + vl.charLength)
+			{
+				return { 0, 0 };
+			}
+			localStart = static_cast<uint32_t>(startPos.column > vl.charStart ? startPos.column - vl.charStart : 0);
+		}
+
+		if (vl.logicalLineIndex == endPos.line)
+		{
+			if (endPos.column < vl.charStart)
+			{
+				return { 0, 0 };
+			}
+			localEnd = static_cast<uint32_t>(endPos.column < vl.charStart + vl.charLength ? endPos.column - vl.charStart : vl.charLength);
+		}
+
+		uint32_t length = (localEnd > localStart) ? (localEnd - localStart) : 0;
+		return { localStart, length };
+	}
+
+	size_t TextEditor::GetVisualLineIndexFromPos(TextPosition position) const
+	{
+		if (m_visualLines.empty())
+		{
+			return 0;
+		}
+		//binary search
+		const auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), position.line,
+		                                 [](const VisualLine& vl, size_t lineIdx)
+		                                 {
+			                                 return vl.logicalLineIndex < lineIdx;
+		                                 });
+		
+		if (it == m_visualLines.end() || it->logicalLineIndex != position.line)
+		{
+			return m_visualLines.size() - 1;
+		}
+
+		size_t firstVisualOfLogical = std::distance(m_visualLines.begin(), it);
+		for (size_t i = firstVisualOfLogical; i < m_visualLines.size(); ++i)
+		{
+			const auto& vl = m_visualLines[i];
+			if (vl.logicalLineIndex != position.line)
+			{
+				break;
+			}
+			if (position.column >= m_visualLines[i].charStart && 
+				position.column < m_visualLines[i].charStart + m_visualLines[i].charLength)
+			{
+				return i;
+			}
+        
+			if (position.column == m_visualLines[i].charStart + m_visualLines[i].charLength)
+			{
+				if (i + 1 == m_visualLines.size() || m_visualLines[i + 1].logicalLineIndex != position.line)
+				{
+					return i;
+				}
+			}
+		}
+
+		return firstVisualOfLogical;
+	}
+
+	uint32_t TextEditor::GetLineHeight() const
+	{
+		return m_graphics.GetTextExtent("Ay").Height;
+	}
+
+	void TextEditor::AdjustView() const
 	{
 		auto viewHeight = static_cast<int>(m_editorArea.Height);
 		auto viewWidth = static_cast<int>(m_editorArea.Width);
@@ -1078,6 +1226,7 @@ namespace Berta
 		{
 			return;
 		}
+		auto currentOffset = m_scrollableView->GetScrollOffset();
 		
 		const auto& vl = m_visualLines[vIdx];
 		if (m_features.wordWrap || m_features.isMultiLines)
@@ -1085,18 +1234,18 @@ namespace Berta
 			auto lineHeight = static_cast<int>(GetLineHeight());
 			int caretY = static_cast<int>(vl.y);
 			
-			if (caretY + lineHeight - m_offsetView.Y > viewHeight)
+			if (caretY + lineHeight - currentOffset.Y > viewHeight)
 			{
-				m_offsetView.Y = caretY + lineHeight - viewHeight;
+				currentOffset.Y = caretY + lineHeight - viewHeight;
 			}
-			else if (caretY - m_offsetView.Y < 0)
+			else if (caretY - currentOffset.Y < 0)
 			{
-				m_offsetView.Y = caretY;
+				currentOffset.Y = caretY;
 			}
 		}
 		else
 		{
-			m_offsetView.Y = 0;
+			currentOffset.Y = 0;
 		}
 		
 		if (!m_features.wordWrap)
@@ -1104,77 +1253,90 @@ namespace Berta
 			std::wstring textToCaret = m_lines[vl.logicalLineIndex].substr(vl.charStart, m_selection.m_endPosition.column - vl.charStart);
 			int caretX = static_cast<int>(m_graphics.GetTextExtent(textToCaret).Width);
 
-			if (caretX > m_offsetView.X + viewWidth)
+			if (caretX > currentOffset.X + viewWidth)
 			{
-				m_offsetView.X = caretX - viewWidth;
+				currentOffset.X = caretX - viewWidth;
 			}
-			else if (caretX - m_offsetView.X < 0)
+			else if (caretX - currentOffset.X < 0)
 			{
-				m_offsetView.X = caretX;
+				currentOffset.X = caretX;
 			}
 		}
 		else
 		{
-			m_offsetView.X = 0;
+			currentOffset.X = 0;
 		}
+		
+		m_scrollableView->SetScrollToX(currentOffset.X);
+		m_scrollableView->SetScrollToY(currentOffset.Y);
 	}
 
 	TextPosition TextEditor::GetPositionUnderMouse(const Point& mousePosition) const
 	{
-		if (m_visualLines.empty())
-		{
-			return { 0, 0 };
-		}
-		
-		int relativeY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
-		auto lineHeight = GetLineHeight();
-		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), relativeY,
-			[lineHeight](const VisualLine& vl, int y)
-			{
-				return static_cast<int>(vl.y) + static_cast<int>(lineHeight) < y;
+		Point logicalPoint = ToEditorSpace(mousePosition);
+		if (m_visualLines.empty()) return { 0, 0 };
+
+		auto lineHeight = (int)GetLineHeight();
+
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), logicalPoint.Y,
+			[lineHeight](const VisualLine& vl, int y) {
+				return ((int)vl.y + lineHeight) <= y;
 			});
-		
-		if (it == m_visualLines.end())
+
+		const VisualLine* targetLine = nullptr;
+
+		if (it == m_visualLines.end()) 
 		{
-			it = std::prev(m_visualLines.end());
+			targetLine = &m_visualLines.back();
+		} 
+		else 
+		{
+			targetLine = &(*it);
+        
+			if (logicalPoint.Y < static_cast<int>(m_visualLines.front().y))
+			{
+				return { 0, 0 };
+			}
 		}
+
+		TextPosition pos;
+		pos.line = targetLine->logicalLineIndex;
+
 #ifdef BT_PLATFORM_WINDOWS
-		const auto& vl = *it;
-		float localX = static_cast<float>(mousePosition.X - m_editorArea.X + m_offsetView.X);
-		float localY = static_cast<float>(relativeY - vl.y);
-
-		EnsureLayout(vl);
-		if (!vl.m_textHandle.IsValid())
+		EnsureLayout(*targetLine);
+		
+		if (targetLine->m_textHandle.m_textLayout)
 		{
-			return { vl.logicalLineIndex, vl.charStart };
-		}
-		
-		BOOL isTrailingHit;
-		BOOL isInside;
-		DWRITE_HIT_TEST_METRICS metrics;
-		
-		vl.m_textHandle.m_textLayout->HitTestPoint
-		(
-			localX,
-			localY,
-			&isTrailingHit, // Si clicamos en la mitad derecha del carácter
-			&isInside,      // Si el clic cayó realmente sobre el texto
-			&metrics
-		);
-		
-		size_t finalColumn = vl.charStart + metrics.textPosition;
-		if (isTrailingHit)
-		{
-			finalColumn++;
-		}
-		finalColumn = std::min<size_t>(finalColumn, m_lines[vl.logicalLineIndex].size());
+			BOOL isTrailingHit = FALSE;
+			BOOL isInside = FALSE;
+			DWRITE_HIT_TEST_METRICS metrics;
 
-		return { vl.logicalLineIndex, finalColumn };
+			HRESULT hr = targetLine->m_textHandle.m_textLayout->HitTestPoint(
+				static_cast<FLOAT>(logicalPoint.X),
+				0.0f, 
+				&isTrailingHit,
+				&isInside,
+				&metrics
+			);
+
+			if (SUCCEEDED(hr))
+			{
+				pos.column = targetLine->charStart + metrics.textPosition;
+            
+				if (isTrailingHit)
+				{
+					pos.column += metrics.length;
+				}
+			}
+		}
+		else
+		{
+			pos.column = targetLine->charStart;
+		}
 #else
-		
 		int localX = mousePosition.X - m_editorArea.X + m_offsetView.X;
 		int localY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
-		
+	
 		localY = std::max<int>(localY, 0);
 
 		for (const auto& vl : m_visualLines)
@@ -1185,7 +1347,7 @@ namespace Berta
 				break;
 			}
 		}
-		
+	
 		const std::wstring& lineText = m_lines[targetVL->logicalLineIndex];
 		if (lineText.empty())
 		{
@@ -1228,6 +1390,7 @@ namespace Berta
 
 		return { targetVL->logicalLineIndex, targetVL->charStart + foundOffset };
 #endif
+		return pos;
 	}
 
 	TextPosition TextEditor::GetPositionNextWord(TextPosition currentPosition, int direction) const
@@ -1334,35 +1497,74 @@ namespace Berta
 
 	Point TextEditor::GetPointFromPosition(TextPosition pos) const
 	{
-		size_t vlIdx = GetVisualLineIndexFromPos(pos);
-		const auto& vl = m_visualLines[vlIdx];
-		
-		EnsureLayout(vl);
-
-		float localX = 0.0f;
-		float localY = 0.0f;
-
-		if (vl.m_textHandle.IsValid())
+		if (m_visualLines.empty())
 		{
-			DWRITE_HIT_TEST_METRICS metrics;
-			uint32_t relativePos = static_cast<uint32_t>(pos.column - vl.charStart);
-
-#ifdef BT_PLATFORM_WINDOWS
-			vl.m_textHandle.m_textLayout->HitTestTextPosition
-			(
-				relativePos,
-				FALSE,
-				&localX,
-				&localY,
-				&metrics
-			);
-#endif
+			return { 0, 0 };
 		}
 
-		int x = m_editorArea.X - m_offsetView.X + static_cast<int>(localX);
-		int y = m_editorArea.Y - m_offsetView.Y + static_cast<int>(vl.y);
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), pos.line,
+	[](const VisualLine& vl, size_t lineIdx) {
+		return vl.logicalLineIndex < lineIdx;
+	});
 
-		return { x, y };
+		const VisualLine* targetLine = nullptr;
+
+		while (it != m_visualLines.end() && it->logicalLineIndex == pos.line)
+		{
+			if (pos.column >= it->charStart && pos.column <= (it->charStart + it->charLength))
+			{
+				targetLine = &(*it);
+				break;
+			}
+			++it;
+		}
+
+		if (!targetLine) return { 0, 0 };
+
+		float caretX = 0.0f;
+
+#ifdef BT_PLATFORM_WINDOWS
+		EnsureLayout(*targetLine);
+
+		if (targetLine->m_textHandle.m_textLayout)
+		{
+			FLOAT hitX = 0.0f, hitY = 0.0f;
+			DWRITE_HIT_TEST_METRICS metrics;
+    
+			uint32_t localCharIndex = static_cast<uint32_t>(pos.column - targetLine->charStart);
+
+			HRESULT hr = targetLine->m_textHandle.m_textLayout->HitTestTextPosition(
+				localCharIndex, 
+				FALSE, 
+				&hitX, 
+				&hitY, 
+				&metrics
+			);
+
+			if (SUCCEEDED(hr)) {
+				caretX = hitX;
+			}
+		}
+#endif
+
+		return { static_cast<int>(caretX), static_cast<int>(targetLine->y) };
+	}
+
+	void TextEditor::UpdateCaretPosition()
+	{
+		Point logicalPos = GetPointFromPosition(m_selection.m_endPosition);
+
+		m_caret->SetPosition(logicalPos);
+
+		if (m_scrollableView)
+		{
+			uint32_t caretHeight = GetLineHeight();
+			uint32_t caretWidth = 2u;
+
+			Rectangle caretRect{ logicalPos.X, logicalPos.Y, caretWidth, caretHeight };
+        
+			m_scrollableView->EnsureVisibility(caretRect);
+		}
 	}
 
 	Size TextEditor::GetContentTextExtent() const
@@ -1377,23 +1579,40 @@ namespace Berta
 		m_visualLines.clear();
 		m_cachedMaxWidth = 0;
 		uint32_t currentY = 0;
-
+		
+		uint32_t workingWidth = m_editorArea.Width;
+		
 		for (size_t i = 0; i < m_lines.size(); ++i)
 		{
-			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines);
+			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines, workingWidth);
 		}
-    
+
 		if (m_features.wordWrap)
 		{
-			m_cachedMaxWidth = m_editorArea.Width;
+			if (currentY > m_editorArea.Height)
+			{
+				uint32_t scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
+            
+				workingWidth = (m_editorArea.Width > scrollSize) ? (m_editorArea.Width - scrollSize) : 5;
+
+				m_visualLines.clear();
+				currentY = 0;
+				for (size_t i = 0; i < m_lines.size(); ++i)
+				{
+					ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines, workingWidth);
+				}
+			}
+			m_cachedMaxWidth = workingWidth;
 		}
+		
+		UpdateScrollMetrics();
 	}
 
-	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList)
+	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth)
 	{
 		const std::wstring& line = m_lines[logicalIndex];
 		auto lineHeight = GetLineHeight();
-		const uint32_t maxWidthLimit = (m_editorArea.Width > 15) ? m_editorArea.Width - 10 : 5;
+		const uint32_t maxWidthLimit = (layoutWidth > 15) ? layoutWidth - 10 : 5;
 
 		if (line.empty())
 		{
@@ -1409,6 +1628,7 @@ namespace Berta
 			yOffset += lineHeight;
 			return;
 		}
+		
 #ifdef BT_PLATFORM_WINDOWS
 		auto nativeAttr = m_graphics.GetNativeHandle();
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> tempLayout;
@@ -1418,7 +1638,7 @@ namespace Berta
 			line.c_str(),
 			static_cast<UINT32>(line.size()),
 			nativeAttr->m_textFormat,
-			static_cast<float>(m_editorArea.Width),
+			static_cast<float>(layoutWidth),
 			static_cast<float>(lineHeight),
 			&tempLayout
 		);
@@ -1474,25 +1694,25 @@ namespace Berta
 
 		// (O(log N))
 		auto itStart = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), startLine,
-		[](const VisualLine& vl, size_t idx)
-		{
-			return vl.logicalLineIndex < idx;
-		});
+		                                [](const VisualLine& vl, size_t idx)
+		                                {
+			                                return vl.logicalLineIndex < idx;
+		                                });
 
 		size_t visualStartIndex = std::distance(m_visualLines.begin(), itStart);
 
 		size_t affectedEndLine = startLine + (lineCountDelta < 0 ? -lineCountDelta : 0);
 		auto itEnd = std::lower_bound(itStart, m_visualLines.end(), affectedEndLine + 1,
-			[](const VisualLine& vl, size_t idx)
-			{
-				return vl.logicalLineIndex < idx;
-			});
+		                              [](const VisualLine& vl, size_t idx)
+		                              {
+			                              return vl.logicalLineIndex < idx;
+		                              });
 
 		uint32_t originalYStart = (itStart != m_visualLines.end()) ? itStart->y : 
-								   (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+			                          (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
     
 		uint32_t nextLineYBefore = (itEnd != m_visualLines.end()) ? itEnd->y : 
-									(m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
+			                           (m_visualLines.empty() ? 0 : m_visualLines.back().y + GetLineHeight());
 
 		m_visualLines.erase(itStart, itEnd);
 
@@ -1502,7 +1722,7 @@ namespace Berta
 
 		for (size_t i = startLine; i <= lastLineToCompute; ++i)
 		{
-			ComputeVisualLinesForLogicalLine(i, runningY, newVisuals);
+			ComputeVisualLinesForLogicalLine(i, runningY, newVisuals, m_cachedMaxWidth);
 		}
 
 		m_visualLines.insert(m_visualLines.begin() + visualStartIndex, newVisuals.begin(), newVisuals.end());
@@ -1522,11 +1742,12 @@ namespace Berta
 		{
 			return 0;
 		}
-		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), m_offsetView.Y,
-			[this](const VisualLine& vl, int scrollY)
-			{
-				return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
-			});
+		auto currentOffset = m_scrollableView->GetScrollOffset();
+		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), currentOffset.Y,
+		                           [this](const VisualLine& vl, int scrollY)
+		                           {
+			                           return static_cast<int>(vl.y) + static_cast<int>(GetLineHeight()) < scrollY;
+		                           });
 
 		if (it == m_visualLines.end())
 		{
@@ -1557,7 +1778,7 @@ namespace Berta
 			return;
 		}
 
-		float layoutWidth = m_features.wordWrap ? static_cast<float>(m_editorArea.Width) : 1000000.0f; 
+		float layoutWidth = m_features.wordWrap ? static_cast<float>(m_cachedMaxWidth) : 1000000.0f; 
 		float layoutHeight = static_cast<float>(GetLineHeight());
 		
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
@@ -1577,7 +1798,7 @@ namespace Berta
 #endif
 	}
 
-	void TextEditor::InvalidateLayoutsForLogicalLine(size_t logicalIndex)
+	void TextEditor::InvalidateLayoutsForLogicalLine(size_t logicalIndex) const
 	{
 		for (auto& vl : m_visualLines)
 		{
@@ -1601,28 +1822,83 @@ namespace Berta
 		return GUI::IsWindowEnabled(m_owner) ? m_owner->Appearance->BoxBackground :m_owner->Appearance->BoxPressedBackground;
 	}
 
-	uint32_t TextEditor::GetCharWidthW(wchar_t c)
+	void TextEditor::UpdateScrollMetrics() const
 	{
-		auto it = m_charWidthCache.find(c);
-		if (it != m_charWidthCache.end())
+		if (!m_scrollableView)
 		{
-			return it->second;
+			return;
 		}
-
-		uint32_t width = m_graphics.GetTextExtent(std::wstring(1, c)).Width;
-		m_charWidthCache[c] = width;
 		
-		return width;
+		m_scrollableView->SetViewRect(m_editorArea);
+		m_scrollableView->SetContentSize(GetContentTextExtent());
 	}
 
-	uint32_t TextEditor::GetStringWidth(std::wstring_view text)
+	void TextEditor::CommitDocumentChange()
 	{
-		//return m_graphics.GetTextExtent(text).Width;
-		uint32_t totalWidth = 0;
-		for (wchar_t c : text)
+		RecomputeWordWrap();
+		UpdateScrollMetrics();
+		AdjustView();
+		UpdateCaretPosition();
+		EmitValueChanged();
+	}
+
+	Point TextEditor::ToEditorSpace(Point windowPoint) const
+	{
+		Point offset = m_scrollableView ? m_scrollableView->GetScrollOffset() : Point{0,0};
+		return { 
+			windowPoint.X - m_editorArea.X + offset.X, 
+			windowPoint.Y - m_editorArea.Y + offset.Y 
+		};
+	}
+
+	Point TextEditor::ToWindowSpace(Point editorPoint) const
+	{
+		Point offset = m_scrollableView ? m_scrollableView->GetScrollOffset() : Point{0,0};
+		return { 
+			editorPoint.X + m_editorArea.X - offset.X, 
+			editorPoint.Y + m_editorArea.Y - offset.Y 
+		};
+	}
+
+	TextEditor::CharClass TextEditor::GetCharClass(wchar_t c)
+	{
+		if (std::iswalnum(c) || c == L'_') 
+			return CharClass::Alphanumeric;
+		if (std::iswspace(c)) 
+			return CharClass::Whitespace;
+    
+		return CharClass::Punctuation;
+	}
+
+	std::pair<TextPosition, TextPosition> TextEditor::GetWordBounds(TextPosition pos) const
+	{
+		if (pos.line >= m_lines.size())
 		{
-			totalWidth += GetCharWidthW(c);
+			return { pos, pos };
 		}
-		return totalWidth;
+
+		const std::wstring& line = m_lines[pos.line];
+    
+		if (line.empty() || pos.column >= line.length())
+		{
+			return { pos, pos };
+		}
+
+		CharClass targetClass = GetCharClass(line[pos.column]);
+
+		size_t startCol = pos.column;
+		size_t endCol = pos.column;
+
+		while (startCol > 0 && GetCharClass(line[startCol - 1]) == targetClass)
+		{
+			startCol--;
+		}
+
+		while (endCol < line.length() && GetCharClass(line[endCol]) == targetClass)
+		{
+			endCol++;
+		}
+
+		return { { pos.line, startCol }, { pos.line, endCol } };
 	}
 }

@@ -7,35 +7,43 @@
 #ifndef BT_PROPERTY_GRID_FIELD_CHECK_HEADER
 #define BT_PROPERTY_GRID_FIELD_CHECK_HEADER
 
-#include "Berta/Controls/PropertyGrid.h"
+#include <optional>
+
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/CheckBox.h"
 
 #include <string>
-#include <vector>
 
 namespace Berta
 {
-	class PropertyGridFieldCheck : public PropertyGrid::PropertyGridFieldBase
+	class PropertyGridFieldCheck : public Internal::PropertyGrid::PropertyGridFieldBase
 	{
 	public:
-		PropertyGridFieldCheck(const std::string& label, const std::string& value) :
-			PropertyGridFieldBase(label, value)
+		using GetterFn = std::function<std::optional<bool>()>;
+		using SetterFn = std::function<void(bool)>;
+		
+	public:
+		PropertyGridFieldCheck(std::string_view label, GetterFn getter, SetterFn setter) :
+			PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
 		{
 		}
 
-		virtual void Draw(Graphics& graphics, const Rectangle& area, uint32_t labelWidth, const Color& textColor) override;
-
-		virtual bool IsChecked() const;
-		virtual void SetCheck(bool checked);
-
-		virtual void SetEnabled(bool enabled) override;
-		virtual void SetValue(const std::string& value) override;
-
+		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
+		
+		void SetFocus() override;
+		void Refresh() override;
+		std::string GetValueAsString() const override;
+		
 	protected:
-		void Create(Window* parent) override;
-
+		void OnCreate(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
+		void OnEnableChanged(bool enabled) override;
+		
 		CheckBox m_checkBox;
+	
 	private:
+		GetterFn m_getter;
+		SetterFn m_setter;
 	};
 }
 

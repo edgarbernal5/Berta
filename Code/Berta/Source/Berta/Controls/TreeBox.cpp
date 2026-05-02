@@ -11,7 +11,6 @@
 #include "Berta/GUI/EnumTypes.h"
 
 #include <numeric>
-#include <stack>
 
 namespace Berta
 {
@@ -165,7 +164,7 @@ namespace Berta
 	}
 
 	void TreeBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
-	{		
+	{
 		if (m_module.m_flatVisibleTree.empty())
 		{
 			return;
@@ -272,6 +271,7 @@ namespace Berta
 		
 		auto dragThreshold = m_module.m_window->ToScale(3);
 		auto clientArea = m_module.m_scrollableView->GetClientArea();
+		
 		if (m_module.m_draggedNode && !m_module.m_isDragging)
 		{
 			if (std::abs(args.Position.X - m_module.m_dragStartPoint.X) > dragThreshold || 
@@ -282,7 +282,7 @@ namespace Berta
 				ArgTreeDragDrop arguments{ TreeBoxItem(m_module.m_draggedNode, &m_module), {}, DropPosition::None };
 				reinterpret_cast<TreeBoxEvents*>(m_module.m_window->Events.get())->DragStart.Emit(arguments);
 				
-				if (arguments.Cancel) 
+				if (arguments.Cancel)
 				{
 					m_module.ResetDragState();
 					return;

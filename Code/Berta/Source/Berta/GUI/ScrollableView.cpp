@@ -49,6 +49,13 @@ namespace Berta
         m_onScroll = std::move(callback);
     }
 
+    void ScrollableView::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
+    {
+        m_vVisibility = vertical;
+        m_hVisibility = horizontal;
+        CalculateViewport();
+    }
+
     Rectangle ScrollableView::GetVisibleRect() const
     {
         return { m_scrollOffset.X, m_scrollOffset.Y, m_viewportRect.Width, m_viewportRect.Height };
@@ -57,169 +64,166 @@ namespace Berta
     void ScrollableView::CalculateViewport()
     {
         m_viewportRect = m_clientAreaBounds;
-        
-        m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width));
-        m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height));
-
         auto scrollSize = static_cast<int>(m_owner->ToScale(m_owner->Appearance->ScrollBarSize));
-
-        m_needVerticalScroll = m_contentSize.Height > m_viewportRect.Height;
-        if (m_needVerticalScroll)
+        
+        bool showV = (m_vVisibility == ScrollBarVisibility::Visible) || 
+                  (m_vVisibility == ScrollBarVisibility::Auto && m_contentSize.Height > m_viewportRect.Height);
+    
+        if (showV)
         {
             m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - scrollSize);
         }
-
-        m_needHorizontalScroll = m_contentSize.Width > m_viewportRect.Width;
-        if (m_needHorizontalScroll)
+        // 2. Evaluar necesidad visual en X
+        bool showH = (m_hVisibility == ScrollBarVisibility::Visible) || 
+                     (m_hVisibility == ScrollBarVisibility::Auto && m_contentSize.Width > m_viewportRect.Width);
+    
+        if (showH) 
         {
             m_viewportRect.Height = std::max<int>(0, static_cast<int>(m_viewportRect.Height) - scrollSize);
-            
-            if (!m_needVerticalScroll)
+        
+            // Dos-Pasadas: Si apareció la H, redujo la altura. ¿Necesitamos la V ahora?
+            if (!showV && m_vVisibility == ScrollBarVisibility::Auto && m_contentSize.Height > m_viewportRect.Height) 
             {
-                m_needVerticalScroll = m_contentSize.Height > m_viewportRect.Height;
-                if (m_needVerticalScroll)
-                {
-                    m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - scrollSize);
-                }
+                showV = true;
+                m_viewportRect.Width = std::max<int>(0, static_cast<int>(m_viewportRect.Width) - scrollSize);
             }
         }
-        
+
         UpdateScrollBars();
     }
 
     void ScrollableView::SetScrollToX(int offsetX)
     {
-        if (!m_scrollBarHoriz || m_scrollOffset.X == offsetX)
-            return;
-        
-        m_scrollBarHoriz->SetValue(offsetX);
+        int maxOffsetX = std::max<int>(0, m_contentSize.Width - m_viewportRect.Width);
+        m_scrollOffset.X = std::clamp(offsetX, 0, maxOffsetX);
+        if (m_scrollBarHoriz) m_scrollBarHoriz->SetValue(m_scrollOffset.X);
+        NotifyChange();
     }
 
     void ScrollableView::SetScrollToY(int offsetY)
     {
-        if (!m_scrollBarVert || m_scrollOffset.Y == offsetY)
-            return;
-        
-        m_scrollBarVert->SetValue(offsetY);
+        int maxOffsetY = std::max<int>(0, m_contentSize.Height - m_viewportRect.Height);
+        m_scrollOffset.Y = std::clamp(offsetY, 0, maxOffsetY);
+        if (m_scrollBarVert) m_scrollBarVert->SetValue(m_scrollOffset.Y);
+        NotifyChange();
+    }
+
+    void ScrollableView::ResetScroll()
+    {
+        m_scrollOffset = {0, 0};
+        CalculateViewport();
     }
 
     void ScrollableView::UpdateScrollBars()
     {
-        bool needNotifyChange = false;
-        if (!m_needVerticalScroll && m_scrollBarVert)
-        {
+        bool needNotify = false;
+
+        // --- 1. Lógica Visual de Scrollbars ---
+        bool contentExceedsY = m_contentSize.Height > m_viewportRect.Height;
+        bool shouldShowV = (m_vVisibility == ScrollBarVisibility::Visible) || 
+                           (m_vVisibility == ScrollBarVisibility::Auto && contentExceedsY);
+
+        if (!shouldShowV && m_scrollBarVert) {
             m_scrollBarVert.reset();
-            m_scrollOffset.Y = 0;
-            needNotifyChange = true;
-        }
-        else if (m_needVerticalScroll)
-        {
-            UpdateVerticalScrollBar();
+            needNotify = true;
+        } else if (shouldShowV) {
+            needNotify |= UpdateScrollBarInstance(true, contentExceedsY);
         }
 
-        if (!m_needHorizontalScroll && m_scrollBarHoriz)
-        {
+        bool contentExceedsX = m_contentSize.Width > m_viewportRect.Width;
+        bool shouldShowH = (m_hVisibility == ScrollBarVisibility::Visible) || 
+                           (m_hVisibility == ScrollBarVisibility::Auto && contentExceedsX);
+
+        if (!shouldShowH && m_scrollBarHoriz) {
             m_scrollBarHoriz.reset();
-            m_scrollOffset.X = 0;
-            needNotifyChange = true;
-            NotifyChange();
+            needNotify = true;
+        } else if (shouldShowH) {
+            needNotify |= UpdateScrollBarInstance(false, contentExceedsX);
         }
-        else if (m_needHorizontalScroll)
+
+        // --- 2. Abrazar la Realidad Lógica (Crucial para Scroll Hidden) ---
+        // Incluso si las barras están Hidden, el límite de navegación matemática existe.
+        int maxOffsetY = std::max<int>(0, (int)m_contentSize.Height - (int)m_viewportRect.Height);
+        int maxOffsetX = std::max<int>(0, (int)m_contentSize.Width - (int)m_viewportRect.Width);
+    
+        int clampedY = std::clamp(m_scrollOffset.Y, 0, maxOffsetY);
+        int clampedX = std::clamp(m_scrollOffset.X, 0, maxOffsetX);
+
+        if (clampedY != m_scrollOffset.Y || clampedX != m_scrollOffset.X) 
         {
-            UpdateHorizontalScrollBar();
+            m_scrollOffset = { clampedX, clampedY };
+            needNotify = true;
         }
-        
-        if (needNotifyChange)
+
+        if (needNotify)
         {
             NotifyChange();
         }
     }
 
-    void ScrollableView::UpdateVerticalScrollBar()
+    bool ScrollableView::UpdateScrollBarInstance(bool isVertical, bool contentExceeds)
     {
-        auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect
-        {
-            m_clientAreaBounds.X + static_cast<int>(m_clientAreaBounds.Width - scrollSize), 
-            m_clientAreaBounds.Y, 
-            scrollSize, 
-            m_clientAreaBounds.Height
-        };
-
-        if (m_needHorizontalScroll)
-        {
-            scrollRect.Height -= scrollSize;
+        bool changed = false;
+        auto scrollSize = static_cast<int>(m_owner->ToScale(m_owner->Appearance->ScrollBarSize));
+        
+        Rectangle scrollRect;
+        if (isVertical) {
+            scrollRect = { m_clientAreaBounds.X + static_cast<int>(m_clientAreaBounds.Width) - scrollSize, 
+                           m_clientAreaBounds.Y, (uint32_t)scrollSize, m_viewportRect.Height };
+        } else {
+            scrollRect = { m_clientAreaBounds.X, 
+                           m_clientAreaBounds.Y + static_cast<int>(m_clientAreaBounds.Height) - scrollSize, 
+                           m_viewportRect.Width, (uint32_t)scrollSize };
         }
-        if (!m_scrollBarVert)
-        {
-            m_scrollBarVert = std::make_unique<ScrollBar>(m_owner, false, scrollRect);
-            m_scrollBarVert->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
-            {
-                m_scrollOffset.Y = args.Value;
+
+        auto& barPtr = isVertical ? m_scrollBarVert : m_scrollBarHoriz;
+
+        if (!barPtr) {
+            barPtr = std::make_unique<ScrollBar>(m_owner, false, scrollRect, isVertical);
+            barPtr->GetEvents().ValueChanged.Connect([this, isVertical](const ArgScrollBar& args) {
+                if (isVertical) m_scrollOffset.Y = args.Value;
+                else            m_scrollOffset.X = args.Value;
                 NotifyChange();
             });
-        }
-        else
-        {
-            GUI::MoveWindow(m_scrollBarVert->Handle(), scrollRect);
-        }
-
-        m_scrollBarVert->SetMinMax(0, static_cast<int>(m_contentSize.Height - m_viewportRect.Height));
-        m_scrollBarVert->SetPageStepValue(m_viewportRect.Height);
-        m_scrollBarVert->SetStepValue(m_scrollStep.Height);
-        
-        int clampedVal = std::clamp(m_scrollOffset.Y, 0, m_scrollBarVert->GetMax());
-        if (clampedVal != m_scrollOffset.Y)
-        {
-            m_scrollBarVert->SetValue(clampedVal);
-        }
-    }
-
-    void ScrollableView::UpdateHorizontalScrollBar()
-    {
-        auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-        Rectangle scrollRect
-        {
-            m_clientAreaBounds.X, 
-            m_clientAreaBounds.Y + static_cast<int>(m_clientAreaBounds.Height - scrollSize), 
-            m_clientAreaBounds.Width,
-            scrollSize
-        };
-
-        if (m_needVerticalScroll)
-        {
-            scrollRect.Width -= scrollSize;
-        }
-        if (!m_scrollBarHoriz)
-        {
-            m_scrollBarHoriz = std::make_unique<ScrollBar>(m_owner, false, scrollRect, false);
-            m_scrollBarHoriz->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args)
-            {
-                m_scrollOffset.X = args.Value;
-                NotifyChange();
-            });
-        }
-        else
-        {
-            GUI::MoveWindow(m_scrollBarHoriz->Handle(), scrollRect);
+            changed = true;
+        } else {
+            GUI::MoveWindow(barPtr->Handle(), scrollRect);
         }
 
-        m_scrollBarHoriz->SetMinMax(0, static_cast<int>(m_contentSize.Width - m_viewportRect.Width));
-        m_scrollBarHoriz->SetPageStepValue(m_viewportRect.Width);
-        m_scrollBarHoriz->SetStepValue(m_scrollStep.Width);
-        
-        int clampedVal = std::clamp(m_scrollOffset.X, 0, m_scrollBarHoriz->GetMax());
-        if (clampedVal != m_scrollOffset.X)
+        // Si Visible está forzado pero no hay contenido, lo deshabilitamos (Estándar UI)
+        //GUI::EnableWindow(barPtr->Handle(), contentExceeds);
+
+        auto viewSize = isVertical ? m_viewportRect.Height : m_viewportRect.Width;
+        auto contentLimit = isVertical ? m_contentSize.Height : m_contentSize.Width;
+        auto stepSize = isVertical ? m_scrollStep.Height : m_scrollStep.Width;
+
+        barPtr->SetMinMax(0, std::max<int>(0, (int)contentLimit - (int)viewSize));
+        barPtr->SetPageStepValue((int)viewSize);
+        barPtr->SetStepValue((int)stepSize);
+    
+        // Sincronizar el visualizador
+        int currentOffset = isVertical ? m_scrollOffset.Y : m_scrollOffset.X;
+        if (barPtr->GetValue() != currentOffset)
         {
-            m_scrollBarHoriz->SetValue(clampedVal);
+            barPtr->SetValue(currentOffset);
         }
+
+        return changed;
     }
 
     void ScrollableView::HandleMouseWheel(const ArgWheel& args)
     {
-        ScrollBar* activeBar = args.IsVertical ? m_scrollBarVert.get() : m_scrollBarHoriz.get();
-        if (!activeBar) return;
+        bool targetIsVertical = args.IsVertical;
+        if (targetIsVertical && !HasVerticalScroll() && HasHorizontalScroll())
+        {
+            targetIsVertical = false;
+        }
 
+        ScrollBar* activeBar = targetIsVertical ? m_scrollBarVert.get() : m_scrollBarHoriz.get();
+        if (!activeBar)
+        {
+            return;
+        }
         int direction = (args.WheelDelta > 0 ? -1 : 1) * activeBar->GetStepValue();
         int currentVal = args.IsVertical ? m_scrollOffset.Y : m_scrollOffset.X;
         
@@ -232,52 +236,58 @@ namespace Berta
         }
     }
 
-    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds) const
+    bool ScrollableView::EnsureVisibility(const Rectangle& targetBounds)
     {
         bool changed = false;
+        Point newScroll = m_scrollOffset;
 
-        if (m_scrollBarVert)
+        // Vertical
+        if (m_contentSize.Height > m_viewportRect.Height)
         {
             int viewTop = m_scrollOffset.Y + m_viewPadding.Top;
             int viewBottom = m_scrollOffset.Y + static_cast<int>(m_viewportRect.Height) - m_viewPadding.Bottom;
-            int newY = m_scrollOffset.Y;
-
-            if (targetBounds.Y < viewTop)
-            {
-                newY = targetBounds.Y - m_viewPadding.Top;
-            }
-            else if (targetBounds.Y + static_cast<int>(targetBounds.Height) > viewBottom)
-            {
-                newY = targetBounds.Y + static_cast<int>(targetBounds.Height) - static_cast<int>(m_viewportRect.Height) + m_viewPadding.Bottom;
-            }
             
-            if (newY != m_scrollOffset.Y)
-            {
-                m_scrollBarVert->SetValue(newY);
-                changed = true;
+            int targetTop = targetBounds.Y;
+            int targetBottom = targetBounds.Y + static_cast<int>(targetBounds.Height);
+
+            if (targetTop < viewTop) {
+                newScroll.Y = targetTop - m_viewPadding.Top;
+            }
+            else if (targetBottom > viewBottom) {
+                if (static_cast<int>(targetBounds.Height) > static_cast<int>(m_viewportRect.Height)) {
+                    newScroll.Y = targetTop - m_viewPadding.Top;
+                } else {
+                    newScroll.Y = targetBottom - static_cast<int>(m_viewportRect.Height) + m_viewPadding.Bottom;
+                }
             }
         }
 
-        if (m_scrollBarHoriz)
+        // Horizontal
+        if (m_contentSize.Width > m_viewportRect.Width)
         {
             int viewLeft = m_scrollOffset.X + m_viewPadding.Left;
             int viewRight = m_scrollOffset.X + static_cast<int>(m_viewportRect.Width) - m_viewPadding.Right;
-            int newX = m_scrollOffset.X;
 
-            if (targetBounds.X < viewLeft)
-            {
-                newX = targetBounds.X - m_viewPadding.Left;
+            int targetLeft = targetBounds.X;
+            int targetRight = targetBounds.X + static_cast<int>(targetBounds.Width);
+
+            if (targetLeft < viewLeft) {
+                newScroll.X = targetLeft - m_viewPadding.Left;
             }
-            else if (targetBounds.X + static_cast<int>(targetBounds.Width) > viewRight)
-            {
-                newX = targetBounds.X + static_cast<int>(targetBounds.Width) - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
+            else if (targetRight > viewRight) {
+                if (static_cast<int>(targetBounds.Width) > static_cast<int>(m_viewportRect.Width)) {
+                    newScroll.X = targetLeft - m_viewPadding.Left;
+                } else {
+                    newScroll.X = targetRight - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
+                }
             }
-            
-            if (newX != m_scrollOffset.X)
-            {
-                m_scrollBarHoriz->SetValue(newX);
-                changed = true;
-            }
+        }
+
+        if (newScroll != m_scrollOffset)
+        {
+            SetScrollToX(newScroll.X);
+            SetScrollToY(newScroll.Y);
+            changed = true;
         }
 
         return changed;

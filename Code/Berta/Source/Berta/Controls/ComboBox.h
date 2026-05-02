@@ -56,11 +56,11 @@ namespace Berta
 				void Clear();
 				size_t Count() const;
 				void Erase(size_t index);
-				void PushBack(const std::wstring& text);
-				void PushBack(const std::wstring& text, const Image& icon);
+				void PushBack(const std::wstring& text, const std::any& userData);
+				void PushBack(const std::wstring& text, const Image& icon, const std::any& userData);
 				std::optional<size_t> GetSelectedIndex() const;
+				std::any GetItemData(size_t index) const;
 				void SetSelectedIndex(std::optional<size_t> index);
-				
 				std::wstring GetText(size_t index) const;
 				std::wstring GetText() const;
 				void SetText(const std::wstring& text);
@@ -142,12 +142,15 @@ namespace Berta
 		size_t Count() const;
 		void Erase(size_t index);
 
-		void PushBack(const std::wstring& text);
-		void PushBack(const std::string& text);
-		void PushBack(const std::wstring& text, const Image& icon);
-		void PushBack(const std::string& text, const Image& icon);
+		void PushBack(const std::wstring& text, const std::any& userData = {});
+		void PushBack(const std::string& text, const std::any& userData = {});
+		void PushBack(const std::wstring& text, const Image& icon, const std::any& userData = {});
+		void PushBack(const std::string& text, const Image& icon, const std::any& userData = {});
 
-		std::optional<size_t> GetSelectedIndex() { return GetReactor().GetModule().GetSelectedIndex(); }
+		std::optional<size_t> GetSelectedIndex() const { return GetReactor().GetModule().GetSelectedIndex(); }
+		std::any GetSelectedData() const;
+		std::any GetItemData(size_t index) const;
+		
 		// Allows user to deselect by passing std::nullopt
 		void SetSelectedIndex(std::optional<size_t> index);
 

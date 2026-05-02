@@ -6,8 +6,9 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/PropertyGrid.h>
-#include <Berta/Controls/InputText.h>
+#include <Berta/Controls/TextBox.h>
 #include <Berta/Controls/Button.h>
+#include <Berta/Controls/Panel.h>
 
 #include <Berta/Controls/Properties/PropertyGridFields.h>
 
@@ -16,12 +17,37 @@ class NewPanel : public Berta::Panel
 public:
 	NewPanel(Berta::Window* parent) : Berta::Panel(parent)
 	{
-		m_inputText.Create(*this, true, {20,20,200,40});
-		m_inputText.SetCaption("Two words!");
+		m_textBox.Create(*this, true, {20,20,200,40});
+		m_textBox.SetCaption("Two words!");
 	}
 
 private:
-	Berta::InputText m_inputText;
+	Berta::TextBox m_textBox;
+};
+
+enum class MaterialTypeEnum
+{
+	Opaque,
+	Transparent,
+	Additive
+};
+
+struct AppState 
+{
+	std::string CarName{ "Car" };
+	std::string Tags{ "Blue, Green" };
+	int EnginePower{ 5 };
+	float MaxMaterials{ 0.0f };
+	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
+	bool CastShadows{ true };
+	bool Static{ false };
+	MaterialTypeEnum MaterialType { MaterialTypeEnum::Additive };
+	
+	std::string MeshFilter{ "/home/edgar/meshfilter.x" };
+	Berta::Color TintColor{255,0,0,255};
+	float Roughness=255.0f;
+	int Threshold=3;
+	// ...
 };
 
 int main()
@@ -29,45 +55,126 @@ int main()
 	Berta::Form form(Berta::Size(750u, 650u), { true, true, true });
 	form.SetCaption("Property Grid - Example");
 
-	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
+	Berta::Image m_folderOpenImg{ "..\\..\\Resources\\Icons\\Folder 128.png" };
+	Berta::Image m_fileImg{ "..\\..\\Resources\\Icons\\File 128.png" };
+	Berta::Image m_hardDriveImg{ "..\\..\\Resources\\Icons\\Hard drive 3 128.png" };
 
-	auto categoryTransform = propertyGrid.Append("Transform");
-	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Name", "Car")));
-	categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldString("Tag", "Blue, Green")));
-	for (size_t i = 0; i < 3; i++)
-	{
-		categoryTransform.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldVector3("Position", "0.0/0.0/0.0")));
-	}
-
-	auto categoryEmpty = propertyGrid.Append("Empty");
-	auto categoryMesh = propertyGrid.Append("Mesh");
-
-	auto meshIdProp = new Berta::PropertyGridFieldString("Mesh ID", "71d3eed6-d363-428a-bc81-01576539b297");
 	
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(meshIdProp)); meshIdProp->SetEditable(false);
+	AppState myApp;
+	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
+	propertyGrid.ShowCategoryIcons(true);
+	
+	auto categoryTransform = propertyGrid.Append("Transform");
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
+		(
+			"Name",
+			[&myApp]() { return myApp.CarName; },
+			[&myApp](const std::string& val) { myApp.CarName = val; }
+		);
+	
+	categoryTransform.SetIcon(m_hardDriveImg);
+	
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
+		(
+			"Tags",
+			[&myApp]() { return myApp.Tags; },
+			[&myApp](const std::string& val) { myApp.Tags = val; }
+		);
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldInt>
+		(
+			"Engine power",
+			[&myApp]() { return myApp.EnginePower; },
+			[&myApp](int val) { myApp.EnginePower = val; }
+		);
+	
+	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldFloat>
+		(
+			"Max materials",
+			[&myApp]() { return myApp.MaxMaterials; },
+			[&myApp](float val) { myApp.MaxMaterials = val; }
+		);
+	
+	propertyGrid.Append("Empty");
+	auto categoryMesh = propertyGrid.Append("Mesh").SetIcon(m_folderOpenImg);
+	
+	auto subcategoryMaterials = categoryMesh.AppendSubCategory("Materials");
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldString>
+		(
+			"Hash", 
+			[&myApp]() { return myApp.HashMaterial0; },
+			[&myApp](const std::string& val) {  }
+		);
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldCheck>
+		(
+			"Cast Shadows", 
+			[&myApp]() { return myApp.CastShadows; },
+			[&myApp](const bool& val) { myApp.CastShadows = val;  }
+			);
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldCheck>
+		(
+			"Static", 
+			[&myApp]() { return myApp.Static; },
+			[&myApp](const bool& val) { myApp.Static = val;  }
+			);
+	
+	auto materialTypeSelection = categoryMesh.EmplaceProperty<Berta::PropertyGridFieldSelection<MaterialTypeEnum>>
+		(
+			"Type", 
+			[&myApp]() { return myApp.MaterialType; },
+			[&myApp](MaterialTypeEnum val) { myApp.MaterialType = val;  },
+			
+			std::vector<std::pair<std::string, MaterialTypeEnum>> {
+				{ "Opaque",      MaterialTypeEnum::Opaque },
+				{ "Transparent", MaterialTypeEnum::Transparent },
+				{ "Additive",    MaterialTypeEnum::Additive }
+			}
+		);
+	
+	auto selection = materialTypeSelection.As<Berta::PropertyGridFieldSelection<MaterialTypeEnum>>();
+	//selection.set
+	
+	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldStringButton>
+		(
+			"Mesh Filter", 
+			[&myApp]() { return myApp.MeshFilter; },
+			[&myApp](const std::string& val) { myApp.MeshFilter = val; },
+			[](std::optional<std::string> currentValue) -> std::optional<std::string>
+			{
+				std::cout << "Opening file explorer...." << std::endl;
+				std::string newPath = "/home/new_path/filefilter.x";
+				std::cout << "newPath = " << newPath << std::endl;
+				return newPath;
+			});
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldColor>(
+		"Tint Color",
+		[&myApp]() { return myApp.TintColor; },
+			[&myApp](Berta::Color val) { myApp.TintColor = val; },
+			[](std::optional<Berta::Color> currentColor) -> std::optional<Berta::Color>
+			{
+				std::cout << "Opening color picker...." << std::endl;
+				std::cout << "ERROR...." << std::endl;
 
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringInt("Mesh Count", "0")));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldCheck("Enabled", "0")));
-	std::vector<std::string> options{"None", "Material 1", "Material 2" };
-	auto pgfSelection = new Berta::PropertyGridFieldSelection("Material");
-	pgfSelection->Set(options);
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSelection));
-
-	auto pgfSlider = new Berta::PropertyGridFieldSliderInt("Max Materials", "0");
-	pgfSlider->SetMinMax(0, 10);
-
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSlider));
-
-	auto pgfSliderFloat = new Berta::PropertyGridFieldSliderFloat("Max Materials Float", "0.0");
-	pgfSliderFloat->SetMinMax(0, 15.0);
-
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(pgfSliderFloat));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldColor("Color", "0,0,0,255")));
-	categoryMesh.Append(Berta::PropertyGrid::PropertyGridFieldBasePtr(new Berta::PropertyGridFieldStringButton("Mesh file", "")));
-
+				return std::nullopt;
+			});
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderFloat>(
+		"Roughness",
+		[&myApp]() { return myApp.Roughness; },
+			[&myApp](float val) { myApp.Roughness = val; },
+			0.0f, 255.0f);
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderInt>(
+		"Threshold",
+		[&myApp]() { return myApp.Threshold; },
+			[&myApp](int val) { myApp.Threshold = val; },
+			-5, 5);
+	
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
-			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". value = " << args.Property.GetValue() << std::endl;
+			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << args.Property.GetValueAsString() << std::endl;
 		});
 
 
