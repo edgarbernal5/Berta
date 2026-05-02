@@ -10,7 +10,7 @@
 #include <optional>
 
 #include "Berta/Controls/PropertyGrid.h"
-#include "Berta/Controls/InputText.h"
+#include "Berta/Controls/TextBox.h"
 
 #include <string>
 #include <vector>
@@ -47,7 +47,7 @@ namespace Berta
 		
 		GetterFn m_getter;
 		SetterFn m_setter;
-		InputText m_inputText;
+		TextBox m_textBox;
 		
 	private:
 		void ApplyValue();

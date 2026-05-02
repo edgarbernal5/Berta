@@ -9,7 +9,7 @@
 
 #include "Berta/Controls/PropertyGrid.h"
 #include "Berta/Controls/Slider.h"
-#include "Berta/Controls/InputText.h"
+#include "Berta/Controls/TextBox.h"
 
 namespace Berta
 {
@@ -32,14 +32,16 @@ namespace Berta
 
         void OnCreate(Window* parent) override
         {
-            m_inputText.Create(parent);
+            m_textBox.Create(parent);
+            m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+            m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
+            
             m_slider.Create(parent);
-		    
-            m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
             m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
 		    
             Refresh();
-            m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+            
+            m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
                 {
@@ -51,7 +53,7 @@ namespace Berta
                 }
             });
 		    
-            m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+            m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
             {
                 if (args.Key == KeyboardKey::Enter)
                 {
@@ -63,7 +65,7 @@ namespace Berta
             {
                 ApplySliderValue(static_cast<TNumber>(args.Value));
             });
-            m_slider.MakeActive(false, m_inputText);
+            m_slider.MakeActive(false, m_textBox);
         }
 
         void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
@@ -74,13 +76,13 @@ namespace Berta
             Rectangle textRect = { area.X, area.Y, (uint32_t)textWidth, area.Height };
             Rectangle sliderRect = { area.X + textWidth + margin, area.Y, area.Width - textWidth - margin, area.Height };
 
-            m_inputText.SetArea(textRect);
+            m_textBox.SetArea(textRect);
             m_slider.SetArea(sliderRect);
         }
 	    
         void SetFocus() override
         {
-            m_inputText.Focus();    
+            m_textBox.Focus();    
         }
 	    
         void Refresh() override
@@ -96,9 +98,9 @@ namespace Berta
                 TNumber val = currentOpt.value();
                 std::string strVal = std::to_string(val);
                 
-                if (m_inputText.GetCaption() != strVal)
+                if (m_textBox.GetCaption() != strVal)
                 {
-                    m_inputText.SetCaption(strVal);
+                    m_textBox.SetCaption(strVal);
                 }
                 if (m_slider.GetValue() != static_cast<float>(val))
                 {
@@ -107,9 +109,9 @@ namespace Berta
             }
             else
             {
-                if (m_inputText.GetCaption() != "---")
+                if (m_textBox.GetCaption() != "---")
                 {
-                    m_inputText.SetCaption("---");
+                    m_textBox.SetCaption("---");
                 }
             }
         }
@@ -130,26 +132,26 @@ namespace Berta
         {
             if (visible)
             {
-                m_inputText.Show();
+                m_textBox.Show();
                 m_slider.Show();
             }
             else
             {
-                m_inputText.Hide();
+                m_textBox.Hide();
                 m_slider.Hide();
             }
         }
 	    
         void OnEnableChanged(bool enabled) override
         {
-            m_inputText.SetEnabled(enabled); 
+            m_textBox.SetEnabled(enabled); 
             m_slider.SetEnabled(enabled);
         }
 
     private:
         void ApplyTextValue()
         {
-            std::string str = m_inputText.GetCaption();
+            std::string str = m_textBox.GetCaption();
             if (str == "---")
             {
                 return;
@@ -180,7 +182,7 @@ namespace Berta
             if (!m_getter() || m_getter().value() != newValue)
             {
                 m_setter(newValue);
-                m_inputText.SetCaption(std::to_string(newValue)); 
+                m_textBox.SetCaption(std::to_string(newValue)); 
                 NotifyValueChanged();
             }
         }
@@ -188,7 +190,7 @@ namespace Berta
         GetterFn m_getter;
         SetterFn m_setter;
         TNumber m_min, m_max;
-        InputText m_inputText;
+        TextBox m_textBox;
         Slider m_slider;
     };
 

@@ -41,10 +41,10 @@ namespace Berta
 
         void OnCreate(Window* parent) override
         {
-            m_inputText.Create(parent);
-            m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+            m_textBox.Create(parent);
+            m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
             
-            m_inputText.SetCharFilter([](wchar_t c)
+            m_textBox.SetCharFilter([](wchar_t c)
             {
                 if constexpr (std::is_integral_v<T>)
                 {
@@ -58,7 +58,7 @@ namespace Berta
 
             Refresh(); 
 
-            m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+            m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
                 {
@@ -70,7 +70,7 @@ namespace Berta
                 }
             });
 
-            m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+            m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
             {
                 if (args.Key == KeyboardKey::Enter)
                 {
@@ -81,7 +81,7 @@ namespace Berta
 
         void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
         {
-            m_inputText.SetArea(area);
+            m_textBox.SetArea(area);
         }
 
         void Refresh() override
@@ -92,16 +92,16 @@ namespace Berta
                 if (currentOpt.has_value()) 
                 {
                     std::string str = ToString(currentOpt.value());
-                    if (m_inputText.GetCaption() != str)
+                    if (m_textBox.GetCaption() != str)
                     {
-                        m_inputText.SetCaption(str);
+                        m_textBox.SetCaption(str);
                     }
                 }
                 else 
                 {
-                    if (m_inputText.GetCaption() != "---")
+                    if (m_textBox.GetCaption() != "---")
                     {
-                        m_inputText.SetCaption("---");
+                        m_textBox.SetCaption("---");
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace Berta
 
         void SetFocus() override 
         { 
-            m_inputText.Focus(); 
+            m_textBox.Focus(); 
         }
 
 	    std::string GetValueAsString() const override
@@ -133,16 +133,16 @@ namespace Berta
 	    {
 	        if (visible)
 	        {
-	            m_inputText.Show();
+	            m_textBox.Show();
 	        }
 	        else
 	        {
-	            m_inputText.Hide();
+	            m_textBox.Hide();
 	        }
 	    }
 	    void OnEnableChanged(bool enabled) override
 	    {
-	        m_inputText.SetEnabled(enabled);
+	        m_textBox.SetEnabled(enabled);
 	    }
 	    
     private:
@@ -176,7 +176,7 @@ namespace Berta
 
             try
             {
-                T parsedValue = FromString(m_inputText.GetCaption());
+                T parsedValue = FromString(m_textBox.GetCaption());
                 std::optional<T> currentState = m_getter();
                 
                 if (!currentState.has_value() || parsedValue != currentState.value())
@@ -228,7 +228,7 @@ namespace Berta
 
         GetterFn m_getter;
         SetterFn m_setter;
-        InputText m_inputText;
+        TextBox m_textBox;
     };
 
     using PropertyGridFieldInt    = PropertyGridFieldNumeric<int>;

@@ -13,12 +13,12 @@ namespace Berta
 {
 	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		m_inputText.SetArea(area);
+		m_textBox.SetArea(area);
 	}
 
 	void PropertyGridFieldString::SetFocus()
 	{
-		m_inputText.Focus();
+		m_textBox.Focus();
 	}
 
 	void PropertyGridFieldString::Refresh()
@@ -31,16 +31,16 @@ namespace Berta
 		std::optional<std::string> currentOpt = m_getter();
 		if (currentOpt.has_value())
 		{
-			if (m_inputText.GetCaption() != currentOpt.value())
+			if (m_textBox.GetCaption() != currentOpt.value())
 			{
-				m_inputText.SetCaption(currentOpt.value());
+				m_textBox.SetCaption(currentOpt.value());
 			}
 		}
 		else
 		{
-			if (m_inputText.GetCaption() != "---")
+			if (m_textBox.GetCaption() != "---")
 			{
-				m_inputText.SetCaption("---");
+				m_textBox.SetCaption("---");
 			}
 		}
 	}
@@ -57,26 +57,28 @@ namespace Berta
 	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
 	{
-		m_inputText.SetEditable(isEditable);
+		m_textBox.SetEditable(isEditable);
 	}
 
 	bool PropertyGridFieldString::IsEditable() const
 	{
-		return m_inputText.IsEditable();
+		return m_textBox.IsEditable();
 	}
 
 	void PropertyGridFieldString::SetCharFilter(std::function<bool(wchar_t)> predicate)
 	{
-		m_inputText.SetCharFilter(predicate);
+		m_textBox.SetCharFilter(predicate);
 	}
 
 	void PropertyGridFieldString::OnCreate(Window* parent)
 	{
-		m_inputText.Create(parent);
-		m_inputText.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+		m_textBox.Create(parent);
+		m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
+		m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
+		
 		Refresh();
 		
-		m_inputText.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+		m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
 			{
 				if (args.Key == KeyboardKey::Enter)
 				{
@@ -84,7 +86,7 @@ namespace Berta
 				}
 			});
 
-		m_inputText.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
 			{
 				if (args.Focused)
 				{
@@ -100,17 +102,17 @@ namespace Berta
 	{
 		if (visible)
 		{
-			m_inputText.Show();
+			m_textBox.Show();
 		}
 		else
 		{
-			m_inputText.Hide();
+			m_textBox.Hide();
 		}
 	}
 
 	void PropertyGridFieldString::OnEnableChanged(bool enabled)
 	{
-		m_inputText.SetEnabled(enabled);
+		m_textBox.SetEnabled(enabled);
 	}
 
 	void PropertyGridFieldString::ApplyValue()
@@ -120,7 +122,7 @@ namespace Berta
 			return;
 		}
 
-		std::string uiValue = m_inputText.GetCaption();
+		std::string uiValue = m_textBox.GetCaption();
 		std::optional<std::string> currentOpt = m_getter();
 
 		if (!currentOpt.has_value() && uiValue == "---") 

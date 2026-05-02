@@ -6,7 +6,7 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/PropertyGrid.h>
-#include <Berta/Controls/InputText.h>
+#include <Berta/Controls/TextBox.h>
 #include <Berta/Controls/Button.h>
 
 #include <Berta/Controls/Properties/PropertyGridFields.h>
@@ -16,12 +16,12 @@ class NewPanel : public Berta::Panel
 public:
 	NewPanel(Berta::Window* parent) : Berta::Panel(parent)
 	{
-		m_inputText.Create(*this, true, {20,20,200,40});
-		m_inputText.SetCaption("Two words!");
+		m_textBox.Create(*this, true, {20,20,200,40});
+		m_textBox.SetCaption("Two words!");
 	}
 
 private:
-	Berta::InputText m_inputText;
+	Berta::TextBox m_textBox;
 };
 
 enum class MaterialTypeEnum

@@ -194,7 +194,7 @@
     <ClInclude Include="Source\Berta\Controls\ComboBox.h" />
     <ClInclude Include="Source\Berta\Controls\Floating\FloatBox.h" />
     <ClInclude Include="Source\Berta\GUI\Caret.h" />
-    <ClInclude Include="Source\Berta\Controls\InputText.h" />
+    <ClInclude Include="Source\Berta\Controls\TextBox.h" />
     <ClInclude Include="Source\Berta\Core\Colors.h" />
     <ClInclude Include="Source\Berta\Core\Event.h" />
     <ClInclude Include="Source\Berta\Core\Timer.h" />
@@ -275,7 +275,7 @@
     <ClCompile Include="Source\Berta\Controls\MenuBar.cpp" />
     <ClCompile Include="Source\Berta\Controls\ScrollBar.cpp" />
     <ClCompile Include="Source\Berta\GUI\Caret.cpp" />
-    <ClCompile Include="Source\Berta\Controls\InputText.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextBox.cpp" />
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />
     <ClCompile Include="Source\Berta\Core\Timer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />

@@ -6,7 +6,7 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/MenuBar.h>
-#include <Berta/Controls/InputText.h>
+#include <Berta/Controls/TextBox.h>
 
 int main()
 {
@@ -20,17 +20,17 @@ int main()
 			Berta::GUI::Exit();
 		});
 
-	Berta::InputText multiLineInputText(form, { 0,0, 100, 25 });
+	Berta::TextBox multiLineInputText(form, { 0,0, 100, 25 });
 	multiLineInputText.SetMultiLine(true);
 	multiLineInputText.SetWordWrap(false);
 	multiLineInputText.SetCaption("Primera línea\nSegunda línea\nBajada de línea");
 	
-	Berta::InputText wordWrapSingleLine(form, { 0,0, 100, 25 });
+	Berta::TextBox wordWrapSingleLine(form, { 0,0, 100, 25 });
 	wordWrapSingleLine.SetMultiLine(false);
 	wordWrapSingleLine.SetWordWrap(true);
 	wordWrapSingleLine.SetCaption("Primera línea. Segunda línea. Bajada de línea");
 	
-	Berta::InputText oneLineInputText(form, { 0,0, 100, 25 });
+	Berta::TextBox oneLineInputText(form, { 0,0, 100, 25 });
 	oneLineInputText.SetMultiLine(false);
 	oneLineInputText.SetWordWrap(false);
 	oneLineInputText.SetCaption("Primera línea. Segunda línea. Bajada de línea");

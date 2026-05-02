@@ -62,11 +62,11 @@ namespace Berta
 		};
 	}
 	
-	class InputText : public Control<Category::ControlTag, Internal::InputText::Reactor, Internal::InputText::Events>
+	class TextBox : public Control<Category::ControlTag, Internal::InputText::Reactor, Internal::InputText::Events>
 	{
 	public:
-		InputText() = default;
-		InputText(Window* parent, const Rectangle& rectangle = {});
+		TextBox() = default;
+		TextBox(Window* parent, const Rectangle& rectangle = {});
 
 		TextPosition GetCaretPosition() const;
 		
@@ -89,6 +89,7 @@ namespace Berta
 		
 		void SetScrollBarVisibility(ScrollBarVisibility both);
 		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
+		
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;

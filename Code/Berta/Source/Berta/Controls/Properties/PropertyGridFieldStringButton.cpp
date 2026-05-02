@@ -56,7 +56,7 @@ namespace Berta
 			}
 		});
 
-		m_button.MakeActive(false, m_inputText);
+		m_button.MakeActive(false, m_textBox);
 	}
 
 	void PropertyGridFieldStringButton::OnVisibilityChanged(bool visible)
