@@ -21,7 +21,7 @@ namespace Berta
     class PropertyGridFieldSelection : public Internal::PropertyGrid::PropertyGridFieldBase
     {
     public:
-        using GetterFn = std::function<T()>;
+        using GetterFn = std::function<std::optional<T>()>;
         using SetterFn = std::function<void(T)>;
         
         using OptionList = std::vector<std::pair<std::string, T>>;
@@ -84,13 +84,18 @@ namespace Berta
             {
                 return;
             }
-
-            T currentVal = m_getter();
+            
+            std::optional<T> currentOpt = m_getter();
+            if (!currentOpt.has_value())
+            {
+                m_comboBox.SetSelectedIndex(std::nullopt);
+                return;
+            }
             std::optional<size_t> foundIndex = std::nullopt;
 
             for (size_t i = 0; i < m_options.size(); ++i)
             {
-                if (m_options[i].second == currentVal)
+                if (m_options[i].second == currentOpt)
                 {
                     foundIndex = i;
                     break;
@@ -110,11 +115,15 @@ namespace Berta
                 return "";
             }
 
-            T currentVal = m_getter();
-    
+            std::optional<T> currentOpt  = m_getter();
+            if (!currentOpt.has_value())
+            {
+                return "";
+            }
+            
             for (const auto& [text, value] : m_options)
             {
-                if (value == currentVal)
+                if (value == currentOpt)
                 {
                     return text;
                 }

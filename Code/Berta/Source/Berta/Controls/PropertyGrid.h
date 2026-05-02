@@ -420,7 +420,7 @@ namespace Berta
 		private:
 			Module m_module;
 		};
-	};	
+	};
 
 	struct ArgPropertyGrid
 	{

@@ -657,6 +657,7 @@ namespace Berta
 			{
 				return;
 			}
+			
 			m_owner = owner;
 			m_config = config;
 			m_internalScrollManager = std::make_unique<ScrollableView>(m_owner);

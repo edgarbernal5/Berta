@@ -13,7 +13,6 @@ namespace Berta
 {
 	void PropertyGridFieldColor::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
-		
 		m_colorRegion.SetArea(area);
 	}
 
