@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\Appearance.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h" />

@@ -9,14 +9,14 @@
 
 #include <optional>
 
-#include "Berta/Controls/PropertyGrid.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/CheckBox.h"
 
 #include <string>
 
 namespace Berta
 {
-	class PropertyGridFieldCheck : public PropertyGrid::PropertyGridFieldBase
+	class PropertyGridFieldCheck : public Internal::PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		using GetterFn = std::function<std::optional<bool>()>;

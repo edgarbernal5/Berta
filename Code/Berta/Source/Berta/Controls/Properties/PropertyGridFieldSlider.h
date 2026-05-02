@@ -7,14 +7,14 @@
 #ifndef BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
 #define BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
 
-#include "Berta/Controls/PropertyGrid.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/Slider.h"
 #include "Berta/Controls/TextBox.h"
 
 namespace Berta
 {
     template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
-    class PropertyGridFieldSlider : public PropertyGrid::PropertyGridFieldBase
+    class PropertyGridFieldSlider : public Internal::PropertyGrid::PropertyGridFieldBase
     {
     public:
         using GetterFn = std::function<std::optional<TNumber>()>;

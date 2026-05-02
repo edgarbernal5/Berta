@@ -8,6 +8,7 @@
 #include <Berta/Controls/PropertyGrid.h>
 #include <Berta/Controls/TextBox.h>
 #include <Berta/Controls/Button.h>
+#include <Berta/Controls/Panel.h>
 
 #include <Berta/Controls/Properties/PropertyGridFields.h>
 

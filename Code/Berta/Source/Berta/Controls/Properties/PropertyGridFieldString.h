@@ -9,15 +9,14 @@
 
 #include <optional>
 
-#include "Berta/Controls/PropertyGrid.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/TextBox.h"
 
 #include <string>
-#include <vector>
 
 namespace Berta
 {
-	class PropertyGridFieldString : public PropertyGrid::PropertyGridFieldBase
+	class PropertyGridFieldString : public Internal::PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		using GetterFn = std::function<std::optional<std::string>()>;

@@ -7,7 +7,7 @@
 #ifndef BT_PROPERTY_GRID_FIELD_SELECTION_HEADER
 #define BT_PROPERTY_GRID_FIELD_SELECTION_HEADER
 
-#include "Berta/Controls/PropertyGrid.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/ComboBox.h"
 
 #include <string>

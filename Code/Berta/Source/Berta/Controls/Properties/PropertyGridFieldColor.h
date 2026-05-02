@@ -7,7 +7,7 @@
 #ifndef BT_PROPERTY_GRID_FIELD_COLOR_HEADER
 #define BT_PROPERTY_GRID_FIELD_COLOR_HEADER
 
-#include "Berta/Controls/PropertyGrid.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/Label.h"
 
 #include <string>
@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldColor : public PropertyGrid::PropertyGridFieldBase
+	class PropertyGridFieldColor : public Internal::PropertyGrid::PropertyGridFieldBase
 	{
 	public:
 		using GetterFn = std::function<std::optional<Color>()>;
