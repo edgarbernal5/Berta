@@ -37,10 +37,12 @@ namespace Berta
                 std::optional<T> currentOpt = m_getter();
                 if (currentOpt.has_value())
                 {
+                    m_isMixedValue = false;
                     SetValueInternal(currentOpt.value());
                 }
                 else
                 {
+                    m_isMixedValue = true;
                     SetMixedValuesInternal();
                 }
             }
@@ -52,6 +54,7 @@ namespace Berta
         
         GetterFn m_getter;
         SetterFn m_setter;
+        bool m_isMixedValue{ false };
     };
 }
 

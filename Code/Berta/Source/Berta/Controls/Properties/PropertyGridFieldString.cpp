@@ -31,32 +31,14 @@ namespace Berta
 		return false;
 	}
 
-	/*void PropertyGridFieldString::Refresh()
-	{
-		if (!m_getter)
-		{
-			return;
-		}
-		
-		std::optional<std::string> currentOpt = m_getter();
-		if (currentOpt.has_value())
-		{
-			if (m_textBox.GetCaption() != currentOpt.value())
-			{
-				m_textBox.SetCaption(currentOpt.value());
-			}
-		}
-		else
-		{
-			if (m_textBox.GetCaption() != "---")
-			{
-				m_textBox.SetCaption("---");
-			}
-		}
-	}*/
-
 	std::string PropertyGridFieldString::GetValueAsString() const
 	{
+		if (m_isMixedValue)
+		{
+			return "---";
+		}
+		return m_textBox.GetCaption();
+		
 		if (m_getter)
 		{
 			std::optional<std::string> currentOpt = m_getter();

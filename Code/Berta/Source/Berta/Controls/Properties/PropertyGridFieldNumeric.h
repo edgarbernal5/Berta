@@ -9,6 +9,8 @@
 
 #include "Berta/GUI/EnumTypes.h"
 
+#include "TypedPropertyField.h"
+
 #include <string>
 #include <functional>
 #include <type_traits>
@@ -18,18 +20,19 @@
 namespace Berta
 {
 	template <typename T>
-    class PropertyGridFieldNumeric : public Internal::PropertyGrid::PropertyGridFieldBase
+    class PropertyGridFieldNumeric : public TypedPropertyField<T>
     {
         static_assert(std::is_arithmetic_v<T>, "Type T must be numeric.");
 
     public:
-        using GetterFn = std::function<std::optional<T>()>;
-        using SetterFn = std::function<void(T)>;
-
-        PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
-            : PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
-        {
-        }
+	    using GetterFn = typename TypedPropertyField<T>::GetterFn;
+	    using SetterFn = typename TypedPropertyField<T>::SetterFn;
+	    
+	    PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
+             : TypedPropertyField<T>(label, std::move(getter), std::move(setter))
+	    {
+	    }
+	    ~PropertyGridFieldNumeric() override = default;
 
         void OnCreate(Window* parent) override
         {
@@ -48,13 +51,13 @@ namespace Berta
                 }
             });
 
-            Refresh(); 
+            this->Refresh(); 
 
             m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
                 {
-                    NotifySelected();
+                    this->NotifySelected();
                 }
                 else
                 {
@@ -71,12 +74,12 @@ namespace Berta
             });
         }
 
-        void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
+        void Draw(Graphics& graphics, const Rectangle& area, const Internal::PropertyGrid::LayoutConfig& config) override
         {
             m_textBox.SetArea(area);
         }
 
-        void Refresh() override
+        /*void Refresh() override
         {
             if (m_getter) 
             {
@@ -97,7 +100,7 @@ namespace Berta
                     }
                 }
             }
-        }
+        }*/
 
         void SetFocus() override 
         { 
@@ -125,6 +128,14 @@ namespace Berta
         }
 	    
 	protected:
+	    void SetValueInternal(const T& value) override
+	    {
+	        
+	    }
+	    void SetMixedValuesInternal() override
+	    {
+	        
+	    }
 	    
 	    void OnVisibilityChanged(bool visible) override
 	    {
@@ -179,13 +190,13 @@ namespace Berta
                 if (!currentState.has_value() || parsedValue != currentState.value())
                 {
                     m_setter(parsedValue);
-                    NotifyValueChanged(); 
+                    this->NotifyValueChanged(); 
                 }
-                Refresh();
+                this->Refresh();
             } 
             catch (const std::exception&) 
             {
-                Refresh(); 
+                this->Refresh(); 
             }
         }
 
