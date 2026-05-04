@@ -62,8 +62,13 @@ namespace Berta
 	{
 		if (m_getter)
 		{
-			auto value = m_getter();
-			return value ? "1" : "0";
+			auto currentOpt = m_getter();
+			if (!currentOpt.has_value())
+			{
+				return "---";
+			}
+			
+			return currentOpt.value() ? "1" : "0";
 		}
 		return "";
 	}
@@ -75,19 +80,20 @@ namespace Berta
 		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
 		{
-			if (!m_getter || !m_setter) return;
+			if (!m_getter || !m_setter)
+			{
+				return;
+			}
 			
-			std::optional<bool> currentState = m_getter();
-
 			bool newValue;
-			if (!currentState.has_value())
+			auto currentOpt = m_getter();
+			if (!currentOpt.has_value())
 			{
 				newValue = true; 
 			}
 			else
 			{
-					
-				newValue = !currentState.value();
+				newValue = !currentOpt.value();
 			}
 
 			m_setter(newValue);

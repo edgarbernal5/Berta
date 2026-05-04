@@ -161,6 +161,7 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldString.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\TypedPropertyField.h" />
     <ClInclude Include="Source\Berta\Core\ObjectPool.h" />
     <ClInclude Include="Source\Berta\Core\ScopedTimer.h" />
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />

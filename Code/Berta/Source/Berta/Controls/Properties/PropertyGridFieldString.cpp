@@ -11,6 +11,11 @@
 
 namespace Berta
 {
+	PropertyGridFieldString::PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter)
+		: TypedPropertyField<std::string>(label, std::move(getter), std::move(setter))
+	{
+	}
+
 	void PropertyGridFieldString::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
 		m_textBox.SetArea(area);
@@ -26,7 +31,7 @@ namespace Berta
 		return false;
 	}
 
-	void PropertyGridFieldString::Refresh()
+	/*void PropertyGridFieldString::Refresh()
 	{
 		if (!m_getter)
 		{
@@ -48,7 +53,7 @@ namespace Berta
 				m_textBox.SetCaption("---");
 			}
 		}
-	}
+	}*/
 
 	std::string PropertyGridFieldString::GetValueAsString() const
 	{
@@ -118,6 +123,19 @@ namespace Berta
 	void PropertyGridFieldString::OnEnableChanged(bool enabled)
 	{
 		m_textBox.SetEnabled(enabled);
+	}
+
+	void PropertyGridFieldString::SetValueInternal(const std::string& value)
+	{
+		if (m_textBox.GetCaption() != value)
+		{
+			m_textBox.SetCaption(value);
+		}
+	}
+
+	void PropertyGridFieldString::SetMixedValuesInternal()
+	{
+		m_textBox.SetCaption("---");
 	}
 
 	void PropertyGridFieldString::ApplyValue()

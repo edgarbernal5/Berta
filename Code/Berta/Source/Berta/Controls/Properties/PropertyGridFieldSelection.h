@@ -136,7 +136,7 @@ namespace Berta
             m_comboBox.Focus(); 
         }
 	    
-        bool HasFocus() const override
+        [[nodiscard]] bool HasFocus() const override
         {
             return false;
         }

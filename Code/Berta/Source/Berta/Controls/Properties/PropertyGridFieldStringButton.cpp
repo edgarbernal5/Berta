@@ -28,6 +28,11 @@ namespace Berta
 		m_button.SetArea(buttonArea);
 	}
 
+	void PropertyGridFieldStringButton::SetFocus()
+	{
+		PropertyGridFieldString::SetFocus();
+	}
+
 	bool PropertyGridFieldStringButton::HasFocus() const
 	{
 		return false;

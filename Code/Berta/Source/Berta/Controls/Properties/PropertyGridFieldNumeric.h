@@ -104,7 +104,7 @@ namespace Berta
             m_textBox.Focus(); 
         }
 	    
-	    bool HasFocus() const override
+	    [[nodiscard]] bool HasFocus() const override
         {
             return false;
         }
