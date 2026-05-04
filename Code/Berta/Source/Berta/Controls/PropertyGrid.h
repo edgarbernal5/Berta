@@ -297,7 +297,6 @@ namespace Berta
     
 				operator bool() const { return id != 0; }
 			};
-			void Draw();
 			void Update();
 			
 			void ClearReferences(StringUtils::StringHash deletedId);

@@ -16,6 +16,7 @@ namespace Berta::Internal::PropertyGrid
     {
     public:
     	using LayoutConfig = Berta::Internal::PropertyGrid::LayoutConfig;
+    	
     public:
         PropertyGridFieldBase() = default;
         PropertyGridFieldBase(std::string_view label) :
@@ -23,7 +24,7 @@ namespace Berta::Internal::PropertyGrid
         {
         }
         virtual ~PropertyGridFieldBase() = default;
-			
+    	
         PropertyGridFieldBase(const PropertyGridFieldBase&) = delete;
         PropertyGridFieldBase& operator=(const PropertyGridFieldBase&) = delete;
 			
@@ -36,7 +37,7 @@ namespace Berta::Internal::PropertyGrid
         virtual void SetLabel(std::string_view newLabel);
 
         [[nodiscard]] virtual std::string GetValueAsString() const = 0;
-			
+    	
         bool IsEnabled() const;
         void SetEnabled(bool enabled);
 
@@ -47,7 +48,7 @@ namespace Berta::Internal::PropertyGrid
         {
             return m_parent->ToScale(m_height);
         }
-			
+    	
         virtual void OnMouseClick(const Point& localPosition, uint32_t labelWidth) 
         {
         }
@@ -55,11 +56,13 @@ namespace Berta::Internal::PropertyGrid
         virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) = 0;
 
         virtual void SetFocus() = 0;
+    	[[nodiscard]] virtual bool HasFocus() const = 0;
+    	
         virtual void Refresh() = 0;
-			
+    	
         bool IsVisible() const;
         void SetVisibility(bool visible);
-			
+    	
         std::function<void()> OnValueChanged;
         std::function<void()> OnSelected;
 			
@@ -67,10 +70,10 @@ namespace Berta::Internal::PropertyGrid
         virtual void OnCreate(Window* parent) = 0;
         virtual void OnVisibilityChanged(bool visible) {}
         virtual void OnEnableChanged(bool enabled) {}
-			
+    	
         void NotifyValueChanged();
         void NotifySelected();
-			
+    	
         Window* m_parent{ nullptr };
 
         std::string	m_label;

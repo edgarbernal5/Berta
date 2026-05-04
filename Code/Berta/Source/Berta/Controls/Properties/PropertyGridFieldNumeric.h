@@ -17,15 +17,6 @@
 
 namespace Berta
 {
-	/*template<typename TNumber>
-	struct IsIntOrUint : std::false_type {};
-
-	template<>
-	struct IsIntOrUint<int> : std::true_type {};
-
-	template<>
-	struct IsIntOrUint<unsigned int> : std::true_type {};*/
-
 	template <typename T>
     class PropertyGridFieldNumeric : public Internal::PropertyGrid::PropertyGridFieldBase
     {
@@ -37,7 +28,8 @@ namespace Berta
 
         PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
             : PropertyGridFieldBase(label), m_getter(std::move(getter)), m_setter(std::move(setter))
-        {}
+        {
+        }
 
         void OnCreate(Window* parent) override
         {
@@ -110,6 +102,11 @@ namespace Berta
         void SetFocus() override 
         { 
             m_textBox.Focus(); 
+        }
+	    
+	    bool HasFocus() const override
+        {
+            return false;
         }
 
 	    std::string GetValueAsString() const override

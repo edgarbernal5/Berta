@@ -85,6 +85,11 @@ namespace Berta
             m_textBox.Focus();    
         }
 	    
+        bool HasFocus() const override
+        {
+            return false;
+        }
+	    
         void Refresh() override
         {
             if (!m_getter)

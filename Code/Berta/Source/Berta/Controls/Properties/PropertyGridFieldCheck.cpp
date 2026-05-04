@@ -24,6 +24,11 @@ namespace Berta
 		m_checkBox.Focus(); 
 	}
 
+	bool PropertyGridFieldCheck::HasFocus() const
+	{
+		return false;
+	}
+
 	void PropertyGridFieldCheck::Refresh()
 	{
 		if (!m_getter)

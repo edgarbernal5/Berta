@@ -31,6 +31,8 @@ namespace Berta
 		virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
 		virtual void SetFocus() override;
+		bool HasFocus() const override;
+		
 		virtual void Refresh() override;
 		std::string GetValueAsString() const override;
 

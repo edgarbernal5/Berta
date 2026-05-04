@@ -28,6 +28,11 @@ namespace Berta
 		m_button.SetArea(buttonArea);
 	}
 
+	bool PropertyGridFieldStringButton::HasFocus() const
+	{
+		return false;
+	}
+
 	void PropertyGridFieldStringButton::SetButtonClick(ClickCallback callback)
 	{
 		m_clickCallback = std::move(callback);

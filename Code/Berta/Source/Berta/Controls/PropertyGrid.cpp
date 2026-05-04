@@ -789,7 +789,7 @@ namespace Berta
 				auto prop = model.FindPropertyById(itemId);
 				if (prop && prop->field)
 				{
-					if (!prop->field->IsVisible())
+					if (prop->field->IsVisible())
 					{
 						prop->field->Refresh();
 					}
@@ -951,10 +951,6 @@ namespace Berta
 			{
 				HideAllControlsRecursive(subCat);
 			}
-		}
-
-		void Module::Draw()
-		{
 		}
 
 		void Module::Update()

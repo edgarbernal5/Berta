@@ -21,6 +21,11 @@ namespace Berta
 		m_textBox.Focus();
 	}
 
+	bool PropertyGridFieldString::HasFocus() const
+	{
+		return false;
+	}
+
 	void PropertyGridFieldString::Refresh()
 	{
 		if (!m_getter)

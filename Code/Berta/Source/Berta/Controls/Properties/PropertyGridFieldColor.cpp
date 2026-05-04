@@ -20,6 +20,11 @@ namespace Berta
 	{
 	}
 
+	bool PropertyGridFieldColor::HasFocus() const
+	{
+		return false;
+	}
+
 	void PropertyGridFieldColor::Refresh()
 	{
 		if (!m_getter)

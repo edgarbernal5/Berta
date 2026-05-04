@@ -29,6 +29,8 @@ namespace Berta
 
 		virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
+	    
+		bool HasFocus() const override;
 		void SetButtonClick(ClickCallback callback);
 
 	protected:

@@ -135,6 +135,11 @@ namespace Berta
         { 
             m_comboBox.Focus(); 
         }
+	    
+        bool HasFocus() const override
+        {
+            return false;
+        }
 
     protected:
         void OnVisibilityChanged(bool visible) override
