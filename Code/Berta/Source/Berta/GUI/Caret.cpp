@@ -56,7 +56,9 @@ namespace Berta
 	void Caret::SetPosition(const Point& position)
 	{
 		if (m_position == position)
-			return;
+		{
+			return;	
+		}
 		
 		m_position = position;
 		
@@ -64,5 +66,10 @@ namespace Berta
 		{
 			GUI::UpdateWindow(m_owner);
 		}
+	}
+
+	Size Caret::GetSize() const
+	{
+		return m_size;
 	}
 }

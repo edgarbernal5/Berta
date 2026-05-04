@@ -185,6 +185,7 @@ namespace Berta
 		}
 
 		m_attributes->m_textExtent = GetTextExtent("{}[]");
+		m_attributes->m_metricsCached = false;
 #endif
 	}
 

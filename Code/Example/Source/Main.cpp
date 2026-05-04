@@ -606,7 +606,7 @@ int main()
 	{
 		tabbar.SetTabRowPosition(tabbar.GetTabRowPosition() == Berta::TabRowPosition::Top ? Berta::TabRowPosition::Bottom : Berta::TabRowPosition::Top);
 	});
-	form.GetAppearance().Background.SetR(0);
+	//form.GetAppearance().Background.SetR(0);
 	form.Show();
 	form.Exec();
 

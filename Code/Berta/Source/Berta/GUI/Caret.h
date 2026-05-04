@@ -28,12 +28,14 @@ namespace Berta
 		
 		Point GetPosition() const { return m_position; }
 		void SetPosition(const Point& position);
+		
+		Size GetSize() const;
 	private:
-		bool m_visible{ false };
 		Window* m_owner{ nullptr };
 		Size m_size{};
 		Timer m_timer;
 		Point m_position;
+		bool m_visible{ false };
 	};
 }
 

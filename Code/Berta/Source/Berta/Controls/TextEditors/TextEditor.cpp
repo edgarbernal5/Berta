@@ -27,7 +27,7 @@ namespace Berta
 		m_graphics(*graphics),
 		m_owner(owner)
 	{
-		m_caret = std::make_unique<Caret>(owner, Size{1,0});
+		m_caret = std::make_unique<Caret>(owner, Size{2,0});
 		
 		m_scrollableView = std::make_unique<ScrollableView>(owner);
 		m_scrollableView->SetOnScrollChange([this]()
@@ -1024,9 +1024,11 @@ namespace Berta
 		auto caretHeight = m_graphics.GetCaretHeight(); 
 		Color caretColor = m_owner->Appearance->Foreground2nd;
 
-		m_graphics.DrawLine(
+		m_graphics.DrawLine
+		(
 			{ logicalCaretPos.X, logicalCaretPos.Y }, 
 			{ logicalCaretPos.X, logicalCaretPos.Y + static_cast<int>(caretHeight) }, 
+			static_cast<float>(m_owner->ToScale(m_caret->GetSize().Width)),
 			caretColor
 		);
 	}
@@ -1503,9 +1505,10 @@ namespace Berta
 		}
 
 		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), pos.line,
-	[](const VisualLine& vl, size_t lineIdx) {
-		return vl.logicalLineIndex < lineIdx;
-	});
+		[](const VisualLine& vl, size_t lineIdx)
+			{
+				return vl.logicalLineIndex < lineIdx;
+			});
 
 		const VisualLine* targetLine = nullptr;
 
@@ -1519,8 +1522,11 @@ namespace Berta
 			++it;
 		}
 
-		if (!targetLine) return { 0, 0 };
-
+		if (!targetLine)
+		{
+			return { 0, 0 };
+		}
+		
 		float caretX = 0.0f;
 
 #ifdef BT_PLATFORM_WINDOWS
@@ -1533,7 +1539,8 @@ namespace Berta
     
 			uint32_t localCharIndex = static_cast<uint32_t>(pos.column - targetLine->charStart);
 
-			HRESULT hr = targetLine->m_textHandle.m_textLayout->HitTestTextPosition(
+			HRESULT hr = targetLine->m_textHandle.m_textLayout->HitTestTextPosition
+			(
 				localCharIndex, 
 				FALSE, 
 				&hitX, 
@@ -1541,7 +1548,8 @@ namespace Berta
 				&metrics
 			);
 
-			if (SUCCEEDED(hr)) {
+			if (SUCCEEDED(hr))
+			{
 				caretX = hitX;
 			}
 		}
@@ -1553,13 +1561,12 @@ namespace Berta
 	void TextEditor::UpdateCaretPosition()
 	{
 		Point logicalPos = GetPointFromPosition(m_selection.m_endPosition);
-
 		m_caret->SetPosition(logicalPos);
 
 		if (m_scrollableView)
 		{
 			uint32_t caretHeight = GetLineHeight();
-			uint32_t caretWidth = 2u;
+			uint32_t caretWidth = m_caret->GetSize().Width;
 
 			Rectangle caretRect{ logicalPos.X, logicalPos.Y, caretWidth, caretHeight };
         
