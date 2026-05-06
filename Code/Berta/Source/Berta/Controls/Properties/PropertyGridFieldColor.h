@@ -7,7 +7,7 @@
 #ifndef BT_PROPERTY_GRID_FIELD_COLOR_HEADER
 #define BT_PROPERTY_GRID_FIELD_COLOR_HEADER
 
-#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
+#include "Berta/Controls/Properties/TypedPropertyField.h"
 #include "Berta/Controls/Label.h"
 
 #include <string>
@@ -15,7 +15,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldColor : public Internal::PropertyGrid::PropertyGridFieldBase
+	class PropertyGridFieldColor : public TypedPropertyField<Color>
 	{
 	public:
 		using GetterFn = std::function<std::optional<Color>()>;
@@ -24,17 +24,13 @@ namespace Berta
 		using ClickCallback = std::function<std::optional<Color>(std::optional<Color> currentColor)>;
 
 	public:
-		PropertyGridFieldColor(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick)
-			: PropertyGridFieldBase(std::string(label)), 
-			  m_getter(std::move(getter)), m_setter(std::move(setter)), m_clickCallback(std::move(onButtonClick))
-		{}
+		PropertyGridFieldColor(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick);
 
 		void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override;
 		
 		void SetFocus() override;
 		[[nodiscard]] bool HasFocus() const override;
 		
-		void Refresh() override;
 		std::string GetValueAsString() const override;
 		
 		void SetButtonClick(ClickCallback callback);
@@ -44,8 +40,9 @@ namespace Berta
 		void OnVisibilityChanged(bool visible) override;
 		void OnEnableChanged(bool enabled) override;
 		
-		GetterFn m_getter;
-		SetterFn m_setter;
+		void SetValueInternal(const Color& value) override;
+		void SetMixedValuesInternal() override;
+		
 		ClickCallback m_clickCallback;
 		Label m_colorRegion;
 

@@ -7,14 +7,14 @@
 #ifndef BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
 #define BT_PROPERTY_GRID_FIELD_SLIDER_HEADER
 
-#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
+#include "Berta/Controls/Properties/TypedPropertyField.h"
 #include "Berta/Controls/Slider.h"
 #include "Berta/Controls/TextBox.h"
 
 namespace Berta
 {
     template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
-    class PropertyGridFieldSlider : public Internal::PropertyGrid::PropertyGridFieldBase
+    class PropertyGridFieldSlider : public TypedPropertyField<TNumber>
     {
     public:
         using GetterFn = std::function<std::optional<TNumber>()>;
@@ -22,11 +22,7 @@ namespace Berta
 
     public:
         PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal) : 
-            PropertyGridFieldBase(label), 
-            m_getter(std::move(getter)),
-            m_setter(std::move(setter)),
-            m_min(minVal), 
-            m_max(maxVal)
+            TypedPropertyField<TNumber>(label, std::move(getter), std::move(setter)), m_min(minVal), m_max(maxVal)
         {
         }
 
@@ -39,13 +35,13 @@ namespace Berta
             m_slider.Create(parent);
             m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
 		    
-            Refresh();
+            this->Refresh();
             
             m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
             {
                 if (args.Focused)
                 {
-                    NotifySelected();
+                    this->NotifySelected();
                 }
                 else
                 {
@@ -68,10 +64,10 @@ namespace Berta
             m_slider.MakeActive(false, m_textBox);
         }
 
-        void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
+        void Draw(Graphics& graphics, const Rectangle& area, const Internal::PropertyGrid::LayoutConfig& config) override
         {
             int textWidth = area.Width * 0.3f;
-            int margin = m_parent->ToScale(4);
+            int margin = this->m_parent->ToScale(4);
 
             Rectangle textRect = { area.X, area.Y, (uint32_t)textWidth, area.Height };
             Rectangle sliderRect = { area.X + textWidth + margin, area.Y, area.Width - textWidth - margin, area.Height };
@@ -90,14 +86,14 @@ namespace Berta
             return false;
         }
 	    
-        void Refresh() override
+        /*void Refresh() override
         {
-            if (!m_getter)
+            if (!this->m_getter)
             {
                 return;
             }
 		    
-            std::optional<TNumber> currentOpt = m_getter();
+            std::optional<TNumber> currentOpt = this->m_getter();
             if (currentOpt.has_value())
             {
                 TNumber val = currentOpt.value();
@@ -119,16 +115,16 @@ namespace Berta
                     m_textBox.SetCaption("---");
                 }
             }
-        }
+        }*/
 
         std::string GetValueAsString() const override
         {
-            if (!m_getter)
+            if (!this->m_getter)
             {
                 return "";
             }
 		    
-            auto val = m_getter();
+            auto val = this->m_getter();
             return val.has_value() ? std::to_string(val.value()) : "---";
         }
 
@@ -152,6 +148,28 @@ namespace Berta
             m_textBox.SetEnabled(enabled); 
             m_slider.SetEnabled(enabled);
         }
+        
+        void SetValueInternal(const TNumber& value) override
+        {
+            std::string strVal = std::to_string(value);
+                
+            if (m_textBox.GetCaption() != strVal)
+            {
+                m_textBox.SetCaption(strVal);
+            }
+            if (m_slider.GetValue() != static_cast<float>(value))
+            {
+                m_slider.SetValue(static_cast<float>(value));
+            }
+        }
+        
+        void SetMixedValuesInternal() override
+        {
+            if (m_textBox.GetCaption() != "---")
+            {
+                m_textBox.SetCaption("---");
+            }
+        }
 
     private:
         void ApplyTextValue()
@@ -170,30 +188,28 @@ namespace Berta
 
                 parsedValue = std::clamp(parsedValue, m_min, m_max);
 
-                if (!m_getter() || m_getter().value() != parsedValue)
+                if (!this->m_getter() || this->m_getter().value() != parsedValue)
                 {
-                    m_setter(parsedValue);
-                    NotifyValueChanged();
+                    this->m_setter(parsedValue);
+                    this->NotifyValueChanged();
                 }
             } 
             catch (...)
             {
             }
-            Refresh();
+            this->Refresh();
         }
 
         void ApplySliderValue(TNumber newValue)
         {
-            if (!m_getter() || m_getter().value() != newValue)
+            if (!this->m_getter() || this->m_getter().value() != newValue)
             {
-                m_setter(newValue);
+                this->m_setter(newValue);
                 m_textBox.SetCaption(std::to_string(newValue)); 
-                NotifyValueChanged();
+                this->NotifyValueChanged();
             }
         }
 
-        GetterFn m_getter;
-        SetterFn m_setter;
         TNumber m_min, m_max;
         TextBox m_textBox;
         Slider m_slider;

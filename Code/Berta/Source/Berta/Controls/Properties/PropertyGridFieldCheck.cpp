@@ -11,6 +11,11 @@
 
 namespace Berta
 {
+	PropertyGridFieldCheck::PropertyGridFieldCheck(std::string_view label, GetterFn getter, SetterFn setter) :
+		TypedPropertyField<bool>(label, std::move(getter), std::move(setter))
+	{
+	}
+
 	void PropertyGridFieldCheck::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
 		Rectangle valueRect = area;
@@ -29,7 +34,7 @@ namespace Berta
 		return false;
 	}
 
-	void PropertyGridFieldCheck::Refresh()
+	/*void PropertyGridFieldCheck::Refresh()
 	{
 		if (!m_getter)
 		{
@@ -56,7 +61,7 @@ namespace Berta
 		{
 			m_checkBox.SetState(targetState);
 		}
-	}
+	}*/
 
 	std::string PropertyGridFieldCheck::GetValueAsString() const
 	{
@@ -124,5 +129,15 @@ namespace Berta
 	void PropertyGridFieldCheck::OnEnableChanged(bool enabled)
 	{
 		m_checkBox.SetEnabled(enabled);
+	}
+
+	void PropertyGridFieldCheck::SetValueInternal(const bool& value)
+	{
+		m_checkBox.SetState(value ? CheckState::Checked : CheckState::Unchecked);
+	}
+
+	void PropertyGridFieldCheck::SetMixedValuesInternal()
+	{
+		m_checkBox.SetState(CheckState::Indeterminate);
 	}
 }

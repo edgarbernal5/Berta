@@ -15,6 +15,7 @@ namespace Berta::Internal::PropertyGrid
     class PropertyGridFieldBase
     {
     public:
+    	static constexpr std::string_view MIXED_VALUES_TEXT = "---";
     	using LayoutConfig = Berta::Internal::PropertyGrid::LayoutConfig;
     	
     public:

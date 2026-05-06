@@ -12,7 +12,7 @@
 namespace Berta
 {
 	PropertyGridFieldString::PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter)
-		: TypedPropertyField<std::string>(label, std::move(getter), std::move(setter))
+		: TypedPropertyField(label, std::move(getter), std::move(setter))
 	{
 	}
 
@@ -39,12 +39,12 @@ namespace Berta
 		}
 		return m_textBox.GetCaption();
 		
-		if (m_getter)
+		/*if (m_getter)
 		{
 			std::optional<std::string> currentOpt = m_getter();
 			return currentOpt.has_value() ? currentOpt.value() : "---";
 		}
-		return "";
+		return "";*/
 	}
 	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
@@ -132,8 +132,10 @@ namespace Berta
 
 		if (!currentOpt.has_value() && uiValue == "---") 
 		{
+			m_isMixedValue = true;
 			return;
 		}
+		m_isMixedValue = false;
 
 		if (!currentOpt.has_value() || currentOpt.value() != uiValue)
 		{
@@ -141,6 +143,6 @@ namespace Berta
 			NotifyValueChanged();
 		}
 
-		Refresh();
+		//Refresh();
 	}
 }

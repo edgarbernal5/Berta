@@ -11,10 +11,9 @@
 
 #include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/Properties/TypedPropertyField.h"
 
 #include <string>
-
-#include "TypedPropertyField.h"
 
 namespace Berta
 {

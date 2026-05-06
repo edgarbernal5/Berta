@@ -11,6 +11,11 @@
 
 namespace Berta
 {
+	PropertyGridFieldColor::PropertyGridFieldColor(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick) :
+		TypedPropertyField(label, std::move(getter), std::move(setter)), m_clickCallback(std::move(onButtonClick))
+	{
+	}
+	
 	void PropertyGridFieldColor::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
 	{
 		m_colorRegion.SetArea(area);
@@ -23,26 +28,6 @@ namespace Berta
 	bool PropertyGridFieldColor::HasFocus() const
 	{
 		return false;
-	}
-
-	void PropertyGridFieldColor::Refresh()
-	{
-		if (!m_getter)
-		{
-			return;
-		}
-
-		std::optional<Color> currentOpt = m_getter();
-		if (currentOpt.has_value())
-		{
-			m_colorRegion.SetBackgroundColor(currentOpt.value());
-			m_colorRegion.SetCaption("");
-		}
-		else
-		{
-			m_colorRegion.SetBackgroundColor(Color(128, 128, 128, 255));
-			m_colorRegion.SetCaption("---");
-		}
 	}
 
 	std::string PropertyGridFieldColor::GetValueAsString() const
@@ -111,5 +96,17 @@ namespace Berta
 	void PropertyGridFieldColor::OnEnableChanged(bool enabled)
 	{
 		m_colorRegion.SetEnabled(enabled);
+	}
+
+	void PropertyGridFieldColor::SetValueInternal(const Color& value)
+	{
+		m_colorRegion.SetBackgroundColor(value);
+		m_colorRegion.SetCaption("");
+	}
+
+	void PropertyGridFieldColor::SetMixedValuesInternal()
+	{
+		m_colorRegion.SetBackgroundColor(Color(128, 128, 128, 255));
+		m_colorRegion.SetCaption("---");
 	}
 }

@@ -7,7 +7,7 @@
 #ifndef BT_PROPERTY_GRID_FIELD_SELECTION_HEADER
 #define BT_PROPERTY_GRID_FIELD_SELECTION_HEADER
 
-#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
+#include "Berta/Controls/Properties/TypedPropertyField.h"
 #include "Berta/Controls/ComboBox.h"
 
 #include <string>
@@ -18,7 +18,7 @@
 namespace Berta
 {
     template <typename T>
-    class PropertyGridFieldSelection : public Internal::PropertyGrid::PropertyGridFieldBase
+    class PropertyGridFieldSelection : public TypedPropertyField<T>
     {
     public:
         using GetterFn = std::function<std::optional<T>()>;
@@ -27,10 +27,7 @@ namespace Berta
         using OptionList = std::vector<std::pair<std::string, T>>;
 
         PropertyGridFieldSelection(std::string_view label, GetterFn getter, SetterFn setter, OptionList options)
-            : PropertyGridFieldBase(label), 
-              m_getter(std::move(getter)), 
-              m_setter(std::move(setter)),
-              m_options(std::move(options))
+            : TypedPropertyField<T>(label, std::move(getter), std::move(setter)), m_options(std::move(options))
         {
         }
 
@@ -43,7 +40,7 @@ namespace Berta
                 m_comboBox.PushBack(option.first, std::make_any<T>(option.second));
             }
 
-            Refresh();
+            this->Refresh();
 
             m_comboBox.GetEvents().Selected.Connect([this](const ArgComboBox& args) 
             {
@@ -55,10 +52,10 @@ namespace Berta
                     {
                         T selectedValue = std::any_cast<T>(payload);
                         
-                        if (m_getter && selectedValue != m_getter())
+                        if (this->m_getter && selectedValue != this->m_getter())
                         {
-                            m_setter(selectedValue);
-                            NotifyValueChanged();
+                            this->m_setter(selectedValue);
+                            this->NotifyValueChanged();
                         }
                     }
                 }
@@ -68,19 +65,19 @@ namespace Berta
             {
                 if (args.Focused)
                 {
-                    NotifySelected();
+                    this->NotifySelected();
                 }
             });
         }
 
-        void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) override
+        void Draw(Graphics& graphics, const Rectangle& area, const Internal::PropertyGrid::LayoutConfig& config) override
         {
             m_comboBox.SetArea(area);
         }
 
-        void Refresh() override
+        /*void Refresh() override
         {
-            if (!m_getter)
+            if (!this->m_getter)
             {
                 return;
             }
@@ -106,16 +103,16 @@ namespace Berta
             {
                 m_comboBox.SetSelectedIndex(foundIndex);
             }
-        }
+        }*/
 
         std::string GetValueAsString() const override
         {
-            if (!m_getter)
+            if (!this->m_getter)
             {
                 return "";
             }
 
-            std::optional<T> currentOpt  = m_getter();
+            std::optional<T> currentOpt = this->m_getter();
             if (!currentOpt.has_value())
             {
                 return "";
@@ -159,9 +156,30 @@ namespace Berta
             m_comboBox.SetEnabled(enabled);
         }
 
+        void SetValueInternal(const T& value) override
+        {
+            std::optional<size_t> foundIndex = std::nullopt;
+
+            for (size_t i = 0; i < m_options.size(); ++i)
+            {
+                if (m_options[i].second == value)
+                {
+                    foundIndex = i;
+                    break;
+                }
+            }
+
+            if (m_comboBox.GetSelectedIndex() != foundIndex)
+            {
+                m_comboBox.SetSelectedIndex(foundIndex);
+            }
+        }
+        
+        void SetMixedValuesInternal() override
+        {
+            m_comboBox.SetSelectedIndex(std::nullopt);
+        }
     private:
-        GetterFn m_getter;
-        SetterFn m_setter;
         OptionList m_options;
         ComboBox m_comboBox;
     };

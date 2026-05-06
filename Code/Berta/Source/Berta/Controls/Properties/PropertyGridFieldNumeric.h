@@ -29,7 +29,7 @@ namespace Berta
 	    using SetterFn = typename TypedPropertyField<T>::SetterFn;
 	    
 	    PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
-             : TypedPropertyField<T>(label, std::move(getter), std::move(setter))
+            : TypedPropertyField<T>(label, std::move(getter), std::move(setter))
 	    {
 	    }
 	    ~PropertyGridFieldNumeric() override = default;
@@ -114,9 +114,9 @@ namespace Berta
 
 	    std::string GetValueAsString() const override
         {
-            if (m_getter)
+            if (this->m_getter)
             {
-                std::optional<T> currentState = m_getter();
+                std::optional<T> currentState = this->m_getter();
                 if (currentState.has_value())
                 {
                     return ToString(currentState.value());
@@ -130,11 +130,20 @@ namespace Berta
 	protected:
 	    void SetValueInternal(const T& value) override
 	    {
-	        
+	        std::string strValue = ToString(value);
+
+	        if (m_textBox.GetCaption() != strValue)
+	        {
+	            m_textBox.SetText(strValue);
+	        }
 	    }
+	    
 	    void SetMixedValuesInternal() override
 	    {
-	        
+	        if (m_textBox.GetCaption()!= "---")
+	        {
+	            m_textBox.SetCaption("---"); 
+	        }
 	    }
 	    
 	    void OnVisibilityChanged(bool visible) override
@@ -175,9 +184,10 @@ namespace Berta
 	            return std::to_string(value);
 	        }
 	    }
+	    
         void ApplyValue()
         {
-            if (!m_setter || !m_getter)
+            if (!this->m_setter || !this->m_getter)
             {
                 return;
             }
@@ -185,11 +195,11 @@ namespace Berta
             try
             {
                 T parsedValue = FromString(m_textBox.GetCaption());
-                std::optional<T> currentState = m_getter();
+                std::optional<T> currentState = this->m_getter();
                 
                 if (!currentState.has_value() || parsedValue != currentState.value())
                 {
-                    m_setter(parsedValue);
+                    this->m_setter(parsedValue);
                     this->NotifyValueChanged(); 
                 }
                 this->Refresh();
@@ -234,8 +244,6 @@ namespace Berta
             }
         }
 
-        GetterFn m_getter;
-        SetterFn m_setter;
         TextBox m_textBox;
     };
 
