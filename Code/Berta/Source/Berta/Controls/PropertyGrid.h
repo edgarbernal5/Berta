@@ -107,7 +107,7 @@ namespace Berta
 			std::string_view GetPropertyLabel(StringUtils::StringHash propId);
 			void SetPropertyLabel(StringUtils::StringHash propId, std::string_view newLabel);
 			
-			std::string GetPropertyValueAsString(StringUtils::StringHash propId);
+			std::wstring GetPropertyValueAsString(StringUtils::StringHash propId);
 			
 			[[nodiscard]] const std::vector<CategoryType>& GetRootCategories() const { return m_rootCategories; }
 			std::vector<CategoryType>& GetRootCategories() { return m_rootCategories; }
@@ -171,7 +171,7 @@ namespace Berta
 			std::string_view GetLabel() const;
 			PropertyHandle& SetLabel(std::string_view newLabel);
 			
-			[[nodiscard]] std::string GetValueAsString() const;
+			[[nodiscard]] std::wstring GetValueAsString() const;
 			
 			bool IsEnabled() const;
 			PropertyHandle& SetEnabled(bool enabled);

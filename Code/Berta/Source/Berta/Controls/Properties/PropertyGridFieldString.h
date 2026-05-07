@@ -28,7 +28,7 @@ namespace Berta
 		virtual void SetFocus() override;
 		[[nodiscard]] bool HasFocus() const override;
 		
-		std::string GetValueAsString() const override;
+		std::wstring GetValueAsString() const override;
 
 		virtual void SetEditable(bool isEditable);
 		virtual bool IsEditable() const;

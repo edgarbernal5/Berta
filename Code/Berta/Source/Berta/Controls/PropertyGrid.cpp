@@ -195,7 +195,7 @@ namespace Berta
 			}
 		}
 
-		std::string PropertyGridModel::GetPropertyValueAsString(StringUtils::StringHash propId)
+		std::wstring PropertyGridModel::GetPropertyValueAsString(StringUtils::StringHash propId)
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
@@ -509,9 +509,9 @@ namespace Berta
 			return *this;
 		}
 
-		std::string PropertyHandle::GetValueAsString() const
+		std::wstring PropertyHandle::GetValueAsString() const
 		{
-			return m_model ? m_model->GetPropertyValueAsString(m_uniqueId) : "";
+			return m_model ? m_model->GetPropertyValueAsString(m_uniqueId) : L"";
 		}
 
 		bool PropertyHandle::IsEnabled() const

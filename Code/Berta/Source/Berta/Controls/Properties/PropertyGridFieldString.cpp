@@ -31,13 +31,13 @@ namespace Berta
 		return false;
 	}
 
-	std::string PropertyGridFieldString::GetValueAsString() const
+	std::wstring PropertyGridFieldString::GetValueAsString() const
 	{
 		if (m_isMixedValue)
 		{
-			return "---";
+			return L"---";
 		}
-		return m_textBox.GetCaption();
+		return m_textBox.GetCaptionW();
 		
 		/*if (m_getter)
 		{

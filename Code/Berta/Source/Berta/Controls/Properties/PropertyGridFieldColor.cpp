@@ -30,21 +30,21 @@ namespace Berta
 		return false;
 	}
 
-	std::string PropertyGridFieldColor::GetValueAsString() const
+	std::wstring PropertyGridFieldColor::GetValueAsString() const
 	{
 		if (!m_getter)
 		{
-			return "";
+			return L"";
 		}
 		
 		auto currentValue = m_getter();
 		if (currentValue.has_value())
 		{
 			Color c = currentValue.value();
-			return std::to_string(c.GetR()) + "," + std::to_string(c.GetG()) + "," + 
-				   std::to_string(c.GetB()) + "," + std::to_string(c.GetA());
+			return std::to_wstring(c.GetR()) + L"," + std::to_wstring(c.GetG()) + L"," + 
+				   std::to_wstring(c.GetB()) + L"," + std::to_wstring(c.GetA());
 		}
-		return "---";
+		return L"---";
 	}
 
 	void PropertyGridFieldColor::SetButtonClick(ClickCallback callback)

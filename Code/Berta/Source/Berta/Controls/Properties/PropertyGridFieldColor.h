@@ -31,7 +31,7 @@ namespace Berta
 		void SetFocus() override;
 		[[nodiscard]] bool HasFocus() const override;
 		
-		std::string GetValueAsString() const override;
+		std::wstring GetValueAsString() const override;
 		
 		void SetButtonClick(ClickCallback callback);
 

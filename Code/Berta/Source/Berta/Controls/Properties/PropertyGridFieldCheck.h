@@ -27,7 +27,7 @@ namespace Berta
 		void SetFocus() override;
 		[[nodiscard]] bool HasFocus() const override;
 		
-		std::string GetValueAsString() const override;
+		std::wstring GetValueAsString() const override;
 		
 	protected:
 		void OnCreate(Window* parent) override;

@@ -37,7 +37,7 @@ namespace Berta::Internal::PropertyGrid
         virtual std::string_view GetLabel() const;
         virtual void SetLabel(std::string_view newLabel);
 
-        [[nodiscard]] virtual std::string GetValueAsString() const = 0;
+        [[nodiscard]] virtual std::wstring GetValueAsString() const = 0;
     	
         bool IsEnabled() const;
         void SetEnabled(bool enabled);

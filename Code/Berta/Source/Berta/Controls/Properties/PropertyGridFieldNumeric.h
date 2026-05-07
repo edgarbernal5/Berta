@@ -112,7 +112,7 @@ namespace Berta
             return false;
         }
 
-	    std::string GetValueAsString() const override
+	    std::wstring GetValueAsString() const override
         {
             if (this->m_getter)
             {
@@ -121,18 +121,18 @@ namespace Berta
                 {
                     return ToString(currentState.value());
                 }
-                return "---"; 
+                return L"---"; 
             }
             
-            return "";
+            return L"";
         }
 	    
 	protected:
 	    void SetValueInternal(const T& value) override
 	    {
-	        std::string strValue = ToString(value);
+	        std::wstring strValue = ToString(value);
 
-	        if (m_textBox.GetCaption() != strValue)
+	        if (m_textBox.GetCaptionW() != strValue)
 	        {
 	            m_textBox.SetText(strValue);
 	        }
@@ -194,7 +194,7 @@ namespace Berta
 
             try
             {
-                T parsedValue = FromString(m_textBox.GetCaption());
+                T parsedValue = FromString(m_textBox.GetCaptionW());
                 std::optional<T> currentState = this->m_getter();
                 
                 if (!currentState.has_value() || parsedValue != currentState.value())
@@ -210,11 +210,11 @@ namespace Berta
             }
         }
 
-        std::string ToString(T val) const 
+        std::wstring ToString(T val) const 
         {
             if constexpr (std::is_floating_point_v<T>)
             {
-                std::string str = std::to_string(val);
+                std::wstring str = std::to_wstring(val);
                 str.erase(str.find_last_not_of('0') + 1, std::string::npos);
                 if (str.back() == '.')
                 {
@@ -224,11 +224,11 @@ namespace Berta
             }
             else
             {
-                return std::to_string(val);
+                return std::to_wstring(val);
             }
         }
 
-        T FromString(const std::string& str) const 
+        T FromString(const std::wstring& str) const 
         {
             if constexpr (std::is_integral_v<T>)
             {

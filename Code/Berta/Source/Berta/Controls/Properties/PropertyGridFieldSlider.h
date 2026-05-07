@@ -117,15 +117,15 @@ namespace Berta
             }
         }*/
 
-        std::string GetValueAsString() const override
+        std::wstring GetValueAsString() const override
         {
             if (!this->m_getter)
             {
-                return "";
+                return L"";
             }
 		    
             auto val = this->m_getter();
-            return val.has_value() ? std::to_string(val.value()) : "---";
+            return val.has_value() ? std::to_wstring(val.value()) : L"---";
         }
 
     protected:

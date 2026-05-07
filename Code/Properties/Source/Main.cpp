@@ -125,10 +125,10 @@ int main()
 			[&myApp]() { return myApp.MaterialType; },
 			[&myApp](MaterialTypeEnum val) { myApp.MaterialType = val;  },
 			
-			std::vector<std::pair<std::string, MaterialTypeEnum>> {
-				{ "Opaque",      MaterialTypeEnum::Opaque },
-				{ "Transparent", MaterialTypeEnum::Transparent },
-				{ "Additive",    MaterialTypeEnum::Additive }
+			std::vector<std::pair<std::wstring, MaterialTypeEnum>> {
+				{ L"Opaque",      MaterialTypeEnum::Opaque },
+				{ L"Transparent", MaterialTypeEnum::Transparent },
+				{ L"Additive",    MaterialTypeEnum::Additive }
 			}
 		);
 	
@@ -174,7 +174,7 @@ int main()
 	
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
-			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << args.Property.GetValueAsString() << std::endl;
+			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << Berta::StringUtils::WideToUTF8(args.Property.GetValueAsString()) << std::endl;
 		});
 
 

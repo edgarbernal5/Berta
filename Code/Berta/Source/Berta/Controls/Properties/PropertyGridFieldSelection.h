@@ -24,7 +24,7 @@ namespace Berta
         using GetterFn = std::function<std::optional<T>()>;
         using SetterFn = std::function<void(T)>;
         
-        using OptionList = std::vector<std::pair<std::string, T>>;
+        using OptionList = std::vector<std::pair<std::wstring, T>>;
 
         PropertyGridFieldSelection(std::string_view label, GetterFn getter, SetterFn setter, OptionList options)
             : TypedPropertyField<T>(label, std::move(getter), std::move(setter)), m_options(std::move(options))
@@ -105,17 +105,17 @@ namespace Berta
             }
         }*/
 
-        std::string GetValueAsString() const override
+        std::wstring GetValueAsString() const override
         {
             if (!this->m_getter)
             {
-                return "";
+                return L"";
             }
 
             std::optional<T> currentOpt = this->m_getter();
             if (!currentOpt.has_value())
             {
-                return "";
+                return L"";
             }
             
             for (const auto& [text, value] : m_options)
@@ -125,7 +125,7 @@ namespace Berta
                     return text;
                 }
             }
-            return "";
+            return L"";
         }
 
         void SetFocus() override 

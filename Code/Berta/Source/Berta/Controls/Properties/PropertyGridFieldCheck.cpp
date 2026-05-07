@@ -63,19 +63,19 @@ namespace Berta
 		}
 	}*/
 
-	std::string PropertyGridFieldCheck::GetValueAsString() const
+	std::wstring PropertyGridFieldCheck::GetValueAsString() const
 	{
 		if (m_getter)
 		{
 			auto currentOpt = m_getter();
 			if (!currentOpt.has_value())
 			{
-				return "---";
+				return L"---";
 			}
 			
-			return currentOpt.value() ? "1" : "0";
+			return currentOpt.value() ? L"1" : L"0";
 		}
-		return "";
+		return L"";
 	}
 
 	void PropertyGridFieldCheck::OnCreate(Window* parent)
