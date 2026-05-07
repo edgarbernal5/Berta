@@ -107,9 +107,9 @@ namespace Berta
 		m_textBox.SetEnabled(enabled);
 	}
 
-	void PropertyGridFieldString::SetValueInternal(const std::string& value)
+	void PropertyGridFieldString::SetValueInternal(const std::wstring& value)
 	{
-		if (m_textBox.GetCaption() != value)
+		if (m_textBox.GetCaptionW() != value)
 		{
 			m_textBox.SetCaption(value);
 		}
@@ -127,10 +127,10 @@ namespace Berta
 			return;
 		}
 
-		std::string uiValue = m_textBox.GetCaption();
-		std::optional<std::string> currentOpt = m_getter();
+		std::wstring uiValue = m_textBox.GetCaptionW();
+		std::optional<std::wstring> currentOpt = m_getter();
 
-		if (!currentOpt.has_value() && uiValue == "---") 
+		if (!currentOpt.has_value() && uiValue == L"---") 
 		{
 			m_isMixedValue = true;
 			return;

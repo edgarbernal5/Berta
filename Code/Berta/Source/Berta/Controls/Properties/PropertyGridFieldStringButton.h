@@ -18,7 +18,7 @@ namespace Berta
 	class PropertyGridFieldStringButton : public PropertyGridFieldString
 	{
 	public:
-		using ClickCallback = std::function<std::optional<std::string>(std::optional<std::string> currentValue)>;
+		using ClickCallback = std::function<std::optional<std::wstring>(std::optional<std::wstring> currentValue)>;
 		
 	public:
 		PropertyGridFieldStringButton(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick)

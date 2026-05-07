@@ -34,16 +34,16 @@ enum class MaterialTypeEnum
 
 struct AppState 
 {
-	std::string CarName{ "Car" };
-	std::string Tags{ "Blue, Green" };
+	std::wstring CarName{ L"Car" };
+	std::wstring Tags{ L"Blue, Green" };
 	int EnginePower{ 5 };
 	float MaxMaterials{ 0.0f };
-	std::string HashMaterial0{ "f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
+	std::wstring HashMaterial0{ L"f0a0c85cd9b5035fe600d8a56f6ba79897f032ee" };
 	bool CastShadows{ true };
 	bool Static{ false };
 	MaterialTypeEnum MaterialType { MaterialTypeEnum::Additive };
 	
-	std::string MeshFilter{ "/home/edgar/meshfilter.x" };
+	std::wstring MeshFilter{ L"/home/edgar/meshfilter.x" };
 	Berta::Color TintColor{255,0,0,255};
 	float Roughness=255.0f;
 	int Threshold=3;
@@ -69,7 +69,7 @@ int main()
 		(
 			"Name",
 			[&myApp]() { return myApp.CarName; },
-			[&myApp](const std::string& val) { myApp.CarName = val; }
+			[&myApp](const std::wstring& val) { myApp.CarName = val; }
 		);
 	
 	categoryTransform.SetIcon(m_hardDriveImg);
@@ -78,7 +78,7 @@ int main()
 		(
 			"Tags",
 			[&myApp]() { return myApp.Tags; },
-			[&myApp](const std::string& val) { myApp.Tags = val; }
+			[&myApp](const std::wstring& val) { myApp.Tags = val; }
 		);
 	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldInt>
 		(
@@ -102,7 +102,7 @@ int main()
 		(
 			"Hash", 
 			[&myApp]() { return myApp.HashMaterial0; },
-			[&myApp](const std::string& val) {  }
+			[&myApp](const std::wstring& val) {  }
 		);
 	
 	categoryMesh.EmplaceProperty<Berta::PropertyGridFieldCheck>
@@ -139,12 +139,12 @@ int main()
 		(
 			"Mesh Filter", 
 			[&myApp]() { return myApp.MeshFilter; },
-			[&myApp](const std::string& val) { myApp.MeshFilter = val; },
-			[](std::optional<std::string> currentValue) -> std::optional<std::string>
+			[&myApp](const std::wstring& val) { myApp.MeshFilter = val; },
+			[](std::optional<std::wstring> currentValue) -> std::optional<std::wstring>
 			{
 				std::cout << "Opening file explorer...." << std::endl;
-				std::string newPath = "/home/new_path/filefilter.x";
-				std::cout << "newPath = " << newPath << std::endl;
+				std::wstring newPath = L"/home/new_path/filefilter.x";
+				std::cout << "newPath = " << Berta::StringUtils::WideToUTF8(newPath) << std::endl;
 				return newPath;
 			});
 	

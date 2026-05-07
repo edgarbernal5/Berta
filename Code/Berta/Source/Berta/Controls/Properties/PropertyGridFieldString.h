@@ -17,7 +17,7 @@
 
 namespace Berta
 {
-	class PropertyGridFieldString : public TypedPropertyField<std::string>
+	class PropertyGridFieldString : public TypedPropertyField<std::wstring>
 	{
 	public:
 		PropertyGridFieldString(std::string_view label, GetterFn getter, SetterFn setter);
@@ -40,7 +40,7 @@ namespace Berta
 		virtual void OnVisibilityChanged(bool visible) override;
 		virtual void OnEnableChanged(bool enabled) override;
 		
-		void SetValueInternal(const std::string& value) override;
+		void SetValueInternal(const std::wstring& value) override;
 		void SetMixedValuesInternal() override;
 		
 		TextBox m_textBox;
