@@ -161,7 +161,7 @@ namespace Berta
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
-				return prop->field->IsEnabled();
+				return prop->m_field->IsEnabled();
 			}
 			return false;
 		}
@@ -170,7 +170,7 @@ namespace Berta
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
-				prop->field->SetEnabled(enabled);
+				prop->m_field->SetEnabled(enabled);
 			}
 		}
 
@@ -178,7 +178,7 @@ namespace Berta
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
-				return prop->field->GetLabel();
+				return prop->m_field->GetLabel();
 			}
 			return "";
 		}
@@ -187,7 +187,7 @@ namespace Berta
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
-				prop->field->SetLabel(newLabel);
+				prop->m_field->SetLabel(newLabel);
 				if (OnVisualsChanged)
 				{
 					OnVisualsChanged(); 
@@ -199,7 +199,7 @@ namespace Berta
 		{
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
-				return prop->field->GetValueAsString();
+				return prop->m_field->GetValueAsString();
 			}
         
 			return {};
@@ -358,7 +358,7 @@ namespace Berta
 		{
 			for (auto& prop : cat.m_properties)
 			{
-				prop.field->Init(m_ownerWindow); 
+				prop.m_field->Init(m_ownerWindow); 
 			}
 			
 			for (auto& subCat : cat.m_subCategories)
@@ -532,6 +532,11 @@ namespace Berta
 			return *this;
 		}
 
+		PropertyHandle PropertyHandle::AppendSubProperty(StringUtils::StringHash parentId, std::unique_ptr<PropertyGridFieldBase> field)
+		{
+			return *this;
+		}
+
 		CategoryHandle CategoryHandle::AppendCategory(std::string_view name)
 		{
 			CategoryType& rawCategory = m_model->AppendRootCategory(name);
@@ -636,9 +641,9 @@ namespace Berta
 					if (!isCategory) 
 					{
 						auto prop = model.FindPropertyById(itemId);
-						if (prop && prop->field && prop->field->IsVisible())
+						if (prop && prop->m_field && prop->m_field->IsVisible())
 						{
-							prop->field->SetVisibility(false);
+							prop->m_field->SetVisibility(false);
 						}
 					}
 					continue; 
@@ -653,9 +658,9 @@ namespace Berta
 					if (!isCategory) 
 					{
 						auto prop = model.FindPropertyById(itemId);
-						if (prop && prop->field && prop->field->IsVisible())
+						if (prop && prop->m_field && prop->m_field->IsVisible())
 						{
-							prop->field->SetVisibility(false);
+							prop->m_field->SetVisibility(false);
 						}
 					}
             
@@ -689,20 +694,45 @@ namespace Berta
 					}
 					
 					auto prop = model.FindPropertyById(itemId);
-					if (prop && prop->field)
+					if (prop && prop->m_field)
 					{
-						if (!prop->field->IsVisible())
+						if (!prop->m_field->IsVisible())
 						{
-							prop->field->SetVisibility(true);
+							prop->m_field->SetVisibility(true);
 						}
 						Color separatorColor = m_config->ScrollBarBackground;
-						if (prop->field->IsShowingLabel())
+						if (prop->m_field->IsShowingLabel())
 						{
 							Rectangle labelArea = rect;
 					
 							int labelWidth = (int)rect.Width / 2;
+							
+							bool hasSubProperties = !prop->m_subProperties.empty();
+							int textOffsetX = 5; // Margen base
+
+							if (hasSubProperties)
+							{
+								// Dibujar el icono de colapsado/expandido
+								// Puedes cambiar esto por un m_iconDraw o similar según tu motor
+								uint32_t iconSize = 10;
+								Rectangle iconRect = { labelArea.X + 5, labelArea.Y + (int)(labelArea.Height - iconSize) / 2, iconSize, iconSize };
+                
+								if (prop->m_isExpanded)
+								{
+									// Dibujar flecha hacia abajo (o un menos '-')
+									graphics.DrawString(iconRect.Position(), L"▼", m_config->Foreground);
+								}
+								else
+								{
+									// Dibujar flecha hacia la derecha (o un más '+')
+									graphics.DrawString(iconRect.Position(), L"▶", m_config->Foreground);
+								}
+                
+								// Desplazamos el texto a la derecha para no pisar el icono
+								textOffsetX += 15;
+							}
 							Color textColor = isSelected ? m_config->SelectedTextColor : m_config->Foreground;
-							graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop->field->GetLabel(), textColor);
+							graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop->m_field->GetLabel(), textColor);
 							
 							propArea.X += labelWidth;
 							propArea.Width -= labelWidth;
@@ -721,8 +751,10 @@ namespace Berta
 						//int splitterX = rect.Width * 0.4f;
 						//Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
 						
-						prop->field->Draw(graphics, paddedRect, *appearance);
+						// Dibujamos el control final (ej. el Vector3 o el FloatBox de la subpropiedad)
+						prop->m_field->Draw(graphics, paddedRect, *appearance);
 						
+						// Línea separadora inferior
 						graphics.DrawLine({ rect.X, rect.Y + (int)rect.Height - 1 }, { rect.X + (int)rect.Width, rect.Y + (int)rect.Height - 1 }, separatorColor);
 					}
 				}
@@ -787,11 +819,11 @@ namespace Berta
 					continue;
 				}
 				auto prop = model.FindPropertyById(itemId);
-				if (prop && prop->field)
+				if (prop && prop->m_field)
 				{
-					if (prop->field->IsVisible())
+					if (prop->m_field->IsVisible())
 					{
-						prop->field->Refresh();
+						prop->m_field->Refresh();
 					}
 				}
 			}
@@ -855,7 +887,7 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					auto propHeight = prop.field->GetHeight();
+					auto propHeight = prop.m_field->GetHeight();
 					Rectangle propRect = { currentX + PG_INDENT_PADDING, static_cast<int>(currentY), clientArea.Width - PG_INDENT_PADDING, propHeight };
 					
 					m_itemRects[prop.m_id] = propRect;
@@ -869,6 +901,31 @@ namespace Berta
 					currentY = CalculateRecursive(sub, currentX + PG_INDENT_PADDING, currentY);
 				}
 			}
+			return currentY;
+		}
+
+		uint32_t PropertyGridLayout::CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth)
+		{
+			auto propHeight = prop.m_field->GetHeight();
+			// Calculamos el ancho restante quitando el padding (currentX)
+			Rectangle propRect = { currentX, static_cast<int>(currentY), (uint32_t)(clientWidth - currentX), propHeight };
+
+			m_itemRects[prop.m_id] = propRect;
+			m_visibleItems.emplace_back(prop.m_id, false, propRect);
+
+			currentY += propHeight;
+
+			// --- MAGIA DEL PATRÓN COMPOSITE ---
+			if (prop.m_isExpanded)
+			{
+				for (const auto& subProp : prop.m_subProperties)
+				{
+					// Aumentamos el currentX para que los hijos tengan indentación visual (ej. 15 píxeles extra)
+					int subPropIndent = m_owner->ToScale(15); 
+					currentY = CalculatePropertyRecursive(subProp, currentX + subPropIndent, currentY, clientWidth);
+				}
+			}
+
 			return currentY;
 		}
 
@@ -930,9 +987,9 @@ namespace Berta
 				if (!isCategory)
 				{
 					auto prop = model.FindPropertyById(id);
-					if (prop && prop->field)
+					if (prop && prop->m_field)
 					{
-						prop->field->SetVisibility(true);
+						prop->m_field->SetVisibility(true);
 					}
 				}
 			}
@@ -942,9 +999,9 @@ namespace Berta
 		{
 			for (const auto& prop : cat.m_properties)
 			{
-				if (prop.field)
+				if (prop.m_field)
 				{
-					prop.field->SetVisibility(false);
+					prop.m_field->SetVisibility(false);
 				}
 			}
 			for (const auto& subCat : cat.m_subCategories)

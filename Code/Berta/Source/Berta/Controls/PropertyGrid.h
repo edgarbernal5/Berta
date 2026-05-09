@@ -47,15 +47,19 @@ namespace Berta
 		
 		struct PropertyFieldData
 		{
-			StringUtils::StringHash m_id;
-			
-			std::unique_ptr<PropertyGridFieldBase> field;
-			
+			PropertyFieldData() = default;
+
 			PropertyFieldData(const PropertyFieldData&) = delete;
 			PropertyFieldData& operator=(const PropertyFieldData&) = delete;
-			
+
 			PropertyFieldData(PropertyFieldData&&) noexcept = default;
 			PropertyFieldData& operator=(PropertyFieldData&&) noexcept = default;
+			
+			StringUtils::StringHash m_id;
+			
+			std::unique_ptr<PropertyGridFieldBase> m_field;
+			std::vector<PropertyFieldData> m_subProperties;
+			bool m_isExpanded{ false };
 		};
 
 		struct CategoryType
@@ -176,6 +180,14 @@ namespace Berta
 			bool IsEnabled() const;
 			PropertyHandle& SetEnabled(bool enabled);
 			
+			template <typename TControl, typename... Args>
+			PropertyHandle EmplaceSubProperty(std::string_view label, Args&&... args)
+			{
+				return AppendSubProperty(m_uniqueId, std::make_unique<TControl>(label, std::forward<Args>(args)...));
+			}
+
+			PropertyHandle AppendSubProperty(StringUtils::StringHash parentId, std::unique_ptr<PropertyGridFieldBase> field);
+			
 			template <typename T>
 			T* As()
 			{
@@ -188,12 +200,12 @@ namespace Berta
 				
 				auto* propData = m_model->FindPropertyById(m_uniqueId);
             
-				if (!propData || !propData->field) 
+				if (!propData || !propData->m_field) 
 				{
 					return nullptr;
 				}
 				
-				return dynamic_cast<T*>(propData->field.get());
+				return dynamic_cast<T*>(propData->m_field.get());
 			}
 			bool operator==(const PropertyHandle& other) const { return m_uniqueId == other.m_uniqueId; }
 		private:
@@ -270,6 +282,7 @@ namespace Berta
 			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
 			uint32_t CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY);
+			uint32_t CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth);
 			
 			void DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config);
 			
