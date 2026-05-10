@@ -97,6 +97,8 @@ namespace Berta
 			CategoryType* AppendSubCategory(StringUtils::StringHash parentId, std::string_view name);
 			void AppendPropertyToCategory(StringUtils::StringHash categoryId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field);
         
+			void AppendSubProperty(StringUtils::StringHash parentPropId, StringUtils::StringHash propId,  std::unique_ptr<PropertyGridFieldBase> field);
+			
 			[[nodiscard]] const CategoryType* FindCategoryById(StringUtils::StringHash id) const;
 			[[nodiscard]] CategoryType* FindCategoryById(StringUtils::StringHash id);
 			[[nodiscard]] PropertyFieldData* FindPropertyById(StringUtils::StringHash m_uniqueId) const;

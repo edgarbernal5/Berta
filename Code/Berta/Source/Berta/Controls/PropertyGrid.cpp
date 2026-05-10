@@ -99,6 +99,14 @@ namespace Berta
 			}
 		}
 
+		void PropertyGridModel::AppendSubProperty(StringUtils::StringHash parentPropId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(parentPropId))
+			{
+				prop->m_subProperties.push_back({ propId, std::move(field) });
+			}
+		}
+
 		const CategoryType* PropertyGridModel::FindCategoryById(StringUtils::StringHash id) const
 		{
 			return FindRecursive(id, m_rootCategories);
@@ -534,7 +542,16 @@ namespace Berta
 
 		PropertyHandle PropertyHandle::AppendSubProperty(StringUtils::StringHash parentId, std::unique_ptr<PropertyGridFieldBase> field)
 		{
-			return *this;
+			if (m_model && field)
+			{
+				StringUtils::StringHash propLocalHash = StringUtils::Hash(field->GetLabel());
+				StringUtils::StringHash globalUniqueId = StringUtils::HashCombine(parentId, propLocalHash);
+				
+				m_model->AppendSubProperty(parentId, globalUniqueId, std::move(field));
+				
+				return {m_model, globalUniqueId};
+			}
+			return {};
 		}
 
 		CategoryHandle CategoryHandle::AppendCategory(std::string_view name)
