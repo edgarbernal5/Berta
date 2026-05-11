@@ -40,7 +40,6 @@ namespace Berta
 		virtual void OnVisibilityChanged(bool visible) override;
 		virtual void OnEnableChanged(bool enabled) override;
 		
-		
 		void SetValueInternal(const std::wstring& value) override;
 		void SetMixedValuesInternal() override;
 		

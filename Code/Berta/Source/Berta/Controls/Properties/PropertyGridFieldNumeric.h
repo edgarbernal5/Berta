@@ -9,10 +9,10 @@
 
 #include "Berta/GUI/EnumTypes.h"
 
-#include "TypedPropertyField.h"
+#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/Properties/TypedPropertyField.h"
 
 #include <string>
-#include <functional>
 #include <type_traits>
 #include <cwctype>
 #include <optional>

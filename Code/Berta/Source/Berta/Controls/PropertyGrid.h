@@ -18,7 +18,8 @@
 #include <vector>
 
 #include "Berta/GUI/ScrollableView.h"
-#include "Properties/PropertyGridFieldBase.h"
+#include "Berta/Controls/Properties/PropertyGridFieldBase.h"
+#include "Berta/Controls/Properties/PropertyGridTypes.h"
 
 namespace Berta
 {
@@ -217,6 +218,11 @@ namespace Berta
 
 		struct CategoryHandle
 		{
+			using GetterVec3 = std::function<OptionalVector3()>;
+			using SetterVec3 = std::function<void(const OptionalVector3&)>;
+
+			inline PropertyHandle EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter);
+			
 			CategoryHandle() = default;
 			CategoryHandle(PropertyGridModel* model, uint32_t categoryId)
 				: m_model(model), m_id(categoryId) {}

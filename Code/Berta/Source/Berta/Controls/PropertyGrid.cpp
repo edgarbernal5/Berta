@@ -9,6 +9,8 @@
 
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/EnumTypes.h"
+#include "Berta/Controls/Properties/PropertyGridFieldNumeric.h"
+#include "Berta/Controls/Properties/PropertyGridFieldVector3.h"
 
 #include <numeric>
 
@@ -552,6 +554,45 @@ namespace Berta
 				return {m_model, globalUniqueId};
 			}
 			return {};
+		}
+
+		PropertyHandle CategoryHandle::EmplaceVector3(CategoryHandle& category, std::string_view label,
+			GetterVec3 getter, SetterVec3 setter)
+		{
+			// 1. Instanciamos el padre (PropertyGridFieldVector3) en la categoría
+			PropertyHandle parentHandle = category.EmplaceProperty<PropertyGridFieldVector3>(label, getter, setter);
+
+			// 2. Instanciamos la subpropiedad X (PropertyGridFieldFloat)
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("X",
+				[getter]() -> std::optional<float> { return getter().x; },
+				[setter, getter](float newX) { 
+					OptionalVector3 v = getter(); // Rescatamos Y, Z actuales
+					v.x = newX;                   // Sobreescribimos X
+					setter(v); 
+				}
+			);
+
+			// 3. Instanciamos la subpropiedad Y
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Y",
+				[getter]() -> std::optional<float> { return getter().y; },
+				[setter, getter](float newY) { 
+					OptionalVector3 v = getter(); 
+					v.y = newY; 
+					setter(v); 
+				}
+			);
+
+			// 4. Instanciamos la subpropiedad Z
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Z",
+				[getter]() -> std::optional<float> { return getter().z; },
+				[setter, getter](float newZ) { 
+					OptionalVector3 v = getter(); 
+					v.z = newZ; 
+					setter(v); 
+				}
+			);
+
+			return parentHandle;
 		}
 
 		CategoryHandle CategoryHandle::AppendCategory(std::string_view name)
