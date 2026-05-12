@@ -18,6 +18,8 @@ namespace Berta
 {
 	namespace Internal::PropertyGrid
 	{
+		ObjectPool<PropertyFieldData, 512> g_propertyNodePool;
+		
 		void PropertyGridModel::Init(Window* ownerWindow)
 		{
 			if (m_ownerWindow == ownerWindow)
@@ -95,17 +97,52 @@ namespace Berta
 			}
 			if (CategoryType* cat = FindCategoryById(categoryId))
 			{
-				cat->m_properties.push_back({ propId, std::move(field) });
-				PropertyFieldData* pointerToMemory = &cat->m_properties.back();
-				m_propertyLookup[propId] = pointerToMemory;
+				PropertyFieldData* rawPtr = g_propertyNodePool.Allocate();
+				rawPtr->m_id = propId;
+				rawPtr->m_field = std::move(field);
+				
+				cat->m_properties.emplace_back(rawPtr);
+				auto pointerToMemory = &cat->m_properties.back();
+				m_propertyLookup[propId] = pointerToMemory->get();
 			}
 		}
 
 		void PropertyGridModel::AppendSubProperty(StringUtils::StringHash parentPropId, StringUtils::StringHash propId, std::unique_ptr<PropertyGridFieldBase> field)
 		{
+			if (!field)
+			{
+				return;
+			}
+				
+			field->OnValueChanged = [this, propId]()
+			{
+				if (OnPropertyModified)
+				{
+					OnPropertyModified(propId);
+				}
+			};
+			field->OnSelected = [this, propId]()
+			{
+				if (OnPropertySelected)
+				{
+					OnPropertySelected(propId);
+				}
+			};
+			
+			if (m_ownerWindow)
+			{
+				field->Init(m_ownerWindow); 
+			}
+			
 			if (PropertyFieldData* prop = FindPropertyById(parentPropId))
 			{
-				prop->m_subProperties.push_back({ propId, std::move(field) });
+				PropertyFieldData* rawPtr = g_propertyNodePool.Allocate();
+				rawPtr->m_id = propId;
+				rawPtr->m_field = std::move(field);
+				
+				prop->m_subProperties.emplace_back(rawPtr);
+				auto pointerToMemory = &prop->m_subProperties.back();
+				m_propertyLookup[propId] = pointerToMemory->get();
 			}
 		}
 
@@ -244,6 +281,39 @@ namespace Berta
 			}
 		}
 
+		void PropertyGridModel::TogglePropertyExpansion(StringUtils::StringHash propertyId)
+		{
+			std::function<bool(std::vector<PooledPropertyPtr>&)> searchAndToggle = 
+				[&](std::vector<PooledPropertyPtr>& props) -> bool 
+				{
+					for (auto& prop : props)
+					{
+						if (prop->m_id == propertyId)
+						{
+							if (!prop->m_subProperties.empty())
+							{
+								prop->m_isExpanded = !prop->m_isExpanded;
+							}
+							return true;
+						}
+						
+						if (searchAndToggle(prop->m_subProperties))
+						{
+							return true;
+						}
+					}
+					return false;
+				};
+
+			for (auto& cat : m_rootCategories)
+			{
+				if (searchAndToggle(cat.m_properties))
+				{
+					return;
+				}
+			}
+		}
+
 		void PropertyGridModel::SetCategoryIcon(StringUtils::StringHash catId, const Image& icon)
 		{
 			if (CategoryType* cat = FindCategoryById(catId))
@@ -368,12 +438,21 @@ namespace Berta
 		{
 			for (auto& prop : cat.m_properties)
 			{
-				prop.m_field->Init(m_ownerWindow); 
+				InitPropertyRecursive(*prop);
 			}
 			
 			for (auto& subCat : cat.m_subCategories)
 			{
 				InitCategoryRecursive(subCat);
+			}
+		}
+
+		void PropertyGridModel::InitPropertyRecursive(PropertyFieldData& prop)
+		{
+			prop.m_field->Init(m_ownerWindow);
+			for (auto& subprop : prop.m_subProperties)
+			{
+				InitPropertyRecursive(*subprop);
 			}
 		}
 
@@ -400,7 +479,7 @@ namespace Berta
 			for (const auto& cat : list)
 			{
 				auto it = std::find_if(cat.m_properties.begin(), cat.m_properties.end(),
-					[propId](const auto& prop) { return prop.m_id == propId; });
+					[propId](const auto& prop) { return prop->m_id == propId; });
 
 				if (it != cat.m_properties.end())
 				{
@@ -421,7 +500,7 @@ namespace Berta
 		{
 			for (const auto& prop : currentCat.m_properties)
 			{
-				if (prop.m_id == targetId)
+				if (prop->m_id == targetId)
 				{
 					return currentCat.m_id;
 				}
@@ -447,7 +526,7 @@ namespace Berta
 		bool PropertyGridModel::RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId)
 		{
 			auto it = std::find_if(category.m_properties.begin(), category.m_properties.end(),
-				[propId](const auto& prop) { return prop.m_id == propId; });
+				[propId](const auto& prop) { return prop->m_id == propId; });
 
 			if (it != category.m_properties.end())
 			{
@@ -492,7 +571,7 @@ namespace Berta
 		{
 			for (const auto& prop : category.m_properties)
 			{
-				m_propertyLookup.erase(prop.m_id);
+				m_propertyLookup.erase(prop->m_id);
 			}
 			for (const auto& subCat : category.m_subCategories)
 			{
@@ -550,49 +629,11 @@ namespace Berta
 				StringUtils::StringHash globalUniqueId = StringUtils::HashCombine(parentId, propLocalHash);
 				
 				m_model->AppendSubProperty(parentId, globalUniqueId, std::move(field));
+				m_model->OnVisualsChanged();
 				
 				return {m_model, globalUniqueId};
 			}
 			return {};
-		}
-
-		PropertyHandle CategoryHandle::EmplaceVector3(CategoryHandle& category, std::string_view label,
-			GetterVec3 getter, SetterVec3 setter)
-		{
-			// 1. Instanciamos el padre (PropertyGridFieldVector3) en la categoría
-			PropertyHandle parentHandle = category.EmplaceProperty<PropertyGridFieldVector3>(label, getter, setter);
-
-			// 2. Instanciamos la subpropiedad X (PropertyGridFieldFloat)
-			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("X",
-				[getter]() -> std::optional<float> { return getter().x; },
-				[setter, getter](float newX) { 
-					OptionalVector3 v = getter(); // Rescatamos Y, Z actuales
-					v.x = newX;                   // Sobreescribimos X
-					setter(v); 
-				}
-			);
-
-			// 3. Instanciamos la subpropiedad Y
-			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Y",
-				[getter]() -> std::optional<float> { return getter().y; },
-				[setter, getter](float newY) { 
-					OptionalVector3 v = getter(); 
-					v.y = newY; 
-					setter(v); 
-				}
-			);
-
-			// 4. Instanciamos la subpropiedad Z
-			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Z",
-				[getter]() -> std::optional<float> { return getter().z; },
-				[setter, getter](float newZ) { 
-					OptionalVector3 v = getter(); 
-					v.z = newZ; 
-					setter(v); 
-				}
-			);
-
-			return parentHandle;
 		}
 
 		CategoryHandle CategoryHandle::AppendCategory(std::string_view name)
@@ -611,12 +652,50 @@ namespace Berta
 				CategoryType* rawSubCat = m_model->AppendSubCategory(m_id, name);
 				if (rawSubCat)
 				{
+					m_model->OnVisualsChanged();
 					return {m_model, rawSubCat->m_id};
 				}
 			}
 			return {};
 		}
+		
+		PropertyHandle CategoryHandle::EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter)
+		{
+			PropertyHandle parentHandle = category.EmplaceProperty<PropertyGridFieldVector3>(label, getter, setter);
 
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("X",
+				[getter]() -> std::optional<float> { return getter().x; },
+				[setter, getter](float newX)
+				{ 
+					OptionalVector3 v = getter();
+					v.x = newX;
+					setter(v); 
+				}
+			);
+
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Y",
+				[getter]() -> std::optional<float> { return getter().y; },
+				[setter, getter](float newY)
+				{ 
+					OptionalVector3 v = getter(); 
+					v.y = newY; 
+					setter(v); 
+				}
+			);
+
+			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("Z",
+				[getter]() -> std::optional<float> { return getter().z; },
+				[setter, getter](float newZ)
+				{ 
+					OptionalVector3 v = getter(); 
+					v.z = newZ; 
+					setter(v); 
+				}
+			);
+
+			return parentHandle;
+		}
+		
 		PropertyHandle CategoryHandle::AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field)
 		{
 			if (m_model && field)
@@ -713,7 +792,7 @@ namespace Berta
 				rect.Y += currentY;
 				if ((rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom))
 				{
-					if (!isCategory) 
+					if (!isCategory)
 					{
 						auto prop = model.FindPropertyById(itemId);
 						if (prop && prop->m_field && prop->m_field->IsVisible())
@@ -766,50 +845,42 @@ namespace Berta
 							int labelWidth = (int)rect.Width / 2;
 							
 							bool hasSubProperties = !prop->m_subProperties.empty();
-							int textOffsetX = 5; // Margen base
+							int textOffsetX = m_owner->ToScale(5); // Margen base
 
 							if (hasSubProperties)
 							{
-								// Dibujar el icono de colapsado/expandido
-								// Puedes cambiar esto por un m_iconDraw o similar según tu motor
-								uint32_t iconSize = 10;
-								Rectangle iconRect = { labelArea.X + 5, labelArea.Y + (int)(labelArea.Height - iconSize) / 2, iconSize, iconSize };
+								uint32_t iconSize = m_owner->ToScale(10u);
+								Rectangle iconRect = { labelArea.X + m_owner->ToScale(5), labelArea.Y + (int)(labelArea.Height - iconSize) / 2, iconSize, iconSize };
                 
-								if (prop->m_isExpanded)
-								{
-									// Dibujar flecha hacia abajo (o un menos '-')
-									graphics.DrawString(iconRect.Position(), L"▼", m_config->Foreground);
-								}
-								else
-								{
-									// Dibujar flecha hacia la derecha (o un más '+')
-									graphics.DrawString(iconRect.Position(), L"▶", m_config->Foreground);
-								}
-                
-								// Desplazamos el texto a la derecha para no pisar el icono
-								textOffsetX += 15;
+								int arrowWidth = m_owner->ToScale(4);
+								int arrowLength = m_owner->ToScale(2);
+
+								graphics.DrawArrow
+								(
+									iconRect,
+									arrowLength,
+									arrowWidth,
+									prop->m_isExpanded ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right,
+									m_config->Foreground2nd,
+									true,
+									prop->m_isExpanded ? m_config->Foreground2nd : m_config->BoxBackground
+								);
+								
+								textOffsetX += m_owner->ToScale(15);
 							}
 							Color textColor = isSelected ? m_config->SelectedTextColor : m_config->Foreground;
-							graphics.DrawString({ labelArea.X + 5, labelArea.Y + 4 }, prop->m_field->GetLabel(), textColor);
+							graphics.DrawString({ labelArea.X + textOffsetX, labelArea.Y + 4 }, prop->m_field->GetLabel(), textColor);
 							
 							propArea.X += labelWidth;
 							propArea.Width -= labelWidth;
 							
-							//graphics.DrawLine({ propArea.X, rect.Y }, { propArea.X, rect.Y + (int)rect.Height - 1 }, separatorColor);
-							
-							//auto splitterWidth = m_owner->ToScale(1);
-							//propArea.X += splitterWidth;
-							//propArea.Width -= splitterWidth;
 						}
 						Rectangle paddedRect = propArea;
 						paddedRect.X += 2;
 						paddedRect.Y += 2;
 						paddedRect.Width -= 4;
 						paddedRect.Height -= 4;
-						//int splitterX = rect.Width * 0.4f;
-						//Rectangle controlRect = { rect.X + splitterX, rect.Y, rect.Width - splitterX, rect.Height };
 						
-						// Dibujamos el control final (ej. el Vector3 o el FloatBox de la subpropiedad)
 						prop->m_field->Draw(graphics, paddedRect, *appearance);
 						
 						// Línea separadora inferior
@@ -817,6 +888,7 @@ namespace Berta
 					}
 				}
 			}
+			
 			if (m_showDropIndicator)
 			{
 				int logicalDropY = 0;
@@ -945,13 +1017,14 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					auto propHeight = prop.m_field->GetHeight();
+					/*auto propHeight = prop->m_field->GetHeight();
 					Rectangle propRect = { currentX + PG_INDENT_PADDING, static_cast<int>(currentY), clientArea.Width - PG_INDENT_PADDING, propHeight };
 					
-					m_itemRects[prop.m_id] = propRect;
-					m_visibleItems.emplace_back(prop.m_id, false, propRect);
+					m_itemRects[prop->m_id] = propRect;
+					m_visibleItems.emplace_back(prop->m_id, false, propRect);
 					
-					currentY += propHeight;
+					currentY += propHeight;*/
+					currentY = CalculatePropertyRecursive(*prop, currentX + PG_INDENT_PADDING, currentY, clientArea.Width);
 				}
 				
 				for (const auto& sub : cat.m_subCategories)
@@ -980,7 +1053,7 @@ namespace Berta
 				{
 					// Aumentamos el currentX para que los hijos tengan indentación visual (ej. 15 píxeles extra)
 					int subPropIndent = m_owner->ToScale(15); 
-					currentY = CalculatePropertyRecursive(subProp, currentX + subPropIndent, currentY, clientWidth);
+					currentY = CalculatePropertyRecursive(*subProp, currentX + subPropIndent, currentY, clientWidth);
 				}
 			}
 
@@ -1057,9 +1130,9 @@ namespace Berta
 		{
 			for (const auto& prop : cat.m_properties)
 			{
-				if (prop.m_field)
+				if (prop->m_field)
 				{
-					prop.m_field->SetVisibility(false);
+					prop->m_field->SetVisibility(false);
 				}
 			}
 			for (const auto& subCat : cat.m_subCategories)
@@ -1112,11 +1185,31 @@ namespace Berta
 			for (const auto& [itemId, isCategory, baseRect] : m_layout.GetVisibleItemsList())
 			{
 				Rectangle hitRect = baseRect;
-				hitRect.Width = clientArea.Width;
+				hitRect.Width = clientArea.Width - hitRect.X;
 
 				if (hitRect.Contains(virtualPos))
 				{
-					return { itemId, isCategory };
+					bool isLabelArea = false;
+					bool isExpandIconArea = false;
+					if (!isCategory)
+					{
+						int labelWidth = static_cast<int>(hitRect.Width) / 2;
+						int splitterX = hitRect.X + labelWidth;
+						
+						if (virtualPos.X < splitterX)
+						{
+							isLabelArea = true;
+							auto iconAreaWidth = m_owner->ToScale(15u); 
+							Rectangle iconRect = { hitRect.X, hitRect.Y, iconAreaWidth, hitRect.Height };
+
+							if (iconRect.Contains(virtualPos))
+							{
+								isExpandIconArea = true;
+							}
+						}
+					}
+
+					return { itemId, isCategory, isLabelArea, isExpandIconArea };
 				}
 
 				if (virtualPos.Y < hitRect.Y)
@@ -1176,7 +1269,14 @@ namespace Berta
 			{
 				if (!hit.isCategory)
 				{
-					m_module.m_model.SetSelectedItemId(m_module.m_pressedItemId);
+					if (hit.isLabelArea)
+					{
+						
+					}
+					else
+					{
+						m_module.m_model.SetSelectedItemId(m_module.m_pressedItemId);
+					}
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
 				}
 				else if (m_module.m_model.IsRootCategory(m_module.m_pressedItemId)) 
@@ -1287,7 +1387,7 @@ namespace Berta
 						m_module.m_events->CategoryClicked.Emit(arguments);
 					}
 				}
-				else
+				else // propiedad
 				{
 					if (args.ButtonState.RightButton)
 					{
@@ -1296,8 +1396,15 @@ namespace Berta
 					}
 					else
 					{
-						// Clic en Propiedad (Seleccionar)
-						//m_module.m_model.SetSelectedIndex(FindItemIndexInVisibleList(hitProp));
+						if (hit.isExpandIconArea)
+						{
+							m_module.m_model.TogglePropertyExpansion(releaseItemId);
+							m_module.OnLayoutChanged();
+						}
+						else 
+						{
+							m_module.m_model.SetSelectedItemId(releaseItemId);
+						}
 					}
 				}
 			}

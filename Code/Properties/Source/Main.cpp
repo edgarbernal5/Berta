@@ -32,6 +32,13 @@ enum class MaterialTypeEnum
 	Additive
 };
 
+struct Vector3
+{
+	float x {0.0f};
+	float y {0.0f};
+	float z {0.0f};
+};
+
 struct AppState 
 {
 	std::wstring CarName{ L"Car" };
@@ -47,6 +54,7 @@ struct AppState
 	Berta::Color TintColor{255,0,0,255};
 	float Roughness=255.0f;
 	int Threshold=3;
+	Vector3 Position;
 	// ...
 };
 
@@ -64,30 +72,52 @@ int main()
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 	propertyGrid.ShowCategoryIcons(true);
 	
-	auto categoryTransform = propertyGrid.Append("Transform");
-	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
+	auto transformCategory = propertyGrid.Append("Transform");
+	transformCategory.EmplaceVector3(transformCategory, "Position", 
+		[&myApp]()
+		{
+			Berta::OptionalVector3 opt;
+			opt.x = myApp.Position.x;
+			opt.y = myApp.Position.y;
+			opt.z = myApp.Position.z;
+			return opt;
+		},
+		[&myApp](const Berta::OptionalVector3& val)
+		{
+			if (val.x.has_value())
+				myApp.Position.x = val.x.value();
+			
+			if (val.y.has_value())
+				myApp.Position.y = val.y.value();
+			
+			if (val.z.has_value())
+				myApp.Position.z = val.z.value();
+		});
+	
+	auto generalCategory = propertyGrid.Append("General");
+	generalCategory.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
 			"Name",
 			[&myApp]() { return myApp.CarName; },
 			[&myApp](const std::wstring& val) { myApp.CarName = val; }
 		);
 	
-	categoryTransform.SetIcon(m_hardDriveImg);
+	generalCategory.SetIcon(m_hardDriveImg);
 	
-	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldString>
+	generalCategory.EmplaceProperty<Berta::PropertyGridFieldString>
 		(
 			"Tags",
 			[&myApp]() { return myApp.Tags; },
 			[&myApp](const std::wstring& val) { myApp.Tags = val; }
 		);
-	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldInt>
+	generalCategory.EmplaceProperty<Berta::PropertyGridFieldInt>
 		(
 			"Engine power",
 			[&myApp]() { return myApp.EnginePower; },
 			[&myApp](int val) { myApp.EnginePower = val; }
 		);
 	
-	categoryTransform.EmplaceProperty<Berta::PropertyGridFieldFloat>
+	generalCategory.EmplaceProperty<Berta::PropertyGridFieldFloat>
 		(
 			"Max materials",
 			[&myApp]() { return myApp.MaxMaterials; },

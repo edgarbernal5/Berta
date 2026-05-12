@@ -20,6 +20,7 @@
 #include "Berta/GUI/ScrollableView.h"
 #include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/Properties/PropertyGridTypes.h"
+#include "Berta/Core/ObjectPool.h"
 
 namespace Berta
 {
@@ -31,7 +32,20 @@ namespace Berta
 		struct Events;
 		struct CategoryHandle;
 		struct Module;
+		struct PropertyFieldData;
+		extern ObjectPool<PropertyFieldData, 512> g_propertyNodePool;
 		
+		struct PooledPropertyDeleter
+		{
+			void operator()(PropertyFieldData* ptr) const
+			{
+				if (ptr)
+				{
+					g_propertyNodePool.Deallocate(ptr);
+				}
+			}
+		};
+		using PooledPropertyPtr = std::unique_ptr<PropertyFieldData, PooledPropertyDeleter>;
 		/*
 		 *TODO
 		using FieldCreator = std::function<std::unique_ptr<PropertyGridFieldBase>()>;
@@ -49,7 +63,9 @@ namespace Berta
 		struct PropertyFieldData
 		{
 			PropertyFieldData() = default;
-
+			//PropertyFieldData(StringUtils::StringHash id, std::unique_ptr<PropertyGridFieldBase> field):
+			//m_id(id), m_field(std::move(field)){}
+			
 			PropertyFieldData(const PropertyFieldData&) = delete;
 			PropertyFieldData& operator=(const PropertyFieldData&) = delete;
 
@@ -57,9 +73,9 @@ namespace Berta
 			PropertyFieldData& operator=(PropertyFieldData&&) noexcept = default;
 			
 			StringUtils::StringHash m_id;
-			
 			std::unique_ptr<PropertyGridFieldBase> m_field;
-			std::vector<PropertyFieldData> m_subProperties;
+			
+			std::vector<PooledPropertyPtr> m_subProperties;
 			bool m_isExpanded{ false };
 		};
 
@@ -71,7 +87,7 @@ namespace Berta
 			Image m_icon;
 			bool m_isExpanded{ true };
 			
-			std::deque<PropertyFieldData> m_properties;
+			std::vector<PooledPropertyPtr> m_properties;
 			std::vector<CategoryType> m_subCategories;
 			
 			explicit CategoryType(StringUtils::StringHash hashId, std::string_view name, int depth) : 
@@ -126,6 +142,7 @@ namespace Berta
 			
 			bool IsCategoryExpanded(StringUtils::StringHash catId);
 			void ToggleCategoryExpansion(StringUtils::StringHash catId);
+			void TogglePropertyExpansion(StringUtils::StringHash propertyId);
 			
 			bool IsShowingCategoryIcons() const { return m_drawImages; }
 			void ShowCategoryIcons(bool visible) { m_drawImages = visible; }
@@ -145,7 +162,10 @@ namespace Berta
 			CategoryType* FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list);
 			const CategoryType* FindRecursive(StringUtils::StringHash id, const  std::vector<CategoryType>& list) const;
 			void InitCategoryRecursive(CategoryType& cat);
+			void InitPropertyRecursive(PropertyFieldData& prop);
+			
 			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
+			
 			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
 			StringUtils::StringHash GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const;
 			bool RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId);
@@ -221,11 +241,8 @@ namespace Berta
 			using GetterVec3 = std::function<OptionalVector3()>;
 			using SetterVec3 = std::function<void(const OptionalVector3&)>;
 
-			inline PropertyHandle EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter);
-			
 			CategoryHandle() = default;
-			CategoryHandle(PropertyGridModel* model, uint32_t categoryId)
-				: m_model(model), m_id(categoryId) {}
+			CategoryHandle(PropertyGridModel* model, uint32_t categoryId) : m_model(model), m_id(categoryId) {}
 
 			StringUtils::StringHash GetId() const { return m_id; }
 			
@@ -235,8 +252,12 @@ namespace Berta
 			template <typename TControl, typename... Args>
 			PropertyHandle EmplaceProperty(std::string_view label, Args&&... args)
 			{
-				return AppendProperty(m_id, std::make_unique<TControl>(label, std::forward<Args>(args)...));
+				auto handle = AppendProperty(m_id, std::make_unique<TControl>(label, std::forward<Args>(args)...));
+				m_model->OnVisualsChanged();
+				
+				return handle;
 			}
+			PropertyHandle EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter);
 
 			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
@@ -315,7 +336,9 @@ namespace Berta
 			{
 				StringUtils::StringHash id = 0;
 				bool isCategory = false;
-    
+				bool isLabelArea = false;
+				bool isExpandIconArea{ false };
+				
 				operator bool() const { return id != 0; }
 			};
 			void Update();
