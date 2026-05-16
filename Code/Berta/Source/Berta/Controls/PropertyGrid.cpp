@@ -875,11 +875,12 @@ namespace Berta
 							propArea.Width -= labelWidth;
 							
 						}
+						auto two = m_owner->ToScale(2);
 						Rectangle paddedRect = propArea;
-						paddedRect.X += 2;
-						paddedRect.Y += 2;
-						paddedRect.Width -= 4;
-						paddedRect.Height -= 4;
+						paddedRect.X += two;
+						paddedRect.Y += two;
+						paddedRect.Width -= two * 2;
+						paddedRect.Height -= two * 2;
 						
 						prop->m_field->Draw(graphics, paddedRect, *appearance);
 						
@@ -1038,7 +1039,6 @@ namespace Berta
 		uint32_t PropertyGridLayout::CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth)
 		{
 			auto propHeight = prop.m_field->GetHeight();
-			// Calculamos el ancho restante quitando el padding (currentX)
 			Rectangle propRect = { currentX, static_cast<int>(currentY), (uint32_t)(clientWidth - currentX), propHeight };
 
 			m_itemRects[prop.m_id] = propRect;
@@ -1046,12 +1046,10 @@ namespace Berta
 
 			currentY += propHeight;
 
-			// --- MAGIA DEL PATRÓN COMPOSITE ---
 			if (prop.m_isExpanded)
 			{
 				for (const auto& subProp : prop.m_subProperties)
 				{
-					// Aumentamos el currentX para que los hijos tengan indentación visual (ej. 15 píxeles extra)
 					int subPropIndent = m_owner->ToScale(15); 
 					currentY = CalculatePropertyRecursive(*subProp, currentX + subPropIndent, currentY, clientWidth);
 				}
