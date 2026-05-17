@@ -1436,6 +1436,23 @@ namespace Berta
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
 		}
 
+		void Reactor::DblClick(Graphics& graphics, const ArgMouse& args)
+		{
+			auto hit = m_module.HitTest(args.Position);
+			StringUtils::StringHash releaseItemId = hit.id;
+			
+			if (args.ButtonState.LeftButton && releaseItemId != 0)
+			{
+				if (!hit.isCategory)
+				{
+					m_module.m_model.TogglePropertyExpansion(releaseItemId);
+					m_module.OnLayoutChanged();
+					
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
+			}
+		}
+
 		void Reactor::MouseWheel(Graphics& graphics, const ArgWheel& args)
 		{
 			m_module.m_layout.m_scrollableView->HandleMouseWheel(args);

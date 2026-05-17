@@ -371,6 +371,7 @@ namespace Berta
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+			void DblClick(Graphics& graphics, const ArgMouse& args) override;
 			void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 			void Resize(Graphics& graphics, const ArgResize& args) override;
