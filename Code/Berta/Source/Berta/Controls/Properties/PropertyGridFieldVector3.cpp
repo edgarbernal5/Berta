@@ -16,7 +16,9 @@ namespace Berta
 
     void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
     {
-        graphics.DrawString({ area.X, area.Y + 4 }, m_summaryText, config.Foreground);
+        auto textExtents = graphics.GetTextExtent().Height;
+        int offset = ((int)area.Height - (int)textExtents) / 2;
+        graphics.DrawString({ area.X, area.Y + offset }, m_summaryText, config.Foreground);
     }
 
     void PropertyGridFieldVector3::SetFocus()

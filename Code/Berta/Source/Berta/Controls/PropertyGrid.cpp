@@ -114,11 +114,19 @@ namespace Berta
 				return;
 			}
 				
-			field->OnValueChanged = [this, propId]()
+			field->OnValueChanged = [this, propId, parentPropId]()
 			{
 				if (OnPropertyModified)
 				{
 					OnPropertyModified(propId);
+					OnPropertyModified(parentPropId);
+				}
+				if (PropertyFieldData* parentProp = FindPropertyById(parentPropId))
+				{
+					if (parentProp->m_field)
+					{
+						parentProp->m_field->Refresh();
+					}
 				}
 			};
 			field->OnSelected = [this, propId]()
@@ -283,34 +291,10 @@ namespace Berta
 
 		void PropertyGridModel::TogglePropertyExpansion(StringUtils::StringHash propertyId)
 		{
-			std::function<bool(std::vector<PooledPropertyPtr>&)> searchAndToggle = 
-				[&](std::vector<PooledPropertyPtr>& props) -> bool 
-				{
-					for (auto& prop : props)
-					{
-						if (prop->m_id == propertyId)
-						{
-							if (!prop->m_subProperties.empty())
-							{
-								prop->m_isExpanded = !prop->m_isExpanded;
-							}
-							return true;
-						}
-						
-						if (searchAndToggle(prop->m_subProperties))
-						{
-							return true;
-						}
-					}
-					return false;
-				};
-
-			for (auto& cat : m_rootCategories)
+			auto prop = FindPropertyById(propertyId);
+			if (prop && !prop->m_subProperties.empty())
 			{
-				if (searchAndToggle(cat.m_properties))
-				{
-					return;
-				}
+				prop->m_isExpanded = !prop->m_isExpanded;
 			}
 		}
 
@@ -343,7 +327,9 @@ namespace Berta
 			}
 
 			if (toIndex >= m_rootCategories.size())
+			{
 				toIndex = m_rootCategories.size() - 1;
+			}
 			
 			auto itFrom = m_rootCategories.begin() + fromIndex;
 			auto itTo = m_rootCategories.begin() + toIndex;
@@ -762,6 +748,23 @@ namespace Berta
 
 		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
 		{
+			
+			auto HideDescendants = [&](auto& self, const std::vector<PooledPropertyPtr>& props) -> void 
+			{
+				for (const auto& subProp : props)
+				{
+					if (subProp->m_field && subProp->m_field->IsVisible())
+					{
+						subProp->m_field->SetVisibility(false);
+					}
+
+					if (!subProp->m_subProperties.empty())
+					{
+						self(self, subProp->m_subProperties);
+					}
+				}
+			};
+			
 			Point offset = m_scrollableView->GetScrollOffset();
 			auto clientArea = m_scrollableView->GetClientArea();
 			int currentX = -offset.X + clientArea.X;
@@ -773,11 +776,28 @@ namespace Berta
 			
 			for (auto& [itemId, isCategory, itemRect] : m_visibleItems)
 			{
+				const CategoryType* cat = nullptr;
+				const PropertyFieldData* prop = nullptr;
+				if (isCategory)
+				{
+					cat = model.FindCategoryById(itemId);
+					if (cat && !cat->m_isExpanded)
+					{
+						HideDescendants(HideDescendants, cat->m_properties);
+					}
+				}
+				else
+				{
+					prop = model.FindPropertyById(itemId);
+					if (prop && !prop->m_isExpanded && !prop->m_subProperties.empty())
+					{
+						HideDescendants(HideDescendants, prop->m_subProperties);
+					}
+				}
 				if (isBelowView)
 				{
 					if (!isCategory) 
 					{
-						auto prop = model.FindPropertyById(itemId);
 						if (prop && prop->m_field && prop->m_field->IsVisible())
 						{
 							prop->m_field->SetVisibility(false);
@@ -794,7 +814,6 @@ namespace Berta
 				{
 					if (!isCategory)
 					{
-						auto prop = model.FindPropertyById(itemId);
 						if (prop && prop->m_field && prop->m_field->IsVisible())
 						{
 							prop->m_field->SetVisibility(false);
@@ -813,7 +832,7 @@ namespace Berta
 				bool isHovered = itemId == m_hoveredItemId;
 				if (isCategory)
 				{
-					if (const CategoryType* cat = model.FindCategoryById(itemId))
+					if (cat)
 					{
 						DrawCategoryHeader(graphics, model, rect, *cat, m_config);
 					}
@@ -830,7 +849,6 @@ namespace Berta
 						graphics.FillRectangle(propArea, m_config->HoverBackgroundColor);
 					}
 					
-					auto prop = model.FindPropertyById(itemId);
 					if (prop && prop->m_field)
 					{
 						if (!prop->m_field->IsVisible())
@@ -1059,7 +1077,7 @@ namespace Berta
 		}
 
 		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config)
-		{
+		{			
 			bool isSelected = cat.m_id == model.GetSelectedItemId();
 			
 			Color bgColor = isSelected ? config->MenuBackground : config->Background;
@@ -1275,12 +1293,15 @@ namespace Berta
 					{
 						m_module.m_model.SetSelectedItemId(m_module.m_pressedItemId);
 					}
+					
+					m_module.m_layout.ScrollToItem(m_module.m_pressedItemId);
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
 				}
 				else if (m_module.m_model.IsRootCategory(m_module.m_pressedItemId)) 
 				{
 					m_module.m_isWaitingForDrag = true;
 					m_module.m_draggedCatIndex = m_module.m_model.GetRootCategoryIndex(m_module.m_pressedItemId);
+					m_module.m_layout.ScrollToItem(m_module.m_pressedItemId);
 				}
 			}
 		}

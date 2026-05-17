@@ -55,6 +55,7 @@ struct AppState
 	float Roughness=255.0f;
 	int Threshold=3;
 	Vector3 Position;
+	Vector3 Rotation;
 	// ...
 };
 
@@ -92,6 +93,28 @@ int main()
 			
 			if (val.z.has_value())
 				myApp.Position.z = val.z.value();
+		});
+	
+	auto subPositionCategory = transformCategory.AppendSubCategory("Sub");
+	subPositionCategory.EmplaceVector3(subPositionCategory, "Rotation", 
+		[&myApp]()
+		{
+			Berta::OptionalVector3 opt;
+			opt.x = myApp.Rotation.x;
+			opt.y = myApp.Rotation.y;
+			opt.z = myApp.Rotation.z;
+			return opt;
+		},
+		[&myApp](const Berta::OptionalVector3& val)
+		{
+			if (val.x.has_value())
+				myApp.Rotation.x = val.x.value();
+			
+			if (val.y.has_value())
+				myApp.Rotation.y = val.y.value();
+			
+			if (val.z.has_value())
+				myApp.Rotation.z = val.z.value();
 		});
 	
 	auto generalCategory = propertyGrid.Append("General");
