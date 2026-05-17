@@ -74,7 +74,7 @@ int main()
 	propertyGrid.ShowCategoryIcons(true);
 	
 	auto transformCategory = propertyGrid.Append("Transform");
-	transformCategory.EmplaceVector3(transformCategory, "Position", 
+	transformCategory.EmplaceVector3("Position", 
 		[&myApp]()
 		{
 			Berta::OptionalVector3 opt;
@@ -96,7 +96,7 @@ int main()
 		});
 	
 	auto subPositionCategory = transformCategory.AppendSubCategory("Sub");
-	subPositionCategory.EmplaceVector3(subPositionCategory, "Rotation", 
+	subPositionCategory.EmplaceVector3("Rotation", 
 		[&myApp]()
 		{
 			Berta::OptionalVector3 opt;

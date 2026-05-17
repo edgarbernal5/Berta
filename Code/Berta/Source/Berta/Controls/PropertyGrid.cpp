@@ -645,9 +645,9 @@ namespace Berta
 			return {};
 		}
 		
-		PropertyHandle CategoryHandle::EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter)
+		PropertyHandle CategoryHandle::EmplaceVector3(std::string_view label, GetterVec3 getter, SetterVec3 setter)
 		{
-			PropertyHandle parentHandle = category.EmplaceProperty<PropertyGridFieldVector3>(label, getter, setter);
+			PropertyHandle parentHandle = EmplaceProperty<PropertyGridFieldVector3>(label, getter, setter);
 
 			parentHandle.EmplaceSubProperty<PropertyGridFieldFloat>("X",
 				[getter]() -> std::optional<float> { return getter().x; },

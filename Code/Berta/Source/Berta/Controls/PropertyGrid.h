@@ -257,7 +257,7 @@ namespace Berta
 				
 				return handle;
 			}
-			PropertyHandle EmplaceVector3(CategoryHandle& category, std::string_view label, GetterVec3 getter, SetterVec3 setter);
+			PropertyHandle EmplaceVector3(std::string_view label, GetterVec3 getter, SetterVec3 setter);
 
 			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
