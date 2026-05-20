@@ -62,6 +62,22 @@ namespace Berta::Internal::PropertyGrid
         OnVisibilityChanged(visible);
     }
 
+    bool PropertyGridFieldBase::IsReadOnly() const
+    {
+        return m_readOnly;
+    }
+
+    void PropertyGridFieldBase::SetReadOnly(bool readOnly)
+    {
+        if (m_readOnly == readOnly)
+        {
+            return;
+        }
+			
+        m_readOnly = readOnly;
+        OnReadOnlyChanged(readOnly);
+    }
+
     void PropertyGridFieldBase::NotifyValueChanged()
     {
         if (OnValueChanged)

@@ -164,9 +164,9 @@ namespace Berta
 			return FindRecursive(id, m_rootCategories);
 		}
 
-		PropertyFieldData* PropertyGridModel::FindPropertyById(StringUtils::StringHash m_uniqueId) const
+		PropertyFieldData* PropertyGridModel::FindPropertyById(StringUtils::StringHash uniqueId) const
 		{
-			auto it = m_propertyLookup.find(m_uniqueId);
+			auto it = m_propertyLookup.find(uniqueId);
 			return (it != m_propertyLookup.end()) ? it->second : nullptr;
 		}
 
@@ -226,6 +226,23 @@ namespace Berta
 			if (PropertyFieldData* prop = FindPropertyById(propId))
 			{
 				prop->m_field->SetEnabled(enabled);
+			}
+		}
+
+		bool PropertyGridModel::GetPropertyReadOnly(StringUtils::StringHash propId)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				return prop->m_field->IsReadOnly();
+			}
+			return false;
+		}
+
+		void PropertyGridModel::SetPropertyReadOnly(StringUtils::StringHash propId, bool readOnly)
+		{
+			if (PropertyFieldData* prop = FindPropertyById(propId))
+			{
+				prop->m_field->SetReadOnly(readOnly);
 			}
 		}
 
@@ -603,6 +620,24 @@ namespace Berta
 			if (m_model)
 			{
 				m_model->SetPropertyEnabled(m_uniqueId, enabled);
+			}
+			return *this;
+		}
+
+		bool PropertyHandle::IsReadOnly() const
+		{
+			if (m_model)
+			{
+				return m_model->GetPropertyReadOnly(m_uniqueId);
+			}
+			return false;
+		}
+
+		PropertyHandle& PropertyHandle::SetReadOnly(bool readOnly)
+		{
+			if (m_model)
+			{
+				m_model->SetPropertyReadOnly(m_uniqueId, readOnly);
 			}
 			return *this;
 		}
@@ -1036,13 +1071,6 @@ namespace Berta
 			{
 				for (const auto& prop : cat.m_properties)
 				{
-					/*auto propHeight = prop->m_field->GetHeight();
-					Rectangle propRect = { currentX + PG_INDENT_PADDING, static_cast<int>(currentY), clientArea.Width - PG_INDENT_PADDING, propHeight };
-					
-					m_itemRects[prop->m_id] = propRect;
-					m_visibleItems.emplace_back(prop->m_id, false, propRect);
-					
-					currentY += propHeight;*/
 					currentY = CalculatePropertyRecursive(*prop, currentX + PG_INDENT_PADDING, currentY, clientArea.Width);
 				}
 				

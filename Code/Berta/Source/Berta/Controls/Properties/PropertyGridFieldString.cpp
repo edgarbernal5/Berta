@@ -107,6 +107,11 @@ namespace Berta
 		m_textBox.SetEnabled(enabled);
 	}
 
+	void PropertyGridFieldString::OnReadOnlyChanged(bool readOnly)
+	{
+		m_textBox.SetEditable(!readOnly);
+	}
+
 	void PropertyGridFieldString::SetValueInternal(const std::wstring& value)
 	{
 		if (m_textBox.GetCaptionW() != value)

@@ -79,29 +79,6 @@ namespace Berta
             m_textBox.SetArea(area);
         }
 
-        /*void Refresh() override
-        {
-            if (m_getter) 
-            {
-                std::optional<T> currentOpt = m_getter();
-                if (currentOpt.has_value()) 
-                {
-                    std::string str = ToString(currentOpt.value());
-                    if (m_textBox.GetCaption() != str)
-                    {
-                        m_textBox.SetCaption(str);
-                    }
-                }
-                else 
-                {
-                    if (m_textBox.GetCaption() != "---")
-                    {
-                        m_textBox.SetCaption("---");
-                    }
-                }
-            }
-        }*/
-
         void SetFocus() override 
         { 
             m_textBox.Focus(); 
@@ -157,9 +134,15 @@ namespace Berta
 	            m_textBox.Hide();
 	        }
 	    }
+	    
 	    void OnEnableChanged(bool enabled) override
 	    {
 	        m_textBox.SetEnabled(enabled);
+	    }
+		
+		void OnReadOnlyChanged(bool readOnly) override
+	    {
+	    	m_textBox.SetEditable(!readOnly);
 	    }
 	    
     private:

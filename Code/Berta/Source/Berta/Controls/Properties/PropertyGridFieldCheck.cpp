@@ -85,7 +85,7 @@ namespace Berta
 		
 		m_checkBox.GetEvents().CheckedChanged.Connect([this](const ArgCheckBox& args)
 		{
-			if (!m_getter || !m_setter)
+			if (!m_getter || !m_setter || m_readOnly)
 			{
 				return;
 			}

@@ -127,6 +127,9 @@ namespace Berta
 			bool GetPropertyEnabled(StringUtils::StringHash propId);
 			void SetPropertyEnabled(StringUtils::StringHash propId, bool enabled);
 			
+			bool GetPropertyReadOnly(StringUtils::StringHash propId);
+			void SetPropertyReadOnly(StringUtils::StringHash propId, bool readOnly);
+			
 			std::string_view GetPropertyLabel(StringUtils::StringHash propId);
 			void SetPropertyLabel(StringUtils::StringHash propId, std::string_view newLabel);
 			
@@ -202,6 +205,9 @@ namespace Berta
 			
 			bool IsEnabled() const;
 			PropertyHandle& SetEnabled(bool enabled);
+			
+			bool IsReadOnly() const;
+			PropertyHandle& SetReadOnly(bool readOnly);
 			
 			template <typename TControl, typename... Args>
 			PropertyHandle EmplaceSubProperty(std::string_view label, Args&&... args)

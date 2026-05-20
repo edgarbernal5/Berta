@@ -36,9 +36,10 @@ namespace Berta
 		virtual void SetCharFilter(std::function<bool(wchar_t)> predicate);
 
 	protected:
-		virtual void OnCreate(Window* parent) override;
-		virtual void OnVisibilityChanged(bool visible) override;
-		virtual void OnEnableChanged(bool enabled) override;
+		void OnCreate(Window* parent) override;
+		void OnVisibilityChanged(bool visible) override;
+		void OnEnableChanged(bool enabled) override;
+		void OnReadOnlyChanged(bool readOnly) override;
 		
 		void SetValueInternal(const std::wstring& value) override;
 		void SetMixedValuesInternal() override;

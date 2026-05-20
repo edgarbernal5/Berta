@@ -64,6 +64,9 @@ namespace Berta::Internal::PropertyGrid
         bool IsVisible() const;
         void SetVisibility(bool visible);
     	
+    	bool IsReadOnly() const;
+    	void SetReadOnly(bool readOnly);
+    	
         std::function<void()> OnValueChanged;
         std::function<void()> OnSelected;
 			
@@ -71,6 +74,7 @@ namespace Berta::Internal::PropertyGrid
         virtual void OnCreate(Window* parent) = 0;
         virtual void OnVisibilityChanged(bool visible) {}
         virtual void OnEnableChanged(bool enabled) {}
+        virtual void OnReadOnlyChanged(bool readOnly) {}
     	
         void NotifyValueChanged();
         void NotifySelected();
@@ -81,6 +85,7 @@ namespace Berta::Internal::PropertyGrid
 
         uint32_t m_height{ 24 };
         bool m_enabled { true };
+        bool m_readOnly { false };
         bool m_isVisible { true };
         bool m_showLabel { true };
     };
