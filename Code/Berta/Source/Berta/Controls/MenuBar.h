@@ -17,10 +17,6 @@
 
 namespace Berta
 {
-	/*
-	 *Bien, ahora sí anda todo bien, de forma correcta. Ahora dado el estado actual del código, si quisiera hacer la interacción de la tecla Alt para que el foco lo tenga ahora mi menubar, qué cambios tengo que hacer? Consolidar todos los cambios de todas las clases y hacerlo de forma prolija y profesional con las buenas prácticas y rendimiento, por ahora nos enfocaremos en la plataforma WINDOWS. Tengo manera de saber si mi ventana principal tiene un menubar con un apuntador (en Window tengo un apuntador Window* m_menubar)
-	 */
-	
 	namespace Internal::MenuBar
 	{
 		struct Appearance : public ControlAppearance

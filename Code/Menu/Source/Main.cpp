@@ -86,9 +86,11 @@ int main()
 	form.GetEvents().MouseDown.Connect([&popupMenu, &form](const Berta::ArgMouse& args)
 		{
 			if (!args.ButtonState.RightButton)
+			{
 				return;
+			}
 			
-			popupMenu.ShowPopup(form.Handle(), args);
+			Berta::GUI::ShowContextMenu(popupMenu, form.Handle(), args.Position);
 		});
 
 	form.Show();

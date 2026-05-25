@@ -637,8 +637,7 @@ namespace Berta
 		{
 			auto screenPosition = API::GetPointClientToScreen(window->RootHandle, point);
 
-			auto menuWindow = menuManager.FindMenu(screenPosition);
-			if (menuWindow)
+			if (auto menuWindow = menuManager.FindMenu(screenPosition))
 			{
 				return menuWindow;
 			}

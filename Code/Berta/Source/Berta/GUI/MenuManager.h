@@ -31,6 +31,7 @@ namespace Berta
 		Window* GetOwner() const { return m_owner; }
 
 		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
+		void ShowContextMenu(Menu&& menuData, Window* owner, const Point& position);
 		void ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position);
 		
 		void ClearListeners();

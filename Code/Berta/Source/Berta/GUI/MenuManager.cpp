@@ -131,15 +131,23 @@ namespace Berta
 
     void MenuManager::ShowContextMenu(Menu& menuData, Window* owner, const Point& position)
     {
-        auto menuBox = new Berta::MenuBox(owner, position);
+        auto menuBox = new MenuBox(owner, position);
         menuBox->InitFromData(menuData); 
+        
+        ShowPopup(menuBox->Handle(), owner, false);
+    }
+
+    void MenuManager::ShowContextMenu(Menu&& menuData, Window* owner, const Point& position)
+    {
+        auto menuBox = new MenuBox(owner, position);
+        menuBox->InitFromData(std::move(menuData)); 
         
         ShowPopup(menuBox->Handle(), owner, false);
     }
 
     void MenuManager::ShowMenuBarPopup(Menu& menuData, Window* owner, const Point& position)
     {
-        auto menuBox = new Berta::MenuBox(owner, position);
+        auto menuBox = new MenuBox(owner, position);
         menuBox->InitFromData(menuData); 
         
         ShowPopup(menuBox->Handle(), owner, true);
@@ -153,7 +161,7 @@ namespace Berta
     uint32_t MenuManager::SubscribeOnClose(std::function<void()> listener)
     {
         uint32_t id = m_nextListenerId++;
-        m_onCloseListeners.push_back({ id, std::move(listener) });
+        m_onCloseListeners.emplace_back(id, std::move(listener));
         return id;
     }
 

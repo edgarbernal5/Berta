@@ -89,8 +89,6 @@ namespace Berta
 			return m_items.at(index); 
 		}
 		
-		void ShowPopup(Window* owner, const ArgMouse& args);
-		
 		void SetText(size_t index, const std::wstring& text);
 		std::wstring GetText(size_t index) const;
 		
@@ -220,8 +218,11 @@ namespace Berta
 		~MenuBox() override;
 
 		void InitFromData(Menu& menuData);
+		void InitFromData(Menu&& menuData);
 		
 	private:
+		Menu* m_menuView{ nullptr };
+		std::unique_ptr<Menu> m_ownedMenu;
 #if BT_DEBUG
 		static int g_globalId;
 #endif

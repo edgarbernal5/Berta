@@ -12,6 +12,7 @@
 
 namespace Berta
 {
+	struct Menu;
 	class ControlBase;
 	class ControlReactor;
 	struct ControlEvents;
@@ -84,6 +85,9 @@ namespace Berta
 
 		Window* GetMenuBar(Window* window);
 		void SetMenuBar(Window* menuBar);
+		
+		void ShowContextMenu(Menu& menuData, Window* owner, const Point& position);
+		void ShowContextMenu(Menu&& menuData, Window* owner, const Point& position);
 		
 		//TODO: mover estas funciones a otro namespace/archivo/clase
 		std::wstring GetAccessKeyText(const std::wstring& text, wchar_t& accessKey, std::size_t* accessKeyPosition);

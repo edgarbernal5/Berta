@@ -52,11 +52,6 @@ namespace Berta
 		return {this, m_items.size() - 1};
 	}
 
-	void Menu::ShowPopup(Window* owner, const ArgMouse& args)
-	{
-		Foundation::GetInstance().GetMenuManager().ShowContextMenu(*this, owner, args.Position);
-	}
-
 	void Menu::SetText(size_t index, const std::wstring& text)
 	{
 		if (index >= m_items.size())
@@ -837,9 +832,23 @@ namespace Berta
 
 	void MenuBox::InitFromData(Menu& menuData)
 	{
-		auto& module = GetReactor().GetModule();
-		module.InitFromData(menuData);
+		m_ownedMenu.reset();
+		m_menuView = &menuData;
 		
+		auto& module = GetReactor().GetModule();
+		module.InitFromData(*m_menuView);
+
+		SetSize(module.m_calculatedBoxSize);
+	}
+
+	void MenuBox::InitFromData(Menu&& menuData)
+	{
+		m_ownedMenu = std::make_unique<Menu>(std::move(menuData));
+		m_menuView = m_ownedMenu.get();
+		
+		auto& module = GetReactor().GetModule();
+		module.InitFromData(*m_menuView);
+
 		SetSize(module.m_calculatedBoxSize);
 	}
 }

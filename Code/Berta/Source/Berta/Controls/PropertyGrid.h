@@ -7,20 +7,18 @@
 #ifndef BT_PROPERTY_GRID_HEADER
 #define BT_PROPERTY_GRID_HEADER
 
-#include <deque>
-
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include "Berta/Controls/ScrollBar.h"
 #include "Berta/Paint/Image.h"
 
-#include <string>
-#include <vector>
-
 #include "Berta/GUI/ScrollableView.h"
 #include "Berta/Controls/Properties/PropertyGridFieldBase.h"
 #include "Berta/Controls/Properties/PropertyGridTypes.h"
 #include "Berta/Core/ObjectPool.h"
+
+#include <string>
+#include <vector>
 
 namespace Berta
 {

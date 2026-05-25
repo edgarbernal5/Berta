@@ -14,6 +14,7 @@
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/Caret.h"
+#include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
 
 namespace Berta::GUI
@@ -624,6 +625,16 @@ namespace Berta::GUI
 		}
 
 		menuBar->RootWindow->MenuBar = menuBar;
+	}
+
+	void ShowContextMenu(Menu& menuData, Window* owner, const Point& position)
+	{
+		Foundation::GetInstance().GetMenuManager().ShowContextMenu(menuData, owner, position);
+	}
+
+	void ShowContextMenu(Menu&& menuData, Window* owner, const Point& position)
+	{
+		Foundation::GetInstance().GetMenuManager().ShowContextMenu(std::move(menuData), owner, position);
 	}
 
 	std::wstring GetAccessKeyText(const std::wstring& text, wchar_t &accessKey, std::size_t* accessKeyPosition)
