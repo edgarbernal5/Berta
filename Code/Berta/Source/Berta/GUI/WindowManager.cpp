@@ -201,14 +201,8 @@ namespace Berta
 
 		if (window->Parent)
 		{
-			for (size_t i = 0; i < window->Parent->Children.size(); i++)
-			{
-				if (window->Parent->Children[i] == window)
-				{
-					window->Parent->Children.erase(window->Parent->Children.begin() + i);
-					break;
-				}
-			}
+			auto& children = window->Parent->Children;
+			children.erase(std::remove(children.begin(), children.end(), window), children.end());
 		}
 
 		DestroyInternal(window);

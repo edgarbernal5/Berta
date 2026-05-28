@@ -780,14 +780,9 @@ namespace Berta
 			if (m_caption->HaveClickedCloseButton())
 			{
 				auto selectedIndex = m_tabBar->GetSelectedIndex().value();
-				ControlBase* windowToClose = m_tabBarPanels[selectedIndex].ControlPtr.release();
-				
 				m_tabBarPanels.erase(m_tabBarPanels.begin() + selectedIndex);
 				
-				delete windowToClose;
-				
 				m_eventsNotifier->RequestClose();
-				
 				return;
 			}
 
