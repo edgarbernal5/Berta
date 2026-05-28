@@ -605,7 +605,7 @@ namespace Berta
 					SWP_NOZORDER | SWP_NOACTIVATE);
 				
 				
-				API::RefreshWindow(nativeWindowHandle, true);
+				API::RefreshWindow(nativeWindowHandle);
 				wasHandled = false;
 				break;
 			}
