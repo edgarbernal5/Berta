@@ -11,6 +11,21 @@
 
 namespace Berta
 {
+	struct ScopedUpdatingFlag
+	{
+		Window* window;
+
+		ScopedUpdatingFlag(Window* w) : window(w)
+		{ 
+			if (window) window->Flags.isUpdating = true; 
+		}
+
+		~ScopedUpdatingFlag()
+		{ 
+			if (window) window->Flags.isUpdating = false; 
+		}
+	};
+	
 	void UIRendererCoordinator::Paint(Window* window, PaintOperation operation, bool processChildren)
 	{
 		if (window->Flags.isUpdating && operation == PaintOperation::TryUpdate)
@@ -23,9 +38,9 @@ namespace Berta
 		rootGraphics.Begin();
 		if (window->Type != WindowType::Panel && operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
-			window->Flags.isUpdating = true;
+			ScopedUpdatingFlag guard(window);
+			
 			window->Renderer.Update(window->ClientSize.ToRectangle());
-			window->Flags.isUpdating = false;
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
 		rootGraphics.Flush();
@@ -67,10 +82,9 @@ namespace Berta
 
 	void UIRendererCoordinator::MapInternal(Window* window, bool processChildren, const Rectangle& parentRect)
 	{
-		for (size_t i = 0; i < window->Children.size(); i++)
+		for (auto* child : window->Children)
 		{
-			auto child = window->Children[i];
-			if (!child->Visible || (child->Type != WindowType::Panel && !child->Renderer.GetGraphics().IsValid()))
+			if (!child->Visible)
 			{
 				continue;
 			}
@@ -92,9 +106,9 @@ namespace Berta
 			{
 				if (child->Type != WindowType::Panel && processChildren && !child->Flags.isUpdating)
 				{
-					child->Flags.isUpdating = true;
+					ScopedUpdatingFlag guard(child);
+
 					child->Renderer.Update(clipRect);
-					child->Flags.isUpdating = false;
 				}
 				MapInternal(child, processChildren, clipRect);
 			}

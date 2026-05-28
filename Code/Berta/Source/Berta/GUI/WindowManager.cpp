@@ -826,39 +826,26 @@ namespace Berta
 	void WindowManager::Update(Window* window, bool redraw, const Rectangle* updateArea)
 	{
 		if (!window->IsVisible())
-			return;
-
-		if (window->HasCustomPaint())
 		{
-			API::RefreshWindow(window->RootHandle);
-			//::UpdateWindow(window->RootHandle.Handle);
-			
 			return;
 		}
-
-		if (window->IsNested())
-		{
-			API::RefreshWindow(window->RootHandle);
-			return;
-		}
-
-		if (window->Flags.isUpdating)
+		
+		if (window->Flags.isUpdating || (window->Parent && window->Parent->Flags.isUpdating))
 		{
 			//BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			return;
 		}
-
-		/*if (window->IsBatching())
-		{
-			std::cout << " is batching... wnd=" << window->Name << std::endl;
-
-			window->MarkForBatching();
-		}
-		else*/
+		
+		if (window->HasCustomPaint() || window->IsNested())
 		{
 			API::RefreshWindow(window->RootHandle);
-			//::UpdateWindow(window->RootHandle.Handle);
+			return;
 		}
+
+		//Batching?
+		
+		API::RefreshWindow(window->RootHandle, updateArea);
+		
 		UpdateInternal(window, redraw, updateArea);
 	}
 
@@ -1015,21 +1002,19 @@ namespace Berta
 
 	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
 	{
-		for (size_t i = 0; i < window->Children.size(); i++)
+		for (auto* child : window->Children)
 		{
-			auto child = window->Children[i];
 			if (!child->Visible)
-				continue;
-
-			if (child->HasCustomPaint())
 			{
-				API::RefreshWindow(child->RootHandle);
-				//::UpdateWindow(child->RootHandle.Handle);
 				continue;
 			}
-			if (child->IsNested())
+
+			if (child->HasCustomPaint() || child->IsNested())
 			{
-				API::RefreshWindow(child->RootHandle);
+				if (child->RootHandle != window->RootHandle) 
+				{
+					API::RefreshWindow(child->RootHandle, updateArea);
+				}
 				continue;
 			}
 

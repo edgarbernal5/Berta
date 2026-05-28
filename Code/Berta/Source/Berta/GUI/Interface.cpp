@@ -163,13 +163,12 @@ namespace Berta::GUI
 
 		if (windowManager.Resize(window, newSize))
 		{
-			auto windowToUpdate = window;
-			if (!window->IsNative())
-			{
-				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
-			}
+			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
 
-			windowManager.Update(windowToUpdate, false);
+			if (!windowToUpdate->Flags.isUpdating)
+			{
+				windowManager.Update(windowToUpdate, false);
+			}
 		}
 	}
 
@@ -195,13 +194,12 @@ namespace Berta::GUI
 		bool hasChanged = windowManager.Move(window, newRect, forceRepaint);
 		if (hasChanged)
 		{
-			auto windowToUpdate = window;
-			if (!window->IsNative())
-			{
-				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
-			}
+			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
 
-			windowManager.Update(windowToUpdate, false);
+			if (windowToUpdate && !windowToUpdate->Flags.isUpdating)
+			{
+				windowManager.Update(windowToUpdate, false);
+			}
 		}
 
 		return hasChanged;
@@ -218,13 +216,9 @@ namespace Berta::GUI
 		bool hasChanged = windowManager.Move(window, newPosition, forceRepaint);
 		if (hasChanged)
 		{
-			auto windowToUpdate = window;
-			if (!window->IsNative())
-			{
-				windowToUpdate = windowToUpdate->FindFirstNonPanelAncestor();
-			}
-
-			if (windowToUpdate != nullptr)
+			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
+			
+			if (windowToUpdate && !window->Flags.isUpdating)
 			{
 				windowManager.Update(window, false);
 			}
