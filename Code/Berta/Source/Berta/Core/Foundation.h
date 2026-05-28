@@ -41,7 +41,7 @@ namespace Berta
 
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		MenuManager& GetMenuManager() { return m_menuManager; }
-		void ProcessMessages();
+		void ProcessMessages(const std::function<bool()>& keepRunning = nullptr);
 
 		template <typename TArgument>
 		void ProcessEvents(Window* window, void(Renderer::* rendererEventPtr)(const TArgument&), Event<TArgument> ControlEvents::*eventPtr, TArgument& args);

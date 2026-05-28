@@ -738,7 +738,7 @@ namespace Berta
 			if (auto subMenu = std::get_if<Menu::MenuSubMenu>(&itemData))
 			{
 				const auto& cache = m_layoutCache[index];
-				Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
+				Point popupPos = { cache.bounds.X + static_cast<int>(cache.bounds.Width), cache.bounds.Y };
 
 				menuManager.ShowContextMenu(*(subMenu->subMenu), m_owner, popupPos);
 

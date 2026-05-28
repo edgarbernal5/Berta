@@ -7,6 +7,51 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/MenuBar.h>
 
+#include <Berta/Controls/Button.h>
+
+class DummyDialog : public Berta::Form
+{
+public:
+	explicit DummyDialog(Berta::Window* owner, const Berta::Size& size, const Berta::FormStyle& windowStyle = { true, true, true });
+	DummyDialog(Berta::Window* owner, const Berta::Rectangle& rectangle, const Berta::FormStyle& windowStyle = { true, true, true });
+
+private:
+	void InitControls();
+	
+	Berta::Button m_okButton;
+	Berta::Button m_cancelButton;
+};
+
+DummyDialog::DummyDialog(Berta::Window* owner, const Berta::Size& size, const Berta::FormStyle& windowStyle) :
+Berta::Form(owner, size, windowStyle)
+{
+	SetCaption("Dialog");
+	InitControls();
+}
+
+DummyDialog::DummyDialog(Berta::Window* owner, const Berta::Rectangle& rectangle, const Berta::FormStyle& windowStyle) :
+Berta::Form(owner, rectangle, windowStyle)
+{
+	SetCaption("Dialog");
+	InitControls();
+}
+
+void DummyDialog::InitControls()
+{
+	m_okButton.Create(this->Handle(), false, Berta::Rectangle{10,10,120,30});
+	m_okButton.SetCaption("Ok");
+	m_okButton.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+	{
+		this->Close(Berta::DialogResult::OK);
+	});
+	m_cancelButton.Create(this->Handle(), false, Berta::Rectangle{140,10,120,30});
+	m_cancelButton.SetCaption("Cancel");
+	m_cancelButton.GetEvents().Click.Connect([this](const Berta::ArgClick& args)
+	{
+		this->Close(Berta::DialogResult::Cancel);
+	});
+}
+
 int main()
 {
 	Berta::Form form(Berta::Size(450u, 350u), { true, true, true });
@@ -55,7 +100,25 @@ int main()
 	viewMenu.AppendCheckbox(L"Side bar", true);
 
 	auto& helpMenu = menuBar.PushBack("Help");
-	helpMenu.Append("About");
+	helpMenu.Append("About", [&form](Berta::MenuItem item)
+	{
+		std::cout << "Context menu click > About" << std::endl;
+		
+		DummyDialog dialog(form, Berta::Size(350,200));
+		auto dialogResult = dialog.Exec(form.Handle());
+		if (dialogResult == Berta::DialogResult::OK)
+		{
+			std::cout << "OK" << std::endl;
+		}
+		else if (dialogResult == Berta::DialogResult::Cancel)
+		{
+			std::cout << "Cancel" << std::endl;
+		}
+		else
+		{
+			std::cout << "Other" << std::endl;
+		}
+	});
 
 	Berta::Menu popupMenu;
 	popupMenu.Append(L"Cut", [](Berta::MenuItem item)

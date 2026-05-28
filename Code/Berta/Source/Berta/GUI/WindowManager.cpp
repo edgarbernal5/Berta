@@ -461,11 +461,17 @@ namespace Berta
 
 			if (!argDisposing.Cancel)
 			{
+				if (window->Owner == nullptr || window->Owner->Flags.MakeActive)
+				{
+					API::ActivateOwnerWindow(window->RootHandle);
+				}
+				
 				if (!window->Flags.IsDisposed)
 				{
 					window->Renderer.Shutdown();
 					window->ControlWindowPtr->Destroy();
 				}
+				
 				API::DestroyNativeWindow(window->RootHandle);
 			}
 		}

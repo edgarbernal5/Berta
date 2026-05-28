@@ -95,6 +95,8 @@ namespace Berta
 		void RefreshWindow(NativeWindowHandle nativeHandle, bool forceEraseBackground = false);
 		void RefreshWindow(NativeWindowHandle nativeHandle, const Rectangle& area, bool forceEraseBackground = false);
 		void ValidateWindow(NativeWindowHandle nativeHandle, const Rectangle& area);
+		void ActivateWindow(NativeWindowHandle nativeHandle);
+		void ActivateOwnerWindow(NativeWindowHandle nativeHandle);
 		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled);
 		
 		NativeWindowHandle GetParentWindow(NativeWindowHandle nativeHandle);

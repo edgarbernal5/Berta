@@ -18,6 +18,7 @@ namespace Berta
 
 		virtual ControlBase* ControlPtr() const = 0;
 		virtual void Destroy() = 0;
+		virtual void Close() = 0;
 	};
 }
 

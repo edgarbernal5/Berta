@@ -15,16 +15,11 @@
 
 namespace Berta
 {
-	
 	class ControlWindowInterface;
 
 	//Type Erasure
 	class ControlBase
 	{
-	public:
-		class ControlWindow;
-
-		friend class ControlWindowInterface;
 	public:
 		ControlBase() = default;
 		virtual ~ControlBase() = default;
@@ -94,7 +89,7 @@ namespace Berta
 				return &m_control;
 			}
 
-			virtual void Destroy() override
+			void Destroy() override
 			{
 				if (m_isDestroyed)
 				{
@@ -104,7 +99,12 @@ namespace Berta
 				m_isDestroyed = true;
 				m_control.NotifyDestroy();
 			}
-
+			
+			void Close() override
+			{
+				m_control.NotifyClose();
+			}
+			
 		private:
 			ControlBase& m_control;
 			bool m_isDestroyed{ false };
@@ -128,6 +128,12 @@ namespace Berta
 			DoOnNotifyDestroy();
 		}
 		virtual void DoOnNotifyDestroy(){}
+		
+		void NotifyClose()
+		{
+			DoNotifyClose();
+		}
+		virtual void DoNotifyClose(){}
 
 		Window* m_handle{ nullptr };
 	};

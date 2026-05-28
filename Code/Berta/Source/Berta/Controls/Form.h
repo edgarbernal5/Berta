@@ -57,7 +57,18 @@ namespace Berta
 		Form(Window* owner, const Rectangle& rectangle, const FormStyle& windowStyle = { true, true, true }, bool isRenderForm = false);
 
 		void Exec();
+		DialogResult Exec(Window* owner);
+		
+		void Close(DialogResult result);
+		
+		[[nodiscard]] DialogResult GetDialogResult() const { return m_dialogResult; }
+		
+	protected:
+		void DoNotifyClose() override;
+		
 	private:
+		bool m_isClosed{ false };
+		DialogResult m_dialogResult{ DialogResult::None };
 	};
 
 	class NestedForm : public Internal::Form::FormBase

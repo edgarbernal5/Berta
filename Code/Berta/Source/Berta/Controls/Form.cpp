@@ -92,6 +92,47 @@ namespace Berta
 		Foundation::GetInstance().ProcessMessages();
 	}
 
+	DialogResult Form::Exec(Window* owner)
+	{
+		if (owner)
+		{
+			API::EnableWindow(owner->RootHandle, false);
+		}
+		
+		m_isClosed = false;
+		m_dialogResult = DialogResult::None;
+		
+		this->Show();
+		API::ActivateWindow(Handle()->RootHandle);
+		
+		Foundation::GetInstance().ProcessMessages([this]() -> bool
+		{
+			return !this->m_isClosed; 
+		});
+		
+		if (owner)
+		{
+			API::ActivateWindow(owner->RootHandle);
+		}
+		return m_dialogResult;
+	}
+
+	void Form::Close(DialogResult result)
+	{
+		if (m_isClosed)
+		{
+			return;
+		}
+		
+		m_dialogResult = result;
+		m_isClosed = true;
+	}
+
+	void Form::DoNotifyClose()
+	{
+		Close(DialogResult::Cancel);
+	}
+
 	NestedForm::NestedForm(const Form& owner, const Rectangle& rectangle, const FormStyle& windowStyle, bool isRenderForm) :
 		FormBase(owner.Handle(), true, rectangle, windowStyle, true, isRenderForm)
 	{

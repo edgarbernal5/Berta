@@ -390,6 +390,18 @@ namespace Berta
 		Dash,
 		Dotted
 	};
+	
+	enum class DialogResult
+	{
+		None,   // El formulario sigue abierto o se cerró sin una acción clara
+		OK,     // El usuario presionó "Aceptar"
+		Cancel, // El usuario presionó "Cancelar" o la "X" de la ventana
+		Yes,    // Para diálogos de "Sí/No"
+		No,
+		Abort,  // Para diálogos de error
+		Retry,
+		Ignore
+	};
 }
 
 #endif

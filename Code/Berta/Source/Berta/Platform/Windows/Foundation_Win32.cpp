@@ -110,21 +110,39 @@ namespace Berta
 		ShutdownCore();
 	}
 
-	void Foundation::ProcessMessages()
+	void Foundation::ProcessMessages(const std::function<bool()>& keepRunning)
 	{
 		auto& windowManager = GetWindowManager();
 		std::vector<API::NativeWindowHandle> allHandles;
 
 		MSG msg = { 0 };
-		while (msg.message != WM_QUIT)
+		while (true) 
 		{
+			// 1. Condición de salida del Diálogo/Formulario
+			if (keepRunning && !keepRunning())
+			{
+				break; // El lambda dijo que terminemos (ej. m_isClosed == true)
+			}
+			
+			// 2. Procesamiento de mensajes de Windows
 			if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
+				if (msg.message == WM_QUIT)
+				{
+					// CRÍTICO: Si interceptamos WM_QUIT en un bucle anidado, 
+					// debemos volver a postearlo para que el bucle principal lo reciba.
+					::PostQuitMessage(static_cast<int>(msg.wParam));
+					break;
+				}
+				
 				::TranslateMessage(&msg);
 				::DispatchMessage(&msg);
 			}
 			else
 			{
+				// 3. Tiempo de inactividad (Idle Time) / Renderizado
+				bool anyWindowRefreshed = false;
+				
 				windowManager.GetNativeWindows(allHandles);
 				for (auto& handle : allHandles)
 				{
@@ -132,7 +150,16 @@ namespace Berta
 					if (window->RenderForAttributes.AutoRefresh && window->HasCustomPaint())
 					{
 						API::RefreshWindow(window->RootHandle);
+						anyWindowRefreshed = true;
 					}
+				}
+				
+				// 4. El Salvavidas de CPU (KISS & Performance)
+				// Si no procesamos mensajes y tampoco dibujamos nada de DirectX,
+				// dormimos el hilo hasta que el usuario mueva el ratón o pase algo.
+				if (!anyWindowRefreshed)
+				{
+					::WaitMessage();
 				}
 			}
 		}
@@ -923,6 +950,14 @@ namespace Berta
 				if (argDisposing.Cancel)
 				{
 					wasHandled = true;
+				}
+				else
+				{
+					nativeWindow->ControlWindowPtr->Close();
+					if (nativeWindow->Owner == nullptr || nativeWindow->Owner->Flags.MakeActive)
+					{
+						API::ActivateOwnerWindow(nativeWindow->RootHandle);
+					}
 				}
 			
 				break;

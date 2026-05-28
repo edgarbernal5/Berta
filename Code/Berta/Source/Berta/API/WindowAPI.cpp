@@ -215,6 +215,28 @@ namespace Berta
 #endif
 		}
 
+		void ActivateWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			auto& hWnd = nativeHandle.Handle;
+			if (!::IsWindow(hWnd))
+			{
+				return;
+			}
+			::EnableWindow(hWnd, true);
+			::SetActiveWindow(hWnd);
+			::SetForegroundWindow(hWnd);
+#endif
+		}
+		
+		void ActivateOwnerWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			auto ownerhWnd = ::GetWindow(nativeHandle.Handle, GW_OWNER);
+			ActivateWindow({ownerhWnd});
+#endif
+		}
+
 		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture)
 		{
 #ifdef BT_PLATFORM_WINDOWS
