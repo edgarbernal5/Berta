@@ -11,14 +11,13 @@
 #include "Berta/Controls/Button.h"
 
 #include <string>
-#include <vector>
 
 namespace Berta
 {
 	class PropertyGridFieldStringButton : public PropertyGridFieldString
 	{
 	public:
-		using ClickCallback = std::function<std::optional<std::wstring>(std::optional<std::wstring> currentValue)>;
+		using ClickCallback = std::function<void(std::optional<std::wstring> currentValue)>;
 		
 	public:
 		PropertyGridFieldStringButton(std::string_view label, GetterFn getter, SetterFn setter, ClickCallback onButtonClick)

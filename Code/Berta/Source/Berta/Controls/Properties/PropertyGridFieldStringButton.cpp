@@ -55,14 +55,7 @@ namespace Berta
 			NotifySelected();
 			if (m_clickCallback && m_getter)
 			{
-				std::optional<std::wstring> result = m_clickCallback(m_getter());
-				if (result.has_value() && m_setter) 
-				{
-					//this->SetValue(result.value());
-					m_setter(result.value());
-					NotifyValueChanged();
-					Refresh();
-				}
+				m_clickCallback(m_getter());
 			}
 		});
 

@@ -193,12 +193,12 @@ int main()
 			"Mesh Filter", 
 			[&myApp]() { return myApp.MeshFilter; },
 			[&myApp](const std::wstring& val) { myApp.MeshFilter = val; },
-			[](std::optional<std::wstring> currentValue) -> std::optional<std::wstring>
+			[](std::optional<std::wstring> currentValue)
 			{
 				std::cout << "Opening file explorer...." << std::endl;
 				std::wstring newPath = L"/home/new_path/filefilter.x";
 				std::cout << "newPath = " << Berta::StringUtils::WideToUTF8(newPath) << std::endl;
-				return newPath;
+				
 			});
 	
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldColor>(
