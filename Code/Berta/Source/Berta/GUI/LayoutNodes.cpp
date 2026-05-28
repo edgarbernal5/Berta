@@ -627,7 +627,7 @@ namespace Berta
 		auto offsetY = ((int)args.NewSize.Height - buttonSize) >> 1;
 
 		auto two = window->ToScale(2);
-		m_buttonRect.X = args.NewSize.Width - buttonSize - offsetY - two;
+		m_buttonRect.X = static_cast<int>(args.NewSize.Width) - buttonSize - offsetY - two;
 		m_buttonRect.Y = offsetY;
 		m_buttonRect.Height = buttonSize;
 		m_buttonRect.Width = buttonSize;
@@ -640,7 +640,6 @@ namespace Berta
 	{
 		bool isFirstTab = m_tabBar->Count() == 0;
 		m_tabBar->PushBack(id, control->Handle());
-		//m_tabBarPanels.push_back({control.get() });
 		m_tabBarPanels.emplace_back().ControlPtr = std::move(control);
 		
 		if (isFirstTab)

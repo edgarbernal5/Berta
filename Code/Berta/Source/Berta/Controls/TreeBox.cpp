@@ -554,7 +554,13 @@ namespace Berta
 		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
 		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
-	
+
+	void TreeBoxReactor::DpiChanged(Graphics& graphics)
+	{
+		m_module.RebuildFlatTree(true);
+		m_module.UpdateScrollData();
+	}
+
 	void TreeBoxReactor::Module::Update()
 	{
 		UpdateScrollData();
@@ -880,7 +886,7 @@ namespace Berta
 		GUI::MarkAsNeedUpdate(m_window);
 	}
 
-	void TreeBoxReactor::Module::RebuildFlatTree()
+	void TreeBoxReactor::Module::RebuildFlatTree(bool resetWidthCache)
 	{
 		m_flatVisibleTree.clear();
 		m_visibleWidths.clear();
@@ -889,7 +895,7 @@ namespace Berta
 		for (size_t i = 0; i < root->children.size(); ++i)
 		{
 			bool isLast = (i == root->children.size() - 1);
-			CollectVisibleNodes(root->children[i], 0, 0, isLast);
+			CollectVisibleNodes(root->children[i], 0, 0, isLast, resetWidthCache);
 		}
 
 		auto maxWidth = m_visibleWidths.empty() ? 0 : *m_visibleWidths.rbegin();
@@ -905,10 +911,12 @@ namespace Berta
 		m_needsRepaint = true;
 	}
 
-	void TreeBoxReactor::Module::CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild)
+	void TreeBoxReactor::Module::CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild, bool resetWidthCache)
 	{
 		m_flatVisibleTree.emplace_back(node, level, isLastChild, lineMask);
-
+		if (resetWidthCache)
+			node->cachedTextWidth.reset();
+		
 		auto rowTotalWidth = CalculateNodeWidth(node, level);
 		m_visibleWidths.insert(rowTotalWidth);
 
@@ -921,7 +929,8 @@ namespace Berta
 			for (size_t i = 0; i < node->children.size(); ++i)
 			{
 				bool childIsLast = (i == node->children.size() - 1);
-				CollectVisibleNodes(node->children[i], level + 1, childMask, childIsLast);
+				
+				CollectVisibleNodes(node->children[i], level + 1, childMask, childIsLast, resetWidthCache);
 			}
 		}
 	}

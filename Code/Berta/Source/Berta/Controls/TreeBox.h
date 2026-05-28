@@ -206,7 +206,8 @@ namespace Berta
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
 		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
-
+		void DpiChanged(Graphics& graphics) override;
+		
 		struct Module
 		{
 			void Update();
@@ -229,8 +230,8 @@ namespace Berta
 			uint32_t CalculateNodeWidth(TreeNodeType* node, uint32_t level);
 			
 			void ResetDragState();
-			void RebuildFlatTree();
-			void CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild);
+			void RebuildFlatTree(bool resetWidthCache = false);
+			void CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild, bool resetWidthCache);
 
 			bool ShowNavigationLines(bool visible);
 			bool ShowIcons(bool visible);
