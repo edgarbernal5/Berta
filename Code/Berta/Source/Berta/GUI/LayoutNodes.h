@@ -445,11 +445,16 @@ namespace Berta
     public:
         DockArea() = default;
 
-        void AddTab(const std::string& id, Window* window);
+        void AddTab(const std::string& id, std::unique_ptr<ControlBase> control);
         void Create(Window* parent, PaneInfo* paneInfo);
         void Dock();
         std::optional<size_t> GetTabSelectedIndex() const;
-
+        
+        struct PanelDock
+        {
+            std::unique_ptr<ControlBase> ControlPtr;
+        };
+        
         struct MouseInteraction
         {
             bool m_dragStarted{ false };
@@ -471,7 +476,7 @@ namespace Berta
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
-        std::vector<Window*> m_tabBarPanels;
+        std::vector<PanelDock> m_tabBarPanels;
 
         PaneInfo* m_paneInfo{ nullptr };
     };
@@ -481,7 +486,7 @@ namespace Berta
     public:
         DockPaneLayoutNode();
 
-        void AddTab(const std::string& id, Window* window) const;
+        void AddTab(const std::string& id, std::unique_ptr<ControlBase> window) const;
         void AddPane(DockPaneLayoutNode* paneNode);
         void AddWindow(Window* window) override;
         void CalculateAreas() override;

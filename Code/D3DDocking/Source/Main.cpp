@@ -246,6 +246,9 @@ public:
 		m_layout.Attach("values", m_buttonValues);
 		m_layout.Apply();
 	}
+	~TabProperties() override
+	{
+	}
 
 private:
 	Berta::Layout m_layout;
@@ -299,7 +302,10 @@ public:
 
 		m_nestedForm->Show();
 	}
-
+	~TabForm() override
+	{
+		m_device->WaitForIdle();
+	}
 private:
 	void OnDraw()
 	{
@@ -355,10 +361,13 @@ public:
 		m_tabProperties = std::make_unique<TabProperties>(this->Handle());
 		m_tabForm = std::make_unique<TabForm>(this->Handle());
 
-		m_layout.AddPaneTab("panel-properties-pane", "tab-properties", *m_tabProperties, "", Berta::DockPosition::Tab);
-		m_layout.AddPaneTab("panel-pane", "tab-scene", *m_tabForm, "panel-properties-pane", Berta::DockPosition::Right);
+		m_layout.AddPaneTab("panel-properties-pane", "tab-properties", std::move(m_tabProperties), "", Berta::DockPosition::Tab);
+		m_layout.AddPaneTab("panel-pane", "tab-scene", std::move(m_tabForm), "panel-properties-pane", Berta::DockPosition::Right);
 
 		m_layout.Apply();
+	}
+	~TabScene() override
+	{
 	}
 
 private:
@@ -397,19 +406,17 @@ int main()
 	auto& helpMenu = menuBar.PushBack(L"Help");
 	helpMenu.Append("About");
 
-	TabScene buttonPaneScene(form);
-	TabExplorer buttonPaneExplorer(form);
+	auto buttonPaneScene = std::make_unique<TabScene>(form);
+	auto buttonPaneExplorer = std::make_unique<TabExplorer> (form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene-Document", buttonPaneScene, "", Berta::DockPosition::Tab);
-	//layout.AddPaneTab("dockProp", "tab-Properties", tabProperties, "dockScene", Berta::DockPosition::Right);
-	layout.AddPaneTab("dockProp", "tab-Explorer", buttonPaneExplorer, "dockScene", Berta::DockPosition::Down);
-	//layout.AddPaneTab("dockD3D", "tab-D3D", tabForm, "dockScene", Berta::DockPosition::Down);
-
+	layout.AddPaneTab("dockScene", "tab-Scene-Document", std::move(buttonPaneScene), "", Berta::DockPosition::Tab);
+	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(buttonPaneExplorer), "dockScene", Berta::DockPosition::Down);
+	
 	layout.Apply();
 
 	form.Show();

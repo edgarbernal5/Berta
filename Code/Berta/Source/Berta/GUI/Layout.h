@@ -149,11 +149,11 @@ namespace Berta
     public:
         Layout();
         Layout(Window* window);
-        ~Layout();
+        ~Layout() override;
 
         void AddPane(const std::string& paneId);
-        void AddPaneTab(const std::string& paneId, const std::string& tabId, Window* window);
-        void AddPaneTab(const std::string& paneId, const std::string& tabId, Window* window, const std::string& relativePaneId, DockPosition dockPosition);
+        void AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control);
+        void AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control, const std::string& relativePaneId, DockPosition dockPosition);
 
         void Apply();
         void Attach(const std::string& fieldId, Window* window);

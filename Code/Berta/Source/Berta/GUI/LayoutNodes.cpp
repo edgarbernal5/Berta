@@ -476,9 +476,9 @@ namespace Berta
 	{
 	}
 
-	void DockPaneLayoutNode::AddTab(const std::string& id, Window* window) const
+	void DockPaneLayoutNode::AddTab(const std::string& id, std::unique_ptr<ControlBase> control) const
 	{
-		m_dockArea->AddTab(id, window);
+		m_dockArea->AddTab(id, std::move(control));
 	}
 
 	void DockPaneLayoutNode::AddPane(DockPaneLayoutNode* paneNode)
@@ -489,7 +489,8 @@ namespace Berta
 			auto paneTab = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[i].get());
 
 			auto tabId = paneTab->m_tabId.substr(paneNode->m_paneId.size() + 1);
-			m_dockArea->AddTab(tabId, dockArea.m_tabBar->Detach(i));
+			dockArea.m_tabBar->Detach(i);
+			m_dockArea->AddTab(tabId, std::move(dockArea.m_tabBarPanels[i].ControlPtr));
 		}
 	}
 
@@ -634,12 +635,14 @@ namespace Berta
 		//Update(graphics);
 		//GUI::MarkAsUpdated(*m_control);
 	}
-
-	void DockArea::AddTab(const std::string& id, Window* window)
+	
+	void DockArea::AddTab(const std::string& id, std::unique_ptr<ControlBase> control)
 	{
 		bool isFirstTab = m_tabBar->Count() == 0;
-		m_tabBar->PushBack(id, window);
-		m_tabBarPanels.push_back(window);
+		m_tabBar->PushBack(id, control->Handle());
+		//m_tabBarPanels.push_back({control.get() });
+		m_tabBarPanels.emplace_back().ControlPtr = std::move(control);
+		
 		if (isFirstTab)
 		{
 			m_caption->SetCaption(id);
@@ -777,8 +780,15 @@ namespace Berta
 
 			if (m_caption->HaveClickedCloseButton())
 			{
-				m_tabBarPanels.erase(m_tabBarPanels.begin() + m_tabBar->GetSelectedIndex().value());
+				auto selectedIndex = m_tabBar->GetSelectedIndex().value();
+				ControlBase* windowToClose = m_tabBarPanels[selectedIndex].ControlPtr.release();
+				
+				m_tabBarPanels.erase(m_tabBarPanels.begin() + selectedIndex);
+				
+				delete windowToClose;
+				
 				m_eventsNotifier->RequestClose();
+				
 				return;
 			}
 

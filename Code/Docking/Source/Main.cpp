@@ -36,6 +36,9 @@ public:
 		m_layout.Attach("values", m_buttonValues);
 		m_layout.Apply();
 	}
+	~TabProperties() override
+	{
+	}
 
 private:
 	Berta::Layout m_layout;
@@ -62,6 +65,9 @@ public:
 		m_nestedForm->Show();
 	}
 
+	~TabForm() override
+	{
+	}
 private:
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
 	Berta::Button m_nestedButton;
@@ -94,21 +100,21 @@ int main()
 	customSubmenu->Append("More");
 	menuWindow.AppendSubMenu(L"Custom", std::move(customSubmenu));
 
-	Berta::Button buttonPaneScene(form, { 320,250, 200, 200 }, "Scene");
-	Berta::Button buttonPaneExplorer(form, { 320,250, 200, 200 }, "Explorer");
+	auto buttonPaneScene = std::make_unique<Berta::Button>(form, Berta::Rectangle{ 320,250, 200, 200 }, "Scene");
+	auto buttonPaneExplorer = std::make_unique<Berta::Button>(form, Berta::Rectangle{ 320,250, 200, 200 }, "Explorer");
 
-	TabForm tabForm(form);
-	TabProperties tabProperties(form);
+	auto tabForm = std::make_unique<TabForm>(form);
+	auto tabProperties = std::make_unique<TabProperties>(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene", buttonPaneScene, "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Properties", tabProperties, "dockScene", Berta::DockPosition::Right);
-	layout.AddPaneTab("dockProp", "tab-Explorer", buttonPaneExplorer);
-	layout.AddPaneTab("dockNested", "tab-Nested", tabForm, "dockScene", Berta::DockPosition::Down);
+	layout.AddPaneTab("dockScene", "tab-Scene", std::move(buttonPaneScene), "", Berta::DockPosition::Tab);
+	layout.AddPaneTab("dockProp", "tab-Properties", std::move(tabProperties), "dockScene", Berta::DockPosition::Right);
+	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(buttonPaneExplorer));
+	layout.AddPaneTab("dockNested", "tab-Nested", std::move(tabForm), "dockScene", Berta::DockPosition::Down);
 
 	layout.Apply();
 

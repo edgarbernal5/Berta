@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/ControlWindow.h"
 
 namespace Berta
 {
