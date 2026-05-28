@@ -35,7 +35,7 @@ namespace Berta
 		void Reactor::DoOnInit()
 		{
 			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(m_control);
-			m_module.m_textEditor = new TextEditor(*m_control, m_graphics);
+			m_module.m_textEditor = new TextEditor(*m_control);
 
 			auto window = m_control->Handle();
 			window->Events->Focus.Connect([&](const ArgFocus& args)

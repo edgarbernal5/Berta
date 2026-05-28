@@ -16,7 +16,7 @@ namespace Berta
 	{
 		void Reactor::DoOnInit()
 		{
-			m_textEditor = std::make_unique<TextEditor>(*m_control, m_graphics);
+			m_textEditor = std::make_unique<TextEditor>(*m_control);
 
 			m_textEditor->SetEditorArea(GetEditorArea());
 			m_textEditor->SetValueChangedCallback([this]()
@@ -29,7 +29,7 @@ namespace Berta
 
 		void Reactor::Update(Graphics& graphics)
 		{
-			m_textEditor->Render();
+			m_textEditor->Render(graphics);
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

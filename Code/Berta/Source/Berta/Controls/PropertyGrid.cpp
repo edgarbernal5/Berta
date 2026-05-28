@@ -783,7 +783,6 @@ namespace Berta
 
 		void PropertyGridLayout::Draw(Graphics& graphics, const PropertyGridModel& model, Appearance* appearance)
 		{
-			
 			auto HideDescendants = [&](auto& self, const std::vector<PooledPropertyPtr>& props) -> void 
 			{
 				for (const auto& subProp : props)

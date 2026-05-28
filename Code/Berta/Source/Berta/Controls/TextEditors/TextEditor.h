@@ -30,7 +30,7 @@ namespace Berta
 		using TextEditorCallback = std::function<void()>;
 
 	public:
-		TextEditor(Window* owner, Graphics* graphics);
+		TextEditor(Window* owner);
 		~TextEditor() = default;
 		
 		void OnMouseEnter(const ArgMouse& args);
@@ -43,7 +43,7 @@ namespace Berta
 		bool OnKeyPressed(const ArgKeyboard& args);
 		bool OnKeyReleased(const ArgKeyboard& args);
 		bool OnDblClick(const ArgMouse& args);
-		void OnResize(ArgResize args);
+		void OnResize(const ArgResize& args);
 		void OnDpiChanged();
 
 		void SetValueChangedCallback(const TextEditorCallback& callback) { m_valueChangedCallback = callback; }
@@ -58,7 +58,7 @@ namespace Berta
 		void Paste();
 		
 		void SetEditorArea(const Rectangle& area);
-		void Render();
+		void Render(Graphics& graphics);
 
 		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
 		
@@ -111,9 +111,6 @@ namespace Berta
 			void Reset(TextPosition position) { m_startPosition = m_endPosition = position; }
 		};
 
-		void ActivateCaret() const;
-		void DeactivateCaret() const;
-
 		void InsertChar(wchar_t wChr);
 
 		void MoveCaretHome(bool select);
@@ -128,10 +125,10 @@ namespace Berta
 		
 		void DeleteRange(TextPosition start, TextPosition end);
 		
-		void RenderVisibleLines();
-		void RenderCaret();
-		void RenderUIElements();
-		void DrawSelectionBackground(const VisualLine& vl) const;
+		void RenderVisibleLines(Graphics& graphics);
+		void RenderCaret(Graphics& graphics);
+		void RenderUIElements(Graphics& graphics);
+		void DrawSelectionBackground(Graphics& graphics, const VisualLine& vl) const;
                                 		
 		[[nodiscard]] std::pair<uint32_t, uint32_t> GetSelectionRangeForLine(const VisualLine& vl) const;
 		size_t GetVisualLineIndexFromPos(TextPosition position) const;
@@ -146,7 +143,7 @@ namespace Berta
 		[[nodiscard]] Size GetContentTextExtent() const;
 		
 		void RecomputeWordWrap();
-		void ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth);
+		void ComputeVisualLinesForLogicalLine(Graphics& graphics,size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth);
 		void UpdateLinesIncremental(size_t startLine, int lineCountDelta);
 		size_t GetFirstVisibleVisualLine() const;
 		
@@ -172,7 +169,6 @@ namespace Berta
 		Selection m_selection;
 		Rectangle m_editorArea;
 		
-		Graphics& m_graphics;
 		std::unique_ptr<ScrollableView> m_scrollableView;
 		std::unique_ptr<Caret> m_caret;
 		bool m_shiftPressed{ false };

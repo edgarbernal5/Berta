@@ -23,8 +23,7 @@
 
 namespace Berta
 {
-	TextEditor::TextEditor(Window* owner, Graphics* graphics) :
-		m_graphics(*graphics),
+	TextEditor::TextEditor(Window* owner) :
 		m_owner(owner)
 	{
 		m_caret = std::make_unique<Caret>(owner, Size{2,0});
@@ -217,8 +216,8 @@ namespace Berta
 
 				m_selection.m_ignoreMouseDown = args.FocusReason == ArgFocus::Reason::MousePress;
 			}
-
-			ActivateCaret();
+			
+			m_caret->Activate();
 			return needUpdate;
 		}
 
@@ -226,8 +225,10 @@ namespace Berta
 		{
 			Deselect();
 		}
-		DeactivateCaret();
+		
+		m_caret->Deactivate();
 		m_selection.m_isSelecting = false;
+		
 		return needUpdate;
 	}
 
@@ -348,7 +349,7 @@ namespace Berta
 		return true;
 	}
 
-	void TextEditor::OnResize(ArgResize args)
+	void TextEditor::OnResize(const ArgResize& args)
 	{
 		RecomputeWordWrap();
 		UpdateScrollMetrics();
@@ -513,23 +514,23 @@ namespace Berta
 		m_editorArea = area;
 	}
 
-	void TextEditor::Render()
+	void TextEditor::Render(Graphics& graphics)
 	{
 		bool enabled = GUI::IsWindowEnabled(m_owner);
-		m_graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
+		graphics.FillRectangle(m_owner->ClientSize.ToRectangle(), GetBackgroundColor());
 		
-		m_graphics.SetClipping(m_editorArea);
+		graphics.SetClipping(m_editorArea);
 		
 		auto currentOffset = m_scrollableView->GetScrollOffset();
-		m_graphics.PushTranslation(m_editorArea.X - currentOffset.X, m_editorArea.Y - currentOffset.Y);
+		graphics.PushTranslation(m_editorArea.X - currentOffset.X, m_editorArea.Y - currentOffset.Y);
 		
-		RenderVisibleLines();
-		RenderCaret();
+		RenderVisibleLines(graphics);
+		RenderCaret(graphics);
 		
-		m_graphics.PopTranslation();
-		m_graphics.EndClipping();
+		graphics.PopTranslation();
+		graphics.EndClipping();
 		
-		RenderUIElements();
+		RenderUIElements(graphics);
 	}
 
 	void TextEditor::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
@@ -667,26 +668,7 @@ namespace Berta
 		file.write(utf8Content.c_str(), utf8Content.size());
 	}
 
-	void TextEditor::ActivateCaret() const
-	{
-		auto& currentLine = m_lines[m_selection.m_endPosition.line];
-		auto extent = m_graphics.GetTextExtent(currentLine.substr(0, m_selection.m_endPosition.column));
-		auto currentOffset = m_scrollableView->GetScrollOffset();
-		
-		Point caretPos;
-		caretPos.X = static_cast<int>(extent.Width) + currentOffset.X;
-		caretPos.Y = static_cast<int>(m_selection.m_endPosition.line * GetLineHeight()) + currentOffset.Y;
-		
-		m_caret->SetPosition(caretPos);
-		m_caret->Activate();
-	}
-
-	void TextEditor::DeactivateCaret() const
-	{
-		m_caret->Deactivate();
-	}
-
-	void TextEditor::InsertChar(const wchar_t wChr)
+	void TextEditor::InsertChar(const wchar_t wChar)
 	{
 		if (!m_selection.IsEmpty())
 		{
@@ -696,7 +678,7 @@ namespace Berta
 		
 		TextPosition& position = m_selection.m_endPosition;
     
-		if (wChr == L'\n')
+		if (wChar == L'\n')
 		{
 			std::wstring remainder;
 			{
@@ -717,7 +699,7 @@ namespace Berta
 		}
 		else
 		{
-			m_lines[position.line].insert(position.column, 1, wChr);
+			m_lines[position.line].insert(position.column, 1, wChar);
         
 			InvalidateLayoutsForLogicalLine(position.line);
 			UpdateLinesIncremental(position.line, 0);
@@ -989,7 +971,7 @@ namespace Berta
 		m_selection.Reset(start);
 	}
 
-	void TextEditor::RenderVisibleLines()
+	void TextEditor::RenderVisibleLines(Graphics& graphics)
 	{
 		size_t firstLineIndex = GetFirstVisibleVisualLine();
 		int viewportBottom = m_scrollableView->GetScrollOffset().Y + (int)m_editorArea.Height;
@@ -1003,16 +985,16 @@ namespace Berta
 
 			EnsureLayout(vl);
 
-			DrawSelectionBackground(vl);
+			DrawSelectionBackground(graphics, vl);
 
 			if (vl.m_textHandle)
 			{
-				m_graphics.DrawTextLayout(vl.m_textHandle, { 0, static_cast<int>(vl.y) }, textColor);
+				graphics.DrawTextLayout(vl.m_textHandle, { 0, static_cast<int>(vl.y) }, textColor);
 			}
 		}
 	}
 
-	void TextEditor::RenderCaret()
+	void TextEditor::RenderCaret(Graphics& graphics)
 	{
 		if (!m_caret || !m_caret->IsVisible())
 		{
@@ -1021,10 +1003,10 @@ namespace Berta
 		
 		Point logicalCaretPos = m_caret->GetPosition(); 
         
-		auto caretHeight = m_graphics.GetCaretHeight(); 
+		auto caretHeight = graphics.GetCaretHeight(); 
 		Color caretColor = m_owner->Appearance->Foreground2nd;
 
-		m_graphics.DrawLine
+		graphics.DrawLine
 		(
 			{ logicalCaretPos.X, logicalCaretPos.Y }, 
 			{ logicalCaretPos.X, logicalCaretPos.Y + static_cast<int>(caretHeight) }, 
@@ -1033,12 +1015,12 @@ namespace Berta
 		);
 	}
 
-	void TextEditor::RenderUIElements()
+	void TextEditor::RenderUIElements(Graphics& graphics)
 	{
 		if (m_scrollableView && m_scrollableView->HasVerticalScroll() && m_scrollableView->HasHorizontalScroll())
 		{
 			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-			m_graphics.FillRectangle(
+			graphics.FillRectangle(
 				{ static_cast<int>(m_owner->ClientSize.Width - scrollSize) - 1, 
 				  static_cast<int>(m_owner->ClientSize.Height - scrollSize) - 1, 
 				  scrollSize, scrollSize }, 
@@ -1047,10 +1029,10 @@ namespace Berta
 		}
 
 		bool enabled = GUI::IsWindowEnabled(m_owner);
-		m_graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
+		graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
 	}
 	
-	void TextEditor::DrawSelectionBackground(const VisualLine& vl) const
+	void TextEditor::DrawSelectionBackground(Graphics& graphics, const VisualLine& vl) const
 	{
 		if (!vl.m_textHandle.m_textLayout)
 		{
@@ -1107,7 +1089,7 @@ namespace Berta
 						static_cast<uint32_t>(metrics.width),
 						uniformLineHeight 
 					};
-					m_graphics.FillRectangle(rect, selColor);
+					graphics.FillRectangle(rect, selColor);
 				}
 			}
 		}
@@ -1127,7 +1109,7 @@ namespace Berta
 				8u, // Ancho visual del "Enter" 
 				uniformLineHeight
 			};
-			m_graphics.FillRectangle(newlineRect, selColor);
+			graphics.FillRectangle(newlineRect, selColor);
 		}
 #endif
 	}
@@ -1215,7 +1197,7 @@ namespace Berta
 
 	uint32_t TextEditor::GetLineHeight() const
 	{
-		return m_graphics.GetTextExtent("Ay").Height;
+		return m_owner->Renderer.GetGraphics().GetTextExtent("Ay").Height;
 	}
 
 	void TextEditor::AdjustView() const
@@ -1253,7 +1235,7 @@ namespace Berta
 		if (!m_features.wordWrap)
 		{
 			std::wstring textToCaret = m_lines[vl.logicalLineIndex].substr(vl.charStart, m_selection.m_endPosition.column - vl.charStart);
-			int caretX = static_cast<int>(m_graphics.GetTextExtent(textToCaret).Width);
+			int caretX = static_cast<int>(m_owner->Renderer.GetGraphics().GetTextExtent(textToCaret).Width);
 
 			if (caretX > currentOffset.X + viewWidth)
 			{
@@ -1591,7 +1573,7 @@ namespace Berta
 		
 		for (size_t i = 0; i < m_lines.size(); ++i)
 		{
-			ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines, workingWidth);
+			ComputeVisualLinesForLogicalLine(m_owner->Renderer.GetGraphics(), i, currentY, m_visualLines, workingWidth);
 		}
 
 		if (m_features.wordWrap)
@@ -1606,7 +1588,7 @@ namespace Berta
 				currentY = 0;
 				for (size_t i = 0; i < m_lines.size(); ++i)
 				{
-					ComputeVisualLinesForLogicalLine(i, currentY, m_visualLines, workingWidth);
+					ComputeVisualLinesForLogicalLine(m_owner->Renderer.GetGraphics(), i, currentY, m_visualLines, workingWidth);
 				}
 			}
 			m_cachedMaxWidth = workingWidth;
@@ -1615,7 +1597,7 @@ namespace Berta
 		UpdateScrollMetrics();
 	}
 
-	void TextEditor::ComputeVisualLinesForLogicalLine(size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth)
+	void TextEditor::ComputeVisualLinesForLogicalLine(Graphics& graphics, size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth)
 	{
 		const std::wstring& line = m_lines[logicalIndex];
 		auto lineHeight = GetLineHeight();
@@ -1630,14 +1612,14 @@ namespace Berta
 
 		if (!m_features.wordWrap)
 		{
-			m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, m_graphics.GetTextExtent(line).Width);
+			m_cachedMaxWidth = std::max<uint32_t>(m_cachedMaxWidth, graphics.GetTextExtent(line).Width);
 			outList.emplace_back(logicalIndex, 0, line.size(), yOffset);
 			yOffset += lineHeight;
 			return;
 		}
 		
 #ifdef BT_PLATFORM_WINDOWS
-		auto nativeAttr = m_graphics.GetNativeHandle();
+		auto nativeAttr = graphics.GetNativeHandle();
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> tempLayout;
 		
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
@@ -1729,7 +1711,7 @@ namespace Berta
 
 		for (size_t i = startLine; i <= lastLineToCompute; ++i)
 		{
-			ComputeVisualLinesForLogicalLine(i, runningY, newVisuals, m_cachedMaxWidth);
+			ComputeVisualLinesForLogicalLine(m_owner->Renderer.GetGraphics(), i, runningY, newVisuals, m_cachedMaxWidth);
 		}
 
 		m_visualLines.insert(m_visualLines.begin() + visualStartIndex, newVisuals.begin(), newVisuals.end());
@@ -1779,7 +1761,7 @@ namespace Berta
 		}
 
 #ifdef BT_PLATFORM_WINDOWS
-		auto nativeAttr = m_graphics.GetNativeHandle();
+		auto nativeAttr = m_owner->Renderer.GetGraphics().GetNativeHandle();
 		if (!nativeAttr || !nativeAttr->m_textFormat)
 		{
 			return;
