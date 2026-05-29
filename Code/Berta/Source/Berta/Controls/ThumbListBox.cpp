@@ -17,6 +17,7 @@ namespace Berta
 	{
 		m_module.m_window = m_control->Handle();
 		m_module.m_control = m_control;
+		GUI::SetWindowBorderless(*m_control, false);
 		
 		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(m_control->Handle()->Events.get());
 		

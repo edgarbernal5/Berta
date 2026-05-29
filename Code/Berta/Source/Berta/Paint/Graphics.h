@@ -117,6 +117,7 @@ namespace Berta
 		void Begin();
 		void Flush();
 
+		void ResetTransform();
 		void SetTransform(const Rectangle& area);
 		void SetClipping(const Rectangle& area) const;
 		void EndClipping();

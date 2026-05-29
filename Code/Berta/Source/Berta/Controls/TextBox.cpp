@@ -25,6 +25,8 @@ namespace Berta
 				//args.NewValue = m_textEditor->GetContent();
 				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
 			});
+			
+			GUI::SetWindowBorderless(*m_control, false);
 		}
 
 		void Reactor::Update(Graphics& graphics)

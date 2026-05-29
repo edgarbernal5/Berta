@@ -76,6 +76,8 @@ namespace Berta
 		void SendCustomMessage(Window* window, std::function<void()> body);
 
 		bool IsWindowBorderless(Window* window);
+		void SetWindowBorderless(Window* window, bool borderless);
+		
 		void DisposeMenu();
 
 		void Exit();

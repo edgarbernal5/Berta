@@ -173,6 +173,8 @@ namespace Berta
 			m_module.m_window = m_control->Handle();
 			m_module.m_control = m_control;
 
+			GUI::SetWindowBorderless(*m_control, false);
+			
 			m_module.m_headers.Init(m_module.m_window);
 			m_module.m_items.SetOnChangedCallback([this]()
 			{
@@ -235,13 +237,7 @@ namespace Berta
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
 			auto globalRect = m_module.m_window->ClientSize.ToRectangle();
 			graphics.FillRectangle(globalRect, appearance->BoxBackground);
-			if (!m_control->IsBorderless())
-			{
-				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
-				
-				Rectangle localBorderRect = m_control->GetClientArea();
-				graphics.SetClipping(localBorderRect);
-			}
+			
 			m_module.m_headers.Draw(graphics, m_module.m_scrollableView->GetVisibleRect(), m_module.m_scrollableView->GetClientArea());
 			m_module.DrawList(graphics);
 			
@@ -264,11 +260,6 @@ namespace Berta
 					},
 					appearance->Background
 				);
-			}
-			
-			if (!m_control->IsBorderless())
-			{
-				graphics.EndClipping();
 			}
 		}
 

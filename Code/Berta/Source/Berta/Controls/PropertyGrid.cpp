@@ -1588,6 +1588,7 @@ namespace Berta
 		void Reactor::DoOnInit()
 		{
 			m_module.m_owner = m_control->Handle();
+			GUI::SetWindowBorderless(*m_control, false);
 
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_owner->Appearance.get());
 			m_module.m_events = reinterpret_cast<Events*>(m_module.m_owner->Events.get());

@@ -1032,6 +1032,14 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::ResetTransform()
+	{
+		
+#ifdef BT_PLATFORM_WINDOWS
+		m_targetRT->SetTransform(D2D1::Matrix3x2F::Identity());
+#endif
+	}
+
 	void Graphics::Swap(Graphics& other)
 	{
 		std::swap(m_size, other.m_size);

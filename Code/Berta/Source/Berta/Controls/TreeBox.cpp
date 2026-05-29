@@ -115,6 +115,7 @@ namespace Berta
 		m_module.m_control = m_control;
 		m_module.m_graphics = m_graphics;
 		
+		GUI::SetWindowBorderless(*m_control, false);
 		m_module.InitScrollableView();
 	}
 
@@ -136,13 +137,6 @@ namespace Berta
 		
 		auto globalRect = window->ClientSize.ToRectangle();
 		graphics.FillRectangle(globalRect, window->Appearance->BoxBackground);
-		if (!m_control->IsBorderless())
-		{
-			graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
-				
-			Rectangle localBorderRect = m_control->GetClientArea();
-			graphics.SetClipping(localBorderRect);
-		}
 		
 		m_module.DrawTreeNodes(graphics);
 
@@ -150,11 +144,6 @@ namespace Berta
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
 			graphics.FillRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background);
-		}
-		
-		if (!m_control->IsBorderless())
-		{
-			graphics.EndClipping();
 		}
 	}
 

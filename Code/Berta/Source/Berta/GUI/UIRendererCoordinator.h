@@ -26,7 +26,7 @@ namespace Berta
 
 	private:
 		static bool GetIntersectionRect(Window* window, Rectangle& result);
-		static void MapInternal(Window* window, bool processChildren, const Rectangle& parentRect);
+		static void MapInternal(Window* window, bool processChildren, const Rectangle& absoluteParentRect, const Rectangle& activeClip);
 	};
 }
 

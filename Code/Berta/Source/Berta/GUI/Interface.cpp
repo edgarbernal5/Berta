@@ -559,6 +559,17 @@ namespace Berta::GUI
 		return window->Flags.Borderless;
 	}
 
+	void SetWindowBorderless(Window* window, bool borderless)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		window->Flags.Borderless = borderless;
+	}
+
 	void DisposeMenu()
 	{
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();

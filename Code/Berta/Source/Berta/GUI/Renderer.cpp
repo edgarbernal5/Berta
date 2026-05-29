@@ -41,38 +41,30 @@ namespace Berta
 		window->RootGraphics->Paste(window->RootPaintHandle, areaToUpdate, areaToUpdate.X, areaToUpdate.Y);
 	}
 
-	void Renderer::Update(const Rectangle& clipRect)
+	void Renderer::Update()
 	{
 		BT_ASSERT(!m_controlReactor || !m_updating, "Renderer Update is already updating.");
-
+		//Precondición: Graphics.Begin() debe ser invocado
+		
 		if (m_controlReactor && !m_updating && m_graphics->IsValid())
 		{
 			m_updating = true;
-			//asumimos que el rootgraphics hizo el begindraw
+			
+			// 1. Establecer el espacio de coordenadas local
 			auto absoluteArea = m_control->GetArea();
 			m_graphics->SetTransform(absoluteArea);
 
-			/*if (!m_control->IsBorderless())
-			{
-				Rectangle localBorderRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
-				m_graphics->DrawRectangle(localBorderRect, m_control->Handle()->Appearance->BoxBorderColor, false);
-			}
+			// 1. DIBUJAR CONTENIDO PRIMERO (Algoritmo del Pintor)
+			// El TextBox pintará su fondo blanco desde (0,0) hasta (Width, Height)
+			// y luego dibujará el texto encima de su propio fondo.
+			m_controlReactor->Update(*m_graphics);
 			
-			Rectangle controlClipRect = clipRect;
+			// 2. DIBUJAR EL BORDE AL FINAL (Por encima de todo)
 			if (!m_control->IsBorderless())
 			{
-				controlClipRect.X += 1;
-				controlClipRect.Y += 1;
-				controlClipRect.Height -= 2u;
-				controlClipRect.Width -= 2u;
-			}*/
-			Rectangle relativeClipRect = clipRect;
-			relativeClipRect.X -= absoluteArea.X;
-			relativeClipRect.Y -= absoluteArea.Y;
-			
-			m_graphics->SetClipping(relativeClipRect);
-			m_controlReactor->Update(*m_graphics);
-			m_graphics->EndClipping();
+				Rectangle localBorderRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
+				m_graphics->DrawRectangle(localBorderRect, m_control->Handle()->Appearance->BoxBorderColor);
+			}
 
 			m_updating = false;
 		}

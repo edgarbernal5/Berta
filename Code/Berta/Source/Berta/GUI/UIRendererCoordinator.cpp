@@ -7,6 +7,7 @@
 #include "btpch.h"
 #include "UIRendererCoordinator.h"
 
+#include "Berta/GUI/ScopedClip.h"
 #include "Berta/GUI/Interface.h"
 
 namespace Berta
@@ -40,7 +41,7 @@ namespace Berta
 		{
 			ScopedUpdatingFlag guard(window);
 			
-			window->Renderer.Update(window->ClientSize.ToRectangle());
+			window->Renderer.Update();
 		}
 		Map(window, operation != PaintOperation::None, processChildren);
 		rootGraphics.Flush();
@@ -59,11 +60,16 @@ namespace Berta
 			return;
 		}
 		
-		Rectangle rect;
-		if (!GetIntersectionRect(window, rect))
+		Rectangle activeClip;
+		if (!GetIntersectionRect(window, activeClip))
 			return;
 
-		MapInternal(window, processChildren, rect);
+		// 1. Obtenemos el rectángulo absoluto real para las coordenadas
+		auto absolutePosition = GUI::GetWindowRootPosition(window);
+		Rectangle absoluteParentRect{ absolutePosition.X, absolutePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+
+		// Pasamos ambos de forma independiente
+		MapInternal(window, processChildren, absoluteParentRect, activeClip);
 	}
 
 	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result)
@@ -80,14 +86,13 @@ namespace Berta
 		return LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, result);
 	}
 
-	void UIRendererCoordinator::MapInternal(Window* window, bool processChildren, const Rectangle& parentRect)
+	void UIRendererCoordinator::MapInternal(Window* window, bool processChildren, const Rectangle& absoluteParentRect, const Rectangle& activeClip)
 	{
+		auto& rootGraphics = *(window->RootGraphics);
+
 		for (auto* child : window->Children)
 		{
-			if (!child->Visible)
-			{
-				continue;
-			}
+			if (!child->Visible) continue;
 
 			if (child->IsNative())
 			{
@@ -95,22 +100,48 @@ namespace Berta
 				continue;
 			}
 
-			Rectangle childRect = parentRect;
-			childRect.X += child->Position.X;
-			childRect.Y += child->Position.Y;
-			childRect.Width = child->ClientSize.Width;
-			childRect.Height = child->ClientSize.Height;
-			
-			Rectangle clipRect;
-			if (LayoutUtils::GetIntersectionRect(childRect, parentRect, clipRect))
+			Rectangle childAbsoluteRect = absoluteParentRect;
+			childAbsoluteRect.X += child->Position.X;
+			childAbsoluteRect.Y += child->Position.Y;
+			childAbsoluteRect.Width = child->ClientSize.Width;
+			childAbsoluteRect.Height = child->ClientSize.Height;
+        
+			Rectangle childClip;
+			// 2. CLIPPING: Comparamos contra el activeClip heredado
+			if (LayoutUtils::GetIntersectionRect(childAbsoluteRect, activeClip, childClip))
 			{
-				if (child->Type != WindowType::Panel && processChildren && !child->Flags.isUpdating)
+				rootGraphics.ResetTransform();
+				
+				// --- INICIO CLIP DEL CONTROL ---
 				{
-					ScopedUpdatingFlag guard(child);
+					ScopedClip controlClip(rootGraphics, childClip);
 
-					child->Renderer.Update(clipRect);
+					if (child->Type != WindowType::Panel && processChildren && !child->Flags.isUpdating)
+					{
+						ScopedUpdatingFlag guard(child);
+						child->Renderer.Update(); 
+					}
+
+					// --- INICIO CLIP DE LOS HIJOS (Box Model) ---
+					Rectangle contentClip = childClip;
+					if (!GUI::IsWindowBorderless(child))
+					{
+						contentClip.X += 1;
+						contentClip.Y += 1;
+						contentClip.Width -= 2;
+						contentClip.Height -= 2;
+					}
+
+					Rectangle finalChildrenClip;
+					if (LayoutUtils::GetIntersectionRect(contentClip, childClip, finalChildrenClip))
+					{
+						rootGraphics.ResetTransform();
+                    
+						// RECURSIÓN: Pasamos el childAbsoluteRect (coordenadas intactas) 
+						// y el finalChildrenClip (tijera ajustada)
+						MapInternal(child, processChildren, childAbsoluteRect, finalChildrenClip);
+					}
 				}
-				MapInternal(child, processChildren, clipRect);
 			}
 		}
 	}

@@ -169,7 +169,7 @@
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h" />
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h" />
-    <ClInclude Include="Source\Berta\GUI\ControlClipping.h" />
+    <ClInclude Include="Source\Berta\GUI\ScopedClip.h" />
     <ClInclude Include="Source\Berta\GUI\ControlDrawBatch.h" />
     <ClInclude Include="Source\Berta\GUI\LassoSelection.h" />
     <ClInclude Include="Source\Berta\GUI\ScrollableView.h" />
@@ -255,7 +255,6 @@
     <ClCompile Include="Source\Berta\Controls\PropertyGrid.cpp" />
     <ClCompile Include="Source\Berta\Controls\Slider.cpp" />
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
-    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp" />
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp" />

@@ -604,7 +604,6 @@ namespace Berta
 					rect->bottom - rect->top,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 				
-				
 				API::RefreshWindow(nativeWindowHandle);
 				wasHandled = false;
 				break;

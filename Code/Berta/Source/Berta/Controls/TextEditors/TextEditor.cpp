@@ -1027,9 +1027,6 @@ namespace Berta
 				m_owner->Appearance->Background
 			);
 		}
-
-		bool enabled = GUI::IsWindowEnabled(m_owner);
-		graphics.DrawRectangle(m_owner->ClientSize.ToRectangle(), enabled ? m_owner->Appearance->BoxBorderColor : m_owner->Appearance->BoxBorderDisabledColor);
 	}
 	
 	void TextEditor::DrawSelectionBackground(Graphics& graphics, const VisualLine& vl) const
