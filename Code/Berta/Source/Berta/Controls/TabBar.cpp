@@ -539,11 +539,15 @@ namespace Berta
 		Rectangle contentArea;
 		if (m_tabRowPosition == TabRowPosition::Top)
 		{
-			contentArea = { 2, tabBarItemHeight + 3, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) };
+			contentArea = { 2, tabBarItemHeight + 3,
+				clientWidth > 4 ? static_cast<uint32_t>(clientWidth - 4) : 0,
+				clientHeight > tabBarItemHeight + 4 + 2 ? static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) : 0 };
 		}
 		else
 		{
-			contentArea = { 2, 3, static_cast<uint32_t>(clientWidth - 4), static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) };
+			contentArea = { 2, 3, 
+				clientWidth > 4 ?  static_cast<uint32_t>(clientWidth - 4) : 0, 
+				clientHeight > tabBarItemHeight + 4 + 2 ? static_cast<uint32_t>(clientHeight - tabBarItemHeight - 4 - 2) : 0 };
 		}
 		
 		if (includePadding)
@@ -624,7 +628,10 @@ namespace Berta
 	void TabBar::Clear()
 	{
 		auto& module = GetReactor().GetModule();
-		module.Clear();
+		if (module.Clear())
+		{
+			module.Draw();
+		}
 	}
 	
 	size_t TabBar::Count() const
@@ -636,6 +643,7 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		module.EraseTab(index);
+		module.Draw();
 	}
 
 	std::optional<size_t> TabBar::GetSelectedIndex() const
