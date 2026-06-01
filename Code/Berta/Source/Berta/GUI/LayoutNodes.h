@@ -228,7 +228,7 @@ namespace Berta
 
         virtual void CalculateAreas() = 0;
 
-        LayoutNode* Find(const std::string& id);
+        LayoutNode* Find(std::string_view id);
         LayoutNode* FindFirst(LayoutNodeType nodeType);
 
         void SetParentWindow(Window* window)
@@ -284,7 +284,7 @@ namespace Berta
         Number m_fixedHeight;
 
     protected:
-        LayoutNode* Find(const std::string& id, LayoutNode* node);
+        LayoutNode* Find(std::string_view id, LayoutNode* node);
         LayoutNode* FindFirst(LayoutNodeType nodeType, LayoutNode* node);
 
         std::string m_id;

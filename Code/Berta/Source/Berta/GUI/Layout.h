@@ -13,8 +13,8 @@
 #include "Berta/Controls/Docking/DockIndicatorForm.h"
 
 #include <memory>
-#include <functional>
-#include <map>
+#include <unordered_map>
+#include <string_view>
 
 namespace Berta
 {
@@ -60,7 +60,7 @@ namespace Berta
         };
 
         Type type;
-        std::string value;
+        std::string_view value;
         size_t line;
         size_t column;
     };
@@ -148,16 +148,16 @@ namespace Berta
     {
     public:
         Layout();
-        Layout(Window* window);
+        Layout(Window* owner);
         ~Layout() override;
 
-        void AddPane(const std::string& paneId);
-        void AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control);
-        void AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control, const std::string& relativePaneId, DockPosition dockPosition);
+        void AddPane(std::string_view paneId);
+        void AddPaneTab(std::string_view paneId, std::string_view tabId, std::unique_ptr<ControlBase> control);
+        void AddPaneTab(std::string_view paneId, std::string_view tabId, std::unique_ptr<ControlBase> control, std::string_view relativePaneId, DockPosition dockPosition);
 
         void Apply();
-        void Attach(const std::string& fieldId, Window* window);
-        void Create(Window* window);
+        Layout& Attach(std::string_view fieldId, Window* window);
+        void Create(Window* owner);
         void Parse(const std::string& source);
 
         void NotifyFloat(DockPaneLayoutNode* node) override;
@@ -176,17 +176,17 @@ namespace Berta
             std::unique_ptr<LayoutNode> Parse();
 
         private:
-            bool Accept(Token::Type tokenId);
-            bool AcceptIdentifier(std::string& identifier);
-            bool Expect(Token::Type tokenId);
+            [[nodiscard]] bool Accept(Token::Type tokenId);
+            [[nodiscard]] bool AcceptIdentifier(std::string_view& identifier);
+            [[nodiscard]] bool Expect(Token::Type tokenId);
             bool IsEqualTo(Token::Type tokenId);
 
             Tokenizer m_tokenizer;
             std::string m_source;
         };
 
-        DockPaneLayoutNode* GetPane(const std::string& paneId);
-        DockPaneTabLayoutNode* GetPaneTab(const std::string& paneId, const std::string& tabId);
+        DockPaneLayoutNode* GetPane(std::string_view paneId);
+        DockPaneTabLayoutNode* GetPaneTab(std::string_view paneId, std::string_view tabId);
         void InitPaneIndicators();
         void HidePaneDockIndicators();
         void ShowPaneDockIndicators(LayoutNode* node);
@@ -202,15 +202,16 @@ namespace Berta
         void Print();
         void Print(LayoutNode* node, uint32_t level);
 
-        Window* m_parent{ nullptr };
+        Window* m_owner{ nullptr };
         LayoutNode* m_lastTargetNode{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
-        std::map<std::string, LayoutNode*> m_fields;
-        std::map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
-        std::map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
+        std::unordered_map<std::string, LayoutNode*> m_fields;
+        std::unordered_map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
+        std::unordered_map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
+        std::unordered_map<std::string, PaneInfo> m_dockPaneInfoFields;
         std::vector<std::unique_ptr<LayoutNode>> m_floatingDockFields;
+        
         std::unique_ptr<LayoutNode> m_tabDockField;
-        std::map<std::string, PaneInfo> m_dockPaneInfoFields;
 
         std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;
         bool m_lockPaneIndicators{ false };

@@ -29,7 +29,7 @@ namespace Berta
 		return std::string::npos;
 	}
 
-	LayoutNode* LayoutNode::Find(const std::string& id)
+	LayoutNode* LayoutNode::Find(std::string_view id)
 	{
 		return Find(id, this);
 	}
@@ -39,10 +39,12 @@ namespace Berta
 		return FindFirst(nodeType, this);
 	}
 
-	LayoutNode* LayoutNode::Find(const std::string& id, LayoutNode* node)
+	LayoutNode* LayoutNode::Find(std::string_view id, LayoutNode* node)
 	{
 		if (node->GetId() == id)
+		{
 			return node;
+		}
 
 		for (auto& childPtr : node->m_children)
 		{

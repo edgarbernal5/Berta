@@ -15,16 +15,15 @@
 
 namespace Berta
 {
-	Layout::Layout() :
-		m_parent(nullptr)
+	Layout::Layout()
 	{
 		InitPaneIndicators();
 	}
 
-	Layout::Layout(Window* window)
+	Layout::Layout(Window* owner)
 	{
 		InitPaneIndicators();
-		Create(window);
+		Create(owner);
 	}
 
 	Layout::~Layout()
@@ -32,16 +31,20 @@ namespace Berta
 		m_fields.clear();
 	}
 
-	void Layout::AddPane(const std::string& paneId)
+	void Layout::AddPane(std::string_view paneId)
 	{
 		if (!m_rootNode)
+		{
 			return;
-
+		}
+		
+		std::string paneIdStr{ paneId };
 		auto paneNode = m_rootNode->Find(paneId);
 		if (paneNode)
 		{
 			return;
 		}
+		
 		auto dockRoot = m_rootNode->FindFirst(LayoutNodeType::Dock);
 		if (!dockRoot || !dockRoot->m_children.empty())
 		{
@@ -51,12 +54,12 @@ namespace Berta
 		//create a new layout node (DockPaneLayoutNode)
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
 
-		m_dockPaneFields[paneId] = newPaneNode.get();
-		auto& paneInfo = m_dockPaneInfoFields[paneId];
+		m_dockPaneFields[paneIdStr] = newPaneNode.get();
+		auto& paneInfo = m_dockPaneInfoFields[paneIdStr];
 		paneInfo.id = paneId;
 
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
-		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
 		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
 
 		newPaneNode->m_dockLayoutEvents = this;
@@ -67,14 +70,15 @@ namespace Berta
 		dockRoot->m_children.emplace_back(std::move(newPaneNode));
 	}
 
-	void Layout::AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control)
+	void Layout::AddPaneTab(std::string_view paneId, std::string_view tabId, std::unique_ptr<ControlBase> control)
 	{
 		if (!m_rootNode)
 		{
 			return;
 		}
 
-		auto paneNode = GetPane(paneId);
+		std::string paneIdStr{ paneId };
+		auto paneNode = GetPane(paneIdStr);
 		if (!paneNode)
 		{
 			return;
@@ -84,7 +88,8 @@ namespace Berta
 		{
 			return;
 		}
-		auto paneTabId = paneId + "/" + tabId;
+		std::string tabIdStr{ tabId };
+		auto paneTabId = std::string(paneId) + "/" + tabIdStr;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->SetId(paneTabId);
@@ -94,13 +99,13 @@ namespace Berta
 		paneTabNode->SetParentWindow(paneNode->GetParentWindow());
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
-		paneNode->AddTab(tabId, std::move(control));
+		paneNode->AddTab(tabIdStr, std::move(control));
 		paneNode->m_children.emplace_back(std::move(paneTabNode));
 
 		Apply();
 	}
 
-	void Layout::AddPaneTab(const std::string& paneId, const std::string& tabId, std::unique_ptr<ControlBase> control, const std::string& relativePaneId, DockPosition dockPosition)
+	void Layout::AddPaneTab(std::string_view paneId, std::string_view tabId, std::unique_ptr<ControlBase> control, std::string_view relativePaneId, DockPosition dockPosition)
 	{
 		if (!m_rootNode)
 		{
@@ -119,23 +124,25 @@ namespace Berta
 			return;
 		}
 
+		std::string paneIdStr{ paneId };
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
-		newPaneNode->SetId(paneId);
+		newPaneNode->SetId(paneIdStr);
 
 		auto newPaneNodePtr = newPaneNode.get();
-		m_dockPaneFields[paneId] = newPaneNodePtr;
-		auto& paneInfo = m_dockPaneInfoFields[paneId];
+		m_dockPaneFields[paneIdStr] = newPaneNodePtr;
+		auto& paneInfo = m_dockPaneInfoFields[paneIdStr];
 		paneInfo.id = paneId;
 
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
-		newPaneNode->m_dockArea->Create(m_parent, &paneInfo);
+		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
 		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNodePtr;
 
 		newPaneNode->m_dockLayoutEvents = this;
 		newPaneNode->m_paneId = paneId;
-		newPaneNode->SetParentWindow(m_parent);
+		newPaneNode->SetParentWindow(m_owner);
 
-		auto paneTabId = paneId + "/" + tabId;
+		std::string tabIdStr{ tabId };
+		auto paneTabId = paneIdStr + "/" + tabIdStr;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->SetId(paneTabId);
@@ -145,7 +152,7 @@ namespace Berta
 		
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
-		newPaneNode->AddTab(tabId, std::move(control));
+		newPaneNode->AddTab(tabIdStr, std::move(control));
 		newPaneNode->m_children.emplace_back(std::move(paneTabNode));
 
 		m_floatingDockFields.emplace_back(std::move(newPaneNode));
@@ -158,52 +165,65 @@ namespace Berta
 
 	void Layout::Apply()
 	{
-		if (!m_rootNode || !m_parent)
+		if (!m_rootNode || !m_owner)
 			return;
 
-		auto area = GUI::SizeWindow(m_parent);
+		auto area = GUI::SizeWindow(m_owner);
 		if (area.IsEmpty())
 		{
 			return;
 		}
 		//TODO:
-		DrawBatchActivator drawBatch(m_parent->RootWindow);
+		DrawBatchActivator drawBatch(m_owner->RootWindow);
 
 		m_rootNode->SetArea(area.ToRectangle());
 		m_rootNode->CalculateAreas();
 
-		auto windowToUpdate = m_parent->FindFirstNonPanelAncestor();
+		auto windowToUpdate = m_owner->FindFirstNonPanelAncestor();
 		if (windowToUpdate)
 		{
 			GUI::UpdateWindow(windowToUpdate);
 		}
 	}
 
-	void Layout::Attach(const std::string& fieldId, Window* window)
+	Layout& Layout::Attach(std::string_view fieldId, Window* window)
 	{
-		auto& pair = m_fields[fieldId];
-
-		if (pair == nullptr)
+		std::string searchId{ fieldId };
+		auto it = m_fields.find(searchId);
+		
+		if (it != m_fields.end())
 		{
-			auto newNode = m_rootNode->Find(fieldId);
-			pair = newNode;
+			it->second->AddWindow(window);
 		}
-		pair->AddWindow(window);
+		else
+		{
+			auto newNode = m_rootNode->Find(searchId);
+			if (newNode)
+			{
+				// ¡Lo encontramos! Lo guardamos en caché y vinculamos
+				m_fields[searchId] = newNode; 
+				newNode->AddWindow(window);
+			}
+			else
+			{
+			}
+		}
+		return *this;
 	}
 
-	void Layout::Create(Window* window)
+	void Layout::Create(Window* owner)
 	{
-		if (!window)
+		if (!owner)
 		{
 			return;
 		}
-		if (m_parent)
+		if (m_owner)
 		{
 
 		}
-		m_parent = window;
+		m_owner = owner;
 
-		m_parent->Events->Resize.Connect([this](const ArgResize& args)
+		m_owner->Events->Resize.Connect([this](const ArgResize& args)
 			{
 				//TODO: add this same logic to visibility event?!
 				if (m_rootNode)
@@ -228,7 +248,7 @@ namespace Berta
 		BT_CORE_TRACE << "Parse completed." << std::endl;
 
 		m_rootNode = std::move(rootNode);
-		m_rootNode->SetParentWindow(m_parent);
+		m_rootNode->SetParentWindow(m_owner);
 	}
 
 	void Layout::NotifyFloat(DockPaneLayoutNode* node)
@@ -273,7 +293,7 @@ namespace Berta
 
 				auto dockPanelTargetArea = paneNode->GetArea();
 
-				m_dockPanelTarget.reset(new DockPanel(m_parent, false, dockPanelTargetArea));
+				m_dockPanelTarget.reset(new DockPanel(m_owner, false, dockPanelTargetArea));
 				m_dockPanelTarget->Show();
 
 				Print();
@@ -309,7 +329,7 @@ namespace Berta
 		{
 			if (m_tabDockField)
 			{
-				auto targetPane = reinterpret_cast<DockPaneLayoutNode*>(m_lastTargetNode);
+				auto targetPane = static_cast<DockPaneLayoutNode*>(m_lastTargetNode);
 				targetPane->AddPane(paneNode);
 
 				for (size_t i = 0; i < paneNode->m_children.size(); i++)
@@ -337,7 +357,7 @@ namespace Berta
 	void Layout::RequestClose(DockPaneLayoutNode* paneNode)
 	{
 		auto index = paneNode->m_dockArea->GetTabSelectedIndex().value();
-		auto childNode = reinterpret_cast<DockPaneTabLayoutNode*>(paneNode->m_children[index].get());
+		auto childNode = static_cast<DockPaneTabLayoutNode*>(paneNode->m_children[index].get());
 		m_dockPaneTabFields.erase(childNode->m_tabId);
 
 		paneNode->m_dockArea->m_tabBar->Erase(index);
@@ -371,9 +391,10 @@ namespace Berta
 		return true;
 	}
 
-	DockPaneLayoutNode* Layout::GetPane(const std::string& paneId)
+	DockPaneLayoutNode* Layout::GetPane(std::string_view paneId)
 	{
-		auto it = m_dockPaneFields.find(paneId);
+		std::string paneIdStr { paneId };
+		auto it = m_dockPaneFields.find(paneIdStr);
 		if (it != m_dockPaneFields.end())
 		{
 			return it->second;
@@ -382,9 +403,9 @@ namespace Berta
 		return nullptr;
 	}
 
-	DockPaneTabLayoutNode* Layout::GetPaneTab(const std::string& paneId, const std::string& tabId)
+	DockPaneTabLayoutNode* Layout::GetPaneTab(std::string_view paneId, std::string_view tabId)
 	{
-		auto paneTabId = paneId + "/" + tabId;
+		auto paneTabId = std::string(paneId) + "/" + std::string(tabId);
 		auto it = m_dockPaneTabFields.find(paneTabId);
 		if (it != m_dockPaneTabFields.end())
 		{
@@ -419,7 +440,7 @@ namespace Berta
 		if (m_lockPaneIndicators)
 			return;
 
-		auto indicatorSize = m_parent->ToScale(32);
+		auto indicatorSize = m_owner->ToScale(32);
 		auto indicatorSizeHalf = indicatorSize >> 1;
 		auto indicatorSizeOffset = indicatorSizeHalf >> 1;
 
@@ -461,12 +482,12 @@ namespace Berta
 
 			if (!indicator->Docker)
 			{
-				indicator->Docker = std::make_unique<DockIndicatorForm>(m_parent, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize });
+				indicator->Docker = std::make_unique<DockIndicatorForm>(m_owner, Rectangle{ position.X, position.Y, (uint32_t)indicatorSize, (uint32_t)indicatorSize });
 				indicator->Docker->SetDockPosition(indicator->Position);
 				
 				if (indicator->Docker)
 				{
-					GUI::MakeWindowActive(*indicator->Docker, false, m_parent);
+					GUI::MakeWindowActive(*indicator->Docker, false, m_owner);
 #if BT_DEBUG
 					std::ostringstream builder;
 					builder << "Indicator-" << (int)indicator->Position;
@@ -488,12 +509,12 @@ namespace Berta
 
 	bool Layout::IsMouseInsideWindow() const
 	{
-		if (!m_parent)
+		if (!m_owner)
 			return false;
 
 		auto mousePosition = GUI::GetScreenMousePosition();
-		auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetWindowRootPosition(m_parent));
-		Rectangle rect{ windowPosition.X, windowPosition.Y, m_parent->ClientSize.Width, m_parent->ClientSize.Height };
+		auto windowPosition = GUI::GetPointClientToScreen(m_owner, GUI::GetWindowRootPosition(m_owner));
+		Rectangle rect{ windowPosition.X, windowPosition.Y, m_owner->ClientSize.Width, m_owner->ClientSize.Height };
 
 		return rect.Contains(mousePosition);
 	}
@@ -527,7 +548,7 @@ namespace Berta
 
 	LayoutNode* Layout::GetPaneOrDockOnMousePosition() const
 	{
-		if (!m_parent || !m_rootNode)
+		if (!m_owner || !m_rootNode)
 			return nullptr;
 
 		auto getPane = GetPaneOrDockOnMousePositionInternal(m_rootNode.get(), LayoutNodeType::DockPane);
@@ -546,7 +567,7 @@ namespace Berta
 				nodeType == LayoutNodeType::DockPane)
 			{
 				auto mousePosition = GUI::GetScreenMousePosition();
-				auto windowPosition = GUI::GetPointClientToScreen(m_parent, GUI::GetWindowRootPosition(m_parent));
+				auto windowPosition = GUI::GetPointClientToScreen(m_owner, GUI::GetWindowRootPosition(m_owner));
 				auto nodeArea = node->GetArea();
 				Rectangle rect
 				{
@@ -740,7 +761,7 @@ namespace Berta
 		}
 		else
 		{
-			auto targetParentContainer = reinterpret_cast<ContainerLayoutNode*>(targetParent);
+			auto targetParentContainer = static_cast<ContainerLayoutNode*>(targetParent);
 			if (targetParentContainer->GetOrientation() != (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down))
 			{
 				addNewOrientation = true;
@@ -1094,8 +1115,8 @@ namespace Berta
 	}
 
 	Layout::Parser::Parser(const std::string& source) :
-		m_source(source),
-		m_tokenizer(source)
+		m_tokenizer(source),
+		m_source(source)
 	{
 	}
 
@@ -1255,7 +1276,7 @@ namespace Berta
 
 			if (child->GetType() == LayoutNodeType::Splitter)
 			{
-				auto splitterNode = reinterpret_cast<SplitterLayoutNode*>(child);
+				auto splitterNode = static_cast<SplitterLayoutNode*>(child);
 				splitterNode->SetOrientation(isVertical);
 
 				auto dimension = child->GetProperty<Number>("Dimension");
@@ -1281,7 +1302,7 @@ namespace Berta
 		return false;
 	}
 
-	bool Layout::Parser::AcceptIdentifier(std::string& identifier)
+	bool Layout::Parser::AcceptIdentifier(std::string_view& identifier)
 	{
 		if (m_tokenizer.GetToken() == Token::Type::Identifier)
 		{
@@ -1300,7 +1321,7 @@ namespace Berta
 			char want[HLSLTokenizer::s_maxIdentifier];
 			m_tokenizer.GetTokenName(token, want);
 			*/
-			BT_CORE_ERROR << "error. expected token= " << (int)tokenId << std::endl;
+			BT_CORE_ERROR << "error. expected token= " << static_cast<int>(tokenId) << std::endl;
 			return false;
 		}
 		return true;
