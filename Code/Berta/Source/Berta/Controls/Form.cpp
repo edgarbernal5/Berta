@@ -55,10 +55,10 @@ namespace Berta
 			return GUI::GetNativeHandle(m_handle);
 		}
 
-		void FormBase::SetLayout(const std::string& layoutText)
+		void FormBase::SetLayout(const std::string& layoutSource)
 		{
 			m_layout.Create(*this);
-			m_layout.Parse(layoutText);
+			m_layout.Parse(layoutSource);
 		}
 
 		void FormBase::SetCustomPaintCallback(std::function<void()> callback)

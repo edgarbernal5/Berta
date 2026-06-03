@@ -39,7 +39,7 @@ namespace Berta
 			API::NativeWindowHandle NativeHandle() const;
 
 			Layout& GetLayout() { return m_layout; }
-			void SetLayout(const std::string& layoutText);
+			void SetLayout(const std::string& layoutSource);
 
 			void SetCustomPaintCallback(std::function<void()> callback);
 
