@@ -244,7 +244,7 @@ int main()
 	
 	NewPanel newPanel(form);
 
-	form.SetLayout("{HorizontalLayout {VerticalLayout {VerticalLayout {e}{a}}{VerticalLayout {d}{c}}}{b}");
+	form.SetLayout("{HorizontalLayout {VerticalLayout {VerticalLayout {e}{a}}{VerticalLayout {d}{c}}}{b}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("a", propertyGrid);

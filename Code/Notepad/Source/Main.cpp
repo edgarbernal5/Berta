@@ -36,7 +36,7 @@ int main()
 	oneLineInputText.SetCaption("Primera línea. Segunda línea. Bajada de línea");
 	oneLineInputText.SetScrollBarVisibility(Berta::ScrollBarVisibility::Hidden, Berta::ScrollBarVisibility::Hidden);
 	
-	form.SetLayout("{VerticalLayout {menuBar Height=24}{{a}{VerticalLayout {b}{{}{c}}}}");
+	form.SetLayout("{VerticalLayout {menuBar Height=24}{{a}{VerticalLayout {b}{{}{c}}}}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);

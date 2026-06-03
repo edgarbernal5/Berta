@@ -284,7 +284,7 @@ public:
 		}
 
 		m_layout.Create(*this);
-		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 {{comboBox Width=120}{slider Width=180}}{thumbBox}}");
+		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 {comboBox Width=120}{slider Width=180}}{thumbBox}}");
 
 		m_layout.Attach("comboBox", m_comboBox);
 		m_layout.Attach("slider", m_slider);
@@ -329,7 +329,7 @@ int main()
 	tabbar.PushBack("Explorer", tabExplorer);
 	tabbar.PushBack("Images", tabImages);
 
-	form.SetLayout("{VerticalLayout {menuBar Height=24}{tabBar}");
+	form.SetLayout("{VerticalLayout {menuBar Height=24}{tabBar}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
