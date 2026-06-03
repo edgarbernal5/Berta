@@ -192,6 +192,13 @@ namespace Berta
 #endif
 		}
 
+		void UpdateWindow(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::UpdateWindow(nativeHandle.Handle);
+#endif
+		}
+
 		void RefreshWindow(NativeWindowHandle nativeHandle, bool forceEraseBackground)
 		{
 #ifdef BT_PLATFORM_WINDOWS
