@@ -155,93 +155,93 @@ namespace Berta
 }
 
 	void ContainerLayoutNode::ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, int fixedNodesCount, float dpi)
-{
-    auto getMargin = [&](std::string_view name) -> int {
-        auto* dim = TryGetProperty<Berta::Dimension>(name);
-        return dim ? static_cast<int>(dim->value * dpi) : 0;
-    };
+	{
+		auto getMargin = [&](std::string_view name) -> int {
+			auto* dim = TryGetProperty<Berta::Dimension>(name);
+			return dim ? static_cast<int>(dim->value * dpi) : 0;
+		};
 
-    int marginLeft   = getMargin("margin-left");
-    int marginRight  = getMargin("margin-right");
-    int marginTop    = getMargin("margin-top");
-    int marginBottom = getMargin("margin-bottom");
+		int marginLeft   = getMargin("margin-left");
+		int marginRight  = getMargin("margin-right");
+		int marginTop    = getMargin("margin-top");
+		int marginBottom = getMargin("margin-bottom");
 
-    Point offset{ 0, 0 };
-    int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
-    if (totalFreeCount <= 0) return; // Si no hay nodos libres, el maestro descansa.
+		Point offset{ 0, 0 };
+		int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
+		if (totalFreeCount <= 0) return; // Si no hay nodos libres, el maestro descansa.
 
-    // --- FASE 1: LA BALANZA DE LA VERDAD (Normalización) ---
-    double totalWeight = 0.0;
-    std::vector<double> dynamicWeights(m_children.size(), 0.0);
+		// --- FASE 1: LA BALANZA DE LA VERDAD (Normalización) ---
+		double totalWeight = 0.0;
+		std::vector<double> dynamicWeights(m_children.size(), 0.0);
 
-    for (size_t i = 0; i < m_children.size(); ++i)
-    {
-        if (!markedChildren[i])
-        {
-            auto& childNode = m_children[i];
-            auto* weightDim = childNode->TryGetProperty<Berta::Dimension>("LayoutWeight");
+		for (size_t i = 0; i < m_children.size(); ++i)
+		{
+			if (!markedChildren[i])
+			{
+				auto& childNode = m_children[i];
+				auto* weightDim = childNode->TryGetProperty<Berta::Dimension>("LayoutWeight");
             
-            // Si el panel no tiene peso (ej. recién dockeado), recibe su parte justa
-            double weight = weightDim ? weightDim->value : (1.0 / totalFreeCount);
-            dynamicWeights[i] = weight;
-            totalWeight += weight;
-        }
-    }
+				// Si el panel no tiene peso (ej. recién dockeado), recibe su parte justa
+				double weight = weightDim ? weightDim->value : (1.0 / totalFreeCount);
+				dynamicWeights[i] = weight;
+				totalWeight += weight;
+			}
+		}
 
-    // Escudo matemático: Si por algún glitch todos pesan 0, evitamos la división por 0.
-    if (totalWeight <= 0.0) totalWeight = 1.0; 
+		// Escudo matemático: Si por algún glitch todos pesan 0, evitamos la división por 0.
+		if (totalWeight <= 0.0) totalWeight = 1.0; 
 
-    // --- FASE 2: LA DISTRIBUCIÓN PERFECTA ---
-    uint32_t appliedPixels = 0;
+		// --- FASE 2: LA DISTRIBUCIÓN PERFECTA ---
+		uint32_t appliedPixels = 0;
 
-    for (size_t i = 0; i < m_children.size(); ++i)
-    {
-       auto& childNode = m_children[i];
-       Rectangle childArea = parentArea;
+		for (size_t i = 0; i < m_children.size(); ++i)
+		{
+			auto& childNode = m_children[i];
+			Rectangle childArea = parentArea;
        
-       childArea.X += marginLeft;
-       childArea.Y += marginTop;
-       childArea.Width  -= (marginLeft + marginRight);
-       childArea.Height -= (marginTop + marginBottom);
+			childArea.X += marginLeft;
+			childArea.Y += marginTop;
+			childArea.Width  -= (marginLeft + marginRight);
+			childArea.Height -= (marginTop + marginBottom);
 
-       auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
-       auto& mainPos       = m_isVertical ? childArea.Y : childArea.X;
-       auto& offsetMain    = m_isVertical ? offset.Y : offset.X;
-       auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
-       auto& savedMainDim  = m_isVertical ? areas[i].Height : areas[i].Width;
+			auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
+			auto& mainPos       = m_isVertical ? childArea.Y : childArea.X;
+			auto& offsetMain    = m_isVertical ? offset.Y : offset.X;
+			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
+			auto& savedMainDim  = m_isVertical ? areas[i].Height : areas[i].Width;
 
-       if (markedChildren[i])
-       {
-          childArea.Width = areas[i].Width;
-          childArea.Height = areas[i].Height;
-          mainPos += offsetMain;
-          offsetMain += static_cast<int>(savedMainDim);
-       }
-       else
-       {
-          // Magia Absoluta: La fracción exacta basada en el peso de todos sus hermanos
-          double normalizedFraction = dynamicWeights[i] / totalWeight;
-          uint32_t part = static_cast<uint32_t>(normalizedFraction * remainMainDim);
+			if (markedChildren[i])
+			{
+				childArea.Width = areas[i].Width;
+				childArea.Height = areas[i].Height;
+				mainPos += offsetMain;
+				offsetMain += static_cast<int>(savedMainDim);
+			}
+			else
+			{
+				// Magia Absoluta: La fracción exacta basada en el peso de todos sus hermanos
+				double normalizedFraction = dynamicWeights[i] / totalWeight;
+				uint32_t part = static_cast<uint32_t>(normalizedFraction * remainMainDim);
 
-          appliedPixels += part;
-          mainDim = part;
-          mainPos += offsetMain;
-          offsetMain += static_cast<int>(part);
+				appliedPixels += part;
+				mainDim = part;
+				mainPos += offsetMain;
+				offsetMain += static_cast<int>(part);
           
-          // Actualizamos su propiedad de peso real para que el siguiente drag sea perfecto
-          childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
-       }
+				// Actualizamos su propiedad de peso real para que el siguiente drag sea perfecto
+				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
+			}
 
-       // 3. El Ajuste Divino: El último nodo absorbe los píxeles decimales perdidos por el redondeo
-       if (i == m_children.size() - 1 && remainMainDim > appliedPixels)
-       {
-          mainDim += (remainMainDim - appliedPixels);
-       }
+			// 3. El Ajuste Divino: El último nodo absorbe los píxeles decimales perdidos por el redondeo
+			if (i == m_children.size() - 1 && remainMainDim > appliedPixels)
+			{
+				mainDim += (remainMainDim - appliedPixels);
+			}
 
-       childNode->SetArea(childArea);
-       childNode->CalculateAreas();
-    }
-}
+			childNode->SetArea(childArea);
+			childNode->CalculateAreas();
+		}
+	}
 
 	ContainerLayoutNode::ContainerLayoutNode(bool isVertical) : 
 		LayoutNode(LayoutNodeType::Container),
@@ -323,7 +323,7 @@ namespace Berta
 		m_splitterBeginRect = m_splitter->GetArea();
 		m_mousePositionOffset = -args.Position;
 
-		m_leftArea = GetPrev()->GetArea();
+		m_leftArea = m_prevNode->GetArea();
 		m_rightArea = m_nextNode->GetArea();
 
 		m_isSplitterMoving = true;
@@ -370,7 +370,7 @@ namespace Berta
 
 		// 3. PROPAGACIÓN MAGISTRAL: Actualiza los mapas de propiedades internos de los nodos adyacentes
 		// Este pase ya muta los variants (FixedHeight/FixedWidth o Width/Height si son porcentuales)
-		GetPrev()->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize, m_isVertical);
+		m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize, m_isVertical);
 		m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize, m_isVertical);
 
 		// 4. Mover el área física del propio Splitter
