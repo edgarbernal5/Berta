@@ -11,6 +11,7 @@
 #include "Berta/Controls/Panel.h"
 #include "Berta/Controls/Form.h"
 #include "Berta/Controls/TabBar.h"
+#include "Berta/GUI/Layouts/BasicTypes.h"
 
 #include <unordered_map>
 #include <string>
@@ -57,51 +58,6 @@ namespace Berta
 
     };
 
-    struct Number
-    {
-        using NumberValue = std::variant<int, double>;
-
-        Number() = default;
-        Number(NumberValue value) : scalar(value), isPercentage(false), hasValue(true) {}
-        Number(NumberValue value, bool percentage) : scalar(value), isPercentage(percentage), hasValue(true) {}
-
-        bool HasValue() const
-        {
-            return hasValue;
-        }
-
-        template<class T>
-        T GetValue(float dpiFactor);
-
-        template<class T>
-        T GetValue();
-
-        void SetValue(double newValue)
-        {
-            scalar = newValue;
-            hasValue = true;
-        }
-
-        void SetValue(int newValue)
-        {
-            scalar = newValue;
-            hasValue = true;
-        }
-
-        void Reset()
-        {
-            scalar = 0;
-            hasValue = false;
-            isPercentage = false;
-        }
-
-        bool isPercentage{ false };
-    private:
-
-        NumberValue scalar{ 0 };
-        bool hasValue{ false };
-    };
-
     class SplitterLayoutControl : public Panel
     {
     public:
@@ -112,43 +68,53 @@ namespace Berta
     class LayoutNode
     {
     public:
-        using PropertyValue = std::variant<Number, std::string, bool>;
 
         LayoutNode(LayoutNodeType type);
         virtual ~LayoutNode() = default;
 
-        virtual void AddWindow(Window* window) {};
-        void SetProperty(const std::string& key, const PropertyValue& value)
+        virtual void AddWindow(Window* window) {}
+
+        void SetProperty(std::string_view name, PropertyValue value)
         {
-            m_properties[key] = value;
+            m_properties[std::string(name)] = std::move(value);
         }
 
-        template <typename T>
-        T GetProperty(const std::string& key, const T& defaultValue = T()) const
+        template<typename T>
+        [[nodiscard]] const T& GetProperty(std::string_view name) const
         {
-            auto it = m_properties.find(key);
-            if (it != m_properties.end() && std::holds_alternative<T>(it->second))
-            {
-                return std::get<T>(it->second);
+            auto it = m_properties.find(name);
+            if (it == m_properties.end()) {
+                throw std::runtime_error("Propiedad no encontrada en el nodo.");
             }
-            return defaultValue;
+            return std::get<T>(it->second);
         }
-
+        /*template<typename T>
+        [[nodiscard]] const T* TryGetProperty(std::string_view name) const noexcept {
+            if (auto it = m_properties.find(name); it != m_properties.end())
+            {
+                return std::get_if<T>(&it->second);
+            }
+            return nullptr;
+        }*/
+        
+        template<typename T>
+        [[nodiscard]] T* TryGetProperty(std::string_view name) noexcept {
+            if (auto it = m_properties.find(name); it != m_properties.end())
+            {
+                return std::get_if<T>(&it->second);
+            }
+            return nullptr;
+        }
         template <typename T>
         bool HasProperty(const std::string& key) const
         {
             auto it = m_properties.find(key);
-
             return (it != m_properties.end() && std::holds_alternative<T>(it->second));
         }
         
-        void RemoveProperty(const std::string& key)
+        void RemoveProperty(std::string_view name)
         {
-            auto it = m_properties.find(key);
-            if (it != m_properties.end())
-            {
-                m_properties.erase(it);
-            }
+            m_properties.erase(std::string(name));
         }
 
         size_t GetIndex() const;
@@ -173,9 +139,9 @@ namespace Berta
             return m_type;
         }
 
-        Window* GetParentWindow() const
+        Window* GetOwnerWindow() const
         {
-            return m_parentWindow;
+            return m_ownerWindow;
         }
 
         void SetArea(const Rectangle& newSize)
@@ -183,46 +149,34 @@ namespace Berta
             m_area = newSize;
         }
 
-        void SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize)
+        void SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize, bool isVertical)
         {
-            if (m_fixedWidth.HasValue())
+            const std::string_view propName = isVertical ? "Height" : "Width";
+    
+            uint32_t parentDim = isVertical ? parentSize.Height : parentSize.Width;
+            uint32_t fixedDim  = isVertical ? fixedSize.Height  : fixedSize.Width;
+            uint32_t remainDim = parentDim - fixedDim;
+    
+            uint32_t& areaDim  = isVertical ? newArea.Height    : newArea.Width;
+
+            // 1. Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
+            double newWeight = static_cast<double>(areaDim) / remainDim;
+            SetProperty("LayoutWeight", Berta::Dimension{ newWeight, Berta::DimensionUnit::Percentage });
+
+            // 2. Si el nodo además tenía una propiedad estática del script original, 
+            // la actualizamos en cascada para mantener coherencia si se redimensiona la ventana de Bruno
+            if (auto* staticDim = TryGetProperty<Berta::Dimension>(propName))
             {
-                auto remainSize = parentSize - fixedSize;
-
-                auto newScalar = static_cast<double>(newArea.Width) / remainSize.Width;
-                m_fixedWidth.isPercentage = true;
-                m_fixedWidth.SetValue(newScalar);
-
-                newArea.Width = static_cast<uint32_t>(newScalar * remainSize.Width);
-                if (HasProperty<Number>("Width"))
-                {
-                    auto widthProp = GetProperty<Number>("Width");
-
-                    auto newScalar = static_cast<double>(newArea.Width) / parentSize.Width;
-                    widthProp.isPercentage = true;
-                    widthProp.SetValue(newScalar * 100.0);
-                    SetProperty("Width", widthProp);
-                }
+                staticDim->unit = Berta::DimensionUnit::Percentage;
+                staticDim->value = (static_cast<double>(areaDim) / parentDim) * 100.0;
+        
+                areaDim = static_cast<uint32_t>((staticDim->value * parentDim) / 100.0);
             }
-            if (m_fixedHeight.HasValue())
+            else
             {
-                auto remainSize = parentSize - fixedSize;
-
-                auto newScalar = static_cast<double>(newArea.Height) / remainSize.Height;
-                m_fixedHeight.isPercentage = true;
-                m_fixedHeight.SetValue(newScalar);
-
-                newArea.Height = static_cast<uint32_t>(newScalar * remainSize.Height);
-                if (HasProperty<Number>("Height"))
-                {
-                    auto widthProp = GetProperty<Number>("Height");
-
-                    auto newScalar = static_cast<double>(newArea.Height) / parentSize.Height;
-                    widthProp.isPercentage = true;
-                    widthProp.SetValue(newScalar * 100.0);
-                    SetProperty("Height", widthProp);
-                }
+                areaDim = static_cast<uint32_t>(newWeight * remainDim);
             }
+
             m_area = newArea;
         }
 
@@ -231,9 +185,9 @@ namespace Berta
         LayoutNode* Find(std::string_view id);
         LayoutNode* FindFirst(LayoutNodeType nodeType);
 
-        void SetParentWindow(Window* window)
+        void SetOwnerWindow(Window* owner)
         {
-            SetParentWindow(this, window);
+            SetOwnerWindow(this, owner);
         }
 
         LayoutNode* GetParentNode() const
@@ -276,8 +230,8 @@ namespace Berta
         {
             m_parentNode = node;
         }
-
-        std::unordered_map<std::string, PropertyValue> m_properties;
+        
+        std::map<std::string, PropertyValue, std::less<>> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
 
         Number m_fixedWidth;
@@ -290,22 +244,22 @@ namespace Berta
         std::string m_id;
         Rectangle m_area;
 
-        Window* m_parentWindow{ nullptr };
+        Window* m_ownerWindow{ nullptr };
         LayoutNode* m_prevNode{ nullptr };
         LayoutNode* m_nextNode{ nullptr };
         LayoutNode* m_parentNode{ nullptr };
 
     private:
-        void SetParentWindow(LayoutNode* node, Window* window)
+        void SetOwnerWindow(LayoutNode* node, Window* window)
         {
             if (node == nullptr)
                 return;
 
-            node->m_parentWindow = window;
+            node->m_ownerWindow = window;
 
             for (auto& childNode : node->m_children)
             {
-                SetParentWindow(childNode.get(), window);
+                SetOwnerWindow(childNode.get(), window);
             }
         }
 
@@ -335,6 +289,14 @@ namespace Berta
         ContainerLayoutNode(LayoutNodeType type);
 
     private:
+        void ProcessFixedChildren(const Rectangle& parentArea, Rectangle& remainArea, 
+                                  std::vector<Rectangle>& areas, std::vector<bool>& markedChildren, 
+                                  int& fixedNodesCount, float dpi);
+
+        void ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, 
+                                    const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, 
+                                    int fixedNodesCount, float dpi);
+        
         bool m_isVertical{ false };
     };
 
@@ -353,7 +315,8 @@ namespace Berta
     class SplitterLayoutNode : public LayoutNode
     {
     public:
-        const static int SizeInPixels = 5;
+        static constexpr int SizeInPixels = 5;
+        
     public:
         SplitterLayoutNode(bool isVertical);
         
@@ -361,19 +324,29 @@ namespace Berta
         void SetOrientation(bool isVertical);
 
     private:
+        void EnsureControlCreated();
+
+        void OnMouseDown(const ArgMouse& args);
+        void OnMouseMove(const ArgMouse& args);
+        void OnMouseUp();
+        void OnMouseEnter();
+        void OnMouseLeave();
+        
         Point m_mousePositionOffset{};
         Rectangle m_splitterBeginRect{};
         Rectangle m_leftArea{};
         Rectangle m_rightArea{};
+        
         bool m_isSplitterMoving{ false };
         bool m_isVertical{ false };
+        
         ContainerLayoutNode* m_containerNode{ nullptr };
         std::unique_ptr<SplitterLayoutControl> m_splitter;
     };
 
     struct PaneInfo
     {
-        bool ShouldShowCloseButton() const
+        [[nodiscard]] bool ShouldShowCloseButton() const
         {
             return showCaption && showCloseButton;
         }
@@ -390,18 +363,6 @@ namespace Berta
         DockLayoutNode();
 
         void CalculateAreas() override;
-    };
-
-    class DockEventsNotifier
-    {
-    public:
-        virtual ~DockEventsNotifier() = default;
-
-        virtual void NotifyFloat() = 0;
-        virtual void NotifyMove() = 0;
-        virtual void NotifyMoveStarted() = 0;
-        virtual void NotifyMoveStopped() = 0;
-        virtual void RequestClose() = 0;
     };
 
     constexpr int DOCK_AREA_CAPTION_BUTTON_SIZE = 14;
@@ -472,7 +433,7 @@ namespace Berta
 
         MouseInteraction m_mouseInteraction;
         Window* m_hostWindow{ nullptr };
-        DockEventsNotifier* m_eventsNotifier{ nullptr };
+        DockPaneLayoutNode* m_ownerDockPane{ nullptr };
         std::unique_ptr<Form> m_nativeContainer;
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
@@ -481,26 +442,36 @@ namespace Berta
         PaneInfo* m_paneInfo{ nullptr };
     };
 
-    class DockPaneLayoutNode : public LayoutNode, public DockEventsNotifier
+    struct DockPaneEvents 
+    {
+        // Berta::Event es tu clase de Signals/Slots
+        Event<DockPaneLayoutNode*> OnFloat;
+        Event<DockPaneLayoutNode*> OnMoveStarted;
+        Event<DockPaneLayoutNode*> OnMove;
+        Event<DockPaneLayoutNode*> OnMoveStopped;
+        Event<DockPaneLayoutNode*> OnRequestClose;
+    };
+    
+    class DockPaneLayoutNode : public LayoutNode
     {
     public:
         DockPaneLayoutNode();
 
-        void AddTab(const std::string& id, std::unique_ptr<ControlBase> window) const;
+        void AddTab(std::string_view id, std::unique_ptr<ControlBase> control);
         void AddPane(DockPaneLayoutNode* paneNode);
         void AddWindow(Window* window) override;
         void CalculateAreas() override;
 
-        void NotifyFloat() override;
-        void NotifyMove() override;
-        void NotifyMoveStarted() override;
-        void NotifyMoveStopped() override;
-        void RequestClose() override;
+        void NotifyFloat();
+        void NotifyMove();
+        void NotifyMoveStarted();
+        void NotifyMoveStopped();
+        void RequestClose();
 
-        LayoutDockPaneEventsNotifier* m_dockLayoutEvents{ nullptr };
         std::unique_ptr<DockArea> m_dockArea;
         std::string m_paneId;
-
+        
+        DockPaneEvents Events;
     protected:
     };
 
@@ -514,7 +485,7 @@ namespace Berta
         std::string m_tabId;
     };
 
-    template<class T>
+    /*template<class T>
     inline T Number::GetValue(float dpiFactor)
     {
         if (std::holds_alternative<T>(scalar))
@@ -537,7 +508,7 @@ namespace Berta
             return static_cast<T>(std::get<double>(scalar));
         }
         return T{ 0 };
-    }
+    }*/
 }
 
 #endif

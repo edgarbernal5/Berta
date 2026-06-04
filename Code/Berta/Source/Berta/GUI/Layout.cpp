@@ -9,9 +9,11 @@
 
 #include "Berta/GUI/Control.h"
 #include "Berta/GUI/Window.h"
-#include "Berta/GUI/LayoutNodes.h"
+#include "Berta/GUI/Layouts/LayoutNodes.h"
 #include "Berta/Controls/Form.h"
 #include "Berta/Paint/DrawBatchActivator.h"
+#include "Berta/GUI/Layouts/LayoutParser.h"
+#include "Berta/GUI/Layouts/Lexer.h"
 
 namespace Berta
 {
@@ -38,7 +40,6 @@ namespace Berta
 			return;
 		}
 		
-		std::string paneIdStr{ paneId };
 		auto paneNode = m_rootNode->Find(paneId);
 		if (paneNode)
 		{
@@ -54,18 +55,20 @@ namespace Berta
 		//create a new layout node (DockPaneLayoutNode)
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
 
+		std::string paneIdStr{ paneId };
 		m_dockPaneFields[paneIdStr] = newPaneNode.get();
 		auto& paneInfo = m_dockPaneInfoFields[paneIdStr];
 		paneInfo.id = paneId;
 
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
 		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
-		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNode.get();
+		newPaneNode->m_dockArea->m_ownerDockPane = newPaneNode.get();
 
-		newPaneNode->m_dockLayoutEvents = this;
+		WireDockPaneEvents(newPaneNode.get());
+		
 		newPaneNode->m_paneId = paneId;
 		newPaneNode->SetParentNode(dockRoot);
-		newPaneNode->SetParentWindow(dockRoot->GetParentWindow());
+		newPaneNode->SetOwnerWindow(dockRoot->GetOwnerWindow());
 
 		dockRoot->m_children.emplace_back(std::move(newPaneNode));
 	}
@@ -77,8 +80,7 @@ namespace Berta
 			return;
 		}
 
-		std::string paneIdStr{ paneId };
-		auto paneNode = GetPane(paneIdStr);
+		auto paneNode = GetPane(paneId);
 		if (!paneNode)
 		{
 			return;
@@ -88,15 +90,17 @@ namespace Berta
 		{
 			return;
 		}
+		
+		std::string paneIdStr{ paneId };
 		std::string tabIdStr{ tabId };
-		auto paneTabId = std::string(paneId) + "/" + tabIdStr;
+		auto paneTabId = paneIdStr + "/" + tabIdStr;
 
 		auto paneTabNode = std::make_unique<DockPaneTabLayoutNode>();
 		paneTabNode->SetId(paneTabId);
 		paneTabNode->m_tabId = paneTabId;
-
+		
 		paneTabNode->SetParentNode(paneNode);
-		paneTabNode->SetParentWindow(paneNode->GetParentWindow());
+		paneTabNode->SetOwnerWindow(paneNode->GetOwnerWindow());
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
 		paneNode->AddTab(tabIdStr, std::move(control));
@@ -135,11 +139,12 @@ namespace Berta
 
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
 		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
-		newPaneNode->m_dockArea->m_eventsNotifier = newPaneNodePtr;
+		newPaneNode->m_dockArea->m_ownerDockPane = newPaneNodePtr;
 
-		newPaneNode->m_dockLayoutEvents = this;
+		WireDockPaneEvents(newPaneNode.get());
+		
 		newPaneNode->m_paneId = paneId;
-		newPaneNode->SetParentWindow(m_owner);
+		newPaneNode->SetOwnerWindow(m_owner);
 
 		std::string tabIdStr{ tabId };
 		auto paneTabId = paneIdStr + "/" + tabIdStr;
@@ -148,7 +153,7 @@ namespace Berta
 		paneTabNode->SetId(paneTabId);
 		paneTabNode->m_tabId = paneTabId;
 		paneTabNode->SetParentNode(newPaneNodePtr);
-		paneTabNode->SetParentWindow(newPaneNode->GetParentWindow());
+		paneTabNode->SetOwnerWindow(newPaneNode->GetOwnerWindow());
 		
 		m_dockPaneTabFields[paneTabId] = paneTabNode.get();
 
@@ -166,7 +171,9 @@ namespace Berta
 	void Layout::Apply()
 	{
 		if (!m_rootNode || !m_owner)
+		{
 			return;
+		}
 
 		auto area = GUI::SizeWindow(m_owner);
 		if (area.IsEmpty())
@@ -179,8 +186,7 @@ namespace Berta
 		m_rootNode->SetArea(area.ToRectangle());
 		m_rootNode->CalculateAreas();
 
-		auto windowToUpdate = m_owner->FindFirstNonPanelAncestor();
-		if (windowToUpdate)
+		if (auto windowToUpdate = m_owner->FindFirstNonPanelAncestor())
 		{
 			GUI::UpdateWindow(windowToUpdate);
 		}
@@ -200,7 +206,6 @@ namespace Berta
 			auto newNode = m_rootNode->Find(searchId);
 			if (newNode)
 			{
-				// ¡Lo encontramos! Lo guardamos en caché y vinculamos
 				m_fields[searchId] = newNode; 
 				newNode->AddWindow(window);
 			}
@@ -219,11 +224,11 @@ namespace Berta
 		}
 		if (m_owner)
 		{
-
+			m_owner->Events->Resize.Disconnect(m_resizeEventId);
 		}
 		m_owner = owner;
 
-		m_owner->Events->Resize.Connect([this](const ArgResize& args)
+		m_resizeEventId = m_owner->Events->Resize.Connect([this](const ArgResize& args)
 			{
 				//TODO: add this same logic to visibility event?!
 				if (m_rootNode)
@@ -232,14 +237,16 @@ namespace Berta
 					m_rootNode->CalculateAreas();
 				}
 
-				//Print();
+				Print();
 			});
 	}
 
 	void Layout::Parse(const std::string& source)
 	{
-		Layout::Parser parser(source);
+		Lexer lexer(source);
+		std::vector<Token> tokens = lexer.Tokenize();
 
+		LayoutParser parser(tokens);
 		auto rootNode = parser.Parse();
 		if (!rootNode)
 		{
@@ -248,12 +255,54 @@ namespace Berta
 		BT_CORE_TRACE << "Parse completed." << std::endl;
 
 		m_rootNode = std::move(rootNode);
-		m_rootNode->SetParentWindow(m_owner);
+		m_rootNode->SetOwnerWindow(m_owner);
 	}
 
-	void Layout::NotifyFloat(DockPaneLayoutNode* node)
+	bool Layout::RemoveDockPane(DockPaneLayoutNode* node)
 	{
-		node->SetParentWindow(node->m_dockArea->m_nativeContainer->Handle());
+		DoFloat(node);
+
+		size_t nodeIndex;
+		if (IsAlreadyDocked(node, nodeIndex))
+		{
+			return false;
+		}
+
+		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
+		return true;
+	}
+
+	void Layout::WireDockPaneEvents(DockPaneLayoutNode* node)
+	{
+		if (!node)
+		{
+			return;
+		}
+		
+		node->Events.OnFloat.Connect([this](DockPaneLayoutNode* const& n) { 
+			HandleFloat(n); 
+		});
+
+		node->Events.OnMove.Connect([this](DockPaneLayoutNode* const& n) { 
+			HandleMove(n); 
+		});
+
+		node->Events.OnMoveStarted.Connect([this](DockPaneLayoutNode* const& n) { 
+			HandleMoveStarted(n); 
+		});
+
+		node->Events.OnMoveStopped.Connect([this](DockPaneLayoutNode* const& n) { 
+			HandleMoveStopped(n); 
+		});
+
+		node->Events.OnRequestClose.Connect([this](DockPaneLayoutNode* const& n) { 
+			HandleRequestClose(n); 
+		});
+	}
+
+	void Layout::HandleFloat(DockPaneLayoutNode* const& node)
+	{
+		node->SetOwnerWindow(node->m_dockArea->m_nativeContainer->Handle());
 
 		if (DoFloat(node))
 		{
@@ -262,11 +311,11 @@ namespace Berta
 		}
 	}
 
-	void Layout::NotifyMove(DockPaneLayoutNode* paneNode)
+	void Layout::HandleMove(DockPaneLayoutNode* const& node)
 	{
 		if (!IsMouseInsideWindow())
 		{
-			m_lastTargetNode = nullptr;
+			m_dragDropCtx.lastTargetNode = nullptr;
 			HidePaneDockIndicators();
 			return;
 		}
@@ -284,29 +333,29 @@ namespace Berta
 		DockPosition dockPosition = DockPosition::Tab;
 		if (IsMouseInsideDockIndicator(&dockPosition))
 		{
-			if (DoDock(paneNode, paneOrDock, dockPosition))
+			if (DoDock(node, paneOrDock, dockPosition))
 			{
 				BT_CORE_TRACE << " - DoDock." << std::endl;
-				m_lockPaneIndicators = true;
-				m_lastTargetNode = paneOrDock;
+				m_dragDropCtx.lockPaneIndicators = true;
+				m_dragDropCtx.lastTargetNode = paneOrDock;
 				Apply();
 
-				auto dockPanelTargetArea = paneNode->GetArea();
+				auto dockPanelTargetArea = node->GetArea();
 
-				m_dockPanelTarget.reset(new DockPanel(m_owner, false, dockPanelTargetArea));
-				m_dockPanelTarget->Show();
+				m_dragDropCtx.dockPanelTarget.reset(new DockPanel(m_owner, false, dockPanelTargetArea));
+				m_dragDropCtx.dockPanelTarget->Show();
 
 				Print();
 			}
 		}
 		else
 		{
-			m_lockPaneIndicators = false;
-			if (DoFloat(paneNode))
+			m_dragDropCtx.lockPaneIndicators = false;
+			if (DoFloat(node))
 			{
-				m_lastTargetNode = nullptr;
+				m_dragDropCtx.lastTargetNode = nullptr;
 				BT_CORE_TRACE << " - DoFloat." << std::endl;
-				m_dockPanelTarget.reset();
+				m_dragDropCtx.dockPanelTarget.reset();
 
 				Apply();
 				Print();
@@ -314,81 +363,67 @@ namespace Berta
 		}
 	}
 
-	void Layout::NotifyMoveStarted(DockPaneLayoutNode* node)
+	void Layout::HandleMoveStarted(DockPaneLayoutNode* const& node)
 	{
 	}
 
-	void Layout::NotifyMoveStopped(DockPaneLayoutNode* paneNode)
+	void Layout::HandleMoveStopped(DockPaneLayoutNode* const& node)
 	{
-		m_lockPaneIndicators = false;
+		m_dragDropCtx.lockPaneIndicators = false;
 		auto shouldDock = IsMouseInsideDockIndicator();
 		HidePaneDockIndicators();
 
-		m_dockPanelTarget.reset();
+		m_dragDropCtx.dockPanelTarget.reset();
 		if (shouldDock)
 		{
 			if (m_tabDockField)
 			{
-				auto targetPane = static_cast<DockPaneLayoutNode*>(m_lastTargetNode);
-				targetPane->AddPane(paneNode);
+				auto targetPane = static_cast<DockPaneLayoutNode*>(m_dragDropCtx.lastTargetNode);
+				targetPane->AddPane(node);
 
-				for (size_t i = 0; i < paneNode->m_children.size(); i++)
+				for (size_t i = 0; i < node->m_children.size(); i++)
 				{
-					targetPane->m_children.emplace_back(std::move(paneNode->m_children[i]));
+					targetPane->m_children.emplace_back(std::move(node->m_children[i]));
 				}
-				paneNode->m_children.clear();
+				node->m_children.clear();
 
-				paneNode->m_dockArea->m_nativeContainer.reset();
+				node->m_dockArea->m_nativeContainer.reset();
 
 				m_tabDockField.reset();
 			}
 			else
 			{
-				paneNode->SetParentWindow(paneNode->m_dockArea->m_hostWindow);
-				paneNode->m_dockArea->Dock();
+				node->SetOwnerWindow(node->m_dockArea->m_hostWindow);
+				node->m_dockArea->Dock();
 			}
 			
 			Apply();
 		}
 
-		m_lastTargetNode = nullptr;
+		m_dragDropCtx.lastTargetNode = nullptr;
 	}
 
-	void Layout::RequestClose(DockPaneLayoutNode* paneNode)
+	void Layout::HandleRequestClose(DockPaneLayoutNode* const& node)
 	{
-		auto index = paneNode->m_dockArea->GetTabSelectedIndex().value();
-		auto childNode = static_cast<DockPaneTabLayoutNode*>(paneNode->m_children[index].get());
+		auto index = node->m_dockArea->GetTabSelectedIndex().value();
+		auto childNode = static_cast<DockPaneTabLayoutNode*>(node->m_children[index].get());
 		m_dockPaneTabFields.erase(childNode->m_tabId);
 
-		paneNode->m_dockArea->m_tabBar->Erase(index);
-		paneNode->m_children.erase(paneNode->m_children.begin() + index);
+		node->m_dockArea->m_tabBar->Erase(index);
+		node->m_children.erase(node->m_children.begin() + index);
 
-		m_dockPaneFields.erase(paneNode->m_paneId);
+		m_dockPaneFields.erase(node->m_paneId);
 
 		bool needUpdate = false;
-		if (paneNode->m_children.empty())
+		if (node->m_children.empty())
 		{
-			needUpdate = RemoveDockPane(paneNode);
+			needUpdate = RemoveDockPane(node);
 		}
 
 		if (needUpdate)
 		{
 			Apply();
 		}
-	}
-
-	bool Layout::RemoveDockPane(DockPaneLayoutNode* node)
-	{
-		DoFloat(node);
-
-		size_t nodeIndex;
-		if (IsAlreadyDocked(node, nodeIndex))
-		{
-			return false;
-		}
-
-		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
-		return true;
 	}
 
 	DockPaneLayoutNode* Layout::GetPane(std::string_view paneId)
@@ -417,19 +452,19 @@ namespace Berta
 
 	void Layout::InitPaneIndicators()
 	{
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Up });
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Down });
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Left });
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Right });
-		m_paneIndicators.emplace_back(new DockIndicator{ DockPosition::Tab });
+		m_dragDropCtx.paneIndicators.emplace_back(new DockIndicator{ DockPosition::Up });
+		m_dragDropCtx.paneIndicators.emplace_back(new DockIndicator{ DockPosition::Down });
+		m_dragDropCtx.paneIndicators.emplace_back(new DockIndicator{ DockPosition::Left });
+		m_dragDropCtx.paneIndicators.emplace_back(new DockIndicator{ DockPosition::Right });
+		m_dragDropCtx.paneIndicators.emplace_back(new DockIndicator{ DockPosition::Tab });
 	}
 
 	void Layout::HidePaneDockIndicators()
 	{
-		if (m_lockPaneIndicators)
+		if (m_dragDropCtx.lockPaneIndicators)
 			return;
 
-		for (auto& indicator : m_paneIndicators)
+		for (auto& indicator : m_dragDropCtx.paneIndicators)
 		{
 			indicator->Docker.reset();
 		}
@@ -437,14 +472,14 @@ namespace Berta
 
 	void Layout::ShowPaneDockIndicators(LayoutNode* node)
 	{
-		if (m_lockPaneIndicators)
+		if (m_dragDropCtx.lockPaneIndicators)
 			return;
 
 		auto indicatorSize = m_owner->ToScale(32);
 		auto indicatorSizeHalf = indicatorSize >> 1;
 		auto indicatorSizeOffset = indicatorSizeHalf >> 1;
 
-		for (auto& indicator : m_paneIndicators)
+		for (auto& indicator : m_dragDropCtx.paneIndicators)
 		{
 			if (node->GetType() == LayoutNodeType::Dock && indicator->Position != DockPosition::Tab)
 			{
@@ -521,7 +556,7 @@ namespace Berta
 
 	bool Layout::IsMouseInsideDockIndicator(DockPosition* outDockPosition) const
 	{
-		for (auto& indicator : m_paneIndicators)
+		for (auto& indicator : m_dragDropCtx.paneIndicators)
 		{
 			if (!indicator->Docker)
 			{
@@ -613,20 +648,20 @@ namespace Berta
 		{
 			m_floatingDockFields.emplace_back(std::move(m_tabDockField));
 			auto& floatingDockField = m_floatingDockFields.back();
+       
 			floatingDockField->SetParentNode(nullptr);
 			floatingDockField->SetPrev(nullptr);
 			floatingDockField->SetNext(nullptr);
+       
+			// Limpieza en el nodo que pasa a flotar
+			floatingDockField->RemoveProperty("LayoutWeight");
 
 			m_tabDockField.reset();
-			
 			return true;
 		}
 
 		auto parent = paneNode->GetParentNode();
-		if (!parent)
-		{
-			return false;
-		}
+		if (!parent) return false;
 
 		for (size_t i = 0; i < parent->m_children.size(); ++i)
 		{
@@ -634,22 +669,22 @@ namespace Berta
 			{
 				m_floatingDockFields.emplace_back(parent->m_children[i].release());
 				auto& floatingDockField = m_floatingDockFields.back();
+          
 				floatingDockField->SetParentNode(nullptr);
 				floatingDockField->SetPrev(nullptr);
 				floatingDockField->SetNext(nullptr);
+          
+				floatingDockField->RemoveProperty("LayoutWeight");
 
 				if (i == parent->m_children.size() - 1)
 				{
 					parent->m_children.pop_back();
-					if (parent->m_children.size())
-					{
-						parent->m_children.pop_back();
-					}
+					if (!parent->m_children.empty()) parent->m_children.pop_back();
 				}
 				else
 				{
 					parent->m_children.erase(parent->m_children.begin() + i);
-					if (parent->m_children.size())
+					if (!parent->m_children.empty())
 					{
 						parent->m_children.erase(parent->m_children.begin() + i);
 						if (i > 0 && i < parent->m_children.size())
@@ -659,11 +694,12 @@ namespace Berta
 					}
 				}
 
+				// Colapso del contenedor si se queda con un único hijo
 				if (parent->m_children.size() == 1 && parent->GetType() == LayoutNodeType::Container)
 				{
 					auto child = parent->m_children[0].release();
-
 					auto parentParent = parent->GetParentNode();
+             
 					if (parentParent)
 					{
 						for (size_t j = 0; j < parentParent->m_children.size(); j++)
@@ -672,29 +708,21 @@ namespace Berta
 							{
 								child->SetNext(parentParent->m_children[j]->GetNext());
 								parentParent->m_children[j].reset(child);
-								if (j > 0)
-									parentParent->m_children[j - 1]->SetNext(child);
-
-								parentParent->m_fixedHeight.Reset();
-								parentParent->m_fixedWidth.Reset();
+                      
+								if (j > 0) parentParent->m_children[j - 1]->SetNext(child);
 
 								child->SetParentNode(parentParent);
 
+								// 💎 PURGA DE CONTROL TRAS EL COLAPSO
 								for (size_t k = 0; k < parentParent->m_children.size(); k++)
 								{
-									auto current = parentParent->m_children[k].get();
-									if (k == parentParent->m_children.size() - 1) {
-										current->SetNext(nullptr);
-									}
-									else
-									{
-										current->SetNext(parentParent->m_children[k + 1].get());
-									}
-									//if (k >= j)
-									{
-										current->m_fixedHeight.Reset();
-										current->m_fixedWidth.Reset();
-									}
+									auto* current = parentParent->m_children[k].get();
+									current->SetNext(k == parentParent->m_children.size() - 1 ? nullptr : parentParent->m_children[k + 1].get());
+									current->SetPrev(k == 0 ? nullptr : parentParent->m_children[k - 1].get());
+                         
+									current->RemoveProperty("LayoutWeight");
+									current->RemoveProperty("Width");
+									current->RemoveProperty("Height");
 								}
 								break;
 							}
@@ -710,51 +738,40 @@ namespace Berta
 
 	bool Layout::DoDock(DockPaneLayoutNode* node, LayoutNode* target, DockPosition dockPosition)
 	{
-		if (!target)
-			return false;
+		if (!target) return false;
 
 		size_t nodeIndex;
-		if (IsAlreadyDocked(node, nodeIndex))
-			return false;
+		if (IsAlreadyDocked(node, nodeIndex)) return false;
 
+		// Caso A: Anclar a una raíz de Dock vacía
 		if (target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{
 			node->SetParentNode(target);
-
 			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
-
 			return true;
 		}
 
+		// Caso B: Docking por pestañas
 		if (dockPosition == DockPosition::Tab)
 		{
 			node->SetArea(target->GetArea());
-
 			m_tabDockField = std::move(m_floatingDockFields[nodeIndex]);
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
-
 			return true;
 		}
 
 		LayoutNode* dockRootNode = target;
-		while (dockRootNode)
+		while (dockRootNode && dockRootNode->GetType() != LayoutNodeType::Dock)
 		{
-			if (dockRootNode->GetType() == LayoutNodeType::Dock)
-			{
-				break;
-			}
-
 			dockRootNode = dockRootNode->GetParentNode();
 		}
+		if (!dockRootNode) return false;
 
-		if (dockRootNode == nullptr)
-		{
-			return false;
-		}
-
-		auto targetParent = target ? target->GetParentNode() : dockRootNode;
+		auto targetParent = target->GetParentNode() ? target->GetParentNode() : dockRootNode;
+		bool isVerticalOrientation = (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
 		bool addNewOrientation = false;
+
 		if (dockRootNode->m_children[0]->GetType() == LayoutNodeType::DockPane)
 		{
 			addNewOrientation = true;
@@ -762,114 +779,108 @@ namespace Berta
 		else
 		{
 			auto targetParentContainer = static_cast<ContainerLayoutNode*>(targetParent);
-			if (targetParentContainer->GetOrientation() != (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down))
+			if (targetParentContainer->GetOrientation() != isVerticalOrientation)
 			{
 				addNewOrientation = true;
 			}
 		}
 
 		auto targetIndex = target->GetIndex();
+    
+		// --- RAMA 1: NUEVA ORIENTACIÓN (Sub-contenedor) ---
 		if (addNewOrientation)
 		{
+			if (targetIndex == std::string::npos) return false;
+
 			std::unique_ptr<LayoutNode> targetPtr = std::move(target->GetParentNode()->m_children[targetIndex]);
 
-			auto containerPtr = new ContainerLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
+			auto containerPtr = std::make_unique<ContainerLayoutNode>(isVerticalOrientation);
 			containerPtr->SetParentNode(target->GetParentNode());
-			containerPtr->SetParentWindow(target->GetParentWindow());
+			containerPtr->SetOwnerWindow(target->GetOwnerWindow());
 
-			auto splitterPtr = new SplitterLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
-			splitterPtr->SetParentNode(containerPtr);
-			splitterPtr->SetParentWindow(target->GetParentWindow());
+			auto splitterPtr = std::make_unique<SplitterLayoutNode>(isVerticalOrientation);
+			splitterPtr->SetParentNode(containerPtr.get());
+			splitterPtr->SetOwnerWindow(target->GetOwnerWindow());
 
-			node->SetParentNode(containerPtr);
-			targetPtr->SetParentNode(containerPtr);
+			node->SetParentNode(containerPtr.get());
+			targetPtr->SetParentNode(containerPtr.get());
 			containerPtr->SetNext(target->GetNext());
 
-			targetPtr->m_fixedHeight.Reset();
-			targetPtr->m_fixedWidth.Reset();
-
-			node->m_fixedHeight.Reset();
-			node->m_fixedWidth.Reset();
+			// 💎 PURGA CRÍTICA: Reseteamos los pesos y dimensiones estáticas de los dos nodos
+			// que van a dividirse para que el nuevo contenedor empiece en un balance perfecto de 50/50
+			targetPtr->RemoveProperty("LayoutWeight");
+			targetPtr->RemoveProperty("Width");
+			targetPtr->RemoveProperty("Height");
+       
+			node->RemoveProperty("LayoutWeight");
+			node->RemoveProperty("Width");
+			node->RemoveProperty("Height");
 
 			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
 			{
-				node->SetNext(splitterPtr);
-				splitterPtr->SetNext(target);
-
 				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
-				containerPtr->m_children.emplace_back(splitterPtr);
-				containerPtr->m_children.emplace_back(targetPtr.release());
-
-				containerPtr->m_children[1]->SetPrev(containerPtr->m_children[0].get());
-				containerPtr->m_children[1]->SetNext(containerPtr->m_children[2].get());
+				containerPtr->m_children.emplace_back(std::move(splitterPtr));
+				containerPtr->m_children.emplace_back(std::move(targetPtr));
 			}
 			else
 			{
-				targetPtr->SetNext(splitterPtr);
-				splitterPtr->SetNext(node);
-
-				containerPtr->m_children.emplace_back(targetPtr.release());
-				containerPtr->m_children.emplace_back(splitterPtr);
+				containerPtr->m_children.emplace_back(std::move(targetPtr));
+				containerPtr->m_children.emplace_back(std::move(splitterPtr));
 				containerPtr->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
-
-				containerPtr->m_children[1]->SetPrev(containerPtr->m_children[0].get());
-				containerPtr->m_children[1]->SetNext(containerPtr->m_children[2].get());
 			}
 
-			if (targetIndex == std::string::npos)
+			auto* child0 = containerPtr->m_children[0].get();
+			auto* child1 = containerPtr->m_children[1].get();
+			auto* child2 = containerPtr->m_children[2].get();
+
+			child0->SetPrev(nullptr); child0->SetNext(child1);
+			child1->SetPrev(child0);  child1->SetNext(child2);
+			child2->SetPrev(child1);  child2->SetNext(nullptr);
+
+			targetParent->m_children[targetIndex] = std::move(containerPtr);
+			if (targetIndex > 0)
 			{
-				return false;
-			}
-			else
-			{
-				targetParent->m_children[targetIndex].reset(containerPtr);
-				if (targetIndex > 0)
-				{
-					targetParent->m_children[targetIndex - 1]->SetNext(containerPtr);
-				}
+				targetParent->m_children[targetIndex - 1]->SetNext(targetParent->m_children[targetIndex].get());
 			}
 		}
+		// --- RAMA 2: MISMA ORIENTACIÓN (Inserción co-lineal) ---
 		else
 		{
-			auto splitterPtr = new SplitterLayoutNode(dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
+			auto splitterPtr = std::make_unique<SplitterLayoutNode>(isVerticalOrientation);
 			splitterPtr->SetParentNode(targetParent);
-			splitterPtr->SetParentWindow(target->GetParentWindow());
+			splitterPtr->SetOwnerWindow(target->GetOwnerWindow());
 
 			node->SetParentNode(targetParent);
 
 			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
 			{
-				if (targetIndex == std::string::npos)
-					targetIndex = 0;
-
+				if (targetIndex == std::string::npos) targetIndex = 0;
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex, std::move(m_floatingDockFields[nodeIndex]));
-				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, std::move(splitterPtr));
 			}
 			else
 			{
-				if (targetIndex == std::string::npos)
-					targetIndex = targetParent->m_children.size() - 1;
-
-				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, splitterPtr);
+				if (targetIndex == std::string::npos) targetIndex = targetParent->m_children.size() - 1;
+				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, std::move(splitterPtr));
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, std::move(m_floatingDockFields[nodeIndex]));
 			}
 
+			// 💎 PURGA CRÍTICA MULTI-NODO: Removemos "LayoutWeight", "Width" y "Height" de TODOS
+			// los hermanos del contenedor para que la matemática de redistribución se resetee limpiamente.
 			for (size_t i = 0; i < targetParent->m_children.size(); i++)
 			{
-				if (i == targetParent->m_children.size() - 1)
-				{
-					targetParent->m_children[i]->SetNext(nullptr);
-				}
-				else
-				{
-					targetParent->m_children[i]->SetNext(targetParent->m_children[i + 1].get());
-				}
-				targetParent->m_children[i]->m_fixedHeight.Reset();
-				targetParent->m_children[i]->m_fixedWidth.Reset();
+				auto* currentChild = targetParent->m_children[i].get();
+          
+				currentChild->SetNext(i == targetParent->m_children.size() - 1 ? nullptr : targetParent->m_children[i + 1].get());
+				currentChild->SetPrev(i == 0 ? nullptr : targetParent->m_children[i - 1].get());
+
+				currentChild->RemoveProperty("LayoutWeight");
+				currentChild->RemoveProperty("Width");
+				currentChild->RemoveProperty("Height");
 			}
 		}
-		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 
+		m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 		return true;
 	}
 
@@ -898,7 +909,7 @@ namespace Berta
 		{
 			std::cout << "{Container}";
 		}
-		 else if (node->GetType() == LayoutNodeType::DockPane)
+		else if (node->GetType() == LayoutNodeType::DockPane)
 		{
 			std::cout << "{DockPane}";
 		}
@@ -962,374 +973,6 @@ namespace Berta
 			std::cout << "{/UNKNOWN}";
 		}
 		std::cout << std::endl;
-	}
-
-	Tokenizer::Tokenizer(const std::string& source) : 
-		m_buffer(source.c_str()),
-		m_bufferEnd(source.c_str() + source.size())
-	{
-	}
-
-	void Tokenizer::Next()
-	{
-		while (SkipWhitespace()) {}
-
-		if (m_error)
-		{
-			m_token = Token::Type::EndOfStream;
-			return;
-		}
-
-		if (m_buffer >= m_bufferEnd || *m_buffer == '\0')
-		{
-			m_token = Token::Type::EndOfStream;
-			return;
-		}
-
-		if (m_buffer[0] == '{')
-		{
-			m_token = Token::Type::OpenBrace;
-			++m_buffer;
-			return;
-		}
-		if (m_buffer[0] == '}')
-		{
-			m_token = Token::Type::CloseBrace;
-			++m_buffer;
-			return;
-		}
-		if (m_buffer[0] == '=')
-		{
-			m_token = Token::Type::Equal;
-			++m_buffer;
-			return;
-		}
-		if (m_buffer[0] == '%')
-		{
-			m_token = Token::Type::Percentage;
-			++m_buffer;
-			return;
-		}
-		if (m_buffer[0] == '|')
-		{
-			m_token = Token::Type::Splitter;
-			++m_buffer;
-			return;
-		}
-
-		if (ScanNumber())
-		{
-			return;
-		}
-
-		const char* start = m_buffer;
-		while (m_buffer < m_bufferEnd && m_buffer[0] != 0 && !IsSymbol(m_buffer[0]) && !std::isspace(m_buffer[0]))
-		{
-			++m_buffer;
-		}
-
-		size_t length = m_buffer - start;
-		memcpy(m_identifier, start, length);
-		m_identifier[length] = 0;
-
-		const int numReservedWords = sizeof(g_reservedWords) / sizeof(const char*);
-		for (int i = 0; i < numReservedWords; ++i)
-		{
-			if (strcmp(g_reservedWords[i], m_identifier) == 0)
-			{
-				m_token = (Token::Type)(i + 256);
-				return;
-			}
-		}
-
-		m_token = Token::Type::Identifier;
-	}
-
-	void Tokenizer::GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength])
-	{
-	}
-
-	bool Tokenizer::SkipWhitespace()
-	{
-		bool result = false;
-		while (m_buffer < m_bufferEnd && std::isspace(m_buffer[0]))
-		{
-			result = true;
-			if (m_buffer[0] == '\n')
-			{
-				++m_lineNumber;
-			}
-			++m_buffer;
-		}
-		return result;
-	}
-
-	bool Tokenizer::IsSymbol(char ch)
-	{
-		switch (ch)
-		{
-		case '{':
-		case '}':
-		case '-':
-		case '=':
-		case '%':
-		case '|':
-			return true;
-		}
-		return false;
-	}
-
-	bool Tokenizer::IsNumberSeparator(char ch)
-	{
-		return ch == 0 || std::isspace(ch) || IsSymbol(ch);
-	}
-
-	bool Tokenizer::ScanNumber()
-	{
-		char* fEnd = nullptr;
-		double dValue = std::strtod(m_buffer, &fEnd);
-
-		if (fEnd == m_buffer)
-		{
-			return false;
-		}
-
-		char* iEnd = nullptr;
-		long lValue = std::strtol(m_buffer, &iEnd, 10);
-
-		if (fEnd > iEnd && IsNumberSeparator(fEnd[0]))
-		{
-			m_buffer = fEnd;
-			m_token = Token::Type::NumberDouble; // it is a double.
-			m_dValue = dValue;
-			return true;
-		}
-		else if (iEnd > m_buffer && IsNumberSeparator(iEnd[0]))
-		{
-			m_buffer = iEnd;
-			m_token = Token::Type::NumberInt; // it is a integer.
-			m_iValue = static_cast<int>(lValue);
-			return true;
-		}
-		return false;
-	}
-
-	Layout::Parser::Parser(const std::string& source) :
-		m_tokenizer(source),
-		m_source(source)
-	{
-	}
-
-	std::unique_ptr<LayoutNode> Layout::Parser::Parse()
-	{
-		std::string identifier;
-		std::vector<std::unique_ptr<LayoutNode>> children;
-		std::unique_ptr<LayoutNode> node;
-		bool isVertical = false;
-		Token::Type dockType = Token::Type::None;
-		std::unordered_map<std::string, LayoutNode::PropertyValue> properties;
-
-		m_tokenizer.Next();
-		Token::Type currentToken = m_tokenizer.GetToken();
-		while (currentToken != Token::Type::EndOfStream && currentToken != Token::Type::CloseBrace)
-		{
-			bool moveToNextToken = true;
-			switch (currentToken)
-			{
-			case Berta::Token::Type::Identifier:
-				identifier = m_tokenizer.GetIdentifier();
-				break;
-			case Berta::Token::Type::OpenBrace:
-			{
-				auto child = Parse();
-
-				children.emplace_back(std::move(child));
-				break;
-			}
-			case Berta::Token::Type::Splitter:
-			{
-				auto splitterNode = std::make_unique<SplitterLayoutNode>(false);
-				splitterNode->SetProperty("Dimension", Number{ SplitterLayoutNode::SizeInPixels });
-
-				children.emplace_back(std::move(splitterNode));
-				break;
-			}
-			case Berta::Token::Type::VerticalLayout:
-				isVertical = true;
-				break;
-			case Berta::Token::Type::HorizontalLayout:
-				isVertical = false;
-				break;
-			case Berta::Token::Type::Dock:
-				dockType = Berta::Token::Type::Dock;
-				break;
-			case Berta::Token::Type::DockPane:
-				dockType = Berta::Token::Type::DockPane;
-				break;
-			case Berta::Token::Type::Width:
-			case Berta::Token::Type::Height:
-			{
-				auto propertyName = currentToken == Berta::Token::Type::Width ? "Width" : "Height";
-				
-				m_tokenizer.Next();
-				currentToken = m_tokenizer.GetToken();
-				if (!Expect(Token::Type::Equal))
-				{
-					return nullptr;
-				}
-				bool isNumberInt = false;
-				bool isNumberDouble = false;
-				if ((isNumberInt = Accept(Token::Type::NumberInt)) || (isNumberDouble = Accept(Token::Type::NumberDouble)))
-				{
-					Number number;
-					if (isNumberInt)
-					{
-						number.SetValue(m_tokenizer.GetInt());
-					}
-					else
-					{
-						number.SetValue(m_tokenizer.GetDouble());
-					}
-
-					if (Accept(Token::Type::Percentage))
-					{
-						number.isPercentage = true;
-					}
-					
-					properties[propertyName] = number;
-					moveToNextToken = !IsEqualTo(Token::Type::CloseBrace);
-				}
-				break;
-			}
-			case Berta::Token::Type::MinHeight:
-			case Berta::Token::Type::MaxHeight:
-			case Berta::Token::Type::MinWidth:
-			case Berta::Token::Type::MaxWidth:
-			{
-				m_tokenizer.Next();
-				currentToken = m_tokenizer.GetToken();
-				if (!Expect(Token::Type::Equal))
-				{
-					return nullptr;
-				}
-
-				if (IsEqualTo(Token::Type::NumberInt))
-				{
-					Number number;
-					number.SetValue(m_tokenizer.GetInt());
-
-					auto propertyName = currentToken == Berta::Token::Type::MinHeight ? "MinHeight" : 
-						(currentToken == Berta::Token::Type::MaxHeight ? "MaxHeight" : 
-							(currentToken == Berta::Token::Type::MinWidth ? "MinWidth" : "MaxWidth"));
-
-					properties[propertyName] = number;
-				}
-				else
-				{
-					return nullptr;
-				}
-				break;
-			}
-			}
-			if (moveToNextToken)
-			{
-				m_tokenizer.Next();
-			}
-			currentToken = m_tokenizer.GetToken();
-		}
-
-		switch (currentToken)
-		{
-		case Token::Type::CloseBrace:
-		case Token::Type::EndOfStream:
-			if (dockType == Berta::Token::Type::Dock)
-			{
-				node = std::make_unique<DockLayoutNode>();
-			}
-			else if (dockType == Berta::Token::Type::DockPane)
-			{
-				node = std::make_unique<DockPaneLayoutNode>();
-			}
-			else if (children.empty())
-			{
-				node = std::make_unique<LeafLayoutNode>();
-			}
-			else
-			{
-				node = std::make_unique<ContainerLayoutNode>(isVertical);
-			}
-			break;
-		}
-
-		for (size_t i = 0; i < children.size(); i++)
-		{
-			auto child = children[i].get();
-			child->SetParentNode(node.get());
-			if (i < children.size() - 1)
-			{
-				child->SetNext(children[i + 1].get());
-			}
-			if (i > 0)
-			{
-				child->SetPrev(children[i - 1].get());
-			}
-
-			if (child->GetType() == LayoutNodeType::Splitter)
-			{
-				auto splitterNode = static_cast<SplitterLayoutNode*>(child);
-				splitterNode->SetOrientation(isVertical);
-
-				auto dimension = child->GetProperty<Number>("Dimension");
-				child->SetProperty(isVertical ? "Height" : "Width", dimension);
-				child->RemoveProperty("Dimension");
-			}
-		}
-
-		node->SetId(identifier);
-		node->m_properties.swap(properties);
-		node->m_children.swap(children);
-
-		return node;
-	}
-
-	bool Layout::Parser::Accept(Token::Type tokenId)
-	{
-		if (m_tokenizer.GetToken() == tokenId)
-		{
-			m_tokenizer.Next();
-			return true;
-		}
-		return false;
-	}
-
-	bool Layout::Parser::AcceptIdentifier(std::string_view& identifier)
-	{
-		if (m_tokenizer.GetToken() == Token::Type::Identifier)
-		{
-			identifier = m_tokenizer.GetIdentifier();
-			m_tokenizer.Next();
-			return true;
-		}
-		return false;
-	}
-
-	bool Layout::Parser::Expect(Token::Type tokenId)
-	{
-		if (!Accept(tokenId))
-		{
-			/*
-			char want[HLSLTokenizer::s_maxIdentifier];
-			m_tokenizer.GetTokenName(token, want);
-			*/
-			BT_CORE_ERROR << "error. expected token= " << static_cast<int>(tokenId) << std::endl;
-			return false;
-		}
-		return true;
-	}
-
-	bool Layout::Parser::IsEqualTo(Token::Type tokenId)
-	{
-		return m_tokenizer.GetToken() == tokenId;
 	}
 
 	void LayoutControlContainer::AddWindow(Window* window)

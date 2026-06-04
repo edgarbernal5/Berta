@@ -14,7 +14,10 @@
 
 #include <memory>
 #include <unordered_map>
+#include <map>
 #include <string_view>
+
+#include "Berta/GUI/Layouts/BasicTypes.h"
 
 namespace Berta
 {
@@ -28,128 +31,18 @@ namespace Berta
 
     struct PaneInfo;
 
-    struct Token
-    {
-        enum class Type
-        {
-            None,
-
-            Identifier,
-            NumberInt,
-            NumberDouble,
-            Percentage,
-            String,
-            OpenBrace,
-            CloseBrace,
-            Equal,
-            Splitter,
-            EndOfStream,
-
-            VerticalLayout = 256,
-            HorizontalLayout,
-            Width,
-            Height,
-
-            MinHeight,
-            MaxHeight,
-            MinWidth,
-            MaxWidth,
-
-            Dock,
-            DockPane
-        };
-
-        Type type;
-        std::string_view value;
-        size_t line;
-        size_t column;
-    };
-
-    static const int g_maxIdentifierLength = 255 + 1;
-    static const char* g_reservedWords[] =
-    {
-        "VerticalLayout",
-        "HorizontalLayout",
-        "Width",
-        "Height",
-
-        "MinHeight",
-        "MaxHeight",
-        "MinWidth",
-        "MaxWidth",
-        "Dock",
-        "DockPane"
-    };
-
-    class Tokenizer
-    {
-    public:
-        Tokenizer(const std::string& source);
-
-        void Next();
-
-        Token::Type GetToken() const
-        {
-            return m_token;
-        }
-
-        const char* GetIdentifier() const
-        {
-            return m_identifier;
-        }
-
-        int GetInt() const
-        {
-            return m_iValue;
-        }
-
-        double GetDouble() const
-        {
-            return m_dValue;
-        }
-
-        void GetTokenName(Token::Type token, char buffer[g_maxIdentifierLength]);
-    private:
-        bool SkipWhitespace();
-        bool IsSymbol(char ch);
-        bool IsNumberSeparator(char ch);
-        bool ScanNumber();
-
-        const char* m_buffer{ nullptr };
-        const char* m_bufferEnd{ nullptr };
-        int m_lineNumber{ 0 };
-        bool m_error{ false };
-        char m_identifier[g_maxIdentifierLength]{};
-        int m_iValue{ 0 };
-        double m_dValue{ 0.0 };
-
-        Token::Type m_token{ Token::Type::EndOfStream };
-    };
-
-    class LayoutDockPaneEventsNotifier
-    {
-    public:
-        virtual ~LayoutDockPaneEventsNotifier() = default;
-
-        virtual void NotifyFloat(DockPaneLayoutNode* node) = 0;
-        virtual void NotifyMove(DockPaneLayoutNode* node) = 0;
-        virtual void NotifyMoveStarted(DockPaneLayoutNode* node) = 0;
-        virtual void NotifyMoveStopped(DockPaneLayoutNode* node) = 0;
-        virtual void RequestClose(DockPaneLayoutNode* node) = 0;
-    };
-
     struct DockIndicator
     {
         DockPosition Position{ DockPosition::Tab };
         std::unique_ptr<DockIndicatorForm> Docker;
     };
 
-    class Layout : public LayoutDockPaneEventsNotifier
+    class Layout
     {
     public:
         Layout();
         Layout(Window* owner);
-        ~Layout() override;
+        ~Layout();
 
         void AddPane(std::string_view paneId);
         void AddPaneTab(std::string_view paneId, std::string_view tabId, std::unique_ptr<ControlBase> control);
@@ -160,31 +53,17 @@ namespace Berta
         void Create(Window* owner);
         void Parse(const std::string& source);
 
-        void NotifyFloat(DockPaneLayoutNode* node) override;
-        void NotifyMove(DockPaneLayoutNode* node) override;
-        void NotifyMoveStarted(DockPaneLayoutNode* node) override;
-        void NotifyMoveStopped(DockPaneLayoutNode* node) override;
-        void RequestClose(DockPaneLayoutNode* node) override;
-
         bool RemoveDockPane(DockPaneLayoutNode* node);
+        
     private:
-        class Parser
-        {
-        public:
-            Parser(const std::string& source);
-
-            std::unique_ptr<LayoutNode> Parse();
-
-        private:
-            [[nodiscard]] bool Accept(Token::Type tokenId);
-            [[nodiscard]] bool AcceptIdentifier(std::string_view& identifier);
-            [[nodiscard]] bool Expect(Token::Type tokenId);
-            bool IsEqualTo(Token::Type tokenId);
-
-            Tokenizer m_tokenizer;
-            std::string m_source;
-        };
-
+        void WireDockPaneEvents(DockPaneLayoutNode* node);
+        
+        void HandleFloat(DockPaneLayoutNode* const& node);
+        void HandleMove(DockPaneLayoutNode* const& node);
+        void HandleMoveStarted(DockPaneLayoutNode* const& node);
+        void HandleMoveStopped(DockPaneLayoutNode* const& node);
+        void HandleRequestClose(DockPaneLayoutNode* const& node);
+        
         DockPaneLayoutNode* GetPane(std::string_view paneId);
         DockPaneTabLayoutNode* GetPaneTab(std::string_view paneId, std::string_view tabId);
         void InitPaneIndicators();
@@ -203,19 +82,26 @@ namespace Berta
         void Print(LayoutNode* node, uint32_t level);
 
         Window* m_owner{ nullptr };
-        LayoutNode* m_lastTargetNode{ nullptr };
         std::unique_ptr<LayoutNode> m_rootNode;
-        std::unordered_map<std::string, LayoutNode*> m_fields;
-        std::unordered_map<std::string, DockPaneLayoutNode*> m_dockPaneFields;
-        std::unordered_map<std::string, DockPaneTabLayoutNode*> m_dockPaneTabFields;
-        std::unordered_map<std::string, PaneInfo> m_dockPaneInfoFields;
+        
+        // C++17: Búsqueda con std::string_view garantizada con 0 asignaciones de memoria
+        std::map<std::string, LayoutNode*, std::less<>> m_fields;
+        std::map<std::string, DockPaneLayoutNode*, std::less<>> m_dockPaneFields;
+        std::map<std::string, DockPaneTabLayoutNode*, std::less<>> m_dockPaneTabFields;
+        std::map<std::string, PaneInfo, std::less<>> m_dockPaneInfoFields;
         std::vector<std::unique_ptr<LayoutNode>> m_floatingDockFields;
         
         std::unique_ptr<LayoutNode> m_tabDockField;
 
-        std::vector<std::unique_ptr<DockIndicator>> m_paneIndicators;
-        bool m_lockPaneIndicators{ false };
-        std::unique_ptr<DockPanel> m_dockPanelTarget;
+        EventHandlerId m_resizeEventId { 0 };
+        
+        struct DragDropContext {
+            LayoutNode* lastTargetNode{ nullptr };
+            bool lockPaneIndicators{ false };
+            std::vector<std::unique_ptr<DockIndicator>> paneIndicators;
+            std::unique_ptr<DockPanel> dockPanelTarget;
+        };
+        DragDropContext m_dragDropCtx;
     };
 }
 
