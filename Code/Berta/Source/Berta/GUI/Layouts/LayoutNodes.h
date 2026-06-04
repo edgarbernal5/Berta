@@ -197,18 +197,7 @@ namespace Berta
         
         LayoutNode* GetPrev() const
         {
-            //return m_prevNode;
-            if (!m_parentNode)
-                return nullptr;
-
-            for (size_t i = 0; i < m_parentNode->m_children.size(); i++)
-            {
-                if (m_parentNode->m_children[i]->GetNext() == this)
-                {
-                    return m_parentNode->m_children[i].get();
-                }
-            }
-            return nullptr;
+            return m_prevNode;
         }
 
         LayoutNode* GetNext() const
@@ -444,7 +433,6 @@ namespace Berta
 
     struct DockPaneEvents 
     {
-        // Berta::Event es tu clase de Signals/Slots
         Event<DockPaneLayoutNode*> OnFloat;
         Event<DockPaneLayoutNode*> OnMoveStarted;
         Event<DockPaneLayoutNode*> OnMove;

@@ -225,7 +225,6 @@ namespace Berta
                 {
                     if (auto* dim = child->TryGetProperty<Berta::Dimension>("Width"))
                     {
-                        // Movemos la estructura al nuevo eje sin alocaciones dinámicas
                         child->SetProperty("Height", *dim);
                         child->RemoveProperty("Width");
                     }

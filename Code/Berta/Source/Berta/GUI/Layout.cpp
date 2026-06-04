@@ -279,23 +279,28 @@ namespace Berta
 			return;
 		}
 		
-		node->Events.OnFloat.Connect([this](DockPaneLayoutNode* const& n) { 
+		node->Events.OnFloat.Connect([this](DockPaneLayoutNode* const& n)
+		{ 
 			HandleFloat(n); 
 		});
 
-		node->Events.OnMove.Connect([this](DockPaneLayoutNode* const& n) { 
+		node->Events.OnMove.Connect([this](DockPaneLayoutNode* const& n)
+		{ 
 			HandleMove(n); 
 		});
 
-		node->Events.OnMoveStarted.Connect([this](DockPaneLayoutNode* const& n) { 
+		node->Events.OnMoveStarted.Connect([this](DockPaneLayoutNode* const& n)
+		{ 
 			HandleMoveStarted(n); 
 		});
 
-		node->Events.OnMoveStopped.Connect([this](DockPaneLayoutNode* const& n) { 
+		node->Events.OnMoveStopped.Connect([this](DockPaneLayoutNode* const& n)
+		{ 
 			HandleMoveStopped(n); 
 		});
 
-		node->Events.OnRequestClose.Connect([this](DockPaneLayoutNode* const& n) { 
+		node->Events.OnRequestClose.Connect([this](DockPaneLayoutNode* const& n)
+		{ 
 			HandleRequestClose(n); 
 		});
 	}
@@ -648,11 +653,11 @@ namespace Berta
 		{
 			m_floatingDockFields.emplace_back(std::move(m_tabDockField));
 			auto& floatingDockField = m_floatingDockFields.back();
-       
+      
 			floatingDockField->SetParentNode(nullptr);
 			floatingDockField->SetPrev(nullptr);
 			floatingDockField->SetNext(nullptr);
-       
+      
 			// Limpieza en el nodo que pasa a flotar
 			floatingDockField->RemoveProperty("LayoutWeight");
 
@@ -669,57 +674,53 @@ namespace Berta
 			{
 				m_floatingDockFields.emplace_back(parent->m_children[i].release());
 				auto& floatingDockField = m_floatingDockFields.back();
-          
+         
 				floatingDockField->SetParentNode(nullptr);
 				floatingDockField->SetPrev(nullptr);
 				floatingDockField->SetNext(nullptr);
-          
+         
 				floatingDockField->RemoveProperty("LayoutWeight");
 
+				// 1. Extirpación del nodo y su Splitter adyacente
 				if (i == parent->m_children.size() - 1)
 				{
-					parent->m_children.pop_back();
-					if (!parent->m_children.empty()) parent->m_children.pop_back();
+					parent->m_children.pop_back(); // Elimina el panel
+					if (!parent->m_children.empty()) parent->m_children.pop_back(); // Elimina el splitter previo
 				}
 				else
 				{
-					parent->m_children.erase(parent->m_children.begin() + i);
+					parent->m_children.erase(parent->m_children.begin() + i); // Elimina el panel
 					if (!parent->m_children.empty())
 					{
-						parent->m_children.erase(parent->m_children.begin() + i);
-						if (i > 0 && i < parent->m_children.size())
-						{
-							parent->m_children[i - 1]->SetNext(parent->m_children[i].get());
-						}
+						parent->m_children.erase(parent->m_children.begin() + i); // Elimina el splitter posterior
 					}
 				}
 
-				// Colapso del contenedor si se queda con un único hijo
+				// 2. Comprobar si el padre colapsa (se quedó con 1 solo hijo y es un contenedor)
 				if (parent->m_children.size() == 1 && parent->GetType() == LayoutNodeType::Container)
 				{
 					auto child = parent->m_children[0].release();
 					auto parentParent = parent->GetParentNode();
-             
+            
 					if (parentParent)
 					{
 						for (size_t j = 0; j < parentParent->m_children.size(); j++)
 						{
 							if (parentParent->m_children[j].get() == parent)
 							{
-								child->SetNext(parentParent->m_children[j]->GetNext());
-								parentParent->m_children[j].reset(child);
-                      
-								if (j > 0) parentParent->m_children[j - 1]->SetNext(child);
-
+								// 💎 HERENCIA LIMPIA: El hijo sube un nivel en el árbol
 								child->SetParentNode(parentParent);
+                      
+								// El contenedor viejo se destruye aquí (vía unique_ptr::reset) y el hijo toma su lugar
+								parentParent->m_children[j].reset(child);
 
-								// 💎 PURGA DE CONTROL TRAS EL COLAPSO
+								// 💎 PURGA Y RECONSTRUCCIÓN CRÍTICA DE LA FAMILIA ADOPTIVA
 								for (size_t k = 0; k < parentParent->m_children.size(); k++)
 								{
 									auto* current = parentParent->m_children[k].get();
 									current->SetNext(k == parentParent->m_children.size() - 1 ? nullptr : parentParent->m_children[k + 1].get());
 									current->SetPrev(k == 0 ? nullptr : parentParent->m_children[k - 1].get());
-                         
+                        
 									current->RemoveProperty("LayoutWeight");
 									current->RemoveProperty("Width");
 									current->RemoveProperty("Height");
@@ -727,6 +728,22 @@ namespace Berta
 								break;
 							}
 						}
+					}
+				}
+				else
+				{
+					// 💎 PURGA Y RECONSTRUCCIÓN CRÍTICA DE LOS SOBREVIVIENTES
+					// Si el contenedor NO colapsa, los paneles hermanos deben cerrar filas, 
+					// reconectar sus punteros Prev/Next y olvidar sus tamaños estáticos.
+					for (size_t k = 0; k < parent->m_children.size(); k++)
+					{
+						auto* current = parent->m_children[k].get();
+						current->SetNext(k == parent->m_children.size() - 1 ? nullptr : parent->m_children[k + 1].get());
+						current->SetPrev(k == 0 ? nullptr : parent->m_children[k - 1].get());
+                
+						current->RemoveProperty("LayoutWeight");
+						current->RemoveProperty("Width");
+						current->RemoveProperty("Height");
 					}
 				}
 				break;
@@ -747,6 +764,11 @@ namespace Berta
 		if (target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{
 			node->SetParentNode(target);
+       
+			// 💎 RECONSTRUCCIÓN: Al ser el único hijo, sus referencias de vecindad son nulas.
+			node->SetPrev(nullptr);
+			node->SetNext(nullptr);
+       
 			target->m_children.emplace_back(std::move(m_floatingDockFields[nodeIndex]));
 			m_floatingDockFields.erase(m_floatingDockFields.begin() + nodeIndex);
 			return true;
@@ -786,7 +808,7 @@ namespace Berta
 		}
 
 		auto targetIndex = target->GetIndex();
-    
+   
 		// --- RAMA 1: NUEVA ORIENTACIÓN (Sub-contenedor) ---
 		if (addNewOrientation)
 		{
@@ -802,16 +824,17 @@ namespace Berta
 			splitterPtr->SetParentNode(containerPtr.get());
 			splitterPtr->SetOwnerWindow(target->GetOwnerWindow());
 
+			// 💎 HERENCIA DE VECINDAD: El nuevo contenedor hereda explícitamente el Prev y el Next del target original
+			containerPtr->SetPrev(targetPtr->GetPrev());
+			containerPtr->SetNext(targetPtr->GetNext());
+
 			node->SetParentNode(containerPtr.get());
 			targetPtr->SetParentNode(containerPtr.get());
-			containerPtr->SetNext(target->GetNext());
 
-			// 💎 PURGA CRÍTICA: Reseteamos los pesos y dimensiones estáticas de los dos nodos
-			// que van a dividirse para que el nuevo contenedor empiece en un balance perfecto de 50/50
 			targetPtr->RemoveProperty("LayoutWeight");
 			targetPtr->RemoveProperty("Width");
 			targetPtr->RemoveProperty("Height");
-       
+      
 			node->RemoveProperty("LayoutWeight");
 			node->RemoveProperty("Width");
 			node->RemoveProperty("Height");
@@ -838,9 +861,16 @@ namespace Berta
 			child2->SetPrev(child1);  child2->SetNext(nullptr);
 
 			targetParent->m_children[targetIndex] = std::move(containerPtr);
+			auto* newContainerRaw = targetParent->m_children[targetIndex].get();
+       
+			// 💎 SINCRONIZACIÓN EXTERNA: Actualizamos las referencias de los hermanos adyacentes para que apunten al nuevo contenedor
 			if (targetIndex > 0)
 			{
-				targetParent->m_children[targetIndex - 1]->SetNext(targetParent->m_children[targetIndex].get());
+				targetParent->m_children[targetIndex - 1]->SetNext(newContainerRaw);
+			}
+			if (targetIndex < targetParent->m_children.size() - 1)
+			{
+				targetParent->m_children[targetIndex + 1]->SetPrev(newContainerRaw);
 			}
 		}
 		// --- RAMA 2: MISMA ORIENTACIÓN (Inserción co-lineal) ---
@@ -865,12 +895,10 @@ namespace Berta
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, std::move(m_floatingDockFields[nodeIndex]));
 			}
 
-			// 💎 PURGA CRÍTICA MULTI-NODO: Removemos "LayoutWeight", "Width" y "Height" de TODOS
-			// los hermanos del contenedor para que la matemática de redistribución se resetee limpiamente.
 			for (size_t i = 0; i < targetParent->m_children.size(); i++)
 			{
 				auto* currentChild = targetParent->m_children[i].get();
-          
+         
 				currentChild->SetNext(i == targetParent->m_children.size() - 1 ? nullptr : targetParent->m_children[i + 1].get());
 				currentChild->SetPrev(i == 0 ? nullptr : targetParent->m_children[i - 1].get());
 

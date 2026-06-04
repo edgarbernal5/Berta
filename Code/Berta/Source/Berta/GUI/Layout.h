@@ -95,7 +95,8 @@ namespace Berta
 
         EventHandlerId m_resizeEventId { 0 };
         
-        struct DragDropContext {
+        struct DragDropContext
+        {
             LayoutNode* lastTargetNode{ nullptr };
             bool lockPaneIndicators{ false };
             std::vector<std::unique_ptr<DockIndicator>> paneIndicators;
