@@ -413,13 +413,20 @@ namespace Berta
             Point m_dragStartLocalPos{ };
             Point m_dragStartCaptionPos{ };
             uint32_t m_savedDPI{ 0 };
+            
+            std::optional<size_t> m_draggedTabIndex;
         };
 
         bool IsFloating() const
         {
             return m_nativeContainer != nullptr;
         }
-
+        void MakeFloating(const Rectangle& rect);
+        
+        void OnTabMouseDown(size_t tabIndex, const Point& mouseScreenPos);
+        void OnTabMouseMove(const Point& mouseScreenPos);
+        void OnTabMouseUp(const Point& mouseScreenPos);
+        
         MouseInteraction m_mouseInteraction;
         Window* m_hostWindow{ nullptr };
         DockPaneLayoutNode* m_ownerDockPane{ nullptr };
@@ -427,10 +434,16 @@ namespace Berta
         std::unique_ptr<DockAreaCaption> m_caption;
         std::unique_ptr<TabBar> m_tabBar;
         std::vector<PanelDock> m_tabBarPanels;
-
+        
         PaneInfo* m_paneInfo{ nullptr };
     };
 
+    struct ArgFloatTab
+    {
+        DockPaneTabLayoutNode* tabNode;
+        Point mouseScreenPos;
+    };
+    
     struct DockPaneEvents 
     {
         Event<DockPaneLayoutNode*> OnFloat;
@@ -438,6 +451,7 @@ namespace Berta
         Event<DockPaneLayoutNode*> OnMove;
         Event<DockPaneLayoutNode*> OnMoveStopped;
         Event<DockPaneLayoutNode*> OnRequestClose;
+        Event<ArgFloatTab> OnFloatTab;
     };
     
     class DockPaneLayoutNode : public LayoutNode
@@ -446,7 +460,7 @@ namespace Berta
         DockPaneLayoutNode();
 
         void AddTab(std::string_view id, std::unique_ptr<ControlBase> control);
-        void AddPane(DockPaneLayoutNode* paneNode);
+        void AppendPane(DockPaneLayoutNode* paneNode);
         void AddWindow(Window* window) override;
         void CalculateAreas() override;
 
@@ -455,7 +469,7 @@ namespace Berta
         void NotifyMoveStarted();
         void NotifyMoveStopped();
         void RequestClose();
-
+        
         std::unique_ptr<DockArea> m_dockArea;
         std::string m_paneId;
         
@@ -472,31 +486,6 @@ namespace Berta
 
         std::string m_tabId;
     };
-
-    /*template<class T>
-    inline T Number::GetValue(float dpiFactor)
-    {
-        if (std::holds_alternative<T>(scalar))
-        {
-            return static_cast<T>(static_cast<double>(std::get<T>(scalar) * dpiFactor));
-        }
-
-        return T{ 0 };
-    }
-
-    template<class T>
-    inline T Number::GetValue()
-    {
-        if (std::holds_alternative<int>(scalar))
-        {
-            return static_cast<T>(std::get<int>(scalar));
-        }
-        if (std::holds_alternative<double>(scalar))
-        {
-            return static_cast<T>(std::get<double>(scalar));
-        }
-        return T{ 0 };
-    }*/
 }
 
 #endif

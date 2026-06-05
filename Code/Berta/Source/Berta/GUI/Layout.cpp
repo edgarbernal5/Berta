@@ -15,6 +15,8 @@
 #include "Berta/GUI/Layouts/LayoutParser.h"
 #include "Berta/GUI/Layouts/Lexer.h"
 
+//#define BT_LAYOUT_PRINT_DEBUG
+
 namespace Berta
 {
 	Layout::Layout()
@@ -280,33 +282,39 @@ namespace Berta
 		}
 		
 		node->Events.OnFloat.Connect([this](DockPaneLayoutNode* const& n)
-		{ 
+		{
 			HandleFloat(n); 
 		});
 
 		node->Events.OnMove.Connect([this](DockPaneLayoutNode* const& n)
-		{ 
+		{
 			HandleMove(n); 
 		});
 
 		node->Events.OnMoveStarted.Connect([this](DockPaneLayoutNode* const& n)
-		{ 
+		{
 			HandleMoveStarted(n); 
 		});
 
 		node->Events.OnMoveStopped.Connect([this](DockPaneLayoutNode* const& n)
-		{ 
+		{
 			HandleMoveStopped(n); 
 		});
 
 		node->Events.OnRequestClose.Connect([this](DockPaneLayoutNode* const& n)
-		{ 
+		{
 			HandleRequestClose(n); 
+		});
+		
+		node->Events.OnFloatTab.Connect([this](const ArgFloatTab& args)
+		{
+		   HandleFloatTab(args.tabNode, args.mouseScreenPos); 
 		});
 	}
 
 	void Layout::HandleFloat(DockPaneLayoutNode* const& node)
 	{
+		BT_CORE_TRACE << "HandleFloat id=" << node->GetId() << std::endl;
 		node->SetOwnerWindow(node->m_dockArea->m_nativeContainer->Handle());
 
 		if (DoFloat(node))
@@ -318,6 +326,7 @@ namespace Berta
 
 	void Layout::HandleMove(DockPaneLayoutNode* const& node)
 	{
+		//BT_CORE_TRACE << "HandleMove id=" << node->GetId() << std::endl;
 		if (!IsMouseInsideWindow())
 		{
 			m_dragDropCtx.lastTargetNode = nullptr;
@@ -374,6 +383,7 @@ namespace Berta
 
 	void Layout::HandleMoveStopped(DockPaneLayoutNode* const& node)
 	{
+		BT_CORE_TRACE << "HandleStop id=" << node->GetId() << std::endl;
 		m_dragDropCtx.lockPaneIndicators = false;
 		auto shouldDock = IsMouseInsideDockIndicator();
 		HidePaneDockIndicators();
@@ -384,7 +394,7 @@ namespace Berta
 			if (m_tabDockField)
 			{
 				auto targetPane = static_cast<DockPaneLayoutNode*>(m_dragDropCtx.lastTargetNode);
-				targetPane->AddPane(node);
+				targetPane->AppendPane(node);
 
 				for (size_t i = 0; i < node->m_children.size(); i++)
 				{
@@ -429,6 +439,107 @@ namespace Berta
 		{
 			Apply();
 		}
+	}
+
+	void Layout::HandleFloatTab(DockPaneTabLayoutNode* tabNode, const Point& mouseScreenPos)
+	{
+		if (!tabNode || !m_rootNode)
+		{
+			return;
+		}
+		
+		auto sourcePaneNode = static_cast<DockPaneLayoutNode*>(tabNode->GetParentNode());
+		if (!sourcePaneNode || !sourcePaneNode->m_dockArea)
+		{
+			return;
+		}
+		
+		size_t tabIndex = 0;
+		for (; tabIndex < sourcePaneNode->m_children.size(); ++tabIndex)
+		{
+			if (sourcePaneNode->m_children[tabIndex].get() == tabNode)
+			{
+				break;
+			}
+		}
+		if (tabIndex >= sourcePaneNode->m_children.size())
+		{
+			return;
+		}
+
+		auto detachedTabNode = std::move(sourcePaneNode->m_children[tabIndex]);
+		sourcePaneNode->m_children.erase(sourcePaneNode->m_children.begin() + tabIndex);
+
+		auto control = std::move(sourcePaneNode->m_dockArea->m_tabBarPanels[tabIndex].ControlPtr);
+		sourcePaneNode->m_dockArea->m_tabBarPanels.erase(sourcePaneNode->m_dockArea->m_tabBarPanels.begin() + tabIndex);
+		sourcePaneNode->m_dockArea->m_tabBar->Detach(tabIndex);
+
+		size_t prefixLen = sourcePaneNode->m_paneId.size() + 1;
+		std::string rawTabId = (tabNode->m_tabId.size() > prefixLen) 
+								? tabNode->m_tabId.substr(prefixLen) 
+								: tabNode->m_tabId;
+
+		std::string newPaneIdStr = rawTabId + "_floating"; 
+		std::string newTabIdStr = newPaneIdStr + "/" + rawTabId;
+
+		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
+		newPaneNode->SetId(newPaneIdStr);
+		newPaneNode->m_paneId = newPaneIdStr;
+		newPaneNode->SetOwnerWindow(m_owner);
+
+		auto newPaneNodePtr = newPaneNode.get();
+		m_dockPaneFields[newPaneIdStr] = newPaneNodePtr;
+
+		auto& paneInfo = m_dockPaneInfoFields[newPaneIdStr];
+		paneInfo.id = newPaneIdStr;
+
+		newPaneNode->m_dockArea = std::make_unique<DockArea>();
+		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
+		newPaneNode->m_dockArea->m_ownerDockPane = newPaneNodePtr;
+		sourcePaneNode->m_dockArea->m_mouseInteraction.m_dragStarted=false;
+		WireDockPaneEvents(newPaneNodePtr);
+
+		m_dockPaneTabFields.erase(tabNode->m_tabId);
+
+		tabNode->SetId(newTabIdStr);
+		tabNode->m_tabId = newTabIdStr;
+		tabNode->SetParentNode(newPaneNodePtr);
+    
+		m_dockPaneTabFields[newTabIdStr] = tabNode;
+
+		newPaneNode->AddTab(rawTabId, std::move(control));
+		newPaneNode->m_children.emplace_back(std::move(detachedTabNode));
+
+		m_floatingDockFields.emplace_back(std::move(newPaneNode));
+    
+		auto sourceSize = sourcePaneNode->m_dockArea->GetSize();
+		auto floatWidth = sourceSize.Width;
+		auto floatHeight = sourceSize.Height;
+		
+		int offsetX = 15;
+		int offsetY = floatHeight;
+
+		auto pointInScreen = sourcePaneNode->m_dockArea->GetPosition();
+		//Point windowTopLeft{ pointInScreen.X, pointInScreen.Y };
+		Point windowTopLeft{ mouseScreenPos.X - offsetX, mouseScreenPos.Y - offsetY };
+		Rectangle startRect{ windowTopLeft.X, windowTopLeft.Y, floatWidth, floatHeight };
+		
+		newPaneNodePtr->m_dockArea->MakeFloating(startRect);
+		
+		auto& interaction = newPaneNodePtr->m_dockArea->m_mouseInteraction;
+		interaction.m_dragStarted = true;
+		interaction.m_dragStartPos = GUI::GetScreenMousePosition();
+		interaction.m_dragStartCaptionPos = windowTopLeft;
+
+		interaction.m_savedDPI = newPaneNodePtr->m_dockArea->Handle()->DPI;
+		
+		interaction.m_dragStartLocalPos = sourcePaneNode->m_dockArea->GetPosition(); 
+
+		GUI::RefreshWindow(newPaneNodePtr->m_dockArea->Handle());
+		GUI::Capture(*newPaneNodePtr->m_dockArea->m_caption);
+		newPaneNodePtr->NotifyMoveStarted();
+		
+		Apply();
 	}
 
 	DockPaneLayoutNode* Layout::GetPane(std::string_view paneId)
@@ -666,8 +777,11 @@ namespace Berta
 		}
 
 		auto parent = paneNode->GetParentNode();
-		if (!parent) return false;
-
+		if (!parent)
+		{
+			return false;
+		}
+		
 		for (size_t i = 0; i < parent->m_children.size(); ++i)
 		{
 			if (parent->m_children[i].get() == paneNode)
@@ -708,13 +822,10 @@ namespace Berta
 						{
 							if (parentParent->m_children[j].get() == parent)
 							{
-								// 💎 HERENCIA LIMPIA: El hijo sube un nivel en el árbol
 								child->SetParentNode(parentParent);
                       
-								// El contenedor viejo se destruye aquí (vía unique_ptr::reset) y el hijo toma su lugar
 								parentParent->m_children[j].reset(child);
 
-								// 💎 PURGA Y RECONSTRUCCIÓN CRÍTICA DE LA FAMILIA ADOPTIVA
 								for (size_t k = 0; k < parentParent->m_children.size(); k++)
 								{
 									auto* current = parentParent->m_children[k].get();
@@ -732,9 +843,6 @@ namespace Berta
 				}
 				else
 				{
-					// 💎 PURGA Y RECONSTRUCCIÓN CRÍTICA DE LOS SOBREVIVIENTES
-					// Si el contenedor NO colapsa, los paneles hermanos deben cerrar filas, 
-					// reconectar sus punteros Prev/Next y olvidar sus tamaños estáticos.
 					for (size_t k = 0; k < parent->m_children.size(); k++)
 					{
 						auto* current = parent->m_children[k].get();
@@ -755,8 +863,11 @@ namespace Berta
 
 	bool Layout::DoDock(DockPaneLayoutNode* node, LayoutNode* target, DockPosition dockPosition)
 	{
-		if (!target) return false;
-
+		if (!target)
+		{
+			return false;
+		}
+		
 		size_t nodeIndex;
 		if (IsAlreadyDocked(node, nodeIndex)) return false;
 
@@ -914,7 +1025,7 @@ namespace Berta
 
 	void Layout::Print()
 	{
-#if BT_LAYOUT_PRINT_DEBUG
+#ifdef BT_LAYOUT_PRINT_DEBUG
 		std::cout << "Print()" << std::endl;
 		if (!m_rootNode)
 		{

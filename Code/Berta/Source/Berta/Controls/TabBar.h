@@ -38,6 +38,7 @@ namespace Berta
 	
 	struct ArgTabMouse : public ArgTabBar
 	{
+		size_t Index;
 		ArgMouse Mouse;
 	};
 	

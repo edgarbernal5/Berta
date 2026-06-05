@@ -242,9 +242,14 @@ namespace Berta
 
 				ArgTabBar argsTabBar{ selectedIndex, m_module.m_panels[selectedIndex].Id };
 				m_module.m_events->TabChanged.Emit(argsTabBar);
-
+				
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
+			
+			ArgTabMouse argsTabMouse;
+			argsTabMouse.Index = selectedIndex;
+			argsTabMouse.Mouse = args;
+			m_module.m_events->TabMouseDown.Emit(argsTabMouse);
 		}
 	}
 
@@ -282,7 +287,10 @@ namespace Berta
 		if (hoveredTabIndex.has_value())
 		{
 			auto& newSelectedTabItem = m_module.m_panels[*hoveredTabIndex];
-			ArgTabMouse argsTabMouse{{hoveredTabIndex.value(), newSelectedTabItem.Id}, args };
+			
+			ArgTabMouse argsTabMouse;
+			argsTabMouse.Index = hoveredTabIndex.value();
+			argsTabMouse.Mouse = args;			
 			m_module.m_events->TabMouseMove.Emit(argsTabMouse);
 		}
 	}
@@ -309,8 +317,10 @@ namespace Berta
 
 		if (m_module.m_hoveredTabIndex.has_value())
 		{
-			ArgTabMouse tabMouseArgs{{m_module.m_hoveredTabIndex.value(), m_module.m_panels[m_module.m_hoveredTabIndex.value()].Id},{args.Position}};
-			m_module.m_events->TabMouseUp.Emit(tabMouseArgs);
+			ArgTabMouse argsTabMouse;
+			argsTabMouse.Index = m_module.m_hoveredTabIndex.value();
+			argsTabMouse.Mouse = args;			
+			m_module.m_events->TabMouseUp.Emit(argsTabMouse);
 		}
 	}
 

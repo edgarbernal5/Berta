@@ -63,6 +63,7 @@ namespace Berta
         void HandleMoveStarted(DockPaneLayoutNode* const& node);
         void HandleMoveStopped(DockPaneLayoutNode* const& node);
         void HandleRequestClose(DockPaneLayoutNode* const& node);
+        void HandleFloatTab(DockPaneTabLayoutNode* tabNode, const Point& mouseScreenPos);
         
         DockPaneLayoutNode* GetPane(std::string_view paneId);
         DockPaneTabLayoutNode* GetPaneTab(std::string_view paneId, std::string_view tabId);

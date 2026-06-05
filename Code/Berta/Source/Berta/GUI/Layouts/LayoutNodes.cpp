@@ -166,7 +166,6 @@ namespace Berta
 		int marginTop    = getMargin("margin-top");
 		int marginBottom = getMargin("margin-bottom");
 
-		Point offset{ 0, 0 };
 		int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
 		if (totalFreeCount <= 0) return; // Si no hay nodos libres, el maestro descansa.
 
@@ -188,11 +187,13 @@ namespace Berta
 			}
 		}
 
-		// Escudo matemático: Si por algún glitch todos pesan 0, evitamos la división por 0.
-		if (totalWeight <= 0.0) totalWeight = 1.0; 
+		if (totalWeight <= 0.0)
+		{
+			totalWeight = 1.0;
+		}
 
-		// --- FASE 2: LA DISTRIBUCIÓN PERFECTA ---
-		uint32_t appliedPixels = 0;
+		double exactOffsetMain = 0.0;
+		int currentOffsetMain = 0; 
 
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
@@ -206,36 +207,34 @@ namespace Berta
 
 			auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
 			auto& mainPos       = m_isVertical ? childArea.Y : childArea.X;
-			auto& offsetMain    = m_isVertical ? offset.Y : offset.X;
 			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
-			auto& savedMainDim  = m_isVertical ? areas[i].Height : areas[i].Width;
 
 			if (markedChildren[i])
 			{
+				uint32_t savedMainDim = m_isVertical ? areas[i].Height : areas[i].Width;
 				childArea.Width = areas[i].Width;
 				childArea.Height = areas[i].Height;
-				mainPos += offsetMain;
-				offsetMain += static_cast<int>(savedMainDim);
+          
+				mainPos += currentOffsetMain;
+          
+				exactOffsetMain += savedMainDim;
+				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
 			}
 			else
 			{
-				// Magia Absoluta: La fracción exacta basada en el peso de todos sus hermanos
 				double normalizedFraction = dynamicWeights[i] / totalWeight;
-				uint32_t part = static_cast<uint32_t>(normalizedFraction * remainMainDim);
-
-				appliedPixels += part;
-				mainDim = part;
-				mainPos += offsetMain;
-				offsetMain += static_cast<int>(part);
+				double exactSize = normalizedFraction * remainMainDim;
+				double nextExactOffset = exactOffsetMain + exactSize;
           
-				// Actualizamos su propiedad de peso real para que el siguiente drag sea perfecto
-				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
-			}
+				uint32_t part = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
 
-			// 3. El Ajuste Divino: El último nodo absorbe los píxeles decimales perdidos por el redondeo
-			if (i == m_children.size() - 1 && remainMainDim > appliedPixels)
-			{
-				mainDim += (remainMainDim - appliedPixels);
+				mainDim = part;
+				mainPos += currentOffsetMain;
+          
+				exactOffsetMain = nextExactOffset;
+				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
+          
+				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
 
 			childNode->SetArea(childArea);
@@ -365,7 +364,6 @@ namespace Berta
 		// El espacio restante va garantizado al nodo derecho (Evita pérdida de pixeles por redondeo)
 		newRightAreaValue = static_cast<uint32_t>(totalAvailableSpace - static_cast<int>(newLeftAreaValue));
     
-		// Corregir la posición de inicio del área derecha en el eje principal
 		rightPos = leftPos + static_cast<int>(newLeftAreaValue);
 
 		// 3. PROPAGACIÓN MAGISTRAL: Actualiza los mapas de propiedades internos de los nodos adyacentes
@@ -444,12 +442,13 @@ namespace Berta
 		m_dockArea->AddTab(std::string(id), std::move(control));
 	}
 
-	void DockPaneLayoutNode::AddPane(DockPaneLayoutNode* paneNode)
+	void DockPaneLayoutNode::AppendPane(DockPaneLayoutNode* paneNode)
 	{
 		if (!paneNode || !paneNode->m_dockArea)
 		{
 			return;
 		}
+		
 		DockArea& sourceDockArea = *paneNode->m_dockArea;
 		for (size_t i = 0; i < sourceDockArea.m_tabBarPanels.size(); i++)
 		{
@@ -700,35 +699,17 @@ namespace Berta
 					auto pointInScreen = dockAreaWindow->Position;
 					auto dockAreaSize = this->GetSize();
 
-					Rectangle formRect;
-					formRect.X = pointInScreen.X;
-					formRect.Y = pointInScreen.Y;
-					formRect.Width = dockAreaSize.Width;
-					formRect.Height = dockAreaSize.Height;
+					Rectangle formRect{ pointInScreen.X, pointInScreen.Y, dockAreaSize.Width, dockAreaSize.Height };
 
-					m_nativeContainer = std::make_unique<Form>(m_hostWindow, formRect, FormStyle::Float());
+					MakeFloating(formRect);
+
 					auto nativeWindow = m_nativeContainer->Handle();
-#if BT_DEBUG
-					nativeWindow->Name = "DockFloat-" + m_paneInfo->id;
-#endif
-
-					GUI::SetParentWindow(dockAreaWindow, nativeWindow);
-					this->SetPosition({ 1, 1 });
-
-					m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
-					{
-						this->SetSize({ args.NewSize.Width - 1, args.NewSize.Height - 1 });
-					});
-
 					m_mouseInteraction.m_dragStartLocalPos.X -= static_cast<int>(nativeWindow->BorderSize.Width / 2) - (screenMousePos.X - m_mouseInteraction.m_dragStartPos.X);
 					m_mouseInteraction.m_dragStartLocalPos.Y -= static_cast<int>(nativeWindow->BorderSize.Height / 2) - (screenMousePos.Y - m_mouseInteraction.m_dragStartPos.Y);
 					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 
-					m_nativeContainer->Show();
 					GUI::Capture(*m_caption);
-
 					m_mouseInteraction.m_hasChanged = true;
-					m_ownerDockPane->NotifyFloat();
 				}
 			}
 			else
@@ -790,6 +771,21 @@ namespace Berta
 		{
 			m_caption->Hide();
 		}
+		
+		m_tabBar->GetEvents().TabMouseDown.Connect([this](const ArgTabMouse& args)
+		{
+			OnTabMouseDown(args.Index, args.Mouse.Position);
+		});
+		
+		m_tabBar->GetEvents().TabMouseMove.Connect([this](const ArgTabMouse& args)
+		{
+			OnTabMouseMove(args.Mouse.Position);
+		});
+		
+		m_tabBar->GetEvents().TabMouseUp.Connect([this](const ArgTabMouse& args)
+		{
+			OnTabMouseUp(args.Mouse.Position);
+		});
 	}
 
 	void DockArea::Dock()
@@ -801,6 +797,79 @@ namespace Berta
 	std::optional<size_t> DockArea::GetTabSelectedIndex() const
 	{
 		return m_tabBar->GetSelectedIndex();
+	}
+
+	void DockArea::MakeFloating(const Rectangle& rect)
+	{
+		if (IsFloating()) 
+		{
+			return; 
+		}
+
+		m_nativeContainer = std::make_unique<Form>(m_hostWindow, rect, FormStyle::Float());
+		auto nativeWindow = m_nativeContainer->Handle();
+    
+#if BT_DEBUG
+		nativeWindow->Name = "DockFloat-" + m_paneInfo->id;
+#endif
+
+		GUI::SetParentWindow(this->Handle(), nativeWindow);
+		this->SetPosition({ 1, 1 });
+
+		m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
+		{
+			this->SetSize({ args.NewSize.Width - 1, args.NewSize.Height - 1 });
+		});
+
+		m_nativeContainer->Show();
+		m_ownerDockPane->NotifyFloat();
+	}
+
+	void DockArea::OnTabMouseDown(size_t tabIndex, const Point& mouseScreenPos)
+	{
+		m_mouseInteraction.m_dragStarted = false;
+		m_mouseInteraction.m_dragStartPos = mouseScreenPos;
+		m_mouseInteraction.m_draggedTabIndex = tabIndex;
+	}
+
+	void DockArea::OnTabMouseMove(const Point& mouseScreenPos)
+	{
+		if (!m_mouseInteraction.m_dragStarted && m_mouseInteraction.m_draggedTabIndex.has_value() &&
+			m_tabBar->Count() > 1)
+		{
+			int dx = mouseScreenPos.X - m_mouseInteraction.m_dragStartPos.X;
+			int dy = mouseScreenPos.Y - m_mouseInteraction.m_dragStartPos.Y;
+        
+			const int DRAG_THRESHOLD = 5;
+
+			if (std::abs(dx) > DRAG_THRESHOLD || std::abs(dy) > DRAG_THRESHOLD)
+			{
+				m_mouseInteraction.m_dragStarted = true;
+				size_t tabToFloat = *m_mouseInteraction.m_draggedTabIndex;
+				m_mouseInteraction.m_draggedTabIndex = std::nullopt;
+    
+				if (m_ownerDockPane && tabToFloat < m_ownerDockPane->m_children.size())
+				{
+					auto tabNode = static_cast<DockPaneTabLayoutNode*>(m_ownerDockPane->m_children[tabToFloat].get());
+					
+					ArgFloatTab argFloatTab{tabNode, mouseScreenPos};
+					m_ownerDockPane->Events.OnFloatTab.Emit(argFloatTab);
+				}
+			}
+		}
+	}
+
+	void DockArea::OnTabMouseUp(const Point& mouseScreenPos)
+	{
+		if (!m_mouseInteraction.m_dragStarted)
+			return;
+		m_mouseInteraction.m_dragStarted = false;
+		m_mouseInteraction.m_draggedTabIndex = std::nullopt;
+    
+		if (m_ownerDockPane)
+		{
+			m_ownerDockPane->NotifyMoveStopped();
+		}
 	}
 
 	void DockAreaCaption::SetPaneInfo(PaneInfo* paneInfo)
