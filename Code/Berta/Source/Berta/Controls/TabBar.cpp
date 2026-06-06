@@ -276,9 +276,13 @@ namespace Berta
 			}
 		}
 		
-		if (m_module.m_hoveredTabIndex != newHoveredTab || m_module.m_hoveredCloseBtnIndex != newHoveredCloseBtn)
+		if (m_module.m_hoveredTabIndex != newHoveredTab)
 		{
 			m_module.m_hoveredTabIndex = newHoveredTab;
+		}
+		
+		if (m_module.m_hoveredCloseBtnIndex != newHoveredCloseBtn)
+		{
 			m_module.m_hoveredCloseBtnIndex = newHoveredCloseBtn;
 			
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
