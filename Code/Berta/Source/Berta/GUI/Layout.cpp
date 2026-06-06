@@ -398,10 +398,10 @@ namespace Berta
 
 				for (size_t i = 0; i < node->m_children.size(); i++)
 				{
+					node->m_children[i]->SetParentNode(targetPane);
 					targetPane->m_children.emplace_back(std::move(node->m_children[i]));
 				}
 				node->m_children.clear();
-
 				node->m_dockArea->m_nativeContainer.reset();
 
 				m_tabDockField.reset();
@@ -496,7 +496,8 @@ namespace Berta
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
 		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
 		newPaneNode->m_dockArea->m_ownerDockPane = newPaneNodePtr;
-		sourcePaneNode->m_dockArea->m_mouseInteraction.m_dragStarted=false;
+		sourcePaneNode->m_dockArea->m_mouseInteraction.m_dragStarted = false;
+		
 		WireDockPaneEvents(newPaneNodePtr);
 
 		m_dockPaneTabFields.erase(tabNode->m_tabId);
@@ -520,8 +521,8 @@ namespace Berta
 		int offsetY = floatHeight;
 
 		auto pointInScreen = sourcePaneNode->m_dockArea->GetPosition();
-		//Point windowTopLeft{ pointInScreen.X, pointInScreen.Y };
-		Point windowTopLeft{ mouseScreenPos.X - offsetX, mouseScreenPos.Y - offsetY };
+		Point windowTopLeft{ pointInScreen.X, pointInScreen.Y };
+		//Point windowTopLeft{ mouseScreenPos.X - offsetX, mouseScreenPos.Y - offsetY };
 		Rectangle startRect{ windowTopLeft.X, windowTopLeft.Y, floatWidth, floatHeight };
 		
 		newPaneNodePtr->m_dockArea->MakeFloating(startRect);
@@ -535,7 +536,6 @@ namespace Berta
 		
 		interaction.m_dragStartLocalPos = sourcePaneNode->m_dockArea->GetPosition(); 
 
-		GUI::RefreshWindow(newPaneNodePtr->m_dockArea->Handle());
 		GUI::Capture(*newPaneNodePtr->m_dockArea->m_caption);
 		newPaneNodePtr->NotifyMoveStarted();
 		

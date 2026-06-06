@@ -330,9 +330,10 @@ namespace Berta
 
 	void SplitterLayoutNode::OnMouseMove(const ArgMouse& args)
 	{
-		if (!m_isSplitterMoving) return;
-   
-		// 1. Calcular el delta de movimiento del mouse
+		if (!m_isSplitterMoving)
+		{
+			return;
+		}
 		auto delta = GUI::GetWindowRootPosition(m_splitter->Handle()) + args.Position - m_splitterBeginRect + m_mousePositionOffset;
    
 		auto newSplitterArea   = GetArea();
@@ -355,34 +356,27 @@ namespace Berta
 		auto splitterCount = static_cast<uint32_t>((m_containerNode->m_children.size() - 1) / 2);
 		Size fixedSize{ fixedSplitterSize * splitterCount, fixedSplitterSize * splitterCount };
 
-		// 2. Aplicar la matemática del arrastre usando std::clamp de C++17 de forma simétrica
 		int totalAvailableSpace = static_cast<int>(leftAreaValue + rightAreaValue);
     
 		int leftLimit = static_cast<int>(leftAreaValue) + deltaValue;
 		newLeftAreaValue = static_cast<uint32_t>(std::clamp(leftLimit, 0, totalAvailableSpace));
 
-		// El espacio restante va garantizado al nodo derecho (Evita pérdida de pixeles por redondeo)
 		newRightAreaValue = static_cast<uint32_t>(totalAvailableSpace - static_cast<int>(newLeftAreaValue));
     
 		rightPos = leftPos + static_cast<int>(newLeftAreaValue);
 
-		// 3. PROPAGACIÓN MAGISTRAL: Actualiza los mapas de propiedades internos de los nodos adyacentes
-		// Este pase ya muta los variants (FixedHeight/FixedWidth o Width/Height si son porcentuales)
 		m_prevNode->SetAreaWithPercentage(newLeftArea, containerArea, fixedSize, m_isVertical);
 		m_nextNode->SetAreaWithPercentage(newRightArea, containerArea, fixedSize, m_isVertical);
 
-		// 4. Mover el área física del propio Splitter
 		auto& newSplitterAreaPos = m_isVertical ? newSplitterArea.Y : newSplitterArea.X;
 		newSplitterAreaPos = leftPos + static_cast<int>(newLeftAreaValue);
 
 		SetArea(newSplitterArea);
 
-		// 5. Forzar al contenedor a reordenar los bounding boxes lógicos basados en los nuevos pesos
 		m_containerNode->CalculateAreas();
 
-		// 6. Invalidation Pass limpia a nivel Win32 (0% CPU en reposo)
 		API::RefreshWindow(m_ownerWindow->RootHandle);
-		API::UpdateWindow(m_ownerWindow->RootHandle);
+		//API::UpdateWindow(m_ownerWindow->RootHandle);
 	}
 
 	void SplitterLayoutNode::OnMouseUp()
@@ -528,6 +522,7 @@ namespace Berta
 		{
 			return;
 		}
+		
 		auto color = window->Appearance->Background;
 		if (m_buttonStatus == State::None)
 		{
@@ -774,16 +769,29 @@ namespace Berta
 		
 		m_tabBar->GetEvents().TabMouseDown.Connect([this](const ArgTabMouse& args)
 		{
+			if (!args.Mouse.ButtonState.LeftButton)
+			{
+				return;
+			}
+			
 			OnTabMouseDown(args.Index, args.Mouse.Position);
 		});
 		
 		m_tabBar->GetEvents().TabMouseMove.Connect([this](const ArgTabMouse& args)
 		{
+			if (!args.Mouse.ButtonState.LeftButton)
+			{
+				return;
+			}
 			OnTabMouseMove(args.Mouse.Position);
 		});
 		
 		m_tabBar->GetEvents().TabMouseUp.Connect([this](const ArgTabMouse& args)
 		{
+			if (!args.Mouse.ButtonState.LeftButton)
+			{
+				return;
+			}
 			OnTabMouseUp(args.Mouse.Position);
 		});
 	}
@@ -815,7 +823,7 @@ namespace Berta
 
 		GUI::SetParentWindow(this->Handle(), nativeWindow);
 		this->SetPosition({ 1, 1 });
-
+		this->SetSize({ rect.Width - 1, rect.Height - 1 });
 		m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
 		{
 			this->SetSize({ args.NewSize.Width - 1, args.NewSize.Height - 1 });
@@ -839,8 +847,8 @@ namespace Berta
 		{
 			int dx = mouseScreenPos.X - m_mouseInteraction.m_dragStartPos.X;
 			int dy = mouseScreenPos.Y - m_mouseInteraction.m_dragStartPos.Y;
-        
-			const int DRAG_THRESHOLD = 5;
+
+			constexpr int DRAG_THRESHOLD = 5;
 
 			if (std::abs(dx) > DRAG_THRESHOLD || std::abs(dy) > DRAG_THRESHOLD)
 			{
@@ -863,6 +871,7 @@ namespace Berta
 	{
 		if (!m_mouseInteraction.m_dragStarted)
 			return;
+		
 		m_mouseInteraction.m_dragStarted = false;
 		m_mouseInteraction.m_draggedTabIndex = std::nullopt;
     
