@@ -860,6 +860,8 @@ namespace Berta
 				{
 					auto tabNode = static_cast<DockPaneTabLayoutNode*>(m_ownerDockPane->m_children[tabToFloat].get());
 					
+					m_ownerDockPane->m_dockArea->m_mouseInteraction.m_dragStarted = false;
+					
 					ArgFloatTab argFloatTab{tabNode, mouseScreenPos};
 					m_ownerDockPane->Events.OnFloatTab.Emit(argFloatTab);
 				}

@@ -398,7 +398,16 @@ namespace Berta
 
 				for (size_t i = 0; i < node->m_children.size(); i++)
 				{
+					std::string oldTabId = node->m_children[i]->GetId();
+					std::string newTabId = targetPane->m_paneId + oldTabId.substr(oldTabId.find_last_of('/'));
+					m_dockPaneTabFields.erase(oldTabId);
+					
+					auto tabNodePtr = static_cast<DockPaneTabLayoutNode*>(node->m_children[i].get());
+					
+					tabNodePtr->m_tabId = newTabId;
 					node->m_children[i]->SetParentNode(targetPane);
+					m_dockPaneTabFields[newTabId] = tabNodePtr;
+					
 					targetPane->m_children.emplace_back(std::move(node->m_children[i]));
 				}
 				node->m_children.clear();
@@ -474,13 +483,9 @@ namespace Berta
 		sourcePaneNode->m_dockArea->m_tabBarPanels.erase(sourcePaneNode->m_dockArea->m_tabBarPanels.begin() + tabIndex);
 		sourcePaneNode->m_dockArea->m_tabBar->Detach(tabIndex);
 
-		size_t prefixLen = sourcePaneNode->m_paneId.size() + 1;
-		std::string rawTabId = (tabNode->m_tabId.size() > prefixLen) 
-								? tabNode->m_tabId.substr(prefixLen) 
-								: tabNode->m_tabId;
-
-		std::string newPaneIdStr = rawTabId + "_floating"; 
-		std::string newTabIdStr = newPaneIdStr + "/" + rawTabId;
+		std::string newPaneIdStr = sourcePaneNode->m_paneId; 
+		std::string newTabIdStr = tabNode->m_tabId;
+		std::string rawTabIdStr = newTabIdStr.substr(newTabIdStr.find_last_of('/') + 1);
 
 		auto newPaneNode = std::make_unique<DockPaneLayoutNode>();
 		newPaneNode->SetId(newPaneIdStr);
@@ -496,34 +501,22 @@ namespace Berta
 		newPaneNode->m_dockArea = std::make_unique<DockArea>();
 		newPaneNode->m_dockArea->Create(m_owner, &paneInfo);
 		newPaneNode->m_dockArea->m_ownerDockPane = newPaneNodePtr;
-		sourcePaneNode->m_dockArea->m_mouseInteraction.m_dragStarted = false;
 		
 		WireDockPaneEvents(newPaneNodePtr);
-
-		m_dockPaneTabFields.erase(tabNode->m_tabId);
 
 		tabNode->SetId(newTabIdStr);
 		tabNode->m_tabId = newTabIdStr;
 		tabNode->SetParentNode(newPaneNodePtr);
-    
-		m_dockPaneTabFields[newTabIdStr] = tabNode;
 
-		newPaneNode->AddTab(rawTabId, std::move(control));
+		newPaneNode->AddTab(rawTabIdStr, std::move(control));
 		newPaneNode->m_children.emplace_back(std::move(detachedTabNode));
 
 		m_floatingDockFields.emplace_back(std::move(newPaneNode));
     
 		auto sourceSize = sourcePaneNode->m_dockArea->GetSize();
-		auto floatWidth = sourceSize.Width;
-		auto floatHeight = sourceSize.Height;
 		
-		int offsetX = 15;
-		int offsetY = floatHeight;
-
-		auto pointInScreen = sourcePaneNode->m_dockArea->GetPosition();
-		Point windowTopLeft{ pointInScreen.X, pointInScreen.Y };
-		//Point windowTopLeft{ mouseScreenPos.X - offsetX, mouseScreenPos.Y - offsetY };
-		Rectangle startRect{ windowTopLeft.X, windowTopLeft.Y, floatWidth, floatHeight };
+		Point windowTopLeft = sourcePaneNode->m_dockArea->GetPosition();
+		Rectangle startRect{ windowTopLeft.X, windowTopLeft.Y, sourceSize.Width, sourceSize.Height };
 		
 		newPaneNodePtr->m_dockArea->MakeFloating(startRect);
 		
