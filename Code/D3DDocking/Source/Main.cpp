@@ -295,11 +295,22 @@ public:
 		m_viewport.Height = formSize.Height;
 		m_viewport.MinDepth = D3D12_MIN_DEPTH;
 		m_viewport.MaxDepth = D3D12_MAX_DEPTH;
-		this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
-			{
-				m_nestedForm->SetArea({ 0, 0, args.NewSize.Width, args.NewSize.Height });
-			});
+		//this->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
+		//	{
+		//		m_nestedForm->SetArea({ 0, 25, args.NewSize.Width, args.NewSize.Height });
+		//	});
 
+		m_button1.Create(*this);
+		m_button1.SetCaption("boton1");
+		m_button2.Create(*this);
+		m_button2.SetCaption("boton2");
+		
+		m_layout.Create(*this);
+		m_layout.Parse("{VerticalLayout {HorizontalLayout {a}{b} Height=25} {render}}");
+		m_layout.Attach("a", m_button1);
+		m_layout.Attach("b", m_button2);
+		m_layout.Attach("render", *m_nestedForm);
+		
 		m_nestedForm->Show();
 	}
 	~TabForm() override
@@ -341,6 +352,9 @@ private:
 		m_device->Present();
 	}
 
+	Berta::Layout m_layout;
+	Berta::Button m_button1;
+	Berta::Button m_button2;
 	std::unique_ptr<Berta::NestedForm> m_nestedForm;
 	std::unique_ptr<D3D12Lite::Device> m_device;
 	std::unique_ptr<D3D12Lite::GraphicsContext> m_graphicsContext;

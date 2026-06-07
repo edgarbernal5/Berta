@@ -98,61 +98,64 @@ namespace Berta
 	}
 
 	void ContainerLayoutNode::ProcessFixedChildren(const Rectangle& parentArea, Rectangle& remainArea, std::vector<Rectangle>& areas, std::vector<bool>& markedChildren, int& fixedNodesCount, float dpi)
-{
-    const std::string_view dimType    = m_isVertical ? "Height"    : "Width";
-    const std::string_view minDimType = m_isVertical ? "MinHeight" : "MinWidth";
-    const std::string_view maxDimType = m_isVertical ? "MaxHeight" : "MaxWidth";
+	{
+		const std::string_view dimType    = m_isVertical ? "Height"    : "Width";
+		const std::string_view minDimType = m_isVertical ? "MinHeight" : "MinWidth";
+		const std::string_view maxDimType = m_isVertical ? "MaxHeight" : "MaxWidth";
 
-    for (size_t i = 0; i < m_children.size(); ++i)
-    {
-       auto& childNode = m_children[i];
-       Rectangle childArea;
+		for (size_t i = 0; i < m_children.size(); ++i)
+		{
+			auto& childNode = m_children[i];
+			Rectangle childArea;
 
-       auto& crossDim       = m_isVertical ? childArea.Width : childArea.Height;
-       auto& parentCrossDim = m_isVertical ? parentArea.Width : parentArea.Height;
-       crossDim = parentCrossDim;
+			auto& crossDim       = m_isVertical ? childArea.Width : childArea.Height;
+			auto& parentCrossDim = m_isVertical ? parentArea.Width : parentArea.Height;
+			crossDim = parentCrossDim;
 
-       // 1. La Verdad Absoluta: Identificamos su naturaleza real
-       bool isSplitter = (childNode->GetType() == LayoutNodeType::Splitter);
-       auto* dimensionDim = childNode->TryGetProperty<Berta::Dimension>(dimType);
+			// 1. La Verdad Absoluta: Identificamos su naturaleza real
+			bool isSplitter = (childNode->GetType() == LayoutNodeType::Splitter);
+			auto* dimensionDim = childNode->TryGetProperty<Berta::Dimension>(dimType);
 
-       // Entra si es un Splitter O si es un panel con tamaño estático en píxeles
-       if (isSplitter || (dimensionDim && !dimensionDim->IsPercentage()))
-       {
-          uint32_t fixedSize = 0;
+			if (isSplitter || (dimensionDim && !dimensionDim->IsPercentage()))
+			{
+				uint32_t fixedSize = 0;
 
-          if (isSplitter) {
-             // El muro recobra su identidad sin importar qué diga el mapa de propiedades
-             fixedSize = static_cast<uint32_t>(SplitterLayoutNode::SizeInPixels * dpi); 
-          } else {
-             fixedSize = static_cast<uint32_t>(dimensionDim->value * dpi);
-          }
+				if (isSplitter)
+				{
+					fixedSize = static_cast<uint32_t>(SplitterLayoutNode::SizeInPixels * dpi); 
+				}
+				else
+				{
+					fixedSize = static_cast<uint32_t>(dimensionDim->value * dpi);
+				}
 
-          // Los límites Min/Max solo aplican a paneles, no a splitters
-          if (!isSplitter) {
-              if (auto* minDim = childNode->TryGetProperty<Berta::Dimension>(minDimType)) {
-                 fixedSize = std::max<uint32_t>(fixedSize, static_cast<uint32_t>(minDim->value * dpi));
-              }
-              if (auto* maxDim = childNode->TryGetProperty<Berta::Dimension>(maxDimType)) {
-                 fixedSize = std::min<uint32_t>(fixedSize, static_cast<uint32_t>(maxDim->value * dpi));
-              }
-          }
+				
+				if (!isSplitter)
+				{
+					if (auto* minDim = childNode->TryGetProperty<Berta::Dimension>(minDimType))
+					{
+						fixedSize = std::max<uint32_t>(fixedSize, static_cast<uint32_t>(minDim->value * dpi));
+					}
+					if (auto* maxDim = childNode->TryGetProperty<Berta::Dimension>(maxDimType))
+					{
+						fixedSize = std::min<uint32_t>(fixedSize, static_cast<uint32_t>(maxDim->value * dpi));
+					}
+				}
 
-          auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
-          auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
+				auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
+				auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
 
-          mainDim = fixedSize;
+				mainDim = fixedSize;
           
-          // 2. Escudo contra Underflow: Evita valores negativos si el layout colapsa
-          if (fixedSize > remainMainDim) remainMainDim = 0; 
-          else remainMainDim -= fixedSize;
+				if (fixedSize > remainMainDim) remainMainDim = 0; 
+				else remainMainDim -= fixedSize;
 
-          markedChildren[i] = true;
-          areas[i] = childArea;
-          ++fixedNodesCount;
-       }
-    }
-}
+				markedChildren[i] = true;
+				areas[i] = childArea;
+				++fixedNodesCount;
+			}
+		}
+	}
 
 	void ContainerLayoutNode::ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, int fixedNodesCount, float dpi)
 	{
@@ -167,29 +170,29 @@ namespace Berta
 		int marginBottom = getMargin("margin-bottom");
 
 		int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
-		if (totalFreeCount <= 0) return; // Si no hay nodos libres, el maestro descansa.
 
-		// --- FASE 1: LA BALANZA DE LA VERDAD (Normalización) ---
 		double totalWeight = 0.0;
 		std::vector<double> dynamicWeights(m_children.size(), 0.0);
 
-		for (size_t i = 0; i < m_children.size(); ++i)
+		if (totalFreeCount > 0)
 		{
-			if (!markedChildren[i])
+			for (size_t i = 0; i < m_children.size(); ++i)
 			{
-				auto& childNode = m_children[i];
-				auto* weightDim = childNode->TryGetProperty<Berta::Dimension>("LayoutWeight");
-            
-				// Si el panel no tiene peso (ej. recién dockeado), recibe su parte justa
-				double weight = weightDim ? weightDim->value : (1.0 / totalFreeCount);
-				dynamicWeights[i] = weight;
-				totalWeight += weight;
+				if (!markedChildren[i])
+				{
+					auto& childNode = m_children[i];
+					auto* weightDim = childNode->TryGetProperty<Berta::Dimension>("LayoutWeight");
+		
+					double weight = weightDim ? weightDim->value : (1.0 / totalFreeCount);
+					dynamicWeights[i] = weight;
+					totalWeight += weight;
+				}
 			}
 		}
 
 		if (totalWeight <= 0.0)
 		{
-			totalWeight = 1.0;
+			totalWeight = 1.0; // Prevenir división por cero más abajo
 		}
 
 		double exactOffsetMain = 0.0;
@@ -199,7 +202,7 @@ namespace Berta
 		{
 			auto& childNode = m_children[i];
 			Rectangle childArea = parentArea;
-       
+   
 			childArea.X += marginLeft;
 			childArea.Y += marginTop;
 			childArea.Width  -= (marginLeft + marginRight);
@@ -211,34 +214,37 @@ namespace Berta
 
 			if (markedChildren[i])
 			{
+				// Si es un nodo fijo, usamos el tamaño guardado de la función anterior
 				uint32_t savedMainDim = m_isVertical ? areas[i].Height : areas[i].Width;
 				childArea.Width = areas[i].Width;
 				childArea.Height = areas[i].Height;
-          
+      
 				mainPos += currentOffsetMain;
-          
+      
 				exactOffsetMain += savedMainDim;
 				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
 			}
 			else
 			{
+				// Si es un nodo dinámico, lo distribuimos según su peso
 				double normalizedFraction = dynamicWeights[i] / totalWeight;
 				double exactSize = normalizedFraction * remainMainDim;
 				double nextExactOffset = exactOffsetMain + exactSize;
-          
+      
 				uint32_t part = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
 
 				mainDim = part;
 				mainPos += currentOffsetMain;
-          
+      
 				exactOffsetMain = nextExactOffset;
 				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
-          
+      
 				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
 
+			// Finalmente: Seteamos su área y desatamos la recursividad en el árbol
 			childNode->SetArea(childArea);
-			childNode->CalculateAreas();
+			childNode->CalculateAreas(); 
 		}
 	}
 
@@ -299,7 +305,10 @@ namespace Berta
 
 	void SplitterLayoutNode::EnsureControlCreated()
 	{
-		if (m_splitter) return; // Si ya existe, no hacemos nada
+		if (m_splitter)
+		{
+			return;
+		}
 
 		m_containerNode = static_cast<ContainerLayoutNode*>(m_parentNode);
 
@@ -315,7 +324,10 @@ namespace Berta
 
 	void SplitterLayoutNode::OnMouseDown(const ArgMouse& args)
 	{
-		if (!args.ButtonState.LeftButton) return;
+		if (!args.ButtonState.LeftButton)
+		{
+			return;
+		}
 
 		GUI::Capture(m_splitter->Handle());
 
@@ -381,7 +393,10 @@ namespace Berta
 
 	void SplitterLayoutNode::OnMouseUp()
 	{
-		if (!m_isSplitterMoving) return;
+		if (!m_isSplitterMoving)
+		{
+			return;
+		}
 
 		m_isSplitterMoving = false;
 		GUI::ReleaseCapture(m_splitter->Handle());
