@@ -83,19 +83,12 @@ namespace Berta
         [[nodiscard]] const T& GetProperty(std::string_view name) const
         {
             auto it = m_properties.find(name);
-            if (it == m_properties.end()) {
+            if (it == m_properties.end())
+            {
                 throw std::runtime_error("Propiedad no encontrada en el nodo.");
             }
             return std::get<T>(it->second);
         }
-        /*template<typename T>
-        [[nodiscard]] const T* TryGetProperty(std::string_view name) const noexcept {
-            if (auto it = m_properties.find(name); it != m_properties.end())
-            {
-                return std::get_if<T>(&it->second);
-            }
-            return nullptr;
-        }*/
         
         template<typename T>
         [[nodiscard]] T* TryGetProperty(std::string_view name) noexcept {
@@ -220,6 +213,9 @@ namespace Berta
             m_parentNode = node;
         }
         
+        virtual void EnterSizeMove();
+        virtual void ExitSizeMove();
+        
         std::map<std::string, PropertyValue, std::less<>> m_properties;
         std::vector<std::unique_ptr<LayoutNode>> m_children;
 
@@ -242,7 +238,9 @@ namespace Berta
         void SetOwnerWindow(LayoutNode* node, Window* window)
         {
             if (node == nullptr)
+            {
                 return;
+            }
 
             node->m_ownerWindow = window;
 
@@ -297,6 +295,9 @@ namespace Berta
         void AddWindow(Window* window) override;
         void CalculateAreas() override;
 
+        void EnterSizeMove() override;
+        void ExitSizeMove() override;
+        
     private:
         Window* m_window{ nullptr };
     };
@@ -421,6 +422,7 @@ namespace Berta
         {
             return m_nativeContainer != nullptr;
         }
+        
         void MakeFloating(const Rectangle& rect);
         
         void OnTabMouseDown(size_t tabIndex, const Point& mouseScreenPos);
@@ -484,6 +486,9 @@ namespace Berta
 
         void CalculateAreas() override;
 
+        void EnterSizeMove() override;
+        void ExitSizeMove() override;
+        
         std::string m_tabId;
     };
 }

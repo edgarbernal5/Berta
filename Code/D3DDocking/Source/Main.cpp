@@ -284,6 +284,15 @@ public:
 
 				//OnDraw();
 			});
+		
+		m_nestedForm->GetEvents().EnterSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		{
+			std::cout << "Nested enter size move..." << std::endl;
+		});
+		m_nestedForm->GetEvents().ExitSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		{
+			std::cout << "Nested exit size move..." << std::endl;
+		});
 
 		auto formSize = m_nestedForm->GetSize();
 		m_device = std::make_unique<D3D12Lite::Device>(m_nestedForm->Handle()->RootHandle.Handle, D3D12Lite::Uint2{ formSize.Width, formSize.Height });

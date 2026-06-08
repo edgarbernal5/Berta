@@ -45,6 +45,9 @@ namespace Berta
 		Window* GetParentWindow(Window* window);
 		Window* GetOwnerWindow(Window* window);
 
+		void EnterSizeMove(Window* window);
+		void ExitSizeMove(Window* window);
+		
 		void Capture(Window* window, bool redirectToChildren = false);
 		void ReleaseCapture(Window* window);
 

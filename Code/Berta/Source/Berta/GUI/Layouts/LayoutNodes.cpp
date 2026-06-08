@@ -39,6 +39,28 @@ namespace Berta
 		return FindFirst(nodeType, this);
 	}
 
+	void LayoutNode::EnterSizeMove()
+	{
+		for (auto& child : m_children)
+		{
+			if (child->GetType() == LayoutNodeType::Splitter)
+				continue;
+			
+			child->EnterSizeMove();
+		}
+	}
+
+	void LayoutNode::ExitSizeMove()
+	{
+		for (auto& child : m_children)
+		{
+			if (child->GetType() == LayoutNodeType::Splitter)
+				continue;
+			
+			child->ExitSizeMove();
+		}
+	}
+
 	LayoutNode* LayoutNode::Find(std::string_view id, LayoutNode* node)
 	{
 		if (node->GetId() == id)
@@ -274,6 +296,16 @@ namespace Berta
 		GUI::MoveWindow(m_window, GetArea(), false);
 	}
 
+	void LeafLayoutNode::EnterSizeMove()
+	{
+		GUI::EnterSizeMove(m_window);
+	}
+
+	void LeafLayoutNode::ExitSizeMove()
+	{
+		GUI::ExitSizeMove(m_window);
+	}
+
 	void LeafLayoutNode::AddWindow(Window* window)
 	{
 		m_window = window;
@@ -336,7 +368,10 @@ namespace Berta
 
 		m_leftArea = m_prevNode->GetArea();
 		m_rightArea = m_nextNode->GetArea();
-
+		
+		m_prevNode->EnterSizeMove();
+		m_nextNode->EnterSizeMove();
+		
 		m_isSplitterMoving = true;
 	}
 
@@ -384,7 +419,7 @@ namespace Berta
 		newSplitterAreaPos = leftPos + static_cast<int>(newLeftAreaValue);
 
 		SetArea(newSplitterArea);
-
+		
 		m_containerNode->CalculateAreas();
 
 		API::RefreshWindow(m_ownerWindow->RootHandle);
@@ -397,6 +432,9 @@ namespace Berta
 		{
 			return;
 		}
+		
+		m_prevNode->ExitSizeMove();
+		m_nextNode->ExitSizeMove();
 
 		m_isSplitterMoving = false;
 		GUI::ReleaseCapture(m_splitter->Handle());
@@ -698,6 +736,7 @@ namespace Berta
 
 			auto dockAreaWindow = this->Handle();
 			auto screenMousePos = GUI::GetScreenMousePosition();
+			bool hasChanged = false;
 			if (!IsFloating())
 			{
 				auto floatingThreshold = dockAreaWindow->ToScale(4);
@@ -719,7 +758,7 @@ namespace Berta
 					m_mouseInteraction.m_dragStartPos = GUI::GetScreenMousePosition();
 
 					GUI::Capture(*m_caption);
-					m_mouseInteraction.m_hasChanged = true;
+					hasChanged = true;
 				}
 			}
 			else
@@ -741,10 +780,16 @@ namespace Berta
 					m_mouseInteraction.m_savedDPI = m_nativeContainer->Handle()->DPI;
 				}
 				
-				m_mouseInteraction.m_hasChanged = true;
+				hasChanged = true;
 				GUI::MoveWindow(*m_nativeContainer, newPosition);
 
 				m_ownerDockPane->NotifyMove();
+			}
+			
+			if (hasChanged != m_mouseInteraction.m_hasChanged)
+			{
+				m_mouseInteraction.m_hasChanged = true;
+				m_ownerDockPane->NotifyMoveStarted();
 			}
 		});
 
@@ -920,5 +965,17 @@ namespace Berta
 
 	void DockPaneTabLayoutNode::CalculateAreas()
 	{
+	}
+
+	void DockPaneTabLayoutNode::EnterSizeMove()
+	{
+		auto parentNode = static_cast<DockPaneLayoutNode*>(m_parentNode);
+		parentNode->m_dockArea->EnterSizeMove();
+	}
+
+	void DockPaneTabLayoutNode::ExitSizeMove()
+	{
+		auto parentNode = static_cast<DockPaneLayoutNode*>(m_parentNode);
+		parentNode->m_dockArea->ExitSizeMove();
 	}
 }

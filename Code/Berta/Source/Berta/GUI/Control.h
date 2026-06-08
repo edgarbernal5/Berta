@@ -68,6 +68,9 @@ namespace Berta
 		void MakeActive(bool activated, Window* makeTargetWhenInactive);
 		void Focus();
 		
+		void EnterSizeMove();
+		void ExitSizeMove();
+		
 #if BT_DEBUG
 		void SetDebugName(const std::string& name) const
 		{
@@ -122,6 +125,9 @@ namespace Berta
 		virtual void DoOnMove(const Point& newPoint);
 		virtual void DoOnMove(const Rectangle& newArea);
 
+		virtual void DoOnEnterSizeMove() const;
+		virtual void DoOnExitSizeMove() const;
+		
 		void NotifyDestroy()
 		{
 			m_handle = nullptr;

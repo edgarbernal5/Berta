@@ -59,6 +59,15 @@ public:
 			{
 				m_nestedForm->SetSize(args.NewSize);
 			});
+		
+		m_nestedForm->GetEvents().EnterSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		{
+			std::cout << "Nested enter size move..." << std::endl;
+		});
+		m_nestedForm->GetEvents().ExitSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		{
+			std::cout << "Nested exit size move..." << std::endl;
+		});
 
 		m_nestedButton.Create(*m_nestedForm, true, { 10,10,150,70 });
 		m_nestedButton.SetCaption("Nested button");

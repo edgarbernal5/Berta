@@ -177,6 +177,16 @@ namespace Berta
 		GUI::FocusWindow(m_handle);
 	}
 
+	void ControlBase::EnterSizeMove()
+	{
+		DoOnEnterSizeMove();
+	}
+
+	void ControlBase::ExitSizeMove()
+	{
+		DoOnExitSizeMove();
+	}
+
 	std::wstring ControlBase::DoOnCaption() const
 	{
 		return GUI::CaptionWindow(m_handle);
@@ -215,5 +225,15 @@ namespace Berta
 	void ControlBase::DoOnMove(const Rectangle& newArea)
 	{
 		GUI::MoveWindow(m_handle, newArea);
+	}
+
+	void ControlBase::DoOnEnterSizeMove() const
+	{
+		GUI::EnterSizeMove(m_handle);
+	}
+
+	void ControlBase::DoOnExitSizeMove() const
+	{
+		GUI::ExitSizeMove(m_handle);
 	}
 }

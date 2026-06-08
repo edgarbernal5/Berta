@@ -379,11 +379,15 @@ namespace Berta
 
 	void Layout::HandleMoveStarted(DockPaneLayoutNode* const& node)
 	{
+		node->m_dockArea->EnterSizeMove();
 	}
 
 	void Layout::HandleMoveStopped(DockPaneLayoutNode* const& node)
 	{
 		BT_CORE_TRACE << "HandleStop id=" << node->GetId() << std::endl;
+		
+		node->m_dockArea->ExitSizeMove();
+		
 		m_dragDropCtx.lockPaneIndicators = false;
 		auto shouldDock = IsMouseInsideDockIndicator();
 		HidePaneDockIndicators();

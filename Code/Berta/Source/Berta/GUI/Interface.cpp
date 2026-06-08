@@ -305,6 +305,28 @@ namespace Berta::GUI
 		return nullptr;
 	}
 
+	void EnterSizeMove(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		windowManager.EnterSizeMove(window);
+	}
+
+	void ExitSizeMove(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		windowManager.ExitSizeMove(window);
+	}
+
 	void Capture(Window* window, bool redirectToChildren)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
