@@ -228,7 +228,7 @@ namespace Berta
 				void EnsureVisible(size_t visualIndex);
 				
 				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
-				void ProcessLassoIntersection();
+				void ProcessLassoIntersection(bool ctrlPressed);
 				
 				void DrawStringInBox(Graphics& graphics, const std::string& str, const Rectangle& boxBounds, const Color& textColor);
 				void DrawList(Graphics& graphics);
@@ -252,8 +252,6 @@ namespace Berta
 
 				Window* m_window{ nullptr };
 				ControlBase* m_control{ nullptr };
-				bool m_shiftPressed{ false };
-				bool m_ctrlPressed{ false };
 			};
 
 			Module& GetModule() { return m_module; }

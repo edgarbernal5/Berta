@@ -207,8 +207,6 @@ namespace Berta
 			size_t m_lastVisibleStart{ 0 };
 			size_t m_lastVisibleEnd{ 0 };
 			
-			bool m_shiftPressed{ false };
-			bool m_ctrlPressed{ false };
 			std::optional<size_t> m_focusedIndex;
 			std::optional<size_t> m_hoveredIndex;
 

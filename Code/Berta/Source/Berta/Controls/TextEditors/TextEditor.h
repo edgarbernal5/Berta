@@ -171,8 +171,6 @@ namespace Berta
 		
 		std::unique_ptr<ScrollableView> m_scrollableView;
 		std::unique_ptr<Caret> m_caret;
-		bool m_shiftPressed{ false };
-		bool m_ctrlPressed{ false };
 		bool m_wasDblClick{ false };
 
 		Point m_selectionMousePosition;

@@ -276,7 +276,13 @@ namespace Berta
 		args.ButtonState.RightButton = (wParam & MK_RBUTTON) != 0;
 		args.ButtonState.MiddleButton = (wParam & MK_MBUTTON) != 0;
 
-		args.AltPressed = ::GetKeyState(VK_MENU) < 0;
+		// Estado de Ctrl y Shift (Vienen directamente en wParam)
+		args.CtrlPressed  = (wParam & MK_CONTROL) != 0;
+		args.ShiftPressed = (wParam & MK_SHIFT) != 0;
+
+		// Alt no viene en wParam para mensajes de mouse, así que GetKeyState es correcto aquí
+		// El bit más significativo (0x8000) indica si la tecla está presionada
+		args.AltPressed   = (::GetKeyState(VK_MENU) & 0x8000) != 0;
 	}
 	
 	static void InitArgs(ArgMouse& args, const Point& position, uint32_t message)

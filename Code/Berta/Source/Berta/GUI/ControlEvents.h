@@ -24,7 +24,9 @@ namespace Berta
 	struct ArgMouse
 	{
 		Point Position;
-		bool AltPressed{false};
+		bool AltPressed { false };
+		bool CtrlPressed { false };
+		bool ShiftPressed { false };
 		MouseButtonState ButtonState{};
 	};
 

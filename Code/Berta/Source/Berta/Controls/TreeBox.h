@@ -265,8 +265,6 @@ namespace Berta
 			bool m_drawImages{ false };
 			bool m_drawCheck{ false };
 			bool m_multiselection{ true };
-			bool m_shiftPressed{ false };
-			bool m_ctrlPressed{ false };
 			bool m_showNavigationLines{ true };
 			
 			bool m_needsRepaint{ false };

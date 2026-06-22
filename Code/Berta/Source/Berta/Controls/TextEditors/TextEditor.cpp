@@ -116,7 +116,7 @@ namespace Berta
 		TextPosition clickedPos = GetPositionUnderMouse(args.Position);
 		
 		m_selection.m_isSelecting = args.ButtonState.LeftButton;
-		if (m_shiftPressed)
+		if (args.ShiftPressed)
 		{
 			m_selection.m_endPosition = clickedPos;
 		}
@@ -253,8 +253,6 @@ namespace Berta
 	bool TextEditor::OnKeyPressed(const ArgKeyboard& args)
 	{
 		bool redraw = false;
-		m_shiftPressed = m_shiftPressed || args.Key == KeyboardKey::Shift;
-		m_ctrlPressed = m_ctrlPressed || args.Key == KeyboardKey::Control;
 
 		auto savedStartPosition = m_selection.m_startPosition;
 		auto savedEndPosition = m_selection.m_endPosition;
@@ -262,22 +260,22 @@ namespace Berta
 		switch (args.Key)
 		{
 		case KeyboardKey::ArrowLeft:
-			MoveCaretHorizontal(-1,m_ctrlPressed, m_shiftPressed);
+			MoveCaretHorizontal(-1,args.ButtonState.Ctrl, args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::ArrowRight:
-			MoveCaretHorizontal(1,m_ctrlPressed, m_shiftPressed);
+			MoveCaretHorizontal(1,args.ButtonState.Ctrl, args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
 		case KeyboardKey::ArrowUp:
-			MoveCaretVertically(-1, m_shiftPressed);
+			MoveCaretVertically(-1, args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 		
 		case KeyboardKey::ArrowDown:
-			MoveCaretVertically(1, m_shiftPressed);
+			MoveCaretVertically(1, args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 			
@@ -290,16 +288,16 @@ namespace Berta
 		//	break;
 
 		//case KeyboardKey::A:
-		//	if (m_ctrlPressed) return SelectAll();
+		//	if (ctrlPressed) return SelectAll();
 		//	break;
 
 		case KeyboardKey::Home:
-			MoveCaretHome(m_shiftPressed);
+			MoveCaretHome(args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
 		case KeyboardKey::End:
-			MoveCaretEnd(m_shiftPressed);
+			MoveCaretEnd(args.ButtonState.Shift);
 			redraw = savedEndPosition != m_selection.m_endPosition;
 			break;
 
@@ -323,8 +321,6 @@ namespace Berta
 
 	bool TextEditor::OnKeyReleased(const ArgKeyboard& args)
 	{
-		if (args.Key == KeyboardKey::Shift) m_shiftPressed = false;
-		if (args.Key == KeyboardKey::Control) m_ctrlPressed = false;
 		return false;
 	}
 

@@ -227,8 +227,8 @@ namespace Berta
 		bool selectionChanged = m_module.m_selectionController.Select
 		(
 			clickedNode,
-			m_module.m_ctrlPressed,
-			m_module.m_shiftPressed,
+			args.CtrlPressed,
+			args.ShiftPressed,
 			m_module.m_treeRangeResolver
 		);
 
@@ -390,9 +390,6 @@ namespace Berta
 
 	void TreeBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
-		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
-		
 		if (m_module.m_flatVisibleTree.empty())
 		{
 			return;
@@ -473,7 +470,7 @@ namespace Berta
 
 		case KeyboardKey::Space:
 		case KeyboardKey::Enter:
-			m_module.m_selectionController.Select(m_module.m_focusedNode, m_module.m_ctrlPressed, m_module.m_shiftPressed, m_module.m_treeRangeResolver);
+			m_module.m_selectionController.Select(m_module.m_focusedNode, args.ButtonState.Ctrl, args.ButtonState.Shift, m_module.m_treeRangeResolver);
 			m_module.m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 			return;
@@ -514,13 +511,13 @@ namespace Berta
 		if (targetIndex != currentIndex)
 		{
 			m_module.m_focusedNode = m_module.m_flatVisibleTree[targetIndex].Node;
-			if (!m_module.m_ctrlPressed)
+			if (!args.ButtonState.Ctrl)
 			{
 				bool selectionChanged = m_module.m_selectionController.Select
 				(
 					m_module.m_focusedNode, 
-					m_module.m_ctrlPressed, 
-					m_module.m_shiftPressed, 
+					args.ButtonState.Ctrl, 
+					args.ButtonState.Shift, 
 					m_module.m_treeRangeResolver
 				);
 
@@ -540,8 +537,6 @@ namespace Berta
 
 	void TreeBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
 	{
-		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
-		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
 
 	void TreeBoxReactor::DpiChanged(Graphics& graphics)

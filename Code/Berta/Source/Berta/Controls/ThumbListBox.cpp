@@ -175,8 +175,8 @@ namespace Berta
 			bool selectionChanged = m_module.m_selectionController.Select
 			(
 				clickedIndex.value(), 
-				m_module.m_ctrlPressed, 
-				m_module.m_shiftPressed, 
+				args.CtrlPressed, 
+				args.ShiftPressed, 
 				rangeResolver
 			);
 
@@ -187,7 +187,7 @@ namespace Berta
 		}
 		else
 		{
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			if (!args.CtrlPressed && !args.ShiftPressed)
 			{
 				m_module.m_selectionController.Clear();
 				if (m_module.m_events)
@@ -245,7 +245,7 @@ namespace Berta
 					int startRow = std::max<int>(0, (lassoWorldRect.Y - gapY) / totalCellHeight);
 					int endRow = (lassoWorldRect.Y + static_cast<int>(lassoWorldRect.Height)) / totalCellHeight;
 
-					if (!m_module.m_ctrlPressed)
+					if (!args.CtrlPressed)
 					{
 						m_module.m_selectionController.Clear();
 					}
@@ -316,9 +316,6 @@ namespace Berta
 
 	void ThumbListBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
-		m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
-		m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
-
 		if (m_module.m_items.empty() || !m_module.m_scrollableView)
 		{
 			return;
@@ -382,7 +379,7 @@ namespace Berta
 		if (newIndex != currentIndex)
 		{
 			m_module.m_focusedIndex = newIndex;
-			if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+			if (!args.ButtonState.Ctrl && !args.ButtonState.Shift)
 			{
 				m_module.m_selectionController.Clear();
 			}
@@ -406,8 +403,6 @@ namespace Berta
 
 	void ThumbListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
 	{
-		if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
-		if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 	}
 
 	ThumbListBoxItem ThumbListBoxReactor::Module::At(size_t index)

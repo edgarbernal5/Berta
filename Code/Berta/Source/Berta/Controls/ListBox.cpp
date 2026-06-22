@@ -301,8 +301,8 @@ namespace Berta
 			if (clickedVisualIndex < m_module.m_items.GetCount())
 			{
 				size_t clickedLogicalIndex = m_module.m_items.GetLogicalIndex(clickedVisualIndex);
-				bool isCtrl = m_module.m_ctrlPressed;
-				bool isShift = m_module.m_shiftPressed;
+				bool isCtrl = args.CtrlPressed;
+				bool isShift = args.ShiftPressed;
 
 				auto rangeResolver = [&](size_t anchorLogical, size_t currentLogical)
 				{
@@ -331,7 +331,7 @@ namespace Berta
 			}
 			else
 			{
-				if (!m_module.m_ctrlPressed && !m_module.m_shiftPressed)
+				if (!args.CtrlPressed && !args.ShiftPressed)
 				{
 					m_module.m_selectionController.Clear();
 					GUI::MarkAsNeedUpdate(m_module.m_window);
@@ -367,7 +367,7 @@ namespace Berta
 			{
 				if (m_module.m_lassoSelection.Update(args.Position))
 				{
-					m_module.ProcessLassoIntersection();
+					m_module.ProcessLassoIntersection(args.CtrlPressed);
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
 				return;
@@ -445,9 +445,6 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			m_module.m_shiftPressed = m_module.m_shiftPressed || args.Key == KeyboardKey::Shift;
-			m_module.m_ctrlPressed = m_module.m_ctrlPressed || args.Key == KeyboardKey::Control;
-
 			size_t itemCount = m_module.m_items.GetCount();
 			if (itemCount == 0)
 			{
@@ -482,7 +479,7 @@ namespace Berta
 			else if (args.Key == KeyboardKey::Space)
 			{
 				size_t logicalToSelect = m_module.m_items.GetLogicalIndex(currentVisual);
-				selectionChanged = m_module.SelectItemConResolver(logicalToSelect, m_module.m_ctrlPressed, m_module.m_shiftPressed);
+				selectionChanged = m_module.SelectItemConResolver(logicalToSelect, args.ButtonState.Ctrl, args.ButtonState.Shift);
 				
 				m_module.m_focusedLogicalIndex = logicalToSelect;
 			}
@@ -492,9 +489,9 @@ namespace Berta
 				m_module.m_focusedLogicalIndex = m_module.m_items.GetLogicalIndex(currentVisual);
 				m_module.EnsureVisible(currentVisual);
 
-				if (!m_module.m_ctrlPressed)
+				if (!args.ButtonState.Ctrl)
 				{
-					selectionChanged = m_module.SelectItemConResolver(m_module.m_focusedLogicalIndex.value(), false, m_module.m_shiftPressed);
+					selectionChanged = m_module.SelectItemConResolver(m_module.m_focusedLogicalIndex.value(), false, args.ButtonState.Shift);
 				}
 			}
 			
@@ -510,8 +507,6 @@ namespace Berta
 
 		void Reactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
 		{
-			if (args.Key == KeyboardKey::Shift) m_module.m_shiftPressed = false;
-			if (args.Key == KeyboardKey::Control) m_module.m_ctrlPressed = false;
 		}
 
 		void HeaderController::Init(Window* owner)
@@ -1195,7 +1190,7 @@ namespace Berta
 			return m_selectionController.Select(logicalIndex, isCtrl, isShift, rangeResolver);
 		}
 
-		void Reactor::Module::ProcessLassoIntersection()
+		void Reactor::Module::ProcessLassoIntersection(bool ctrlPressed)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			
@@ -1239,7 +1234,7 @@ namespace Berta
 					size_t logicalIdx = m_items.GetLogicalIndex(visualIdx);
 					if (logicalIdx != static_cast<size_t>(-1))
 					{
-						if (m_ctrlPressed)
+						if (ctrlPressed)
 						{
 							bool wasSelected = m_selectionController.IsSelected(logicalIdx);
 							m_selectionController.SetSelected(logicalIdx, !wasSelected);
