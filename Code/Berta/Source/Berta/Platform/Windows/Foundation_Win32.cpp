@@ -474,17 +474,17 @@ namespace Berta
 		case WM_PAINT:
 			{
 				//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
+				::PAINTSTRUCT ps;
+				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+				
+				Rectangle dirtyRect;
+				dirtyRect.FromRECT(ps.rcPaint);
+				
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
-					::PAINTSTRUCT ps;
-					auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
-
 					HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
 					::FillRect(hdc, &ps.rcPaint, hBrush);
 					::DeleteObject(hBrush);
-
-					Rectangle areaToUpdate;
-					areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
 					//BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 					//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
@@ -506,10 +506,11 @@ namespace Berta
 #else
 					//ScopedTimer scopedTimer("WM_PAINT");
 #endif
-					windowManager.UpdateTree(nativeWindow);
-
-					//nativeWindow->Flags.isBatching = false;
-					::ValidateRect(hWnd, nullptr);
+					windowManager.UpdateTree(nativeWindow, &dirtyRect);
+					
+					::EndPaint(hWnd, &ps);
+					//::ValidateRect(hWnd, nullptr);
+					//::BeginPaint() already validated the update area.
 				}
 
 				wasHandled = true;

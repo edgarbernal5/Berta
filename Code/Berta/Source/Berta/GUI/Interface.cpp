@@ -455,7 +455,7 @@ namespace Berta::GUI
 		windowManager.SetParent(window, newParent);
 	}
 
-	void UpdateTree(Window* window, bool now)
+	void UpdateTree(Window* window, const Rectangle* dirtyRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -464,7 +464,7 @@ namespace Berta::GUI
 		}
 
 		auto windowToUpdate = window->FindFirstNonPanelAncestor();
-		windowManager.UpdateTree(windowToUpdate, now);
+		windowManager.UpdateTree(windowToUpdate, dirtyRect);
 	}
 
 	void MarkAsNeedUpdate(Window* window)

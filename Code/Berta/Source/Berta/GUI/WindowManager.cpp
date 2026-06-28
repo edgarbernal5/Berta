@@ -662,14 +662,14 @@ namespace Berta
 		return m_capture.WindowPtr;
 	}
 
-	void WindowManager::UpdateTree(Window* window, bool now)
+	void WindowManager::UpdateTree(Window* window, const Rectangle* dirtyRect)
 	{
 		if (!window->IsVisible())
 		{
 			return;
 		}
 
-		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true);
+		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true, dirtyRect);
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -1007,6 +1007,23 @@ namespace Berta
 			if (!child->Visible)
 			{
 				continue;
+			}
+			
+			// ==========================================
+			// LA OPTIMIZACIÓN AAA (CLIPPING AABB)
+			// ==========================================
+			if (updateArea != nullptr)
+			{
+				// Berta necesita tener un método que evalúe si el rectángulo del control
+				// intersecta con el área que Windows nos pidió repintar.
+				auto absPosition = GUI::GetWindowRootPosition(child);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, child->ClientSize.Width, child->ClientSize.Height };
+				if (!absoluteBounds.Intersects(*updateArea))
+				{
+					// Si el control está fuera de la zona sucia, lo saltamos por completo.
+					// ¡Esto salva cientos de llamadas a GDI / Paint por frame!
+					continue; 
+				}
 			}
 
 			if (child->HasCustomPaint() || child->IsNested())

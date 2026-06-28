@@ -67,7 +67,7 @@ namespace Berta
 		Window* GetCaptureWindow() const;
 
 		Window* Find(Window* window, const Point& point);
-		void UpdateTree(Window* window, bool now = false);
+		void UpdateTree(Window* window, const Rectangle* dirtyRect = nullptr);
 		void Show(Window* window, bool visible);
 
 		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);

@@ -27,13 +27,17 @@ namespace Berta
 		}
 	};
 	
-	void UIRendererCoordinator::Paint(Window* window, PaintOperation operation, bool processChildren)
+	void UIRendererCoordinator::Paint(Window* window, PaintOperation operation, bool processChildren, const Rectangle* dirtyRect)
 	{
 		if (window->Flags.isUpdating && operation == PaintOperation::TryUpdate)
+		{
 			return;
+		}
 
 		if (window->Type == WindowType::RenderForm)
+		{
 			return;
+		}
 
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.Begin();
@@ -43,11 +47,11 @@ namespace Berta
 			
 			window->Renderer.Update();
 		}
-		Map(window, operation != PaintOperation::None, processChildren);
+		Map(window, operation != PaintOperation::None, processChildren, dirtyRect);
 		rootGraphics.Flush();
 	}
 
-	void UIRendererCoordinator::Map(Window* window, bool haveUpdated, bool processChildren)
+	void UIRendererCoordinator::Map(Window* window, bool haveUpdated, bool processChildren, const Rectangle* dirtyRect)
 	{
 		auto checkOpaque = window->FindFirstNonPanelAncestor();
 		if (checkOpaque && checkOpaque->Flags.isUpdating)
@@ -61,8 +65,10 @@ namespace Berta
 		}
 		
 		Rectangle activeClip;
-		if (!GetIntersectionRect(window, activeClip))
+		if (!GetIntersectionRect(window, activeClip, dirtyRect))
+		{
 			return;
+		}
 
 		// 1. Obtenemos el rectángulo absoluto real para las coordenadas
 		auto absolutePosition = GUI::GetWindowRootPosition(window);
@@ -70,6 +76,36 @@ namespace Berta
 
 		// Pasamos ambos de forma independiente
 		MapInternal(window, processChildren, absoluteParentRect, activeClip);
+	}
+
+	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result, const Rectangle* dirtyRect)
+	{
+		Rectangle requestRectangle = window->ClientSize.ToRectangle();
+		auto absolutePosition = GUI::GetWindowRootPosition(window);
+		requestRectangle.X = absolutePosition.X;
+		requestRectangle.Y = absolutePosition.Y;
+
+		auto container = window->FindFirstPanelOrFormAncestor();
+		auto containerPosition = GUI::GetWindowRootPosition(container);
+		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
+
+		// 1. Primera intersección: Ventana vs Contenedor
+		Rectangle windowVisibleRect;
+		if (!LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, windowVisibleRect))
+		{
+			return false; // Está fuera de su panel, la descartamos.
+		}
+
+		// 2. LA MAGIA: Segunda intersección contra el área sucia de Win32
+		if (dirtyRect != nullptr)
+		{
+			// Si no intersecta con el parche que hay que repintar, la descartamos.
+			return LayoutUtils::GetIntersectionRect(windowVisibleRect, *dirtyRect, result);
+		}
+
+		// Si dirtyRect es nullptr (repintado completo), devolvemos la intersección normal.
+		result = windowVisibleRect;
+		return true;
 	}
 
 	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result)
@@ -96,7 +132,7 @@ namespace Berta
 
 			if (child->IsNative())
 			{
-				Paint(child, (processChildren ? PaintOperation::TryUpdate : PaintOperation::None), processChildren);
+				Paint(child, (processChildren ? PaintOperation::TryUpdate : PaintOperation::None), processChildren, nullptr);
 				continue;
 			}
 
