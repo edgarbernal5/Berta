@@ -473,13 +473,13 @@ namespace Berta
 			}
 		case WM_PAINT:
 			{
-				//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
 				::PAINTSTRUCT ps;
 				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
 				
 				Rectangle dirtyRect;
 				dirtyRect.FromRECT(ps.rcPaint);
 				
+				std::cout << "  - PAINT. wnd=" << nativeWindow->Name << "dirtyRect = " << dirtyRect << std::endl;
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
 					HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
