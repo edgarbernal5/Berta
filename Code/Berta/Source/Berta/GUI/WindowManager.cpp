@@ -696,7 +696,7 @@ namespace Berta
 			auto windowToUpdate = window->FindFirstNonPanelAncestor();
 			if (windowToUpdate)
 			{
-				Update(windowToUpdate, true);
+				Update(windowToUpdate);
 			}
 		}
 	}
@@ -823,7 +823,7 @@ namespace Berta
 		return false;
 	}
 
-	void WindowManager::Update(Window* window, bool redraw, const Rectangle* updateArea)
+	void WindowManager::Update(Window* window, const Rectangle* updateArea)
 	{
 		if (!window->IsVisible())
 		{
@@ -846,7 +846,7 @@ namespace Berta
 		
 		API::RefreshWindow(window->RootHandle, updateArea);
 		
-		UpdateInternal(window, redraw, updateArea);
+		UpdateInternal(window, updateArea);
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
@@ -1000,7 +1000,7 @@ namespace Berta
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 
-	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
+	void WindowManager::UpdateInternal(Window* window, const Rectangle* updateArea)
 	{
 		for (auto* child : window->Children)
 		{
@@ -1022,7 +1022,7 @@ namespace Berta
 				{
 					// Si el control está fuera de la zona sucia, lo saltamos por completo.
 					// ¡Esto salva cientos de llamadas a GDI / Paint por frame!
-					continue; 
+					continue;
 				}
 			}
 
@@ -1035,7 +1035,7 @@ namespace Berta
 				continue;
 			}
 
-			UpdateInternal(child, redraw, updateArea);
+			UpdateInternal(child, updateArea);
 		}
 	}
 

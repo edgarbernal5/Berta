@@ -1143,9 +1143,9 @@ namespace Berta
         
 			m_scrollableView->SetScrollStep(static_cast<int>(m_window->ToScale(appearance->ListItemHeight)), 20);
 			m_scrollableView->SetOnScrollChange([this]()
-				{
-					GUI::MarkAsNeedUpdate(m_window);
-				});
+			{
+				GUI::UpdateWindow(m_window);
+			});
 		}
 
 		void Reactor::Module::EnsureVisible(size_t visualIndex)

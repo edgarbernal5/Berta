@@ -87,7 +87,7 @@ namespace Berta
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
 			bool Borderless : 1; //TODO
-		}Flags{false};
+		} Flags { false };
 
 		int DeferredCounter{ 0 };
 		DrawBatchActivator* DrawBatch{ nullptr };
@@ -95,6 +95,7 @@ namespace Berta
 		Window* MakeTargetWhenInactive{ nullptr };
 
 		DrawWindowStatus DrawStatus{ DrawWindowStatus::None };
+		Rectangle DrawRectangle{ };
 
 		struct RenderFormData
 		{

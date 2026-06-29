@@ -730,10 +730,10 @@ namespace Berta
 		
 		m_scrollableView->SetScrollStep(20, 20);
 		m_scrollableView->SetOnScrollChange([this]()
-			{
-				TriggerVisibilityEvent();
-				GUI::MarkAsNeedUpdate(m_window);
-			});
+		{
+			TriggerVisibilityEvent();
+			GUI::UpdateWindow(m_window);
+		});
 	}
 	
 	void ThumbListBoxReactor::Module::EnsureVisibility(size_t index)

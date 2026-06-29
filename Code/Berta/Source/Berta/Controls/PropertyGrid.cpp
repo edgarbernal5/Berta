@@ -760,7 +760,7 @@ namespace Berta
 			m_scrollableView->SetScrollStep(static_cast<int>(m_owner->ToScale(config->CategoryHeight)), 0);
 			m_scrollableView->SetOnScrollChange([this]()
 			{
-				GUI::MarkAsNeedUpdate(m_owner);
+				GUI::UpdateWindow(m_owner);
 			});
 			
 			m_isInitialized = true;

@@ -264,33 +264,38 @@ public:
 	{
 		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,60, 200, 200 }, Berta::FormStyle::Flat(), true);
 		m_nestedForm->SetCustomPaintCallback([this]()
-			{
-				OnDraw();
-				std::cout << " .... END RENDERING ////***/**/" << std::endl;
-			});
+		{
+			if (m_isResizing)
+				return;
+			
+			OnDraw();
+			std::cout << " .... END RENDERING ////***/**/" << std::endl;
+		});
 
 		m_nestedForm->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
-			{
-				m_isResizing = true;
-				m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
-
-				m_viewport.TopLeftX = 0.0f;
-				m_viewport.TopLeftY = 0.0f;
-				m_viewport.Width = args.NewSize.Width;
-				m_viewport.Height = args.NewSize.Height;
-				m_viewport.MinDepth = D3D12_MIN_DEPTH;
-				m_viewport.MaxDepth = D3D12_MAX_DEPTH;
-				m_isResizing = false;
-
-				//OnDraw();
-			});
-		
-		m_nestedForm->GetEvents().EnterSizeMove.Connect([](const Berta::ArgSizeMove& args)
 		{
+			m_isResizing = true;
+			m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
+
+			m_viewport.TopLeftX = 0.0f;
+			m_viewport.TopLeftY = 0.0f;
+			m_viewport.Width = args.NewSize.Width;
+			m_viewport.Height = args.NewSize.Height;
+			m_viewport.MinDepth = D3D12_MIN_DEPTH;
+			m_viewport.MaxDepth = D3D12_MAX_DEPTH;
+			m_isResizing = false;
+
+			//OnDraw();
+		});
+		
+		m_nestedForm->GetEvents().EnterSizeMove.Connect([this](const Berta::ArgSizeMove& args)
+		{
+			m_isResizing = true;
 			std::cout << "Nested enter size move..." << std::endl;
 		});
-		m_nestedForm->GetEvents().ExitSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		m_nestedForm->GetEvents().ExitSizeMove.Connect([this](const Berta::ArgSizeMove& args)
 		{
+			m_isResizing = false;
 			std::cout << "Nested exit size move..." << std::endl;
 		});
 

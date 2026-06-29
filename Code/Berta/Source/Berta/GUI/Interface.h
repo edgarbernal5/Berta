@@ -65,7 +65,7 @@ namespace Berta
 		void SetParentWindow(Window* window, Window* newParent);
 
 		void UpdateTree(Window* window, const Rectangle* dirtyRect = nullptr);
-		void MarkAsNeedUpdate(Window* window);
+		void MarkAsNeedUpdate(Window* window, const Rectangle* dirtyRect = nullptr);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);

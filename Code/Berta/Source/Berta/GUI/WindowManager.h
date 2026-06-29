@@ -73,7 +73,7 @@ namespace Berta
 		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
 		bool Move(Window* window, Point newPosition, bool forceRepaint = true);
-		void Update(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
+		void Update(Window* window, const Rectangle* updateArea = nullptr);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);
@@ -92,7 +92,7 @@ namespace Berta
 		void Focus(Window* window, ArgFocus::Reason reason);
 	private:
 
-		void UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
+		void UpdateInternal(Window* window, const Rectangle* updateArea = nullptr);
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);

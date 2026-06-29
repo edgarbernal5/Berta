@@ -50,7 +50,7 @@ namespace Berta::GUI
 
 		if (windowManager.Caption(window, caption))
 		{
-			windowManager.Update(window, true);
+			windowManager.Update(window);
 		}
 	}
 
@@ -110,8 +110,10 @@ namespace Berta::GUI
 		{
 			return;
 		}
-
-		windowManager.Update(window, true);
+		auto absPosition = GUI::GetWindowRootPosition(window);
+		auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+		
+		windowManager.Update(window, &absoluteBounds);
 	}
 
 	void EnableWindow(Window* window, bool isEnabled)
@@ -167,7 +169,7 @@ namespace Berta::GUI
 
 			if (!windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate, false);
+				windowManager.Update(windowToUpdate);
 			}
 		}
 	}
@@ -198,7 +200,7 @@ namespace Berta::GUI
 
 			if (windowToUpdate && !windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate, false);
+				windowManager.Update(windowToUpdate);
 			}
 		}
 
@@ -220,7 +222,7 @@ namespace Berta::GUI
 			
 			if (windowToUpdate && !window->Flags.isUpdating)
 			{
-				windowManager.Update(window, false);
+				windowManager.Update(window);
 			}
 		}
 
@@ -467,7 +469,7 @@ namespace Berta::GUI
 		windowManager.UpdateTree(windowToUpdate, dirtyRect);
 	}
 
-	void MarkAsNeedUpdate(Window* window)
+	void MarkAsNeedUpdate(Window* window, const Rectangle* dirtyRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -476,6 +478,17 @@ namespace Berta::GUI
 		}
 
 		window->DrawStatus = DrawWindowStatus::NeedUpdate;
+		if (dirtyRect)
+		{
+			window->DrawRectangle = *dirtyRect;
+		}
+		else
+		{
+			auto absPosition = GUI::GetWindowRootPosition(window);
+			auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+			
+			window->DrawRectangle = absoluteBounds;
+		}
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)

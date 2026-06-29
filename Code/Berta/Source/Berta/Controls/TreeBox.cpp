@@ -1002,10 +1002,10 @@ namespace Berta
 		
 		m_scrollableView->SetScrollStep(nodeHeightInt, 20);
 		m_scrollableView->SetOnScrollChange([this]()
-			{
-				m_needsRepaint = true;
-				GUI::MarkAsNeedUpdate(m_window);
-			});
+		{
+			m_needsRepaint = true;
+			GUI::UpdateWindow(m_window);
+		});
 		
 		m_treeRangeResolver = [this](const TreeNodeType* anchor, const TreeNodeType* current)
 		{
