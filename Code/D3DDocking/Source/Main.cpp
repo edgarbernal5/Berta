@@ -293,7 +293,13 @@ public:
 		{
 			std::cout << "Nested exit size move..." << std::endl;
 		});
-
+		m_nestedForm->GetEvents().MouseUp.Connect([this](const Berta::ArgMouse& args)
+		{
+			auto rootposition=Berta::GUI::GetWindowRootPosition(*m_nestedForm);
+			auto position=Berta::GUI::GetWindowPosition(*m_nestedForm);
+			std::cout << "Nested MouseUp... root = " << rootposition << ".. pos="<<position << std::endl;
+		});
+		
 		auto formSize = m_nestedForm->GetSize();
 		m_device = std::make_unique<D3D12Lite::Device>(m_nestedForm->Handle()->RootHandle.Handle, D3D12Lite::Uint2{ formSize.Width, formSize.Height });
 		m_graphicsContext = m_device->CreateGraphicsContext();
