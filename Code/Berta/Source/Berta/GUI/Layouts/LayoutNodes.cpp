@@ -327,7 +327,7 @@ namespace Berta
 	{
 		EnsureControlCreated();
 		
-		GUI::MoveWindow(m_splitter->Handle(), GetArea(), false);
+		GUI::MoveWindow(m_splitter->Handle(), GetArea());
 	}
 
 	void SplitterLayoutNode::SetOrientation(bool isVertical)
@@ -521,7 +521,7 @@ namespace Berta
 		auto area = GetArea();
 		if (m_dockArea && !m_dockArea->IsFloating())
 		{
-			GUI::MoveWindow(m_dockArea->Handle(), area, false);
+			GUI::MoveWindow(m_dockArea->Handle(), area);
 		}
 
 		for (auto& child : m_children)
