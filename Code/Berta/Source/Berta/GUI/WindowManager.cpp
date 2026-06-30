@@ -1025,7 +1025,11 @@ namespace Berta
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		auto absolutePosition = GetWindowRootPosition(window);
-
+		if (window->IsNative()) //TODO: hack. fix this
+		{
+			absolutePosition.X = absolutePosition.Y = 0;
+		}
+		
 		Rectangle rect
 		{
 			absolutePosition,
