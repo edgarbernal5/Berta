@@ -94,9 +94,6 @@ namespace Berta
 
 		Window* MakeTargetWhenInactive{ nullptr };
 
-		DrawWindowStatus DrawStatus{ DrawWindowStatus::None };
-		Rectangle DrawRectangle{ };
-
 		struct RenderFormData
 		{
 			bool AutoRefresh{ false };

@@ -72,7 +72,6 @@ namespace Berta
 			return;
 		}
 
-		window->DrawStatus = DrawWindowStatus::None;
 		if (rendererEventPtr)
 		{
 			(window->Renderer.*rendererEventPtr)(args);
@@ -82,18 +81,9 @@ namespace Berta
 		{
 			(*window->Events.*eventPtr).Emit(args);
 		}
-
-		if (!m_windowManager.Exists(window))
-		{
-			return;
-		}
-
-		bool isResizing = std::is_same_v<TArgument, ArgResize>;
-		if (window->IsVisible() && (window->DrawStatus == DrawWindowStatus::NeedUpdate || isResizing))
-		{
-			API::RefreshWindow(window->RootHandle, window->DrawRectangle.IsEmpty() ? nullptr : &window->DrawRectangle);
-			window->DrawRectangle.Empty();
-		}
+		
+		// Nota: El redibujado ahora sucede porque el Reactor llamó a GUI::Invalidate()
+		// internamente durante los eventos, lo que ya le avisó a Win32.
 	}
 }
 

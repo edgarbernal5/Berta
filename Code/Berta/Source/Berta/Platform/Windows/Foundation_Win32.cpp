@@ -64,7 +64,7 @@ namespace Berta
 		{
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
-			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW | CS_OWNDC |*/ CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
 			wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -82,7 +82,7 @@ namespace Berta
 		{
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
-			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW | CS_OWNDC |*/ CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
 			//wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -172,13 +172,13 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		//{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVE,			"WM_MOVE"},
 		//{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
 		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		//{WM_PAINT,			"WM_PAINT"},
+		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -479,7 +479,9 @@ namespace Berta
 				Rectangle dirtyRect;
 				dirtyRect.FromRECT(ps.rcPaint);
 				
-				std::cout << "  - PAINT. wnd=" << nativeWindow->Name << "dirtyRect = " << dirtyRect << std::endl;
+#if BT_DEBUG
+				std::cout << "  - PAINT. wnd=" << nativeWindow->Name << ". dirtyRect = " << dirtyRect << std::endl;
+#endif
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
 					HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
@@ -558,6 +560,7 @@ namespace Berta
 #endif
 				if (newSize.Width > 0 && newSize.Height > 0)
 				{
+					// 1. Redimensionamos el buffer de Direct2D en la GPU
 					if (nativeWindow->RootPaintHandle.RenderTarget)
 					{
 						auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
@@ -566,17 +569,14 @@ namespace Berta
 							BT_CORE_ERROR << "Error while resizing HWND render target." << std::endl;
 						}
 					}
-
+					
+					// 2. Avisamos al motor de UI que recalcule el Layout (dispara eventos)
 					windowManager.Resize(nativeWindow, newSize, false);
-
-					if (nativeWindow->HasCustomPaint())
-					{
-						API::RefreshWindow(nativeWindowHandle);
-					}
-					//else
-					//{
-					//	API::RefreshWindow(nativeWindowHandle);
-					//}
+					
+					// 3. ¡LA CLAVE! Forzamos la invalidación total.
+					// Al no tener CS_HREDRAW/VREDRAW, esto es obligatorio para no ver negro.
+					// Asumiendo que RefreshWindow llama a InvalidateRect(handle, nullptr, FALSE)
+					API::RefreshWindow(nativeWindowHandle);
 				}
 			
 				wasHandled = true;

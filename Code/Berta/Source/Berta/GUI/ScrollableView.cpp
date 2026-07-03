@@ -96,7 +96,10 @@ namespace Berta
     {
         int maxOffsetX = std::max<int>(0, m_contentSize.Width - m_viewportRect.Width);
         m_scrollOffset.X = std::clamp(offsetX, 0, maxOffsetX);
-        if (m_scrollBarHoriz) m_scrollBarHoriz->SetValue(m_scrollOffset.X);
+        if (m_scrollBarHoriz)
+        {
+            m_scrollBarHoriz->SetValue(m_scrollOffset.X);
+        }
         NotifyChange();
     }
 
@@ -104,7 +107,10 @@ namespace Berta
     {
         int maxOffsetY = std::max<int>(0, m_contentSize.Height - m_viewportRect.Height);
         m_scrollOffset.Y = std::clamp(offsetY, 0, maxOffsetY);
-        if (m_scrollBarVert) m_scrollBarVert->SetValue(m_scrollOffset.Y);
+        if (m_scrollBarVert)
+        {
+            m_scrollBarVert->SetValue(m_scrollOffset.Y);
+        }
         NotifyChange();
     }
 
@@ -123,10 +129,13 @@ namespace Berta
         bool shouldShowV = (m_vVisibility == ScrollBarVisibility::Visible) || 
                            (m_vVisibility == ScrollBarVisibility::Auto && contentExceedsY);
 
-        if (!shouldShowV && m_scrollBarVert) {
+        if (!shouldShowV && m_scrollBarVert)
+        {
             m_scrollBarVert.reset();
             needNotify = true;
-        } else if (shouldShowV) {
+        }
+        else if (shouldShowV)
+        {
             needNotify |= UpdateScrollBarInstance(true, contentExceedsY);
         }
 
@@ -134,10 +143,13 @@ namespace Berta
         bool shouldShowH = (m_hVisibility == ScrollBarVisibility::Visible) || 
                            (m_hVisibility == ScrollBarVisibility::Auto && contentExceedsX);
 
-        if (!shouldShowH && m_scrollBarHoriz) {
+        if (!shouldShowH && m_scrollBarHoriz)
+        {
             m_scrollBarHoriz.reset();
             needNotify = true;
-        } else if (shouldShowH) {
+        }
+        else if (shouldShowH)
+        {
             needNotify |= UpdateScrollBarInstance(false, contentExceedsX);
         }
 
@@ -167,10 +179,13 @@ namespace Berta
         auto scrollSize = static_cast<int>(m_owner->ToScale(m_owner->Appearance->ScrollBarSize));
         
         Rectangle scrollRect;
-        if (isVertical) {
+        if (isVertical)
+        {
             scrollRect = { m_clientAreaBounds.X + static_cast<int>(m_clientAreaBounds.Width) - scrollSize, 
                            m_clientAreaBounds.Y, (uint32_t)scrollSize, m_viewportRect.Height };
-        } else {
+        }
+        else
+        {
             scrollRect = { m_clientAreaBounds.X, 
                            m_clientAreaBounds.Y + static_cast<int>(m_clientAreaBounds.Height) - scrollSize, 
                            m_viewportRect.Width, (uint32_t)scrollSize };
@@ -178,15 +193,20 @@ namespace Berta
 
         auto& barPtr = isVertical ? m_scrollBarVert : m_scrollBarHoriz;
 
-        if (!barPtr) {
+        if (!barPtr)
+        {
             barPtr = std::make_unique<ScrollBar>(m_owner, false, scrollRect, isVertical);
-            barPtr->GetEvents().ValueChanged.Connect([this, isVertical](const ArgScrollBar& args) {
+            barPtr->GetEvents().ValueChanged.Connect([this, isVertical](const ArgScrollBar& args)
+            {
                 if (isVertical) m_scrollOffset.Y = args.Value;
                 else            m_scrollOffset.X = args.Value;
+                
                 NotifyChange();
             });
             changed = true;
-        } else {
+        }
+        else
+        {
             GUI::MoveWindow(barPtr->Handle(), scrollRect);
         }
 
@@ -271,13 +291,18 @@ namespace Berta
             int targetLeft = targetBounds.X;
             int targetRight = targetBounds.X + static_cast<int>(targetBounds.Width);
 
-            if (targetLeft < viewLeft) {
+            if (targetLeft < viewLeft)
+            {
                 newScroll.X = targetLeft - m_viewPadding.Left;
             }
-            else if (targetRight > viewRight) {
-                if (static_cast<int>(targetBounds.Width) > static_cast<int>(m_viewportRect.Width)) {
+            else if (targetRight > viewRight)
+            {
+                if (static_cast<int>(targetBounds.Width) > static_cast<int>(m_viewportRect.Width))
+                {
                     newScroll.X = targetLeft - m_viewPadding.Left;
-                } else {
+                }
+                else
+                {
                     newScroll.X = targetRight - static_cast<int>(m_viewportRect.Width) + m_viewPadding.Right;
                 }
             }

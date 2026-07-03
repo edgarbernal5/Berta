@@ -21,13 +21,12 @@ namespace Berta
 			TryUpdate
 		};
 
-		static void Paint(Window* window, PaintOperation operation, bool processChildren, const Rectangle* dirtyRect = nullptr);
-		static void Map(Window* window, bool haveUpdated, bool processChildren, const Rectangle* dirtyRect);
+		static void Paint(Window* window, const Rectangle* dirtyRect = nullptr);
+		static void Map(Window* window, const Rectangle* dirtyRect);
 
 	private:
 		static bool GetIntersectionRect(Window* window, Rectangle& result, const Rectangle* dirtyRect);
-		static bool GetIntersectionRect(Window* window, Rectangle& result);
-		static void MapInternal(Window* window, bool processChildren, const Rectangle& absoluteParentRect, const Rectangle& activeClip);
+		static void MapInternal(Window* window, const Rectangle& absoluteParentRect, const Rectangle& activeClip);
 	};
 }
 

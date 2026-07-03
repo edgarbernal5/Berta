@@ -177,6 +177,7 @@ namespace Berta
 			m_selection.m_ignoreMouseDown = false;
 			return;
 		}
+		
 		m_selectionTimer.Stop();
 		if (m_wasDblClick || m_lines.empty())
 		{

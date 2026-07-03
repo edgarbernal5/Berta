@@ -82,22 +82,39 @@ namespace Berta
 			}
 
 			HINSTANCE hInstance = GetModuleInstance();
-			HWND hwnd = ::CreateWindowEx
-			(
+			
+			// 1. Definimos exactamente cuánto queremos que mida el área cliente (lo que Berta dibuja)
+			::RECT windowRect = { 
+				windowPosition.x, 
+				windowPosition.y, 
+				windowPosition.x + static_cast<int>(rectangle.Width), 
+				windowPosition.y + static_cast<int>(rectangle.Height) 
+			};
+
+			// 2. Le pedimos a Windows que expanda ese rectángulo para incluir los bordes/título
+			// basándose en el DPI del monitor donde va a aparecer.
+			UINT dpi = GetNativeWindowDPI(parentHandle); // Asumo que tienes esta función
+			::AdjustWindowRectExForDpi(&windowRect, style, FALSE, styleEx, dpi);
+
+			int finalWidth = windowRect.right - windowRect.left;
+			int finalHeight = windowRect.bottom - windowRect.top;
+			
+			// 3. ¡Ahora sí creamos la ventana con su tamaño perfecto desde el frame 0!
+			HWND hwnd = ::CreateWindowEx(
 				styleEx,
 				isNested ? L"BertaNestedInternalClass" : L"BertaInternalClass",
 				DEFAULT_WINDOW_TITLE.data(),
 				style,
 				windowPosition.x,
 				windowPosition.y,
-				50,
-				50,
-				parentHandle.Handle,	// Parent
-				nullptr,				// We aren't using menus.
+				finalWidth,
+				finalHeight,
+				parentHandle.Handle,
+				nullptr,
 				hInstance,
 				nullptr
 			);
-
+			
 			if (!hwnd)
 			{
 				BT_CORE_ERROR << "CreateWindow Failed." << std::endl;
@@ -105,38 +122,15 @@ namespace Berta
 				return {};
 			}
 
-			::RECT clientRect;
-			::GetClientRect(hwnd, &clientRect);
-			::RECT areaWithNonClientRect;
-			::GetWindowRect(hwnd, &areaWithNonClientRect);
+			// Y para devolver los grosores del borde en el NativeWindowResult:
+			auto borderWidth = static_cast<uint32_t>(finalWidth - rectangle.Width);
+			auto borderHeight = static_cast<uint32_t>(finalHeight - rectangle.Height);
 
-			auto width = areaWithNonClientRect.right - areaWithNonClientRect.left;
-			auto height = areaWithNonClientRect.bottom - areaWithNonClientRect.top;
-
-			if (isNested)
-			{
-				areaWithNonClientRect.left = windowPosition.x;
-				areaWithNonClientRect.top = windowPosition.y;
-			}
-
-			int deltaWidth = static_cast<int>(rectangle.Width) - clientRect.right;
-			int deltaHeight = static_cast<int>(rectangle.Height) - clientRect.bottom;
-
-			::MoveWindow(hwnd, areaWithNonClientRect.left, areaWithNonClientRect.top, width + deltaWidth, height + deltaHeight, true);
-
-			::GetClientRect(hwnd, &clientRect);
-			::GetWindowRect(hwnd, &areaWithNonClientRect);
-
-			width = areaWithNonClientRect.right - areaWithNonClientRect.left;
-			height = areaWithNonClientRect.bottom - areaWithNonClientRect.top;
-
-			auto borderWidth = static_cast<uint32_t>(width - clientRect.right);
-			auto borderHeight = static_cast<uint32_t>(height - clientRect.bottom);
 
 			return NativeWindowResult
 			{
 				{ hwnd },
-				{ static_cast<uint32_t>(clientRect.right), static_cast<uint32_t>(clientRect.bottom) },
+				{ static_cast<uint32_t>(rectangle.Width), static_cast<uint32_t>(rectangle.Height) },
 				{ borderWidth, borderHeight},
 				GetNativeWindowDPI(parentHandle)
 			};
@@ -195,6 +189,7 @@ namespace Berta
 		void UpdateWindow(NativeWindowHandle nativeHandle)
 		{
 #ifdef BT_PLATFORM_WINDOWS
+			// Fuerza un WM_PAINT inmediato si hay regiones invalidadas por RefreshWindow
 			::UpdateWindow(nativeHandle.Handle);
 #endif
 		}
@@ -209,6 +204,8 @@ namespace Berta
 		void RefreshWindow(NativeWindowHandle nativeHandle, const Rectangle* area, bool forceEraseBackground)
 		{
 #ifdef BT_PLATFORM_WINDOWS
+			// REGLA DE ORO WIN32: forceEraseBackground casi siempre debe ser FALSE
+			// si usas Direct2D o Double Buffering, para evitar parpadeos blancos.
 			if (area)
 			{
 				RECT rect = area->ToRECT();
@@ -350,7 +347,7 @@ namespace Berta
 			auto borderWidth = (windowAreaRECT.right - windowAreaRECT.left) - clientRECT.right;
 			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
-			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, true);
+			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint ? TRUE : FALSE);
 #endif
 		}
 
@@ -372,7 +369,7 @@ namespace Berta
 				adjustedPosition.Y += (ownerRECT.top - ownerPosition.y);
 			}
 
-			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, true);
+			::MoveWindow(nativeHandle.Handle, adjustedPosition.X, adjustedPosition.Y, nativeRECT.right - nativeRECT.left, nativeRECT.bottom - nativeRECT.top, forceRepaint ? TRUE : FALSE);
 #endif
 		}
 

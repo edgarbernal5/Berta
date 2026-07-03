@@ -304,6 +304,7 @@ public:
 			auto rootposition=Berta::GUI::GetWindowRootPosition(*m_nestedForm);
 			auto position=Berta::GUI::GetWindowPosition(*m_nestedForm);
 			std::cout << "Nested MouseUp... root = " << rootposition << ".. pos="<<position << std::endl;
+			std::cout << "Nested MouseUp... mouse = " << args.Position << std::endl;
 		});
 		
 		auto formSize = m_nestedForm->GetSize();
@@ -441,16 +442,16 @@ int main()
 	auto& helpMenu = menuBar.PushBack(L"Help");
 	helpMenu.Append("About");
 
-	auto buttonPaneScene = std::make_unique<TabScene>(form);
-	auto buttonPaneExplorer = std::make_unique<TabExplorer> (form);
+	auto tabPaneScene = std::make_unique<TabScene>(form);
+	auto tabPaneExplorer = std::make_unique<TabExplorer>(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene-Document", std::move(buttonPaneScene), "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(buttonPaneExplorer), "dockScene", Berta::DockPosition::Down);
+	layout.AddPaneTab("dockScene", "tab-Scene-Document", std::move(tabPaneScene), "", Berta::DockPosition::Tab);
+	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(tabPaneExplorer), "dockScene", Berta::DockPosition::Down);
 	
 	layout.Apply();
 

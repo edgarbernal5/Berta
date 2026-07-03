@@ -125,10 +125,10 @@ namespace Berta::LayoutUtils
 		}
 
 		// Calculate the intersection rectangle
-		int interLeft = (std::max)(r1.X, r2.X);
-		int interTop = (std::max)(r1.Y, r2.Y);
-		int interRight = (std::min)(r1.X + static_cast<int>(r1.Width), r2.X + static_cast<int>(r2.Width));
-		int interBottom = (std::min)(r1.Y + static_cast<int>(r1.Height), r2.Y + static_cast<int>(r2.Height));
+		int interLeft = std::max<int>(r1.X, r2.X);
+		int interTop = std::max<int>(r1.Y, r2.Y);
+		int interRight = std::min<int>(r1.X + static_cast<int>(r1.Width), r2.X + static_cast<int>(r2.Width));
+		int interBottom = std::min<int>(r1.Y + static_cast<int>(r1.Height), r2.Y + static_cast<int>(r2.Height));
 
 		// Set the intersection rectangle's position and size
 		output.X = interLeft;
