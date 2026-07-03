@@ -82,7 +82,7 @@ namespace Berta
 			(*window->Events.*eventPtr).Emit(args);
 		}
 		
-		// Nota: El redibujado ahora sucede porque el Reactor llamó a GUI::Invalidate()
+		// Nota: El redibujado ahora sucede porque el Reactor llamó a GUI::MarkAsNeedUpdate()
 		// internamente durante los eventos, lo que ya le avisó a Win32.
 	}
 }

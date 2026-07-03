@@ -615,7 +615,6 @@ namespace Berta
 		
 		if (window->Flags.isUpdating || (window->Parent && window->Parent->Flags.isUpdating))
 		{
-			//BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			return;
 		}
 		
@@ -625,7 +624,6 @@ namespace Berta
 			return;
 		}
 
-		//Batching?
 		// Solo invalidamos la ventana raíz a la que pertenece este control.
 		API::RefreshWindow(window->RootHandle, updateArea);
 	}
@@ -738,7 +736,7 @@ namespace Berta
 		}
 		
 		auto deltaPosition = GUI::GetWindowRootPosition(window) - GUI::GetWindowRootPosition(newParent);
-		auto oldParent = window->Parent;
+		//auto oldParent = window->Parent;
 
 		window->Parent = newParent;
 		if (!window->IsNative())

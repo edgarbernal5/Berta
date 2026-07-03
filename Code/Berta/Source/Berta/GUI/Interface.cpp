@@ -168,7 +168,10 @@ namespace Berta::GUI
 			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
 			if (!windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 	}
@@ -199,7 +202,10 @@ namespace Berta::GUI
 
 			if (windowToUpdate && !windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 
@@ -220,7 +226,10 @@ namespace Berta::GUI
 			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
 			if (windowToUpdate && !window->Flags.isUpdating)
 			{
-				windowManager.Update(window);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(window, &absoluteBounds);
 			}
 		}
 

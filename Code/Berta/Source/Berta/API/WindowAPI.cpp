@@ -83,7 +83,7 @@ namespace Berta
 
 			HINSTANCE hInstance = GetModuleInstance();
 			
-			// 1. Definimos exactamente cuánto queremos que mida el área cliente (lo que Berta dibuja)
+			// 1. Definimos exactamente cuánto queremos que mida el área cliente
 			::RECT windowRect = { 
 				windowPosition.x, 
 				windowPosition.y, 
@@ -93,7 +93,7 @@ namespace Berta
 
 			// 2. Le pedimos a Windows que expanda ese rectángulo para incluir los bordes/título
 			// basándose en el DPI del monitor donde va a aparecer.
-			UINT dpi = GetNativeWindowDPI(parentHandle); // Asumo que tienes esta función
+			UINT dpi = GetNativeWindowDPI(parentHandle);
 			::AdjustWindowRectExForDpi(&windowRect, style, FALSE, styleEx, dpi);
 
 			int finalWidth = windowRect.right - windowRect.left;
@@ -123,8 +123,8 @@ namespace Berta
 			}
 
 			// Y para devolver los grosores del borde en el NativeWindowResult:
-			auto borderWidth = static_cast<uint32_t>(finalWidth - rectangle.Width);
-			auto borderHeight = static_cast<uint32_t>(finalHeight - rectangle.Height);
+			auto borderWidth = finalWidth - rectangle.Width;
+			auto borderHeight = finalHeight - rectangle.Height;
 
 
 			return NativeWindowResult
