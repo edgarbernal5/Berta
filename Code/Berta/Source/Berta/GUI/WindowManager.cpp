@@ -606,7 +606,7 @@ namespace Berta
 		return false;
 	}
 
-	void WindowManager::Update(Window* window, const Rectangle* updateArea)
+	void WindowManager::Update(Window* window, const Rectangle* absoluteDirtyArea)
 	{
 		if (!window->IsVisible())
 		{
@@ -625,7 +625,7 @@ namespace Berta
 		}
 
 		// Solo invalidamos la ventana raíz a la que pertenece este control.
-		API::RefreshWindow(window->RootHandle, updateArea);
+		API::RefreshWindow(window->RootHandle, absoluteDirtyArea);
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)

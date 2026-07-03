@@ -732,7 +732,7 @@ namespace Berta
 		m_scrollableView->SetOnScrollChange([this]()
 		{
 			TriggerVisibilityEvent();
-			GUI::UpdateWindow(m_window);
+			GUI::MarkAsNeedUpdate(m_window);
 		});
 	}
 	

@@ -31,7 +31,7 @@ namespace Berta
 		m_scrollableView = std::make_unique<ScrollableView>(owner);
 		m_scrollableView->SetOnScrollChange([this]()
 		{
-			GUI::UpdateWindow(m_owner);
+			GUI::MarkAsNeedUpdate(m_owner);
 		});
 		
 		m_selectionTimer.SetOwner(m_owner);
