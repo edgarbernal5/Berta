@@ -150,6 +150,7 @@ public:
 				{
 					treeItemSelected.Expand();
 					newSelected.Select();
+					newSelected.ScrollToItem();
 					return;
 				}
 

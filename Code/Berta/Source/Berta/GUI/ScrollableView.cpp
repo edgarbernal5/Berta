@@ -270,13 +270,18 @@ namespace Berta
             int targetTop = targetBounds.Y;
             int targetBottom = targetBounds.Y + static_cast<int>(targetBounds.Height);
 
-            if (targetTop < viewTop) {
+            if (targetTop < viewTop)
+            {
                 newScroll.Y = targetTop - m_viewPadding.Top;
             }
-            else if (targetBottom > viewBottom) {
-                if (static_cast<int>(targetBounds.Height) > static_cast<int>(m_viewportRect.Height)) {
+            else if (targetBottom > viewBottom)
+            {
+                if (static_cast<int>(targetBounds.Height) > static_cast<int>(m_viewportRect.Height))
+                {
                     newScroll.Y = targetTop - m_viewPadding.Top;
-                } else {
+                }
+                else
+                {
                     newScroll.Y = targetBottom - static_cast<int>(m_viewportRect.Height) + m_viewPadding.Bottom;
                 }
             }

@@ -474,7 +474,10 @@ namespace Berta
 			auto windowToUpdate = window->FindFirstNonPanelAncestor();
 			if (windowToUpdate)
 			{
-				Update(windowToUpdate);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 	}

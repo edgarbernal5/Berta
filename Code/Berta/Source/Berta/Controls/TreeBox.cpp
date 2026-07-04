@@ -195,12 +195,13 @@ namespace Berta
 		int scrollY = m_module.m_scrollableView->GetScrollOffset().Y;
 
 		int absoluteY = args.Position.Y + scrollY - clientArea.Y;
-		size_t clickedIndex = absoluteY / nodeHeight;
+		int clickedIndexInt = absoluteY / nodeHeight;
 
-		if (clickedIndex >= m_module.m_flatVisibleTree.size())
+		if (clickedIndexInt < 0 || clickedIndexInt >= m_module.m_flatVisibleTree.size())
 		{
 			return;
 		}
+		size_t clickedIndex = static_cast<size_t>(clickedIndexInt);
 
 		const auto& flatNode = m_module.m_flatVisibleTree[clickedIndex];
 		TreeNodeType* clickedNode = flatNode.Node;
@@ -273,6 +274,7 @@ namespace Berta
 				if (arguments.Cancel)
 				{
 					m_module.ResetDragState();
+					GUI::MarkAsNeedUpdate(m_module.m_window);
 					return;
 				}
 			}
@@ -505,6 +507,7 @@ namespace Berta
 		
 		if (targetIndex != currentIndex)
 		{
+			auto oldFocusedNode = m_module.m_focusedNode;
 			m_module.m_focusedNode = m_module.m_flatVisibleTree[targetIndex].Node;
 			if (!args.ButtonState.Ctrl)
 			{
@@ -521,11 +524,22 @@ namespace Berta
 					m_module.EmitSelectionEvent();
 				}
 			}
-			Rectangle targetBounds = { 0, targetIndex * static_cast<int>(nodeHeight), 100 , nodeHeight };
+			
+			Rectangle targetBounds = { 0, targetIndex * static_cast<int>(nodeHeight), 100, nodeHeight };
         
 			bool scrollChanged = m_module.m_scrollableView->EnsureVisibility(targetBounds);
-        
-			GUI::MarkAsNeedUpdate(m_module.m_window);
+			if (scrollChanged)
+			{
+				GUI::MarkAsNeedUpdate(m_module.m_window);
+			}
+			else
+			{
+				std::vector<TreeNodeType*> nodes;
+				nodes.reserve(2);
+				nodes.push_back(oldFocusedNode);
+				nodes.push_back(m_module.m_focusedNode);
+				m_module.InvalidateNodes(nodes);
+			}
 		}
 	}
 
@@ -815,6 +829,7 @@ namespace Berta
 		node->isExpanded = true;
 
 		RebuildFlatTree();
+		UpdateScrollData();
 		
 		m_needsRecalculate = true;
 	}
@@ -842,14 +857,92 @@ namespace Berta
 		return rowTotalWidth;
 	}
 
+	void TreeBoxReactor::Module::InvalidateNodes(const std::vector<TreeNodeType*>& nodes)
+	{
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
+		
+		auto nodeHeight = static_cast<int>(m_window->ToScale(appearance->TreeItemHeight));
+		
+		int scrollX = m_scrollableView->GetScrollOffset().X;
+		int scrollY = m_scrollableView->GetScrollOffset().Y;
+		auto clientArea = m_scrollableView->GetClientArea();
+		auto clientWidth = clientArea.Width;
+		
+		for (TreeNodeType* node : nodes)
+		{
+			if (!node)
+			{
+				continue;
+			}
+			// Buscamos el nodo en la estructura aplanada visible
+			auto it = std::find_if(m_flatVisibleTree.begin(), m_flatVisibleTree.end(),
+								   [node](const FlatNode& fn) { return fn.Node == node; });
+
+			if (it != m_flatVisibleTree.end())
+			{
+				size_t index = std::distance(m_flatVisibleTree.begin(), it);
+            
+				Rectangle dirtyRowRect;
+				dirtyRowRect.X = 0;
+				dirtyRowRect.Width = clientWidth;
+				dirtyRowRect.Y = clientArea.Y + (static_cast<int>(index) * nodeHeight) - scrollY;
+				dirtyRowRect.Height = nodeHeight;
+
+				// Invalida de forma asíncrona únicamente esta fila
+				GUI::MarkAsNeedUpdate(m_window, &dirtyRowRect);
+			}
+		}
+	}
+
+	void TreeBoxReactor::Module::ScrollToItem(TreeNodeType* node)
+	{
+		if (!node)
+		{
+			return;
+		}
+		
+		auto appearance = reinterpret_cast<TreeBoxAppearance*>(m_window->Appearance.get());
+		auto nodeHeight = m_window->ToScale(appearance->TreeItemHeight);
+		bool needsUpdate = false;
+		
+		auto it = std::find_if(m_flatVisibleTree.begin(), m_flatVisibleTree.end(),
+					[node](const FlatNode& fn) { return fn.Node == node; });
+		
+		if (it == m_flatVisibleTree.end())
+		{
+			auto current = node->parent;
+			while (current)
+			{
+				current->isExpanded = true;
+				
+				current = current->parent;
+			}
+			RebuildFlatTree();
+			UpdateScrollData();
+			it = std::find_if(m_flatVisibleTree.begin(), m_flatVisibleTree.end(),
+				[node](const FlatNode& fn) { return fn.Node == node; });
+			
+			if (it == m_flatVisibleTree.end())
+			{
+				return;
+			}
+			needsUpdate = true;
+		}
+		
+		int targetIndex = static_cast<int>(std::distance(m_flatVisibleTree.begin(), it));
+		Rectangle targetBounds = { 0, targetIndex * static_cast<int>(nodeHeight), 100, nodeHeight };
+		if (needsUpdate || m_scrollableView->EnsureVisibility(targetBounds))
+		{
+			GUI::MarkAsNeedUpdate(m_window);
+		}
+	}
+
 	void TreeBoxReactor::Module::ResetDragState()
 	{
 		m_isDragging = false;
 		m_draggedNode = nullptr;
 		m_dropTargetNode = nullptr;
 		m_dropPosition = DropPosition::None;
-    
-		GUI::MarkAsNeedUpdate(m_window);
 	}
 
 	void TreeBoxReactor::Module::RebuildFlatTree(bool resetWidthCache)
@@ -880,7 +973,9 @@ namespace Berta
 	{
 		m_flatVisibleTree.emplace_back(node, level, isLastChild, lineMask);
 		if (resetWidthCache)
+		{
 			node->cachedTextWidth.reset();
+		}
 		
 		auto rowTotalWidth = CalculateNodeWidth(node, level);
 		m_visibleWidths.insert(rowTotalWidth);
@@ -931,9 +1026,24 @@ namespace Berta
 		{
 			m_module->m_focusedNode = m_node;
 			
+			std::vector<TreeNodeType*> dirtyNodes;
+			dirtyNodes.reserve(1);
+			dirtyNodes.push_back(m_node);
+			
+			m_module->InvalidateNodes(dirtyNodes);
+			
 			m_module->EmitSelectionEvent();
-			m_module->Draw();
 		}
+	}
+
+	void TreeBoxItem::ScrollToItem()
+	{
+		if (!m_node)
+		{
+			return;
+		}
+		
+		m_module->ScrollToItem(m_node);
 	}
 
 	std::any& TreeBoxItem::UserData()
@@ -1269,6 +1379,12 @@ namespace Berta
 		module.UpdateScrollData();
 		
 		GUI::MarkAsNeedUpdate(module.m_window);
+	}
+
+	void TreeBox::ScrollToItem(TreeBoxItem item)
+	{
+		auto& module = GetReactor().GetModule();
+		module.ScrollToItem(item.GetNode());
 	}
 
 	std::wstring TreeBox::GetKeyPath(TreeBoxItem item, wchar_t separator)

@@ -101,7 +101,10 @@ namespace Berta
 				}
         
 				// Si en algún nivel no encontramos el hijo, la ruta no existe
-				if (!found) return nullptr; 
+				if (!found)
+				{
+					return nullptr;
+				}
 			}
 
 			return current;
@@ -226,6 +229,8 @@ namespace Berta
 			void ExpandNode(TreeNodeType* node);
 			
 			uint32_t CalculateNodeWidth(TreeNodeType* node, uint32_t level);
+			void InvalidateNodes(const std::vector<TreeNodeType*>& nodes);
+			void ScrollToItem(TreeNodeType* node);
 			
 			void ResetDragState();
 			void RebuildFlatTree(bool resetWidthCache = false);
@@ -296,7 +301,7 @@ namespace Berta
 			m_node->cachedTextWidth = -1;
 			m_module->RebuildFlatTree();
 		
-			GUI::UpdateWindow(m_module->m_window);
+			GUI::MarkAsNeedUpdate(m_module->m_window);
 		}
 
 		void SetIcon(const Image& icon)
@@ -307,7 +312,7 @@ namespace Berta
 			}
 			m_node->icon = icon;
 			
-			GUI::UpdateWindow(m_module->m_window);
+			GUI::MarkAsNeedUpdate(m_module->m_window);
 		}
 		
 		void SetChecked(bool checked)
@@ -324,7 +329,7 @@ namespace Berta
 			
 			m_module->m_drawCheck = true;
 			
-			GUI::UpdateWindow(m_module->m_window);
+			GUI::MarkAsNeedUpdate(m_module->m_window);
 		}
 
 		template<typename T>
@@ -371,7 +376,8 @@ namespace Berta
 		}
 
 		void Select();
-
+		void ScrollToItem();
+		
 		operator bool() const
 		{
 			return m_node;
@@ -438,6 +444,8 @@ namespace Berta
 		
 		void ExpandAll();
 		void ExpandAll(TreeBoxItem item);
+		
+		void ScrollToItem(TreeBoxItem item);
 		
 		std::wstring GetKeyPath(TreeBoxItem item, wchar_t separator);
 		std::vector<TreeBoxItem> GetSelected();
