@@ -40,8 +40,8 @@ namespace Berta
 		Point offset{ clientArea.X - scrollOffset.X, clientArea.Y - scrollOffset.Y };
 
 		auto firstBounds = m_module.GetItemBounds(0);
-		int cardWidth = (int)firstBounds.Width;
-		int cardHeight = (int)firstBounds.Height;
+		int cardWidth = static_cast<int>(firstBounds.Width);
+		int cardHeight = static_cast<int>(firstBounds.Height);
 		if (cardWidth == 0 || cardHeight == 0) return;
 
 		int availableWidth = static_cast<int>(clientArea.Width);
@@ -51,18 +51,27 @@ namespace Berta
 		int totalRowHeight = cardHeight + gapY; 
 	
 		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / totalRowHeight);
-		int visibleRows = static_cast<int>(std::ceil(static_cast<float>(clientArea.Height) / static_cast<float>(totalRowHeight))) + 2;
-	
-		size_t startIndex = static_cast<size_t>(firstVisibleRow) * columns;
-		size_t endIndex = std::min<size_t>(m_module.m_items.size(), startIndex + static_cast<size_t>(visibleRows * columns));
-	
+		int visibleRows = (clientArea.Height + totalRowHeight - 1) / totalRowHeight + 2;
+		
+		size_t startIndex = static_cast<size_t>(firstVisibleRow) * static_cast<size_t>(columns);
+
+		if (startIndex >= m_module.m_items.size())
+		{
+			return;
+		}
+
 		auto thumbSizeScale = window->ToScale(m_module.m_thumbnailSize);
 		Size thumbFrameSize{ thumbSizeScale, thumbSizeScale };
-
+		size_t endIndex = std::min<size_t>(m_module.m_items.size(), startIndex + static_cast<size_t>(visibleRows * columns));
+		
 		for (size_t i = startIndex; i < endIndex; i++)
 		{
 			auto& item = m_module.m_items[i];
 			Rectangle cardRect = m_module.GetItemBounds(i);
+			
+			// Si el item por alguna razón no tiene dimensiones válidas, saltamos
+			if (cardRect.Width <= 0 || cardRect.Height <= 0) continue;
+			
 			cardRect.X += offset.X;
 			cardRect.Y += offset.Y;
 
@@ -81,8 +90,16 @@ namespace Berta
 			{
 				backColor = window->Appearance->ButtonHighlightBackground;
 			}
-			graphics.FillRectangle(cardRect, backColor);
-			graphics.FillRectangle(thumbnailRect, window->Appearance->Background);
+			
+			if (clientArea.Intersects(cardRect))
+			{
+				graphics.FillRectangle(cardRect, backColor);
+			}
+			
+			if (clientArea.Intersects(thumbnailRect))
+			{
+				graphics.FillRectangle(thumbnailRect, window->Appearance->Background);
+			}
 
 			Image cachedImage;
 			if (item.m_hasThumbnail && m_module.m_imageCache.TryGet(item.m_id, cachedImage))
