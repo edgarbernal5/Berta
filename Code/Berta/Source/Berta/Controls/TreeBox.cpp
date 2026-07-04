@@ -235,7 +235,6 @@ namespace Berta
 		if (selectionChanged)
 		{
 			m_module.m_focusedNode = clickedNode;
-			m_module.m_needsRepaint = true;
 
 			m_module.EmitSelectionEvent();
 			GUI::MarkAsNeedUpdate(m_module.m_window);
@@ -319,7 +318,6 @@ namespace Berta
 				}
 			}
         
-			m_module.m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 			return;
 		}
@@ -333,7 +331,6 @@ namespace Berta
 		if (m_module.m_hoveredNode != currentHover)
 		{
 			m_module.m_hoveredNode = currentHover;
-			m_module.m_needsRepaint = true;
         
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
@@ -368,7 +365,6 @@ namespace Berta
 			m_module.m_dropTargetNode = nullptr;
 			m_module.m_dropPosition = DropPosition::None;
 			
-			m_module.m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
@@ -378,7 +374,6 @@ namespace Berta
 		if (m_module.m_hoveredNode != nullptr)
 		{
 			m_module.m_hoveredNode = nullptr;
-			m_module.m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
@@ -471,7 +466,7 @@ namespace Berta
 		case KeyboardKey::Space:
 		case KeyboardKey::Enter:
 			m_module.m_selectionController.Select(m_module.m_focusedNode, args.ButtonState.Ctrl, args.ButtonState.Shift, m_module.m_treeRangeResolver);
-			m_module.m_needsRepaint = true;
+			
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 			return;
 
@@ -530,7 +525,6 @@ namespace Berta
         
 			bool scrollChanged = m_module.m_scrollableView->EnsureVisibility(targetBounds);
         
-			m_module.m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
@@ -543,16 +537,6 @@ namespace Berta
 	{
 		m_module.RebuildFlatTree(true);
 		m_module.UpdateScrollData();
-	}
-
-	void TreeBoxReactor::Module::Update()
-	{
-		UpdateScrollData();
-	}
-
-	void TreeBoxReactor::Module::Draw()
-	{
-		GUI::UpdateWindow(m_window);
 	}
 
 	void TreeBoxReactor::Module::DrawTreeNodes(Graphics& graphics)
@@ -788,7 +772,7 @@ namespace Berta
 
 	void TreeBoxReactor::Module::CollapseNode(TreeNodeType* node)
 	{
-		if (!node->isExpanded)
+		if (!node || !node->isExpanded)
 		{
 			return;
 		}
@@ -832,7 +816,6 @@ namespace Berta
 
 		RebuildFlatTree();
 		
-		m_needsRepaint = true;
 		m_needsRecalculate = true;
 	}
 
@@ -866,7 +849,6 @@ namespace Berta
 		m_dropTargetNode = nullptr;
 		m_dropPosition = DropPosition::None;
     
-		m_needsRepaint = true;
 		GUI::MarkAsNeedUpdate(m_window);
 	}
 
@@ -892,7 +874,6 @@ namespace Berta
 		m_scrollableView->SetContentSize(Size{ static_cast<uint32_t>(maxWidth + rightPadding), static_cast<uint32_t>(totalHeight) });
 		
 		m_needsRecalculate = true;
-		m_needsRepaint = true;
 	}
 
 	void TreeBoxReactor::Module::CollectVisibleNodes(TreeNodeType* node, uint32_t level, uint32_t lineMask, bool isLastChild, bool resetWidthCache)
@@ -926,7 +907,9 @@ namespace Berta
 			return;
 		}
 		m_module->CollapseNode(m_node);
-		m_module->Draw();
+		m_module->UpdateScrollData();
+		
+		GUI::MarkAsNeedUpdate(m_module->m_window);
 	}
 
 	void TreeBoxItem::Expand()
@@ -936,7 +919,9 @@ namespace Berta
 			return;
 		}
 		m_module->ExpandNode(m_node);
-		m_module->Draw();
+		m_module->UpdateScrollData();
+		
+		GUI::MarkAsNeedUpdate(m_module->m_window);
 	}
 
 	void TreeBoxItem::Select()
@@ -964,7 +949,9 @@ namespace Berta
 	bool TreeBoxReactor::Module::ShowNavigationLines(bool visible)
 	{
 		if (m_showNavigationLines == visible)
+		{
 			return false;
+		}
 
 		m_showNavigationLines = visible;
 		return true;
@@ -973,7 +960,9 @@ namespace Berta
 	bool TreeBoxReactor::Module::ShowIcons(bool visible)
 	{
 		if (m_drawImages == visible)
+		{
 			return false;
+		}
 
 		m_drawImages = visible;
 		return true;
@@ -1003,7 +992,6 @@ namespace Berta
 		m_scrollableView->SetScrollStep(nodeHeightInt, 20);
 		m_scrollableView->SetOnScrollChange([this]()
 		{
-			m_needsRepaint = true;
 			GUI::MarkAsNeedUpdate(m_window);
 		});
 		
@@ -1065,13 +1053,12 @@ namespace Berta
 		module.m_hoveredNode = nullptr;
 		
 		module.m_needsRecalculate = true;
-		module.m_needsRepaint = true;
 		
 		module.UpdateScrollData();
 
 		if (needUpdate)
 		{
-			GUI::UpdateWindow(module.m_window);
+			GUI::MarkAsNeedUpdate(module.m_window);
 		}
 	}
 
@@ -1100,7 +1087,7 @@ namespace Berta
 		}
 
 		module.RebuildFlatTree();
-		module.Draw();
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	void TreeBox::CollapseAll(TreeBoxItem item)
@@ -1123,7 +1110,7 @@ namespace Berta
 		collapseRecursive(item.GetNode());
 		
 		module.RebuildFlatTree();
-		module.Draw();
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	void TreeBox::DeselectAll()
@@ -1132,7 +1119,7 @@ namespace Berta
 		module.m_selectionController.Clear();
 		
 		module.EmitSelectionEvent();
-		module.Draw();
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	TreeBoxItem TreeBox::Find(const TreeNodeHandle& key)
@@ -1151,14 +1138,18 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		auto cleanAbsoluteKey = module.CleanKey(absoluteKey);
+    
 		TreeNodeType* insertedNode = module.m_model.Insert(cleanAbsoluteKey, text);
-		if (insertedNode)
+		if (!insertedNode)
 		{
-			module.RebuildFlatTree();
-			module.UpdateScrollData();
-			module.Draw();
+			return { };
 		}
+
+		module.RebuildFlatTree();
+		module.UpdateScrollData();
 		
+		GUI::MarkAsNeedUpdate(module.m_window); 
+
 		return { insertedNode, &module };
 	}
 
@@ -1166,15 +1157,18 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		auto cleanAbsoluteKey = module.CleanKey(key);
-		
+
 		TreeNodeType* insertedNode = module.m_model.Insert(cleanAbsoluteKey, text, parent.GetNode());
-		if (insertedNode)
+		if (!insertedNode)
 		{
-			module.RebuildFlatTree();
-			module.UpdateScrollData();
-			module.Draw();
+			return { };
 		}
-		
+
+		module.RebuildFlatTree();
+		module.UpdateScrollData();
+    
+		GUI::MarkAsNeedUpdate(module.m_window);
+
 		return { insertedNode, &module };
 	}
 	
@@ -1196,9 +1190,11 @@ namespace Berta
 		{
 			return;
 		}
-		
+
 		auto& module = GetReactor().GetModule();
 		auto node = item.GetNode();
+    
+		// Limpieza de estados visuales del nodo mutado
 		if (module.m_selectionController.IsSelected(node))
 		{
 			module.m_selectionController.SetSelected(node, false); 
@@ -1215,7 +1211,9 @@ namespace Berta
 		module.m_model.Erase(node);
 
 		module.RebuildFlatTree();
-		module.Draw();
+		module.UpdateScrollData(); 
+    
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	void TreeBox::ExpandAll()
@@ -1235,6 +1233,7 @@ namespace Berta
 				collapseRecursive(childPair);
 			}
 		};
+		
 		TreeNodeType* root = module.m_model.GetRoot();
 		for (auto& childPair : root->children)
 		{
@@ -1242,7 +1241,9 @@ namespace Berta
 		}
 
 		module.RebuildFlatTree();
-		module.Draw();
+		module.UpdateScrollData();
+		
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	void TreeBox::ExpandAll(TreeBoxItem item)
@@ -1265,7 +1266,9 @@ namespace Berta
 		collapseRecursive(item.GetNode());
 		
 		module.RebuildFlatTree();
-		module.Draw();
+		module.UpdateScrollData();
+		
+		GUI::MarkAsNeedUpdate(module.m_window);
 	}
 
 	std::wstring TreeBox::GetKeyPath(TreeBoxItem item, wchar_t separator)
@@ -1308,8 +1311,8 @@ namespace Berta
 		auto& module = GetReactor().GetModule();
 		if (module.ShowNavigationLines(visible))
 		{
-			module.Update();
-			module.Draw();
+			module.UpdateScrollData();
+			GUI::MarkAsNeedUpdate(module.m_window);
 		}
 	}
 
@@ -1319,8 +1322,9 @@ namespace Berta
 		if (module.ShowIcons(visible))
 		{
 			module.RebuildFlatTree();
-			module.Update();
-			module.Draw();
+			module.UpdateScrollData();
+			
+			GUI::MarkAsNeedUpdate(module.m_window);
 		}
 	}
 }

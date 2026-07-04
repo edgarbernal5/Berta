@@ -210,8 +210,6 @@ namespace Berta
 		
 		struct Module
 		{
-			void Update();
-			void Draw();
 			void DrawTreeNodes(Graphics& graphics);
 			
 			void EnableMultiselection(bool enabled);
@@ -267,7 +265,6 @@ namespace Berta
 			bool m_multiselection{ true };
 			bool m_showNavigationLines{ true };
 			
-			bool m_needsRepaint{ false };
 			bool m_needsRecalculate{ false };
 			
 			SelectionController<TreeNodeType*>::RangeResolver m_treeRangeResolver;
@@ -309,7 +306,6 @@ namespace Berta
 				return;
 			}
 			m_node->icon = icon;
-			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);
 		}
@@ -327,7 +323,6 @@ namespace Berta
 			//UpdateAncestorsCheckState(m_node);
 			
 			m_module->m_drawCheck = true;
-			m_module->m_needsRepaint = true;
 			
 			GUI::UpdateWindow(m_module->m_window);
 		}
