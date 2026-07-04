@@ -56,12 +56,12 @@ namespace Berta
 		class ItemCollection
 		{
 		public:
-			using OnCollectionChangedCallback = std::function<void()>;
+			using OnCollectionChangedCallback = std::function<void(std::optional<size_t> logicalIndex)>;
      				
 		public:
 			ItemCollection() = default;
              
-			void SetOnChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
+			void SetOnItemChangedCallback(OnCollectionChangedCallback callback) { m_onChanged = std::move(callback); }
              
 			size_t Append(const std::string& text);
 			size_t Append(std::initializer_list<std::string> texts);
@@ -91,10 +91,10 @@ namespace Berta
 				return nullptr;
 			}
 
-			void NotifyItemModified();
+			void NotifyItemModified(std::optional<size_t> logicalIndex);
 			bool ShouldDrawImages() const { return m_drawImages; }
 		private:
-			void TriggerChanged();
+			void TriggerChanged(std::optional<size_t> logicalIndex);
      				
 			bool m_drawImages { false };
 			std::vector<List::Item> m_items;
@@ -130,6 +130,7 @@ namespace Berta
 			void SetSortState(size_t logicalColumnIndex, bool ascending);
 			const std::vector<ItemData>& GetHeaders() const { return m_headers; }
 			uint32_t GetTotalWidth() const;
+			uint32_t GetColumnWidth(size_t index) const;
 
 			void Draw(Graphics& graphics, const Rectangle& visibleRect, const Point& clientPos);
 
@@ -187,6 +188,7 @@ namespace Berta
 				Graphics m_draggingBox;
 			} m_dragDropInteraction;
 			
+			bool m_mouseDownOnHeadersRow{ false };
 			std::vector<ItemData> m_headers;
 			std::vector<size_t> m_visualOrder;
 		};
@@ -203,8 +205,7 @@ namespace Berta
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-			void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
-
+			
 			struct Module
 			{
 				void AppendHeader(const std::string& text, uint32_t width);
@@ -225,7 +226,7 @@ namespace Berta
 				void SortHeader(size_t columnIndex, bool ascending);
 
 				void InitScrollableView();
-				void EnsureVisible(size_t visualIndex);
+				bool EnsureVisible(size_t visualIndex);
 				
 				bool SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift);
 				void ProcessLassoIntersection(bool ctrlPressed);
@@ -235,6 +236,9 @@ namespace Berta
 				void DrawRowBackground(Graphics& graphics, int visualIndex, const Rectangle& rowRect);
 				void DrawRowContent(Graphics& graphics, int visualRowIndex, const Rectangle& rect);
 				void DrawCell(Graphics& graphics, const Rectangle& rect, const std::string& text, bool isRowSelected, const Image* icon, bool drawIconsForColumn);
+				
+				Rectangle GetItemLocalRect(size_t visualIndex);
+				Rectangle GetCellLocalRect(size_t visualIndex, size_t columnIndex);
 				
 				void TriggerSelectionChanged();
 				
