@@ -309,8 +309,8 @@ namespace Berta
 			const std::vector<LayoutNodeCache>& GetVisibleItemsList() const { return m_visibleItems; }
 			
 			void RefreshVisibleOnly(const PropertyGridModel& model);
-			void ScrollToItem(StringUtils::StringHash targetId);
-			Rectangle GetItemRect(StringUtils::StringHash id) const;
+			bool ScrollToItem(StringUtils::StringHash targetId);
+			std::optional<Rectangle> GetItemRect(StringUtils::StringHash id) const;
 			
 			void SetDropIndicator(bool show, size_t targetIndex = 0);
 		private:
@@ -349,6 +349,7 @@ namespace Berta
 			
 			void ClearReferences(StringUtils::StringHash deletedId);
 			void OnLayoutChanged();
+			void InvalidateItem(StringUtils::StringHash propId);
 			HitResult HitTest(Point mousePos) const;
 			
 			PropertyGridModel m_model;

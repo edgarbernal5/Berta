@@ -950,8 +950,12 @@ namespace Berta
 				if (m_dropIndicatorIndex < rootCategories.size())
 				{
 					StringUtils::StringHash targetCatId = rootCategories[m_dropIndicatorIndex].m_id;
-					Rectangle rect = GetItemRect(targetCatId);
-					logicalDropY = rect.Y; 
+					auto rect = GetItemRect(targetCatId);
+					if (rect.has_value())
+					{
+						
+						logicalDropY = rect->Y; 
+					}
 				}
 				else if (!m_visibleItems.empty())
 				{
@@ -1012,33 +1016,39 @@ namespace Berta
 			}
 		}
 
-		void PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
+		bool PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
 		{
 			if (!m_scrollableView)
 			{
-				return;
+				return false;
 			}
-			Rectangle itemRect = GetItemRect(targetId);
+			auto itemRect = GetItemRect(targetId);
+			if (!itemRect.has_value())
+			{
+				return false;
+			}
 			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
 			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height);
 
 			Rectangle viewport = m_scrollableView->GetVisibleRect();
-			if (itemRect.Y < currentScrollY) 
+			if (itemRect->Y < currentScrollY) 
 			{
-				currentScrollY=itemRect.Y;
+				currentScrollY = itemRect->Y;
 			}
-			else if (itemRect.Y + static_cast<int>(itemRect.Height) > currentScrollY + visibleHeight) 
+			else if (itemRect->Y + static_cast<int>(itemRect->Height) > currentScrollY + visibleHeight) 
 			{
-				currentScrollY = itemRect.Y + static_cast<int>(itemRect.Height) - visibleHeight;
+				currentScrollY = itemRect->Y + static_cast<int>(itemRect->Height) - visibleHeight;
 			}
 
 			if (currentScrollY != viewport.Y)
 			{
 				m_scrollableView->SetScrollToY(currentScrollY); 
+				return true;
 			}
+			return false;
 		}
 
-		Rectangle PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
+		std::optional<Rectangle> PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
 		{
 			auto it = m_itemRects.find(id);
 			if (it != m_itemRects.end())
@@ -1046,7 +1056,7 @@ namespace Berta
 				return it->second;
 			}
     
-			return Rectangle{ 0, 0, 0, 0 };
+			return std::nullopt;
 		}
 
 		void PropertyGridLayout::SetDropIndicator(bool show, size_t targetIndex)
@@ -1210,6 +1220,20 @@ namespace Berta
 			m_layout.CalculateLayout(m_model);
 
 			GUI::MarkAsNeedUpdate(m_owner);
+		}
+
+		void Module::InvalidateItem(StringUtils::StringHash propId)
+		{
+			// Obtenemos el rectángulo local que ocupa esa propiedad en el Layout
+			if (std::optional<Rectangle> itemRect = m_layout.GetItemRect(propId))
+			{
+				GUI::MarkAsNeedUpdate(m_owner, &(*itemRect));
+			}
+			else
+			{
+				// Fallback seguro: si no se encuentra o está fuera de rango, invalidamos todo
+				GUI::MarkAsNeedUpdate(m_owner);
+			}
 		}
 
 		Module::HitResult Module::HitTest(Point mousePos) const
@@ -1596,14 +1620,37 @@ namespace Berta
 					
 					events->PropertyChanged.Emit(arguments); 
 				}
-				m_module.m_layout.ScrollToItem(propId);
-				m_module.OnLayoutChanged();
+				// Si la modificación gatilla un Scroll, forzamos invalidación total en ScrollToItem.
+				// Si ya era visible, ScrollToItem no hace nada y solo invalidamos de forma quirúrgica la fila.
+				if (m_module.m_layout.ScrollToItem(propId)) 
+				{
+					m_module.OnLayoutChanged(); // Hizo scroll -> Cambió la estructura visual -> Todo se mueve
+				}
+				else 
+				{
+					m_module.InvalidateItem(propId); // Quirúrgico -> Solo repinta la fila mutada
+				}
 			};
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
 			{
+				// Guardamos cuál era la propiedad seleccionada antes del cambio
+				StringUtils::StringHash oldSelectedId = m_module.m_model.GetSelectedItemId();
+				
 				m_module.m_model.SetSelectedItemId(propId);
-				m_module.m_layout.ScrollToItem(propId);
-				m_module.OnLayoutChanged();
+				
+				if (m_module.m_layout.ScrollToItem(propId))
+				{
+					m_module.OnLayoutChanged(); // Si requirió scroll, invalidación total obligatoria
+				}
+				else
+				{
+					// Si no requirió scroll, ¡ganamos! Invalidamos quirúrgicamente solo las dos filas afectadas
+					if (oldSelectedId != 0u && oldSelectedId != propId)
+					{
+						m_module.InvalidateItem(oldSelectedId); // Apaga el viejo selector
+					}
+					m_module.InvalidateItem(propId); // Enciende el nuevo selector
+				}
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
 				if (events) 
@@ -1645,6 +1692,8 @@ namespace Berta
 		module.m_model.Clear();
 		module.m_layout.SetHoverItemId(0);
 		module.m_layout.CalculateLayout(module.m_model);
+		
+		GUI::MarkAsNeedUpdate(module.m_owner);
 	}
 
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
