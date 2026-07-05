@@ -1270,25 +1270,13 @@ namespace Berta
 			
 			auto globalRect = m_module.m_owner->ClientSize.ToRectangle();
 			graphics.FillRectangle(globalRect, m_module.m_owner->Appearance->BoxBackground);
-			if (!m_control->IsBorderless())
-			{
-				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
-				
-				Rectangle localBorderRect = m_control->GetClientArea();
-				graphics.SetClipping(localBorderRect);
-			}
 			
 			m_module.m_layout.Draw(graphics, m_module.m_model, appearance);
 			
 			if (m_module.m_layout.m_scrollableView->HasVerticalScroll() && m_module.m_layout.m_scrollableView->HasHorizontalScroll())
 			{
 				auto scrollSize = m_module.m_owner->ToScale(m_module.m_owner->Appearance->ScrollBarSize);
-				graphics.FillRectangle({ (int)(m_module.m_owner->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_owner->Appearance->Background);
-			}
-		
-			if (!m_control->IsBorderless())
-			{
-				graphics.EndClipping();
+				graphics.FillRectangle({ static_cast<int>(m_module.m_owner->ClientSize.Width - scrollSize) - 1, static_cast<int>(m_module.m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_owner->Appearance->Background);
 			}
 		}
 
