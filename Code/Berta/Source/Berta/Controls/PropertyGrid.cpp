@@ -1189,7 +1189,7 @@ namespace Berta
 			if (!m_owner->Flags.AutoDraw)
 				return;
 
-			GUI::UpdateWindow(m_owner);
+			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
 		void Module::ClearReferences(StringUtils::StringHash deletedId)
@@ -1209,7 +1209,7 @@ namespace Berta
 		{
 			m_layout.CalculateLayout(m_model);
 
-			GUI::UpdateWindow(m_owner);
+			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
 		Module::HitResult Module::HitTest(Point mousePos) const
@@ -1672,7 +1672,7 @@ namespace Berta
 			module.ClearReferences(categoryItem.GetId());
 			module.m_layout.CalculateLayout(module.m_model);
 			
-			GUI::UpdateWindow(module.m_owner);
+			GUI::MarkAsNeedUpdate(module.m_owner);
 		}
 	}
 
@@ -1685,7 +1685,7 @@ namespace Berta
 			module.ClearReferences(propertyItem.GetId());
 			module.m_layout.CalculateLayout(module.m_model);
 			
-			GUI::UpdateWindow(module.m_owner);
+			GUI::MarkAsNeedUpdate(module.m_owner);
 		}
 	}
 
