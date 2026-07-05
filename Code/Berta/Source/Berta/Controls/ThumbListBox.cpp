@@ -22,6 +22,18 @@ namespace Berta
 		m_module.m_events = reinterpret_cast<ThumbListBoxEvents*>(m_control->Handle()->Events.get());
 		
 		m_module.InitScrollableView();
+		
+		m_module.m_rangeResolver = [](const size_t& anchor, const size_t& current)
+		{
+			std::vector<size_t> range;
+			size_t start = std::min<size_t>(anchor, current);
+			size_t end = std::max<size_t>(anchor, current);
+			for (size_t i = start; i <= end; ++i)
+			{
+				range.emplace_back(i);
+			}
+			return range;
+		};
 	}
 
 	void ThumbListBoxReactor::Update(Graphics& graphics)
@@ -51,10 +63,9 @@ namespace Berta
 		int totalRowHeight = cardHeight + gapY; 
 	
 		int firstVisibleRow = std::max<int>(0, scrollOffset.Y / totalRowHeight);
-		int visibleRows = (clientArea.Height + totalRowHeight - 1) / totalRowHeight + 2;
+		int visibleRows = (static_cast<int>(clientArea.Height) + totalRowHeight - 1) / totalRowHeight + 2;
 		
 		size_t startIndex = static_cast<size_t>(firstVisibleRow) * static_cast<size_t>(columns);
-
 		if (startIndex >= m_module.m_items.size())
 		{
 			return;
@@ -68,9 +79,6 @@ namespace Berta
 		{
 			auto& item = m_module.m_items[i];
 			Rectangle cardRect = m_module.GetItemBounds(i);
-			
-			// Si el item por alguna razón no tiene dimensiones válidas, saltamos
-			if (cardRect.Width <= 0 || cardRect.Height <= 0) continue;
 			
 			cardRect.X += offset.X;
 			cardRect.Y += offset.Y;
@@ -118,7 +126,10 @@ namespace Berta
 					thumbnailImageRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
 				}
 
-				cachedImage.Paste(graphics, thumbnailImageRect);
+				if (clientArea.Intersects(thumbnailImageRect))
+				{
+					cachedImage.Paste(graphics, thumbnailImageRect);
+				}
 			}
 		
 			if (isSelected)
@@ -153,8 +164,11 @@ namespace Berta
 
 	void ThumbListBoxReactor::DblClick(Graphics& graphics, const ArgMouse& args)
 	{
-		if (!args.ButtonState.LeftButton) return;
-
+		if (!args.ButtonState.LeftButton)
+		{
+			return;
+		}
+		
 		auto clickedIndex = m_module.GetItemIndexAtMousePosition(args.Position);
 		if (clickedIndex.has_value())
 		{
@@ -177,24 +191,13 @@ namespace Berta
 		if (clickedIndex.has_value())
 		{
 			m_module.m_focusedIndex = clickedIndex;
-			auto rangeResolver = [](const size_t& anchor, const size_t& current)
-			{
-				std::vector<size_t> range;
-				size_t start = std::min<size_t>(anchor, current);
-				size_t end = std::max<size_t>(anchor, current);
-				for (size_t i = start; i <= end; ++i)
-				{
-					range.emplace_back(i);
-				}
-				return range;
-			};
-
+			
 			bool selectionChanged = m_module.m_selectionController.Select
 			(
 				clickedIndex.value(), 
 				args.CtrlPressed, 
 				args.ShiftPressed, 
-				rangeResolver
+				m_module.m_rangeResolver
 			);
 
 			if (selectionChanged && m_module.m_events)
@@ -214,6 +217,7 @@ namespace Berta
 			}
 			if (m_module.m_selectionController.IsMultiSelect())
 			{
+				GUI::Capture(m_module.m_window);
 				m_module.m_selectionController.SaveSnapshot();
 				m_module.m_lassoSelection.Start(args.Position);
 			}
@@ -226,7 +230,6 @@ namespace Berta
 	{
 		if (m_module.m_lassoSelection.IsActive())
 		{
-			Rectangle oldLassoRect = m_module.m_lassoSelection.GetRect();
 			if (m_module.m_lassoSelection.Update(args.Position))
 			{
 				Rectangle newLassoRect = m_module.m_lassoSelection.GetRect();
@@ -278,6 +281,8 @@ namespace Berta
 								if (lassoWorldRect.Intersects(itemRect)) 
 								{
 									m_module.m_selectionController.SetSelected(index, true);
+									
+									GUI::MarkAsNeedUpdate(*m_control, &itemRect);
 								}
 							}
 						}
@@ -289,11 +294,14 @@ namespace Berta
 			return;
 		}
 
-		auto currentIndex = m_module.GetItemIndexAtMousePosition(args.Position);
-		if (currentIndex != m_module.m_hoveredIndex)
+		if (args.ButtonState.NoButtonsPressed())
 		{
-			m_module.m_hoveredIndex = currentIndex;
-			GUI::MarkAsNeedUpdate(*m_control);
+			auto currentIndex = m_module.GetItemIndexAtMousePosition(args.Position);
+			if (currentIndex != m_module.m_hoveredIndex)
+			{
+				m_module.m_hoveredIndex = currentIndex;
+				GUI::MarkAsNeedUpdate(*m_control);
+			}
 		}
 	}
 
@@ -302,7 +310,7 @@ namespace Berta
 		if (m_module.m_lassoSelection.IsActive())
 		{
 			bool actuallyChanged = m_module.m_selectionController.HasSelectionChangedSinceSnapshot();
-				
+			
 			m_module.m_lassoSelection.End();
 			m_module.m_selectionController.ClearSnapshot();
 			GUI::MarkAsNeedUpdate(*m_control);
@@ -311,14 +319,15 @@ namespace Berta
 			{
 				m_module.TriggerSelectionChanged();
 			}
+			GUI::ReleaseCapture(m_module.m_window);
 		}
 	}
 
 	void ThumbListBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 	{
-		if (m_module.m_hoveredIndex != static_cast<size_t>(-1))
+		if (m_module.m_hoveredIndex.has_value())
 		{
-			m_module.m_hoveredIndex = static_cast<size_t>(-1);
+			m_module.m_hoveredIndex.reset();
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
@@ -339,8 +348,11 @@ namespace Berta
 		}
 		
 		auto firstBounds = m_module.GetItemBounds(0);
-		if (firstBounds.Width == 0) return;
-
+		if (firstBounds.Width == 0)
+		{
+			return;
+		}
+		
 		int availableWidth = m_module.GetLayoutWidth();
 		int columns = std::max<int>(1, static_cast<int>(availableWidth / firstBounds.Width));
 
@@ -387,6 +399,8 @@ namespace Berta
 			
 			case KeyboardKey::Space:
 				m_module.m_focusedIndex = newIndex;
+				m_module.m_selectionController.Select(newIndex, args.ButtonState.Ctrl, args.ButtonState.Shift, m_module.m_rangeResolver);
+			
 				break;
 
 			default:
@@ -400,13 +414,26 @@ namespace Berta
 			{
 				m_module.m_selectionController.Clear();
 			}
+			if (!args.ButtonState.Ctrl)
+			{
+				bool selectionChanged = m_module.m_selectionController.Select
+				(
+					newIndex, 
+					args.ButtonState.Ctrl, 
+					args.ButtonState.Shift, 
+					m_module.m_rangeResolver
+				);
+				if (selectionChanged)
+				{
+					GUI::MarkAsNeedUpdate(m_module.m_window);
+				}
+			}
 			
-			m_module.m_selectionController.SetSelected(newIndex, true);
-
 			Rectangle targetBounds = m_module.GetItemBounds(newIndex);
 			if (m_module.m_scrollableView->EnsureVisibility(targetBounds))
 			{
 				m_module.TriggerVisibilityEvent();
+				GUI::MarkAsNeedUpdate(m_module.m_window);
 			}
 
 			if (m_module.m_events)
@@ -416,10 +443,6 @@ namespace Berta
 
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
-	}
-
-	void ThumbListBoxReactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
-	{
 	}
 
 	ThumbListBoxItem ThumbListBoxReactor::Module::At(size_t index)
@@ -489,7 +512,7 @@ namespace Berta
 		UpdateScrollMetrics();
 		TriggerVisibilityEvent();
 		
-		GUI::UpdateWindow(m_window);
+		GUI::MarkAsNeedUpdate(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::SetThumbnailSize(uint32_t size)
@@ -504,7 +527,7 @@ namespace Berta
 
 		TriggerVisibilityEvent();
 		
-		GUI::UpdateWindow(m_window);
+		GUI::MarkAsNeedUpdate(m_window);
 	}
 
 	bool ThumbListBoxReactor::Module::IsEnabledMultiselection() const
@@ -549,7 +572,8 @@ namespace Berta
 		int itemStartX = gapX + col * (cardWidth + gapX);
 		int itemStartY = gapY + row * (cardHeight + gapY);
 
-		if (absolutePt.X > itemStartX + cardWidth || absolutePt.Y > itemStartY + cardHeight) {
+		if (absolutePt.X > itemStartX + cardWidth || absolutePt.Y > itemStartY + cardHeight)
+		{
 			return std::nullopt; // Clic en el espacio entre elementos
 		}
 		
@@ -673,7 +697,7 @@ namespace Berta
 
 	void ThumbListBoxReactor::Module::Draw() const
 	{
-		GUI::UpdateWindow(m_window);
+		GUI::MarkAsNeedUpdate(m_window);
 	}
 
 	void ThumbListBoxReactor::Module::DrawItem(Graphics& graphics, ItemType& item, Point& offset)
@@ -765,7 +789,7 @@ namespace Berta
 		{
 			TriggerVisibilityEvent();
 			
-			GUI::UpdateWindow(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 		}
 	}
 
@@ -779,8 +803,10 @@ namespace Berta
 			}
 			return;
 		}
+		
 		auto clientArea = m_control->GetClientArea();
 		m_scrollableView->SetViewRect(clientArea);
+		
 		int currentWidth = static_cast<int>(clientArea.Width);
 		auto lastItemBounds = GetItemBounds(m_items.size() - 1, currentWidth);
 		
@@ -806,7 +832,9 @@ namespace Berta
 		}
 
 		m_module->m_items[m_logicalIndex].m_text = text;
-		GUI::UpdateWindow(m_module->m_window);
+		
+		Rectangle itemBounds = m_module->GetItemBounds(m_logicalIndex);
+		GUI::MarkAsNeedUpdate(m_module->m_window, &itemBounds);
 	}
 
 	void ThumbListBoxItem::SetIcon(const Image& image)
@@ -827,7 +855,8 @@ namespace Berta
 			m_module->m_imageCache.Erase(item.m_id);
 		}
 		
-		GUI::UpdateWindow(m_module->m_window);
+		Rectangle itemBounds = m_module->GetItemBounds(m_logicalIndex);
+		GUI::MarkAsNeedUpdate(m_module->m_window, &itemBounds);
 	}
 
 	ThumbListBox::ThumbListBox(Window* parent, const Rectangle& rectangle)

@@ -216,10 +216,9 @@ namespace Berta
 		if (!clickedNode->children.empty() && args.Position.X >= expanderStartX && args.Position.X <= expanderEndX)
 		{
 			clickedNode->isExpanded = !clickedNode->isExpanded;
-	        
-			m_module.EmitExpansionEvent(clickedNode);
 			
 			m_module.RebuildFlatTree();
+			m_module.EmitExpansionEvent(clickedNode);
 			
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 			return;
@@ -246,6 +245,14 @@ namespace Berta
 			m_module.m_draggedNode = clickedNode;
 			m_module.m_dragStartPoint = args.Position;
 			m_module.m_isDragging = false;
+		}
+		
+		Rectangle targetBounds = { 0, static_cast<int>(clickedIndex) * nodeHeight, 100, static_cast<uint32_t>(nodeHeight) };
+        
+		bool scrollChanged = m_module.m_scrollableView->EnsureVisibility(targetBounds);
+		if (scrollChanged)
+		{
+			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
 	}
 
@@ -919,6 +926,7 @@ namespace Berta
 			}
 			RebuildFlatTree();
 			UpdateScrollData();
+			
 			it = std::find_if(m_flatVisibleTree.begin(), m_flatVisibleTree.end(),
 				[node](const FlatNode& fn) { return fn.Node == node; });
 			

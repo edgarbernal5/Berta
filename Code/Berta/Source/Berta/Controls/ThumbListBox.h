@@ -149,8 +149,7 @@ namespace Berta
 		void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-		void KeyReleased(Graphics& graphics, const ArgKeyboard& args) override;
-
+		
 		struct Module
 		{
 			struct ItemType
@@ -211,6 +210,7 @@ namespace Berta
 			std::optional<size_t> m_hoveredIndex;
 
 			ThumbListBoxEvents* m_events{ nullptr };
+			SelectionController<size_t>::RangeResolver m_rangeResolver;
 		};
 
 		Module& GetModule() { return m_module; }
