@@ -147,7 +147,5 @@ namespace Berta
 			m_setter(uiValue);
 			NotifyValueChanged();
 		}
-
-		//Refresh();
 	}
 }

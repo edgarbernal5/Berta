@@ -894,7 +894,7 @@ namespace Berta
 						{
 							Rectangle labelArea = rect;
 					
-							int labelWidth = static_cast<int>(rect.Width) / 2;
+							int labelWidth = static_cast<int>(rect.Width) >> 1;
 							
 							bool hasSubProperties = !prop->m_subProperties.empty();
 							int textOffsetX = m_owner->ToScale(5); // Margen base
@@ -953,7 +953,6 @@ namespace Berta
 					auto rect = GetItemRect(targetCatId);
 					if (rect.has_value())
 					{
-						
 						logicalDropY = rect->Y; 
 					}
 				}
@@ -1022,6 +1021,7 @@ namespace Berta
 			{
 				return false;
 			}
+			
 			auto itemRect = GetItemRect(targetId);
 			if (!itemRect.has_value())
 			{

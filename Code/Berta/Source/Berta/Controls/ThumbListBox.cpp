@@ -799,7 +799,7 @@ namespace Berta
 		{
 			if (m_scrollableView)
 			{
-				m_scrollableView->SetContentSize({ m_window->ClientSize.Width, 0 });	
+				m_scrollableView->SetContentSize({ 0, 0 });	
 			}
 			return;
 		}

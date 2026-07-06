@@ -50,7 +50,10 @@ namespace Berta::GUI
 
 		if (windowManager.Caption(window, caption))
 		{
-			windowManager.Update(window);
+			auto absPosition = GUI::GetWindowRootPosition(window);
+			auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+		
+			windowManager.Update(window, &absoluteBounds);
 		}
 	}
 

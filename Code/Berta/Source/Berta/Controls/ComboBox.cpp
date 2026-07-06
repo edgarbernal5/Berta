@@ -128,7 +128,7 @@ namespace Berta
 
 						//m_module.EmitSelectionEvent(selectedIndex);
 
-						GUI::UpdateWindow(*m_control);
+						GUI::MarkAsNeedUpdate(*m_control);
 					}
 				});
 
