@@ -841,7 +841,7 @@ namespace Berta
 				}
 				
 				Rectangle rect = itemRect;
-				//rect.Width = clientArea.Width - rect.X;
+				rect.Width = clientArea.Width - rect.X;
 				rect.X += currentX;
 				rect.Y += currentY;
 				if ((rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom))
