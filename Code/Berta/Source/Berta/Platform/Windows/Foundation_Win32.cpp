@@ -115,7 +115,7 @@ namespace Berta
 	void Foundation::ProcessMessages(const std::function<bool()>& keepRunning)
 	{
 		auto& windowManager = GetWindowManager();
-		auto& dispatcher = GetDispatcher();
+		auto& dispatcher = Dispatcher::Get();
 		std::vector<API::NativeWindowHandle> allHandles;
 
 		MSG msg = { 0 };
