@@ -220,6 +220,7 @@ namespace Berta
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
+			void ResetScrollOffset();
 			void UpdateScrollData();
 
 			void EmitSelectionEvent();

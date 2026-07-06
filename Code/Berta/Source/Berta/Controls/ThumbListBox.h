@@ -188,6 +188,7 @@ namespace Berta
 			
 			void InitScrollableView();
 			void EnsureVisibility(size_t index);
+			void ResetScrollOffset();
 			void UpdateScrollMetrics();
 			
 			uint64_t m_idCounter{ 1 };

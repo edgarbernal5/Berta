@@ -219,6 +219,7 @@ namespace Berta
 				void Erase(ListBoxItem item);
 				void Erase(std::vector<ListBoxItem>& items);
 				void EnableMultiselection(bool enabled);
+				void ResetScrollOffset();
 				void UpdateScrollData();
 
 				std::vector<ListBoxItem> GetSelectedItems();

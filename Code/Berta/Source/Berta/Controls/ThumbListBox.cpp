@@ -492,6 +492,7 @@ namespace Berta
 		m_focusedIndex = std::nullopt;
 		m_hoveredIndex = std::nullopt;
 		
+		ResetScrollOffset();
 		UpdateScrollMetrics();
 		
 		return needUpdate;
@@ -791,6 +792,12 @@ namespace Berta
 			
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
+	}
+
+	void ThumbListBoxReactor::Module::ResetScrollOffset()
+	{
+		m_scrollableView->SetScrollToX(0);
+		m_scrollableView->SetScrollToY(0);
 	}
 
 	void ThumbListBoxReactor::Module::UpdateScrollMetrics()

@@ -750,6 +750,12 @@ namespace Berta
 		return key;
 	}
 
+	void TreeBoxReactor::Module::ResetScrollOffset()
+	{
+		m_scrollableView->SetScrollToX(0);
+		m_scrollableView->SetScrollToY(0);
+	}
+
 	void TreeBoxReactor::Module::UpdateScrollData()
 	{
 		if (!m_scrollableView)
@@ -1172,6 +1178,7 @@ namespace Berta
 		
 		module.m_needsRecalculate = true;
 		
+		module.ResetScrollOffset();
 		module.UpdateScrollData();
 
 		if (needUpdate)

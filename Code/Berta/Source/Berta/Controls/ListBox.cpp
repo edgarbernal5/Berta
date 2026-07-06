@@ -1106,9 +1106,17 @@ namespace Berta
 		void Reactor::Module::EnableMultiselection(bool enabled)
 		{
 			if (m_selectionController.IsMultiSelect() == enabled)
+			{
 				return;
+			}
 			
 			m_selectionController.SetMultiSelect(enabled);
+		}
+
+		void Reactor::Module::ResetScrollOffset()
+		{
+			m_scrollableView->SetScrollToX(0);
+			m_scrollableView->SetScrollToY(0);
 		}
 
 		void Reactor::Module::AppendHeader(const std::string& text, uint32_t width)
@@ -1157,6 +1165,7 @@ namespace Berta
 			m_hoveredIndex.reset();
 			m_focusedLogicalIndex.reset();
 			
+			ResetScrollOffset();
 			UpdateScrollData();
 			
 			// El control ahora está vacío, invalidamos toda su área local

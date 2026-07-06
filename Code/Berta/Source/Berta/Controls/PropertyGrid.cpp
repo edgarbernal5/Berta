@@ -1065,6 +1065,12 @@ namespace Berta
 			m_dropIndicatorIndex = targetIndex;
 		}
 
+		void PropertyGridLayout::ResetScrollOffset()
+		{
+			m_scrollableView->SetScrollToX(0);
+			m_scrollableView->SetScrollToY(0);
+		}
+
 		uint32_t PropertyGridLayout::CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY)
 		{
 			uint32_t categoryHeaderHeight = m_owner->ToScale(m_config->CategoryHeight);
@@ -1197,7 +1203,9 @@ namespace Berta
 		void Module::Update()
 		{
 			if (!m_owner->Flags.AutoDraw)
+			{
 				return;
+			}
 
 			GUI::MarkAsNeedUpdate(m_owner);
 		}
@@ -1701,6 +1709,7 @@ namespace Berta
 		module.m_model.Clear();
 		module.m_layout.SetHoverItemId(0);
 		module.m_layout.CalculateLayout(module.m_model);
+		module.m_layout.ResetScrollOffset();
 		
 		GUI::MarkAsNeedUpdate(module.m_owner);
 	}
