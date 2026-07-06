@@ -74,7 +74,7 @@ namespace Berta
 		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = false);
 		bool Move(Window* window, Point newPosition, bool forceRepaint = false);
 		
-		void Update(Window* window, const Rectangle* absoluteDirtyArea = nullptr);
+		void Update(Window* window, const Rectangle* absoluteDirtyArea);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);

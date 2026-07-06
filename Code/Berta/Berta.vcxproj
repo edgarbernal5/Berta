@@ -179,6 +179,7 @@
     <ClInclude Include="Source\Berta\GUI\ScrollableView.h" />
     <ClInclude Include="Source\Berta\GUI\SelectionController.h" />
     <ClInclude Include="Source\Berta\GUI\ShortcutManager.h" />
+    <ClInclude Include="Source\Berta\GUI\Dispatcher.h" />
     <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />
     <ClInclude Include="Source\Berta\Paint\DrawBatchActivator.h" />
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h" />
@@ -493,6 +494,7 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp" />
     <ClCompile Include="Source\Berta\GUI\ShortcutManager.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Dispatcher.cpp" />
     <ClCompile Include="Source\Berta\GUI\UIRendererCoordinator.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layout.cpp" />
     <ClCompile Include="Source\Berta\Paint\DrawBatchActivator.cpp" />

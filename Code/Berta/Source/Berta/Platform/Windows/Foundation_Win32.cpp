@@ -62,6 +62,8 @@ namespace Berta
 
 		//Don't use either CS_HREDRAW or CS_VREDRAW flags. Could cause flicking when window is resized.
 		{
+			//CS_OWNDC: Add this only to support OpenGL
+			
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
 			wcex.style = /*CS_HREDRAW | CS_VREDRAW | CS_OWNDC |*/ CS_DBLCLKS; // Enable double-click messages
@@ -113,6 +115,7 @@ namespace Berta
 	void Foundation::ProcessMessages(const std::function<bool()>& keepRunning)
 	{
 		auto& windowManager = GetWindowManager();
+		auto& dispatcher = GetDispatcher();
 		std::vector<API::NativeWindowHandle> allHandles;
 
 		MSG msg = { 0 };
@@ -140,6 +143,8 @@ namespace Berta
 			}
 			else
 			{
+				dispatcher.ExecuteAll();
+				
 				// 3. Tiempo de inactividad (Idle Time) / Renderizado
 				bool anyWindowRefreshed = false;
 				

@@ -17,6 +17,8 @@
 
 #include <functional>
 
+#include "Berta/GUI/Dispatcher.h"
+
 namespace Berta
 {
 	class Logger;
@@ -41,6 +43,7 @@ namespace Berta
 
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		MenuManager& GetMenuManager() { return m_menuManager; }
+		Dispatcher& GetDispatcher() { return m_dispatcher; }
 		void ProcessMessages(const std::function<bool()>& keepRunning = nullptr);
 
 		template <typename TArgument>
@@ -62,6 +65,7 @@ namespace Berta
 		static Foundation g_foundation;
 		WindowManager m_windowManager;
 		MenuManager m_menuManager;
+		Dispatcher m_dispatcher;
 	};
 
 	template<typename TArgument>
