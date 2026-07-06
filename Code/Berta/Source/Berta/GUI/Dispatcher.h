@@ -16,11 +16,6 @@ namespace Berta
     class Dispatcher
     {
     public:
-        /*static Dispatcher& Get()
-        {
-            static Dispatcher instance;
-            return instance;
-        }*/
         Dispatcher();
 
         // Cualquier sistema puede encolar trabajo aquí
@@ -29,6 +24,11 @@ namespace Berta
         // Se llama 1 sola vez por frame
         void ExecuteAll();
 
+        static Dispatcher& Get()
+        {
+            static Dispatcher instance;
+            return instance;
+        }
     private:
         std::vector<std::function<void()>> m_actions;
         std::mutex m_mutex;
