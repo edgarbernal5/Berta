@@ -586,7 +586,9 @@ namespace Berta
 	void Layout::ShowPaneDockIndicators(LayoutNode* node)
 	{
 		if (m_dragDropCtx.lockPaneIndicators)
+		{
 			return;
+		}
 
 		auto indicatorSize = m_owner->ToScale(32);
 		auto indicatorSizeHalf = indicatorSize >> 1;

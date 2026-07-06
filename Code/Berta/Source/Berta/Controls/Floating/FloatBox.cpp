@@ -202,11 +202,11 @@ namespace Berta
 
 				if (redrawScrollbar)
 				{
-					GUI::UpdateWindow(m_scrollBar->Handle());
+					GUI::MarkAsNeedUpdate(m_scrollBar->Handle());
 				}
 			}
 
-			GUI::UpdateWindow(*m_control);
+			GUI::MarkAsNeedUpdate(*m_control);
 			return true;
 		}
 		return false;
@@ -245,7 +245,7 @@ namespace Berta
 				m_state.m_offset = args.Value;
 				//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
 				
-				GUI::UpdateWindow(*m_control);
+				GUI::MarkAsNeedUpdate(*m_control);
 			});
 		}
 

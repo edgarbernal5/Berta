@@ -539,7 +539,7 @@ namespace Berta
 
 	void TabBarReactor::Module::Draw()
 	{
-		GUI::UpdateWindow(m_owner);
+		GUI::MarkAsNeedUpdate(m_owner);
 	}
 
 	Rectangle TabBarReactor::Module::GetTabPageArea(bool includePadding) const

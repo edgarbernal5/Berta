@@ -293,7 +293,7 @@ namespace Berta
 			return;
 		}
 
-		GUI::MoveWindow(m_window, GetArea(), false);
+		GUI::MoveWindow(m_window, GetArea());
 	}
 
 	void LeafLayoutNode::EnterSizeMove()
@@ -417,13 +417,14 @@ namespace Berta
 
 		auto& newSplitterAreaPos = m_isVertical ? newSplitterArea.Y : newSplitterArea.X;
 		newSplitterAreaPos = leftPos + static_cast<int>(newLeftAreaValue);
-
+		
 		SetArea(newSplitterArea);
 		
 		m_containerNode->CalculateAreas();
-
+		
+		//Invalidamos y forzamos el repintado del padre para tapar los huecos
 		API::RefreshWindow(m_ownerWindow->RootHandle);
-		//API::UpdateWindow(m_ownerWindow->RootHandle);
+		API::UpdateWindow(m_ownerWindow->RootHandle);
 	}
 
 	void SplitterLayoutNode::OnMouseUp()
@@ -876,14 +877,15 @@ namespace Berta
 
 		m_nativeContainer = std::make_unique<Form>(m_hostWindow, rect, FormStyle::Float());
 		auto nativeWindow = m_nativeContainer->Handle();
-    
+
 #if BT_DEBUG
-		nativeWindow->Name = "DockFloat-" + m_paneInfo->id;
+		nativeWindow->Name = "DockFloat-Form-" + m_paneInfo->id;
 #endif
 
 		GUI::SetParentWindow(this->Handle(), nativeWindow);
 		this->SetPosition({ 1, 1 });
 		this->SetSize({ rect.Width - 1, rect.Height - 1 });
+	
 		m_nativeContainer->GetEvents().Resize.Connect([this](const ArgResize& args)
 		{
 			this->SetSize({ args.NewSize.Width - 1, args.NewSize.Height - 1 });

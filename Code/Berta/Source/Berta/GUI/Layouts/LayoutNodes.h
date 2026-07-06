@@ -150,7 +150,7 @@ namespace Berta
             uint32_t fixedDim  = isVertical ? fixedSize.Height  : fixedSize.Width;
             uint32_t remainDim = parentDim - fixedDim;
     
-            uint32_t& areaDim  = isVertical ? newArea.Height    : newArea.Width;
+            uint32_t& areaDim  = isVertical ? newArea.Height : newArea.Width;
 
             // 1. Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
             double newWeight = static_cast<double>(areaDim) / remainDim;

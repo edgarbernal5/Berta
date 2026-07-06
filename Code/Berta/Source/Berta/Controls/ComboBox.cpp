@@ -32,22 +32,6 @@ namespace Berta
 			}
 		}
 
-		void Reactor::DoOnInit()
-		{
-			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(m_control);
-			m_module.m_textEditor = new TextEditor(*m_control);
-
-			auto window = m_control->Handle();
-			window->Events->Focus.Connect([&](const ArgFocus& args)
-			{
-				if (!args.Focused && m_module.m_floatBox)
-				{
-					m_module.m_floatBox->Dispose();
-				}
-			});
-			m_module.m_owner = window;
-		}
-
 		void Reactor::Update(Graphics& graphics)
 		{
 			auto window = m_control->Handle();
@@ -72,7 +56,7 @@ namespace Berta
 			{
 				auto iconSize = window->ToScale(window->Appearance->SmallIconSize);
 				auto iconMargin = window->ToScale(3u);
-				textPosition.X += (int)(iconSize + iconMargin * 2u);
+				textPosition.X += static_cast<int>(iconSize + iconMargin * 2u);
 				
 				auto& icon = m_module.Data.m_items[*selectedIndex].m_icon;
 				if (icon)
@@ -90,16 +74,16 @@ namespace Berta
 			int arrowWidth = window->ToScale(4);
 			int arrowLength = window->ToScale(2);
 			graphics.DrawArrow({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1, buttonSize, window->ClientSize.Height },
-				arrowLength, 
-				arrowWidth, 
-				Graphics::ArrowDirection::Downwards,
-				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
-				true,
-				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
+			                   arrowLength, 
+			                   arrowWidth, 
+			                   Graphics::ArrowDirection::Downwards,
+			                   enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor,
+			                   true,
+			                   enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
 			graphics.DrawLine({ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, 1 },
-				{ static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
-				enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
+			                  { static_cast<int>(window->ClientSize.Width - buttonSize) - 1, (int)window->ClientSize.Height - 1 },
+			                  enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 
 			graphics.DrawRectangle(backgroundRect, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor);
 		}
@@ -144,7 +128,7 @@ namespace Berta
 
 						//m_module.EmitSelectionEvent(selectedIndex);
 
-						GUI::UpdateWindow(*m_control);
+						GUI::MarkAsNeedUpdate(*m_control);
 					}
 				});
 
@@ -159,7 +143,10 @@ namespace Berta
 			auto currentIndex = m_module.GetSelectedIndex();
 			size_t itemCount = m_module.Count();
 			
-			if (itemCount == 0) return;
+			if (itemCount == 0)
+			{
+				return;
+			}
 			
 			if (m_module.m_floatBox)
 			{
@@ -221,36 +208,6 @@ namespace Berta
 				auto window = m_control->Handle();
 				GUI::MarkAsNeedUpdate(window);
 			}
-		}
-
-		std::wstring Reactor::Module::GetText(size_t index) const
-		{
-			return Data.m_items[index].m_text;
-		}
-
-		std::wstring Reactor::Module::GetText() const
-		{
-			return m_text;
-		}
-
-		void Reactor::Module::SetText(const std::wstring& text)
-		{
-			if (m_text == text)
-			{
-				return;
-			}
-			
-			m_text = text;
-			//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
-			//{
-			//	if (m_interactionData.m_items[i] == m_text)
-			//	{
-			//		m_interactionData.m_selectedIndex = (int)i;
-			//		break;
-			//	}
-			//}
-
-			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
 		Float::InteractionData::ItemType& Reactor::Module::At(size_t index)
@@ -340,26 +297,34 @@ namespace Berta
 			EmitSelectionEvent(selectedIndex);
 		}
 
-		void ComboBoxItem::SetText(const std::wstring& text)
+		std::wstring Reactor::Module::GetText(size_t index) const
 		{
-			if (m_module->Data.m_items.at(m_index).m_text == text)
-			{
-				return;
-			}
-			
-			m_module->Data.m_items.at(m_index).m_text = text;
-			m_module->UpdateItem(m_index);
+			return Data.m_items[index].m_text;
 		}
 
-		void ComboBoxItem::SetImage(const Image& icon)
+		std::wstring Reactor::Module::GetText() const
 		{
-			if (m_module->Data.m_items.at(m_index).m_icon == icon)
+			return m_text;
+		}
+
+		void Reactor::Module::SetText(const std::wstring& text)
+		{
+			if (m_text == text)
 			{
 				return;
 			}
 			
-			m_module->Data.m_items.at(m_index).m_icon = icon;
-			m_module->UpdateItem(m_index);
+			m_text = text;
+			//for (size_t i = 0; i < m_interactionData.m_items.size(); i++)
+			//{
+			//	if (m_interactionData.m_items[i] == m_text)
+			//	{
+			//		m_interactionData.m_selectedIndex = (int)i;
+			//		break;
+			//	}
+			//}
+
+			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
 		void Reactor::Module::EmitSelectionEvent(std::optional<size_t> index) const
@@ -384,6 +349,44 @@ namespace Berta
 		void Reactor::Module::SetEditable(bool editable)
 		{
 			m_isEditable = editable;
+		}
+
+		void Reactor::DoOnInit()
+		{
+			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(m_control);
+			m_module.m_textEditor = new TextEditor(*m_control);
+
+			auto window = m_control->Handle();
+			window->Events->Focus.Connect([&](const ArgFocus& args)
+			{
+				if (!args.Focused && m_module.m_floatBox)
+				{
+					m_module.m_floatBox->Dispose();
+				}
+			});
+			m_module.m_owner = window;
+		}
+
+		void ComboBoxItem::SetText(const std::wstring& text)
+		{
+			if (m_module->Data.m_items.at(m_index).m_text == text)
+			{
+				return;
+			}
+			
+			m_module->Data.m_items.at(m_index).m_text = text;
+			m_module->UpdateItem(m_index);
+		}
+
+		void ComboBoxItem::SetImage(const Image& icon)
+		{
+			if (m_module->Data.m_items.at(m_index).m_icon == icon)
+			{
+				return;
+			}
+			
+			m_module->Data.m_items.at(m_index).m_icon = icon;
+			m_module->UpdateItem(m_index);
 		}
 	}
 	

@@ -50,7 +50,10 @@ namespace Berta::GUI
 
 		if (windowManager.Caption(window, caption))
 		{
-			windowManager.Update(window, true);
+			auto absPosition = GUI::GetWindowRootPosition(window);
+			auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+		
+			windowManager.Update(window, &absoluteBounds);
 		}
 	}
 
@@ -110,8 +113,10 @@ namespace Berta::GUI
 		{
 			return;
 		}
-
-		windowManager.Update(window, true);
+		auto absPosition = GUI::GetWindowRootPosition(window);
+		auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+		
+		windowManager.Update(window, &absoluteBounds);
 	}
 
 	void EnableWindow(Window* window, bool isEnabled)
@@ -164,10 +169,12 @@ namespace Berta::GUI
 		if (windowManager.Resize(window, newSize))
 		{
 			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
-
 			if (!windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate, false);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 	}
@@ -198,7 +205,10 @@ namespace Berta::GUI
 
 			if (windowToUpdate && !windowToUpdate->Flags.isUpdating)
 			{
-				windowManager.Update(windowToUpdate, false);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 
@@ -217,10 +227,12 @@ namespace Berta::GUI
 		if (hasChanged)
 		{
 			auto windowToUpdate = window->IsNative() ? window : window->FindFirstNonPanelAncestor();
-			
 			if (windowToUpdate && !window->Flags.isUpdating)
 			{
-				windowManager.Update(window, false);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				windowManager.Update(window, &absoluteBounds);
 			}
 		}
 
@@ -455,7 +467,7 @@ namespace Berta::GUI
 		windowManager.SetParent(window, newParent);
 	}
 
-	void UpdateTree(Window* window, bool now)
+	void UpdateTree(Window* window, const Rectangle* dirtyRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -464,10 +476,10 @@ namespace Berta::GUI
 		}
 
 		auto windowToUpdate = window->FindFirstNonPanelAncestor();
-		windowManager.UpdateTree(windowToUpdate, now);
+		windowManager.UpdateTree(windowToUpdate, dirtyRect);
 	}
 
-	void MarkAsNeedUpdate(Window* window)
+	void MarkAsNeedUpdate(Window* window, const Rectangle* localRect)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();
 		if (!windowManager.Exists(window))
@@ -475,7 +487,34 @@ namespace Berta::GUI
 			return;
 		}
 
-		window->DrawStatus = DrawWindowStatus::NeedUpdate;
+		// Si es una ventana nativa con custom paint (ej. viewport 3D), 
+		// no debemos interferir con InvalidateRect a menos que sea estrictamente necesario.
+		if (window->HasCustomPaint())
+		{
+			// Opcional: podrías decidir ignorar o manejar diferente 
+			// las invalidaciones a componentes puramente custom.
+			return;
+		}
+		
+		Rectangle absoluteRect;
+		auto absPosition = GUI::GetWindowRootPosition(window);
+
+		if (localRect)
+		{
+			absoluteRect = { 
+				absPosition.X + localRect->X, 
+				absPosition.Y + localRect->Y, 
+				localRect->Width, 
+				localRect->Height 
+			};
+		}
+		else
+		{
+			absoluteRect = { absPosition.X, absPosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+		}
+        
+		// Llamamos directamente al WindowManager para que hable con la API nativa
+		windowManager.Update(window, &absoluteRect);
 	}
 
 	void ChangeCursor(Window* window, Cursor newCursor)

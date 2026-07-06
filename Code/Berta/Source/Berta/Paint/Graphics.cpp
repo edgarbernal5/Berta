@@ -1034,7 +1034,6 @@ namespace Berta
 
 	void Graphics::ResetTransform()
 	{
-		
 #ifdef BT_PLATFORM_WINDOWS
 		m_targetRT->SetTransform(D2D1::Matrix3x2F::Identity());
 #endif

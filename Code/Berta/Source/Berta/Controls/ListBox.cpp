@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "Berta/GUI/ScopedClip.h"
+
 namespace Berta
 {
 	namespace Internal::ListBox
@@ -27,7 +29,7 @@ namespace Berta
         
 			m_visualMap.emplace_back(newIndex);
 			
-			TriggerChanged();
+			TriggerChanged(std::nullopt);
 			return newIndex;
 		}
 
@@ -43,7 +45,7 @@ namespace Berta
 			size_t newIndex = m_items.size() - 1;
 			m_visualMap.emplace_back(newIndex);
         
-			TriggerChanged();
+			TriggerChanged(std::nullopt);
 			return newIndex;
 		}
 
@@ -53,7 +55,7 @@ namespace Berta
 			{
 				m_items.clear();
 				m_visualMap.clear();
-				TriggerChanged();
+				TriggerChanged(std::nullopt);
 			}
 		}
 
@@ -63,7 +65,7 @@ namespace Berta
 			{
 				m_items.erase(m_items.begin() + index);
 				m_visualMap.erase(m_visualMap.begin() + index);
-				TriggerChanged();
+				TriggerChanged(std::nullopt);
 			}
 		}
 
@@ -90,7 +92,7 @@ namespace Berta
 				}
 			}
 
-			TriggerChanged();
+			TriggerChanged(std::nullopt);
 		}
 
 		List::Item* ItemCollection::At(size_t index)
@@ -118,7 +120,7 @@ namespace Berta
 
 				return ascending ? (textA < textB) : (textA > textB);
 			});
-			TriggerChanged();
+			TriggerChanged(std::nullopt);
 		}
 
 		void ItemCollection::ResetSort()
@@ -127,7 +129,7 @@ namespace Berta
 			{
 				m_visualMap[i] = i;
 			}
-			TriggerChanged();
+			TriggerChanged(std::nullopt);
 		}
 
 		void ItemCollection::EnableImages(bool active)
@@ -155,16 +157,16 @@ namespace Berta
 			return static_cast<size_t>(-1);
 		}
 
-		void ItemCollection::NotifyItemModified()
+		void ItemCollection::NotifyItemModified(std::optional<size_t> logicalIndex)
 		{
-			TriggerChanged();
+			TriggerChanged(logicalIndex);
 		}
 
-		void ItemCollection::TriggerChanged()
+		void ItemCollection::TriggerChanged(std::optional<size_t> logicalIndex)
 		{
 			if (m_onChanged)
 			{
-				m_onChanged();
+				m_onChanged(logicalIndex);
 			}
 		}
 
@@ -176,11 +178,26 @@ namespace Berta
 			GUI::SetWindowBorderless(*m_control, false);
 			
 			m_module.m_headers.Init(m_module.m_window);
-			m_module.m_items.SetOnChangedCallback([this]()
+			m_module.m_items.SetOnItemChangedCallback([this](std::optional<size_t> logicalIndex)
 			{
+				if (logicalIndex.has_value())
+				{
+					size_t visualIndex = m_module.m_items.GetVisualIndex(*logicalIndex);
+					if (visualIndex != static_cast<size_t>(-1))
+					{
+						Rectangle itemRect = m_module.GetItemLocalRect(visualIndex);
+						GUI::MarkAsNeedUpdate(m_module.m_window, &itemRect);
+						return;
+					}
+				}
+
+				// Si no hay índice (std::nullopt) o el ítem ya no es visible, 
+				// hacemos el fallback seguro: recalculamos scroll e invalidamos TODO el control.
 				m_module.UpdateScrollData();
-				GUI::UpdateWindow(m_module.m_window);
+				
+				GUI::MarkAsNeedUpdate(m_module.m_window);
 			});
+			
 			m_module.m_headers.SetOnHeaderClickedCallback([this](size_t visualColumnIndex)
 			{
 				if (m_module.m_currentSortColumn.has_value() && m_module.m_currentSortColumn == visualColumnIndex)
@@ -336,6 +353,7 @@ namespace Berta
 					m_module.m_selectionController.Clear();
 					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
+				
 				if (m_module.m_selectionController.IsMultiSelect())
 				{
 					m_module.m_selectionController.SaveSnapshot();
@@ -354,10 +372,13 @@ namespace Berta
 				{
 					m_module.UpdateScrollData();
 				}
+				
 				if (m_module.m_hoveredIndex.has_value())
 				{
+					Rectangle oldRect = m_module.GetItemLocalRect(*m_module.m_hoveredIndex);
+					GUI::MarkAsNeedUpdate(m_module.m_window, &oldRect);
+					
 					m_module.m_hoveredIndex.reset();
-					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
 				return;
 			}
@@ -376,27 +397,44 @@ namespace Berta
 			auto appearance = reinterpret_cast<Appearance*>(m_module.m_window->Appearance.get());
 			int headerHeight = static_cast<int>(m_module.m_window->ToScale(appearance->HeadersHeight));
 
-			if (args.Position.Y >= headerHeight)
+			if (args.Position.Y < headerHeight)
 			{
-				auto innerMargin = m_module.m_window->ToScale(2u);
-				int itemHeight = static_cast<int>(m_module.m_window->ToScale(appearance->ListItemHeight));
-				int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
-				int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
-				int hoveredIndex = absoluteY / itemHeightWithMargin;
-
-				if (hoveredIndex >= 0 && hoveredIndex < static_cast<int>(m_module.m_items.GetCount()))
+				if (m_module.m_hoveredIndex.has_value())
 				{
-					if (m_module.m_hoveredIndex != hoveredIndex)
-					{
-						m_module.m_hoveredIndex = hoveredIndex;
-						GUI::MarkAsNeedUpdate(m_module.m_window);
-					}
-				}
-				else if (m_module.m_hoveredIndex.has_value())
-				{
+					Rectangle newRect = m_module.GetItemLocalRect(*m_module.m_hoveredIndex);
+					GUI::MarkAsNeedUpdate(m_module.m_window, &newRect);
+					
 					m_module.m_hoveredIndex.reset();
-					GUI::MarkAsNeedUpdate(m_module.m_window);
 				}
+				return;
+			}
+			auto innerMargin = m_module.m_window->ToScale(2u);
+			int itemHeight = static_cast<int>(m_module.m_window->ToScale(appearance->ListItemHeight));
+			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
+			int absoluteY = args.Position.Y - headerHeight + scrollOffset.Y;
+			int hoveredIndex = absoluteY / itemHeightWithMargin;
+
+			if (hoveredIndex >= 0 && hoveredIndex < static_cast<int>(m_module.m_items.GetCount()))
+			{
+				if (m_module.m_hoveredIndex != hoveredIndex)
+				{
+					if (m_module.m_hoveredIndex.has_value())
+					{
+						Rectangle oldRect = m_module.GetItemLocalRect(*m_module.m_hoveredIndex);
+						GUI::MarkAsNeedUpdate(m_module.m_window, &oldRect);
+					}
+					m_module.m_hoveredIndex = hoveredIndex;
+					
+					Rectangle newRect = m_module.GetItemLocalRect(hoveredIndex);
+					GUI::MarkAsNeedUpdate(m_module.m_window, &newRect);
+				}
+			}
+			else if (m_module.m_hoveredIndex.has_value())
+			{
+				Rectangle newRect = m_module.GetItemLocalRect(*m_module.m_hoveredIndex);
+				GUI::MarkAsNeedUpdate(m_module.m_window, &newRect);
+				
+				m_module.m_hoveredIndex.reset();
 			}
 		}
 
@@ -450,16 +488,18 @@ namespace Berta
 			{
 				return;
 			}
-			
-			size_t currentVisual = 0;
+    
+			// Guardamos el índice visual anterior antes de cualquier operación
+			std::optional<size_t> prevVisual;
 			if (m_module.m_focusedLogicalIndex.has_value())
 			{
-				currentVisual = m_module.m_items.GetVisualIndex(m_module.m_focusedLogicalIndex.value());
+				prevVisual = m_module.m_items.GetVisualIndex(m_module.m_focusedLogicalIndex.value());
 			}
-			
+    
+			size_t currentVisual = (prevVisual.has_value()) ? *prevVisual : 0;
 			bool focusChanged = false;
 			bool selectionChanged = false;
-			
+    
 			if (args.Key == KeyboardKey::ArrowDown)
 			{
 				if (currentVisual + 1 < itemCount)
@@ -480,33 +520,56 @@ namespace Berta
 			{
 				size_t logicalToSelect = m_module.m_items.GetLogicalIndex(currentVisual);
 				selectionChanged = m_module.SelectItemConResolver(logicalToSelect, args.ButtonState.Ctrl, args.ButtonState.Shift);
-				
+       
 				m_module.m_focusedLogicalIndex = logicalToSelect;
+       
+				// Barra espaciadora: solo cambia la selección de la fila actual
+				if (selectionChanged)
+				{
+					Rectangle rect = m_module.GetItemLocalRect(currentVisual);
+					GUI::MarkAsNeedUpdate(m_module.m_window, &rect);
+					m_module.TriggerSelectionChanged();
+				}
+				return; // Salimos temprano (KISS)
 			}
-			
+    
 			if (focusChanged)
 			{
 				m_module.m_focusedLogicalIndex = m_module.m_items.GetLogicalIndex(currentVisual);
-				m_module.EnsureVisible(currentVisual);
+       
+				// Crucial: Si EnsureVisible cambió la posición del scroll, todo cambió de lugar.
+				// Debes hacer que m_module.EnsureVisible devuelva un bool.
+				bool scrollScrolled = m_module.EnsureVisible(currentVisual);
 
 				if (!args.ButtonState.Ctrl)
 				{
 					selectionChanged = m_module.SelectItemConResolver(m_module.m_focusedLogicalIndex.value(), false, args.ButtonState.Shift);
 				}
-			}
-			
-			if (focusChanged || selectionChanged)
-			{
-				GUI::MarkAsNeedUpdate(m_module.m_window);
+
+				if (scrollScrolled)
+				{
+					// Si hubo scroll, invalidamos TODO el control (las posiciones relativas cambiaron)
+					GUI::MarkAsNeedUpdate(m_module.m_window, nullptr);
+				}
+				else
+				{
+					// Optimizadísimo (Nivel AAA): No hubo scroll, solo invalidamos quirúrgicamente 
+					// el ítem que perdió el foco/selección y el ítem que lo ganó.
+					if (prevVisual.has_value())
+					{
+						Rectangle prevRect = m_module.GetItemLocalRect(*prevVisual);
+						GUI::MarkAsNeedUpdate(m_module.m_window, &prevRect);
+					}
+          
+					Rectangle currRect = m_module.GetItemLocalRect(currentVisual);
+					GUI::MarkAsNeedUpdate(m_module.m_window, &currRect);
+				}
+
 				if (selectionChanged)
 				{
 					m_module.TriggerSelectionChanged();
 				}
 			}
-		}
-
-		void Reactor::KeyReleased(Graphics& graphics, const ArgKeyboard& args)
-		{
 		}
 
 		void HeaderController::Init(Window* owner)
@@ -544,6 +607,14 @@ namespace Berta
 			return total;
 		}
 
+		uint32_t HeaderController::GetColumnWidth(size_t index) const
+		{
+			if (index >= m_headers.size())
+				return 0;
+			
+			return m_owner->ToScale(m_headers[index].Width);
+		}
+
 		void HeaderController::Draw(Graphics& graphics, const Rectangle& visibleRect, const Point& clientPos)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
@@ -558,7 +629,8 @@ namespace Berta
 			int currentX = clientPos.X - visibleRect.X + startOffPos;
 
 			Rectangle fullHeaderRect = { clientPos.X, clientPos.Y, visibleRect.Width, headerHeight };
-			graphics.SetClipping(fullHeaderRect);
+			ScopedClip clipping(graphics, fullHeaderRect);
+			
 			graphics.DrawGradientFill(fullHeaderRect, appearance->ButtonHighlightBackground, appearance->ButtonBackground);
 			graphics.DrawLine(
 				{ currentX - 1, clientPos.Y }, 
@@ -670,8 +742,6 @@ namespace Berta
 				{clientPos.X, clientPos.Y + headerHeightInt - 1},
 				{clientPos.X + clientWidth, clientPos.Y + headerHeightInt - 1},
 				appearance->BoxBorderColor);
-			
-			graphics.EndClipping();
 		}
 
 		bool HeaderController::OnDblClick(const ArgMouse& args, int scrollX)
@@ -694,6 +764,7 @@ namespace Berta
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
 			auto headerHeight = m_owner->ToScale(appearance->HeadersHeight);
+			m_mouseDownOnHeadersRow = false;
 			if (args.Position.Y >= static_cast<int>(headerHeight))
 			{
 				return false;
@@ -722,15 +793,16 @@ namespace Berta
 				GUI::Capture(m_owner);
 				return true;
 			}
-
-			return false;
+			m_mouseDownOnHeadersRow = true;
+			return true;
 		}
 
 		bool HeaderController::OnMouseMove(const ArgMouse& args, int scrollX)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_owner->Appearance.get());
-			bool needsRepaint = false;
+			auto headerHeight = static_cast<int>(m_owner->ToScale(appearance->HeadersHeight));
 			
+			Rectangle fullHeaderRect = {0,0, m_owner->ClientSize.Width, static_cast<uint32_t>(headerHeight)};
 			if (m_resizeInteraction.m_isResizing)
 			{
 				int deltaX = args.Position.X - m_resizeInteraction.m_startX;
@@ -754,20 +826,19 @@ namespace Berta
 
 				if (m_dragDropInteraction.m_isDraggingConfirmed)
 				{
-					GUI::MarkAsNeedUpdate(m_owner);
+					GUI::MarkAsNeedUpdate(m_owner, &fullHeaderRect);
 					return true;
 				}
 			}
 			
-			auto headerHeight = static_cast<int>(m_owner->ToScale(appearance->HeadersHeight));
 			if (args.Position.Y < 0 || args.Position.Y >= headerHeight)
 			{
 				if (m_hoveredVisualIndex.has_value())
 				{
 					m_hoveredVisualIndex.reset();
-					GUI::MarkAsNeedUpdate(m_owner);
+					GUI::MarkAsNeedUpdate(m_owner, &fullHeaderRect);
 				}
-				return false;
+				return m_mouseDownOnHeadersRow;
 			}
 
 			auto hoveredVisual = GetVisualIndexAt(args.Position.X, scrollX);
@@ -789,12 +860,8 @@ namespace Berta
 				if (m_hoveredVisualIndex != hoveredVisual)
 				{
 					m_hoveredVisualIndex = hoveredVisual;
-					needsRepaint = true;
+					GUI::MarkAsNeedUpdate(m_owner, &fullHeaderRect);
 				}
-			}
-			if (needsRepaint)
-			{
-				GUI::MarkAsNeedUpdate(m_owner);
 			}
 			
 			return hoveredVisual.has_value() || hoveredDivVisual.has_value();
@@ -844,7 +911,11 @@ namespace Berta
 				GUI::ReleaseCapture(m_owner);
 				GUI::MarkAsNeedUpdate(m_owner);
 			}
-			
+			if (m_mouseDownOnHeadersRow)
+			{
+				m_mouseDownOnHeadersRow = false;
+				return true;
+			}
 			return handled;
 		}
 
@@ -1028,15 +1099,24 @@ namespace Berta
 			}
 
 			UpdateScrollData();
+			
 			GUI::MarkAsNeedUpdate(m_window);
 		}
 
 		void Reactor::Module::EnableMultiselection(bool enabled)
 		{
 			if (m_selectionController.IsMultiSelect() == enabled)
+			{
 				return;
+			}
 			
 			m_selectionController.SetMultiSelect(enabled);
+		}
+
+		void Reactor::Module::ResetScrollOffset()
+		{
+			m_scrollableView->SetScrollToX(0);
+			m_scrollableView->SetScrollToY(0);
 		}
 
 		void Reactor::Module::AppendHeader(const std::string& text, uint32_t width)
@@ -1044,7 +1124,8 @@ namespace Berta
 			m_headers.Append(text, width);
 			
 			UpdateScrollData();
-			GUI::UpdateWindow(m_window);
+			
+			GUI::MarkAsNeedUpdate(m_window);
 		}
 
 		ListBoxItem Reactor::Module::Append(const std::string& text)
@@ -1052,7 +1133,7 @@ namespace Berta
 			auto logicalIndex = m_items.Append(text);
 			UpdateScrollData();
 
-			GUI::UpdateWindow(m_window);
+			GUI::MarkAsNeedUpdate(m_window);
 			
 			return{logicalIndex, &m_items};
 		}
@@ -1062,7 +1143,8 @@ namespace Berta
 			auto logicalIndex = m_items.Append(texts);
 			
 			UpdateScrollData();
-			GUI::UpdateWindow(m_window);
+			
+			GUI::MarkAsNeedUpdate(m_window);
 			
 			return{logicalIndex, &m_items};
 		}
@@ -1083,7 +1165,11 @@ namespace Berta
 			m_hoveredIndex.reset();
 			m_focusedLogicalIndex.reset();
 			
+			ResetScrollOffset();
 			UpdateScrollData();
+			
+			// El control ahora está vacío, invalidamos toda su área local
+			GUI::MarkAsNeedUpdate(m_window);
 		}
 
 		void Reactor::Module::ClearHeaders()
@@ -1091,7 +1177,7 @@ namespace Berta
 			m_headers.Clear();
 			
 			UpdateScrollData();
-			GUI::UpdateWindow(m_window);
+			GUI::MarkAsNeedUpdate(m_window);
 		}
 
 		void Reactor::Module::UpdateScrollData()
@@ -1143,12 +1229,12 @@ namespace Berta
         
 			m_scrollableView->SetScrollStep(static_cast<int>(m_window->ToScale(appearance->ListItemHeight)), 20);
 			m_scrollableView->SetOnScrollChange([this]()
-				{
-					GUI::MarkAsNeedUpdate(m_window);
-				});
+			{
+				GUI::MarkAsNeedUpdate(m_window);
+			});
 		}
 
-		void Reactor::Module::EnsureVisible(size_t visualIndex)
+		bool Reactor::Module::EnsureVisible(size_t visualIndex)
 		{
 			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
 			auto innerMargin = m_window->ToScale(2u);
@@ -1162,11 +1248,14 @@ namespace Berta
 			if (itemY < currentScrollY)
 			{
 				m_scrollableView->SetScrollToY(itemY);
+				return true;
 			}
-			else if (itemY + itemHeightWithMargin > currentScrollY + visibleHeight)
+			if (itemY + itemHeightWithMargin > currentScrollY + visibleHeight)
 			{
 				m_scrollableView->SetScrollToY(itemY + itemHeightWithMargin - visibleHeight);
+				return true;
 			}
+			return false;
 		}
 
 		bool Reactor::Module::SelectItemConResolver(size_t logicalIndex, bool isCtrl, bool isShift)
@@ -1412,6 +1501,42 @@ namespace Berta
 			DrawStringInBox(graphics, text, textRect, textColor);
 		}
 
+		Rectangle Reactor::Module::GetItemLocalRect(size_t visualIndex)
+		{
+			auto appearance = reinterpret_cast<Appearance*>(m_window->Appearance.get());
+			int headerHeight = static_cast<int>(m_window->ToScale(appearance->HeadersHeight));
+			auto innerMargin = m_window->ToScale(2);
+			int itemHeight = static_cast<int>(m_window->ToScale(appearance->ListItemHeight));
+			int itemHeightWithMargin = static_cast<int>(itemHeight + innerMargin * 2u);
+			auto scrollOffset = m_scrollableView->GetVisibleRect();
+			Rectangle viewportRect = m_scrollableView->GetClientArea();
+			
+			Rectangle rect;
+			rect.X = viewportRect.X;
+			rect.Y = headerHeight + (static_cast<int>(visualIndex) * itemHeightWithMargin) + innerMargin - scrollOffset.Y + viewportRect.Y;
+			rect.Width = m_window->ClientSize.Width;
+			rect.Height = itemHeight;
+
+			return rect;
+		}
+
+		Rectangle Reactor::Module::GetCellLocalRect(size_t visualIndex, size_t columnIndex)
+		{
+			Rectangle rowRect = GetItemLocalRect(visualIndex);
+    
+			// Sumamos el ancho de las columnas anteriores para obtener el desplazamiento en X
+			int32_t offsetX = 0;
+			for (size_t i = 0; i < columnIndex; ++i)
+			{
+				offsetX += static_cast<int>(m_headers.GetColumnWidth(i));
+			}
+    
+			rowRect.X += offsetX;
+			rowRect.Width = m_headers.GetColumnWidth(columnIndex);
+    
+			return rowRect;
+		}
+
 		void Reactor::Module::TriggerSelectionChanged()
 		{
 			ArgListBox arguments { GetSelectedItems() };
@@ -1455,7 +1580,7 @@ namespace Berta
 			{
 				m_collection->EnableImages(true);
 			}
-			m_collection->NotifyItemModified();
+			m_collection->NotifyItemModified(m_logicalIndex);
 		}
 
 		void ListBoxItem::SetText(size_t columnIndex, const std::string& text) const
@@ -1466,13 +1591,13 @@ namespace Berta
 				return;
 			}
 			
-			if (target->m_cells[columnIndex].m_text != text)
+			if (target->m_cells[columnIndex].m_text == text)
 			{
 				return;
 			}
 			
 			target->m_cells[columnIndex].m_text = text;
-			m_collection->NotifyItemModified();
+			m_collection->NotifyItemModified(m_logicalIndex);
 		}
 
 		std::string ListBoxItem::GetText(size_t columnIndex) const

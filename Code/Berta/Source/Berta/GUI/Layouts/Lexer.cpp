@@ -78,16 +78,16 @@ namespace Berta
 
         // Mapeo directo a palabras clave para no hacer esto en el Parser
         Token::Type type = Token::Type::Identifier;
-        if (text == "VerticalLayout")   type = Token::Type::VerticalLayout;
+        if (text == "VerticalLayout") type = Token::Type::VerticalLayout;
         else if (text == "HorizontalLayout") type = Token::Type::HorizontalLayout;
-        else if (text == "Dock")         type = Token::Type::Dock;
-        else if (text == "DockPane")         type = Token::Type::DockPane;
-        else if (text == "Width")         type = Token::Type::Width;
-        else if (text == "Height")         type = Token::Type::Height;
-        else if (text == "MinHeight")         type = Token::Type::MinHeight;
-        else if (text == "MinWidth")         type = Token::Type::MinWidth;
-        else if (text == "MaxHeight")         type = Token::Type::MaxHeight;
-        else if (text == "MaxWidth")         type = Token::Type::MaxWidth;
+        else if (text == "Dock") type = Token::Type::Dock;
+        else if (text == "DockPane") type = Token::Type::DockPane;
+        else if (text == "Width") type = Token::Type::Width;
+        else if (text == "Height") type = Token::Type::Height;
+        else if (text == "MinHeight") type = Token::Type::MinHeight;
+        else if (text == "MinWidth") type = Token::Type::MinWidth;
+        else if (text == "MaxHeight") type = Token::Type::MaxHeight;
+        else if (text == "MaxWidth") type = Token::Type::MaxWidth;
 
         return { type, text };
     }

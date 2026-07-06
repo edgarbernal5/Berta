@@ -67,13 +67,14 @@ namespace Berta
 		Window* GetCaptureWindow() const;
 
 		Window* Find(Window* window, const Point& point);
-		void UpdateTree(Window* window, bool now = false);
+		void UpdateTree(Window* window, const Rectangle* dirtyRect = nullptr);
 		void Show(Window* window, bool visible);
 
 		bool Resize(Window* window, const Size& newSize, bool resizeForm = true);
-		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = true);
-		bool Move(Window* window, Point newPosition, bool forceRepaint = true);
-		void Update(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
+		bool Move(Window* window, const Rectangle& newRect, bool forceRepaint = false);
+		bool Move(Window* window, Point newPosition, bool forceRepaint = false);
+		
+		void Update(Window* window, const Rectangle* absoluteDirtyArea = nullptr);
 
 		void ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle);
 		void ChangeCursor(Window* window, Cursor newCursor);
@@ -84,15 +85,14 @@ namespace Berta
 
 		void SetParent(Window* window, Window* newParent);
 
-		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windows);
+		void GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles);
 
 		void EnterSizeMove(Window* window);
 		void ExitSizeMove(Window* window);
 
 		void Focus(Window* window, ArgFocus::Reason reason);
+		
 	private:
-
-		void UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea = nullptr);
 		bool IsPointOnWindow(Window* window, const Point& point);
 		Window* FindInTree(Window* window, const Point& point);
 		void DestroyInternal(Window* window);

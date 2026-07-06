@@ -35,8 +35,8 @@ namespace Berta
 		void RefreshWindow(Window* window);
 		void ResizeWindow(Window* window, const Size& newSize);
 		Size SizeWindow(Window* window);
-		bool MoveWindow(Window* window, const Rectangle& newRect, bool forceRepaint = true);
-		bool MoveWindow(Window* window, const Point& newPosition, bool forceRepaint = true);
+		bool MoveWindow(Window* window, const Rectangle& newRect, bool forceRepaint = false);
+		bool MoveWindow(Window* window, const Point& newPosition, bool forceRepaint = false);
 		Rectangle AreaWindow(Window* window);
 
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
@@ -64,8 +64,8 @@ namespace Berta
 
 		void SetParentWindow(Window* window, Window* newParent);
 
-		void UpdateTree(Window* window, bool now = false);
-		void MarkAsNeedUpdate(Window* window);
+		void UpdateTree(Window* window, const Rectangle* dirtyRect = nullptr);
+		void MarkAsNeedUpdate(Window* window, const Rectangle* localRect = nullptr);
 
 		void ChangeCursor(Window* window, Cursor newCursor);
 		Cursor GetCursor(Window* window);

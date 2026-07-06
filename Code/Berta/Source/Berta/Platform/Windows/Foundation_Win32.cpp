@@ -64,7 +64,7 @@ namespace Berta
 		{
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
-			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW | CS_OWNDC |*/ CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
 			wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -82,7 +82,7 @@ namespace Berta
 		{
 			WNDCLASSEXW wcex = {};
 			wcex.cbSize = sizeof(WNDCLASSEXW);
-			wcex.style = /*CS_HREDRAW | CS_VREDRAW |*/ CS_OWNDC | CS_DBLCLKS; // Enable double-click messages
+			wcex.style = /*CS_HREDRAW | CS_VREDRAW | CS_OWNDC |*/ CS_DBLCLKS; // Enable double-click messages
 			wcex.lpfnWndProc = Foundation_WndProc;
 			wcex.hInstance = hInstance;
 			//wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
@@ -172,13 +172,13 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		//{WM_MOVE,			"WM_MOVE"},
+		{WM_MOVE,			"WM_MOVE"},
 		//{WM_MOVING,			"WM_MOVING"},
 		{WM_SIZE,			"WM_SIZE"},
 		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		//{WM_PAINT,			"WM_PAINT"},
+		{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -473,18 +473,20 @@ namespace Berta
 			}
 		case WM_PAINT:
 			{
-				//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << std::endl;
+				::PAINTSTRUCT ps;
+				auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
+				
+				Rectangle dirtyRect;
+				dirtyRect.FromRECT(ps.rcPaint);
+				
+#if BT_DEBUG
+				std::cout << "  - PAINT. wnd=" << nativeWindow->Name << ". dirtyRect = " << dirtyRect << std::endl;
+#endif
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
-					::PAINTSTRUCT ps;
-					auto hdc = ::BeginPaint(nativeWindow->RootHandle.Handle, &ps);
-
 					HBRUSH hBrush = ::CreateSolidBrush(nativeWindow->Appearance->Background.ToBGR());
 					::FillRect(hdc, &ps.rcPaint, hBrush);
 					::DeleteObject(hBrush);
-
-					Rectangle areaToUpdate;
-					areaToUpdate.FromRECT(ps.rcPaint);
 #if BT_DEBUG
 					//BT_CORE_DEBUG << "   area to update " << areaToUpdate << ". window = " << nativeWindow->Name << std::endl;
 					//BT_CORE_DEBUG << "   client size " << nativeWindow->ClientSize << ". window = " << nativeWindow->Name << std::endl;
@@ -506,10 +508,11 @@ namespace Berta
 #else
 					//ScopedTimer scopedTimer("WM_PAINT");
 #endif
-					windowManager.UpdateTree(nativeWindow);
-
-					//nativeWindow->Flags.isBatching = false;
-					::ValidateRect(hWnd, nullptr);
+					windowManager.UpdateTree(nativeWindow, &dirtyRect);
+					
+					::EndPaint(hWnd, &ps);
+					//::ValidateRect(hWnd, nullptr);
+					//::BeginPaint() already validated the update area.
 				}
 
 				wasHandled = true;
@@ -557,6 +560,7 @@ namespace Berta
 #endif
 				if (newSize.Width > 0 && newSize.Height > 0)
 				{
+					// 1. Redimensionamos el buffer de Direct2D en la GPU
 					if (nativeWindow->RootPaintHandle.RenderTarget)
 					{
 						auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
@@ -565,17 +569,14 @@ namespace Berta
 							BT_CORE_ERROR << "Error while resizing HWND render target." << std::endl;
 						}
 					}
-
+					
+					// 2. Avisamos al motor de UI que recalcule el Layout (dispara eventos)
 					windowManager.Resize(nativeWindow, newSize, false);
-
-					if (nativeWindow->HasCustomPaint())
-					{
-						API::RefreshWindow(nativeWindowHandle);
-					}
-					//else
-					//{
-					//	API::RefreshWindow(nativeWindowHandle);
-					//}
+					
+					// 3. ¡LA CLAVE! Forzamos la invalidación total.
+					// Al no tener CS_HREDRAW/VREDRAW, esto es obligatorio para no ver negro.
+					// Asumiendo que RefreshWindow llama a InvalidateRect(handle, nullptr, FALSE)
+					API::RefreshWindow(nativeWindowHandle);
 				}
 			
 				wasHandled = true;

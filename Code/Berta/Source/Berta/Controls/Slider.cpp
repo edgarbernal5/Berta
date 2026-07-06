@@ -220,14 +220,7 @@ namespace Berta
 		{
 			EmitValueChanged();
 
-			if (fromTimer)
-			{
-				GUI::UpdateWindow(window);
-			}
-			else
-			{
-				GUI::MarkAsNeedUpdate(window);
-			}
+			GUI::MarkAsNeedUpdate(window);
 		}
 	}
 

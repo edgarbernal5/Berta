@@ -27,27 +27,36 @@ namespace Berta
 		}
 	};
 	
-	void UIRendererCoordinator::Paint(Window* window, PaintOperation operation, bool processChildren)
+	void UIRendererCoordinator::Paint(Window* window, const Rectangle* dirtyRect)
 	{
-		if (window->Flags.isUpdating && operation == PaintOperation::TryUpdate)
+		if (window->Flags.isUpdating)
+		{
 			return;
+		}
 
 		if (window->Type == WindowType::RenderForm)
+		{
 			return;
+		}
 
 		auto& rootGraphics = *(window->RootGraphics);
 		rootGraphics.Begin();
-		if (window->Type != WindowType::Panel && operation == PaintOperation::TryUpdate && window->Renderer.GetGraphics().IsValid())
 		{
-			ScopedUpdatingFlag guard(window);
+			rootGraphics.ResetTransform();
+			ScopedClip controlClip(rootGraphics, *dirtyRect);
+			if (window->Type != WindowType::Panel && window->Renderer.GetGraphics().IsValid())
+			{
+				ScopedUpdatingFlag guard(window);
 			
-			window->Renderer.Update();
+				window->Renderer.Update();
+			}
+			Map(window, dirtyRect);
 		}
-		Map(window, operation != PaintOperation::None, processChildren);
+		
 		rootGraphics.Flush();
 	}
 
-	void UIRendererCoordinator::Map(Window* window, bool haveUpdated, bool processChildren)
+	void UIRendererCoordinator::Map(Window* window, const Rectangle* dirtyRect)
 	{
 		auto checkOpaque = window->FindFirstNonPanelAncestor();
 		if (checkOpaque && checkOpaque->Flags.isUpdating)
@@ -61,18 +70,20 @@ namespace Berta
 		}
 		
 		Rectangle activeClip;
-		if (!GetIntersectionRect(window, activeClip))
+		if (!GetIntersectionRect(window, activeClip, dirtyRect))
+		{
 			return;
+		}
 
 		// 1. Obtenemos el rectángulo absoluto real para las coordenadas
 		auto absolutePosition = GUI::GetWindowRootPosition(window);
 		Rectangle absoluteParentRect{ absolutePosition.X, absolutePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
 
 		// Pasamos ambos de forma independiente
-		MapInternal(window, processChildren, absoluteParentRect, activeClip);
+		MapInternal(window, absoluteParentRect, activeClip);
 	}
 
-	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result)
+	bool UIRendererCoordinator::GetIntersectionRect(Window* window, Rectangle& result, const Rectangle* dirtyRect)
 	{
 		Rectangle requestRectangle = window->ClientSize.ToRectangle();
 		auto absolutePosition = GUI::GetWindowRootPosition(window);
@@ -83,20 +94,41 @@ namespace Berta
 		auto containerPosition = GUI::GetWindowRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 
-		return LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, result);
+		// 1. Primera intersección: Ventana vs Contenedor
+		Rectangle windowVisibleRect;
+		if (!LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, windowVisibleRect))
+		{
+			return false; // Está fuera de su panel, la descartamos.
+		}
+
+		// 2. LA MAGIA: Segunda intersección contra el área sucia de Win32
+		if (dirtyRect != nullptr)
+		{
+			// Si no intersecta con el parche que hay que repintar, la descartamos.
+			return LayoutUtils::GetIntersectionRect(windowVisibleRect, *dirtyRect, result);
+		}
+
+		// Si dirtyRect es nullptr (repintado completo), devolvemos la intersección normal.
+		result = windowVisibleRect;
+		return true;
 	}
 
-	void UIRendererCoordinator::MapInternal(Window* window, bool processChildren, const Rectangle& absoluteParentRect, const Rectangle& activeClip)
+	void UIRendererCoordinator::MapInternal(Window* window, const Rectangle& absoluteParentRect, const Rectangle& activeClip)
 	{
 		auto& rootGraphics = *(window->RootGraphics);
 
 		for (auto* child : window->Children)
 		{
-			if (!child->Visible) continue;
-
+			if (!child->Visible)
+			{
+				continue;
+			}
+			
 			if (child->IsNative())
 			{
-				Paint(child, (processChildren ? PaintOperation::TryUpdate : PaintOperation::None), processChildren);
+				// NO HACER Paint(child, ...);
+				// Win32 se encargará de enviarle un WM_PAINT a ese HWND específicamente,
+				// y tu WndProc lo atrapará e iniciará un ciclo de renderizado limpio para él solo.
 				continue;
 			}
 
@@ -116,30 +148,32 @@ namespace Berta
 				{
 					ScopedClip controlClip(rootGraphics, childClip);
 
-					if (child->Type != WindowType::Panel && processChildren && !child->Flags.isUpdating)
+					if (child->Type != WindowType::Panel && !child->Flags.isUpdating)
 					{
 						ScopedUpdatingFlag guard(child);
 						child->Renderer.Update(); 
 					}
 
 					// --- INICIO CLIP DE LOS HIJOS (Box Model) ---
-					Rectangle contentClip = childClip;
+					// No encogemos el clip, encogemos el rectángulo absoluto del padre
+					Rectangle parentContentAbsoluteRect = childAbsoluteRect;
 					if (!GUI::IsWindowBorderless(child))
 					{
-						contentClip.X += 1;
-						contentClip.Y += 1;
-						contentClip.Width -= 2;
-						contentClip.Height -= 2;
+						parentContentAbsoluteRect.X += 1;
+						parentContentAbsoluteRect.Y += 1;
+						parentContentAbsoluteRect.Width -= 2;
+						parentContentAbsoluteRect.Height -= 2;
 					}
 
 					Rectangle finalChildrenClip;
-					if (LayoutUtils::GetIntersectionRect(contentClip, childClip, finalChildrenClip))
+					// Intersectamos el área de contenido real del padre con el clip que veníamos arrastrando
+					if (LayoutUtils::GetIntersectionRect(parentContentAbsoluteRect, childClip, finalChildrenClip))
 					{
 						rootGraphics.ResetTransform();
-                    
+        
 						// RECURSIÓN: Pasamos el childAbsoluteRect (coordenadas intactas) 
 						// y el finalChildrenClip (tijera ajustada)
-						MapInternal(child, processChildren, childAbsoluteRect, finalChildrenClip);
+						MapInternal(child, childAbsoluteRect, finalChildrenClip);
 					}
 				}
 			}

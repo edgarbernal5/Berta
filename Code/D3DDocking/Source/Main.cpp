@@ -264,33 +264,39 @@ public:
 	{
 		m_nestedForm = std::make_unique<Berta::NestedForm>(this->Handle(), Berta::Rectangle{ 0,60, 200, 200 }, Berta::FormStyle::Flat(), true);
 		m_nestedForm->SetCustomPaintCallback([this]()
-			{
-				OnDraw();
-				std::cout << " .... END RENDERING ////***/**/" << std::endl;
-			});
+		{
+			if (m_isResizing)
+				return;
+			
+			OnDraw();
+			std::cout << " .... END RENDERING ////***/**/" << std::endl;
+		});
 
 		m_nestedForm->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
-			{
-				m_isResizing = true;
-				m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
-
-				m_viewport.TopLeftX = 0.0f;
-				m_viewport.TopLeftY = 0.0f;
-				m_viewport.Width = args.NewSize.Width;
-				m_viewport.Height = args.NewSize.Height;
-				m_viewport.MinDepth = D3D12_MIN_DEPTH;
-				m_viewport.MaxDepth = D3D12_MAX_DEPTH;
-				m_isResizing = false;
-
-				//OnDraw();
-			});
-		
-		m_nestedForm->GetEvents().EnterSizeMove.Connect([](const Berta::ArgSizeMove& args)
 		{
+			m_isResizing = true;
+			m_device->Resize(D3D12Lite::Uint2{ args.NewSize.Width, args.NewSize.Height });
+
+			m_viewport.TopLeftX = 0.0f;
+			m_viewport.TopLeftY = 0.0f;
+			m_viewport.Width = args.NewSize.Width;
+			m_viewport.Height = args.NewSize.Height;
+			m_viewport.MinDepth = D3D12_MIN_DEPTH;
+			m_viewport.MaxDepth = D3D12_MAX_DEPTH;
+			m_isResizing = false;
+
+			//OnDraw();
+		});
+		
+		m_nestedForm->GetEvents().EnterSizeMove.Connect([this](const Berta::ArgSizeMove& args)
+		{
+			m_isResizing = true;
 			std::cout << "Nested enter size move..." << std::endl;
 		});
-		m_nestedForm->GetEvents().ExitSizeMove.Connect([](const Berta::ArgSizeMove& args)
+		
+		m_nestedForm->GetEvents().ExitSizeMove.Connect([this](const Berta::ArgSizeMove& args)
 		{
+			m_isResizing = false;
 			std::cout << "Nested exit size move..." << std::endl;
 		});
 		m_nestedForm->GetEvents().MouseUp.Connect([this](const Berta::ArgMouse& args)
@@ -298,6 +304,7 @@ public:
 			auto rootposition=Berta::GUI::GetWindowRootPosition(*m_nestedForm);
 			auto position=Berta::GUI::GetWindowPosition(*m_nestedForm);
 			std::cout << "Nested MouseUp... root = " << rootposition << ".. pos="<<position << std::endl;
+			std::cout << "Nested MouseUp... mouse = " << args.Position << std::endl;
 		});
 		
 		auto formSize = m_nestedForm->GetSize();
@@ -435,16 +442,16 @@ int main()
 	auto& helpMenu = menuBar.PushBack(L"Help");
 	helpMenu.Append("About");
 
-	auto buttonPaneScene = std::make_unique<TabScene>(form);
-	auto buttonPaneExplorer = std::make_unique<TabExplorer> (form);
+	auto tabPaneScene = std::make_unique<TabScene>(form);
+	auto tabPaneExplorer = std::make_unique<TabExplorer>(form);
 
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{Dock dockRoot}}");
 
 	auto& layout = form.GetLayout();
 	layout.Attach("menuBar", menuBar);
 
-	layout.AddPaneTab("dockScene", "tab-Scene-Document", std::move(buttonPaneScene), "", Berta::DockPosition::Tab);
-	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(buttonPaneExplorer), "dockScene", Berta::DockPosition::Down);
+	layout.AddPaneTab("dockScene", "tab-Scene-Document", std::move(tabPaneScene), "", Berta::DockPosition::Tab);
+	layout.AddPaneTab("dockProp", "tab-Explorer", std::move(tabPaneExplorer), "dockScene", Berta::DockPosition::Down);
 	
 	layout.Apply();
 

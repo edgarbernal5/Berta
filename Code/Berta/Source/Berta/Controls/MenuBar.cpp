@@ -33,7 +33,7 @@ namespace Berta
 						m_module.m_interaction.m_selectedIndex = std::nullopt;
 					}
 
-					GUI::UpdateWindow(m_module.m_owner);
+					GUI::MarkAsNeedUpdate(m_module.m_owner);
 				}
 			});
 		}

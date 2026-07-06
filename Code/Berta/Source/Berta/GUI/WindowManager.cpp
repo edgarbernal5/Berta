@@ -19,6 +19,8 @@
 
 #include <stack>
 
+#include "ScopedClip.h"
+
 namespace Berta
 {
 	WindowManager::FormData::FormData(FormData&& other) noexcept :
@@ -108,7 +110,7 @@ namespace Berta
 				(
 					rtProps,
 					D2D1::HwndRenderTargetProperties(windowResult.WindowHandle.Handle,
-						D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
+					                                 D2D1::SizeU(windowResult.ClientSize.Width, windowResult.ClientSize.Height)),
 					&window->RootPaintHandle.RenderTarget
 				);
 
@@ -136,8 +138,6 @@ namespace Berta
 				window->Owner = parent;
 				window->Parent = nullptr;
 			}
-
-			window->PositionRoot = window->Position;
 
 			AddNative(windowResult.WindowHandle, WindowManager::FormData(window, window->ClientSize));
 			Add(window);
@@ -216,228 +216,6 @@ namespace Berta
 #endif
 			//delete window;  //TODO: place this deallocation in a safe place!
 		}
-	}
-
-	void WindowManager::DestroyInternal(Window* window)
-	{
-		if (window->Flags.IsDisposed)
-		{
-			return;
-		}
-
-		auto& foundation = Foundation::GetInstance();
-		window->Flags.IsDisposed = true;
-
-		ArgDestroy argDestroy;
-		foundation.ProcessEvents<ArgDestroy>(window, nullptr, &ControlEvents::Destroy, argDestroy);
-
-		while (!window->Children.empty())
-		{
-			auto child = window->Children.back();
-			if (child->IsNative())
-			{
-				API::DestroyNativeWindow(child->RootHandle); //child will be removed from parent's children.
-				continue;
-			}
-			DestroyInternal(child);
-			window->Children.pop_back();
-
-#if BT_DEBUG
-			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window =" << child->Name << std::endl;
-#else
-			//BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
-#endif
-			//delete child; //TODO: place this deallocation in a safe place!
-		}
-
-		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
-		//TODO: should this be called before actual destruction?
-		if (m_capture.WindowPtr == window)
-		{
-			ReleaseCapture(m_capture.WindowPtr);
-		}
-		
-		window->Renderer.Shutdown();
-		window->ControlWindowPtr->Destroy();
-		if (!window->IsNative())
-		{
-			m_windowRegistry.erase(window);
-		}
-	}
-
-	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
-	{
-		for (size_t i = 0; i < window->Children.size(); i++)
-		{
-			auto child = window->Children[i];
-
-			if (child->IsNative())
-			{
-				auto nativePosition = API::GetWindowPosition(child->RootHandle);
-				auto currentParent = API::GetParentWindow(child->RootHandle);
-				if (currentParent != newParent->RootHandle)
-				{
-					API::SetParentWindow(child->RootHandle, newParent->RootHandle);
-				}
-
-				nativePosition -= deltaPosition;
-				API::MoveWindow(child->RootHandle, nativePosition);
-			}
-			else
-			{
-				child->RootHandle = window->RootHandle;
-				child->RootWindow = window->RootWindow;
-				child->RootGraphics = window->RootGraphics;
-				child->Renderer.SetGraphics(window->RootGraphics);
-
-				if (child->RootPaintHandle != window->RootPaintHandle)
-				{
-					child->RootPaintHandle = window->RootPaintHandle;
-				}
-
-				SetParentInternal(child, newParent, deltaPosition);
-			}
-		}
-
-		window->PositionRoot -= deltaPosition;
-	}
-
-	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
-	{
-		if (window->IsNative())
-		{
-			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			auto newPosition = nativePosition + delta;
-
-			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
-		}
-		else
-		{
-			window->PositionRoot += delta;
-
-			for (size_t i = 0; i < window->Children.size(); i++)
-			{
-				MoveInternal(window->Children[i], delta, forceRepaint);
-			}
-		}
-	}
-
-	void WindowManager::ShowInternal(Window* window, bool visible)
-	{
-		if (window->IsNative())
-		{
-			if (visible != window->Visible)
-			{
-				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
-			}
-		}
-
-		for (size_t i = 0; i < window->Children.size(); i++)
-		{
-			ShowInternal(window->Children[i], visible);
-		}
-	}
-
-	void WindowManager::EnterSizeMoveInternal(Window* window)
-	{
-		if (window->IsNative())
-		{
-			if (window->Visible)
-			{
-				API::EnterSizeMoveWindow(window->RootHandle);
-			}
-		}
-		else
-		{
-			for (auto& child : window->Children)
-			{
-				EnterSizeMoveInternal(child);
-			}
-		}
-	}
-
-	void WindowManager::ExitSizeMoveInternal(Window* window)
-	{
-		if (window->IsNative())
-		{
-			if (window->Visible)
-			{
-				API::ExitSizeMoveWindow(window->RootHandle);
-			}
-		}
-		else
-		{
-			for (auto& child : window->Children)
-			{
-				ExitSizeMoveInternal(child);
-			}
-		}
-	}
-
-	void WindowManager::GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles)
-	{
-		windowHandles.clear();
-		for (auto& item : m_windowNativeRegistry)
-		{
-			windowHandles.emplace_back(item.first);
-		}
-	}
-
-	void WindowManager::EnterSizeMove(Window* window)
-	{
-		if (window->IsNative())
-		{
-			if (window->Visible)
-			{
-				API::EnterSizeMoveWindow(window->RootHandle);
-			}
-		}
-		else
-		{
-			EnterSizeMoveInternal(window);
-		}
-	}
-
-	void WindowManager::ExitSizeMove(Window* window)
-	{
-		if (window->IsNative())
-		{
-			if (window->Visible)
-			{
-				API::ExitSizeMoveWindow(window->RootHandle);
-			}
-		}
-		else
-		{
-			ExitSizeMoveInternal(window);
-		}
-	}
-
-	void WindowManager::Focus(Window* window, const ArgFocus::Reason reason)
-	{
-		auto& formData = *GetFormData(window->RootHandle);
-		auto& previousFocused= formData.Focused;
-		
-		if (previousFocused == window)
-		{
-			return;
-		}
-
-		auto& foundation = Foundation::GetInstance();
-		if (previousFocused)
-		{
-			ArgFocus argFocus;
-			argFocus.Focused = false;
-			argFocus.FocusReason = reason;
-			foundation.ProcessEvents(previousFocused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
-		}
-		
-		previousFocused = window;
-		
-		ArgFocus argFocus;
-		argFocus.Focused = true;
-		argFocus.FocusReason = reason;
-		foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 	}
 
 	void WindowManager::Dispose(Window* window)
@@ -662,14 +440,14 @@ namespace Berta
 		return m_capture.WindowPtr;
 	}
 
-	void WindowManager::UpdateTree(Window* window, bool now)
+	void WindowManager::UpdateTree(Window* window, const Rectangle* dirtyRect)
 	{
 		if (!window->IsVisible())
 		{
 			return;
 		}
-
-		UIRendererCoordinator::Paint(window, UIRendererCoordinator::PaintOperation::TryUpdate, true);
+		
+		UIRendererCoordinator::Paint(window, dirtyRect);
 	}
 
 	void WindowManager::Show(Window* window, bool visible)
@@ -696,7 +474,10 @@ namespace Berta
 			auto windowToUpdate = window->FindFirstNonPanelAncestor();
 			if (windowToUpdate)
 			{
-				Update(windowToUpdate, true);
+				auto absPosition = GUI::GetWindowRootPosition(windowToUpdate);
+				auto absoluteBounds = Rectangle { absPosition.X, absPosition.Y, windowToUpdate->ClientSize.Width, windowToUpdate->ClientSize.Height };
+				
+				Update(windowToUpdate, &absoluteBounds);
 			}
 		}
 	}
@@ -730,7 +511,6 @@ namespace Berta
 		auto& foundation = Foundation::GetInstance();
 
 		bool positionChanged = false;
-
 		bool sizeChanged = window->ClientSize != newRect;
 
 		if (window->IsNative())
@@ -763,12 +543,16 @@ namespace Berta
 		}
 		else
 		{
+			// === RUTA NO NATIVA (Paneles, Contenedores Virtuales, etc.) ===
 			positionChanged = window->Position != newRect;
 			Point delta{ newRect.X - window->Position.X, newRect.Y - window->Position.Y };
 
 			if (positionChanged)
 			{
 				window->Position = newRect;
+            
+				// Aquí está la magia recursiva: MoveInternal propagará la transacción 
+				// a cualquier hijo nativo profundo que exista dentro de este Panel.
 				MoveInternal(window, delta, forceRepaint);
 
 				ArgMove argMove;
@@ -778,6 +562,8 @@ namespace Berta
 
 			if (sizeChanged)
 			{
+				// Si el Panel cambió de tamaño, llamamos a Resize (el cual ya
+				// reescribimos para soportar el m_layoutTransactionHandle)
 				Resize(window, newRect);
 			}
 		}
@@ -823,7 +609,7 @@ namespace Berta
 		return false;
 	}
 
-	void WindowManager::Update(Window* window, bool redraw, const Rectangle* updateArea)
+	void WindowManager::Update(Window* window, const Rectangle* absoluteDirtyArea)
 	{
 		if (!window->IsVisible())
 		{
@@ -832,21 +618,17 @@ namespace Berta
 		
 		if (window->Flags.isUpdating || (window->Parent && window->Parent->Flags.isUpdating))
 		{
-			//BT_CORE_WARN << " - WindowManager.Update() / ALREADY updating..." << std::endl;
 			return;
 		}
 		
 		if (window->HasCustomPaint() || window->IsNested())
 		{
-			API::RefreshWindow(window->RootHandle);
+			//API::RefreshWindow(window->RootHandle);
 			return;
 		}
 
-		//Batching?
-		
-		API::RefreshWindow(window->RootHandle, updateArea);
-		
-		UpdateInternal(window, redraw, updateArea);
+		// Solo invalidamos la ventana raíz a la que pertenece este control.
+		API::RefreshWindow(window->RootHandle, absoluteDirtyArea);
 	}
 
 	void WindowManager::ChangeDPI(Window* window, uint32_t newDPI, const API::NativeWindowHandle& nativeWindowHandle)
@@ -869,8 +651,6 @@ namespace Berta
 		{
 			auto& graphics = window->Renderer.GetGraphics();
 			graphics.BuildFont(newDPI);
-
-			window->PositionRoot = window->Position;
 		}
 		else
 		{
@@ -900,7 +680,7 @@ namespace Berta
 			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
 
 			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
-			API::MoveWindow(window->RootHandle, newArea);
+			API::MoveWindow(window->RootHandle, newArea, true);
 		}
 
 		for (auto& child : window->Children)
@@ -954,18 +734,12 @@ namespace Berta
 
 		if (window->Parent)
 		{
-			for (size_t i = 0; i < window->Parent->Children.size(); i++)
-			{
-				if (window->Parent->Children[i] == window)
-				{
-					window->Parent->Children.erase(window->Parent->Children.begin() + i);
-					break;
-				}
-			}
+			auto& siblings = window->Parent->Children; 
+			siblings.erase(std::remove(siblings.begin(), siblings.end(), window), siblings.end());
 		}
-
+		
 		auto deltaPosition = GUI::GetWindowRootPosition(window) - GUI::GetWindowRootPosition(newParent);
-		auto oldParent = window->Parent;
+		//auto oldParent = window->Parent;
 
 		window->Parent = newParent;
 		if (!window->IsNative())
@@ -994,41 +768,81 @@ namespace Berta
 			}
 
 			nativePosition -= deltaPosition;
-			API::MoveWindow(window->RootHandle, nativePosition);
+			API::MoveWindow(window->RootHandle, nativePosition, true);
 		}
 
 		SetParentInternal(window, newParent, deltaPosition);
 	}
 
-	void WindowManager::UpdateInternal(Window* window, bool redraw, const Rectangle* updateArea)
+	void WindowManager::GetNativeWindows(std::vector<API::NativeWindowHandle>& windowHandles)
 	{
-		for (auto* child : window->Children)
+		windowHandles.clear();
+		for (auto& item : m_windowNativeRegistry)
 		{
-			if (!child->Visible)
-			{
-				continue;
-			}
-
-			if (child->HasCustomPaint() || child->IsNested())
-			{
-				if (child->RootHandle != window->RootHandle) 
-				{
-					API::RefreshWindow(child->RootHandle, updateArea);
-				}
-				continue;
-			}
-
-			UpdateInternal(child, redraw, updateArea);
+			windowHandles.emplace_back(item.first);
 		}
+	}
+
+	void WindowManager::EnterSizeMove(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::EnterSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			EnterSizeMoveInternal(window);
+		}
+	}
+
+	void WindowManager::ExitSizeMove(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::ExitSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			ExitSizeMoveInternal(window);
+		}
+	}
+
+	void WindowManager::Focus(Window* window, const ArgFocus::Reason reason)
+	{
+		auto& formData = *GetFormData(window->RootHandle);
+		auto& previousFocused= formData.Focused;
+		
+		if (previousFocused == window)
+		{
+			return;
+		}
+
+		auto& foundation = Foundation::GetInstance();
+		if (previousFocused)
+		{
+			ArgFocus argFocus;
+			argFocus.Focused = false;
+			argFocus.FocusReason = reason;
+			foundation.ProcessEvents(previousFocused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+		}
+		
+		previousFocused = window;
+		
+		ArgFocus argFocus;
+		argFocus.Focused = true;
+		argFocus.FocusReason = reason;
+		foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
 	{
 		auto absolutePosition = GetWindowRootPosition(window);
-		if (window->IsNative()) //TODO: hack. fix this
-		{
-			absolutePosition.X = absolutePosition.Y = 0;
-		}
 		
 		Rectangle rect
 		{
@@ -1063,5 +877,161 @@ namespace Berta
 			} while (index != 0);
 		}
 		return window;
+	}
+
+	void WindowManager::DestroyInternal(Window* window)
+	{
+		if (window->Flags.IsDisposed)
+		{
+			return;
+		}
+
+		auto& foundation = Foundation::GetInstance();
+		window->Flags.IsDisposed = true;
+
+		ArgDestroy argDestroy;
+		foundation.ProcessEvents<ArgDestroy>(window, nullptr, &ControlEvents::Destroy, argDestroy);
+
+		while (!window->Children.empty())
+		{
+			auto child = window->Children.back();
+			if (child->IsNative())
+			{
+				API::DestroyNativeWindow(child->RootHandle); //child will be removed from parent's children.
+				continue;
+			}
+			DestroyInternal(child);
+			window->Children.pop_back();
+
+#if BT_DEBUG
+			//BT_CORE_DEBUG << "    - DestroyInternal. Child Window =" << child->Name << std::endl;
+#else
+			//BT_CORE_DEBUG << "    - DestroyInternal." << std::endl;
+#endif
+			//delete child; //TODO: place this deallocation in a safe place!
+		}
+
+		//BT_CORE_TRACE << "DestroyInternal / Release Capture = " << m_capture.WindowPtr << ". window " << window << std::endl;
+		//TODO: should this be called before actual destruction?
+		if (m_capture.WindowPtr == window)
+		{
+			ReleaseCapture(m_capture.WindowPtr);
+		}
+		
+		window->Renderer.Shutdown();
+		window->ControlWindowPtr->Destroy();
+		if (!window->IsNative())
+		{
+			m_windowRegistry.erase(window);
+		}
+	}
+
+	void WindowManager::SetParentInternal(Window* window, Window* newParent, const Point& deltaPosition)
+	{
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			auto child = window->Children[i];
+
+			if (child->IsNative())
+			{
+				auto nativePosition = API::GetWindowPosition(child->RootHandle);
+				auto currentParent = API::GetParentWindow(child->RootHandle);
+				if (currentParent != newParent->RootHandle)
+				{
+					API::SetParentWindow(child->RootHandle, newParent->RootHandle);
+				}
+
+				nativePosition -= deltaPosition;
+				API::MoveWindow(child->RootHandle, nativePosition, true);
+			}
+			else
+			{
+				child->RootHandle = window->RootHandle;
+				child->RootWindow = window->RootWindow;
+				child->RootGraphics = window->RootGraphics;
+				child->Renderer.SetGraphics(window->RootGraphics);
+
+				if (child->RootPaintHandle != window->RootPaintHandle)
+				{
+					child->RootPaintHandle = window->RootPaintHandle;
+				}
+
+				SetParentInternal(child, newParent, deltaPosition);
+			}
+		}
+
+		window->PositionRoot -= deltaPosition;
+	}
+
+	void WindowManager::MoveInternal(Window* window, const Point& delta, bool forceRepaint)
+	{
+		if (window->IsNative())
+		{
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
+			auto newPosition = nativePosition + delta;
+			
+			API::MoveWindow(window->RootHandle, newPosition, forceRepaint);
+		}
+		else
+		{
+			window->PositionRoot += delta;
+
+			for (size_t i = 0; i < window->Children.size(); i++)
+			{
+				MoveInternal(window->Children[i], delta, forceRepaint);
+			}
+		}
+	}
+
+	void WindowManager::ShowInternal(Window* window, bool visible)
+	{
+		if (window->IsNative())
+		{
+			if (visible != window->Visible)
+			{
+				API::ShowNativeWindow(window->RootHandle, visible, window->Flags.MakeActive);
+			}
+		}
+
+		for (size_t i = 0; i < window->Children.size(); i++)
+		{
+			ShowInternal(window->Children[i], visible);
+		}
+	}
+
+	void WindowManager::EnterSizeMoveInternal(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::EnterSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			for (auto& child : window->Children)
+			{
+				EnterSizeMoveInternal(child);
+			}
+		}
+	}
+
+	void WindowManager::ExitSizeMoveInternal(Window* window)
+	{
+		if (window->IsNative())
+		{
+			if (window->Visible)
+			{
+				API::ExitSizeMoveWindow(window->RootHandle);
+			}
+		}
+		else
+		{
+			for (auto& child : window->Children)
+			{
+				ExitSizeMoveInternal(child);
+			}
+		}
 	}
 }

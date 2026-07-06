@@ -203,6 +203,11 @@ namespace Berta
 		operator D2D1_RECT_F() const;
 #endif
 
+		void Empty()
+		{
+			X = Y = 0;
+			Width = Height = 0;
+		}
 	};
 
 	struct Size

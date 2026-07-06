@@ -13,11 +13,14 @@ namespace Berta
 {
     struct ScopedClip
     {
-        ScopedClip(Graphics& graphics, const Rectangle& clipArea): m_graphics(graphics)
+        ScopedClip(Graphics& graphics, const Rectangle& clipArea) :
+            m_graphics(graphics)
         {
             m_graphics.SetClipping(clipArea);
         }
-        ~ScopedClip() {
+        
+        ~ScopedClip()
+        {
             m_graphics.EndClipping();
         }
         

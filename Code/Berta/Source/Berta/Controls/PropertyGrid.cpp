@@ -841,7 +841,7 @@ namespace Berta
 				}
 				
 				Rectangle rect = itemRect;
-				rect.Width = clientArea.Width - rect.X;
+				//rect.Width = clientArea.Width - rect.X;
 				rect.X += currentX;
 				rect.Y += currentY;
 				if ((rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom))
@@ -894,7 +894,7 @@ namespace Berta
 						{
 							Rectangle labelArea = rect;
 					
-							int labelWidth = (int)rect.Width / 2;
+							int labelWidth = static_cast<int>(rect.Width) >> 1;
 							
 							bool hasSubProperties = !prop->m_subProperties.empty();
 							int textOffsetX = m_owner->ToScale(5); // Margen base
@@ -950,8 +950,11 @@ namespace Berta
 				if (m_dropIndicatorIndex < rootCategories.size())
 				{
 					StringUtils::StringHash targetCatId = rootCategories[m_dropIndicatorIndex].m_id;
-					Rectangle rect = GetItemRect(targetCatId);
-					logicalDropY = rect.Y; 
+					auto rect = GetItemRect(targetCatId);
+					if (rect.has_value())
+					{
+						logicalDropY = rect->Y; 
+					}
 				}
 				else if (!m_visibleItems.empty())
 				{
@@ -1012,33 +1015,40 @@ namespace Berta
 			}
 		}
 
-		void PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
+		bool PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
 		{
 			if (!m_scrollableView)
 			{
-				return;
+				return false;
 			}
-			Rectangle itemRect = GetItemRect(targetId);
+			
+			auto itemRect = GetItemRect(targetId);
+			if (!itemRect.has_value())
+			{
+				return false;
+			}
 			int currentScrollY = m_scrollableView->GetScrollOffset().Y;
 			int visibleHeight = static_cast<int>(m_scrollableView->GetClientArea().Height);
 
 			Rectangle viewport = m_scrollableView->GetVisibleRect();
-			if (itemRect.Y < currentScrollY) 
+			if (itemRect->Y < currentScrollY) 
 			{
-				currentScrollY=itemRect.Y;
+				currentScrollY = itemRect->Y;
 			}
-			else if (itemRect.Y + static_cast<int>(itemRect.Height) > currentScrollY + visibleHeight) 
+			else if (itemRect->Y + static_cast<int>(itemRect->Height) > currentScrollY + visibleHeight) 
 			{
-				currentScrollY = itemRect.Y + static_cast<int>(itemRect.Height) - visibleHeight;
+				currentScrollY = itemRect->Y + static_cast<int>(itemRect->Height) - visibleHeight;
 			}
 
 			if (currentScrollY != viewport.Y)
 			{
 				m_scrollableView->SetScrollToY(currentScrollY); 
+				return true;
 			}
+			return false;
 		}
 
-		Rectangle PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
+		std::optional<Rectangle> PropertyGridLayout::GetItemRect(StringUtils::StringHash id) const
 		{
 			auto it = m_itemRects.find(id);
 			if (it != m_itemRects.end())
@@ -1046,7 +1056,7 @@ namespace Berta
 				return it->second;
 			}
     
-			return Rectangle{ 0, 0, 0, 0 };
+			return std::nullopt;
 		}
 
 		void PropertyGridLayout::SetDropIndicator(bool show, size_t targetIndex)
@@ -1055,10 +1065,16 @@ namespace Berta
 			m_dropIndicatorIndex = targetIndex;
 		}
 
+		void PropertyGridLayout::ResetScrollOffset()
+		{
+			m_scrollableView->SetScrollToX(0);
+			m_scrollableView->SetScrollToY(0);
+		}
+
 		uint32_t PropertyGridLayout::CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY)
 		{
 			uint32_t categoryHeaderHeight = m_owner->ToScale(m_config->CategoryHeight);
-			auto clientArea = m_scrollableView->GetClientArea();
+			auto clientArea = m_scrollableView->GetVisibleRect();
 			Rectangle catRect = { currentX, static_cast<int>(currentY), clientArea.Width, categoryHeaderHeight };
 			
 			m_itemRects[cat.m_id] = catRect;
@@ -1084,7 +1100,7 @@ namespace Berta
 		uint32_t PropertyGridLayout::CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth)
 		{
 			auto propHeight = prop.m_field->GetHeight();
-			Rectangle propRect = { currentX, static_cast<int>(currentY), (uint32_t)(clientWidth - currentX), propHeight };
+			Rectangle propRect = { currentX, static_cast<int>(currentY), static_cast<uint32_t>(clientWidth - currentX), propHeight };
 
 			m_itemRects[prop.m_id] = propRect;
 			m_visibleItems.emplace_back(prop.m_id, false, propRect);
@@ -1187,9 +1203,11 @@ namespace Berta
 		void Module::Update()
 		{
 			if (!m_owner->Flags.AutoDraw)
+			{
 				return;
+			}
 
-			GUI::UpdateWindow(m_owner);
+			GUI::MarkAsNeedUpdate(m_owner);
 		}
 
 		void Module::ClearReferences(StringUtils::StringHash deletedId)
@@ -1209,7 +1227,29 @@ namespace Berta
 		{
 			m_layout.CalculateLayout(m_model);
 
-			GUI::UpdateWindow(m_owner);
+			GUI::MarkAsNeedUpdate(m_owner);
+		}
+
+		void Module::InvalidateItem(StringUtils::StringHash propId)
+		{
+			// Obtenemos el rectángulo local que ocupa esa propiedad en el Layout
+			if (std::optional<Rectangle> itemRect = m_layout.GetItemRect(propId))
+			{
+				auto clientArea = m_layout.m_scrollableView->GetClientArea();
+				auto scrollOffset = m_layout.m_scrollableView->GetScrollOffset();
+				
+				Rectangle newItemRect = *itemRect;
+				newItemRect.X += clientArea.X - scrollOffset.X;	
+				newItemRect.Y += clientArea.Y - scrollOffset.Y;	
+				newItemRect.Width += 1;
+				
+				GUI::MarkAsNeedUpdate(m_owner, &newItemRect);
+			}
+			else
+			{
+				// Fallback seguro: si no se encuentra o está fuera de rango, invalidamos todo
+				GUI::MarkAsNeedUpdate(m_owner);
+			}
 		}
 
 		Module::HitResult Module::HitTest(Point mousePos) const
@@ -1270,25 +1310,13 @@ namespace Berta
 			
 			auto globalRect = m_module.m_owner->ClientSize.ToRectangle();
 			graphics.FillRectangle(globalRect, m_module.m_owner->Appearance->BoxBackground);
-			if (!m_control->IsBorderless())
-			{
-				graphics.DrawRectangle(globalRect, appearance->BoxBorderColor);
-				
-				Rectangle localBorderRect = m_control->GetClientArea();
-				graphics.SetClipping(localBorderRect);
-			}
 			
 			m_module.m_layout.Draw(graphics, m_module.m_model, appearance);
 			
 			if (m_module.m_layout.m_scrollableView->HasVerticalScroll() && m_module.m_layout.m_scrollableView->HasHorizontalScroll())
 			{
 				auto scrollSize = m_module.m_owner->ToScale(m_module.m_owner->Appearance->ScrollBarSize);
-				graphics.FillRectangle({ (int)(m_module.m_owner->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_owner->Appearance->Background);
-			}
-		
-			if (!m_control->IsBorderless())
-			{
-				graphics.EndClipping();
+				graphics.FillRectangle({ static_cast<int>(m_module.m_owner->ClientSize.Width - scrollSize) - 1, static_cast<int>(m_module.m_owner->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_owner->Appearance->Background);
 			}
 		}
 
@@ -1298,7 +1326,8 @@ namespace Berta
 			{
 				m_module.m_lastHoveredItemId = 0;
 				m_module.m_layout.SetHoverItemId(0);
-				m_module.OnLayoutChanged();
+				//m_module.OnLayoutChanged();
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
 
@@ -1390,7 +1419,7 @@ namespace Berta
 				m_module.m_lastHoveredItemId = hitItemId;
 
 				m_module.m_layout.SetHoverItemId(hitItemId);
-				m_module.OnLayoutChanged();
+				//m_module.OnLayoutChanged();
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
@@ -1608,14 +1637,37 @@ namespace Berta
 					
 					events->PropertyChanged.Emit(arguments); 
 				}
-				m_module.m_layout.ScrollToItem(propId);
-				m_module.OnLayoutChanged();
+				// Si la modificación gatilla un Scroll, forzamos invalidación total en ScrollToItem.
+				// Si ya era visible, ScrollToItem no hace nada y solo invalidamos de forma quirúrgica la fila.
+				if (m_module.m_layout.ScrollToItem(propId)) 
+				{
+					m_module.OnLayoutChanged(); // Hizo scroll -> Cambió la estructura visual -> Todo se mueve
+				}
+				else 
+				{
+					m_module.InvalidateItem(propId); // Quirúrgico -> Solo repinta la fila mutada
+				}
 			};
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
 			{
+				// Guardamos cuál era la propiedad seleccionada antes del cambio
+				StringUtils::StringHash oldSelectedId = m_module.m_model.GetSelectedItemId();
+				
 				m_module.m_model.SetSelectedItemId(propId);
-				m_module.m_layout.ScrollToItem(propId);
-				m_module.OnLayoutChanged();
+				
+				if (m_module.m_layout.ScrollToItem(propId))
+				{
+					m_module.OnLayoutChanged(); // Si requirió scroll, invalidación total obligatoria
+				}
+				else
+				{
+					// Si no requirió scroll, ¡ganamos! Invalidamos quirúrgicamente solo las dos filas afectadas
+					if (oldSelectedId != 0u && oldSelectedId != propId)
+					{
+						m_module.InvalidateItem(oldSelectedId); // Apaga el viejo selector
+					}
+					m_module.InvalidateItem(propId); // Enciende el nuevo selector
+				}
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());
 				if (events) 
@@ -1657,6 +1709,9 @@ namespace Berta
 		module.m_model.Clear();
 		module.m_layout.SetHoverItemId(0);
 		module.m_layout.CalculateLayout(module.m_model);
+		module.m_layout.ResetScrollOffset();
+		
+		GUI::MarkAsNeedUpdate(module.m_owner);
 	}
 
 	PropertyGrid::CategoryItem PropertyGrid::Insert(CategoryItem existingCategory, const std::string& categoryName)
@@ -1672,7 +1727,7 @@ namespace Berta
 			module.ClearReferences(categoryItem.GetId());
 			module.m_layout.CalculateLayout(module.m_model);
 			
-			GUI::UpdateWindow(module.m_owner);
+			GUI::MarkAsNeedUpdate(module.m_owner);
 		}
 	}
 
@@ -1685,7 +1740,7 @@ namespace Berta
 			module.ClearReferences(propertyItem.GetId());
 			module.m_layout.CalculateLayout(module.m_model);
 			
-			GUI::UpdateWindow(module.m_owner);
+			GUI::MarkAsNeedUpdate(module.m_owner);
 		}
 	}
 
