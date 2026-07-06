@@ -841,7 +841,7 @@ namespace Berta
 				}
 				
 				Rectangle rect = itemRect;
-				rect.Width = clientArea.Width - rect.X;
+				//rect.Width = clientArea.Width - rect.X;
 				rect.X += currentX;
 				rect.Y += currentY;
 				if ((rect.Y + static_cast<int>(rect.Height) <= viewTop) || (rect.Y >= viewBottom))
@@ -894,7 +894,7 @@ namespace Berta
 						{
 							Rectangle labelArea = rect;
 					
-							int labelWidth = (int)rect.Width / 2;
+							int labelWidth = static_cast<int>(rect.Width) / 2;
 							
 							bool hasSubProperties = !prop->m_subProperties.empty();
 							int textOffsetX = m_owner->ToScale(5); // Margen base
@@ -1068,7 +1068,7 @@ namespace Berta
 		uint32_t PropertyGridLayout::CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY)
 		{
 			uint32_t categoryHeaderHeight = m_owner->ToScale(m_config->CategoryHeight);
-			auto clientArea = m_scrollableView->GetClientArea();
+			auto clientArea = m_scrollableView->GetVisibleRect();
 			Rectangle catRect = { currentX, static_cast<int>(currentY), clientArea.Width, categoryHeaderHeight };
 			
 			m_itemRects[cat.m_id] = catRect;
@@ -1094,7 +1094,7 @@ namespace Berta
 		uint32_t PropertyGridLayout::CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth)
 		{
 			auto propHeight = prop.m_field->GetHeight();
-			Rectangle propRect = { currentX, static_cast<int>(currentY), (uint32_t)(clientWidth - currentX), propHeight };
+			Rectangle propRect = { currentX, static_cast<int>(currentY), static_cast<uint32_t>(clientWidth - currentX), propHeight };
 
 			m_itemRects[prop.m_id] = propRect;
 			m_visibleItems.emplace_back(prop.m_id, false, propRect);
@@ -1227,7 +1227,15 @@ namespace Berta
 			// Obtenemos el rectángulo local que ocupa esa propiedad en el Layout
 			if (std::optional<Rectangle> itemRect = m_layout.GetItemRect(propId))
 			{
-				GUI::MarkAsNeedUpdate(m_owner, &(*itemRect));
+				auto clientArea = m_layout.m_scrollableView->GetClientArea();
+				auto scrollOffset = m_layout.m_scrollableView->GetScrollOffset();
+				
+				Rectangle newItemRect = *itemRect;
+				newItemRect.X += clientArea.X - scrollOffset.X;	
+				newItemRect.Y += clientArea.Y - scrollOffset.Y;	
+				newItemRect.Width += 1;
+				
+				GUI::MarkAsNeedUpdate(m_owner, &newItemRect);
 			}
 			else
 			{
@@ -1310,7 +1318,8 @@ namespace Berta
 			{
 				m_module.m_lastHoveredItemId = 0;
 				m_module.m_layout.SetHoverItemId(0);
-				m_module.OnLayoutChanged();
+				//m_module.OnLayoutChanged();
+				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
 
@@ -1402,7 +1411,7 @@ namespace Berta
 				m_module.m_lastHoveredItemId = hitItemId;
 
 				m_module.m_layout.SetHoverItemId(hitItemId);
-				m_module.OnLayoutChanged();
+				//m_module.OnLayoutChanged();
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
