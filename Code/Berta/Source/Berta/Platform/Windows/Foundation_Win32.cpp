@@ -183,7 +183,7 @@ namespace Berta
 		//{WM_SIZING,			"WM_SIZING"},
 
 		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
-		{WM_PAINT,			"WM_PAINT"},
+		//{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
 		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
@@ -485,7 +485,7 @@ namespace Berta
 				dirtyRect.FromRECT(ps.rcPaint);
 				
 #if BT_DEBUG
-				std::cout << "  - PAINT. wnd=" << nativeWindow->Name << ". dirtyRect = " << dirtyRect << std::endl;
+				//std::cout << "  - PAINT. wnd=" << nativeWindow->Name << ". dirtyRect = " << dirtyRect << std::endl;
 #endif
 				if (nativeWindow->Type == WindowType::RenderForm)
 				{
