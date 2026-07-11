@@ -315,6 +315,20 @@ namespace Berta
 			}
 		}
 
+		void PropertyGridModel::GetAndRefreshProperty(StringUtils::StringHash propertyId)
+		{
+			auto prop = FindPropertyById(propertyId);
+			if (!prop || !prop->m_isExpanded)
+			{
+				return;
+			}
+			
+			for (const auto& subProp : prop->m_subProperties)
+			{
+				subProp->m_field->Refresh();
+			}
+		}
+
 		void PropertyGridModel::SetCategoryIcon(StringUtils::StringHash catId, const Image& icon)
 		{
 			if (CategoryType* cat = FindCategoryById(catId))
@@ -1326,7 +1340,7 @@ namespace Berta
 			{
 				m_module.m_lastHoveredItemId = 0;
 				m_module.m_layout.SetHoverItemId(0);
-				//m_module.OnLayoutChanged();
+				
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
@@ -1389,7 +1403,7 @@ namespace Berta
 					{
 						m_module.m_hoveredDropIndex = newHoverIndex;
 						m_module.m_layout.SetDropIndicator(true, m_module.m_hoveredDropIndex);
-						//m_module.OnLayoutChanged();
+						
 						GUI::MarkAsNeedUpdate(m_module.m_owner);
 					}
 				}
@@ -1419,7 +1433,7 @@ namespace Berta
 				m_module.m_lastHoveredItemId = hitItemId;
 
 				m_module.m_layout.SetHoverItemId(hitItemId);
-				//m_module.OnLayoutChanged();
+				
 				GUI::MarkAsNeedUpdate(m_module.m_owner);
 			}
 		}
@@ -1455,7 +1469,6 @@ namespace Berta
 					else
 					{
 						m_module.m_model.ToggleCategoryExpansion(releaseItemId);
-						//m_module.m_model.SetSelectedIndex(FindItemIndexInVisibleList(hitCat));
 						m_module.OnLayoutChanged();
 						
 						ArgPropertyGridCategory arguments{ CategoryHandle(&m_module.m_model, releaseItemId) };
@@ -1474,6 +1487,9 @@ namespace Berta
 						if (hit.isExpandIconArea)
 						{
 							m_module.m_model.TogglePropertyExpansion(releaseItemId);
+							
+							m_module.m_model.GetAndRefreshProperty(releaseItemId);
+							
 							m_module.OnLayoutChanged();
 						}
 						else 

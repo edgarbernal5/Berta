@@ -49,10 +49,6 @@ namespace Berta::Internal::PropertyGrid
         {
             return m_parent->ToScale(m_height);
         }
-    	
-        virtual void OnMouseClick(const Point& localPosition, uint32_t labelWidth) 
-        {
-        }
 			
         virtual void Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config) = 0;
 
@@ -69,7 +65,7 @@ namespace Berta::Internal::PropertyGrid
     	
         std::function<void()> OnValueChanged;
         std::function<void()> OnSelected;
-			
+    	
     protected:
         virtual void OnCreate(Window* parent) = 0;
         virtual void OnVisibilityChanged(bool visible) {}

@@ -61,8 +61,6 @@ namespace Berta
 		struct PropertyFieldData
 		{
 			PropertyFieldData() = default;
-			//PropertyFieldData(StringUtils::StringHash id, std::unique_ptr<PropertyGridFieldBase> field):
-			//m_id(id), m_field(std::move(field)){}
 			
 			PropertyFieldData(const PropertyFieldData&) = delete;
 			PropertyFieldData& operator=(const PropertyFieldData&) = delete;
@@ -144,6 +142,7 @@ namespace Berta
 			bool IsCategoryExpanded(StringUtils::StringHash catId);
 			void ToggleCategoryExpansion(StringUtils::StringHash catId);
 			void TogglePropertyExpansion(StringUtils::StringHash propertyId);
+			void GetAndRefreshProperty(StringUtils::StringHash propertyId);
 			
 			bool IsShowingCategoryIcons() const { return m_drawImages; }
 			void ShowCategoryIcons(bool visible) { m_drawImages = visible; }
