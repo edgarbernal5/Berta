@@ -315,6 +315,28 @@ namespace Berta
 			}
 		}
 
+		bool PropertyGridModel::HasSubProperties(StringUtils::StringHash propertyId)
+		{
+			auto prop = FindPropertyById(propertyId);
+			if (!prop)
+			{
+				return false;
+			}
+			
+			return !prop->m_subProperties.empty();
+		}
+
+		bool PropertyGridModel::IsPropertyExpanded(StringUtils::StringHash propertyId)
+		{
+			auto prop = FindPropertyById(propertyId);
+			if (!prop)
+			{
+				return false;
+			}
+			
+			return prop->m_isExpanded;
+		}
+
 		void PropertyGridModel::GetAndRefreshProperty(StringUtils::StringHash propertyId)
 		{
 			auto prop = FindPropertyById(propertyId);
@@ -1475,7 +1497,7 @@ namespace Berta
 						m_module.m_events->CategoryClicked.Emit(arguments);
 					}
 				}
-				else // propiedad
+				else // Propiedad
 				{
 					if (args.ButtonState.RightButton)
 					{
@@ -1487,7 +1509,6 @@ namespace Berta
 						if (hit.isExpandIconArea)
 						{
 							m_module.m_model.TogglePropertyExpansion(releaseItemId);
-							
 							m_module.m_model.GetAndRefreshProperty(releaseItemId);
 							
 							m_module.OnLayoutChanged();
@@ -1515,9 +1536,10 @@ namespace Berta
 			
 			if (args.ButtonState.LeftButton && releaseItemId != 0)
 			{
-				if (!hit.isCategory)
+				if (!hit.isCategory && m_module.m_model.HasSubProperties(releaseItemId))
 				{
 					m_module.m_model.TogglePropertyExpansion(releaseItemId);
+					m_module.m_model.GetAndRefreshProperty(releaseItemId);
 					m_module.OnLayoutChanged();
 					
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
@@ -1572,6 +1594,15 @@ namespace Berta
 					m_module.m_model.ToggleCategoryExpansion(currentId);
 					layoutChanged = true;
 				}
+				else if (!m_module.m_model.IsCategory(currentId) && m_module.m_model.HasSubProperties(currentId))
+				{
+					m_module.m_model.TogglePropertyExpansion(currentId);
+					if (m_module.m_model.IsPropertyExpanded(currentId))
+					{
+						m_module.m_model.GetAndRefreshProperty(currentId);
+						layoutChanged = true;
+					}
+				}
 				break;
 			case KeyboardKey::ArrowLeft:
 				if (m_module.m_model.IsCategory(currentId) && m_module.m_model.IsCategoryExpanded(currentId))
@@ -1588,7 +1619,7 @@ namespace Berta
 
 						auto parentIt = std::find_if(visibleItems.begin(), visibleItems.end(), 
 							[parentId](const auto& prop) { return prop.m_id == parentId; });
-			
+						
 						if (parentIt != visibleItems.end())
 						{
 							currentIndex = std::distance(visibleItems.begin(), parentIt);
@@ -1602,6 +1633,7 @@ namespace Berta
 			{
 				m_module.m_layout.CalculateLayout(m_module.m_model);
 			}
+			
 			if (selectionChanged)
 			{
 				auto& newSelectedItem = visibleItems[currentIndex];

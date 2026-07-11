@@ -142,6 +142,8 @@ namespace Berta
 			bool IsCategoryExpanded(StringUtils::StringHash catId);
 			void ToggleCategoryExpansion(StringUtils::StringHash catId);
 			void TogglePropertyExpansion(StringUtils::StringHash propertyId);
+			bool HasSubProperties(StringUtils::StringHash propertyId);
+			bool IsPropertyExpanded(StringUtils::StringHash propertyId);
 			void GetAndRefreshProperty(StringUtils::StringHash propertyId);
 			
 			bool IsShowingCategoryIcons() const { return m_drawImages; }
