@@ -95,6 +95,19 @@ namespace Berta
 				else
 				{
 					Foundation::GetInstance().GetMenuManager().CloseAll();
+					
+					std::optional<std::size_t> hitIndex = std::nullopt;
+
+					for (size_t i = 0; i < m_module.m_layoutCache.size(); ++i)
+					{
+						if (m_module.m_layoutCache[i].bounds.Contains(args.Position))
+						{
+							hitIndex = i;
+							break;
+						}
+					}
+
+					m_module.m_interaction.m_selectedIndex = hitIndex;
 				}
 				
 				GUI::MarkAsNeedUpdate(m_module.m_owner);

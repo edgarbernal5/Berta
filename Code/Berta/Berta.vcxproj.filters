@@ -43,6 +43,12 @@
     <Filter Include="Source\Berta\Controls\Properties">
       <UniqueIdentifier>{687882cc-17ae-4f72-ae36-b2fc6f09eeb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\GUI\Layouts">
+      <UniqueIdentifier>{71c8fa23-5e8e-4ae7-98d0-fc4182f389cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Berta\Controls\Checking">
+      <UniqueIdentifier>{eeaa1937-b8dc-424e-b148-e4c583b876f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -110,9 +116,6 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\Paint\FontProvider.h">
       <Filter>Source\Berta\Paint</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\InputText.h">
-      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Core\Timer.h">
       <Filter>Source\Berta\Core</Filter>
@@ -201,9 +204,6 @@
     <ClInclude Include="Source\Berta\GUI\Layout.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\LayoutNodes.h">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Core\StackTracer.h">
       <Filter>Source\Berta\Core</Filter>
     </ClInclude>
@@ -246,9 +246,6 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldStringNumber.h">
-      <Filter>Source\Berta\Controls\Properties</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
@@ -256,9 +253,6 @@
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h">
-      <Filter>Source\Berta\Controls\Properties</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\Properties\FieldNumberBase.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h">
@@ -272,9 +266,6 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h">
       <Filter>Source\Berta\Controls\TextEditors</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\GUI\ControlClipping.h">
-      <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\LassoSelection.h">
       <Filter>Source\Berta\GUI</Filter>
@@ -293,6 +284,48 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\ScrollableView.h">
       <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextBox.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Dispatcher.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\Appearance.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridTypes.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h">
+      <Filter>Source\Berta\Controls\Checking</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\TypedPropertyField.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ScopedClip.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ShortcutManager.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layouts\BasicTypes.h">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layouts\LayoutNodes.h">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layouts\LayoutParser.h">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layouts\Lexer.h">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -339,9 +372,6 @@
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Button.cpp">
-      <Filter>Source\Berta\Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\InputText.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Control.cpp">
@@ -416,9 +446,6 @@
     <ClCompile Include="Source\Berta\GUI\Layout.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\LayoutNodes.cpp">
-      <Filter>Source\Berta\GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Core\StackTracer.cpp">
       <Filter>Source\Berta\Core</Filter>
     </ClCompile>
@@ -458,9 +485,6 @@
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.cpp">
-      <Filter>Source\Berta\Controls\Properties</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
@@ -469,9 +493,6 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Paint\DrawBatchActivator.cpp">
       <Filter>Source\Berta\Paint</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Berta\GUI\ControlClipping.cpp">
-      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp">
       <Filter>Source\Berta\GUI</Filter>
@@ -484,6 +505,30 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextBox.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Dispatcher.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Checking\CheckBoxHelpers.cpp">
+      <Filter>Source\Berta\Controls\Checking</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\ShortcutManager.cpp">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Layouts\LayoutNodes.cpp">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Layouts\LayoutParser.cpp">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Layouts\Lexer.cpp">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
