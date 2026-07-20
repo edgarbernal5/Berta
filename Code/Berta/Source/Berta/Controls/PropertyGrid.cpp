@@ -1050,6 +1050,35 @@ namespace Berta
 				}
 			}
 		}
+		
+		void PropertyGridLayout::RefreshAll(const PropertyGridModel& model)
+		{
+			for (auto& cat : model.GetRootCategories())
+			{
+				RefreshAllRecursive(model, cat);
+			}
+		}
+
+		void PropertyGridLayout::RefreshAllRecursive(const PropertyGridModel& model, const CategoryType& category)
+		{
+			for (const auto& prop : category.m_properties)
+			{
+				prop->m_field->Refresh();
+			}
+			for (const auto& sub : category.m_subCategories)
+			{
+				RefreshAllRecursive(model, sub);
+			}
+		}
+
+		void PropertyGridLayout::RefreshAllRecursive(const PropertyGridModel& model, const PropertyFieldData& property)
+		{
+			property.m_field->Refresh();
+			for (const auto& subProp : property.m_subProperties)
+			{
+				RefreshAllRecursive(model, *subProp);
+			}
+		}
 
 		bool PropertyGridLayout::ScrollToItem(StringUtils::StringHash targetId)
 		{
@@ -1156,7 +1185,7 @@ namespace Berta
 		}
 
 		void PropertyGridLayout::DrawCategoryHeader(Graphics& graphics, const PropertyGridModel& model, const Rectangle& area, const CategoryType& cat, Appearance* config)
-		{			
+		{
 			bool isSelected = cat.m_id == model.GetSelectedItemId();
 			
 			Color bgColor = isSelected ? config->MenuBackground : config->Background;
@@ -1165,7 +1194,7 @@ namespace Berta
 			int offset = m_owner->ToScale(4);
 			int expanderSize = m_owner->ToScale(14);
 			int centerY = area.Y + ((int)area.Height - expanderSize) / 2;
-			Rectangle expanderArea{ area.X + offset, centerY, (uint32_t)expanderSize, (uint32_t)expanderSize };
+			Rectangle expanderArea{ area.X + offset, centerY, static_cast<uint32_t>(expanderSize), static_cast<uint32_t>(expanderSize) };
 
 			int arrowWidth = m_owner->ToScale(4);
 			int arrowLength = m_owner->ToScale(2);
@@ -1190,15 +1219,15 @@ namespace Berta
 					Rectangle iconRect{ area.X + expanderArea.X + (int)expanderArea.Width + iconPaddingX, area.Y + (((int)area.Height - (int)iconSize) >> 1), iconSize, iconSize };
 					cat.m_icon.Paste(graphics, iconRect);
 				}
-				offset += (int)iconSize + iconPaddingX * 2;
+				offset += static_cast<int>(iconSize) + iconPaddingX * 2;
 			}
-			int textX = expanderArea.X + (int)expanderArea.Width + offset;
-			Point textPos = { textX, area.Y + ((int)area.Height - (int)graphics.GetTextExtent().Height) / 2 };
+			int textX = expanderArea.X + static_cast<int>(expanderArea.Width) + offset;
+			Point textPos = { textX, area.Y + (static_cast<int>(area.Height) - static_cast<int>(graphics.GetTextExtent().Height)) / 2 };
     
 			graphics.DrawString(textPos, cat.m_name, config->Foreground);
 
 			Color separatorColor = config->BoxBorderColor;
-			graphics.DrawLine({ area.X, area.Y + (int)area.Height - 1 }, { area.X + (int)area.Width, area.Y + (int)area.Height - 1 }, separatorColor);
+			graphics.DrawLine({ area.X, area.Y + static_cast<int>(area.Height) - 1 }, { area.X + static_cast<int>(area.Width), area.Y + static_cast<int>(area.Height) - 1 }, separatorColor);
 		}
 
 		void PropertyGridLayout::SyncControlsVisibility(const PropertyGridModel& model)
@@ -1792,25 +1821,19 @@ namespace Berta
 		}
 	}
 
-	void PropertyGrid::RefreshAll()
-	{
-		auto& module = GetReactor().GetModule();
-		module.m_layout.RefreshVisibleOnly(module.m_model);
-		module.OnLayoutChanged();
-	}
-
 	void PropertyGrid::ShowCategoryIcons(bool visible)
 	{
 		auto& module = GetReactor().GetModule();
 		module.m_model.ShowCategoryIcons(visible);
-		module.OnLayoutChanged();
+		
+		GUI::MarkAsNeedUpdate(module.m_owner);
 	}
 
-	/*PropertyGrid::CategoryItem PropertyGrid::Find(std::string_view categoryName)
+	void PropertyGrid::RefreshAll()
 	{
 		auto& module = GetReactor().GetModule();
-		auto hash = StringUtils::HashString(categoryName);
-		module.m_model.FindCategoryById(hash);
-		return GetReactor().GetModule().m_model.Find(categoryName);
-	}*/
+		module.m_layout.RefreshAll(module.m_model);
+		
+		GUI::MarkAsNeedUpdate(module.m_owner);
+	}
 }

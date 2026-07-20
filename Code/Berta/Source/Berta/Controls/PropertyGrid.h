@@ -316,6 +316,8 @@ namespace Berta
 			void SetDropIndicator(bool show, size_t targetIndex = 0);
 			
 			void ResetScrollOffset();
+			void RefreshAll(const PropertyGridModel& model);
+			
 		private:
 			uint32_t CalculateRecursive(const CategoryType& cat, int currentX, uint32_t currentY);
 			uint32_t CalculatePropertyRecursive(const PropertyFieldData& prop, int currentX, uint32_t currentY, int clientWidth);
@@ -324,6 +326,9 @@ namespace Berta
 			
 			void SyncControlsVisibility(const PropertyGridModel& model);
 			void HideAllControlsRecursive(const CategoryType& cat) const;
+			
+			void RefreshAllRecursive(const PropertyGridModel& model, const CategoryType& category);
+			void RefreshAllRecursive(const PropertyGridModel& model, const PropertyFieldData& property);
 			
 			Window* m_owner{ nullptr };
 			std::unique_ptr<ScrollableView> m_internalScrollManager;
@@ -443,8 +448,8 @@ namespace Berta
 		void Erase(CategoryItem categoryItem);
 		void Erase(PropertyItem propertyItem);
 		
-		void RefreshAll();
 		void ShowCategoryIcons(bool visible);
+		void RefreshAll();
 	};
 }
 
