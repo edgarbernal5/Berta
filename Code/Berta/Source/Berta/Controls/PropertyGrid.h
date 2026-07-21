@@ -154,8 +154,10 @@ namespace Berta
 			bool IsRootCategory(StringUtils::StringHash catId);
 			void MoveRootCategory(size_t fromIndex, size_t toIndex);
 			size_t GetRootCategoryIndex(StringUtils::StringHash catId);
-			StringUtils::StringHash GetParentCategory(StringUtils::StringHash propId) const;
 			StringUtils::StringHash GetParentId(StringUtils::StringHash childId) const;
+			
+			// Devuelve la ruta completa separada por '/' (ej. "Transform/Position/X")
+			[[nodiscard]] std::string GetItemPath(StringUtils::StringHash id, char separator);
 			
 			std::function<void()> OnVisualsChanged;
 			std::function<void(StringUtils::StringHash propId)> OnPropertyModified;
@@ -168,14 +170,14 @@ namespace Berta
 			
 			bool IsCategoryRecursive(const CategoryType& category, StringUtils::StringHash id) const;
 			
-			StringUtils::StringHash GetParentCategoryRecursive(const std::vector<CategoryType> &list, StringUtils::StringHash propId) const;
-			StringUtils::StringHash GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const;
 			bool RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId);
 			bool RemoveSubCategoryRecursive(CategoryType& parentCat, StringUtils::StringHash targetCatId);
 			void CleanUpCategoryLookup(const CategoryType& category);
+			void CleanUpPropertyLookup(const PropertyFieldData& prop);
 			
 			Window* m_ownerWindow{ nullptr };
 			std::unordered_map<StringUtils::StringHash, PropertyFieldData*> m_propertyLookup;
+			std::unordered_map<StringUtils::StringHash, StringUtils::StringHash> m_parentLookup;
 			
 			StringUtils::StringHash m_selectedItemId{ 0 };
 			std::vector<CategoryType> m_rootCategories;
@@ -208,6 +210,8 @@ namespace Berta
 			bool IsReadOnly() const;
 			PropertyHandle& SetReadOnly(bool readOnly);
 			
+			[[nodiscard]] std::string GetPath() const;
+			
 			template <typename TControl, typename... Args>
 			PropertyHandle EmplaceSubProperty(std::string_view label, Args&&... args)
 			{
@@ -235,7 +239,9 @@ namespace Berta
 				
 				return dynamic_cast<T*>(propData->m_field.get());
 			}
+			
 			bool operator==(const PropertyHandle& other) const { return m_uniqueId == other.m_uniqueId; }
+			
 		private:
 			PropertyGridModel* m_model{ nullptr };
 			uint32_t m_uniqueId{ 0 };
@@ -266,6 +272,7 @@ namespace Berta
 
 			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
+			[[nodiscard]] std::string GetPath() const;
 			CategoryHandle& SetIcon(const Image& icon);
 			
 			operator bool() const;

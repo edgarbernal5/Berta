@@ -228,6 +228,7 @@ int main()
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{
 			std::cout << "Property changed! Label = " << args.Property.GetLabel() << ". Value = " << Berta::StringUtils::WideToUTF8(args.Property.GetValueAsString()) << std::endl;
+			std::cout << "Path = " << args.Property.GetPath() << std::endl;
 		});
 
 

@@ -66,6 +66,7 @@ namespace Berta
 				return &(*it);
 			}
 			
+			m_parentLookup[globalId] = parentId;
 			return &parent->m_subCategories.emplace_back(globalId, name, parent->m_depth + 1u);
 		}
 
@@ -104,6 +105,8 @@ namespace Berta
 				cat->m_properties.emplace_back(rawPtr);
 				auto pointerToMemory = &cat->m_properties.back();
 				m_propertyLookup[propId] = pointerToMemory->get();
+				
+				m_parentLookup[propId] = categoryId;
 			}
 		}
 
@@ -151,6 +154,7 @@ namespace Berta
 				prop->m_subProperties.emplace_back(rawPtr);
 				auto pointerToMemory = &prop->m_subProperties.back();
 				m_propertyLookup[propId] = pointerToMemory->get();
+				m_parentLookup[propId] = parentPropId;
 			}
 		}
 
@@ -178,13 +182,21 @@ namespace Berta
 
 		bool PropertyGridModel::RemoveProperty(StringUtils::StringHash propId)
 		{
-			m_propertyLookup.erase(propId);
-			
-			for (auto& rootCat : m_rootCategories)
+			// Aprovechamos el mapa O(1) para encontrar la propiedad y limpiar 
+			// TODA su descendencia antes de que sea destruida de la memoria.
+			auto it = m_propertyLookup.find(propId);
+			if (it != m_propertyLookup.end())
 			{
-				if (RemovePropertyRecursive(rootCat, propId))
+				// Limpiamos los diccionarios (propiedad actual + hijos)
+				CleanUpPropertyLookup(*(it->second));
+        
+				// Ahora sí, recorremos el árbol solo para eliminarla estructuralmente
+				for (auto& rootCat : m_rootCategories)
 				{
-					return true;
+					if (RemovePropertyRecursive(rootCat, propId))
+					{
+						return true;
+					}
 				}
 			}
 			return false;
@@ -412,27 +424,81 @@ namespace Berta
 			return 0;
 		}
 
-		StringUtils::StringHash PropertyGridModel::GetParentCategory(StringUtils::StringHash propId) const
-		{
-			return GetParentCategoryRecursive(m_rootCategories, propId);
-		}
-
 		StringUtils::StringHash PropertyGridModel::GetParentId(StringUtils::StringHash childId) const
 		{
-			for (const auto& rootCat : m_rootCategories)
+			auto it = m_parentLookup.find(childId);
+			if (it != m_parentLookup.end())
 			{
-				if (rootCat.m_id == childId)
+				return it->second;
+			}
+    
+			// Si no está en el mapa, o bien no existe, o es un RootCategory
+			return 0;
+		}
+
+		std::string PropertyGridModel::GetItemPath(StringUtils::StringHash id, char separator)
+		{
+			if (id == 0)
+			{
+				return {};
+			}
+
+			std::vector<std::string_view> pathParts;
+			StringUtils::StringHash currentId = id;
+
+			// Recorremos de abajo hacia arriba (Bottom-Up)
+			while (currentId != 0)
+			{
+				if (IsCategory(currentId))
 				{
-					return 0; 
+					if (const CategoryType* cat = FindCategoryById(currentId))
+					{
+						pathParts.push_back(cat->m_name);
+					}
+				}
+				else
+				{
+					std::string_view label = GetPropertyLabel(currentId);
+					if (!label.empty())
+					{
+						pathParts.push_back(label);
+					}
 				}
 
-				StringUtils::StringHash foundParent = GetParentIdRecursive(rootCat, childId);
-				if (foundParent != 0)
+				currentId = GetParentId(currentId);
+			}
+
+			if (pathParts.empty())
+			{
+				return {};
+			}
+
+			// --- Optimización AAA: Pre-calcular la memoria exacta ---
+			size_t totalLength = 0;
+			for (std::string_view part : pathParts)
+			{
+				totalLength += part.length();
+			}
+			// Sumamos el espacio de los separadores (sigue siendo 1 byte por separador)
+			totalLength += pathParts.size() - 1; 
+
+			// Solo hacemos 1 Allocation en el Heap
+			std::string fullPath;
+			fullPath.reserve(totalLength);
+
+			// Iteramos en reversa para armar la ruta (Root -> Child)
+			for (auto it = pathParts.rbegin(); it != pathParts.rend(); ++it)
+			{
+				fullPath.append(*it);
+        
+				// Si no es el último elemento, agregamos el carácter separador
+				if (std::next(it) != pathParts.rend())
 				{
-					return foundParent;
+					fullPath.push_back(separator); // <-- Optimizado para un único char
 				}
 			}
-			return 0;
+
+			return fullPath;
 		}
 
 		CategoryType* PropertyGridModel::FindRecursive(StringUtils::StringHash id, std::vector<CategoryType>& list)
@@ -513,55 +579,6 @@ namespace Berta
 			return false;
 		}
 
-		StringUtils::StringHash PropertyGridModel::GetParentCategoryRecursive(const std::vector<CategoryType>& list, StringUtils::StringHash propId) const
-		{
-			for (const auto& cat : list)
-			{
-				auto it = std::find_if(cat.m_properties.begin(), cat.m_properties.end(),
-					[propId](const auto& prop) { return prop->m_id == propId; });
-
-				if (it != cat.m_properties.end())
-				{
-					return cat.m_id;
-				}
-				
-				auto subHash = GetParentCategoryRecursive(cat.m_subCategories, propId);
-				if (subHash)
-				{
-					return subHash;
-				}
-				
-			}
-			return 0;
-		}
-
-		StringUtils::StringHash PropertyGridModel::GetParentIdRecursive(const CategoryType& currentCat, StringUtils::StringHash targetId) const
-		{
-			for (const auto& prop : currentCat.m_properties)
-			{
-				if (prop->m_id == targetId)
-				{
-					return currentCat.m_id;
-				}
-			}
-
-			for (const auto& subCat : currentCat.m_subCategories)
-			{
-				if (subCat.m_id == targetId)
-				{
-					return currentCat.m_id;
-				}
-
-				StringUtils::StringHash foundInSub = GetParentIdRecursive(subCat, targetId);
-				if (foundInSub != 0)
-				{
-					return foundInSub;
-				}
-			}
-
-			return 0;
-		}
-
 		bool PropertyGridModel::RemovePropertyRecursive(CategoryType& category, StringUtils::StringHash propId)
 		{
 			auto it = std::find_if(category.m_properties.begin(), category.m_properties.end(),
@@ -608,13 +625,32 @@ namespace Berta
 
 		void PropertyGridModel::CleanUpCategoryLookup(const CategoryType& category)
 		{
+			// 1. La categoría también está en el parentLookup, la borramos
+			m_parentLookup.erase(category.m_id);
+
+			// 2. Limpiamos todas sus propiedades (y la descendencia de estas)
 			for (const auto& prop : category.m_properties)
 			{
-				m_propertyLookup.erase(prop->m_id);
+				CleanUpPropertyLookup(*prop);
 			}
+    
+			// 3. Limpiamos las subcategorías
 			for (const auto& subCat : category.m_subCategories)
 			{
 				CleanUpCategoryLookup(subCat);
+			}
+		}
+
+		void PropertyGridModel::CleanUpPropertyLookup(const PropertyFieldData& prop)
+		{
+			// 1. Limpiamos la propiedad actual de ambos mapas
+			m_propertyLookup.erase(prop.m_id);
+			m_parentLookup.erase(prop.m_id);
+    
+			// 2. Limpiamos recursivamente todas sus sub-propiedades (¡Bug corregido!)
+			for (const auto& subProp : prop.m_subProperties)
+			{
+				CleanUpPropertyLookup(*subProp);
 			}
 		}
 
@@ -676,6 +712,11 @@ namespace Berta
 				m_model->SetPropertyReadOnly(m_uniqueId, readOnly);
 			}
 			return *this;
+		}
+
+		std::string PropertyHandle::GetPath() const
+		{
+			return m_model->GetItemPath(m_uniqueId, '/');
 		}
 
 		PropertyHandle PropertyHandle::AppendSubProperty(StringUtils::StringHash parentId, std::unique_ptr<PropertyGridFieldBase> field)
@@ -765,6 +806,11 @@ namespace Berta
 				return {m_model, globalUniqueId};
 			}
 			return {};
+		}
+
+		std::string CategoryHandle::GetPath() const
+		{
+			return m_model->GetItemPath(m_id, '/');
 		}
 
 		CategoryHandle& CategoryHandle::SetIcon(const Image& icon)
