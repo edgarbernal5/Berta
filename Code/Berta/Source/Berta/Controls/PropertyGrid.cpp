@@ -1110,6 +1110,10 @@ namespace Berta
 			for (const auto& prop : category.m_properties)
 			{
 				prop->m_field->Refresh();
+				for (const auto& subProp : prop->m_subProperties)
+				{
+					subProp->m_field->Refresh();
+				}
 			}
 			for (const auto& sub : category.m_subCategories)
 			{
