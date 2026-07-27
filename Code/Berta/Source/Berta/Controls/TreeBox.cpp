@@ -729,6 +729,52 @@ namespace Berta
 		m_multiselection = enabled;
 	}
 
+	void TreeBoxReactor::Module::SelectNodes(const std::vector<TreeNodeType*>& nodes, bool append)
+	{
+		// 1. Guardar el estado ANTES del cambio
+		auto oldSelection = m_selectionController.GetSelectedItems();
+
+		// 2. Aplicar el cambio en batch
+		bool changed = m_selectionController.SelectBatch(nodes, append);
+    
+		if (changed)
+		{
+			if (!nodes.empty()) 
+			{
+				m_focusedNode = nodes.back();
+			}
+        
+			// 3. Invalidación Quirúrgica (Diferencia Simétrica)
+			auto newSelection = m_selectionController.GetSelectedItems();
+			std::vector<TreeNodeType*> dirtyNodes;
+        
+			// Encontrar nodos que se deseleccionaron
+			for (auto node : oldSelection)
+			{
+				if (std::find(newSelection.begin(), newSelection.end(), node) == newSelection.end())
+				{
+					dirtyNodes.push_back(node);
+				}
+			}
+        
+			// Encontrar nodos que se acaban de seleccionar
+			for (auto node : newSelection)
+			{
+				if (std::find(oldSelection.begin(), oldSelection.end(), node) == oldSelection.end())
+				{
+					dirtyNodes.push_back(node);
+				}
+			}
+
+			// 4. Repintar y Notificar UNA sola vez
+			if (!dirtyNodes.empty())
+			{
+				InvalidateNodes(dirtyNodes);
+				EmitSelectionEvent();
+			}
+		}
+	}
+
 	TreeNodeHandle TreeBoxReactor::Module::CleanKey(const TreeNodeHandle& key)
 	{
 		if (key.empty() || key[key.size() - 1] != '/')
@@ -1254,6 +1300,18 @@ namespace Berta
 		
 		module.RebuildFlatTree();
 		GUI::MarkAsNeedUpdate(module.m_window);
+	}
+
+	void TreeBox::SelectItems(const std::vector<TreeBoxItem>& items)
+	{
+		auto& module = GetReactor().GetModule();
+		std::vector<TreeNodeType*> nodes;
+		nodes.reserve(items.size());
+		for (auto& item : items)
+		{
+			nodes.push_back(item.GetNode());
+		}
+		module.SelectNodes(nodes);
 	}
 
 	void TreeBox::DeselectAll()

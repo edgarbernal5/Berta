@@ -216,7 +216,8 @@ namespace Berta
 			void DrawTreeNodes(Graphics& graphics);
 			
 			void EnableMultiselection(bool enabled);
-
+			void SelectNodes(const std::vector<TreeNodeType*>& nodes, bool append = false);
+			
 			TreeNodeHandle CleanKey(const TreeNodeHandle& key);
 			TreeNodeHandle GenerateUniqueHandle(const TreeNodeHandle& key, TreeNodeType* parentNode);
 			
@@ -434,6 +435,7 @@ namespace Berta
 		void CollapseAll();
 		void CollapseAll(TreeBoxItem item);
 
+		void SelectItems(const std::vector<TreeBoxItem>& nodes);
 		void DeselectAll();
 		
 		TreeBoxItem Find(const TreeNodeHandle& key);

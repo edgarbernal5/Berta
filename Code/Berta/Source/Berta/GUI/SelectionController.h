@@ -84,6 +84,45 @@ namespace Berta
             return selectionChanged;
         }
         
+        bool SelectBatch(const std::vector<T>& items, bool append)
+        {
+            if (!m_isMultiSelect)
+            {
+                return false;
+            }
+
+            bool changed = false;
+    
+            // Si no estamos sumando a la selección existente (sin Ctrl), limpiamos primero
+            if (!append)
+            {
+                if (!m_selectedItems.empty())
+                {
+                    m_selectedItems.clear();
+                    changed = true;
+                }
+            }
+
+            // Insertar los nuevos nodos
+            for (const auto& item : items)
+            {
+                // En C++17 'insert' de un set devuelve un std::pair<iterator, bool>
+                auto [it, inserted] = m_selectedItems.insert(item);
+                if (inserted) 
+                {
+                    changed = true;
+                }
+            }
+    
+            // Actualizar el ancla para que funcione el Shift después de esta selección
+            if (!items.empty()) 
+            {
+                m_anchorItem = items.back();
+            }
+
+            return changed;
+        }
+        
         void ClearSnapshot()
         {
             m_snapshotItems.clear();
