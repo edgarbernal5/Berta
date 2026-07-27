@@ -376,7 +376,7 @@ namespace Berta
 			return { m_node->children[0], m_module};
 		}
 
-		void Select();
+		void Select(bool ctrlPressed = false, bool shiftPressed = false);
 		void ScrollToItem();
 		
 		operator bool() const

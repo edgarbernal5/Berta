@@ -1033,20 +1033,38 @@ namespace Berta
 		GUI::MarkAsNeedUpdate(m_module->m_window);
 	}
 
-	void TreeBoxItem::Select()
+	void TreeBoxItem::Select(bool ctrlPressed, bool shiftPressed)
 	{
-		bool changed = m_module->m_selectionController.Select(m_node, false, false, m_module->m_treeRangeResolver);
+		auto oldSelection = m_module->m_selectionController.GetSelectedItems();
+
+		bool changed = m_module->m_selectionController.Select(m_node, ctrlPressed, shiftPressed, m_module->m_treeRangeResolver);
 		if (changed)
 		{
 			m_module->m_focusedNode = m_node;
 			
+			auto newSelection = m_module->m_selectionController.GetSelectedItems();
 			std::vector<TreeNodeType*> dirtyNodes;
-			dirtyNodes.reserve(1);
-			dirtyNodes.push_back(m_node);
-			
-			m_module->InvalidateNodes(dirtyNodes);
-			
-			m_module->EmitSelectionEvent();
+       
+			for (auto node : oldSelection)
+			{
+				if (std::find(newSelection.begin(), newSelection.end(), node) == newSelection.end())
+				{
+					dirtyNodes.push_back(node);
+				}
+			}
+			for (auto node : newSelection)
+			{
+				if (std::find(oldSelection.begin(), oldSelection.end(), node) == oldSelection.end())
+				{
+					dirtyNodes.push_back(node);
+				}
+			}
+       
+			if (!dirtyNodes.empty())
+			{
+				m_module->InvalidateNodes(dirtyNodes);
+				m_module->EmitSelectionEvent();
+			}
 		}
 	}
 
