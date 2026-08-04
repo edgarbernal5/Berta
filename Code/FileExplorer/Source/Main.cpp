@@ -90,7 +90,7 @@ public:
 
 		m_treeBox.GetEvents().Expanded.Connect([this](const Berta::ArgTreeBox& args)
 			{
-				if (!args.IsExpanded)
+				if (!args.Item.IsExpanded())
 					return;
 
 				if (args.Item.FirstChild() && args.Item.FirstChild().GetText() == L"...")

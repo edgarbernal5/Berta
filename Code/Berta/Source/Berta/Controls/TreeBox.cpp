@@ -178,6 +178,8 @@ namespace Berta
 			
 			GUI::MarkAsNeedUpdate(m_module.m_window);
 		}
+		
+		m_module.EmitDblClickEvent(clickedNode);
 	}
 
 	void TreeBoxReactor::MouseDown(Graphics& graphics, const ArgMouse& args)
@@ -839,8 +841,15 @@ namespace Berta
 	void TreeBoxReactor::Module::EmitExpansionEvent(TreeNodeType* node)
 	{
 		auto item = TreeBoxItem{ node, this };
-		ArgTreeBox argTreeBox(item, node->isExpanded);
+		ArgTreeBox argTreeBox(item);
 		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->Expanded.Emit(argTreeBox);
+	}
+
+	void TreeBoxReactor::Module::EmitDblClickEvent(TreeNodeType* node)
+	{
+		auto item = TreeBoxItem{ node, this };
+		ArgTreeBox argTreeBox(item);
+		reinterpret_cast<TreeBoxEvents*>(m_window->Events.get())->ItemDblClick.Emit(argTreeBox);
 	}
 
 	void TreeBoxReactor::Module::CollapseNode(TreeNodeType* node)

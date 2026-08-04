@@ -127,6 +127,10 @@ public:
 		m_treeBox.ShowIcons(true);
 		m_treeBox.ExpandAll();
 
+		m_treeBox.GetEvents().ItemDblClick.Connect([this](const Berta::ArgTreeBox& args)
+			{
+				BT_CORE_TRACE << " - tree box item dbl click event: " << Berta::StringUtils::WideToUTF8(args.Item.GetText()) << std::endl;
+			});
 		m_treeBox.GetEvents().Selected.Connect([this](const Berta::ArgTreeBoxSelection& args)
 			{
 				BT_CORE_TRACE << " - tree box selected event: " << args.Items.size() << std::endl;

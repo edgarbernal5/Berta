@@ -226,6 +226,7 @@ namespace Berta
 
 			void EmitSelectionEvent();
 			void EmitExpansionEvent(TreeNodeType* node);
+			void EmitDblClickEvent(TreeNodeType* node);
 			
 			void CollapseNode(TreeNodeType* node);
 			void ExpandNode(TreeNodeType* node);
@@ -376,6 +377,11 @@ namespace Berta
 		{
 			return { m_node->children[0], m_module};
 		}
+		
+		bool IsExpanded() const
+		{
+			return m_node->isExpanded;
+		}
 
 		void Select(bool ctrlPressed = false, bool shiftPressed = false);
 		void ScrollToItem();
@@ -396,9 +402,8 @@ namespace Berta
 	struct ArgTreeBox
 	{
 		TreeBoxItem &Item;
-		bool IsExpanded{ false };
 
-		ArgTreeBox(TreeBoxItem item, bool isExpanded) : Item(item), IsExpanded(isExpanded){}
+		ArgTreeBox(TreeBoxItem item) : Item(item){}
 	};
 	
 	struct ArgTreeDragDrop
@@ -420,6 +425,7 @@ namespace Berta
 		Event<ArgTreeDragDrop> DragOver;
 		Event<ArgTreeDragDrop> BeforeDrop;
 		Event<ArgTreeDragDrop> NodeMoved;
+		Event<ArgTreeBox> ItemDblClick;
 		Event<ArgTreeBox> Expanded;
 		Event<ArgTreeBoxSelection> Selected;
 	};
