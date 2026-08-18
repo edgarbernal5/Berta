@@ -824,6 +824,9 @@ namespace Berta
 		}
 
 		auto& foundation = Foundation::GetInstance();
+		
+		API::SetFocusWindow(window->RootHandle);
+		
 		if (previousFocused)
 		{
 			ArgFocus argFocus;
