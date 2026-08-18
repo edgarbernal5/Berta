@@ -59,6 +59,15 @@ namespace Berta
 
 			Window* m_window;
 		};
+		
+		class DebugMessageGuard
+		{
+		public:
+			DebugMessageGuard(std::ostringstream& debugBuilder);
+			~DebugMessageGuard();
+
+			std::ostringstream& m_debugBuilder;
+		};
 	private:
 
 		static Foundation g_foundation;
