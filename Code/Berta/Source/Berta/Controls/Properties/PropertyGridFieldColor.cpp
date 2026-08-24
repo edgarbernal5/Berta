@@ -70,13 +70,14 @@ namespace Berta
 				}
 			}
 		});
+		
 		m_colorRegion.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		{
+			if (args.Focused)
 			{
-				if (args.Focused)
-				{
-					NotifySelected();
-				}
-			});
+				NotifySelected();
+			}
+		});
 		
 		Refresh();
 	}

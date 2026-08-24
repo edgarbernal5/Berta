@@ -52,4 +52,9 @@ namespace Berta
 			m_windowManager.ExitSizeMove(child);
 		}
 	}
+
+	void Foundation::SetOnIdleTickCallback(std::function<void()> callback)
+	{
+		m_onIdleTickCallback = std::move(callback);
+	}
 }

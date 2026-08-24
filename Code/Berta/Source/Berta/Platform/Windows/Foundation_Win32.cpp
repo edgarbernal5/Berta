@@ -17,10 +17,11 @@
 
 #include "Berta/Controls/Menu.h"
 #include "Berta/Controls/MenuBar.h"
-#include "Berta/GUI/EnumTypes.h"
 #include "Berta/Paint/DrawBatchActivator.h"
 
 #include <windowsx.h> // Necesario para GET_X_LPARAM y GET_Y_LPARAM
+
+#include "Berta/GUI/Dispatcher.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
@@ -32,6 +33,10 @@
 //Google search: SWP_NOCOPYBITS
 namespace Berta
 {
+	Foundation Foundation::g_foundation;
+	
+	HINSTANCE g_hModuleInstance;
+	
 	Foundation::DebugMessageGuard::DebugMessageGuard(std::ostringstream& debugBuilder) : m_debugBuilder(debugBuilder)
 	{
 	}
@@ -43,16 +48,12 @@ namespace Berta
 		{
 			return;
 		}
-		BT_CORE_DEBUG << finalStr << " <<" << std::endl;
+		BT_CORE_DEBUG << finalStr << std::endl;
 	}
-
-	Foundation Foundation::g_foundation;
 
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 	bool IsDefaultMessage(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam, LRESULT& result);
-
-	HINSTANCE g_hModuleInstance;
-
+	
 	HINSTANCE GetModuleInstance()
 	{
 		if (g_hModuleInstance == nullptr)
@@ -134,16 +135,16 @@ namespace Berta
 		auto& dispatcher = Dispatcher::Get();
 		std::vector<API::NativeWindowHandle> allHandles;
 
-		MSG msg = { 0 };
+		MSG msg = {};
 		while (true) 
 		{
-			// 1. Condición de salida del Diálogo/Formulario
+			// Condición de salida del Diálogo/Formulario
 			if (keepRunning && !keepRunning())
 			{
-				break; // El lambda dijo que terminemos (ej. m_isClosed == true)
+				break;
 			}
 			
-			// 2. Procesamiento de mensajes de Windows
+			// Procesamiento de mensajes de Windows
 			if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
 				if (msg.message == WM_QUIT)
@@ -159,9 +160,14 @@ namespace Berta
 			}
 			else
 			{
+				// Tiempo de inactividad (Idle Time) / Renderizado
+				
+				if (m_onIdleTickCallback)
+				{
+					m_onIdleTickCallback();
+				}
 				dispatcher.ExecuteAll();
 				
-				// 3. Tiempo de inactividad (Idle Time) / Renderizado
 				bool anyWindowRefreshed = false;
 				
 				windowManager.GetNativeWindows(allHandles);
@@ -175,7 +181,7 @@ namespace Berta
 					}
 				}
 				
-				// 4. El Salvavidas de CPU (KISS & Performance)
+				// El Salvavidas de CPU
 				// Si no procesamos mensajes y tampoco dibujamos nada de DirectX,
 				// dormimos el hilo hasta que el usuario mueva el ratón o pase algo.
 				if (!anyWindowRefreshed)
@@ -341,11 +347,14 @@ namespace Berta
 			//debugBuilder << "WndProc message: " << it->second << ". hWnd = " << hWnd << std::endl;
 			g_debugLastMessageId[hWnd] = message;
 		}
-		else {
+		else
+		{
 			//printedMessage = true;
 			//debugBuilder << "WndProc message: UNKNOWN (" << message << ") .hWnd = " << hWnd;
 			return;
 		}
+		
+#if BT_DEBUG
 		auto& foundation = Foundation::GetInstance();
 		auto& windowManager = foundation.GetWindowManager();
 		API::NativeWindowHandle nativeWindowHandle{ hWnd };
@@ -354,6 +363,7 @@ namespace Berta
 		{
 			debugBuilder << ". Name: " << nativeWindow->Name;
 		}
+#endif
 	}
 	
 	LRESULT CALLBACK Foundation_WndProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)

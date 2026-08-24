@@ -13,11 +13,8 @@
 #include "Berta/Core/Event.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlEvents.h"
-#include "Berta/GUI/UIRendererCoordinator.h"
 
 #include <functional>
-
-#include "Berta/GUI/Dispatcher.h"
 
 namespace Berta
 {
@@ -51,6 +48,8 @@ namespace Berta
 		void EventEnterSizeMove(Window* window);
 		void EventExitSizeMove(Window* window);
 
+		void SetOnIdleTickCallback(std::function<void()> callback);
+		
 		class RootGuard
 		{
 		public:
@@ -71,6 +70,8 @@ namespace Berta
 	private:
 
 		static Foundation g_foundation;
+		
+		std::function<void()> m_onIdleTickCallback;
 		WindowManager m_windowManager;
 		MenuManager m_menuManager;
 	};
