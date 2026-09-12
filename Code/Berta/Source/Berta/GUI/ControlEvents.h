@@ -68,6 +68,17 @@ namespace Berta
             bool Shift : 1;
         }ButtonState;
     };
+	
+	struct ArgSysChar
+	{
+        wchar_t Key;
+		struct KeyboardState
+		{
+			bool Alt : 1;
+			bool Ctrl : 1;
+			bool Shift : 1;
+		}ButtonState;
+	};
 
 	struct ArgDestroy
 	{
@@ -102,6 +113,7 @@ namespace Berta
 		Event<ArgKeyboard>		KeyChar;
 		Event<ArgKeyboard>		KeyPressed;
 		Event<ArgKeyboard>		KeyReleased;
+		Event<ArgSysChar>		SysChar;
 		Event<ArgDestroy>		Destroy;
 		Event<ArgVisibility>	Visibility;
 	};

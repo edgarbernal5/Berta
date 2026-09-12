@@ -9,6 +9,8 @@
 
 #include <string>
 #include <vector>
+
+#include "ShortcutManager.h"
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Renderer.h"
 #include "Berta/GUI/ControlWindow.h"
@@ -102,6 +104,7 @@ namespace Berta
 		};
 		RenderFormData RenderForAttributes;
 		
+		ShortcutManager Shortcuts;
 		Window* MenuBar{ nullptr };
 		
 		bool HasCustomPaint() const;

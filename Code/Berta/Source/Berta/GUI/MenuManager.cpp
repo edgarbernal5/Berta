@@ -167,7 +167,8 @@ namespace Berta
 
     void MenuManager::UnsubscribeOnClose(uint32_t listenerId)
     {
-        m_onCloseListeners.erase(
+        m_onCloseListeners.erase
+        (
             std::remove_if(m_onCloseListeners.begin(), m_onCloseListeners.end(),
                 [listenerId](const auto& pair) { return pair.first == listenerId; }),
             m_onCloseListeners.end()

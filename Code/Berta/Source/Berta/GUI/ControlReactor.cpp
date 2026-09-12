@@ -74,6 +74,10 @@ namespace Berta
 	{
 	}
 
+	void ControlReactor::SysChar(Graphics& graphics, const ArgSysChar& args)
+	{
+	}
+
 	void ControlReactor::Resize(Graphics& graphics, const ArgResize& args)
 	{
 	}

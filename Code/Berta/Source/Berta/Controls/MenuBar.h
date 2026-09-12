@@ -67,6 +67,8 @@ namespace Berta
 				void OpenMenu(bool focusFirstItem = false);
 				void MoveSelection(int step);
 
+				void ExecuteAccessKey(const wchar_t& accessKey);
+				
 				Window* m_owner{ nullptr };
 				ControlBase* m_control{ nullptr };
             
@@ -75,6 +77,8 @@ namespace Berta
 				std::optional<Point> m_lastMousePos{ std::nullopt };
 				uint32_t m_closeListenerId { 0 };
 				InteractionData m_interaction;
+				
+				EventHandlerId m_sysCharEventHandler { 0 };
 			};
 			
 			Module& GetModule() { return m_module; }

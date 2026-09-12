@@ -74,7 +74,7 @@ int main()
 	
 	newSubMenu->SetImage(0, hddImage);
 	
-	fileMenu.AppendSubMenu(L"New", std::move(newSubMenu));
+	fileMenu.AppendSubMenu(L"&New", std::move(newSubMenu));
 	fileMenu.AppendSeparator();
 	
 	auto openSubMenu = std::make_unique<Berta::Menu>();
@@ -90,8 +90,8 @@ int main()
 	fileMenu.SetImage(0, imageImage);
 
 	auto& editMenu = menuBar.PushBack("&Edit");
-	editMenu.Append("Undo");
-	editMenu.Append("Redo");
+	editMenu.Append("&Undo");
+	editMenu.Append("&Redo");
 	editMenu.AppendSeparator();
 	editMenu.Append("Cut").SetImage(cutImage).SetEnabled(false);
 	editMenu.Append("Copy").SetImage(cutImage).SetEnabled(false);

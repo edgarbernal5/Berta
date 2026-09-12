@@ -36,6 +36,7 @@ namespace Berta
 		virtual void KeyChar(Graphics& graphics, const ArgKeyboard& args);
 		virtual void KeyPressed(Graphics& graphics, const ArgKeyboard& args);
 		virtual void KeyReleased(Graphics& graphics, const ArgKeyboard& args);
+		virtual void SysChar(Graphics& graphics, const ArgSysChar& args);
 		virtual void Resize(Graphics& graphics, const ArgResize& args);
 		virtual void Move(Graphics& graphics, const ArgMove& args);
 		virtual void DpiChanged(Graphics& graphics);

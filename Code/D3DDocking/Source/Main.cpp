@@ -271,6 +271,11 @@ public:
 			OnDraw();
 			std::cout << " .... END RENDERING ////***/**/" << std::endl;
 		});
+		
+		m_nestedForm->GetEvents().Focus.Connect([](const Berta::ArgFocus& args)
+		{
+			std::cout << " nested form FOCUS / " << args.Focused << std::endl;
+		});
 
 		m_nestedForm->GetEvents().Resize.Connect([this](const Berta::ArgResize& args)
 		{
@@ -417,6 +422,11 @@ int main()
 	Berta::Form form(Berta::Size(700u, 450u), { true, true, true });
 	form.SetCaption("Docking system - Example");
 
+	form.GetEvents().Focus.Connect([](const Berta::ArgFocus& args)
+	{
+		std::cout << " Main form FOCUS / " << args.Focused << std::endl;
+	});
+	
 	Berta::MenuBar menuBar(form, { 0,0, 100, 25 });
 	auto& menuFile = menuBar.PushBack(L"&File");
 

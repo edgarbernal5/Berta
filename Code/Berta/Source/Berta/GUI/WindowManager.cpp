@@ -623,7 +623,6 @@ namespace Berta
 		
 		if (window->HasCustomPaint() || window->IsNested())
 		{
-			//API::RefreshWindow(window->RootHandle);
 			return;
 		}
 
@@ -816,31 +815,46 @@ namespace Berta
 	void WindowManager::Focus(Window* window, const ArgFocus::Reason reason)
 	{
 		auto& formData = *GetFormData(window->RootHandle);
-		auto& previousFocused= formData.Focused;
-		
-		if (previousFocused == window)
+		auto& previousFocused = formData.Focused;
+
+		bool logicalFocusChanged = (previousFocused != window);
+    
+		bool needsNativeFocus = API::GetFocusWindow() != window->RootHandle;
+
+		// Si no cambió el control interno Y ya tenemos el foco del OS, entonces sí es seguro ignorarlo.
+		if (!logicalFocusChanged && !needsNativeFocus)
 		{
 			return;
 		}
 
 		auto& foundation = Foundation::GetInstance();
-		
-		API::SetFocusWindow(window->RootHandle);
-		
-		if (previousFocused)
+
+		if (logicalFocusChanged && previousFocused)
 		{
 			ArgFocus argFocus;
 			argFocus.Focused = false;
 			argFocus.FocusReason = reason;
 			foundation.ProcessEvents(previousFocused, &Renderer::Focus, &ControlEvents::Focus, argFocus);
 		}
-		
-		previousFocused = window;
-		
-		ArgFocus argFocus;
-		argFocus.Focused = true;
-		argFocus.FocusReason = reason;
-		foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+
+		if (logicalFocusChanged)
+		{
+			previousFocused = window;
+		}
+
+		// OJO: Si needsNativeFocus es true, la API de Win32 manda WM_SETFOCUS de forma 
+		// SÍNCRONA antes de pasar a la siguiente línea, por lo que WndProc emitirá un Focus(true).
+		API::SetFocusWindow(window->RootHandle);
+
+		// IMPORTANTE: Para evitar el "Doble Disparo", solo lo emitimos manualmente 
+		// si Win32 NO acaba de disparar el WM_SETFOCUS por nosotros.
+		if (logicalFocusChanged && !needsNativeFocus)
+		{
+			ArgFocus argFocus;
+			argFocus.Focused = true;
+			argFocus.FocusReason = reason;
+			foundation.ProcessEvents(window, &Renderer::Focus, &ControlEvents::Focus, argFocus);
+		}
 	}
 
 	bool WindowManager::IsPointOnWindow(Window* window, const Point& point)
@@ -871,8 +885,7 @@ namespace Berta
 				auto child = window->Children[--index];
 				if (!child->IsNative() && IsPointOnWindow(child, point))
 				{
-					auto innerChild = FindInTree(child, point);
-					if (innerChild)
+					if (auto innerChild = FindInTree(child, point))
 					{
 						return innerChild;
 					}

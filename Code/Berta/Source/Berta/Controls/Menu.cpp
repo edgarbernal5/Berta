@@ -7,6 +7,7 @@
 #include "btpch.h"
 #include "Menu.h"
 
+#include <cwctype>
 #include <utility>
 
 #include "Berta/GUI/Interface.h"
@@ -24,13 +25,22 @@ namespace Berta
 	MenuItem Menu::Append(const std::string& text, ClickCallback onClick)
 	{
 		const auto wstr = StringUtils::UTF8ToWide(text);
-		m_items.emplace_back(MenuAction{ wstr, L"", Image{}, std::move(onClick) });
+		
+		wchar_t accessKey;
+		std::size_t accessKeyPosition;
+		auto cleanText = GUI::GetAccessKeyText(wstr, accessKey, &accessKeyPosition);
+		
+		m_items.emplace_back(MenuAction{ cleanText, L"", Image{}, std::move(onClick), accessKey, accessKeyPosition });
 		return {this, m_items.size() - 1};
 	}
 
 	MenuItem Menu::Append(const std::wstring& text, ClickCallback onClick)
 	{
-		m_items.emplace_back(MenuAction{ text, L"", Image{}, std::move(onClick) });
+		wchar_t accessKey;
+		std::size_t accessKeyPosition;
+		auto cleanText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
+		
+		m_items.emplace_back(MenuAction{ cleanText, L"", Image{}, std::move(onClick), accessKey, accessKeyPosition });
 		return {this, m_items.size() - 1};
 	}
 
@@ -42,13 +52,21 @@ namespace Berta
 
 	MenuItem Menu::AppendSubMenu(const std::wstring& text, std::unique_ptr<Menu> subMenu)
 	{
-		m_items.emplace_back(MenuSubMenu{ text, Image{}, std::move(subMenu) });
+		wchar_t accessKey;
+		std::size_t accessKeyPosition;
+		auto cleanText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
+		
+		m_items.emplace_back(MenuSubMenu{ cleanText, Image{}, std::move(subMenu), accessKey, accessKeyPosition });
 		return {this, m_items.size() - 1};
 	}
 
 	MenuItem Menu::AppendCheckbox(const std::wstring& text, bool initialState, ToggleCallback onToggle)
 	{
-		m_items.emplace_back(MenuCheckbox{ text, initialState, std::move(onToggle) });
+		wchar_t accessKey;
+		std::size_t accessKeyPosition;
+		auto cleanText = GUI::GetAccessKeyText(text, accessKey, &accessKeyPosition);
+		
+		m_items.emplace_back(MenuCheckbox{ cleanText, initialState, std::move(onToggle), accessKey, accessKeyPosition });
 		return {this, m_items.size() - 1};
 	}
 
@@ -59,12 +77,16 @@ namespace Berta
 			return;
 		}
 		
-		std::visit([&text](auto& item)
+		std::visit([&text, this](auto& item)
 		{
 			using T = std::decay_t<decltype(item)>;
 			if constexpr (!std::is_same_v<T, MenuSeparator>)
 			{
-				item.text = text;
+				item.m_textHandle.Release();
+				
+				auto cleanText = GUI::GetAccessKeyText(text, item.accessKey, &item.accessKeyPosition);
+
+				item.text = cleanText;
 			}
 		}, m_items[index]);
 	}
@@ -182,7 +204,29 @@ namespace Berta
 			checkbox->isChecked = !checkbox->isChecked;
 		}
 	}
-	
+
+	void Menu::OnDpiChanged()
+	{
+		for (const auto& itemData : m_items)
+		{
+			std::visit([&](const auto& arg)
+			{
+				using T = std::decay_t<decltype(arg)>;
+				if constexpr (!std::is_same_v<T, Menu::MenuSeparator>)
+				{
+					arg.m_textHandle.Release();
+				}
+				if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
+				{
+					if (arg.subMenu)
+					{
+						arg.subMenu->OnDpiChanged();
+					}
+				}
+			}, itemData);
+		}
+	}
+
 	bool MenuBox::MenuItem::GetEnabled() const
 	{
 		return IsValid() ? m_owner->GetEnabled(m_index) : false;
@@ -265,7 +309,7 @@ namespace Berta
 			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
 			int leftPaneWidth = window->ToScale(appearance->MenuBoxLeftPaneWidth);
 			auto menuArrowWidth = window->ToScale(appearance->MenuBoxSubMenuArrowWidth);
-			
+			const auto& items= m_module.m_menuData->GetItems();
 			graphics.FillRectangle(window->ClientSize.ToRectangle(), appearance->MenuBackground);
 			graphics.DrawRectangle(window->ClientSize.ToRectangle(), appearance->BoxBorderColor);
 			
@@ -279,10 +323,10 @@ namespace Berta
 					using T = std::decay_t<decltype(itemData)>;
 					if constexpr (std::is_same_v<T, Menu::MenuSeparator>)
 					{
-						int midY = cache.bounds.Y + (int)cache.bounds.Height / 2;
+						int midY = cache.bounds.Y + static_cast<int>(cache.bounds.Height) / 2;
 						graphics.DrawLine(
 							{ leftPaneWidth, midY }, 
-							{ (int)cache.bounds.Width - window->ToScale(4), midY }, 
+							{ static_cast<int>(cache.bounds.Width) - window->ToScale(4), midY }, 
 							appearance->BoxBorderColor
 						);
 					}
@@ -303,16 +347,23 @@ namespace Berta
 							(isHovered ? appearance->HighlightTextColor : appearance->Foreground) : 
 							appearance->ButtonDisabledBackground;
 
-						graphics.DrawString(cache.textPosition, itemData.text, mainColor);
+						m_module.EnsureLayout(itemData.m_textHandle, cache.bounds, itemData.text);
+						graphics.DrawTextLayout(itemData.m_textHandle, cache.textPosition, mainColor);
+						
+						if (itemData.accessKey != 0)
+						{
+							GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, cache.textPosition, mainColor);
+						}
+						
 						if constexpr (std::is_same_v<T, Menu::MenuAction> || std::is_same_v<T, Menu::MenuSubMenu>)
 						{
 							if (itemData.image)
 							{
-								int iconSize = window->ToScale(appearance->SmallIconSize);
-								int iconX = cache.bounds.X + (leftPaneWidth - iconSize) / 2;
-								int iconY = cache.bounds.Y + (cache.bounds.Height - iconSize) / 2;
+								uint32_t iconSize = window->ToScale(appearance->SmallIconSize);
+								int iconX = cache.bounds.X + (leftPaneWidth - static_cast<int>(iconSize)) / 2;
+								int iconY = cache.bounds.Y + (static_cast<int>(cache.bounds.Height) - static_cast<int>(iconSize)) / 2;
 								
-								Rectangle destRect { iconX, iconY, (uint32_t)iconSize, (uint32_t)iconSize };
+								Rectangle destRect { iconX, iconY, iconSize, iconSize };
 								Rectangle srcRect = itemData.image.GetSize().ToRectangle();
 								
 								itemData.image.Paste(srcRect, graphics, destRect);
@@ -350,7 +401,7 @@ namespace Berta
 							}
 						}
 					}
-				}, m_module.m_menuData->GetItems()[i]);
+				}, items[i]);
 			}
 		}
 
@@ -524,6 +575,66 @@ namespace Berta
 					menuManager.Close(m_module.m_owner);
 				}
 				break;
+			default:
+				{
+					wchar_t pressedKey = std::towupper(args.Key);
+					const auto& items = m_module.m_menuData->GetItems(); 
+    
+					for (size_t i = 0; i < items.size(); ++i)
+					{
+						bool mnemonicConsumed = false;
+
+						std::visit([&](auto&& item) {
+							using T = std::decay_t<decltype(item)>;
+            
+							if constexpr (!std::is_same_v<T, Menu::MenuSeparator>)
+							{
+								if (item.isEnabled && std::towupper(item.accessKey) == pressedKey)
+								{
+									mnemonicConsumed = true;
+                    
+									m_module.m_hoveredIndex = i; 
+
+									if constexpr (std::is_same_v<T, Menu::MenuAction>)
+									{
+										auto callback = item.onClick;
+										Menu* safeMenuData = m_module.m_menuData;
+										Foundation::GetInstance().GetMenuManager().CloseAll();
+
+										if (callback)
+										{
+											callback(MenuItem(safeMenuData, i));
+										}
+									}
+									else if constexpr (std::is_same_v<T, Menu::MenuCheckbox>)
+									{
+										m_module.m_menuData->ToggleCheckbox(i);
+										bool newState = item.isChecked;
+										auto callback = item.onToggle;
+										Menu* safeMenuData = m_module.m_menuData;
+
+										Foundation::GetInstance().GetMenuManager().CloseAll();
+
+										if (callback)
+										{
+											callback(MenuItem(safeMenuData, i), newState);
+										}
+									}
+									else if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
+									{
+										m_module.OpenHoveredSubMenu(true);
+									}
+								}
+							}
+						}, items[i]);
+
+						if (mnemonicConsumed)
+						{
+							break;
+						}
+					}
+					break;
+				}
 			}
 			
 			GUI::MarkAsNeedUpdate(m_module.m_owner);
@@ -593,7 +704,7 @@ namespace Berta
 					}
 					else
 					{
-						cache.bounds = { 0, currentY, finalWidth, (uint32_t)itemHeight };
+						cache.bounds = { 0, currentY, finalWidth, static_cast<uint32_t>(itemHeight) };
 					
 						auto textSize = graphics.GetTextExtent(arg.text);
 						if (textSize.Width > maxTextWidth)
@@ -607,14 +718,14 @@ namespace Berta
 						if constexpr (std::is_same_v<T, Menu::MenuSubMenu>)
 						{
 							int arrowY = currentY + (itemHeight - arrowWidth) / 2;
-							cache.arrowPosition = { (int)finalWidth - arrowWidth, arrowY };
+							cache.arrowPosition = { static_cast<int>(finalWidth) - arrowWidth, arrowY };
 						}
 						else if constexpr (std::is_same_v<T, Menu::MenuAction>)
 						{
 							if (!arg.shortcutText.empty())
 							{
 								auto sSize = graphics.GetTextExtent(arg.shortcutText);
-								cache.shortcutPosition = { (int)finalWidth - shortcutWidth - padding, textY };
+								cache.shortcutPosition = { static_cast<int>(finalWidth) - shortcutWidth - padding, textY };
 							}
 						}
 					
@@ -623,7 +734,7 @@ namespace Berta
 				}, items[i]);
 			}
 		
-			m_calculatedBoxSize = { finalWidth, (uint32_t)(currentY + m_owner->ToScale(2u)) };
+			m_calculatedBoxSize = { finalWidth, static_cast<uint32_t>(currentY) + m_owner->ToScale(2u) };
 		}
 
 		void Module::InitFromData(Menu& menuData)
@@ -807,6 +918,40 @@ namespace Berta
 					return;
 				}
 			}
+		}
+
+		void Module::EnsureLayout(TextPaintNativeHandle& textHandle, const Rectangle& bounds, const std::wstring& text)
+		{
+			if (textHandle.IsValid())
+			{
+				return;
+			}
+			
+#ifdef BT_PLATFORM_WINDOWS
+			auto nativeAttr = m_owner->Renderer.GetGraphics().GetNativeHandle();
+			if (!nativeAttr || !nativeAttr->m_textFormat)
+			{
+				return;
+			}
+
+			float layoutWidth = static_cast<float>(bounds.Width);
+			float layoutHeight = static_cast<float>(bounds.Height);
+		
+			HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+			(
+				text.c_str(),
+				static_cast<UINT32>(text.size()),
+				nativeAttr->m_textFormat,
+				layoutWidth,
+				layoutHeight,
+				&textHandle.m_textLayout
+			);
+
+			if (FAILED(hr))
+			{
+				BT_CORE_ERROR << "Failed! Ensure layout with text " << Berta::StringUtils::WideToUTF8(text) << std::endl;
+			}
+#endif
 		}
 	}
 

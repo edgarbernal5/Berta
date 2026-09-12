@@ -56,6 +56,8 @@ namespace Berta
 			wchar_t accessKey{ 0 };
 			std::size_t accessKeyPosition{ 0 };
 			bool isEnabled{ true };
+			
+			mutable TextPaintNativeHandle m_textHandle;
 		};
 		
 		struct MenuCheckbox 
@@ -63,7 +65,11 @@ namespace Berta
 			std::wstring text;
 			bool isChecked{ false };
 			ToggleCallback onToggle;
+			wchar_t accessKey{ 0 };
+			std::size_t accessKeyPosition{ 0 };
 			bool isEnabled{ true };
+			
+			mutable TextPaintNativeHandle m_textHandle;
 		};
 
 		struct MenuSubMenu
@@ -71,7 +77,11 @@ namespace Berta
 			std::wstring text;
 			Image image;
 			std::unique_ptr<Menu> subMenu;
+			wchar_t accessKey{ 0 };
+			std::size_t accessKeyPosition{ 0 };
 			bool isEnabled{ true };
+			
+			mutable TextPaintNativeHandle m_textHandle;
 		};
 		
 		using MenuItemData = std::variant<MenuSeparator, MenuAction, MenuSubMenu, MenuCheckbox>;
@@ -101,6 +111,7 @@ namespace Berta
 		void SetChecked(size_t index, bool checked);
 		void ToggleCheckbox(size_t index);
 		
+		void OnDpiChanged();
 	private:
 		std::vector<MenuItemData> m_items;
 	};
@@ -167,7 +178,8 @@ namespace Berta
 			void MoveSelection(int step);
 			
 			void SetIgnoreFirstMouseUp(bool value) { m_ignoreFirstMouseUp = value; }
-			
+			void EnsureLayout(TextPaintNativeHandle& textHandle, const Rectangle& bounds, const std::wstring& text);
+		
 			Window* m_owner { nullptr };
 			ControlBase* m_control { nullptr };
 			

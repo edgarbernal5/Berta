@@ -9,6 +9,8 @@
 
 #ifdef BT_PLATFORM_WINDOWS
 
+#include <cwctype>
+
 #include "Berta/Core/Base.h"
 #include "Berta/Core/Log.h"
 #include "Berta/GUI/Window.h"
@@ -22,6 +24,7 @@
 #include <windowsx.h> // Necesario para GET_X_LPARAM y GET_Y_LPARAM
 
 #include "Berta/GUI/Dispatcher.h"
+#include "Berta/GUI/Shortcut.h"
 
 #if BT_DEBUG
 #ifndef BT_PRINT_WND_MESSAGES
@@ -199,28 +202,28 @@ namespace Berta
 	//Short list.
 	std::map<uint32_t, std::string> g_debugWndMessages
 	{
-		{WM_MOVE,			"WM_MOVE"},
+		//{WM_MOVE,			"WM_MOVE"},
 		//{WM_MOVING,			"WM_MOVING"},
-		{WM_SIZE,			"WM_SIZE"},
+		//{WM_SIZE,			"WM_SIZE"},
 		//{WM_SIZING,			"WM_SIZING"},
 
-		{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
+		//{WM_SHOWWINDOW,		"WM_SHOWWINDOW"},
 		//{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
-		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
-		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
-		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
+		//{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+		//{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
+		//{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
 
-		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
-		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
-		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
+		//{WM_LBUTTONUP,		"WM_LBUTTONUP"},
+		//{WM_MBUTTONUP,		"WM_MBUTTONUP"},
+		//{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 
 		{WM_SETFOCUS,		"WM_SETFOCUS"},
 		{WM_KILLFOCUS,		"WM_KILLFOCUS"},
 
-		{WM_SYSCOMMAND,		"WM_SYSCOMMAND"},
+		/*{WM_SYSCOMMAND,		"WM_SYSCOMMAND"},
 		
 		{WM_MOUSELEAVE,		"WM_MOUSELEAVE"},
 		
@@ -229,7 +232,7 @@ namespace Berta
 		{WM_KEYDOWN,			"WM_KEYDOWN"},
 		{WM_KEYUP,			"WM_KEYUP"},
 		{WM_SYSKEYDOWN,		"WM_SYSKEYDOWN"},
-		{WM_SYSKEYUP,		"WM_SYSKEYUP"},
+		{WM_SYSKEYUP,		"WM_SYSKEYUP"},*/
 		
 		//{WM_ERASEBKGND,		"WM_ERASEBKGND"},
 		//{WM_WINDOWPOSCHANGED,		"WM_WINDOWPOSCHANGED"},
@@ -733,20 +736,7 @@ namespace Berta
 					auto focusWindow = window->Flags.MakeActive ? window : window->MakeTargetWhenInactive;
 					if (focusWindow && !focusWindow->Flags.IgnoreMouseFocus)
 					{
-						if (rootFocusedWindow != focusWindow)
-						{
-							if (rootFocusedWindow)
-							{
-								ArgFocus argFocus{ false };
-								foundation.ProcessEvents(rootFocusedWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
-							}
-							if (focusWindow)
-							{
-								ArgFocus argFocus{ true, ArgFocus::Reason::MousePress };
-								foundation.ProcessEvents(focusWindow, &Renderer::Focus, &ControlEvents::Focus, argFocus);
-							}
-						}
-						rootFocusedWindow = focusWindow;
+						windowManager.Focus(focusWindow, ArgFocus::Reason::MousePress);
 					}
 
 					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
@@ -786,6 +776,7 @@ namespace Berta
 					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
 					auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
 					Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+					
 					if (window != rootHoveredWindow)
 					{
 						rootHoveredWindow = window;
@@ -898,7 +889,20 @@ namespace Berta
 				}
 				break;
 			}
-		case WM_CHAR://case WM_SYSCHAR: //TODO
+			case WM_SYSCHAR:
+			{
+				wasHandled = true;
+				ArgSysChar argSys{};
+				argSys.Key = std::towupper(static_cast<wchar_t>(wParam));
+				argSys.ButtonState.Alt = true;
+				argSys.ButtonState.Shift = false;
+				argSys.ButtonState.Ctrl = false;
+				
+				auto target = nativeWindow;
+				foundation.ProcessEvents(target, &Renderer::SysChar, &ControlEvents::SysChar, argSys);
+				break;
+			}
+		case WM_CHAR:
 			{
 				wasHandled = true;
 
@@ -916,8 +920,55 @@ namespace Berta
 				break;
 			}
 		case WM_KEYDOWN:
-		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
+			{
+				ArgKeyboard argKeyboard{};
+				argKeyboard.ButtonState.Alt = (::GetKeyState(VK_MENU) & 0x80) != 0;
+				argKeyboard.ButtonState.Ctrl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+				argKeyboard.ButtonState.Shift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
+				argKeyboard.Key = static_cast<wchar_t>(wParam);
+				
+				bool isCtrl = (::GetKeyState(VK_CONTROL) & 0x8000) != 0;
+				bool isShift = (::GetKeyState(VK_SHIFT) & 0x8000) != 0;
+				bool isAlt = (::GetKeyState(VK_MENU) & 0x8000) != 0;
+				wchar_t key = static_cast<wchar_t>(wParam);
+
+				auto target = rootFocusedWindow ? rootFocusedWindow : nativeWindow;
+    
+				// Si hay modificadores presionados (o si es una tecla F1-F12), evaluamos atajos
+				if (isCtrl || isAlt) 
+				{
+					Shortcut currentShortcut{ key, isCtrl, isShift, isAlt };
+					bool shortcutHandled = false;
+
+					Window* bubbleNode = target;
+					while (bubbleNode && !shortcutHandled)
+					{
+						shortcutHandled = bubbleNode->Shortcuts.Execute(currentShortcut);
+						if (!shortcutHandled)
+						{
+							bubbleNode = bubbleNode->Parent;
+						}
+					}
+
+					// Si un atajo se ejecutó, detenemos el procesamiento estándar de la tecla
+					if (shortcutHandled)
+					{
+						wasHandled = true;
+						break;
+					}
+				}
+				
+				if (menuManager.AnyPopupActive())
+				{
+					target = menuManager.GetTopPopup();
+				}
+				
+				foundation.ProcessEvents(target, &Renderer::KeyPressed, &ControlEvents::KeyPressed, argKeyboard);
+				
+				break;
+			}
+		case WM_KEYUP:
 		case WM_SYSKEYUP:
 			{
 				//wasHandled = true;

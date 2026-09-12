@@ -178,6 +178,7 @@
     <ClInclude Include="Source\Berta\GUI\LassoSelection.h" />
     <ClInclude Include="Source\Berta\GUI\ScrollableView.h" />
     <ClInclude Include="Source\Berta\GUI\SelectionController.h" />
+    <ClInclude Include="Source\Berta\GUI\Shortcut.h" />
     <ClInclude Include="Source\Berta\GUI\ShortcutManager.h" />
     <ClInclude Include="Source\Berta\GUI\Dispatcher.h" />
     <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />

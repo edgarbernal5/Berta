@@ -676,6 +676,48 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawTextWithMnemonic(std::wstring_view wstrView, const Rectangle& area, Color color, uint32_t mnemonicIndex, bool showUnderline)
+	{
+		if (wstrView.empty() || !IsValid())
+		{
+			return;
+		}
+		
+#ifdef BT_PLATFORM_WINDOWS
+		auto wstr = std::wstring(wstrView);
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout = nullptr;
+		
+		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
+		(
+			wstr.c_str(), 
+			static_cast<UINT32>(wstr.size()),
+			m_attributes->m_textFormat,
+			static_cast<FLOAT>(area.Width), static_cast<FLOAT>(area.Height),
+			&textLayout
+		);
+
+		if (FAILED(hr))
+		{
+			return;
+		}
+
+		if (showUnderline && mnemonicIndex < wstr.length())
+		{
+			DWRITE_TEXT_RANGE range = { mnemonicIndex, 1 };
+			textLayout->SetUnderline(TRUE, range);
+		}
+		
+		auto brush = m_resourceCache.GetBrush(color);
+		m_targetRT->DrawTextLayout
+		(
+			D2D1_POINT_2F {static_cast<FLOAT>(area.X), static_cast<FLOAT>(area.Y)},
+			textLayout.Get(),
+			brush,
+			D2D1_DRAW_TEXT_OPTIONS_CLIP
+		);
+#endif
+	}
+
 	void Graphics::DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color)
 	{
 		if (!handle.IsValid())

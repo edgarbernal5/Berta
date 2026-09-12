@@ -57,8 +57,8 @@ namespace Berta
 		}
 
 		Rectangle button2Rect = m_isVertical ?
-			Rectangle{ 0, (int)(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize } :
-			Rectangle{ (int)(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height };
+			Rectangle{ 0, static_cast<int>(window->ClientSize.Height - buttonSize), window->ClientSize.Width, buttonSize } :
+			Rectangle{ static_cast<int>(window->ClientSize.Width - buttonSize), 0, buttonSize, window->ClientSize.Height };
 		DrawButton(graphics, button2Rect, arrowLength, arrowWidth, m_isVertical ? Graphics::ArrowDirection::Downwards : Graphics::ArrowDirection::Right, m_hoverArea == InteractionArea::Button2, enabled);
 	}
 

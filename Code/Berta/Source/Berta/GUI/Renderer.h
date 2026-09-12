@@ -36,6 +36,7 @@ namespace Berta
 		void KeyChar(const ArgKeyboard& args);
 		void KeyPressed(const ArgKeyboard& args);
 		void KeyReleased(const ArgKeyboard& args);
+		void SysChar(const ArgSysChar& args);
 		void Resize(const ArgResize& args);
 		void Move(const ArgMove& args);
 		void DpiChanged();

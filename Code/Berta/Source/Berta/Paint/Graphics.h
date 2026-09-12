@@ -83,6 +83,7 @@ namespace Berta
 		
 		void DrawString(const Rectangle& area, std::string_view strView, const Color& color, const TextFormatOptions& options = {});
 		void DrawString(const Rectangle& area, std::wstring_view wstrView, const Color& color, const TextFormatOptions& options = {});
+		void DrawTextWithMnemonic(std::wstring_view wstrView, const Rectangle& area, Color color, uint32_t mnemonicIndex, bool showUnderline = true);
 		
 		void DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color);
 		

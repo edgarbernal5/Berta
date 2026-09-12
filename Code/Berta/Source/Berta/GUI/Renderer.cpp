@@ -130,6 +130,11 @@ namespace Berta
 		ProcessEvent(&ControlReactor::KeyReleased, args);
 	}
 
+	void Renderer::SysChar(const ArgSysChar& args)
+	{
+		ProcessEvent(&ControlReactor::SysChar, args);
+	}
+
 	void Renderer::Resize(const ArgResize& args)
 	{
 		ProcessEvent(&ControlReactor::Resize, args);

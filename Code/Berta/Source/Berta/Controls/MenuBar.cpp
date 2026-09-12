@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "MenuBar.h"
 
+#include <complex>
+
 #include "Berta/Core/Foundation.h"
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/EnumTypes.h"
@@ -34,6 +36,14 @@ namespace Berta
 					}
 
 					GUI::MarkAsNeedUpdate(m_module.m_owner);
+				}
+			});
+			
+			m_module.m_sysCharEventHandler = m_module.m_owner->RootWindow->Events->SysChar.Connect([this](const ArgSysChar &args)
+			{
+				if (args.ButtonState.Alt)
+				{
+					m_module.ExecuteAccessKey(args.Key);
 				}
 			});
 		}
@@ -65,8 +75,7 @@ namespace Berta
 
 				if (enabled && itemData.accessKey != 0)
 				{
-					GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, 
-						itemData.accessKeyPosition, cache.textPosition, textColor);
+					GUI::DrawAccessKeyUnderline(graphics, itemData.text, itemData.accessKey, itemData.accessKeyPosition, cache.textPosition, textColor);
 				}
 			}
 		}
@@ -169,6 +178,16 @@ namespace Berta
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
 			m_module.CalculateLayout();
+			if (m_module.m_items.empty() || !m_module.m_owner)
+			{
+				return;
+			}
+
+			for (size_t i = 0; i < m_module.m_items.size(); ++i)
+			{
+				auto& itemData = m_module.m_items[i];
+				itemData.menu.OnDpiChanged();
+			}
 		}
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
@@ -270,8 +289,8 @@ namespace Berta
 			m_layoutCache.clear();
 			m_layoutCache.resize(m_items.size());
 
-			int paddingX = (int)m_owner->ToScale(appearance->ItemPaddingInner);
-			int barHeight = (int)m_owner->ClientSize.Height;
+			int paddingX = static_cast<int>(m_owner->ToScale(appearance->ItemPaddingInner));
+			int barHeight = static_cast<int>(m_owner->ClientSize.Height);
 			int currentX = 0;
 
 			for (size_t i = 0; i < m_items.size(); ++i)
@@ -280,7 +299,7 @@ namespace Berta
 				auto& cache = m_layoutCache[i];
 
 				auto textSize = graphics.GetTextExtent(itemData.text);
-				int itemWidth = (int)textSize.Width + (paddingX * 2);
+				int itemWidth = static_cast<int>(textSize.Width) + (paddingX * 2);
 
 				cache.bounds = { currentX, 0, static_cast<uint32_t>(itemWidth), static_cast<uint32_t>(barHeight) };
 				
@@ -308,7 +327,7 @@ namespace Berta
 			m_interaction.m_selectedIndex = index;
 			m_interaction.m_isMenuOpen = true;
 			
-			Point popupPos = { cache.bounds.X, cache.bounds.Y + (int)cache.bounds.Height };
+			Point popupPos = { cache.bounds.X, cache.bounds.Y + static_cast<int>(cache.bounds.Height) };
 			menuManager.ShowMenuBarPopup(itemData.menu, m_owner, popupPos);
 
 			Window* activePopup = menuManager.GetTopPopup();
@@ -341,6 +360,31 @@ namespace Berta
 				OpenMenu(true);
 			}
 		}
+
+		void Reactor::Module::ExecuteAccessKey(const wchar_t& accessKey)
+		{
+			if (m_interaction.m_selectedIndex.has_value())
+			{
+				return;
+			}
+			
+			for (size_t i = 0; i < m_items.size(); ++i)
+			{
+				if (m_items[i].accessKey == accessKey)
+				{
+					m_interaction.m_selectedIndex= i;
+					break;
+				}
+			}
+			
+			if (!m_interaction.m_selectedIndex.has_value())
+			{
+				return;
+			}
+			
+			GUI::MarkAsNeedUpdate(m_owner);
+			OpenMenu(true);
+		}
 	}
 
 	MenuBar::MenuBar(Window* parent, const Rectangle& rectangle)
@@ -361,6 +405,11 @@ namespace Berta
 			auto& menuManager = Foundation::GetInstance().GetMenuManager();
 			menuManager.UnsubscribeOnClose(module.m_closeListenerId);
 			module.m_closeListenerId = 0;
+		}
+		if (module.m_sysCharEventHandler != 0)
+		{
+			m_handle->Events->SysChar.Disconnect(module.m_sysCharEventHandler);
+			module.m_sysCharEventHandler = 0;
 		}
 	}
 

@@ -87,8 +87,7 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
-			bool redraw = m_textEditor->OnKeyPressed(args);
-			if (redraw)
+			if (m_textEditor->OnKeyPressed(args))
 			{
 				auto window = m_control->Handle();
 				GUI::MarkAsNeedUpdate(window);
