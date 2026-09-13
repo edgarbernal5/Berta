@@ -24,7 +24,7 @@ namespace Berta
 		void Create(const Size& size);
 		void Create(uint32_t width, uint32_t height);
 
-		void Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine);
+		void Copy(const uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine);
 
 		void Paste(const Rectangle& sourceRect, PaintNativeHandle* destHandle, const Rectangle& destinationRect);
 		void Blend(const Rectangle& sourceRect, PaintNativeHandle* destHandle, const Point& destinationPos, double alpha);
@@ -41,7 +41,7 @@ namespace Berta
 			~Storage();
 
 			void Create();
-			void Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine);
+			void Copy(const uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine);
 
 			PaintNativeHandle* m_paintHandle{ nullptr };
 			ColorABGR* m_buffer{ nullptr };

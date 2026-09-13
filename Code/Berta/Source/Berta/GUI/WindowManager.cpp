@@ -119,6 +119,7 @@ namespace Berta
 					_com_error err(hr);
 					BT_CORE_ERROR << "Error creating render target hwnd. err.ErrorMessage() = " << StringUtils::WideToUTF8(err.ErrorMessage()) << std::endl;
 				}
+				window->RootPaintHandle.NativeHandle = windowResult.WindowHandle;
 			}
 			
 #endif

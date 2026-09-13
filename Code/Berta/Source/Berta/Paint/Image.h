@@ -21,8 +21,9 @@ namespace Berta
 		virtual ~AbstractImageAttributes() = default;
 
 		virtual Size GetSize() const = 0;
-		virtual void Open(const std::string& filepath) = 0;
-
+		virtual void Open(const std::wstring& filepath) = 0;
+		virtual void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) = 0;
+		
 		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
 		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
 		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) = 0;
@@ -36,6 +37,7 @@ namespace Berta
 	public:
 		Image() = default;
 		explicit Image(const std::string& filepath);
+		explicit Image(const std::wstring& filepath);
 		
 		Image(const Image& other) = default;
 		Image(Image&& other) noexcept = default;
@@ -49,7 +51,9 @@ namespace Berta
 
 		Size GetSize() const { return m_attributes->GetSize(); }
 
-		void Open(const std::string& filepath);
+		void Open(const std::wstring& filepath);
+		void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels);
+		
 		void Paste(Graphics& destination, const Point& positionDestination) const;
 		void Paste(Graphics& destination, const Rectangle& destinationRect) const;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const;

@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "ThumbListBox.h"
 
+#include <algorithm>
+
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/ControlAppearance.h"
 #include "Berta/GUI/EnumTypes.h"
@@ -114,16 +116,21 @@ namespace Berta
 			{
 				Size imageSize = window->ToScale(cachedImage.GetSize());
 				Rectangle thumbnailImageRect;
-				if (imageSize.Width > thumbFrameSize.Width || imageSize.Height > thumbFrameSize.Height)
+				if (imageSize.Width > 0 && imageSize.Height > 0)
 				{
-					thumbnailImageRect = { cardRect.X, cardRect.Y, thumbFrameSize.Width, thumbFrameSize.Height };
-				}
-				else
-				{
-					Point center = thumbFrameSize;
-					center -= imageSize;
-					center /= 2;
-					thumbnailImageRect = { cardRect.X + center.X, cardRect.Y + center.Y, imageSize.Width, imageSize.Height };
+					float scaleX = static_cast<float>(thumbFrameSize.Width) / imageSize.Width;
+					float scaleY = static_cast<float>(thumbFrameSize.Height) / imageSize.Height;
+
+					// std::min({ scaleX, scaleY, 1.0f }) si no queremos escalar imágenes pequeñas hacia arriba
+					float scale = std::min<float>({1.0f, scaleY, scaleX});
+
+					uint32_t targetWidth = static_cast<uint32_t>(static_cast<float>(imageSize.Width) * scale);
+					uint32_t targetHeight = static_cast<uint32_t>(static_cast<float>(imageSize.Height) * scale);
+
+					int offsetX = static_cast<int>(thumbFrameSize.Width - targetWidth) / 2;
+					int offsetY = static_cast<int>(thumbFrameSize.Height - targetHeight) / 2;
+
+					thumbnailImageRect = { cardRect.X + offsetX, cardRect.Y + offsetY, targetWidth, targetHeight };
 				}
 
 				if (clientArea.Intersects(thumbnailImageRect))
@@ -134,13 +141,13 @@ namespace Berta
 		
 			if (isSelected)
 			{
-				graphics.FillRectangle({ cardRect.X , cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardHeight - thumbSizeScale }, window->Appearance->HighlightColor);
+				graphics.FillRectangle({ cardRect.X , cardRect.Y + static_cast<int>(thumbSizeScale), cardRect.Width, cardHeight - thumbSizeScale }, window->Appearance->HighlightColor);
 			}
-			m_module.DrawItemText(graphics, item, { cardRect.X, cardRect.Y + (int)thumbSizeScale, cardRect.Width, cardRect.Height });
+			m_module.DrawItemText(graphics, item, { cardRect.X, cardRect.Y + static_cast<int>(thumbSizeScale), cardRect.Width, cardRect.Height });
 		
 			auto lineColor = enabled ? (isFocused ? window->Appearance->Foreground : (isSelected ? window->Appearance->BoxBorderHighlightColor : window->Appearance->BoxBorderColor)) : window->Appearance->BoxBorderDisabledColor;
 			graphics.DrawRectangle(cardRect, lineColor);
-			graphics.DrawLine({ cardRect.X, cardRect.Y + (int)thumbSizeScale }, { cardRect.X + (int)cardRect.Width - 1, cardRect.Y + (int)thumbSizeScale }, lineColor);
+			graphics.DrawLine({ cardRect.X, cardRect.Y + static_cast<int>(thumbSizeScale) }, { cardRect.X + static_cast<int>(cardRect.Width) - 1, cardRect.Y + static_cast<int>(thumbSizeScale) }, lineColor);
 		}
 	
 		if (m_module.m_lassoSelection.IsActive())

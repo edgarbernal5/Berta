@@ -1266,7 +1266,7 @@ namespace Berta
 				auto iconSize = m_owner->ToScale(config->SmallIconSize);
 				if (cat.m_icon)
 				{
-					Rectangle iconRect{ area.X + expanderArea.X + (int)expanderArea.Width + iconPaddingX, area.Y + (((int)area.Height - (int)iconSize) >> 1), iconSize, iconSize };
+					Rectangle iconRect{ area.X + expanderArea.X + static_cast<int>(expanderArea.Width) + iconPaddingX, area.Y + ((static_cast<int>(area.Height) - static_cast<int>(iconSize)) >> 1), iconSize, iconSize };
 					cat.m_icon.Paste(graphics, iconRect);
 				}
 				offset += static_cast<int>(iconSize) + iconPaddingX * 2;

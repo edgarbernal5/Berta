@@ -12,6 +12,8 @@
 
 #include <Berta/Controls/Properties/PropertyGridFields.h>
 
+#include "Berta/Controls/Properties/PropertyGridFieldPicture.h"
+
 class NewPanel : public Berta::Panel
 {
 public:
@@ -57,6 +59,9 @@ struct AppState
 	Vector3 Position;
 	Vector3 Rotation;
 	// ...
+	
+	std::wstring PictureFilename{ L"..\\..\\Resources\\Icons\\Folder 128.png" };
+	std::wstring Picture64Filename{ L"..\\..\\Resources\\Escudo.png" };
 };
 
 int main()
@@ -224,6 +229,21 @@ int main()
 		[&myApp]() { return myApp.Threshold; },
 			[&myApp](int val) { myApp.Threshold = val; },
 			-5, 5);
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldPicture>(
+		"Image",
+		[&myApp]() { return myApp.PictureFilename; },
+			[&myApp](const std::wstring& val) { myApp.PictureFilename = val; });
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldPicture>(
+		"Image Null",
+		[&myApp]() { return L"popo"; },
+			[&myApp](const std::wstring& val) {  });
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldPicture>(
+		"Image 64x64",
+		[&myApp]() { return myApp.Picture64Filename; },
+			[&myApp](const std::wstring& val) { myApp.Picture64Filename=val; });
 	
 	propertyGrid.GetEvents().PropertyChanged.Connect([](const Berta::ArgPropertyGrid& args)
 		{

@@ -156,6 +156,7 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h" />
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFields.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSelection.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldSlider.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp" />
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp" />

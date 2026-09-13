@@ -31,13 +31,14 @@ namespace Berta
 		return m_size;
 	}
 
-	void BasicImageAttributes::Open(const std::string& filepath)
+	void BasicImageAttributes::Open(const std::wstring& filepath)
 	{
+		auto filepathUtf = StringUtils::WideToUTF8(filepath);
 		int width, height, channels;
-		unsigned char* imageData = stbi_load(filepath.c_str(), &width, &height, &channels, 0); // Don't force RGBA
+		unsigned char* imageData = stbi_load(filepathUtf.c_str(), &width, &height, &channels, 0); // Don't force RGBA
 		if (imageData == nullptr)
 		{
-			BT_CORE_ERROR << "Failed to load image: " << filepath << std::endl;
+			BT_CORE_ERROR << "Failed to load image: " << filepathUtf << std::endl;
 			return;
 		}
 
@@ -81,6 +82,39 @@ namespace Berta
 		stbi_image_free(imageData);
 	}
 
+	void BasicImageAttributes::OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
+	{
+		m_size = { width, height };
+		m_channels = channels;
+		m_hasTransparency = (channels == 4);
+		uint32_t bitsPerPixel = channels * 8;
+
+		m_colorBuffer.Create(m_size);
+		m_colorBuffer.SetAlphaChannel(m_hasTransparency);
+		m_colorBuffer.Copy(pixels, width, height, bitsPerPixel, width * channels);
+
+		// Swizzle a BGRA y Premultiplicación Alfa en una sola pasada (KISS)
+		if (m_hasTransparency)
+		{
+			auto totalBytes = static_cast<size_t>(width * height * 4);
+			auto* buffer = reinterpret_cast<uint8_t*>(m_colorBuffer.m_storage->m_buffer);
+        
+			for (size_t i = 0; i < totalBytes; i += 4)
+			{
+				uint8_t r = buffer[i];
+				uint8_t g = buffer[i + 1];
+				uint8_t b = buffer[i + 2];
+				uint8_t a = buffer[i + 3];
+
+				float alpha = a / 255.0f;
+				buffer[i]     = static_cast<uint8_t>(b * alpha);
+				buffer[i + 1] = static_cast<uint8_t>(g * alpha);
+				buffer[i + 2] = static_cast<uint8_t>(r * alpha);
+				// El canal alfa (buffer[i + 3]) se mantiene igual
+			}
+		}
+	}
+
 	void BasicImageAttributes::Paste(Graphics& destination, const Point& positionDestination)
 	{
 	}
@@ -95,15 +129,11 @@ namespace Berta
 			return;
 		}
 
-		//TODO: cache bitmap by hwnd (a map<HWND, Bitmap>)
-		if (m_bitmap)
-		{
-			m_bitmap->Release();
-			m_bitmap = nullptr;
-		}
-
 		auto handle = destination.GetHandle();
-		if (!m_bitmap)
+		HWND currentHwnd = handle->NativeHandle.Handle;
+		
+		auto& bitmapPtr = m_bitmapCache[currentHwnd];
+		if (!bitmapPtr)
 		{
 			HRESULT hr = handle->RenderTarget->CreateBitmap
 			(
@@ -118,7 +148,7 @@ namespace Berta
 						D2D1_ALPHA_MODE_PREMULTIPLIED
 					)
 				),
-				&m_bitmap
+				&bitmapPtr
 			);
 
 			if (FAILED(hr))
@@ -130,7 +160,7 @@ namespace Berta
 
 		handle->RenderTarget->DrawBitmap
 		(
-			m_bitmap,
+			bitmapPtr.Get(),
 			validDestRect,
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
@@ -150,15 +180,11 @@ namespace Berta
 			return;
 		}
 
-		//TODO: cache bitmap by hwnd (a map<HWND, Bitmap>)
-		if (m_bitmap)
-		{
-			m_bitmap->Release();
-			m_bitmap = nullptr;
-		}
-
 		auto handle = destination.GetHandle();
-		if (!m_bitmap)
+		HWND currentHwnd = handle->NativeHandle.Handle;
+		
+		auto& bitmapPtr = m_bitmapCache[currentHwnd];
+		if (!bitmapPtr)
 		{
 			HRESULT hr = handle->RenderTarget->CreateBitmap
 			(
@@ -173,7 +199,7 @@ namespace Berta
 						D2D1_ALPHA_MODE_PREMULTIPLIED
 					)
 				),
-				&m_bitmap
+				&bitmapPtr
 			);
 
 			if (FAILED(hr))
@@ -185,7 +211,7 @@ namespace Berta
 
 		handle->RenderTarget->DrawBitmap
 		(
-			m_bitmap,
+			bitmapPtr.Get(),
 			validDestRect,
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
@@ -196,11 +222,7 @@ namespace Berta
 	void BasicImageAttributes::ReleaseNativeObjects()
 	{
 #if BT_PLATFORM_WINDOWS
-		if (m_bitmap)
-		{
-			m_bitmap->Release();
-			m_bitmap = nullptr;
-		}
+		m_bitmapCache.clear();
 #endif
 	}
 }

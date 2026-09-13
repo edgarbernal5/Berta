@@ -15,6 +15,11 @@ namespace Berta
 {
 	Image::Image(const std::string& filepath)
 	{
+		Open(StringUtils::UTF8ToWide(filepath));
+	}
+
+	Image::Image(const std::wstring& filepath)
+	{
 		Open(filepath);
 	}
 
@@ -28,7 +33,7 @@ namespace Berta
 		return m_attributes == other.m_attributes;
 	}
 
-	void Image::Open(const std::string& filepath)
+	void Image::Open(const std::wstring& filepath)
 	{
 		std::filesystem::path path{ filepath };
 		if (!path.has_extension())
@@ -52,6 +57,12 @@ namespace Berta
 		}
 		
 		m_attributes->Open(filepath);
+	}
+
+	void Image::OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
+	{
+		m_attributes = std::make_shared<BasicImageAttributes>();
+		m_attributes->OpenFromMemory(pixels, width, height, channels);
 	}
 
 	void Image::Paste(Graphics& destination, const Point& positionDestination) const

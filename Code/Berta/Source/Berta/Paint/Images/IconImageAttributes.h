@@ -18,7 +18,9 @@ namespace Berta
 		~IconImageAttributes() override;
 
 		Size GetSize() const override;
-		void Open(const std::string& filepath) override;
+		void Open(const std::wstring& filepath) override;
+		void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
+		
 		void Paste(Graphics& destination, const Point& positionDestination) override;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;

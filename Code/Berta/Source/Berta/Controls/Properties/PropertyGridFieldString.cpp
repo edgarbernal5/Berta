@@ -7,6 +7,8 @@
 #include "btpch.h"
 #include "PropertyGridFieldString.h"
 
+#include <utility>
+
 #include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
@@ -38,13 +40,6 @@ namespace Berta
 			return L"---";
 		}
 		return m_textBox.GetCaptionW();
-		
-		/*if (m_getter)
-		{
-			std::optional<std::string> currentOpt = m_getter();
-			return currentOpt.has_value() ? currentOpt.value() : "---";
-		}
-		return "";*/
 	}
 	
 	void PropertyGridFieldString::SetEditable(bool isEditable)
@@ -59,7 +54,7 @@ namespace Berta
 
 	void PropertyGridFieldString::SetCharFilter(std::function<bool(wchar_t)> predicate)
 	{
-		m_textBox.SetCharFilter(predicate);
+		m_textBox.SetCharFilter(std::move(predicate));
 	}
 
 	void PropertyGridFieldString::OnCreate(Window* parent)

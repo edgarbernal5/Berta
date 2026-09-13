@@ -32,7 +32,7 @@ namespace Berta
         m_storage = std::make_unique<ColorBuffer::Storage>(width, height);
     }
 
-    void ColorBuffer::Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine)
+    void ColorBuffer::Copy(const uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine)
     {
         m_storage->Copy(rawbits, width, height, bitsPerPixel, bytesPerLine);
     }
@@ -127,7 +127,7 @@ namespace Berta
         m_buffer = new ColorABGR[m_size.Width * m_size.Height];
     }
 
-    void ColorBuffer::Storage::Copy(uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine)
+    void ColorBuffer::Storage::Copy(const uint8_t* rawbits, uint32_t width, uint32_t height, uint32_t bitsPerPixel, uint32_t bytesPerLine)
     {
         if (m_size.Width == width && m_size.Height == height && m_bytesPerLine == bytesPerLine && bitsPerPixel == 32)
         {

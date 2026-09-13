@@ -8,6 +8,8 @@
 #define BT_PAINT_API_HEADER
 
 #include <string>
+
+#include "WindowAPI.h"
 #include "Berta/Core/Base.h"
 #include "Berta/Core/BasicTypes.h"
 
@@ -77,15 +79,16 @@ namespace Berta
 
 			bool operator==(const RootPaintNativeHandle& other) const
 			{
-				return RenderTarget == other.RenderTarget;
+				return RenderTarget == other.RenderTarget && NativeHandle != other.NativeHandle;
 			}
 
 			bool operator!=(const RootPaintNativeHandle& other) const
 			{
-				return RenderTarget != other.RenderTarget;
+				return RenderTarget != other.RenderTarget || NativeHandle != other.NativeHandle;
 			}
 
 			ID2D1HwndRenderTarget* RenderTarget{ nullptr };
+			NativeWindowHandle NativeHandle;
 #else
 			operator bool() const
 			{

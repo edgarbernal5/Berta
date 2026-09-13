@@ -83,7 +83,7 @@ int main()
 	openSubMenu->AppendSeparator();
 	openSubMenu->AppendCheckbox(L"Save recent projects", true);
 	fileMenu.AppendSubMenu(L"Open", std::move(openSubMenu));
-	fileMenu.Append("Exit", [](Berta::MenuItem item)
+	fileMenu.Append("&Exit", [](Berta::MenuItem item)
 		{
 			Berta::GUI::Exit();
 		});

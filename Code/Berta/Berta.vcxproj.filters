@@ -330,6 +330,9 @@
     <ClInclude Include="Source\Berta\GUI\Shortcut.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -532,6 +535,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Layouts\Lexer.cpp">
       <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.cpp">
+      <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
