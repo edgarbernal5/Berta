@@ -14,7 +14,7 @@
 
 #include "Berta/GUI/ScrollableView.h"
 #include "Berta/Controls/Properties/PropertyGridFieldBase.h"
-#include "Berta/Controls/Properties/PropertyGridTypes.h"
+#include "Berta/Controls/Properties/EnumTypes.h"
 #include "Berta/Core/ObjectPool.h"
 
 #include <string>

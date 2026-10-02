@@ -300,9 +300,6 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldNumeric.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridTypes.h">
-      <Filter>Source\Berta\Controls\Properties</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h">
       <Filter>Source\Berta\Controls\Checking</Filter>
     </ClInclude>
@@ -331,6 +328,12 @@
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.h">
+      <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\ColorPicker.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Properties\EnumTypes.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
   </ItemGroup>
@@ -538,6 +541,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\ColorPicker.cpp">
+      <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

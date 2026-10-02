@@ -340,18 +340,19 @@ namespace Berta
 		void SetB(uint8_t newB) { B = newB; }
 		void SetA(uint8_t newA) { A = newA; }
 		
-		
 		void SetR(float clampedR) { R = static_cast<uint8_t>(clampedR * 255.0f); }
 		void SetG(float clampedG) { G = static_cast<uint8_t>(clampedG * 255.0f); }
 		void SetB(float clampedB) { B = static_cast<uint8_t>(clampedB * 255.0f); }
 		void SetA(float clampedA) { A = static_cast<uint8_t>(clampedA * 255.0f); }
+		
+		std::wstring ToWString() const;
+		// Decodifica un std::wstring en formato "#RRGGBBAA" o "#RRGGBB" a una estructura Color
+		void FromWString(const std::wstring& hexStr);
 	private:
 		uint8_t R{ 255 };
 		uint8_t G{ 255 };
 		uint8_t B{ 255 };
 		uint8_t A{ 255 };
-
-		//ColorABGR Data;
 	};
 
 	enum class Cursor

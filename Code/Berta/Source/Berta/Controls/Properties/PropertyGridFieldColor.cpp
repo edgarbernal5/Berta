@@ -101,13 +101,13 @@ namespace Berta
 
 	void PropertyGridFieldColor::SetValueInternal(const Color& value)
 	{
-		m_colorRegion.SetBackgroundColor(value);
-		m_colorRegion.SetCaption("");
+		m_colorRegion.SetColor(value);
+		m_colorRegion.SetCaption(value.ToWString());
 	}
 
 	void PropertyGridFieldColor::SetMixedValuesInternal()
 	{
-		m_colorRegion.SetBackgroundColor(Color(128, 128, 128, 255));
+		m_colorRegion.SetColor(Color(128, 128, 128, 255));
 		m_colorRegion.SetCaption("---");
 	}
 }

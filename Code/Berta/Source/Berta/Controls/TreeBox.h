@@ -441,7 +441,7 @@ namespace Berta
 		void CollapseAll();
 		void CollapseAll(TreeBoxItem item);
 
-		void SelectItems(const std::vector<TreeBoxItem>& nodes);
+		void SelectItems(const std::vector<TreeBoxItem>& items);
 		void DeselectAll();
 		
 		TreeBoxItem Find(const TreeNodeHandle& key);

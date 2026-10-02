@@ -4,8 +4,8 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_PROPERTY_GRID_TYPES_HEADER
-#define BT_PROPERTY_GRID_TYPES_HEADER
+#ifndef BT_PROPERTY_GRID_ENUM_TYPES_HEADER
+#define BT_PROPERTY_GRID_ENUM_TYPES_HEADER
 
 #include <optional>
 

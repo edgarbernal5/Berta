@@ -21,58 +21,20 @@ namespace Berta
     class Event
     {
     public:
-        using Handler = std::function<void(const Argument&)>;
+        using Handler = std::function<void(Argument&)>;
 
     public:
         Event() : m_data(std::make_shared<Data>()) {}
-        Event(Event&& other) : Event() { *this = std::move(other); }
+        Event(Event&& other) noexcept : Event() { *this = std::move(other); }
         Event(const Event&) = default;
 
         Event& operator=(const Event&) = default;
-        Event& operator=(Event&& other)
+        Event& operator=(Event&& other) noexcept
         {
             std::swap(m_data, other.m_data);
             return *this;
         }
 
-    private:
-        struct StoredHandler
-        {
-            EventHandlerId Id;
-            std::shared_ptr<Handler> Callback;
-            struct
-            {
-                bool Once : 1;
-                bool Triggered : 1;
-            }Flags;
-        };
-
-        using HandlerList = std::vector<StoredHandler>;
-
-        struct Data
-        {
-            EventHandlerId IdCounter = 0;
-            HandlerList Observers;
-            std::mutex ObserverMutex;
-        };
-
-        std::shared_ptr<Data> m_data;
-
-        EventHandlerId AddHandler(Handler handler, bool once = false) const
-        {
-            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
-            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
-            return m_data->IdCounter++;
-        }
-
-        EventHandlerId AddFrontHandler(Handler handler, bool once = false) const
-        {
-            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
-            m_data->Observers.emplace(m_data->Observers.begin(), StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
-            return m_data->IdCounter++;
-        }
-
-    public:
         EventHandlerId Connect(const Handler& handler) const
         {
             return AddHandler(handler);
@@ -120,8 +82,8 @@ namespace Berta
             std::vector<std::weak_ptr<Handler>> handlers;
             {
                 std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
-                handlers.resize(m_data->Observers.size());
-                std::transform(m_data->Observers.begin(), m_data->Observers.end(), handlers.begin(),
+                handlers.reserve(m_data->Observers.size());
+                std::transform(m_data->Observers.begin(), m_data->Observers.end(), std::back_inserter(handlers),
                     [](auto& h) { return h.Callback; });
             }
 
@@ -130,8 +92,50 @@ namespace Berta
                 if (auto callback = weakCallback.lock())
                 {
                     (*callback)(args);
+                    
+                    /*if (args.Handled)
+                    {
+                        break; 
+                    }*/
                 }
             }
+        }
+    
+    private:
+        struct StoredHandler
+        {
+            EventHandlerId Id;
+            std::shared_ptr<Handler> Callback;
+            struct
+            {
+                bool Once : 1;
+                bool Triggered : 1;
+            }Flags;
+        };
+
+        using HandlerList = std::vector<StoredHandler>;
+
+        struct Data
+        {
+            EventHandlerId IdCounter = 0;
+            HandlerList Observers;
+            std::mutex ObserverMutex;
+        };
+
+        std::shared_ptr<Data> m_data;
+
+        EventHandlerId AddHandler(Handler handler, bool once = false) const
+        {
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            m_data->Observers.emplace_back(StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
+            return m_data->IdCounter++;
+        }
+
+        EventHandlerId AddFrontHandler(Handler handler, bool once = false) const
+        {
+            std::lock_guard<std::mutex> lock(m_data->ObserverMutex);
+            m_data->Observers.emplace(m_data->Observers.begin(), StoredHandler{ m_data->IdCounter, std::make_shared<Handler>(handler), {once, false} });
+            return m_data->IdCounter++;
         }
     };
 }

@@ -209,7 +209,7 @@ int main()
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldColor>(
 		"Tint Color",
 		[&myApp]() { return myApp.TintColor; },
-			[&myApp](Berta::Color val) { myApp.TintColor = val; },
+			[&myApp](const Berta::Color& val) { myApp.TintColor = val; },
 			[](std::optional<Berta::Color> currentColor) -> std::optional<Berta::Color>
 			{
 				std::cout << "Opening color picker...." << std::endl;

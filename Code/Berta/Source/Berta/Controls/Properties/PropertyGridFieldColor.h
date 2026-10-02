@@ -8,7 +8,7 @@
 #define BT_PROPERTY_GRID_FIELD_COLOR_HEADER
 
 #include "Berta/Controls/Properties/TypedPropertyField.h"
-#include "Berta/Controls/Label.h"
+#include "Berta/Controls/ColorPicker.h"
 
 #include <string>
 #include <optional>
@@ -44,7 +44,7 @@ namespace Berta
 		void SetMixedValuesInternal() override;
 		
 		ClickCallback m_clickCallback;
-		Label m_colorRegion;
+		ColorPicker m_colorRegion;
 
 	private:
 	};

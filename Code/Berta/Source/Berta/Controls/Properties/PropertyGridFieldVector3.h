@@ -8,7 +8,7 @@
 #define BT_PROPERTY_GRID_FIELD_VECTOR3_HEADER
 
 #include "Berta/Controls/Properties/TypedPropertyField.h"
-#include "Berta/Controls/Properties/PropertyGridTypes.h"
+#include "Berta/Controls/Properties/EnumTypes.h"
 
 namespace Berta
 {

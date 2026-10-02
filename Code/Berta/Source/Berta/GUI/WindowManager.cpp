@@ -644,8 +644,8 @@ namespace Berta
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
-		window->Position.X = static_cast<int>(window->Position.X * scalingFactor);
-		window->Position.Y = static_cast<int>(window->Position.Y * scalingFactor);
+		window->Position.X = static_cast<int>(static_cast<float>(window->Position.X) * scalingFactor);
+		window->Position.Y = static_cast<int>(static_cast<float>(window->Position.Y) * scalingFactor);
 
 		if (window->IsNative())
 		{
@@ -660,8 +660,8 @@ namespace Berta
 				window->PositionRoot += window->Parent->PositionRoot;
 			}
 		}
-		window->ClientSize.Width = static_cast<uint32_t>(window->ClientSize.Width * scalingFactor);
-		window->ClientSize.Height = static_cast<uint32_t>(window->ClientSize.Height * scalingFactor);
+		window->ClientSize.Width = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Width) * scalingFactor);
+		window->ClientSize.Height = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Height) * scalingFactor);
 
 		window->Renderer.DpiChanged();
 		

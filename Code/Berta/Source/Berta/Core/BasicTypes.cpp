@@ -208,11 +208,67 @@ namespace Berta
 	Color::operator D2D1_COLOR_F() const
 	{
 		D2D1_COLOR_F color;
-		color.a = A / 255.0f;
-		color.r = R / 255.0f;
-		color.g = G / 255.0f;
-		color.b = B / 255.0f;
+		color.a = static_cast<float>(A) / 255.0f;
+		color.r = static_cast<float>(R) / 255.0f;
+		color.g = static_cast<float>(G) / 255.0f;
+		color.b = static_cast<float>(B) / 255.0f;
 		return color;
+	}
+
+	std::wstring Color::ToWString() const
+	{
+		std::wstringstream wss;
+    
+		// std::setfill y std::setw garantizan que cada canal ocupe 2 caracteres (ej: '0F' en lugar de 'F')
+		wss << L"#"
+			<< std::hex << std::setfill(L'0') << std::uppercase
+			<< std::setw(2) << static_cast<int>(R)
+			<< std::setw(2) << static_cast<int>(G)
+			<< std::setw(2) << static_cast<int>(B)
+			<< std::setw(2) << static_cast<int>(A);
+        
+		return wss.str();
+	}
+
+	void Color::FromWString(const std::wstring& hexStr)
+	{
+		std::wstring s = hexStr;
+    
+		// Removemos el prefijo '#' si está presente
+		if (!s.empty() && s[0] == L'#')
+		{
+			s = s.substr(1);
+		}
+
+		// Valores por defecto (Blanco, completamente opaco)
+		uint8_t r = 255, g = 255, b = 255, a = 255;
+
+		try
+		{
+			// Parseamos los canales RGB (los primeros 6 caracteres)
+			if (s.length() >= 6)
+			{
+				r = static_cast<uint8_t>(std::stoi(s.substr(0, 2), nullptr, 16));
+				g = static_cast<uint8_t>(std::stoi(s.substr(2, 2), nullptr, 16));
+				b = static_cast<uint8_t>(std::stoi(s.substr(4, 2), nullptr, 16));
+			}
+			// Parseamos el canal Alpha si la cadena tiene 8 caracteres
+			if (s.length() >= 8)
+			{
+				a = static_cast<uint8_t>(std::stoi(s.substr(6, 2), nullptr, 16));
+			}
+		} 
+		catch (const std::exception&)
+		{
+			// Si hay un error de conversión (ej: caracteres no hexadecimales), 
+			// la función atrapa la excepción y retorna el color con los valores leídos 
+			// hasta el momento del fallo o los valores por defecto.
+		}
+		
+		R = r;
+		G = g;
+		B = b;
+		A = a;
 	}
 
 	FormStyle FormStyle::Float(bool sizeable)

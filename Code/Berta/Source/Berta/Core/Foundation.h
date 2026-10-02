@@ -21,6 +21,10 @@ namespace Berta
 	class Logger;
 	struct Menu;
 
+	struct ArgIdleTick
+	{
+		
+	};
 	class Foundation
 	{
 	public:
@@ -48,7 +52,7 @@ namespace Berta
 		void EventEnterSizeMove(Window* window);
 		void EventExitSizeMove(Window* window);
 
-		void SetOnIdleTickCallback(std::function<void()> callback);
+		Event<ArgIdleTick>& GetIdleTick() { return m_idleTickEvent; }
 		
 		class RootGuard
 		{
@@ -67,11 +71,11 @@ namespace Berta
 
 			std::ostringstream& m_debugBuilder;
 		};
+		
 	private:
-
 		static Foundation g_foundation;
 		
-		std::function<void()> m_onIdleTickCallback;
+		Event<ArgIdleTick> m_idleTickEvent;
 		WindowManager m_windowManager;
 		MenuManager m_menuManager;
 	};

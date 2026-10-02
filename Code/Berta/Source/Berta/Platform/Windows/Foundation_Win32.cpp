@@ -165,10 +165,9 @@ namespace Berta
 			{
 				// Tiempo de inactividad (Idle Time) / Renderizado
 				
-				if (m_onIdleTickCallback)
-				{
-					m_onIdleTickCallback();
-				}
+				ArgIdleTick argIdleTick;
+				m_idleTickEvent.Emit(argIdleTick);
+				
 				dispatcher.ExecuteAll();
 				
 				bool anyWindowRefreshed = false;

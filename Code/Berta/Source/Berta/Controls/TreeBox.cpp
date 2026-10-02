@@ -143,7 +143,7 @@ namespace Berta
 		if (m_module.m_scrollableView->HasVerticalScroll() && m_module.m_scrollableView->HasHorizontalScroll())
 		{
 			auto scrollSize = m_module.m_window->ToScale(m_module.m_window->Appearance->ScrollBarSize);
-			graphics.FillRectangle({ (int)(m_module.m_window->ClientSize.Width - scrollSize) - 1, (int)(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background);
+			graphics.FillRectangle({ static_cast<int>(m_module.m_window->ClientSize.Width - scrollSize) - 1, static_cast<int>(m_module.m_window->ClientSize.Height - scrollSize) - 1, scrollSize, scrollSize }, m_module.m_window->Appearance->Background);
 		}
 	}
 
@@ -199,7 +199,7 @@ namespace Berta
 		int absoluteY = args.Position.Y + scrollY - clientArea.Y;
 		int clickedIndexInt = absoluteY / nodeHeight;
 
-		if (clickedIndexInt < 0 || clickedIndexInt >= m_module.m_flatVisibleTree.size())
+		if (clickedIndexInt < 0 || clickedIndexInt >= static_cast<int>(m_module.m_flatVisibleTree.size()))
 		{
 			return;
 		}
