@@ -91,7 +91,8 @@ namespace Berta
         }
         
         template<typename T>
-        [[nodiscard]] T* TryGetProperty(std::string_view name) noexcept {
+        [[nodiscard]] T* TryGetProperty(std::string_view name) noexcept
+        {
             if (auto it = m_properties.find(name); it != m_properties.end())
             {
                 return std::get_if<T>(&it->second);

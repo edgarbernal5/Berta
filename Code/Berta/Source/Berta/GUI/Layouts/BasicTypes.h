@@ -76,6 +76,7 @@ namespace Berta
     };
     using PropertyValue = std::variant<int, double, Dimension, std::string>;
     
+    // Helper clásico para usar con std::visit (Pattern Matching de tipos)
     template<class... Ts> struct Overload : Ts... { using Ts::operator()...; };
     template<class... Ts> Overload(Ts...) -> Overload<Ts...>;
 }
