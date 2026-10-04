@@ -109,20 +109,33 @@ namespace Berta
 		parentArea.Y += static_cast<int>(padding.Top);
 		
 		// Usamos std::max para prevenir underflow si el padding es más grande que el control
-		parentArea.Width  = std::max<decltype(parentArea.Width)>(0, parentArea.Width - (padding.Left + padding.Right));
-		parentArea.Height = std::max<decltype(parentArea.Height)>(0, parentArea.Height - (padding.Top + padding.Bottom));
+		parentArea.Width  = std::max<decltype(parentArea.Width)>(0, parentArea.Width - static_cast<int>((padding.Left + padding.Right)));
+		parentArea.Height = std::max<decltype(parentArea.Height)>(0, parentArea.Height - static_cast<int>((padding.Top + padding.Bottom)));
 
 		auto remainArea = parentArea;
 		
+		double spacing = 0.0;
+		if (auto* spcDim = TryGetProperty<Berta::Dimension>("Spacing"))
+		{
+			spacing = spcDim->value * dpi; 
+		}
+		
+		if (m_children.size() > 1 && spacing > 0.0)
+		{
+			uint32_t totalSpacing = static_cast<uint32_t>(spacing * (m_children.size() - 1));
+			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
+        
+			if (totalSpacing > remainMainDim) remainMainDim = 0;
+			else remainMainDim -= totalSpacing;
+		}
+
 		std::vector<bool> markedChildren(m_children.size(), false);
-		std::vector<Rectangle> areas(m_children.size());
+		std::vector<Rectangle> areas(m_children.size()); 
 		int fixedNodesCount = 0;
 
-		// FASE 1: Calcular los nodos que tienen un tamaño fijo (Pixels o Porcentaje)
+		// 3. Ejecutar las Fases
 		ProcessFixedChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi);
-
-		// FASE 2: Distribuir el espacio restante entre los nodos dinámicos
-		ProcessDynamicChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi);
+		ProcessDynamicChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi, spacing); // Pasamos 'spacing'
 	}
 
 	ContainerLayoutNode::ContainerLayoutNode(LayoutNodeType type) :
@@ -205,7 +218,7 @@ namespace Berta
 		}
 	}
 
-	void ContainerLayoutNode::ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, int fixedNodesCount, float dpi)
+	void ContainerLayoutNode::ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, int fixedNodesCount, float dpi, double spacing)
 	{
 		int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
 
@@ -242,9 +255,8 @@ namespace Berta
 			// 1. El Slot (Caja virtual): Inicia tomando las dimensiones completas del padre
 			Rectangle childSlot = parentArea;
 
-			auto& mainDim = m_isVertical ? childSlot.Height : childSlot.Width;
-			auto& mainPos = m_isVertical ? childSlot.Y : childSlot.X;
-			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
+			auto& mainDimSlot = m_isVertical ? childSlot.Height : childSlot.Width;
+			auto& mainPosSlot = m_isVertical ? childSlot.Y : childSlot.X;
 
 			if (markedChildren[i])
 			{
@@ -253,13 +265,15 @@ namespace Berta
 				childSlot.Width = areas[i].Width;
 				childSlot.Height = areas[i].Height;
       
-				mainPos += currentOffsetMain;
+				mainPosSlot += currentOffsetMain;
       
 				exactOffsetMain += savedMainDim;
 				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
 			}
 			else
 			{
+				auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
+				
 				// Si es un nodo dinámico, lo distribuimos según su peso
 				double normalizedFraction = dynamicWeights[i] / totalWeight;
 				double exactSize = normalizedFraction * remainMainDim;
@@ -267,15 +281,29 @@ namespace Berta
       
 				uint32_t part = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
 
-				mainDim = part;
-				mainPos += currentOffsetMain;
+				mainDimSlot = part;
+				mainPosSlot += currentOffsetMain;
       
 				exactOffsetMain = nextExactOffset;
 				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
       
 				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
-
+			
+			// Posicionar en el eje principal
+			mainPosSlot += currentOffsetMain;
+			
+			// Avanzar el cursor sumando el tamaño del slot actual
+			exactOffsetMain += mainDimSlot;
+			
+			// --- SPACING: Sumamos el hueco antes de iterar al siguiente hijo ---
+			if (i < m_children.size() - 1)
+			{
+				exactOffsetMain += spacing;
+			}
+			
+			currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
+			
 			// 2. Extraer el margen específico de ESTE hijo
 			Berta::Thickness margin = Layouts::GetScaledThickness(childNode.get(), "Margin", dpi);
 

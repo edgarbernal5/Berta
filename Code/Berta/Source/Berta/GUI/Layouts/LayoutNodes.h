@@ -283,7 +283,7 @@ namespace Berta
 
         void ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, 
                                     const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, 
-                                    int fixedNodesCount, float dpi);
+                                    int fixedNodesCount, float dpi, double spacing);
         
         bool m_isVertical{ false };
     };

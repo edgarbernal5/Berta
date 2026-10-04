@@ -285,7 +285,7 @@ public:
 		}
 
 		m_layout.Create(*this);
-		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 Margin=[10] {comboBox Width=120}{slider Width=180}}{thumbBox}}");
+		m_layout.Parse("{VerticalLayout {HorizontalLayout Height=25 Spacing=10 {comboBox Width=120}{slider Width=180}}{thumbBox}}");
 
 		m_layout.Attach("comboBox", m_comboBox);
 		m_layout.Attach("slider", m_slider);

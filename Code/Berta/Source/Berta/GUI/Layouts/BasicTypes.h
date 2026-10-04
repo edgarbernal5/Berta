@@ -46,6 +46,7 @@ namespace Berta
             
             Margin,
             Padding,
+            Spacing,
 
             Dock,
             DockPane
