@@ -197,6 +197,8 @@ namespace Berta
             case Token::Type::MaxHeight:
             case Token::Type::MinWidth:
             case Token::Type::MaxWidth:
+            case Token::Type::Margin:
+            case Token::Type::Padding:
                 {
                     ParseProperty(properties);
                     break;

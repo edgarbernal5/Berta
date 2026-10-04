@@ -91,6 +91,8 @@ namespace Berta
         else if (text == "MinWidth") type = Token::Type::MinWidth;
         else if (text == "MaxHeight") type = Token::Type::MaxHeight;
         else if (text == "MaxWidth") type = Token::Type::MaxWidth;
+        else if (text == "Margin") type = Token::Type::Margin;
+        else if (text == "Padding") type = Token::Type::Padding;
 
         return { type, text };
     }
