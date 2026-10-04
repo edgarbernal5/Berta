@@ -7,6 +7,7 @@
 #include "btpch.h"
 #include "LayoutNodes.h"
 
+#include "Helpers.h"
 #include "Berta/GUI/Interface.h"
 
 namespace Berta
@@ -100,9 +101,19 @@ namespace Berta
 	void ContainerLayoutNode::CalculateAreas()
 	{
 		auto parentArea = GetArea();
-		auto remainArea = parentArea;
 		const float dpi = m_ownerWindow->DPIScaleFactor;
+		
+		// --- PADDING: El padre contrae su espacio interno ---
+		Berta::Thickness padding = Layouts::GetScaledThickness(this, "Padding", dpi);
+		parentArea.X += static_cast<int>(padding.Left);
+		parentArea.Y += static_cast<int>(padding.Top);
+		
+		// Usamos std::max para prevenir underflow si el padding es más grande que el control
+		parentArea.Width  = std::max<decltype(parentArea.Width)>(0, parentArea.Width - (padding.Left + padding.Right));
+		parentArea.Height = std::max<decltype(parentArea.Height)>(0, parentArea.Height - (padding.Top + padding.Bottom));
 
+		auto remainArea = parentArea;
+		
 		std::vector<bool> markedChildren(m_children.size(), false);
 		std::vector<Rectangle> areas(m_children.size());
 		int fixedNodesCount = 0;
@@ -128,9 +139,11 @@ namespace Berta
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
 			auto& childNode = m_children[i];
-			Rectangle childArea;
+			
+			// Representa el bloque total (Slot) que el layout le reserva, no su área final utilizable.
+			Rectangle childSlot;
 
-			auto& crossDim       = m_isVertical ? childArea.Width : childArea.Height;
+			auto& crossDim       = m_isVertical ? childSlot.Width : childSlot.Height;
 			auto& parentCrossDim = m_isVertical ? parentArea.Width : parentArea.Height;
 			crossDim = parentCrossDim;
 
@@ -140,40 +153,53 @@ namespace Berta
 
 			if (isSplitter || (dimensionDim && !dimensionDim->IsPercentage()))
 			{
-				uint32_t fixedSize = 0;
+				uint32_t fixedContentSize = 0;
 
 				if (isSplitter)
 				{
-					fixedSize = static_cast<uint32_t>(SplitterLayoutNode::SizeInPixels * dpi); 
+					fixedContentSize = static_cast<uint32_t>(SplitterLayoutNode::SizeInPixels * dpi); 
 				}
 				else
 				{
-					fixedSize = static_cast<uint32_t>(dimensionDim->value * dpi);
+					fixedContentSize = static_cast<uint32_t>(dimensionDim->value * dpi);
 				}
-
 				
 				if (!isSplitter)
 				{
 					if (auto* minDim = childNode->TryGetProperty<Berta::Dimension>(minDimType))
 					{
-						fixedSize = std::max<uint32_t>(fixedSize, static_cast<uint32_t>(minDim->value * dpi));
+						fixedContentSize = std::max<uint32_t>(fixedContentSize, static_cast<uint32_t>(minDim->value * dpi));
 					}
 					if (auto* maxDim = childNode->TryGetProperty<Berta::Dimension>(maxDimType))
 					{
-						fixedSize = std::min<uint32_t>(fixedSize, static_cast<uint32_t>(maxDim->value * dpi));
+						fixedContentSize = std::min<uint32_t>(fixedContentSize, static_cast<uint32_t>(maxDim->value * dpi));
 					}
 				}
-
-				auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
+				
+				// 2. Extraer el margen escalado por el DPI
+				Berta::Thickness margin = Layouts::GetScaledThickness(childNode.get(), "Margin", dpi);
+				
+				// 3. Calcular el tamaño total del bloque que este nodo requiere (Contenido + Margen en el eje principal)
+				uint32_t totalSlotSize = fixedContentSize;
+				if (m_isVertical)
+				{
+					totalSlotSize += static_cast<uint32_t>(margin.Top + margin.Bottom);
+				}
+				else
+				{
+					totalSlotSize += static_cast<uint32_t>(margin.Left + margin.Right);
+				}
+				
+				auto& mainDim = m_isVertical ? childSlot.Height : childSlot.Width;
 				auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
 
-				mainDim = fixedSize;
+				mainDim = totalSlotSize;
           
-				if (fixedSize > remainMainDim) remainMainDim = 0; 
-				else remainMainDim -= fixedSize;
+				if (totalSlotSize > remainMainDim) remainMainDim = 0; 
+				else remainMainDim -= totalSlotSize;
 
 				markedChildren[i] = true;
-				areas[i] = childArea;
+				areas[i] = childSlot;
 				++fixedNodesCount;
 			}
 		}
@@ -181,16 +207,6 @@ namespace Berta
 
 	void ContainerLayoutNode::ProcessDynamicChildren(const Rectangle& parentArea, const Rectangle& remainArea, const std::vector<Rectangle>& areas, const std::vector<bool>& markedChildren, int fixedNodesCount, float dpi)
 	{
-		auto getMargin = [&](std::string_view name) -> int {
-			auto* dim = TryGetProperty<Berta::Dimension>(name);
-			return dim ? static_cast<int>(dim->value * dpi) : 0;
-		};
-
-		int marginLeft   = getMargin("margin-left");
-		int marginRight  = getMargin("margin-right");
-		int marginTop    = getMargin("margin-top");
-		int marginBottom = getMargin("margin-bottom");
-
 		int totalFreeCount = static_cast<int>(m_children.size()) - fixedNodesCount;
 
 		double totalWeight = 0.0;
@@ -223,23 +239,19 @@ namespace Berta
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
 			auto& childNode = m_children[i];
-			Rectangle childArea = parentArea;
-   
-			childArea.X += marginLeft;
-			childArea.Y += marginTop;
-			childArea.Width  -= (marginLeft + marginRight);
-			childArea.Height -= (marginTop + marginBottom);
+			// 1. El Slot (Caja virtual): Inicia tomando las dimensiones completas del padre
+			Rectangle childSlot = parentArea;
 
-			auto& mainDim       = m_isVertical ? childArea.Height : childArea.Width;
-			auto& mainPos       = m_isVertical ? childArea.Y : childArea.X;
+			auto& mainDim = m_isVertical ? childSlot.Height : childSlot.Width;
+			auto& mainPos = m_isVertical ? childSlot.Y : childSlot.X;
 			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
 
 			if (markedChildren[i])
 			{
 				// Si es un nodo fijo, usamos el tamaño guardado de la función anterior
 				uint32_t savedMainDim = m_isVertical ? areas[i].Height : areas[i].Width;
-				childArea.Width = areas[i].Width;
-				childArea.Height = areas[i].Height;
+				childSlot.Width = areas[i].Width;
+				childSlot.Height = areas[i].Height;
       
 				mainPos += currentOffsetMain;
       
@@ -264,8 +276,20 @@ namespace Berta
 				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
 
+			// 2. Extraer el margen específico de ESTE hijo
+			Berta::Thickness margin = Layouts::GetScaledThickness(childNode.get(), "Margin", dpi);
+
+			// 3. Contraer el Slot para obtener el Área Real (Aplicar Box Model)
+			Rectangle finalChildArea = childSlot;
+			finalChildArea.X += static_cast<int>(margin.Left);
+			finalChildArea.Y += static_cast<int>(margin.Top);
+			
+			// Uso de std::max para prevenir desbordamientos si el margen es mayor al espacio asignado
+			finalChildArea.Width  = std::max<decltype(finalChildArea.Width)>(0, finalChildArea.Width - (margin.Left + margin.Right));
+			finalChildArea.Height = std::max<decltype(finalChildArea.Height)>(0, finalChildArea.Height - (margin.Top + margin.Bottom));
+			
 			// Finalmente: Seteamos su área y desatamos la recursividad en el árbol
-			childNode->SetArea(childArea);
+			childNode->SetArea(finalChildArea);
 			childNode->CalculateAreas(); 
 		}
 	}

@@ -984,7 +984,7 @@ namespace Berta
 							if (hasSubProperties)
 							{
 								uint32_t iconSize = m_owner->ToScale(10u);
-								Rectangle iconRect = { labelArea.X + m_owner->ToScale(5), labelArea.Y + (int)(labelArea.Height - iconSize) / 2, iconSize, iconSize };
+								Rectangle iconRect = { labelArea.X + m_owner->ToScale(5), labelArea.Y + static_cast<int>(labelArea.Height - iconSize) / 2, iconSize, iconSize };
                 
 								int arrowWidth = m_owner->ToScale(4);
 								int arrowLength = m_owner->ToScale(2);
@@ -1007,8 +1007,8 @@ namespace Berta
 							
 							propArea.X += labelWidth;
 							propArea.Width -= labelWidth;
-							
 						}
+						
 						auto two = m_owner->ToScale(2);
 						Rectangle paddedRect = propArea;
 						paddedRect.X += two;
@@ -1019,7 +1019,7 @@ namespace Berta
 						prop->m_field->Draw(graphics, paddedRect, *appearance);
 						
 						// Línea separadora inferior
-						graphics.DrawLine({ rect.X, rect.Y + (int)rect.Height - 1 }, { rect.X + (int)rect.Width, rect.Y + (int)rect.Height - 1 }, separatorColor);
+						graphics.DrawLine({ rect.X, rect.Y + static_cast<int>(rect.Height) - 1 }, { rect.X + static_cast<int>(rect.Width), rect.Y + static_cast<int>(rect.Height) - 1 }, separatorColor);
 					}
 				}
 			}

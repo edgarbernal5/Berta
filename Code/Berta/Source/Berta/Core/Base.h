@@ -50,7 +50,8 @@ namespace Berta::StringUtils
 	constexpr StringHash Hash(std::string_view strView)
 	{
 		StringHash hash = 2166136261u;
-		for (char c : strView) {
+		for (char c : strView)
+		{
 			hash ^= static_cast<StringHash>(c);
 			hash *= 16777619u;
 		}

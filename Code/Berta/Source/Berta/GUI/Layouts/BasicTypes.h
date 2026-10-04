@@ -25,6 +25,8 @@ namespace Berta
             String,
             OpenBrace,
             CloseBrace,
+            OpenBracket,
+            CloseBracket,
             Equal,
             Splitter,
             Colon,
@@ -41,6 +43,9 @@ namespace Berta
             MaxHeight,
             MinWidth,
             MaxWidth,
+            
+            Margin,
+            Padding,
 
             Dock,
             DockPane
@@ -66,6 +71,22 @@ namespace Berta
         Pixels,
         Percentage
     };
+    
+    struct Thickness
+    {
+        double Left = 0.0;
+        double Top = 0.0;
+        double Right = 0.0;
+        double Bottom = 0.0;
+
+        Thickness() = default;
+        Thickness(double uniform) 
+            : Left(uniform), Top(uniform), Right(uniform), Bottom(uniform) {}
+        Thickness(double horizontal, double vertical) 
+            : Left(horizontal), Top(vertical), Right(horizontal), Bottom(vertical) {}
+        Thickness(double left, double top, double right, double bottom) 
+            : Left(left), Top(top), Right(right), Bottom(bottom) {}
+    };
 
     struct Dimension
     {
@@ -74,7 +95,7 @@ namespace Berta
 
         [[nodiscard]] bool IsPercentage() const noexcept { return unit == DimensionUnit::Percentage; }
     };
-    using PropertyValue = std::variant<int, double, Dimension, std::string>;
+    using PropertyValue = std::variant<int, double, Dimension, Thickness, std::string>;
     
     // Helper clásico para usar con std::visit (Pattern Matching de tipos)
     template<class... Ts> struct Overload : Ts... { using Ts::operator()...; };

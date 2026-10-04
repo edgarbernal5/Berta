@@ -64,41 +64,74 @@ namespace Berta
     {
         Token propToken = Advance(); 
     
-        std::string propertyName;
-        if (propToken.type == Token::Type::Width) propertyName = "Width";
-        else if (propToken.type == Token::Type::Height) propertyName = "Height";
-        else if (propToken.type == Token::Type::MinHeight) propertyName = "MinHeight";
-        else if (propToken.type == Token::Type::MaxHeight) propertyName = "MaxHeight";
-        else if (propToken.type == Token::Type::MinWidth) propertyName = "MinWidth";
-        else if (propToken.type == Token::Type::MaxWidth) propertyName = "MaxWidth";
+        std::string propertyName = std::string(propToken.value);
 
         Expect(Token::Type::Equal);
-
-        Token valueToken = Peek();
-        double rawValue = 0.0;
         
-        if (Accept(Token::Type::NumberInt) || Accept(Token::Type::NumberDouble))
+        // 1. Si es Margin o Padding, parseamos el arreglo
+        if (propToken.type == Token::Type::Margin || propToken.type == Token::Type::Padding)
         {
-            // C++17 std::from_chars: Conversión de alto rendimiento basada en string_view sin alocaciones
-            auto [ptr, ec] = std::from_chars(valueToken.value.data(), valueToken.value.data() + valueToken.value.size(), rawValue);
-        
-            if (ec != std::errc{})
+            Expect(Token::Type::OpenBracket);
+            std::vector<double> values;
+
+            while (!IsAtEnd() && Peek().type != Token::Type::CloseBracket)
             {
-                throw std::runtime_error("Error al parsear el valor numérico de la propiedad.");
+                Token valueToken = Peek();
+                if (Accept(Token::Type::NumberInt) || Accept(Token::Type::NumberDouble))
+                {
+                    double rawValue = 0.0;
+                    auto [ptr, ec] = std::from_chars(valueToken.value.data(), valueToken.value.data() + valueToken.value.size(), rawValue);
+                    if (ec != std::errc{}) throw std::runtime_error("Error al parsear el valor numérico en el arreglo.");
+                
+                    values.push_back(rawValue);
+                }
+                else
+                {
+                    throw std::runtime_error("Se esperaba un número dentro del arreglo de propiedad.");
+                }
+
+                // Aceptamos coma opcional (para soportar tanto [5,10] como [5 10])
+                Accept(Token::Type::Comma); 
             }
-        }
-        else 
-        {
-            throw std::runtime_error("Se esperaba un número tras el '=' en el layout.");
-        }
+            Expect(Token::Type::CloseBracket);
 
-        Berta::DimensionUnit unit = Berta::DimensionUnit::Pixels;
-        if (Accept(Token::Type::Percentage))
-        {
-            unit = Berta::DimensionUnit::Percentage;
-        }
+            // Mapeo inteligente (CSS/XAML Style)
+            Berta::Thickness thickness;
+            if (values.size() == 1)      thickness = Berta::Thickness(values[0]);
+            else if (values.size() == 2) thickness = Berta::Thickness(values[0], values[1]); // X, Y
+            else if (values.size() == 4) thickness = Berta::Thickness(values[0], values[1], values[2], values[3]); // L, T, R, B
+            else throw std::runtime_error("El arreglo de Thickness debe tener 1, 2 o 4 valores.");
 
-        outProperties[propertyName] = Berta::Dimension{ rawValue, unit };
+            outProperties[propertyName] = thickness;
+        }
+        else
+        {
+            Token valueToken = Peek();
+            double rawValue = 0.0;
+        
+            if (Accept(Token::Type::NumberInt) || Accept(Token::Type::NumberDouble))
+            {
+                // C++17 std::from_chars: Conversión de alto rendimiento basada en string_view sin alocaciones
+                auto [ptr, ec] = std::from_chars(valueToken.value.data(), valueToken.value.data() + valueToken.value.size(), rawValue);
+        
+                if (ec != std::errc{})
+                {
+                    throw std::runtime_error("Error al parsear el valor numérico de la propiedad.");
+                }
+            }
+            else 
+            {
+                throw std::runtime_error("Se esperaba un número tras el '=' en el layout.");
+            }
+
+            Berta::DimensionUnit unit = Berta::DimensionUnit::Pixels;
+            if (Accept(Token::Type::Percentage))
+            {
+                unit = Berta::DimensionUnit::Percentage;
+            }
+
+            outProperties[propertyName] = Berta::Dimension{ rawValue, unit };
+        }
     }
 
     std::unique_ptr<LayoutNode> LayoutParser::ParseNode()

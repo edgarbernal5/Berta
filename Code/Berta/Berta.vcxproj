@@ -172,6 +172,7 @@
     <ClInclude Include="Source\Berta\Controls\Docking\DockIndicatorForm.h" />
     <ClInclude Include="Source\Berta\Controls\PropertyGrid.h" />
     <ClInclude Include="Source\Berta\GUI\Layouts\BasicTypes.h" />
+    <ClInclude Include="Source\Berta\GUI\Layouts\Helpers.h" />
     <ClInclude Include="Source\Berta\GUI\Layouts\LayoutNodes.h" />
     <ClInclude Include="Source\Berta\GUI\Layouts\LayoutParser.h" />
     <ClInclude Include="Source\Berta\GUI\Layouts\Lexer.h" />
@@ -266,6 +267,7 @@
     <ClCompile Include="Source\Berta\Controls\TreeBox.cpp" />
     <ClCompile Include="Source\Berta\GUI\ControlDrawBatch.cpp" />
     <ClCompile Include="Source\Berta\GUI\LassoSelection.cpp" />
+    <ClCompile Include="Source\Berta\GUI\Layouts\Helpers.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layouts\LayoutNodes.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layouts\LayoutParser.cpp" />
     <ClCompile Include="Source\Berta\GUI\Layouts\Lexer.cpp" />

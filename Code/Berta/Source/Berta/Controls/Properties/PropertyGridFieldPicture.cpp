@@ -16,10 +16,11 @@ namespace Berta
         auto frameSize = area.Height;
         Rectangle backgroundArea = area;
         backgroundArea.Width = frameSize;
+        
         m_previewRect = backgroundArea;
         if (!m_previewImage)
         {
-            graphics.DrawRoundRectBox(backgroundArea, config.Background,config.BoxBorderColor, true);
+            graphics.DrawRoundRectBox(backgroundArea, config.Background, config.BoxBorderColor, true);
             return;
         }
         

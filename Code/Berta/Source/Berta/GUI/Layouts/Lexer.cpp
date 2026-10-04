@@ -49,6 +49,9 @@ namespace Berta
                 case '}': tokens.push_back({Token::Type::CloseBrace, m_source.substr(m_position - 1, 1)}); break;
                 case '|': tokens.push_back({Token::Type::Splitter, m_source.substr(m_position - 1, 1)}); break;
                 case '%': tokens.push_back({Token::Type::Percentage, m_source.substr(m_position - 1, 1)}); break;
+                case '[': tokens.push_back({Token::Type::OpenBracket, m_source.substr(m_position - 1, 1)}); break;
+                case ']': tokens.push_back({Token::Type::CloseBracket, m_source.substr(m_position - 1, 1)}); break;
+                case ',': tokens.push_back({Token::Type::Comma, m_source.substr(m_position - 1, 1)}); break;
                 default:  tokens.push_back({Token::Type::Unknown, m_source.substr(m_position - 1, 1)}); break;
                 }
             }
