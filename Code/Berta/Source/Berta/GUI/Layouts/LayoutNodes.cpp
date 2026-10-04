@@ -260,33 +260,17 @@ namespace Berta
 
 			if (markedChildren[i])
 			{
-				// Si es un nodo fijo, usamos el tamaño guardado de la función anterior
-				uint32_t savedMainDim = m_isVertical ? areas[i].Height : areas[i].Width;
-				childSlot.Width = areas[i].Width;
-				childSlot.Height = areas[i].Height;
-      
-				mainPosSlot += currentOffsetMain;
-      
-				exactOffsetMain += savedMainDim;
-				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
+				mainDimSlot = m_isVertical ? areas[i].Height : areas[i].Width;
 			}
 			else
 			{
 				auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
-				
-				// Si es un nodo dinámico, lo distribuimos según su peso
 				double normalizedFraction = dynamicWeights[i] / totalWeight;
 				double exactSize = normalizedFraction * remainMainDim;
+            
 				double nextExactOffset = exactOffsetMain + exactSize;
-      
-				uint32_t part = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
-
-				mainDimSlot = part;
-				mainPosSlot += currentOffsetMain;
-      
-				exactOffsetMain = nextExactOffset;
-				currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
-      
+				mainDimSlot = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
+            
 				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
 			
