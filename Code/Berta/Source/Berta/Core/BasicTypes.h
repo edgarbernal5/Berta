@@ -414,6 +414,32 @@ namespace Berta
 		Retry,
 		Ignore
 	};
+	
+	struct CornerRadii
+	{
+		float TopLeft = 0.0f;
+		float TopRight = 0.0f;
+		float BottomRight = 0.0f;
+		float BottomLeft = 0.0f;
+    
+		bool IsRectangular() const
+		{
+			return TopLeft == 0 && TopRight == 0 && BottomRight == 0 && BottomLeft == 0;
+		}
+		
+		bool operator==(const CornerRadii& other) const
+		{
+			return TopLeft == other.TopLeft && 
+				   TopRight == other.TopRight && 
+				   BottomRight == other.BottomRight && 
+				   BottomLeft == other.BottomLeft;
+		}
+
+		bool operator!=(const CornerRadii& other) const
+		{
+			return !(*this == other);
+		}
+	};
 }
 
 #endif

@@ -1235,6 +1235,48 @@ namespace Berta
 		}
 		return pathGeometry;
 	}
+
+	ID2D1PathGeometry* Graphics::CreateCustomRoundedGeometry(const Rectangle& rect, const CornerRadii& radii) const
+	{
+		ID2D1PathGeometry* pathGeometry = nullptr;
+		auto factory = DirectX::D2DModule::GetInstance().GetFactory();
+		if (FAILED(factory->CreatePathGeometry(&pathGeometry))) return nullptr;
+
+		ID2D1GeometrySink* sink = nullptr;
+		if (SUCCEEDED(pathGeometry->Open(&sink)))
+		{
+			float L = static_cast<float>(rect.X);
+			float T = static_cast<float>(rect.Y);
+			float R = static_cast<float>(rect.X + rect.Width);
+			float B = static_cast<float>(rect.Y + rect.Height);
+
+			// Top-Left a Top-Right
+			sink->BeginFigure(D2D1::Point2F(L + radii.TopLeft, T), D2D1_FIGURE_BEGIN_FILLED);
+			sink->AddLine(D2D1::Point2F(R - radii.TopRight, T));
+			if (radii.TopRight > 0)
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(R, T + radii.TopRight), D2D1::SizeF(radii.TopRight, radii.TopRight), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+        
+			// Right a Bottom-Right
+			sink->AddLine(D2D1::Point2F(R, B - radii.BottomRight));
+			if (radii.BottomRight > 0)
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(R - radii.BottomRight, B), D2D1::SizeF(radii.BottomRight, radii.BottomRight), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+
+			// Bottom a Bottom-Left
+			sink->AddLine(D2D1::Point2F(L + radii.BottomLeft, B));
+			if (radii.BottomLeft > 0)
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(L, B - radii.BottomLeft), D2D1::SizeF(radii.BottomLeft, radii.BottomLeft), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+
+			// Left a Top-Left
+			sink->AddLine(D2D1::Point2F(L, T + radii.TopLeft));
+			if (radii.TopLeft > 0)
+				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(L + radii.TopLeft, T), D2D1::SizeF(radii.TopLeft, radii.TopLeft), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+
+			sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+			sink->Close();
+			sink->Release();
+		}
+		return pathGeometry;
+	}
 #endif
 
 	void Graphics::SetTransform(const Rectangle& area)
@@ -1278,6 +1320,29 @@ namespace Berta
 #endif
 	}
 
+#ifdef BT_PLATFORM_WINDOWS
+	void Graphics::SetGeometryClipping(ID2D1Geometry* geometry) const
+	{
+		if (!m_targetRT || !geometry) return;
+
+		D2D1_LAYER_PARAMETERS layerParams = D2D1::LayerParameters(
+			D2D1::InfiniteRect(),
+			geometry,
+			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE,
+			D2D1::IdentityMatrix(),
+			1.0f,
+			nullptr,
+			D2D1_LAYER_OPTIONS_NONE
+		);
+    
+		m_targetRT->PushLayer(layerParams, nullptr);
+	}
+
+	void Graphics::EndGeometryClipping() const
+	{
+		if (m_targetRT) m_targetRT->PopLayer();
+	}
+#endif
 	void Graphics::PushTranslation(int x, int y)
 	{
 #ifdef BT_PLATFORM_WINDOWS

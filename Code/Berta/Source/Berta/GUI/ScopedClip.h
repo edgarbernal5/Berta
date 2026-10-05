@@ -27,6 +27,30 @@ namespace Berta
     private:
         Graphics& m_graphics;
     };
+    
+   
+#ifdef BT_PLATFORM_WINDOWS
+    struct ScopedLayerClip
+    {
+        ScopedLayerClip(Graphics& graphics, ID2D1Geometry* geometry) : m_graphics(graphics), m_isLayer(geometry != nullptr)
+        {
+            if (m_isLayer) {
+                m_graphics.SetGeometryClipping(geometry);
+            }
+        }
+    
+        ~ScopedLayerClip()
+        {
+            if (m_isLayer) {
+                m_graphics.EndGeometryClipping();
+            }
+        }
+    private:
+        Graphics& m_graphics;
+        bool m_isLayer;
+    };
+#endif
+    
 }
 
 #endif

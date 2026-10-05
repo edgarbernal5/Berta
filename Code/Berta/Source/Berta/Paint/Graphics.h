@@ -123,6 +123,11 @@ namespace Berta
 		void SetClipping(const Rectangle& area) const;
 		void EndClipping();
 		
+#ifdef BT_PLATFORM_WINDOWS
+		void SetGeometryClipping(ID2D1Geometry* geometry) const;
+		void EndGeometryClipping() const;
+#endif
+		
 		void PushTranslation(int x, int y);
 		void PopTranslation();
 
@@ -159,6 +164,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		ID2D1PathGeometry* CreateTopRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
 		ID2D1PathGeometry* CreateBottomRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
+		ID2D1PathGeometry* CreateCustomRoundedGeometry(const Rectangle& rect, const CornerRadii& radii) const;
 		
 		std::stack<D2D1_MATRIX_3X2_F> m_transformStack;
 		
