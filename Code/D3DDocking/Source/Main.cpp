@@ -24,6 +24,9 @@ public:
 	TabExplorer(Berta::Window* parent) :
 		Panel(parent)
 	{
+		m_listBox.GetAppearance().BorderRadii = {3.0f, 3.0f, 3.0f, 3.0f};
+		
+		m_treeBox.GetAppearance().BorderRadii = {3.0f, 3.0f, 3.0f, 3.0f};
 		m_listBox.AppendHeader("Name", 200);
 		m_listBox.AppendHeader("Type", 120);
 

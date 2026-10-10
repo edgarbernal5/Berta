@@ -175,6 +175,7 @@ namespace Berta
 			m_module.m_window = m_control->Handle();
 			m_module.m_control = m_control;
 
+			m_module.m_window->Appearance->BorderRadii.BottomLeft=3.0f;
 			GUI::SetWindowBorderless(*m_control, false);
 			
 			m_module.m_headers.Init(m_module.m_window);

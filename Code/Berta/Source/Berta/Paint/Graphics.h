@@ -17,6 +17,7 @@
 
 #ifdef BT_PLATFORM_WINDOWS
 #include "Berta/Platform/Windows/ResourceCache.h"
+#include "Berta/Platform/Windows/GeometryCache.h"
 #endif
 
 namespace Berta
@@ -95,6 +96,9 @@ namespace Berta
 		void DrawCircle(const Point& dest, int radius, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 		void DrawEllipse(const Rectangle& dest, const Color& fillColor, const Color& borderColor, bool solid, float strokeWidth = 1.0f);
 
+		void DrawRoundedRectangle(const Rectangle& rectangle, const CornerRadii& radii, const Color& color, float strokeWidth);
+		void FillRoundedRectangle(const Rectangle& rectangle, const CornerRadii& radii, const Color& color);
+		
 		uint32_t GetDpi() const { return m_dpi; }
 		const Size& GetSize() const { return m_size; }
 		
@@ -124,6 +128,8 @@ namespace Berta
 		void EndClipping();
 		
 #ifdef BT_PLATFORM_WINDOWS
+		ID2D1PathGeometry* GetRoundedGeometry(uint32_t width, uint32_t height, const CornerRadii& radii, float strokeWidth = 1.0f);
+		
 		void SetGeometryClipping(ID2D1Geometry* geometry) const;
 		void EndGeometryClipping() const;
 #endif
@@ -164,13 +170,13 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		ID2D1PathGeometry* CreateTopRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
 		ID2D1PathGeometry* CreateBottomRoundedGeometry(const Rectangle& rect, float radius, bool closeFigure) const;
-		ID2D1PathGeometry* CreateCustomRoundedGeometry(const Rectangle& rect, const CornerRadii& radii) const;
 		
 		std::stack<D2D1_MATRIX_3X2_F> m_transformStack;
 		
 		ID2D1RenderTarget* m_targetRT{ nullptr };
 		
 		ResourceCache m_resourceCache;
+		GeometryCache m_geometryCache;
 #endif
 	};
 }

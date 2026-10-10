@@ -34,17 +34,10 @@ namespace Berta
         ID2D1SolidColorBrush* GetBrush(const Color& color);
         ID2D1StrokeStyle* GetStrokeStyle(LineStyle style);
         
-        ID2D1PathGeometry* GetOrCreateGeometry(const Graphics* graphics, int width, int height, const CornerRadii& radii);
-        void InvalidateGeometry();
     private:
         ID2D1RenderTarget* m_targetRT{ nullptr };
         std::unordered_map<Color, Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>, ColorHasher> m_brushCache;
         std::unordered_map<LineStyle, Microsoft::WRL::ComPtr<ID2D1StrokeStyle>> m_strokeStyleCache;
-        
-        Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_geometry;
-        int m_lastWidth = -1;
-        int m_lastHeight = -1;
-        CornerRadii m_lastRadii;
     };
 }
 

@@ -56,7 +56,9 @@ namespace Berta
 		uint32_t CheckboxHeight = 12;
 		uint32_t ScrollBarSize = 18;
 		uint32_t SmallIconSize = 16;
-
+		
+		CornerRadii BorderRadii;
+		//CornerRadii BorderRadii {4.0f, 4.0f,4.0f, 4.0f};
 	};
 }
 

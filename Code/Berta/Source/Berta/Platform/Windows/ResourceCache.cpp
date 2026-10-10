@@ -87,36 +87,4 @@ namespace Berta
         
         return newStyle.Get();
     }
-
-    ID2D1PathGeometry* ResourceCache::GetOrCreateGeometry(const Graphics* graphics, int width, int height,const CornerRadii& radii)
-    {
-        // Hit del caché: Si nada cambió, devolvemos el puntero existente
-        if (m_geometry && m_lastWidth == width && m_lastHeight == height && m_lastRadii == radii) 
-        {
-            return m_geometry.Get();
-        }
-
-        // Miss del caché: Liberamos la anterior
-        m_geometry.Reset();
-
-        // Creamos la nueva geometría en el origen local (0, 0)
-        Rectangle localRect{ 0, 0, width, height };
-        
-        // Asumiendo que CreateCustomRoundedGeometry devuelve un puntero crudo recién instanciado
-        ID2D1PathGeometry* newGeometry = graphics->CreateCustomRoundedGeometry(localRect, radii);
-        
-        if (newGeometry) 
-        {
-            // Usamos Attach porque la función de creación ya deja el RefCount en 1.
-            // Si la función devolviera un ComPtr, simplemente lo asignaríamos.
-            m_geometry.Attach(newGeometry);
-            
-            // Actualizamos los parámetros de validación
-            m_lastWidth = width;
-            m_lastHeight = height;
-            m_lastRadii = radii;
-        }
-
-        return m_geometry.Get();
-    }
 }

@@ -7,6 +7,9 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/Button.h>
 
+#include "Berta/Controls/ListBox.h"
+#include "Berta/Controls/TextBox.h"
+
 int main()
 {
 	Berta::Form form(Berta::Size(450u, 350u), { true, true, true });
@@ -21,7 +24,12 @@ int main()
 			buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
 		});
 
+	Berta::ListBox text_box(form, { 15,75,250,200 });
 
+	text_box.AppendHeader("Nombre");
+	text_box.AppendHeader("Apellido");
+	text_box.GetAppearance().BorderRadii = {3.0f, 3.0f, 3.0f, 3.0f};
+	
 	form.Show();
 	form.Exec();
 

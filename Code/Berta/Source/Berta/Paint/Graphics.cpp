@@ -346,12 +346,13 @@ namespace Berta
 		auto borderBrush = m_resourceCache.GetBrush(borderColor);
 		if (borderBrush)
 		{
-			D2D1_RECT_F d2dRect = validRectangle;
+			float inset = strokeWidth * 0.5f;
 			
-			d2dRect.left += 0.5f;
-			d2dRect.top += 0.5f;
-			d2dRect.right -= 0.5f;
-			d2dRect.bottom -= 0.5f;
+			D2D1_RECT_F d2dRect = validRectangle;
+			d2dRect.left += inset;
+			d2dRect.top += inset;
+			d2dRect.right -= inset;
+			d2dRect.bottom -= inset;
 
 			m_targetRT->DrawRectangle(&d2dRect, borderBrush, strokeWidth);
 		}
@@ -402,11 +403,12 @@ namespace Berta
 			{
 				m_targetRT->FillRectangle(&d2dRect, solidBrush);
 			}
+			float inset = strokeWidth * 0.5f;
 			
-			d2dRect.left += 0.5f;
-			d2dRect.top += 0.5f;
-			d2dRect.right -= 0.5f;
-			d2dRect.bottom -= 0.5f;
+			d2dRect.left += inset;
+			d2dRect.top += inset;
+			d2dRect.right -= inset;
+			d2dRect.bottom -= inset;
 
 			m_targetRT->DrawRectangle(&d2dRect, borderBrush, strokeWidth);
 		}
@@ -992,6 +994,62 @@ namespace Berta
 #endif
 	}
 
+	void Graphics::DrawRoundedRectangle(const Rectangle& rectangle, const CornerRadii& radii, const Color& color, float strokeWidth)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		// El offset necesario para centrar la línea dentro del pixel y no sobre el borde
+		float inset = strokeWidth * 0.5f;
+		
+		if (radii.IsRectangular())
+		{
+			this->DrawRectangle(rectangle, color, strokeWidth);
+			return;
+		}
+
+		auto geometry = m_geometryCache.GetGeometry(rectangle.Width, rectangle.Height, radii, inset);
+		if (geometry)
+		{
+			D2D1_MATRIX_3X2_F currentTransform;
+			m_targetRT->GetTransform(&currentTransform);
+			m_targetRT->SetTransform(D2D1::Matrix3x2F::Translation((float)rectangle.X, (float)rectangle.Y) * currentTransform);
+
+			m_targetRT->DrawGeometry(geometry, m_resourceCache.GetBrush(color), strokeWidth);
+
+			m_targetRT->SetTransform(currentTransform); // Restauramos
+		}
+#endif
+	}
+
+	void Graphics::FillRoundedRectangle(const Rectangle& rectangle, const CornerRadii& radii, const Color& color)
+	{
+#ifdef BT_PLATFORM_WINDOWS
+		if (radii.IsRectangular())
+		{
+			/*// Ruta rápida: Si no hay curvas, usamos FillRectangle directo (muy rápido)
+			D2D1_RECT_F fillRect = D2D1::RectF(0.0f, 0.0f, width, height);
+			m_targetRT->FillRectangle(fillRect, m_resourceCache.GetBrush(color));*/
+			
+			this->FillRectangle(rectangle, color);
+			return;
+		}
+
+		// Ruta con curvas: Pedimos la geometría al caché. 
+		// NOTA: Para rellenar, el inset SIEMPRE es 0.0f
+		auto geometry = m_geometryCache.GetGeometry(rectangle.Width, rectangle.Height, radii, 0.0f);
+		if (geometry)
+		{
+			// Respetamos el X e Y del rectángulo desplazando la matriz temporalmente
+			D2D1_MATRIX_3X2_F currentTransform;
+			m_targetRT->GetTransform(&currentTransform);
+			m_targetRT->SetTransform(D2D1::Matrix3x2F::Translation((float)rectangle.X, (float)rectangle.Y) * currentTransform);
+
+			m_targetRT->FillGeometry(geometry, m_resourceCache.GetBrush(color));
+
+			m_targetRT->SetTransform(currentTransform); // Restauramos
+		}
+#endif
+	}
+
 	void Graphics::Paste(API::NativeWindowHandle destinationHandle, const Rectangle& areaToUpdate, int x, int y) const
 	{
 		Paste(destinationHandle, areaToUpdate.X, areaToUpdate.Y, areaToUpdate.Width, areaToUpdate.Height, x, y);
@@ -1236,47 +1294,6 @@ namespace Berta
 		return pathGeometry;
 	}
 
-	ID2D1PathGeometry* Graphics::CreateCustomRoundedGeometry(const Rectangle& rect, const CornerRadii& radii) const
-	{
-		ID2D1PathGeometry* pathGeometry = nullptr;
-		auto factory = DirectX::D2DModule::GetInstance().GetFactory();
-		if (FAILED(factory->CreatePathGeometry(&pathGeometry))) return nullptr;
-
-		ID2D1GeometrySink* sink = nullptr;
-		if (SUCCEEDED(pathGeometry->Open(&sink)))
-		{
-			float L = static_cast<float>(rect.X);
-			float T = static_cast<float>(rect.Y);
-			float R = static_cast<float>(rect.X + rect.Width);
-			float B = static_cast<float>(rect.Y + rect.Height);
-
-			// Top-Left a Top-Right
-			sink->BeginFigure(D2D1::Point2F(L + radii.TopLeft, T), D2D1_FIGURE_BEGIN_FILLED);
-			sink->AddLine(D2D1::Point2F(R - radii.TopRight, T));
-			if (radii.TopRight > 0)
-				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(R, T + radii.TopRight), D2D1::SizeF(radii.TopRight, radii.TopRight), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
-        
-			// Right a Bottom-Right
-			sink->AddLine(D2D1::Point2F(R, B - radii.BottomRight));
-			if (radii.BottomRight > 0)
-				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(R - radii.BottomRight, B), D2D1::SizeF(radii.BottomRight, radii.BottomRight), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
-
-			// Bottom a Bottom-Left
-			sink->AddLine(D2D1::Point2F(L + radii.BottomLeft, B));
-			if (radii.BottomLeft > 0)
-				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(L, B - radii.BottomLeft), D2D1::SizeF(radii.BottomLeft, radii.BottomLeft), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
-
-			// Left a Top-Left
-			sink->AddLine(D2D1::Point2F(L, T + radii.TopLeft));
-			if (radii.TopLeft > 0)
-				sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(L + radii.TopLeft, T), D2D1::SizeF(radii.TopLeft, radii.TopLeft), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
-
-			sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-			sink->Close();
-			sink->Release();
-		}
-		return pathGeometry;
-	}
 #endif
 
 	void Graphics::SetTransform(const Rectangle& area)
@@ -1321,6 +1338,12 @@ namespace Berta
 	}
 
 #ifdef BT_PLATFORM_WINDOWS
+	ID2D1PathGeometry* Graphics::GetRoundedGeometry(uint32_t width, uint32_t height, const CornerRadii& radii, float strokeWidth)
+	{
+		float inset = strokeWidth * 0.5f;
+		return m_geometryCache.GetGeometry(width, height, radii, inset);
+	}
+
 	void Graphics::SetGeometryClipping(ID2D1Geometry* geometry) const
 	{
 		if (!m_targetRT || !geometry) return;
@@ -1342,7 +1365,9 @@ namespace Berta
 	{
 		if (m_targetRT) m_targetRT->PopLayer();
 	}
+	
 #endif
+	
 	void Graphics::PushTranslation(int x, int y)
 	{
 #ifdef BT_PLATFORM_WINDOWS

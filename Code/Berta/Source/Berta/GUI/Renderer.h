@@ -23,6 +23,7 @@ namespace Berta
 		void Shutdown();
 		void Map(Window* window, const Rectangle& areaToUpdate);
 		void Update();
+		void DrawBorders();
 		
 		void MouseEnter(const ArgMouse& args);
 		void MouseLeave(const ArgMouse& args);

@@ -78,6 +78,7 @@ int main()
 	Berta::PropertyGrid propertyGrid(form, { 15,15,280,600 });
 	propertyGrid.ShowCategoryIcons(true);
 	
+	propertyGrid.GetAppearance().BorderRadii = {3.0f, 3.0f, 3.0f, 3.0f};
 	auto transformCategory = propertyGrid.Append("Transform");
 	transformCategory.EmplaceVector3("Position", 
 		[&myApp]()

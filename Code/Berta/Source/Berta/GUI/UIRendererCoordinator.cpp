@@ -7,6 +7,9 @@
 #include "btpch.h"
 #include "UIRendererCoordinator.h"
 
+#include <optional>
+
+#include "ControlAppearance.h"
 #include "Berta/GUI/ScopedClip.h"
 #include "Berta/GUI/Interface.h"
 
@@ -146,8 +149,25 @@ namespace Berta
 				
 				// --- INICIO CLIP DEL CONTROL ---
 				{
-					ScopedClip controlClip(rootGraphics, childClip);
-
+					ScopedClip boundsClip(rootGraphics, childClip);
+					
+					CornerRadii radii = child->Appearance->BorderRadii;
+					bool hasCurves = !radii.IsRectangular();
+			
+					std::optional<ScopedLayerClip> layerClip;
+					if (hasCurves)
+					{
+						// CRÍTICO: Movemos el origen al control antes de capturar el Layer
+						rootGraphics.SetTransform(childAbsoluteRect);
+            
+						auto clipGeom = rootGraphics.GetRoundedGeometry(childAbsoluteRect.Width, childAbsoluteRect.Height, radii, 0.0f);
+						layerClip.emplace(rootGraphics, clipGeom);
+            
+						// Restauramos a identidad para que la recursión y el Renderer 
+						// puedan seguir manejando coordenadas libremente.
+						rootGraphics.ResetTransform();
+					}
+					
 					if (child->Type != WindowType::Panel && !child->Flags.isUpdating)
 					{
 						ScopedUpdatingFlag guard(child);
@@ -174,6 +194,12 @@ namespace Berta
 						// RECURSIÓN: Pasamos el childAbsoluteRect (coordenadas intactas) 
 						// y el finalChildrenClip (tijera ajustada)
 						MapInternal(child, childAbsoluteRect, finalChildrenClip);
+					}
+					
+					if (child->Type != WindowType::Panel)
+					{
+						rootGraphics.ResetTransform();
+						child->Renderer.DrawBorders();
 					}
 				}
 			}

@@ -50,24 +50,53 @@ namespace Berta
 		{
 			m_updating = true;
 			
+			auto window = m_control->Handle();
+			
 			// 1. Establecer el espacio de coordenadas local
 			auto absoluteArea = m_control->GetArea();
 			m_graphics->SetTransform(absoluteArea);
-
+			
 			// 1. DIBUJAR CONTENIDO PRIMERO (Algoritmo del Pintor)
 			// El TextBox pintará su fondo blanco desde (0,0) hasta (Width, Height)
 			// y luego dibujará el texto encima de su propio fondo.
 			m_controlReactor->Update(*m_graphics);
 			
 			// 2. DIBUJAR EL BORDE AL FINAL (Por encima de todo)
-			if (!m_control->IsBorderless())
+			/*if (!m_control->IsBorderless())
 			{
+				const CornerRadii& radii = window->Appearance->BorderRadii;
 				Rectangle localBorderRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
-				m_graphics->DrawRectangle(localBorderRect, m_control->Handle()->Appearance->BoxBorderColor);
-			}
+				
+				Color borderColor = m_control->Handle()->Appearance->BoxBorderColor;
+				float thickness = 1.0f; // Extraído de tu appearance
+            
+				m_graphics->DrawRoundedRectangle(localBorderRect, radii, borderColor, thickness);
+			}*/
 
 			m_updating = false;
 		}
+	}
+
+	void Renderer::DrawBorders()
+	{
+		if (m_control->IsBorderless() || !m_graphics->IsValid()) 
+		{
+			return;
+		}
+
+		auto window = m_control->Handle();
+		auto absoluteArea = m_control->GetArea();
+		m_graphics->SetTransform(absoluteArea);
+
+		CornerRadii radii = window->Appearance->BorderRadii;
+		Color borderColor = window->Appearance->BoxBorderColor;
+		float thickness = 1.0f; // O extraerlo de tu appearance
+
+		Rectangle localRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
+    
+		// Al dibujarse al final, la línea aplicará el gris sólido sobre la 
+		// frontera del scrollbar eliminando el sangrado de color.
+		m_graphics->DrawRoundedRectangle(localRect, radii, borderColor, thickness);
 	}
 
 	void Renderer::MouseEnter(const ArgMouse& args)
