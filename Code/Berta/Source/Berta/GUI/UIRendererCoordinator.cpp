@@ -151,7 +151,7 @@ namespace Berta
 				{
 					ScopedClip boundsClip(rootGraphics, childClip);
 					
-					CornerRadii radii = child->Appearance->BorderRadii;
+					const CornerRadii& radii = child->Appearance->BorderRadii;
 					bool hasCurves = !radii.IsRectangular();
 			
 					std::optional<ScopedLayerClip> layerClip;

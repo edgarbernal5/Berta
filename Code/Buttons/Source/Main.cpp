@@ -20,15 +20,9 @@ int main()
 
 	Berta::Button button(form, { 15,15,150,50 }, "Click me!");
 	button.GetEvents().Click.Connect([&buttonDisabled](const Berta::ArgClick& args)
-		{
-			buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
-		});
-
-	Berta::ListBox text_box(form, { 15,75,250,200 });
-
-	text_box.AppendHeader("Nombre");
-	text_box.AppendHeader("Apellido");
-	text_box.GetAppearance().BorderRadii = {3.0f, 3.0f, 3.0f, 3.0f};
+	{
+		buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
+	});
 	
 	form.Show();
 	form.Exec();

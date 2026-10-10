@@ -58,7 +58,6 @@ namespace Berta
 		uint32_t SmallIconSize = 16;
 		
 		CornerRadii BorderRadii;
-		//CornerRadii BorderRadii {4.0f, 4.0f,4.0f, 4.0f};
 	};
 }
 
