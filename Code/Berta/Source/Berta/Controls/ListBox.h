@@ -99,7 +99,7 @@ namespace Berta
 			bool m_drawImages { false };
 			std::vector<List::Item> m_items;
 			std::vector<size_t> m_visualMap;
-			OnCollectionChangedCallback m_onChanged;
+			OnCollectionChangedCallback m_onChanged {};
 		};
 		
 		struct HeaderController
