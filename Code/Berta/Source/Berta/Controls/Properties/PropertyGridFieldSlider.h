@@ -69,7 +69,7 @@ namespace Berta
             int textWidth = area.Width * 0.3f;
             int margin = this->m_parent->ToScale(4);
 
-            Rectangle textRect = { area.X, area.Y, (uint32_t)textWidth, area.Height };
+            Rectangle textRect = { area.X, area.Y, static_cast<uint32_t>(textWidth), area.Height };
             Rectangle sliderRect = { area.X + textWidth + margin, area.Y, area.Width - textWidth - margin, area.Height };
 
             m_textBox.SetArea(textRect);
@@ -85,37 +85,6 @@ namespace Berta
         {
             return false;
         }
-	    
-        /*void Refresh() override
-        {
-            if (!this->m_getter)
-            {
-                return;
-            }
-		    
-            std::optional<TNumber> currentOpt = this->m_getter();
-            if (currentOpt.has_value())
-            {
-                TNumber val = currentOpt.value();
-                std::string strVal = std::to_string(val);
-                
-                if (m_textBox.GetCaption() != strVal)
-                {
-                    m_textBox.SetCaption(strVal);
-                }
-                if (m_slider.GetValue() != static_cast<float>(val))
-                {
-                    m_slider.SetValue(static_cast<float>(val));
-                }
-            }
-            else
-            {
-                if (m_textBox.GetCaption() != "---")
-                {
-                    m_textBox.SetCaption("---");
-                }
-            }
-        }*/
 
         std::wstring GetValueAsString() const override
         {
@@ -216,6 +185,8 @@ namespace Berta
     };
 
     using PropertyGridFieldSliderInt = PropertyGridFieldSlider<int>;
+    using PropertyGridFieldSliderUInt8 = PropertyGridFieldSlider<uint8_t>;
+    using PropertyGridFieldSliderUInt = PropertyGridFieldSlider<uint32_t>;
     using PropertyGridFieldSliderFloat = PropertyGridFieldSlider<float>;
 }
 
