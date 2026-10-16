@@ -103,12 +103,10 @@ namespace Berta
 		auto parentArea = GetArea();
 		const float dpi = m_ownerWindow->DPIScaleFactor;
 		
-		// --- PADDING: El padre contrae su espacio interno ---
 		Berta::Thickness padding = Layouts::GetScaledThickness(this, "Padding", dpi);
 		parentArea.X += static_cast<int>(padding.Left);
 		parentArea.Y += static_cast<int>(padding.Top);
 		
-		// Usamos std::max para prevenir underflow si el padding es más grande que el control
 		parentArea.Width  = std::max<decltype(parentArea.Width)>(0, parentArea.Width - static_cast<int>((padding.Left + padding.Right)));
 		parentArea.Height = std::max<decltype(parentArea.Height)>(0, parentArea.Height - static_cast<int>((padding.Top + padding.Bottom)));
 
@@ -133,9 +131,8 @@ namespace Berta
 		std::vector<Rectangle> areas(m_children.size()); 
 		int fixedNodesCount = 0;
 
-		// 3. Ejecutar las Fases
 		ProcessFixedChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi);
-		ProcessDynamicChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi, spacing); // Pasamos 'spacing'
+		ProcessDynamicChildren(parentArea, remainArea, areas, markedChildren, fixedNodesCount, dpi, spacing);
 	}
 
 	ContainerLayoutNode::ContainerLayoutNode(LayoutNodeType type) :
@@ -288,19 +285,15 @@ namespace Berta
 			
 			currentOffsetMain = static_cast<int>(std::round(exactOffsetMain));
 			
-			// 2. Extraer el margen específico de ESTE hijo
 			Berta::Thickness margin = Layouts::GetScaledThickness(childNode.get(), "Margin", dpi);
 
-			// 3. Contraer el Slot para obtener el Área Real (Aplicar Box Model)
 			Rectangle finalChildArea = childSlot;
 			finalChildArea.X += static_cast<int>(margin.Left);
 			finalChildArea.Y += static_cast<int>(margin.Top);
 			
-			// Uso de std::max para prevenir desbordamientos si el margen es mayor al espacio asignado
 			finalChildArea.Width  = std::max<decltype(finalChildArea.Width)>(0, finalChildArea.Width - (margin.Left + margin.Right));
 			finalChildArea.Height = std::max<decltype(finalChildArea.Height)>(0, finalChildArea.Height - (margin.Top + margin.Bottom));
 			
-			// Finalmente: Seteamos su área y desatamos la recursividad en el árbol
 			childNode->SetArea(finalChildArea);
 			childNode->CalculateAreas(); 
 		}
