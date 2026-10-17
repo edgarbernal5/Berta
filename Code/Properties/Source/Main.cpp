@@ -55,6 +55,7 @@ struct AppState
 	std::wstring MeshFilter{ L"/home/edgar/meshfilter.x" };
 	Berta::Color TintColor{255,0,0,255};
 	float Roughness=255.0f;
+	float RoughnessNormalized=1.0f;
 	int Threshold=3;
 	Vector3 Position;
 	Vector3 Rotation;
@@ -224,6 +225,12 @@ int main()
 		[&myApp]() { return myApp.Roughness; },
 			[&myApp](float val) { myApp.Roughness = val; },
 			0.0f, 255.0f);
+	
+	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderFloat>(
+		"Roughness Norm",
+		[&myApp]() { return myApp.RoughnessNormalized; },
+			[&myApp](float val) { myApp.RoughnessNormalized = val; },
+			0.0f, 1.0f);
 	
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderInt>(
 		"Threshold",

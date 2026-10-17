@@ -14,15 +14,15 @@
 namespace Berta
 {
     template<typename TNumber, typename = std::enable_if_t<std::is_arithmetic_v<TNumber>>>
-    class PropertyGridFieldSlider : public TypedPropertyField<TNumber>
+    class PropertyGridFieldSlider : public PropertyGridFieldNumeric<TNumber>
     {
     public:
         using GetterFn = std::function<std::optional<TNumber>()>;
         using SetterFn = std::function<void(TNumber)>;
 
     public:
-        PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal) : 
-            TypedPropertyField<TNumber>(label, std::move(getter), std::move(setter)), m_min(minVal), m_max(maxVal)
+        PropertyGridFieldSlider(std::string_view label, GetterFn getter, SetterFn setter, TNumber minVal, TNumber maxVal, TNumber step = static_cast<TNumber>(0)) : 
+            PropertyGridFieldNumeric<TNumber>(label, std::move(getter), std::move(setter)), m_min(minVal), m_max(maxVal), m_step(step)
         {
         }
 
@@ -33,8 +33,16 @@ namespace Berta
             m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
             
             m_slider.Create(parent);
-            m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
-		    
+            
+            if constexpr (std::is_floating_point_v<TNumber>)
+            {
+                m_slider.SetMinMax(0.0f, FLOAT_RESOLUTION);
+            }
+            else
+            {
+                m_slider.SetMinMax(static_cast<float>(m_min), static_cast<float>(m_max));
+            }
+            
             this->Refresh();
             
             m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
@@ -59,7 +67,7 @@ namespace Berta
 
             m_slider.GetEvents().ValueChanged.Connect([this](ArgSlider args)
             {
-                ApplySliderValue(static_cast<TNumber>(args.Value));
+                ApplySliderValue(static_cast<float>(args.Value));
             });
             m_slider.MakeActive(false, m_textBox);
         }
@@ -120,15 +128,27 @@ namespace Berta
         
         void SetValueInternal(const TNumber& value) override
         {
-            std::string strVal = std::to_string(value);
+            std::string strVal = this->FormatValue(value);
                 
             if (m_textBox.GetCaption() != strVal)
             {
                 m_textBox.SetCaption(strVal);
             }
-            if (m_slider.GetValue() != static_cast<float>(value))
+
+            float targetSliderValue;
+            if constexpr (std::is_floating_point_v<TNumber>) 
             {
-                m_slider.SetValue(static_cast<float>(value));
+                float t = (m_max > m_min) ? static_cast<float>(value - m_min) / static_cast<float>(m_max - m_min) : 0.0f;
+                targetSliderValue = t * FLOAT_RESOLUTION;
+            } 
+            else 
+            {
+                targetSliderValue = static_cast<float>(value);
+            }
+
+            if (m_slider.GetValue() != targetSliderValue)
+            {
+                m_slider.SetValue(targetSliderValue);
             }
         }
         
@@ -141,6 +161,26 @@ namespace Berta
         }
 
     private:
+        TNumber SnapToStep(TNumber value) const
+        {
+            if (m_step <= static_cast<TNumber>(0))
+            {
+                return std::clamp(value, m_min, m_max);
+            }
+
+            TNumber snappedValue;
+            if constexpr (std::is_floating_point_v<TNumber>)
+            {
+                snappedValue = m_min + static_cast<TNumber>(std::round(static_cast<double>(value - m_min) / static_cast<double>(m_step))) * m_step;
+            }
+            else
+            {
+                snappedValue = m_min + ((value - m_min + (m_step / 2)) / m_step) * m_step;
+            }
+            
+            return std::clamp(snappedValue, m_min, m_max);
+        }
+        
         void ApplyTextValue()
         {
             std::string str = m_textBox.GetCaption();
@@ -155,21 +195,45 @@ namespace Berta
                 std::istringstream iss(str);
                 iss >> parsedValue;
 
-                parsedValue = std::clamp(parsedValue, m_min, m_max);
+                parsedValue = SnapToStep(parsedValue);
 
                 if (!this->m_getter() || this->m_getter().value() != parsedValue)
                 {
                     this->m_setter(parsedValue);
                     this->NotifyValueChanged();
                 }
-            } 
+            }
             catch (...)
             {
             }
             this->Refresh();
         }
 
-        void ApplySliderValue(TNumber newValue)
+        void ApplySliderValue(float rawSliderValue)
+        {
+            TNumber newValue;
+            
+            if constexpr (std::is_floating_point_v<TNumber>)
+            {
+                float t = rawSliderValue / FLOAT_RESOLUTION;
+                newValue = static_cast<TNumber>(m_min + (m_max - m_min) * t);
+            }
+            else
+            {
+                newValue = static_cast<TNumber>(rawSliderValue);
+            }
+
+            newValue = SnapToStep(newValue);
+
+            if (!this->m_getter() || this->m_getter().value() != newValue)
+            {
+                this->m_setter(newValue);
+                m_textBox.SetCaption(this->FormatValue(newValue)); 
+                this->NotifyValueChanged();
+            }
+        }
+        
+        /*void ApplySliderValue(TNumber newValue)
         {
             if (!this->m_getter() || this->m_getter().value() != newValue)
             {
@@ -177,9 +241,12 @@ namespace Berta
                 m_textBox.SetCaption(std::to_string(newValue)); 
                 this->NotifyValueChanged();
             }
-        }
+        }*/
+        
+        static constexpr float FLOAT_RESOLUTION = 10000.0f;
 
         TNumber m_min, m_max;
+        TNumber m_step;
         TextBox m_textBox;
         Slider m_slider;
     };

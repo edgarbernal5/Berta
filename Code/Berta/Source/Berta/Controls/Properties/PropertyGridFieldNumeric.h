@@ -19,17 +19,17 @@
 
 namespace Berta
 {
-	template <typename T>
-    class PropertyGridFieldNumeric : public TypedPropertyField<T>
+	template <typename TNumber>
+    class PropertyGridFieldNumeric : public TypedPropertyField<TNumber>
     {
-        static_assert(std::is_arithmetic_v<T>, "Type T must be numeric.");
+        static_assert(std::is_arithmetic_v<TNumber>, "Type T must be numeric.");
 
     public:
-	    using GetterFn = typename TypedPropertyField<T>::GetterFn;
-	    using SetterFn = typename TypedPropertyField<T>::SetterFn;
+	    using GetterFn = typename TypedPropertyField<TNumber>::GetterFn;
+	    using SetterFn = typename TypedPropertyField<TNumber>::SetterFn;
 	    
 	    PropertyGridFieldNumeric(std::string_view label, GetterFn getter, SetterFn setter)
-            : TypedPropertyField<T>(label, std::move(getter), std::move(setter))
+            : TypedPropertyField<TNumber>(label, std::move(getter), std::move(setter))
 	    {
 	    }
 	    ~PropertyGridFieldNumeric() override = default;
@@ -41,7 +41,7 @@ namespace Berta
             
             m_textBox.SetCharFilter([](wchar_t c)
             {
-                if constexpr (std::is_integral_v<T>)
+                if constexpr (std::is_integral_v<TNumber>)
                 {
                     return std::iswdigit(c) || c == L'-';
                 }
@@ -93,7 +93,7 @@ namespace Berta
         {
             if (this->m_getter)
             {
-                std::optional<T> currentState = this->m_getter();
+                std::optional<TNumber> currentState = this->m_getter();
                 if (currentState.has_value())
                 {
                     return ToString(currentState.value());
@@ -105,7 +105,7 @@ namespace Berta
         }
 	    
 	protected:
-	    void SetValueInternal(const T& value) override
+	    void SetValueInternal(const TNumber& value) override
 	    {
 	        std::wstring strValue = ToString(value);
 
@@ -144,30 +144,33 @@ namespace Berta
 	    {
 	    	m_textBox.SetEditable(!readOnly);
 	    }
-	    
-    private:
-	    std::string FormatValue(T value) const
+		
+	    std::string FormatValue(TNumber value) const
 	    {
-	        if constexpr (std::is_floating_point_v<T>) 
+	        if constexpr (std::is_floating_point_v<TNumber>) 
 	        {
-	            std::ostringstream out;
-	            out << std::fixed << std::setprecision(3) << value;
-            
-	            std::string str = out.str();
-	            str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-	            if (str.back() == '.')
+	            std::ostringstream oss;
+	            oss << std::fixed << std::setprecision(3) << value; 
+	            std::string str = oss.str();
+                
+	            if (str.find('.') != std::string::npos)
 	            {
-	                str.pop_back();
+	                str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+                    
+	                if (str.back() == '.')
+	                {
+	                    str.pop_back();
+	                }
 	            }
-            
 	            return str;
-	        }
+	        } 
 	        else 
 	        {
 	            return std::to_string(value);
 	        }
 	    }
-	    
+		
+    private:
         void ApplyValue()
         {
             if (!this->m_setter || !this->m_getter)
@@ -177,8 +180,8 @@ namespace Berta
 
             try
             {
-                T parsedValue = FromString(m_textBox.GetCaptionW());
-                std::optional<T> currentState = this->m_getter();
+                TNumber parsedValue = FromString(m_textBox.GetCaptionW());
+                std::optional<TNumber> currentState = this->m_getter();
                 
                 if (!currentState.has_value() || parsedValue != currentState.value())
                 {
@@ -193,9 +196,9 @@ namespace Berta
             }
         }
 
-        std::wstring ToString(T val) const 
+        std::wstring ToString(TNumber val) const 
         {
-            if constexpr (std::is_floating_point_v<T>)
+            if constexpr (std::is_floating_point_v<TNumber>)
             {
                 std::wstring str = std::to_wstring(val);
                 str.erase(str.find_last_not_of('0') + 1, std::string::npos);
@@ -211,13 +214,13 @@ namespace Berta
             }
         }
 
-        T FromString(const std::wstring& str) const 
+        TNumber FromString(const std::wstring& str) const 
         {
-            if constexpr (std::is_integral_v<T>)
+            if constexpr (std::is_integral_v<TNumber>)
             {
-                return static_cast<T>(std::stoi(str));
+                return static_cast<TNumber>(std::stoi(str));
             }
-            else if constexpr (std::is_same_v<T, float>)
+            else if constexpr (std::is_same_v<TNumber, float>)
             {
                 return std::stof(str);
             }
