@@ -143,36 +143,7 @@ namespace Berta
             m_area = newSize;
         }
 
-        void SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize, bool isVertical)
-        {
-            const std::string_view propName = isVertical ? "Height" : "Width";
-    
-            uint32_t parentDim = isVertical ? parentSize.Height : parentSize.Width;
-            uint32_t fixedDim  = isVertical ? fixedSize.Height  : fixedSize.Width;
-            uint32_t remainDim = parentDim - fixedDim;
-    
-            uint32_t& areaDim  = isVertical ? newArea.Height : newArea.Width;
-
-            // 1. Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
-            double newWeight = static_cast<double>(areaDim) / remainDim;
-            SetProperty("LayoutWeight", Berta::Dimension{ newWeight, Berta::DimensionUnit::Percentage });
-
-            // 2. Si el nodo además tenía una propiedad estática del script original, 
-            // la actualizamos en cascada para mantener coherencia si se redimensiona la ventana de Bruno
-            if (auto* staticDim = TryGetProperty<Berta::Dimension>(propName))
-            {
-                staticDim->unit = Berta::DimensionUnit::Percentage;
-                staticDim->value = (static_cast<double>(areaDim) / parentDim) * 100.0;
-        
-                areaDim = static_cast<uint32_t>((staticDim->value * parentDim) / 100.0);
-            }
-            else
-            {
-                areaDim = static_cast<uint32_t>(newWeight * remainDim);
-            }
-
-            m_area = newArea;
-        }
+        void SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize, bool isVertical);
 
         virtual void CalculateAreas() = 0;
 

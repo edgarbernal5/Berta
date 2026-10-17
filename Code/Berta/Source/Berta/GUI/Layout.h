@@ -34,7 +34,7 @@ namespace Berta
     struct DockIndicator
     {
         DockPosition Position{ DockPosition::Tab };
-        std::unique_ptr<DockIndicatorForm> Docker;
+        std::unique_ptr<DockIndicatorForm> Docker{};
     };
 
     class Layout

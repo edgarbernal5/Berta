@@ -30,6 +30,37 @@ namespace Berta
 		return std::string::npos;
 	}
 
+	void LayoutNode::SetAreaWithPercentage(Rectangle& newArea, const Size& parentSize, Size fixedSize, bool isVertical)
+	{
+		const std::string_view propName = isVertical ? "Height" : "Width";
+    
+		uint32_t parentDim = isVertical ? parentSize.Height : parentSize.Width;
+		uint32_t fixedDim  = isVertical ? fixedSize.Height  : fixedSize.Width;
+		uint32_t remainDim = parentDim - fixedDim;
+    
+		uint32_t& areaDim  = isVertical ? newArea.Height : newArea.Width;
+
+		// 1. Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
+		double newWeight = static_cast<double>(areaDim) / remainDim;
+		SetProperty("LayoutWeight", Berta::Dimension{ newWeight, Berta::DimensionUnit::Percentage });
+
+		// 2. Si el nodo además tenía una propiedad estática del script original, 
+		// la actualizamos en cascada para mantener coherencia si se redimensiona la ventana de Bruno
+		if (auto* staticDim = TryGetProperty<Berta::Dimension>(propName))
+		{
+			staticDim->unit = Berta::DimensionUnit::Percentage;
+			staticDim->value = (static_cast<double>(areaDim) / parentDim) * 100.0;
+        
+			areaDim = static_cast<uint32_t>((staticDim->value * parentDim) / 100.0);
+		}
+		else
+		{
+			areaDim = static_cast<uint32_t>(newWeight * remainDim);
+		}
+
+		m_area = newArea;
+	}
+
 	LayoutNode* LayoutNode::Find(std::string_view id)
 	{
 		return Find(id, this);
@@ -120,7 +151,7 @@ namespace Berta
 		
 		if (m_children.size() > 1 && spacing > 0.0)
 		{
-			uint32_t totalSpacing = static_cast<uint32_t>(spacing * (m_children.size() - 1));
+			uint32_t totalSpacing = static_cast<uint32_t>(std::round(spacing * (m_children.size() - 1)));
 			auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
         
 			if (totalSpacing > remainMainDim) remainMainDim = 0;
@@ -249,35 +280,39 @@ namespace Berta
 		for (size_t i = 0; i < m_children.size(); ++i)
 		{
 			auto& childNode = m_children[i];
-			// 1. El Slot (Caja virtual): Inicia tomando las dimensiones completas del padre
 			Rectangle childSlot = parentArea;
 
 			auto& mainDimSlot = m_isVertical ? childSlot.Height : childSlot.Width;
 			auto& mainPosSlot = m_isVertical ? childSlot.Y : childSlot.X;
 
+			// 1. Declarar el tamaño exacto (flotante)
+			double exactSize = 0.0; 
+
 			if (markedChildren[i])
 			{
 				mainDimSlot = m_isVertical ? areas[i].Height : areas[i].Width;
+				exactSize = mainDimSlot; // Para nodos fijos, el tamaño exacto es el entero ya asignado
 			}
 			else
 			{
 				auto& remainMainDim = m_isVertical ? remainArea.Height : remainArea.Width;
 				double normalizedFraction = dynamicWeights[i] / totalWeight;
-				double exactSize = normalizedFraction * remainMainDim;
-            
+        
+				exactSize = normalizedFraction * remainMainDim; // Guardar el tamaño real con decimales
+
 				double nextExactOffset = exactOffsetMain + exactSize;
 				mainDimSlot = static_cast<uint32_t>(std::round(nextExactOffset) - currentOffsetMain);
-            
+
 				childNode->SetProperty("LayoutWeight", Berta::Dimension{ normalizedFraction, Berta::DimensionUnit::Percentage });
 			}
-			
+    
 			// Posicionar en el eje principal
 			mainPosSlot += currentOffsetMain;
-			
-			// Avanzar el cursor sumando el tamaño del slot actual
-			exactOffsetMain += mainDimSlot;
-			
-			// --- SPACING: Sumamos el hueco antes de iterar al siguiente hijo ---
+    
+			// 2. EL FIX: Avanzar el cursor sumando la fracción EXACTA, no la que ya se redondeó
+			exactOffsetMain += exactSize; 
+    
+			// --- SPACING ---
 			if (i < m_children.size() - 1)
 			{
 				exactOffsetMain += spacing;
