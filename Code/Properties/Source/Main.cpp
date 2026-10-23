@@ -208,17 +208,38 @@ int main()
 				
 			});
 	
-	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldColor>(
+	subcategoryMaterials.EmplaceColor(
 		"Tint Color",
-		[&myApp]() { return myApp.TintColor; },
-			[&myApp](const Berta::Color& val) { myApp.TintColor = val; },
-			[](std::optional<Berta::Color> currentColor) -> std::optional<Berta::Color>
-			{
-				std::cout << "Opening color picker...." << std::endl;
-				std::cout << "ERROR...." << std::endl;
+		[&myApp]()
+		{
+			Berta::OptionalColor opt;
+			opt.r = myApp.TintColor.GetR();
+			opt.g = myApp.TintColor.GetG();
+			opt.b = myApp.TintColor.GetB();
+			opt.a = myApp.TintColor.GetA();
+			return opt;
+		},
+		[&myApp](const Berta::OptionalColor& val)
+		{
+			if (val.r.has_value())
+				myApp.TintColor.SetR(val.r.value());
+			
+			if (val.g.has_value())
+				myApp.TintColor.SetG(val.g.value());
+			
+			if (val.b.has_value())
+				myApp.TintColor.SetB(val.b.value());
+			
+			if (val.a.has_value())
+				myApp.TintColor.SetA(val.a.value());
+		},
+		[](std::optional<Berta::OptionalColor> currentColor) -> std::optional<Berta::OptionalColor>
+		{
+			std::cout << "Opening color picker...." << std::endl;
+			std::cout << "ERROR...." << std::endl;
 
-				return std::nullopt;
-			});
+			return std::nullopt;
+		});
 	
 	subcategoryMaterials.EmplaceProperty<Berta::PropertyGridFieldSliderFloat>(
 		"Roughness",

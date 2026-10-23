@@ -46,11 +46,11 @@ namespace Berta
         };
     }
 	
-    class ColorPicker : public Control<Category::ControlTag, Internal::ColorPicker::Reactor>
+    class ColorButtonPicker : public Control<Category::ControlTag, Internal::ColorPicker::Reactor>
     {
     public:
-        ColorPicker() = default;
-        ColorPicker(Window* parent, const Rectangle& rectangle, const Color& color);
+        ColorButtonPicker() = default;
+        ColorButtonPicker(Window* parent, const Rectangle& rectangle, const Color& color);
         
         Color GetColor() const;
         void SetColor(const Color& color);

@@ -5,7 +5,7 @@
 */
 
 #include "btpch.h"
-#include "ColorPicker.h"
+#include "ColorButtonPicker.h"
 
 #include "Berta/GUI/Interface.h"
 
@@ -86,7 +86,7 @@ namespace Berta
 		}
 	}
 	
-	ColorPicker::ColorPicker(Window* parent, const Rectangle& rectangle, const Color& color)
+	ColorButtonPicker::ColorButtonPicker(Window* parent, const Rectangle& rectangle, const Color& color)
 	{
 		Create(parent, true, rectangle);
 
@@ -97,12 +97,12 @@ namespace Berta
 #endif
 	}
 
-	Color ColorPicker::GetColor() const
+	Color ColorButtonPicker::GetColor() const
 	{
 		return GetReactor().GetColor();
 	}
 
-	void ColorPicker::SetColor(const Color& color)
+	void ColorButtonPicker::SetColor(const Color& color)
 	{
 		GetReactor().SetColor(color);
 		GUI::MarkAsNeedUpdate(m_handle);

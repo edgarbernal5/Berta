@@ -17,7 +17,7 @@ namespace Berta
     void PropertyGridFieldVector3::Draw(Graphics& graphics, const Rectangle& area, const LayoutConfig& config)
     {
         auto textExtents = graphics.GetTextExtent().Height;
-        int offset = ((int)area.Height - (int)textExtents) / 2;
+        int offset = (static_cast<int>(area.Height) - static_cast<int>(textExtents)) / 2;
         graphics.DrawString({ area.X, area.Y + offset }, m_summaryText, config.Foreground);
     }
 
@@ -42,12 +42,10 @@ namespace Berta
 
     void PropertyGridFieldVector3::OnVisibilityChanged(bool visible)
     {
-        
     }
 
     void PropertyGridFieldVector3::OnEnableChanged(bool enabled)
     {
-        
     }
 
     void PropertyGridFieldVector3::SetValueInternal(const OptionalVector3& value)

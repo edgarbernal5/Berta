@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "Properties/PropertyGridFieldColor.h"
+
 namespace Berta
 {
 	namespace Internal::PropertyGrid
@@ -251,6 +253,9 @@ namespace Berta
 		{
 			using GetterVec3 = std::function<OptionalVector3()>;
 			using SetterVec3 = std::function<void(const OptionalVector3&)>;
+			
+			using GetterColor = std::function<OptionalColor()>;
+			using SetterColor = std::function<void(const OptionalColor&)>;
 
 			CategoryHandle() = default;
 			CategoryHandle(PropertyGridModel* model, uint32_t categoryId) : m_model(model), m_id(categoryId) {}
@@ -269,7 +274,8 @@ namespace Berta
 				return handle;
 			}
 			PropertyHandle EmplaceVector3(std::string_view label, GetterVec3 getter, SetterVec3 setter);
-
+			PropertyHandle EmplaceColor(std::string_view label, GetterColor getter, SetterColor setter, PropertyGridFieldColor::ClickCallback clickCallback, bool hasAlphaChannel = true);
+			
 			PropertyHandle AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field);
 
 			[[nodiscard]] std::string GetPath() const;

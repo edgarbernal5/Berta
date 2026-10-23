@@ -14,6 +14,8 @@
 
 #include <numeric>
 
+#include "Properties/PropertyGridFieldColor.h"
+
 namespace Berta
 {
 	namespace Internal::PropertyGrid
@@ -643,11 +645,10 @@ namespace Berta
 
 		void PropertyGridModel::CleanUpPropertyLookup(const PropertyFieldData& prop)
 		{
-			// 1. Limpiamos la propiedad actual de ambos mapas
+			// Limpiamos la propiedad actual de ambos mapas
 			m_propertyLookup.erase(prop.m_id);
 			m_parentLookup.erase(prop.m_id);
     
-			// 2. Limpiamos recursivamente todas sus sub-propiedades (¡Bug corregido!)
 			for (const auto& subProp : prop.m_subProperties)
 			{
 				CleanUpPropertyLookup(*subProp);
@@ -792,6 +793,11 @@ namespace Berta
 			);
 
 			return parentHandle;
+		}
+		
+		PropertyHandle CategoryHandle::EmplaceColor(std::string_view label, GetterColor getter, SetterColor setter, PropertyGridFieldColor::ClickCallback clickCallback, bool hasAlphaChannel)
+		{
+			return EmplaceProperty<PropertyGridFieldColor>(label, getter, setter, clickCallback, hasAlphaChannel);
 		}
 		
 		PropertyHandle CategoryHandle::AppendProperty(StringUtils::StringHash catId, std::unique_ptr<PropertyGridFieldBase> field)
@@ -1716,7 +1722,7 @@ namespace Berta
 			if (selectionChanged)
 			{
 				auto& newSelectedItem = visibleItems[currentIndex];
-        
+				
 				m_module.m_model.SetSelectedItemId(newSelectedItem.m_id); 
 				m_module.m_layout.ScrollToItem(newSelectedItem.m_id);
 			}
@@ -1768,11 +1774,11 @@ namespace Berta
 				// Si ya era visible, ScrollToItem no hace nada y solo invalidamos de forma quirúrgica la fila.
 				if (m_module.m_layout.ScrollToItem(propId)) 
 				{
-					m_module.OnLayoutChanged(); // Hizo scroll -> Cambió la estructura visual -> Todo se mueve
+					m_module.OnLayoutChanged(); // Hizo scroll -> Cambió la estructura visual
 				}
 				else 
 				{
-					m_module.InvalidateItem(propId); // Quirúrgico -> Solo repinta la fila mutada
+					m_module.InvalidateItem(propId);
 				}
 			};
 			m_module.m_model.OnPropertySelected = [this](StringUtils::StringHash propId) 
@@ -1784,16 +1790,16 @@ namespace Berta
 				
 				if (m_module.m_layout.ScrollToItem(propId))
 				{
-					m_module.OnLayoutChanged(); // Si requirió scroll, invalidación total obligatoria
+					m_module.OnLayoutChanged();
 				}
 				else
 				{
 					// Si no requirió scroll, ¡ganamos! Invalidamos quirúrgicamente solo las dos filas afectadas
 					if (oldSelectedId != 0u && oldSelectedId != propId)
 					{
-						m_module.InvalidateItem(oldSelectedId); // Apaga el viejo selector
+						m_module.InvalidateItem(oldSelectedId);
 					}
-					m_module.InvalidateItem(propId); // Enciende el nuevo selector
+					m_module.InvalidateItem(propId);
 				}
 				
 				auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get());

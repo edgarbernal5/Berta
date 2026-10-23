@@ -233,11 +233,11 @@ namespace Berta
         TextBox m_textBox;
     };
 
-    using PropertyGridFieldByte    = PropertyGridFieldNumeric<uint8_t>;
-    using PropertyGridFieldInt    = PropertyGridFieldNumeric<int>;
-    using PropertyGridFieldUInt    = PropertyGridFieldNumeric<uint32_t>;
-    using PropertyGridFieldFloat  = PropertyGridFieldNumeric<float>;
-    using PropertyGridFieldDouble = PropertyGridFieldNumeric<double>;
+    using PropertyGridFieldByte		= PropertyGridFieldNumeric<uint8_t>;
+    using PropertyGridFieldInt		= PropertyGridFieldNumeric<int>;
+    using PropertyGridFieldUInt		= PropertyGridFieldNumeric<uint32_t>;
+    using PropertyGridFieldFloat	= PropertyGridFieldNumeric<float>;
+    using PropertyGridFieldDouble	= PropertyGridFieldNumeric<double>;
 }
 
 #endif

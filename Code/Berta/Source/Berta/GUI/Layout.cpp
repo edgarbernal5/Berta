@@ -224,10 +224,12 @@ namespace Berta
 		{
 			return;
 		}
+		
 		if (m_owner)
 		{
 			m_owner->Events->Resize.Disconnect(m_resizeEventId);
 		}
+		
 		m_owner = owner;
 
 		m_resizeEventId = m_owner->Events->Resize.Connect([this](const ArgResize& args)
@@ -575,7 +577,9 @@ namespace Berta
 	void Layout::HidePaneDockIndicators()
 	{
 		if (m_dragDropCtx.lockPaneIndicators)
+		{
 			return;
+		}
 
 		for (auto& indicator : m_dragDropCtx.paneIndicators)
 		{
@@ -660,7 +664,9 @@ namespace Berta
 	bool Layout::IsMouseInsideWindow() const
 	{
 		if (!m_owner)
+		{
 			return false;
+		}
 
 		auto mousePosition = GUI::GetScreenMousePosition();
 		auto windowPosition = GUI::GetPointClientToScreen(m_owner, GUI::GetWindowRootPosition(m_owner));
@@ -798,7 +804,10 @@ namespace Berta
 				if (i == parent->m_children.size() - 1)
 				{
 					parent->m_children.pop_back(); // Elimina el panel
-					if (!parent->m_children.empty()) parent->m_children.pop_back(); // Elimina el splitter previo
+					if (!parent->m_children.empty())
+					{
+						parent->m_children.pop_back(); // Elimina el splitter previo
+					}
 				}
 				else
 				{
@@ -868,14 +877,16 @@ namespace Berta
 		}
 		
 		size_t nodeIndex;
-		if (IsAlreadyDocked(node, nodeIndex)) return false;
-
+		if (IsAlreadyDocked(node, nodeIndex))
+		{
+			return false;
+		}
+		
 		// Caso A: Anclar a una raíz de Dock vacía
 		if (target->GetType() == LayoutNodeType::Dock && target->m_children.empty())
 		{
 			node->SetParentNode(target);
-       
-			// 💎 RECONSTRUCCIÓN: Al ser el único hijo, sus referencias de vecindad son nulas.
+			
 			node->SetPrev(nullptr);
 			node->SetNext(nullptr);
        
@@ -898,8 +909,12 @@ namespace Berta
 		{
 			dockRootNode = dockRootNode->GetParentNode();
 		}
-		if (!dockRootNode) return false;
-
+		
+		if (!dockRootNode)
+		{
+			return false;
+		}
+		
 		auto targetParent = target->GetParentNode() ? target->GetParentNode() : dockRootNode;
 		bool isVerticalOrientation = (dockPosition == DockPosition::Up || dockPosition == DockPosition::Down);
 		bool addNewOrientation = false;
@@ -922,8 +937,10 @@ namespace Berta
 		// --- RAMA 1: NUEVA ORIENTACIÓN (Sub-contenedor) ---
 		if (addNewOrientation)
 		{
-			if (targetIndex == std::string::npos) return false;
-
+			if (targetIndex == std::string::npos)
+			{
+				return false;
+			}
 			std::unique_ptr<LayoutNode> targetPtr = std::move(target->GetParentNode()->m_children[targetIndex]);
 
 			auto containerPtr = std::make_unique<ContainerLayoutNode>(isVerticalOrientation);
@@ -934,7 +951,7 @@ namespace Berta
 			splitterPtr->SetParentNode(containerPtr.get());
 			splitterPtr->SetOwnerWindow(target->GetOwnerWindow());
 
-			// 💎 HERENCIA DE VECINDAD: El nuevo contenedor hereda explícitamente el Prev y el Next del target original
+			// El nuevo contenedor hereda explícitamente el Prev y el Next del target original
 			containerPtr->SetPrev(targetPtr->GetPrev());
 			containerPtr->SetNext(targetPtr->GetNext());
 
@@ -973,7 +990,7 @@ namespace Berta
 			targetParent->m_children[targetIndex] = std::move(containerPtr);
 			auto* newContainerRaw = targetParent->m_children[targetIndex].get();
        
-			// 💎 SINCRONIZACIÓN EXTERNA: Actualizamos las referencias de los hermanos adyacentes para que apunten al nuevo contenedor
+			// Actualizamos las referencias de los hermanos adyacentes para que apunten al nuevo contenedor
 			if (targetIndex > 0)
 			{
 				targetParent->m_children[targetIndex - 1]->SetNext(newContainerRaw);
@@ -994,13 +1011,19 @@ namespace Berta
 
 			if (dockPosition == DockPosition::Up || dockPosition == DockPosition::Left)
 			{
-				if (targetIndex == std::string::npos) targetIndex = 0;
+				if (targetIndex == std::string::npos)
+				{
+					targetIndex = 0;
+				}
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex, std::move(m_floatingDockFields[nodeIndex]));
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, std::move(splitterPtr));
 			}
 			else
 			{
-				if (targetIndex == std::string::npos) targetIndex = targetParent->m_children.size() - 1;
+				if (targetIndex == std::string::npos)
+				{
+					targetIndex = targetParent->m_children.size() - 1;
+				}
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 1, std::move(splitterPtr));
 				targetParent->m_children.emplace(targetParent->m_children.begin() + targetIndex + 2, std::move(m_floatingDockFields[nodeIndex]));
 			}

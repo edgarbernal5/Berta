@@ -17,6 +17,14 @@ namespace Berta
         std::optional<float> y;
         std::optional<float> z;
     };
+    
+    struct OptionalColor
+    {
+        std::optional<uint8_t> r;
+        std::optional<uint8_t> g;
+        std::optional<uint8_t> b;
+        std::optional<uint8_t> a;
+    };
 }
 
 #endif
