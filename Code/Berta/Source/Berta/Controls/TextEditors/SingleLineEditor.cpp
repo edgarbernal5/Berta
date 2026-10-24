@@ -28,22 +28,37 @@ namespace Berta
 			}
 
 			int viewWidth = static_cast<int>(m_editorArea.Width);
-			bool scrollChanged = false;
+			int previousScroll = m_scrollX;
 
 			if (m_lastMousePosition.X < m_editorArea.X)
 			{
 				m_scrollX = std::max<int>(0, m_scrollX - TEXT_EDITOR_SCROLL_SPEED);
-				scrollChanged = true;
 			}
 			else if (m_lastMousePosition.X > m_editorArea.X + viewWidth)
 			{
-				m_scrollX += TEXT_EDITOR_SCROLL_SPEED;
-				scrollChanged = true;
+				int contentWidth = 0;
+		#ifdef BT_PLATFORM_WINDOWS
+				EnsureLayout();
+				if (m_textHandle.m_textLayout)
+				{
+					DWRITE_TEXT_METRICS metrics{};
+					if (SUCCEEDED(m_textHandle.m_textLayout->GetMetrics(&metrics)))
+					{
+						contentWidth = static_cast<int>(metrics.widthIncludingTrailingWhitespace);
+					}
+				}
+		#else
+				contentWidth = static_cast<int>(m_owner->Renderer.GetGraphics().GetTextExtent(m_content).Width);
+		#endif
+				int maxScroll = std::max<int>(0, contentWidth - viewWidth + 5);
+				
+				m_scrollX = std::min<int>(maxScroll, m_scrollX + TEXT_EDITOR_SCROLL_SPEED);
 			}
 
-			if (scrollChanged)
+			if (m_scrollX != previousScroll)
 			{
 				m_selection.m_endPosition = GetPositionUnderMouse(m_lastMousePosition);
+				
 				UpdateCaretPosition();
 				GUI::UpdateWindow(m_owner);
 			}
@@ -64,12 +79,13 @@ namespace Berta
 	void SingleLineEditor::SetContent(const std::wstring& newContent)
 	{
 		m_content = newContent;
+		
 		// Limpiar cualquier salto de línea que intente colarse
 		m_content.erase(std::remove(m_content.begin(), m_content.end(), L'\n'), m_content.end());
 		m_content.erase(std::remove(m_content.begin(), m_content.end(), L'\r'), m_content.end());
 		
 		InvalidateLayout();
-		m_selection.Reset({ 0, m_content.length() }); // Cursor al final por defecto
+		m_selection.Reset({ 0, 0 });
 		AdjustView();
 	}
 

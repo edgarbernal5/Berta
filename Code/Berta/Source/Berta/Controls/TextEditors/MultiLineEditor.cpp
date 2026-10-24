@@ -5,7 +5,7 @@
 */
 
 #include "btpch.h"
-#include "Berta/Controls/TextEditors/MultiLineEditor.h"
+#include "MultiLineEditor.h"
 
 #include <algorithm>
 #include "Berta/API/PlatformAPI.h"
@@ -50,7 +50,7 @@ namespace Berta
 			}
 			else if (m_lastMousePosition.Y > viewport.Y + viewport.Height)
 			{
-				deltaY = m_lastMousePosition.Y - (viewport.Y + viewport.Height); 
+				deltaY = m_lastMousePosition.Y - (viewport.Y + static_cast<int>(viewport.Height)); 
 			}
 			
 			int deltaX = 0;
@@ -62,7 +62,7 @@ namespace Berta
 				} 
 				else if (m_lastMousePosition.X > viewport.X + viewport.Width)
 				{
-					deltaX = m_lastMousePosition.X - (viewport.X + viewport.Width);
+					deltaX = m_lastMousePosition.X - (viewport.X + static_cast<int>(viewport.Width));
 				}
 			}
 			
@@ -277,7 +277,7 @@ namespace Berta
 				selectAll = true;
 				break;
 			case TextFocusBehavior::SelectOnClick:
-				// Solo auto-selecciona si el foco nativo/lógico se originó por un clic[cite: 10, 15]
+				// Solo auto-selecciona si el foco nativo/lógico se originó por un clic
 				selectAll = (args.FocusReason == ArgFocus::Reason::MousePress);
 				break;
 			default:
@@ -295,7 +295,7 @@ namespace Berta
 			return needUpdate;
 		}
 
-		// Blur (Pérdida de foco)[cite: 10]
+		// Blur (Pérdida de foco)
 		if (m_selection.Behavior != TextFocusBehavior::None)
 		{
 			Deselect();
@@ -510,6 +510,62 @@ namespace Berta
 			vl.m_textHandle.Release();
 		}
 		RecomputeWordWrap();
+	}
+
+	void MultiLineEditor::LoadFile(const std::string& path)
+	{
+		std::ifstream file(path, std::ios::binary);
+		if (!file.is_open())
+		{
+			return;
+		}
+
+		std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    
+		std::string_view view(content);
+		if (view.size() >= 3 && static_cast<unsigned char>(view[0]) == 0xEF && static_cast<unsigned char>(view[1]) == 0xBB && static_cast<unsigned char>(view[2]) == 0xBF)
+		{
+			view.remove_prefix(3);
+		}
+
+		std::wstring wContent = StringUtils::UTF8ToWide(std::string(view));
+
+		m_lines.clear();
+		std::size_t start = 0, end;
+		while ((end = wContent.find_first_of(L"\r\n", start)) != std::wstring::npos)
+		{
+			m_lines.push_back(wContent.substr(start, end - start));
+			if (wContent[end] == L'\r' && end + 1 < wContent.size() && wContent[end + 1] == L'\n')
+			{
+				start = end + 2;
+			}
+			else
+			{
+				start = end + 1;
+			}
+		}
+		m_lines.push_back(wContent.substr(start));
+
+		RecomputeWordWrap();
+		m_selection.Reset({ 0, 0 });
+	}
+
+	void MultiLineEditor::SaveFile(const std::string& path) const
+	{
+		std::wstring fullContent;
+		for (size_t i = 0; i < m_lines.size(); ++i)
+		{
+			fullContent += m_lines[i];
+			if (i < m_lines.size() - 1)
+			{
+				fullContent += L"\r\n";
+			}
+		}
+
+		std::string utf8Content = StringUtils::WideToUTF8(fullContent);
+
+		std::ofstream file(path, std::ios::binary);
+		file.write(utf8Content.c_str(), utf8Content.size());
 	}
 
 	void MultiLineEditor::InsertChar(const wchar_t wChar)
@@ -950,6 +1006,30 @@ namespace Berta
 
 	void MultiLineEditor::DeleteRange(TextPosition start, TextPosition end)
 	{
+		if (start == end)
+		{
+			return;
+		}
+
+		if (end < start)
+		{
+			std::swap(start, end);
+		}
+
+		if (start.line == end.line)
+		{
+			m_lines[start.line].erase(start.column, end.column - start.column);
+		} 
+		else
+		{
+			std::wstring head = m_lines[start.line].substr(0, start.column);
+			std::wstring tail = m_lines[end.line].substr(end.column);
+
+			m_lines[start.line] = head + tail;
+			m_lines.erase(m_lines.begin() + start.line + 1, m_lines.begin() + end.line + 1);
+		}
+
+		m_selection.Reset(start);
 	}
 
 	void MultiLineEditor::RenderVisibleLines(Graphics& graphics)
@@ -1240,10 +1320,22 @@ namespace Berta
 
 	void MultiLineEditor::UpdateScrollMetrics() const
 	{
+		if (!m_scrollableView)
+		{
+			return;
+		}
+		
+		m_scrollableView->SetViewRect(m_editorArea);
+		m_scrollableView->SetContentSize(GetContentTextExtent());
 	}
 
 	void MultiLineEditor::CommitDocumentChange()
 	{
+		RecomputeWordWrap();
+		UpdateScrollMetrics();
+		AdjustView();
+		UpdateCaretPosition();
+		EmitValueChanged();
 	}
 
 	TextPosition MultiLineEditor::GetPositionUnderMouse(const Point& mousePosition) const
