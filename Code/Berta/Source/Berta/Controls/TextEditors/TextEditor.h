@@ -11,7 +11,7 @@
 #include <functional>
 #include <memory>
 
-#include "Berta/Controls/TextEditors/TextEditorBase.h"
+#include "Berta/Controls/TextEditors/EnumTypes.h"
 #include "Berta/Paint/Graphics.h"
 #include "Berta/GUI/ControlEvents.h"
 #include "Berta/GUI/Caret.h"
@@ -19,9 +19,7 @@
 #include "Berta/GUI/ScrollableView.h"
 
 namespace Berta
-{
-	constexpr int TEXT_EDITOR_SCROLL_SPEED = 20;
-	
+{	
 	struct Window;
 
 	class TextEditor

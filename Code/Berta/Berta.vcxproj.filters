@@ -264,9 +264,6 @@
     <ClInclude Include="Source\Berta\Paint\DrawBatchActivator.h">
       <Filter>Source\Berta\Paint</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h">
-      <Filter>Source\Berta\Controls\TextEditors</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\GUI\LassoSelection.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
@@ -284,9 +281,6 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\ScrollableView.h">
       <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\TextBox.h">
-      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\Dispatcher.h">
       <Filter>Source\Berta\GUI</Filter>
@@ -330,11 +324,35 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\ColorPicker.h">
-      <Filter>Source\Berta\Controls</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Berta\Controls\Properties\EnumTypes.h">
       <Filter>Source\Berta\Controls\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\ColorButtonPicker.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Platform\Windows\GeometryCache.h">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\Layouts\Helpers.h">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\EnumTypes.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\MultiLineEditor.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\SingleLineEditor.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextEditors\TextInputCore.h">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\TextAreaBox.h">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\LineTextBox.h">
+      <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -515,9 +533,6 @@
     <ClCompile Include="Source\Berta\GUI\ScrollableView.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\TextBox.cpp">
-      <Filter>Source\Berta\Controls</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Dispatcher.cpp">
       <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
@@ -542,7 +557,28 @@
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldPicture.cpp">
       <Filter>Source\Berta\Controls\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\ColorPicker.cpp">
+    <ClCompile Include="Source\Berta\Controls\ColorButtonPicker.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Platform\Windows\GeometryCache.cpp">
+      <Filter>Source\Berta\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\Layouts\Helpers.cpp">
+      <Filter>Source\Berta\GUI\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextEditors\MultiLineEditor.cpp">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextEditors\SingleLineEditor.cpp">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextEditors\TextInputCore.cpp">
+      <Filter>Source\Berta\Controls\TextEditors</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\LineTextBox.cpp">
+      <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Controls\TextAreaBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
     </ClCompile>
   </ItemGroup>

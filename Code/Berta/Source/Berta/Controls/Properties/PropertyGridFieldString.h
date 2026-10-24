@@ -10,7 +10,7 @@
 #include <optional>
 
 #include "Berta/Controls/Properties/PropertyGridFieldBase.h"
-#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/LineTextBox.h"
 #include "Berta/Controls/Properties/TypedPropertyField.h"
 
 #include <string>
@@ -44,7 +44,7 @@ namespace Berta
 		void SetValueInternal(const std::wstring& value) override;
 		void SetMixedValuesInternal() override;
 		
-		TextBox m_textBox;
+		LineTextBox m_textBox;
 		
 	private:
 		void ApplyValue();

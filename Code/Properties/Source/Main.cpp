@@ -6,7 +6,7 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/PropertyGrid.h>
-#include <Berta/Controls/TextBox.h>
+#include <Berta/Controls/TextAreaBox.h>
 #include <Berta/Controls/Button.h>
 #include <Berta/Controls/Panel.h>
 
@@ -24,7 +24,7 @@ public:
 	}
 
 private:
-	Berta::TextBox m_textBox;
+	Berta::TextAreaBox m_textBox;
 };
 
 enum class MaterialTypeEnum

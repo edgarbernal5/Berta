@@ -6,7 +6,9 @@
 
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/MenuBar.h>
-#include <Berta/Controls/TextBox.h>
+#include <Berta/Controls/TextAreaBox.h>
+
+#include "Berta/Controls/LineTextBox.h"
 
 int main()
 {
@@ -20,21 +22,16 @@ int main()
 			Berta::GUI::Exit();
 		});
 
-	Berta::TextBox multiLineInputText(form, { 0,0, 100, 25 });
-	multiLineInputText.SetMultiLine(true);
+	Berta::TextAreaBox multiLineInputText(form, { 0,0, 100, 25 });
 	multiLineInputText.SetWordWrap(false);
 	multiLineInputText.SetCaption("Primera línea\nSegunda línea\nBajada de línea");
 	
-	Berta::TextBox wordWrapSingleLine(form, { 0,0, 100, 25 });
-	wordWrapSingleLine.SetMultiLine(false);
+	Berta::TextAreaBox wordWrapSingleLine(form, { 0,0, 100, 25 });
 	wordWrapSingleLine.SetWordWrap(true);
 	wordWrapSingleLine.SetCaption("Primera línea. Segunda línea. Bajada de línea");
 	
-	Berta::TextBox oneLineInputText(form, { 0,0, 100, 25 });
-	oneLineInputText.SetMultiLine(false);
-	oneLineInputText.SetWordWrap(false);
+	Berta::LineTextBox oneLineInputText(form, { 0,0, 100, 25 });
 	oneLineInputText.SetCaption("Primera línea. Segunda línea. Bajada de línea");
-	oneLineInputText.SetScrollBarVisibility(Berta::ScrollBarVisibility::Hidden, Berta::ScrollBarVisibility::Hidden);
 	
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{{a}{VerticalLayout {b}{{}{c}}}}}");
 

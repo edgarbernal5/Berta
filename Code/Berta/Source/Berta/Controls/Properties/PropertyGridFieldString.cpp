@@ -61,7 +61,6 @@ namespace Berta
 	{
 		m_textBox.Create(parent);
 		m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
-		m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
 		
 		Refresh();
 		

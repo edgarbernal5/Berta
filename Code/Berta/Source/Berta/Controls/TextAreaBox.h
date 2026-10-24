@@ -4,24 +4,29 @@
 * Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
 */
 
-#ifndef BT_INPUT_TEXT_HEADER
-#define BT_INPUT_TEXT_HEADER
+#ifndef BT_TEXT_AREA_BOX_HEADER
+#define BT_TEXT_AREA_BOX_HEADER
 
 #include <string>
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
-#include "Berta/Controls/TextEditors/TextEditorBase.h"
-#include "Berta/Controls/TextEditors/TextEditor.h"
+#include "Berta/Controls/TextEditors/EnumTypes.h"
 
 namespace Berta
 {
-	namespace Internal::InputText
+	enum class ScrollBarVisibility : uint8_t;
+	class MultiLineEditor;
+
+	namespace Internal::TextAreaBox
 	{
 		struct Events;
 
 		class Reactor : public ControlReactor
 		{
 		public:
+			Reactor();
+			~Reactor() override;
+			
 			void Update(Graphics& graphics) override;
 		
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
@@ -37,24 +42,18 @@ namespace Berta
 			void Resize(Graphics& graphics, const ArgResize& args) override;
 			void DpiChanged(Graphics& graphics) override;
 
-			TextEditor* GetEditor() const;
+			MultiLineEditor* GetEditor() const;
 			
 		protected:
 			void DoOnInit() override;
 			
 		private:
 			Rectangle GetEditorArea() const;
-			std::unique_ptr<TextEditor> m_textEditor{ nullptr };
+			std::unique_ptr<MultiLineEditor> m_textEditor{ nullptr };
 		};
 	}
-		
-	struct ArgTextChanged
-	{
-		//ArgTextChanged(std::wstring& value):NewValue(value){}
-		//std::wstring NewValue;
-	};
 	
-	namespace Internal::InputText
+	namespace Internal::TextAreaBox
 	{
 		struct Events : public ControlEvents
 		{
@@ -62,11 +61,11 @@ namespace Berta
 		};
 	}
 	
-	class TextBox : public Control<Category::ControlTag, Internal::InputText::Reactor, Internal::InputText::Events>
+	class TextAreaBox : public Control<Category::ControlTag, Internal::TextAreaBox::Reactor, Internal::TextAreaBox::Events>
 	{
 	public:
-		TextBox() = default;
-		TextBox(Window* parent, const Rectangle& rectangle = {});
+		TextAreaBox() = default;
+		TextAreaBox(Window* parent, const Rectangle& rectangle = {});
 
 		TextPosition GetCaretPosition() const;
 		
@@ -76,7 +75,6 @@ namespace Berta
 		bool IsEditable() const;
 		void SetEditable(bool isEditable);
 
-		void SetMultiLine(bool enabled);
 		void SetWordWrap(bool enabled);
 		
 		void SetCharFilter(std::function<bool(wchar_t)> predicate);

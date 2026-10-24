@@ -15,6 +15,8 @@
 
 namespace Berta
 {
+	constexpr int TEXT_EDITOR_SCROLL_SPEED = 20;
+	
 	enum class TextFocusBehavior : uint8_t
 	{
 		None,
@@ -76,6 +78,12 @@ namespace Berta
 			logicalLineIndex(li), charStart(cs), charLength(cl), y(py)
 		{
 		}
+	};
+	
+	struct ArgTextChanged
+	{
+		//ArgTextChanged(std::wstring& value):NewValue(value){}
+		//std::wstring NewValue;
 	};
 }
 

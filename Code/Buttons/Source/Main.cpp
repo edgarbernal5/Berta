@@ -8,7 +8,7 @@
 #include <Berta/Controls/Button.h>
 
 #include "Berta/Controls/ListBox.h"
-#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/TextAreaBox.h"
 
 int main()
 {

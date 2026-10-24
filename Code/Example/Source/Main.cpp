@@ -7,7 +7,7 @@
 #include <Berta/Controls/Form.h>
 #include <Berta/Controls/Label.h>
 #include <Berta/Controls/Button.h>
-#include <Berta/Controls/TextBox.h>
+#include <Berta/Controls/TextAreaBox.h>
 #include <Berta/Controls/ComboBox.h>
 #include <Berta/Controls/ScrollBar.h>
 #include <Berta/Controls/MenuBar.h>
@@ -439,7 +439,7 @@ int main()
 	label.SetVerticalAlignment(Berta::VerticalAlign::Top);
 	
 	std::wstring textLong = L"Hola. Este es un texto muy largo que probaré durante el desarrollo de un editor de texto que estoy creando junto a GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. No tengo más nada que decir, pero escribiré muchas cosas con acentos y un texto largo vacío sin sentido solo para alcanzar el máximo de caracteres posibles de Mercadolibre y dejar una buena impresión sin impresora. Gracias";
-	Berta::TextBox inputText(form, { 110,28,200,25 });
+	Berta::TextAreaBox inputText(form, { 110,28,200,25 });
 	inputText.SetScrollBarVisibility(Berta::ScrollBarVisibility::Hidden);
 	inputText.SetCaption(textLong);
 	inputText.GetEvents().TextChanged.Connect([&inputText](const Berta::ArgTextChanged& args)
@@ -447,11 +447,10 @@ int main()
 			std::wcout << "inputText > ValueChanged: " << inputText.GetText() << std::endl;
 		});
 	
-	Berta::TextBox inputTextMultiline(form, { 350,28,250,95 });
+	Berta::TextAreaBox inputTextMultiline(form, { 350,28,250,95 });
 	inputTextMultiline.SetCaption(textLong);
-	inputTextMultiline.SetMultiLine(true);
 	
-	Berta::TextBox inputTextWordWrap(form, { 350,125,250,95 });
+	Berta::TextAreaBox inputTextWordWrap(form, { 350,125,250,95 });
 	inputTextWordWrap.SetCaption(textLong);
 	inputTextWordWrap.SetWordWrap(true);
 	

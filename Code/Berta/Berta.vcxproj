@@ -152,6 +152,7 @@
     <ClInclude Include="Source\Berta\API\PlatformAPI.h" />
     <ClInclude Include="Source\Berta\Controls\Checking\CheckBoxHelpers.h" />
     <ClInclude Include="Source\Berta\Controls\ColorButtonPicker.h" />
+    <ClInclude Include="Source\Berta\Controls\LineTextBox.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\Appearance.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.h" />
@@ -166,6 +167,9 @@
     <ClInclude Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\EnumTypes.h" />
     <ClInclude Include="Source\Berta\Controls\Properties\TypedPropertyField.h" />
+    <ClInclude Include="Source\Berta\Controls\TextEditors\MultiLineEditor.h" />
+    <ClInclude Include="Source\Berta\Controls\TextEditors\SingleLineEditor.h" />
+    <ClInclude Include="Source\Berta\Controls\TextEditors\TextInputCore.h" />
     <ClInclude Include="Source\Berta\Core\ObjectPool.h" />
     <ClInclude Include="Source\Berta\Core\ScopedTimer.h" />
     <ClInclude Include="Source\Berta\API\PaintAPI.h" />
@@ -204,7 +208,7 @@
     <ClInclude Include="Source\Berta\Controls\ComboBox.h" />
     <ClInclude Include="Source\Berta\Controls\Floating\FloatBox.h" />
     <ClInclude Include="Source\Berta\GUI\Caret.h" />
-    <ClInclude Include="Source\Berta\Controls\TextBox.h" />
+    <ClInclude Include="Source\Berta\Controls\TextAreaBox.h" />
     <ClInclude Include="Source\Berta\Core\Colors.h" />
     <ClInclude Include="Source\Berta\Core\Event.h" />
     <ClInclude Include="Source\Berta\Core\Timer.h" />
@@ -245,12 +249,13 @@
     <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
     <ClInclude Include="Source\Berta\Core\StackTracer.h" />
-    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditorBase.h" />
+    <ClInclude Include="Source\Berta\Controls\TextEditors\EnumTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Berta\API\PlatformAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\Checking\CheckBoxHelpers.cpp" />
     <ClCompile Include="Source\Berta\Controls\ColorButtonPicker.cpp" />
+    <ClCompile Include="Source\Berta\Controls\LineTextBox.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldBase.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldCheck.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldColor.cpp" />
@@ -258,6 +263,9 @@
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldString.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldStringButton.cpp" />
     <ClCompile Include="Source\Berta\Controls\Properties\PropertyGridFieldVector3.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextEditors\MultiLineEditor.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextEditors\SingleLineEditor.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextEditors\TextInputCore.cpp" />
     <ClCompile Include="Source\Berta\Core\ScopedTimer.cpp" />
     <ClCompile Include="Source\Berta\API\PaintAPI.cpp" />
     <ClCompile Include="Source\Berta\Controls\CheckBox.cpp" />
@@ -290,7 +298,7 @@
     <ClCompile Include="Source\Berta\Controls\MenuBar.cpp" />
     <ClCompile Include="Source\Berta\Controls\ScrollBar.cpp" />
     <ClCompile Include="Source\Berta\GUI\Caret.cpp" />
-    <ClCompile Include="Source\Berta\Controls\TextBox.cpp" />
+    <ClCompile Include="Source\Berta\Controls\TextAreaBox.cpp" />
     <ClCompile Include="Source\Berta\Core\BasicTypes.cpp" />
     <ClCompile Include="Source\Berta\Core\Timer.cpp" />
     <ClCompile Include="Source\Berta\GUI\Renderer.cpp" />

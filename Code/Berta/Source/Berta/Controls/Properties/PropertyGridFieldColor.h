@@ -14,7 +14,7 @@
 #include <optional>
 
 #include "EnumTypes.h"
-#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/TextAreaBox.h"
 
 namespace Berta
 {
@@ -48,7 +48,7 @@ namespace Berta
 		ClickCallback m_clickCallback;
 		ColorButtonPicker m_colorRegion;
 		
-		TextBox m_textBoxes[4];
+		TextAreaBox m_textBoxes[4];
 		std::wstring m_textBoxLabels[4] = { L"R", L"G", L"B", L"A"};
         std::wstring m_summaryText{ L"(0, 0, 0, 0)" };
 		bool m_hasAlphaChannel;

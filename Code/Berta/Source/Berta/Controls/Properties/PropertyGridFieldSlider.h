@@ -9,7 +9,7 @@
 
 #include "Berta/Controls/Properties/TypedPropertyField.h"
 #include "Berta/Controls/Slider.h"
-#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/LineTextBox.h"
 
 namespace Berta
 {
@@ -30,7 +30,6 @@ namespace Berta
         {
             m_textBox.Create(parent);
             m_textBox.SetFocusBehavior(TextFocusBehavior::SelectOnClick);
-            m_textBox.SetScrollBarVisibility(ScrollBarVisibility::Hidden);
             
             m_slider.Create(parent);
             
@@ -247,7 +246,7 @@ namespace Berta
 
         TNumber m_min, m_max;
         TNumber m_step;
-        TextBox m_textBox;
+        LineTextBox m_textBox;
         Slider m_slider;
     };
 

@@ -9,7 +9,7 @@
 
 #include "Berta/GUI/EnumTypes.h"
 
-#include "Berta/Controls/TextBox.h"
+#include "Berta/Controls/LineTextBox.h"
 #include "Berta/Controls/Properties/TypedPropertyField.h"
 
 #include <string>
@@ -230,7 +230,7 @@ namespace Berta
             }
         }
 
-        TextBox m_textBox;
+        LineTextBox m_textBox;
     };
 
     using PropertyGridFieldByte		= PropertyGridFieldNumeric<uint8_t>;
