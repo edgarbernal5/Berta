@@ -155,8 +155,8 @@ namespace Berta
 
         // --- 2. Abrazar la Realidad Lógica (Crucial para Scroll Hidden) ---
         // Incluso si las barras están Hidden, el límite de navegación matemática existe.
-        int maxOffsetY = std::max<int>(0, (int)m_contentSize.Height - (int)m_viewportRect.Height);
-        int maxOffsetX = std::max<int>(0, (int)m_contentSize.Width - (int)m_viewportRect.Width);
+        int maxOffsetY = std::max<int>(0, static_cast<int>(m_contentSize.Height) - static_cast<int>(m_viewportRect.Height));
+        int maxOffsetX = std::max<int>(0, static_cast<int>(m_contentSize.Width) - static_cast<int>(m_viewportRect.Width));
     
         int clampedY = std::clamp(m_scrollOffset.Y, 0, maxOffsetY);
         int clampedX = std::clamp(m_scrollOffset.X, 0, maxOffsetX);

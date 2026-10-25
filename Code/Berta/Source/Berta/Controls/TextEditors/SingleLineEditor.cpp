@@ -37,7 +37,8 @@ namespace Berta
 			else if (m_lastMousePosition.X > m_editorArea.X + viewWidth)
 			{
 				int contentWidth = 0;
-		#ifdef BT_PLATFORM_WINDOWS
+				
+#ifdef BT_PLATFORM_WINDOWS
 				EnsureLayout();
 				if (m_textHandle.m_textLayout)
 				{
@@ -47,9 +48,9 @@ namespace Berta
 						contentWidth = static_cast<int>(metrics.widthIncludingTrailingWhitespace);
 					}
 				}
-		#else
+#else
 				contentWidth = static_cast<int>(m_owner->Renderer.GetGraphics().GetTextExtent(m_content).Width);
-		#endif
+#endif
 				int maxScroll = std::max<int>(0, contentWidth - viewWidth + 5);
 				
 				m_scrollX = std::min<int>(maxScroll, m_scrollX + TEXT_EDITOR_SCROLL_SPEED);
@@ -85,8 +86,12 @@ namespace Berta
 		m_content.erase(std::remove(m_content.begin(), m_content.end(), L'\r'), m_content.end());
 		
 		InvalidateLayout();
-		m_selection.Reset({ 0, 0 });
+		
+		m_selection.m_startPosition.column = std::min<size_t>(m_selection.m_startPosition.column, m_content.length());
+		m_selection.m_endPosition.column = std::min<size_t>(m_selection.m_endPosition.column, m_content.length());
+		
 		AdjustView();
+		UpdateCaretPosition();
 	}
 
 	std::wstring SingleLineEditor::GetSelectedText() const
@@ -98,9 +103,11 @@ namespace Berta
 
 	void SingleLineEditor::InsertChar(wchar_t wChr)
 	{
-		// Cero saltos de línea permitidos en este editor
-		if (wChr == L'\n' || wChr == L'\r') return;
-
+		if (wChr == L'\n' || wChr == L'\r')
+		{
+			return;
+		}
+		
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.Min(), m_selection.Max());
@@ -172,6 +179,8 @@ namespace Berta
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.Min(), m_selection.Max());
+			AdjustView();
+			UpdateCaretPosition();
 			EmitValueChanged();
 			return;
 		}
@@ -180,6 +189,7 @@ namespace Berta
 		{
 			m_content.erase(m_selection.m_endPosition.column, 1);
 			InvalidateLayout();
+			AdjustView();
 			EmitValueChanged();
 		}
 	}
@@ -189,6 +199,8 @@ namespace Berta
 		if (!m_selection.IsEmpty())
 		{
 			DeleteRange(m_selection.Min(), m_selection.Max());
+			AdjustView();
+			UpdateCaretPosition();
 			EmitValueChanged();
 			return;
 		}
@@ -201,13 +213,13 @@ namespace Berta
 			
 			InvalidateLayout();
 			AdjustView();
+			UpdateCaretPosition();
 			EmitValueChanged();
 		}
 	}
 
 	void SingleLineEditor::Render(Graphics& graphics)
 	{
-		// 1. Fondo
 		graphics.FillRectangle(m_editorArea, GetBackgroundColor());
 
 		uint32_t lineHeight = graphics.GetTextExtent("Ay").Height;
@@ -218,7 +230,6 @@ namespace Berta
 		
 		EnsureLayout();
 		
-		// 2. Fondo de Selección
 		if (!m_selection.IsEmpty())
 		{
 			auto minCol = m_selection.Min().column;
@@ -232,8 +243,6 @@ namespace Berta
 			graphics.FillRectangle(selRect, m_owner->Appearance->HighlightColor);
 		}
 
-		// 3. Texto Lineal Rápido
-		// El área de dibujo es "infinita" en el eje X porque el recorte ya se encarga de limitar la vista
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_textHandle.IsValid())
 		{
@@ -243,7 +252,6 @@ namespace Berta
 		graphics.DrawText(m_content, { 0, 0, 100000, lineHeight }, m_owner->Appearance->Foreground);
 #endif
 		
-		// 4. Caret
 		if (m_caret && m_caret->IsVisible())
 		{
 			int caretX = GetCaretX();
@@ -517,6 +525,24 @@ namespace Berta
 		{
 			m_scrollX = std::max<int>(0, caretX - 5);
 		}
+		
+		int contentWidth = 0;
+#ifdef BT_PLATFORM_WINDOWS
+		EnsureLayout();
+		if (m_textHandle.m_textLayout)
+		{
+			DWRITE_TEXT_METRICS metrics{};
+			if (SUCCEEDED(m_textHandle.m_textLayout->GetMetrics(&metrics)))
+			{
+				contentWidth = static_cast<int>(metrics.widthIncludingTrailingWhitespace);
+			}
+		}
+#else
+		contentWidth = static_cast<int>(m_owner->Renderer.GetGraphics().GetTextExtent(m_content).Width);
+#endif
+
+		int maxScroll = std::max<int>(0, contentWidth - viewWidth + 5);
+		m_scrollX = std::min<int>(m_scrollX, maxScroll);
 	}
 
 	TextPosition SingleLineEditor::GetPositionNextWord(TextPosition currentPos, int direction) const
