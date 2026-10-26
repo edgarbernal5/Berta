@@ -67,7 +67,7 @@ namespace Berta
 		LineTextBox() = default;
 		LineTextBox(Window* parent, const Rectangle& rectangle = {});
 
-		TextPosition GetCaretPosition() const;
+		size_t GetCaretPosition() const;
 		
 		void Deselect();
 		void SelectAll();

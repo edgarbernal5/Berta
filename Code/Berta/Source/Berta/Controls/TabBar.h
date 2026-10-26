@@ -174,7 +174,7 @@ namespace Berta
 		
 		TabRowPosition GetTabRowPosition() const;
 		void SetTabRowPosition(TabRowPosition position);
-		void SetTabPagePadding(Padding padding);
+		void SetTabPagePadding(const Padding& padding);
 		
 		void ShowCloseButton(bool show);
 	private:

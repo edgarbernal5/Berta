@@ -22,16 +22,17 @@ int main()
 			Berta::GUI::Exit();
 		});
 
+	std::string multilineText = "Primera línea\nSegunda línea\nBajada de línea";
 	Berta::TextAreaBox multiLineInputText(form, { 0,0, 100, 25 });
 	multiLineInputText.SetWordWrap(false);
-	multiLineInputText.SetCaption("Primera línea\nSegunda línea\nBajada de línea");
+	multiLineInputText.SetCaption(multilineText);
 	
 	Berta::TextAreaBox wordWrapSingleLine(form, { 0,0, 100, 25 });
 	wordWrapSingleLine.SetWordWrap(true);
-	wordWrapSingleLine.SetCaption("Primera línea. Segunda línea. Bajada de línea");
+	wordWrapSingleLine.SetCaption(multilineText);
 	
 	Berta::LineTextBox oneLineInputText(form, { 0,0, 100, 25 });
-	oneLineInputText.SetCaption("Primera línea. Segunda línea. Bajada de línea");
+	oneLineInputText.SetCaption(multilineText);
 	
 	form.SetLayout("{VerticalLayout {menuBar Height=24}{{a}{VerticalLayout {b}{{}{c}}}}}");
 

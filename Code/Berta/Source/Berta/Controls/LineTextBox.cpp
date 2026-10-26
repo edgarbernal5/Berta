@@ -11,7 +11,7 @@ namespace Berta
 		{
 			m_textEditor = std::make_unique<SingleLineEditor>(*m_control);
 
-			m_textEditor->SetEditorArea(GetEditorArea());
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->SetValueChangedCallback([this]()
 			{
 				ArgTextChanged args;
@@ -108,14 +108,14 @@ namespace Berta
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
 		{
-			m_textEditor->SetEditorArea(GetEditorArea());
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnResize(args);
 		}
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
-			//TODO
-			//m_textEditor->OnDpiChanged();
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
+			m_textEditor->OnDpiChanged();
 		}
 
 		SingleLineEditor* Reactor::GetEditor() const
@@ -150,12 +150,12 @@ namespace Berta
 #endif
 	}
 
-	TextPosition LineTextBox::GetCaretPosition() const
+	size_t LineTextBox::GetCaretPosition() const
 	{
 		auto editor = GetReactor().GetEditor();
 		if (editor)
 		{
-			return editor->GetEndPosition();
+			return editor->GetEndPosition().column;
 		}
 		return {};
 	}

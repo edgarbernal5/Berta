@@ -31,14 +31,15 @@ namespace Berta
         void Render(Graphics& graphics) override;
         bool OnFocus(const ArgFocus& args) override;
 
-        void OnMouseDown(const ArgMouse& args);
-        void OnMouseMove(const ArgMouse& args);
-        void OnMouseUp(const ArgMouse& args);
-        bool OnKeyPressed(const ArgKeyboard& args);
-        bool OnDblClick(const ArgMouse& args);
-        void OnResize(const ArgResize& args);
-		
-        void SetEditorArea(const Rectangle& area);
+        void OnMouseDown(const ArgMouse& args) override;
+        void OnMouseMove(const ArgMouse& args) override;
+        void OnMouseUp(const ArgMouse& args) override;
+        bool OnKeyPressed(const ArgKeyboard& args) override;
+        bool OnDblClick(const ArgMouse& args) override;
+        void OnResize(const ArgResize& args) override;
+        void OnDpiChanged() override;
+        
+        void SetEditorArea(const Rectangle& outerArea, const Padding& padding) override;
 
     protected:
         void InsertChar(wchar_t wChr) override;
@@ -60,7 +61,6 @@ namespace Berta
         void InvalidateLayout();
         
         std::wstring m_content; 
-        Rectangle m_editorArea;
         mutable TextPaintNativeHandle m_textHandle;
         
         int m_scrollX{ 0 }; 

@@ -28,14 +28,14 @@ namespace Berta
 				return;
 			}
 
-			int viewWidth = static_cast<int>(m_editorArea.Width);
+			int viewWidth = static_cast<int>(m_contentArea.Width);
 			int previousScroll = m_scrollX;
 
-			if (m_lastMousePosition.X < m_editorArea.X)
+			if (m_lastMousePosition.X < m_contentArea.X)
 			{
 				m_scrollX = std::max<int>(0, m_scrollX - TEXT_EDITOR_SCROLL_SPEED);
 			}
-			else if (m_lastMousePosition.X > m_editorArea.X + viewWidth)
+			else if (m_lastMousePosition.X > m_contentArea.X + viewWidth)
 			{
 				int contentWidth = 0;
 				
@@ -62,14 +62,21 @@ namespace Berta
 				m_selection.m_endPosition = GetPositionUnderMouse(m_lastMousePosition);
 				
 				UpdateCaretPosition();
-				GUI::UpdateWindow(m_owner);
+				GUI::MarkAsNeedUpdate(m_owner);
 			}
 		});
 	}
 
-	void SingleLineEditor::SetEditorArea(const Rectangle& area)
+	void SingleLineEditor::SetEditorArea(const Rectangle& outerArea, const Padding& padding)
 	{
-		m_editorArea = area;
+		m_editorArea = outerArea;
+		
+		m_contentArea = m_editorArea;
+		m_contentArea.X += padding.Left;
+		m_contentArea.Y += padding.Top;
+		m_contentArea.Width = std::max<uint32_t>(0, m_contentArea.Width - (padding.Left + padding.Right));
+		m_contentArea.Height = std::max<uint32_t>(0, m_contentArea.Height - (padding.Top + padding.Bottom));
+		
 		AdjustView();
 	}
 
@@ -221,12 +228,17 @@ namespace Berta
 	void SingleLineEditor::Render(Graphics& graphics)
 	{
 		graphics.FillRectangle(m_editorArea, GetBackgroundColor());
-
-		uint32_t lineHeight = graphics.GetTextExtent("Ay").Height;
-		int textY = std::max<int>(0, (static_cast<int>(m_editorArea.Height) - static_cast<int>(lineHeight)) / 2);
 		
-		graphics.SetClipping(m_editorArea);
-		graphics.PushTranslation(m_editorArea.X - m_scrollX, m_editorArea.Y + textY);
+		if (m_contentArea.Width == 0 || m_contentArea.Height == 0)
+		{
+			return;
+		}
+		
+		uint32_t lineHeight = graphics.GetTextExtent("Ay").Height;
+		int textY = std::max<int>(0, (static_cast<int>(m_contentArea.Height) - static_cast<int>(lineHeight)) / 2);
+		
+		graphics.SetClipping(m_contentArea);
+		graphics.PushTranslation(m_contentArea.X - m_scrollX, m_contentArea.Y + textY);
 		
 		EnsureLayout();
 		
@@ -235,11 +247,10 @@ namespace Berta
 			auto minCol = m_selection.Min().column;
 			auto maxCol = m_selection.Max().column;
 
-			int startX = graphics.GetTextExtent(m_content.substr(0, minCol)).Width;
-			int selWidth = graphics.GetTextExtent(m_content.substr(minCol, maxCol - minCol)).Width;
-        
-			// La selección cubre exactamente la altura de la línea
-			Rectangle selRect{ startX, 0, static_cast<uint32_t>(selWidth), lineHeight };
+			int startX = static_cast<int>(graphics.GetTextExtent(m_content.substr(0, minCol)).Width);
+			uint32_t selWidth = graphics.GetTextExtent(m_content.substr(minCol, maxCol - minCol)).Width;
+			
+			Rectangle selRect{ startX, 0, selWidth, lineHeight };
 			graphics.FillRectangle(selRect, m_owner->Appearance->HighlightColor);
 		}
 
@@ -351,7 +362,7 @@ namespace Berta
 			}
 		
 			bool selectionTimerRunning = m_selectionTimer.IsRunning();
-			bool insideEditorArea = m_editorArea.Contains(args.Position);
+			bool insideEditorArea = m_contentArea.Contains(args.Position);
 	
 			if (!selectionTimerRunning && !insideEditorArea)
 			{
@@ -501,6 +512,13 @@ namespace Berta
 		UpdateCaretPosition();
 	}
 
+	void SingleLineEditor::OnDpiChanged()
+	{
+		InvalidateLayout();
+		AdjustView();
+		UpdateCaretPosition();
+	}
+
 	void SingleLineEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)
 	{
 		if (wordJump)
@@ -536,7 +554,7 @@ namespace Berta
 		}
 
 		int caretX = GetCaretX();
-		int viewWidth = static_cast<int>(m_editorArea.Width);
+		int viewWidth = static_cast<int>(m_contentArea.Width);
 		
 		if (caretX > m_scrollX + viewWidth - 5) // Margen de 5px a la derecha
 		{
@@ -576,27 +594,25 @@ namespace Berta
 		size_t col = currentPos.column;
 		size_t len = m_content.length();
 
-		if (direction > 0) // Mover hacia la derecha (Ctrl + Right)
+		if (direction > 0)
 		{
-			// 1. Saltar espacios o puntuación inicial
 			while (col < len && GetCharClass(m_content[col]) != CharClass::Alphanumeric)
 			{
 				col++;
 			}
-			// 2. Saltar el bloque de la palabra
+			
 			while (col < len && GetCharClass(m_content[col]) == CharClass::Alphanumeric)
 			{
 				col++;
 			}
 		}
-		else // Mover hacia la izquierda (Ctrl + Left)
+		else
 		{
-			// 1. Retroceder espacios/puntuación iniciales
 			while (col > 0 && GetCharClass(m_content[col - 1]) != CharClass::Alphanumeric)
 			{
 				col--;
 			}
-			// 2. Retroceder el bloque de la palabra
+			
 			while (col > 0 && GetCharClass(m_content[col - 1]) == CharClass::Alphanumeric)
 			{
 				col--;
@@ -613,7 +629,7 @@ namespace Berta
 			return { 0, 0 };
 		}
 
-		int localX = mousePosition.X - m_editorArea.X + m_scrollX;
+		int localX = mousePosition.X - m_contentArea.X + m_scrollX;
 		if (localX <= 0)
 		{
 			return { 0, 0 };
@@ -719,7 +735,7 @@ namespace Berta
 #ifdef BT_PLATFORM_WINDOWS
 		if (m_textHandle.IsValid() || m_content.empty())
 		{
-			return; // Ya está en caché o no hay nada que dibujar
+			return;
 		}
 
 		auto nativeAttr = m_owner->Renderer.GetGraphics().GetNativeHandle();
@@ -730,7 +746,7 @@ namespace Berta
 		
 		// Ancho infinito para evitar que DirectWrite intente hacer salto de línea
 		float layoutWidth = 1000000.0f; 
-		float layoutHeight = static_cast<float>(m_editorArea.Height);
+		float layoutHeight = static_cast<float>(m_contentArea.Height);
 
 		HRESULT hr = DirectX::D2DModule::GetInstance().GetWriteFactory()->CreateTextLayout
 		(
@@ -751,7 +767,6 @@ namespace Berta
 #endif
 	}
 
-	// --- Lógica del Portapapeles (Rápida y directa) ---
 	void SingleLineEditor::Cut()
 	{
 		if (m_selection.IsEmpty())
@@ -802,6 +817,7 @@ namespace Berta
 	{
 		m_selection.Reset({ 0, 0 });
 		m_selection.m_endPosition = { 0, m_content.length() };
+		
 		AdjustView();
 		
 		return true;
@@ -810,14 +826,9 @@ namespace Berta
 	void SingleLineEditor::UpdateCaretPosition()
 	{
 		uint32_t lineHeight = m_owner->Renderer.GetGraphics().GetTextExtent("Ay").Height;
-		int textY = std::max<int>(0, (static_cast<int>(m_editorArea.Height) - static_cast<int>(lineHeight)) / 2);
+		int textY = std::max<int>(0, (static_cast<int>(m_contentArea.Height) - static_cast<int>(lineHeight)) / 2);
 
 		int caretX = GetCaretX();
-
-		// La coordenada Y relativa al espacio del editor alineada con el texto
 		m_caret->SetPosition({ caretX, textY });
 	}
-
-	// Implementar delegados de ratón (OnMouseDown, etc.) idénticos a la clase base original 
-	// pero usando GetPositionUnderMouse() local.
 }

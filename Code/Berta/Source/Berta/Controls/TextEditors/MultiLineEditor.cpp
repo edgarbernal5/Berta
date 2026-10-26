@@ -41,7 +41,7 @@ namespace Berta
 			
 			Point currentScroll = m_scrollableView->GetScrollOffset();
 			Point newScroll = currentScroll;
-			Rectangle viewport = m_editorArea;
+			Rectangle viewport = m_contentArea;
 			
 			int deltaY = 0;
 			if (m_lastMousePosition.Y < viewport.Y)
@@ -87,7 +87,7 @@ namespace Berta
 				m_selection.m_endPosition = GetPositionUnderMouse(m_lastMousePosition);
 				
 				UpdateCaretPosition();
-				GUI::UpdateWindow(m_owner);
+				GUI::MarkAsNeedUpdate(m_owner);
 			}
 		});
 	}
@@ -246,10 +246,14 @@ namespace Berta
 	{
 		graphics.FillRectangle(m_editorArea, GetBackgroundColor());
 		
-		graphics.SetClipping(m_editorArea);
+		if (m_contentArea.Width == 0 || m_contentArea.Height == 0)
+		{
+			return;
+		}
+		graphics.SetClipping(m_contentArea);
 		
 		auto currentOffset = m_scrollableView->GetScrollOffset();
-		graphics.PushTranslation(m_editorArea.X - currentOffset.X, m_editorArea.Y - currentOffset.Y);
+		graphics.PushTranslation(m_contentArea.X - currentOffset.X, m_contentArea.Y - currentOffset.Y);
 		
 		RenderVisibleLines(graphics);
 		RenderCaret(graphics);
@@ -257,7 +261,6 @@ namespace Berta
 		graphics.PopTranslation();
 		graphics.EndClipping();
 		
-		// Render UI Elements (Scroll overlap)
 		if (m_scrollableView && m_scrollableView->HasVerticalScroll() && m_scrollableView->HasHorizontalScroll())
 		{
 			auto scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
@@ -314,8 +317,11 @@ namespace Berta
 
 	void MultiLineEditor::OnMouseDown(const ArgMouse& args)
 	{
-		if (m_selection.m_ignoreMouseDown || m_lines.empty()) return;
-	
+		if (m_selection.m_ignoreMouseDown || m_lines.empty())
+		{
+			return;
+		}
+		
 		m_lastMousePosition = args.Position;
 		TextPosition clickedPos = GetPositionUnderMouse(args.Position);
 	
@@ -347,12 +353,12 @@ namespace Berta
 			}
 		
 			bool selectionTimerRunning = m_selectionTimer.IsRunning();
-			bool insideEditorArea = m_editorArea.Contains(args.Position);
+			bool insideEditorArea = m_contentArea.Contains(args.Position);
     
 			if (!selectionTimerRunning && !insideEditorArea)
 			{
-				m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
-				m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
+				m_selectionDirection.X = args.Position.X < m_contentArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
+				m_selectionDirection.Y = args.Position.Y < m_contentArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
 				m_selectionTimer.SetInterval(90);
 				m_selectionTimer.Start();
 			}
@@ -365,8 +371,8 @@ namespace Berta
 				}
 				else
 				{
-					m_selectionDirection.X = args.Position.X < m_editorArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
-					m_selectionDirection.Y = args.Position.Y < m_editorArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
+					m_selectionDirection.X = args.Position.X < m_contentArea.X ? 1 : (args.Position.X >= static_cast<int>(m_editorArea.Width) + m_editorArea.X ? -1 : 0);
+					m_selectionDirection.Y = args.Position.Y < m_contentArea.Y ? 1 : (args.Position.Y >= static_cast<int>(m_editorArea.Height) + m_editorArea.Y ? -1 : 0);
 				}
 			}
 		}
@@ -492,9 +498,15 @@ namespace Berta
 		UpdateCaretPosition();
 	}
 
-	void MultiLineEditor::SetEditorArea(const Rectangle& area)
+	void MultiLineEditor::SetEditorArea(const Rectangle& outerArea, const Padding& padding)
 	{
-		m_editorArea = area;
+		m_editorArea = outerArea;
+		
+		m_contentArea = m_editorArea;
+		m_contentArea.X += padding.Left;
+		m_contentArea.Y += padding.Top;
+		m_contentArea.Width = std::max<uint32_t>(0, m_contentArea.Width - (padding.Left + padding.Right));
+		m_contentArea.Height = std::max<uint32_t>(0, m_contentArea.Height - (padding.Top + padding.Bottom));
 	}
 
 	void MultiLineEditor::SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal)
@@ -517,7 +529,7 @@ namespace Berta
 		RecomputeWordWrap();
 	}
 
-	void MultiLineEditor::LoadFile(const std::string& path)
+	void MultiLineEditor::LoadFile(const std::wstring& path)
 	{
 		std::ifstream file(path, std::ios::binary);
 		if (!file.is_open())
@@ -555,7 +567,7 @@ namespace Berta
 		m_selection.Reset({ 0, 0 });
 	}
 
-	void MultiLineEditor::SaveFile(const std::string& path) const
+	void MultiLineEditor::SaveFile(const std::wstring& path) const
 	{
 		std::wstring fullContent;
 		for (size_t i = 0; i < m_lines.size(); ++i)
@@ -616,7 +628,7 @@ namespace Berta
 		m_visualLines.clear();
 		m_cachedMaxWidth = 0;
 		uint32_t currentY = 0;
-		uint32_t workingWidth = m_editorArea.Width;
+		uint32_t workingWidth = m_contentArea.Width;
 		
 		for (size_t i = 0; i < m_lines.size(); ++i)
 		{
@@ -625,10 +637,10 @@ namespace Berta
 
 		if (m_wordWrap)
 		{
-			if (currentY > m_editorArea.Height)
+			if (currentY > m_contentArea.Height)
 			{
 				uint32_t scrollSize = m_owner->ToScale(m_owner->Appearance->ScrollBarSize);
-				workingWidth = (m_editorArea.Width > scrollSize) ? (m_editorArea.Width - scrollSize) : 5;
+				workingWidth = (m_contentArea.Width > scrollSize) ? (m_contentArea.Width - scrollSize) : 5;
 
 				m_visualLines.clear();
 				currentY = 0;
@@ -822,7 +834,7 @@ namespace Berta
 
 		Point currentPt = GetPointFromPosition(m_selection.m_endPosition);
 		auto currentOffset = m_scrollableView->GetScrollOffset();
-		float targetX = static_cast<float>(currentPt.X - m_editorArea.X + currentOffset.X);
+		float targetX = static_cast<float>(currentPt.X - m_contentArea.X + currentOffset.X);
 
 		EnsureLayout(targetVl);
     
@@ -1039,7 +1051,7 @@ namespace Berta
 	void MultiLineEditor::RenderVisibleLines(Graphics& graphics)
 	{
 		size_t firstLineIndex = GetFirstVisibleVisualLine();
-		int viewportBottom = m_scrollableView->GetScrollOffset().Y + static_cast<int>(m_editorArea.Height);
+		int viewportBottom = m_scrollableView->GetScrollOffset().Y + static_cast<int>(m_contentArea.Height);
 		Color textColor = m_owner->Appearance->Foreground;
 
 		for (size_t i = firstLineIndex; i < m_visualLines.size(); ++i)
@@ -1269,8 +1281,8 @@ namespace Berta
 
 	void MultiLineEditor::AdjustView() const
 	{
-		auto viewHeight = static_cast<int>(m_editorArea.Height);
-		auto viewWidth = static_cast<int>(m_editorArea.Width);
+		auto viewHeight = static_cast<int>(m_contentArea.Height);
+		auto viewWidth = static_cast<int>(m_contentArea.Width);
 		
 		size_t vIdx = GetVisualLineIndexFromPos(m_selection.m_endPosition);
 		if (vIdx >= m_visualLines.size())
@@ -1405,8 +1417,8 @@ namespace Berta
 			pos.column = targetLine->charStart;
 		}
 #else
-		int localX = mousePosition.X - m_editorArea.X + m_offsetView.X;
-		int localY = mousePosition.Y - m_editorArea.Y + m_offsetView.Y;
+		int localX = mousePosition.X - m_contentArea.X + m_offsetView.X;
+		int localY = mousePosition.Y - m_contentArea.Y + m_offsetView.Y;
 	
 		localY = std::max<int>(localY, 0);
 
@@ -1654,8 +1666,8 @@ namespace Berta
 	{
 		Point offset = m_scrollableView ? m_scrollableView->GetScrollOffset() : Point{0,0};
 		return { 
-			windowPoint.X - m_editorArea.X + offset.X, 
-			windowPoint.Y - m_editorArea.Y + offset.Y 
+			windowPoint.X - m_contentArea.X + offset.X, 
+			windowPoint.Y - m_contentArea.Y + offset.Y 
 		};
 	}
 

@@ -17,6 +17,7 @@
 
 namespace Berta
 {
+	class SingleLineEditor;
 	class TextEditor;
 	class FloatBox;
 	class ComboBox;
@@ -74,7 +75,7 @@ namespace Berta
 				Float::InteractionData Data;
 
 				Window* m_owner{ nullptr };
-				TextEditor* m_textEditor{ nullptr };
+				SingleLineEditor* m_textEditor{ nullptr };
 				std::wstring m_text;
 
 				State m_status{ State::Normal };

@@ -711,7 +711,7 @@ namespace Berta
 		module.Draw();
 	}
 
-	void TabBar::SetTabPagePadding(Padding padding)
+	void TabBar::SetTabPagePadding(const Padding& padding)
 	{
 		auto& module = GetReactor().GetModule();
 		module.m_tabPagePadding = padding;

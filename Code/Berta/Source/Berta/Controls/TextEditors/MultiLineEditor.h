@@ -20,7 +20,6 @@ namespace Berta
 		MultiLineEditor(Window* owner);
 		~MultiLineEditor() override = default;
 
-		// --- Interfaz Implementada de TextInputCore ---
 		void Cut() override;
 		void Copy() const override;
 		void Paste() override;
@@ -33,21 +32,21 @@ namespace Berta
 		void Render(Graphics& graphics) override;
 		bool OnFocus(const ArgFocus& args) override;
 
-		// --- Eventos Específicos ---
-		void OnMouseDown(const ArgMouse& args);
-		void OnMouseMove(const ArgMouse& args);
-		void OnMouseUp(const ArgMouse& args);
-		bool OnKeyPressed(const ArgKeyboard& args);
-		bool OnDblClick(const ArgMouse& args);
-		void OnResize(const ArgResize& args);
-		void OnDpiChanged();
-
-		void SetEditorArea(const Rectangle& area);
+		void OnMouseDown(const ArgMouse& args) override;
+		void OnMouseMove(const ArgMouse& args) override;
+		void OnMouseUp(const ArgMouse& args) override;
+		bool OnKeyPressed(const ArgKeyboard& args) override;
+		bool OnDblClick(const ArgMouse& args) override;
+		void OnResize(const ArgResize& args) override;
+		void OnDpiChanged() override;
+		
+		void SetEditorArea(const Rectangle& outerArea, const Padding& padding) override;
+		
 		void SetScrollBarVisibility(ScrollBarVisibility vertical, ScrollBarVisibility horizontal);
 		void SetWordWrap(bool enabled);
 
-		void LoadFile(const std::string& path);
-		void SaveFile(const std::string& path) const;
+		void LoadFile(const std::wstring& path);
+		void SaveFile(const std::wstring& path) const;
 
 	protected:
 		void InsertChar(wchar_t wChr) override;
@@ -89,12 +88,10 @@ namespace Berta
 		[[nodiscard]] Point ToEditorSpace(Point windowPoint) const;
 		[[nodiscard]] std::pair<TextPosition, TextPosition> GetWordBounds(TextPosition pos) const;
 
-		// Estructuras pesadas exclusivas del editor multilínea
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
 		std::unique_ptr<ScrollableView> m_scrollableView;
 
-		Rectangle m_editorArea;
 		std::unique_ptr<Caret> m_caret;
 		
 		mutable std::wstring m_content;

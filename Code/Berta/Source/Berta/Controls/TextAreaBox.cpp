@@ -19,7 +19,7 @@ namespace Berta
 		{
 			m_textEditor = std::make_unique<MultiLineEditor>(*m_control);
 
-			m_textEditor->SetEditorArea(GetEditorArea());
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->SetValueChangedCallback([this]()
 			{
 				ArgTextChanged args;
@@ -115,12 +115,13 @@ namespace Berta
 
 		void Reactor::Resize(Graphics& graphics, const ArgResize& args)
 		{
-			m_textEditor->SetEditorArea(GetEditorArea());
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnResize(args);
 		}
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnDpiChanged();
 		}
 

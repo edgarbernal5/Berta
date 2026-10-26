@@ -1169,7 +1169,6 @@ namespace Berta
 			ResetScrollOffset();
 			UpdateScrollData();
 			
-			// El control ahora está vacío, invalidamos toda su área local
 			GUI::MarkAsNeedUpdate(m_window);
 		}
 

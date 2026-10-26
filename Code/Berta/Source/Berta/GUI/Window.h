@@ -65,6 +65,7 @@ namespace Berta
 		Size MaxSize;
 		uint32_t DPI{ 0 };
 		float DPIScaleFactor{ 1.0f };
+		Padding ClientPadding;
 
 		Renderer Renderer;
 		Graphics* RootGraphics{ nullptr };

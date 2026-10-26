@@ -246,7 +246,6 @@
     <ClInclude Include="Source\btpch.h" />
     <ClInclude Include="Source\Berta\GUI\Control.h" />
     <ClInclude Include="Source\Berta\GUI\WindowManager.h" />
-    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h" />
     <ClInclude Include="Source\Berta\Controls\TabBar.h" />
     <ClInclude Include="Source\Berta\Core\StackTracer.h" />
     <ClInclude Include="Source\Berta\Controls\TextEditors\EnumTypes.h" />
@@ -327,7 +326,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\WindowManager.cpp" />
-    <ClCompile Include="Source\Berta\Controls\TextEditors\TextEditor.cpp" />
     <ClCompile Include="Source\Berta\Controls\TabBar.cpp" />
     <ClCompile Include="Source\Berta\Core\StackTracer.cpp" />
   </ItemGroup>

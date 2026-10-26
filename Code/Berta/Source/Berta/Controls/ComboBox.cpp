@@ -10,8 +10,8 @@
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Caret.h"
 #include "Berta/GUI/EnumTypes.h"
-#include "Berta/Controls/TextEditors/TextEditor.h"
 #include "Berta/Controls/Floating/FloatBox.h"
+#include "TextEditors/SingleLineEditor.h"
 
 namespace Berta
 {
@@ -354,7 +354,7 @@ namespace Berta
 		void Reactor::DoOnInit()
 		{
 			m_module.m_comboBox = reinterpret_cast<Berta::ComboBox*>(m_control);
-			m_module.m_textEditor = new TextEditor(*m_control);
+			m_module.m_textEditor = new SingleLineEditor(*m_control);
 
 			auto window = m_control->Handle();
 			window->Events->Focus.Connect([&](const ArgFocus& args)

@@ -53,6 +53,15 @@ namespace Berta
 		virtual bool OnKeyChar(const ArgKeyboard& args);
 		virtual bool OnFocus(const ArgFocus& args) = 0;
 
+		virtual void OnMouseDown(const ArgMouse& args) = 0;
+		virtual void OnMouseMove(const ArgMouse& args) = 0;
+		virtual void OnMouseUp(const ArgMouse& args) = 0;
+		virtual bool OnKeyPressed(const ArgKeyboard& args) = 0;
+		virtual bool OnDblClick(const ArgMouse& args) = 0;
+		virtual void OnResize(const ArgResize& args) = 0;
+		virtual void OnDpiChanged() = 0;
+		
+		virtual void SetEditorArea(const Rectangle& outerArea, const Padding& padding) = 0;
 	protected:
 		enum class CharClass : uint8_t
 		{
@@ -81,7 +90,10 @@ namespace Berta
 		void EmitValueChanged() const;
 		Color GetBackgroundColor() const;
 		static CharClass GetCharClass(wchar_t c);
-
+		
+		Rectangle m_editorArea;
+		Rectangle m_contentArea;
+		
 		Window* m_owner{ nullptr };
 		Selection m_selection;
 		TextEditorCallback m_valueChangedCallback;

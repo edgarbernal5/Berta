@@ -30,8 +30,6 @@ namespace Berta
         {
             if (std::iswprint(args.Key))
             {
-                // Llamada polimórfica: 
-                // SingleLineEditor inserta linealmente, MultiLineEditor calcula saltos
                 InsertChar(args.Key); 
                 return true;
             }
