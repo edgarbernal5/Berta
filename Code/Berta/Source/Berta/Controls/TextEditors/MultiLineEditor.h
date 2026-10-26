@@ -26,7 +26,7 @@ namespace Berta
 		void Paste() override;
 		bool SelectAll() override;
 
-		std::wstring GetContent() const override;
+		const std::wstring& GetContent() const override;
 		void SetContent(const std::wstring& newContent) override;
 		std::wstring GetSelectedText() const override;
 
@@ -53,7 +53,6 @@ namespace Berta
 		void InsertChar(wchar_t wChr) override;
 
 	private:
-		// Toda la lógica compleja de geometría y salto de línea se conserva aquí
 		void RecomputeWordWrap();
 		void ComputeVisualLinesForLogicalLine(Graphics& graphics, size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth);
 		void UpdateLinesIncremental(size_t startLine, int lineCountDelta);
@@ -98,6 +97,7 @@ namespace Berta
 		Rectangle m_editorArea;
 		std::unique_ptr<Caret> m_caret;
 		
+		mutable std::wstring m_content;
 		bool m_wordWrap{ false };
 		bool m_wasDblClick{ false };
 		uint32_t m_cachedMaxWidth{ 0 };

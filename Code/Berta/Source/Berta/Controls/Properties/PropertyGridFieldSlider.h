@@ -56,12 +56,9 @@ namespace Berta
                 }
             });
 		    
-            m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
+            m_textBox.GetEvents().Submit.Connect([this](const ArgSubmit& args)
             {
-                if (args.Key == KeyboardKey::Enter)
-                {
-                    ApplyTextValue();
-                }
+                ApplyTextValue();
             });
 
             m_slider.GetEvents().ValueChanged.Connect([this](ArgSlider args)

@@ -37,22 +37,19 @@ namespace Berta
 		void SetBehavior(TextFocusBehavior behavior) { m_selection.Behavior = behavior; }
 		TextPosition GetEndPosition() const { return m_selection.m_endPosition; }
 
-		// La base sabe cómo resetear la selección de forma agnóstica
 		bool Deselect(); 
 
-		// --- Interfaz Virtual Pura (El Modelo de Datos y Renderizado) ---
 		virtual void Cut() = 0;
 		virtual void Copy() const = 0;
 		virtual void Paste() = 0;
 		virtual bool SelectAll() = 0;
 		
-		virtual std::wstring GetContent() const = 0;
+		virtual const std::wstring& GetContent() const = 0;
 		virtual void SetContent(const std::wstring& newContent) = 0;
 		virtual std::wstring GetSelectedText() const = 0;
 
 		virtual void Render(Graphics& graphics) = 0;
 
-		// --- Eventos Base ---
 		virtual bool OnKeyChar(const ArgKeyboard& args);
 		virtual bool OnFocus(const ArgFocus& args) = 0;
 
@@ -80,12 +77,11 @@ namespace Berta
 		
 		virtual void InsertChar(wchar_t wChr) = 0;
 
-		// Lógica transversal reusada
+		void EmitSelectionChanged(TextPosition oldStart, TextPosition oldEnd) const;
 		void EmitValueChanged() const;
 		Color GetBackgroundColor() const;
 		static CharClass GetCharClass(wchar_t c);
 
-		// Variables de Estado Lógico (Cero Memoria Dinámica Masiva)
 		Window* m_owner{ nullptr };
 		Selection m_selection;
 		TextEditorCallback m_valueChangedCallback;

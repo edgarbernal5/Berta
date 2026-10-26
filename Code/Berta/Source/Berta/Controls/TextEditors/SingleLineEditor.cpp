@@ -8,6 +8,7 @@
 #include "Berta/Controls/TextEditors/SingleLineEditor.h"
 
 #include "Berta/API/PlatformAPI.h"
+#include "Berta/Controls/LineTextBox.h"
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/ControlAppearance.h"
@@ -72,7 +73,7 @@ namespace Berta
 		AdjustView();
 	}
 
-	std::wstring SingleLineEditor::GetContent() const
+	const std::wstring& SingleLineEditor::GetContent() const
 	{
 		return m_content;
 	}
@@ -167,7 +168,6 @@ namespace Berta
 			}
 		}
 #else
-		// Fallback por medición para plataformas no-Windows
 		caretX = static_cast<int>(m_owner->Renderer.GetGraphics().GetTextExtent(m_content.substr(0, m_selection.m_endPosition.column)).Width);
 #endif
 
@@ -274,24 +274,41 @@ namespace Berta
 		bool needUpdate = false;
 		if (args.Focused)
 		{
-			if (m_selection.Behavior == TextFocusBehavior::Select || 
-			   (m_selection.Behavior == TextFocusBehavior::SelectOnClick && args.FocusReason == ArgFocus::Reason::MousePress))
+			bool selectAll = false;
+		
+			if (args.FocusReason != ArgFocus::Reason::MousePress)
+			{
+				if (m_selection.Behavior != TextFocusBehavior::None) 
+				{
+					selectAll = true;
+				}
+			}
+			else
+			{
+				if (m_selection.Behavior == TextFocusBehavior::SelectOnClick || m_selection.Behavior == TextFocusBehavior::Select)
+				{
+					selectAll = true;
+				}
+			}
+
+			if (selectAll)
 			{
 				SelectAll();
 				needUpdate = true;
 				m_selection.m_ignoreMouseDown = (args.FocusReason == ArgFocus::Reason::MousePress);
 			}
+		
 			m_caret->Activate();
 		}
 		else
 		{
-			if (m_selection.Behavior != TextFocusBehavior::None)
+			if (m_selection.Behavior != TextFocusBehavior::None) 
 			{
 				Deselect();
+				needUpdate = true;
 			}
 			m_caret->Deactivate();
 			m_selection.m_isSelecting = false;
-			needUpdate = true;
 		}
 		return needUpdate;
 	}
@@ -441,8 +458,13 @@ namespace Berta
 			break;
 
 		case KeyboardKey::Enter:
-			// En un SingleLineEditor, Enter no hace nada visualmente. 
-			// El Reactor del LineTextBox debería interceptarlo para emitir OnSubmit.
+			ArgSubmit argSubmit;
+			argSubmit.Text = m_content;
+
+			if (auto events = reinterpret_cast<Internal::LineTextBox::Events*>(m_owner->Events.get()))
+			{
+				events->Submit.Emit(argSubmit);
+			}
 			break;
 		}
 
@@ -515,8 +537,7 @@ namespace Berta
 
 		int caretX = GetCaretX();
 		int viewWidth = static_cast<int>(m_editorArea.Width);
-
-		// Mantener el cursor dentro del área visible de la caja de texto
+		
 		if (caretX > m_scrollX + viewWidth - 5) // Margen de 5px a la derecha
 		{
 			m_scrollX = caretX - viewWidth + 5;

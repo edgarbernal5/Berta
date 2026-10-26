@@ -57,6 +57,7 @@ namespace Berta
 		struct Events : public ControlEvents
 		{
 			Event<ArgTextChanged> TextChanged;
+			Event<ArgSubmit> Submit;
 		};
 	}
 	

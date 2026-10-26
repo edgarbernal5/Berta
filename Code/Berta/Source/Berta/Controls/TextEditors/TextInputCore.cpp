@@ -39,6 +39,13 @@ namespace Berta
         return false;
     }
 
+    void TextInputCore::EmitSelectionChanged(TextPosition oldStart, TextPosition oldEnd) const
+    {
+        if (oldStart != m_selection.m_startPosition || oldEnd != m_selection.m_endPosition)
+        {
+        }
+    }
+
     void TextInputCore::EmitValueChanged() const
     {
         if (m_valueChangedCallback)

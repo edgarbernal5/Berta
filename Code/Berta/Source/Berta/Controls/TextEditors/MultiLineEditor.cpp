@@ -173,21 +173,26 @@ namespace Berta
 		return true;
 	}
 
-	std::wstring MultiLineEditor::GetContent() const
+	const std::wstring& MultiLineEditor::GetContent() const
 	{
-		if (m_lines.empty()) return L"";
+		if (m_lines.empty())
+		{
+			m_content = L"";
+			return m_content;
+		}
 		
-		std::wstring content = m_lines[0];
+		m_content = m_lines[0];
 		for (size_t i = 1; i < m_lines.size(); ++i)
 		{
-			content += L"\r\n" + m_lines[i];
+			m_content += L"\r\n" + m_lines[i];
 		}
-		return content;
+		return m_content;
 	}
 
 	void MultiLineEditor::SetContent(const std::wstring& newContent)
 	{
 		m_lines.clear();
+		m_content = newContent;
 		if (newContent.empty())
 		{
 			m_lines.emplace_back(L"");
@@ -568,7 +573,7 @@ namespace Berta
 		file.write(utf8Content.c_str(), utf8Content.size());
 	}
 
-	void MultiLineEditor::InsertChar(const wchar_t wChar)
+	void MultiLineEditor::InsertChar(wchar_t wChar)
 	{
 		if (!m_selection.IsEmpty())
 		{
@@ -578,7 +583,6 @@ namespace Berta
 		
 		TextPosition& position = m_selection.m_endPosition;
     
-		// En MultiLineEditor, el Enter SÍ inyecta saltos de línea (a diferencia de SingleLineEditor)
 		if (wChar == L'\n' || wChar == L'\r')
 		{
 			std::wstring remainder;
@@ -1343,11 +1347,11 @@ namespace Berta
 		Point logicalPoint = ToEditorSpace(mousePosition);
 		if (m_visualLines.empty()) return { 0, 0 };
 
-		auto lineHeight = (int)GetLineHeight();
+		auto lineHeight = static_cast<int>(GetLineHeight());
 
 		auto it = std::lower_bound(m_visualLines.begin(), m_visualLines.end(), logicalPoint.Y,
 			[lineHeight](const VisualLine& vl, int y) {
-				return ((int)vl.y + lineHeight) <= y;
+				return (static_cast<int>(vl.y) + lineHeight) <= y;
 			});
 
 		const VisualLine* targetLine = nullptr;

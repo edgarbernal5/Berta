@@ -64,24 +64,21 @@ namespace Berta
 		
 		Refresh();
 		
-		m_textBox.GetEvents().KeyPressed.Connect([this](const ArgKeyboard& args)
-			{
-				if (args.Key == KeyboardKey::Enter)
-				{
-					ApplyValue();
-				}
-			});
+		m_textBox.GetEvents().Submit.Connect([this](const ArgSubmit& args)
+		{
+			ApplyValue();
+		});
 
 		m_textBox.GetEvents().Focus.Connect([this](const ArgFocus& args)
+		{
+			if (args.Focused)
 			{
-				if (args.Focused)
-				{
-					NotifySelected();
-					return;
-				}
+				NotifySelected();
+				return;
+			}
 
-				ApplyValue();
-			});
+			ApplyValue();
+		});
 	}
 
 	void PropertyGridFieldString::OnVisibilityChanged(bool visible)

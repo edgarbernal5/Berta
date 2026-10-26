@@ -15,7 +15,7 @@ namespace Berta
 			m_textEditor->SetValueChangedCallback([this]()
 			{
 				ArgTextChanged args;
-				//args.NewValue = m_textEditor->GetContent();
+				args.Text = m_textEditor->GetContent();
 				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
 			});
 			

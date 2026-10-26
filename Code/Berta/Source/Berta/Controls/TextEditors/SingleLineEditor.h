@@ -19,20 +19,18 @@ namespace Berta
         SingleLineEditor(Window* owner);
         ~SingleLineEditor() override = default;
 
-        // --- Interfaz Implementada de TextInputCore ---
         void Cut() override;
         void Copy() const override;
         void Paste() override;
         bool SelectAll() override;
 
-        std::wstring GetContent() const override;
+        const std::wstring& GetContent() const override;
         void SetContent(const std::wstring& newContent) override;
         std::wstring GetSelectedText() const override;
 
         void Render(Graphics& graphics) override;
         bool OnFocus(const ArgFocus& args) override;
 
-        // --- Eventos Específicos ---
         void OnMouseDown(const ArgMouse& args);
         void OnMouseMove(const ArgMouse& args);
         void OnMouseUp(const ArgMouse& args);
@@ -43,7 +41,7 @@ namespace Berta
         void SetEditorArea(const Rectangle& area);
 
     protected:
-        void InsertChar(wchar_t wChr) override; // Llamado por la base en OnKeyChar
+        void InsertChar(wchar_t wChr) override;
 
     private:
         void MoveCaretHorizontal(int direction, bool wordJump, bool select);
@@ -61,12 +59,10 @@ namespace Berta
         void EnsureLayout() const;
         void InvalidateLayout();
         
-        // Modelo de datos ultraligero y continuo
         std::wstring m_content; 
         Rectangle m_editorArea;
         mutable TextPaintNativeHandle m_textHandle;
         
-        // Renderizado lineal sin dependencias de VisualLine ni ScrollableView
         int m_scrollX{ 0 }; 
 
         std::unique_ptr<Caret> m_caret;

@@ -82,8 +82,19 @@ namespace Berta
 	
 	struct ArgTextChanged
 	{
-		//ArgTextChanged(std::wstring& value):NewValue(value){}
-		//std::wstring NewValue;
+		std::wstring_view Text;
+	};
+	
+	struct ArgSubmit
+	{
+		std::wstring_view Text;
+	};
+	
+	struct ArgSelectionChanged
+	{
+		TextPosition Start;
+		TextPosition End;
+		bool HasSelection() const { return Start != End; }
 	};
 }
 

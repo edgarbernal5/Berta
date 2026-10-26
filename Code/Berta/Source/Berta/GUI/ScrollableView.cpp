@@ -124,7 +124,6 @@ namespace Berta
     {
         bool needNotify = false;
 
-        // --- 1. Lógica Visual de Scrollbars ---
         bool contentExceedsY = m_contentSize.Height > m_viewportRect.Height;
         bool shouldShowV = (m_vVisibility == ScrollBarVisibility::Visible) || 
                            (m_vVisibility == ScrollBarVisibility::Auto && contentExceedsY);
@@ -153,8 +152,6 @@ namespace Berta
             needNotify |= UpdateScrollBarInstance(false, contentExceedsX);
         }
 
-        // --- 2. Abrazar la Realidad Lógica (Crucial para Scroll Hidden) ---
-        // Incluso si las barras están Hidden, el límite de navegación matemática existe.
         int maxOffsetY = std::max<int>(0, static_cast<int>(m_contentSize.Height) - static_cast<int>(m_viewportRect.Height));
         int maxOffsetX = std::max<int>(0, static_cast<int>(m_contentSize.Width) - static_cast<int>(m_viewportRect.Width));
     
