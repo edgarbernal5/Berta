@@ -12,7 +12,16 @@
 
 namespace Berta
 {
-	class Panel : public Control<Category::PanelTag, ControlReactor>
+	namespace Internal::Panel
+	{
+		class Reactor : public ControlReactor
+		{
+		protected:
+			void DoOnInit() override;
+		};
+	}
+	
+	class Panel : public Control<Category::PanelTag, Internal::Panel::Reactor>
 	{
 	public:
 		Panel() = default;

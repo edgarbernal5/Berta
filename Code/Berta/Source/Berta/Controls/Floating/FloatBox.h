@@ -25,7 +25,7 @@ namespace Berta
 	class FloatBoxReactor : public ControlReactor
 	{
 	public:
-		~FloatBoxReactor();
+		~FloatBoxReactor() override;
 
 		void Update(Graphics& graphics) override;
 
@@ -34,7 +34,8 @@ namespace Berta
 		void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 		void MouseWheel(Graphics& graphics, const ArgWheel& args) override;
 		void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
+		void Resize(Graphics& graphics, const ArgResize& args) override;
+		
 		void SetState(Float::InteractionData& selection);
 
 		struct State
@@ -47,6 +48,7 @@ namespace Berta
 		State& GetState() {	return m_state; }
 		bool MoveSelectedItem(int direction);
 		
+		void SetItemHeight(uint32_t height) { m_itemHeight = height; }
 	protected:
 		void DoOnInit() override;
 		
@@ -55,9 +57,9 @@ namespace Berta
 		void UpdateScrollBar();
 
 		FloatBox* m_floatBox{ nullptr };
-		Internal::ComboBox::Appearance* m_comboBoxAppearance{ nullptr };
 
 		Float::InteractionData* m_interactionData{ nullptr };
+		uint32_t m_itemHeight{ 24 };
 		State m_state;
 
 		bool m_ignoreFirstMouseUp{ true };
@@ -69,10 +71,11 @@ namespace Berta
 	public:
 		FloatBox(Window* parent, const Rectangle& rectangle);
 
-		bool OnKeyPressed(const ArgKeyboard& args);
-		void Init(Float::InteractionData& state)
+		void Init(Float::InteractionData& state, uint32_t itemHeight)
 		{
-			GetReactor().SetState(state);
+			auto& reactor = GetReactor();
+			reactor.SetState(state);
+			reactor.SetItemHeight(itemHeight);
 		}
 
 		bool MoveSelectedItem(int direction);

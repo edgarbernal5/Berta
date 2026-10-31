@@ -253,33 +253,6 @@ namespace Berta
 #endif
 		}
 
-		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture)
-		{
-#ifdef BT_PLATFORM_WINDOWS
-			if (capture)
-			{
-				::SetCapture(nativeHandle.Handle);
-			}
-			else if (!::ReleaseCapture())
-			{
-				BT_CORE_ERROR << "ReleaseCapture ::GetLastError() = " << ::GetLastError() << std::endl;
-			}
-#endif
-		}
-
-		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle)
-		{
-#ifdef BT_PLATFORM_WINDOWS
-			if (nativeHandle.Handle == nullptr)
-			{
-				return ::GetDpiForSystem();
-			}
-			return ::GetDpiForWindow(nativeHandle.Handle);
-#else
-			return 96u;
-#endif
-		}
-
 		void EnableWindow(NativeWindowHandle nativeHandle, bool isEnabled)
 		{
 #ifdef BT_PLATFORM_WINDOWS
@@ -328,6 +301,20 @@ namespace Berta
 		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint)
 		{
 #ifdef BT_PLATFORM_WINDOWS
+			// Si no usas HDWP, usa las coordenadas y tamaños directamente
+			UINT flags = SWP_NOZORDER | SWP_NOACTIVATE;
+    
+			// Al prohibirle a Windows reciclar los píxeles (NOCOPYBITS), cuando la ventana se mueve, 
+			// la zona queda invalidada limpiamente y Direct2D repinta todo sin rastro fantasma.
+			if (!forceRepaint)
+			{
+				flags |= SWP_NOCOPYBITS;
+			}
+
+			::SetWindowPos(nativeHandle.Handle, NULL, newArea.X, newArea.Y, newArea.Width, newArea.Height, flags);
+#endif
+			/*
+#ifdef BT_PLATFORM_WINDOWS
 			int x = newArea.X;
 			int y = newArea.Y;
 			HWND owner = ::GetWindow(nativeHandle.Handle, GW_OWNER);
@@ -348,7 +335,7 @@ namespace Berta
 			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
 			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint ? TRUE : FALSE);
-#endif
+#endif*/
 		}
 
 		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint)
@@ -419,6 +406,33 @@ namespace Berta
 #endif
 		}
 
+		void CaptureWindow(NativeWindowHandle nativeHandle, bool capture)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (capture)
+			{
+				::SetCapture(nativeHandle.Handle);
+			}
+			else if (!::ReleaseCapture())
+			{
+				BT_CORE_ERROR << "ReleaseCapture ::GetLastError() = " << ::GetLastError() << std::endl;
+			}
+#endif
+		}
+
+		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (nativeHandle.Handle == nullptr)
+			{
+				return ::GetDpiForSystem();
+			}
+			return ::GetDpiForWindow(nativeHandle.Handle);
+#else
+			return 96u;
+#endif
+		}
+
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor)
 		{
 #ifdef BT_PLATFORM_WINDOWS
@@ -464,6 +478,46 @@ namespace Berta
 				static_cast<uint32_t>(::GetSystemMetrics(SM_CXSCREEN)), 
 				static_cast<uint32_t>(::GetSystemMetrics(SM_CYSCREEN))
 			};
+#else
+			return {};
+#endif
+		}
+
+		Rectangle GetMonitorWorkArea(NativeWindowHandle nativeHandle)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			if (nativeHandle.Handle)
+			{
+				HMONITOR hMonitor = ::MonitorFromWindow(nativeHandle.Handle, MONITOR_DEFAULTTONEAREST);
+				if (hMonitor)
+				{
+					MONITORINFO monitorInfo{};
+					monitorInfo.cbSize = sizeof(MONITORINFO);
+					if (::GetMonitorInfo(hMonitor, &monitorInfo))
+					{
+						const auto& rcWork = monitorInfo.rcWork;
+						return Rectangle{
+							rcWork.left,
+							rcWork.top,
+							static_cast<uint32_t>(rcWork.right - rcWork.left),
+							static_cast<uint32_t>(rcWork.bottom - rcWork.top)
+						};
+					}
+				}
+			}
+			return {};
+#else
+			return {};
+#endif
+		}
+
+		Point GetScreenMousePosition()
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			::POINT nativePoint;
+			::GetCursorPos(&nativePoint);
+
+			return Point(nativePoint.x, nativePoint.y);
 #else
 			return {};
 #endif
@@ -518,18 +572,6 @@ namespace Berta
 			rect.bottom = newArea.Y + newArea.Height;
 
 			::SendMessage(nativeHandle.Handle, WM_DPICHANGED, MAKELPARAM(oldDpi, newDpi), reinterpret_cast<LPARAM>(&rect));
-#endif
-		}
-
-		Point GetScreenMousePosition()
-		{
-#ifdef BT_PLATFORM_WINDOWS
-			::POINT nativePoint;
-			::GetCursorPos(&nativePoint);
-
-			return Point(nativePoint.x, nativePoint.y);
-#else
-			return {};
 #endif
 		}
 

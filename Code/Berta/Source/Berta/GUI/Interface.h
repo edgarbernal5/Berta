@@ -81,6 +81,9 @@ namespace Berta
 		bool IsWindowBorderless(Window* window);
 		void SetWindowBorderless(Window* window, bool borderless);
 		
+		bool IsIgnoreMouseFocus(Window* window);
+		void SetIgnoreMouseFocus(Window* window, bool setIgnore);
+		
 		void DisposeMenu();
 
 		void Exit();

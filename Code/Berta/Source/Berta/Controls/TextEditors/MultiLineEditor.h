@@ -9,7 +9,6 @@
 
 #include "Berta/Controls/TextEditors/TextInputCore.h"
 #include "Berta/GUI/ScrollableView.h"
-#include "Berta/GUI/Caret.h"
 #include "Berta/Core/Timer.h"
 
 namespace Berta
@@ -91,8 +90,6 @@ namespace Berta
 		std::vector<std::wstring> m_lines{ L"" };
 		std::vector<VisualLine> m_visualLines;
 		std::unique_ptr<ScrollableView> m_scrollableView;
-
-		std::unique_ptr<Caret> m_caret;
 		
 		mutable std::wstring m_content;
 		bool m_wordWrap{ false };

@@ -26,7 +26,8 @@ namespace Berta
 		public:
 			void Update(Graphics& graphics) override;
 			
-		private:
+		protected:
+			void DoOnInit() override;
 		};
 		
 		class FormBase : public Control<Category::RootTag, Internal::Form::Reactor, FormEvents>

@@ -210,13 +210,13 @@ namespace Berta
 		//{WM_PAINT,			"WM_PAINT"},
 		{WM_DPICHANGED,		"WM_DPICHANGED"},
 
-		//{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
-		//{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
-		//{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
+		{WM_LBUTTONDOWN,	"WM_LBUTTONDOWN"},
+		{WM_MBUTTONDOWN,	"WM_MBUTTONDOWN"},
+		{WM_RBUTTONDOWN,	"WM_RBUTTONDOWN"},
 
-		//{WM_LBUTTONUP,		"WM_LBUTTONUP"},
-		//{WM_MBUTTONUP,		"WM_MBUTTONUP"},
-		//{WM_RBUTTONUP,		"WM_RBUTTONUP"},
+		{WM_LBUTTONUP,		"WM_LBUTTONUP"},
+		{WM_MBUTTONUP,		"WM_MBUTTONUP"},
+		{WM_RBUTTONUP,		"WM_RBUTTONUP"},
 		//{WM_MOUSEMOVE,		"WM_MOUSEMOVE"},
 
 		{WM_SETFOCUS,		"WM_SETFOCUS"},
@@ -587,7 +587,6 @@ namespace Berta
 #endif
 				if (newSize.Width > 0 && newSize.Height > 0)
 				{
-					// 1. Redimensionamos el buffer de Direct2D en la GPU
 					if (nativeWindow->RootPaintHandle.RenderTarget)
 					{
 						auto hr = nativeWindow->RootPaintHandle.RenderTarget->Resize(D2D1::SizeU(newSize.Width, newSize.Height));
@@ -597,10 +596,9 @@ namespace Berta
 						}
 					}
 					
-					// 2. Avisamos al motor de UI que recalcule el Layout (dispara eventos)
 					windowManager.Resize(nativeWindow, newSize, false);
 					
-					// 3. ¡LA CLAVE! Forzamos la invalidación total.
+					// ¡LA CLAVE! Forzamos la invalidación total.
 					// Al no tener CS_HREDRAW/VREDRAW, esto es obligatorio para no ver negro.
 					// Asumiendo que RefreshWindow llama a InvalidateRect(handle, nullptr, FALSE)
 					API::RefreshWindow(nativeWindowHandle);
@@ -813,23 +811,25 @@ namespace Berta
 				int y = GET_Y_LPARAM(lParam);
 
 				auto window = windowManager.Find(nativeWindow, { x, y });
-				if (window && window->Flags.IsEnabled)
+				auto targetWindow = rootPressedWindow ? rootPressedWindow : window;
+				
+				if (targetWindow && targetWindow->Flags.IsEnabled)
 				{
 					auto pointToScreen = API::GetPointClientToScreen(nativeWindowHandle, { x,y });
-					auto pointToClient = API::GetPointScreenToClient(window->RootHandle, pointToScreen);
-					Point position = pointToClient - windowManager.GetWindowRootPosition(window);
+					auto pointToClient = API::GetPointScreenToClient(targetWindow->RootHandle, pointToScreen);
+					Point position = pointToClient - windowManager.GetWindowRootPosition(targetWindow);
 
 					ArgMouse argMouseUp;
 					InitArgs(argMouseUp, position, message);
 				
 					// Evaluamos contra el estado actual y real de pressedWindow
-					if (window == rootPressedWindow && window->ClientSize.IsInside(argMouseUp.Position))
+					if (targetWindow == window && targetWindow->ClientSize.IsInside(argMouseUp.Position))
 					{
 						ArgClick argClick;
-						foundation.ProcessEvents(window, &Renderer::Click, &ControlEvents::Click, argClick);
+						foundation.ProcessEvents(targetWindow, &Renderer::Click, &ControlEvents::Click, argClick);
 					}
 
-					foundation.ProcessEvents(window, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
+					foundation.ProcessEvents(targetWindow, &Renderer::MouseUp, &ControlEvents::MouseUp, argMouseUp);
 
 					rootReleasedWindow = rootPressedWindow;
 				}
@@ -840,14 +840,14 @@ namespace Berta
 		case WM_LBUTTONDBLCLK:
 			{
 				wasHandled = true;
-				int x = ((int)(short)LOWORD(lParam));
-				int y = ((int)(short)HIWORD(lParam));
+				int x = GET_X_LPARAM(lParam);
+				int y = GET_Y_LPARAM(lParam);
 
 				auto window = windowManager.Find(nativeWindow, { x, y });
 				if (window && window->Flags.IsEnabled && window == rootReleasedWindow)
 				{
 					ArgMouse argMouse{};
-					InitArgs(argMouse,Point{ x, y } - windowManager.GetWindowRootPosition(window), wParam);
+					InitArgs(argMouse, Point{ x, y } - windowManager.GetWindowRootPosition(window), wParam);
 
 					foundation.ProcessEvents(window, &Renderer::DblClick, &ControlEvents::DblClick, argMouse);
 				}

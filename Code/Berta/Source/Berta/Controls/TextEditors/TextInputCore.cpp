@@ -59,10 +59,15 @@ namespace Berta
 
     TextInputCore::CharClass TextInputCore::GetCharClass(wchar_t c)
     {
-        if (std::iswalnum(c) || c == L'_') 
+        if (std::iswalnum(c) || c == L'_')
+        {
             return CharClass::Alphanumeric;
-        if (std::iswspace(c)) 
+        }
+        
+        if (std::iswspace(c))
+        {
             return CharClass::Whitespace;
+        }
     
         return CharClass::Punctuation;
     }

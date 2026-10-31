@@ -18,19 +18,20 @@ namespace Berta
 	void FloatBoxReactor::DoOnInit()
 	{
 		m_floatBox = reinterpret_cast<FloatBox*>(m_control);
-
-		m_comboBoxAppearance = reinterpret_cast<Internal::ComboBox::Appearance*>(m_floatBox->GetOwner()->Appearance.get());
+		
+		GUI::SetWindowBorderless(*m_control, false);
+		GUI::SetIgnoreMouseFocus(m_control->Handle(), true);
 	}
 
 	void FloatBoxReactor::Update(Graphics& graphics)
 	{
 		auto window = m_control->Handle();
 		auto clientRect = window->ClientSize.ToRectangle();
+		graphics.FillRectangle(clientRect, window->Appearance->BoxBackground);
 		if (m_scrollBar)
 		{
 			clientRect.Width -= m_scrollBar->Handle()->ClientSize.Width;
 		}
-		graphics.FillRectangle(clientRect, window->Appearance->BoxBackground);
 		
 		if (m_interactionData)
 		{
@@ -38,7 +39,7 @@ namespace Berta
 			auto visibleItemsCount = (std::min)(m_interactionData->m_items.size(), m_interactionData->m_maxItemsToDisplay);
 			auto textItemHeight = graphics.GetTextExtent().Height;
 
-			auto itemHeight = window->ToScale(m_comboBoxAppearance->ComboBoxItemHeight);
+			auto itemHeight = window->ToScale(m_itemHeight);
 
 			for (size_t i = 0; i < visibleItemsCount; i++)
 			{
@@ -60,7 +61,7 @@ namespace Berta
 				Point textPosition{ itemRect.X + 2, ((static_cast<int>(itemHeight - textItemHeight) >> 1) + 1) + static_cast<int>(i * itemHeight) };
 				if (m_interactionData->m_drawImages)
 				{
-					textPosition.X += (int)(iconSize + iconMargin * 2u);
+					textPosition.X += static_cast<int>(iconSize + iconMargin * 2u);
 
 					auto& icon = m_interactionData->m_items[offsetIndex].m_icon;
 					if (icon)
@@ -78,8 +79,6 @@ namespace Berta
 				}*/
 			}
 		}
-
-		graphics.DrawRectangle(clientRect, m_floatBox->GetAppearance().BoxBorderColor);
 	}
 
 	void FloatBoxReactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
@@ -94,7 +93,7 @@ namespace Berta
 		if (IsInside(args.Position))
 		{
 			auto window = m_control->Handle();
-			auto itemHeight = window->ToScale(m_comboBoxAppearance->ComboBoxItemHeight);
+			auto itemHeight = window->ToScale(m_itemHeight);
 			size_t index = (args.Position.Y - 1) / itemHeight;
 			
 			m_state.m_hoveredIndex = m_state.m_offset + index;
@@ -145,6 +144,11 @@ namespace Berta
 
 	void FloatBoxReactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 	{
+	}
+
+	void FloatBoxReactor::Resize(Graphics& graphics, const ArgResize& args)
+	{
+		UpdateScrollBar();
 	}
 
 	void FloatBoxReactor::SetState(Float::InteractionData& selection)
@@ -234,16 +238,15 @@ namespace Berta
 		auto window = m_control->Handle();
 		auto scrollSize = window->ToScale(window->Appearance->ScrollBarSize);
 		Rectangle rect{ static_cast<int>(window->ClientSize.Width - scrollSize) - 1, 1, scrollSize, window->ClientSize.Height - 2u };
-		//TODO:
-		//DrawBatch drawBatch(window);
 		
 		if (!m_scrollBar)
 		{
 			m_scrollBar = std::make_unique<ScrollBar>(window, false, rect);
+			GUI::SetIgnoreMouseFocus(m_scrollBar->Handle(), true);
+			
 			m_scrollBar->GetEvents().ValueChanged.Connect([this](const ArgScrollBar& args) 
 			{
 				m_state.m_offset = args.Value;
-				//BT_CORE_DEBUG << "m_state.m_offset =" << m_state.m_offset <<std::endl;
 				
 				GUI::MarkAsNeedUpdate(*m_control);
 			});
@@ -280,13 +283,6 @@ namespace Berta
 #if BT_DEBUG
 		SetDebugName("FloatBox");
 #endif
-	}
-
-	bool FloatBox::OnKeyPressed(const ArgKeyboard& args)
-	{
-		bool redraw = false;
-		//GetReactor().KeyPressed(m_handle->Renderer.GetGraphics(), args);
-		return redraw;
 	}
 
 	bool FloatBox::MoveSelectedItem(int direction)

@@ -22,7 +22,12 @@ namespace Berta
 #endif
 			graphics.FillRectangle(m_control->Handle()->ClientSize.ToRectangle(), m_control->Handle()->Appearance->Background);
 		}
-		
+
+		void Reactor::DoOnInit()
+		{
+			GUI::SetIgnoreMouseFocus(m_control->Handle(), true);
+		}
+
 		FormBase::FormBase(Window* owner, const Size& size, const FormStyle& windowStyle, bool isNested, bool isRenderForm)
 		{
 			Create(owner, false, GUI::GetCenteredOnScreen(size), windowStyle, isNested, isRenderForm);

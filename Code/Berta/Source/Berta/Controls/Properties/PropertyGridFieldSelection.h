@@ -75,36 +75,6 @@ namespace Berta
             m_comboBox.SetArea(area);
         }
 
-        /*void Refresh() override
-        {
-            if (!this->m_getter)
-            {
-                return;
-            }
-            
-            std::optional<T> currentOpt = m_getter();
-            if (!currentOpt.has_value())
-            {
-                m_comboBox.SetSelectedIndex(std::nullopt);
-                return;
-            }
-            std::optional<size_t> foundIndex = std::nullopt;
-
-            for (size_t i = 0; i < m_options.size(); ++i)
-            {
-                if (m_options[i].second == currentOpt)
-                {
-                    foundIndex = i;
-                    break;
-                }
-            }
-
-            if (m_comboBox.GetSelectedIndex() != foundIndex)
-            {
-                m_comboBox.SetSelectedIndex(foundIndex);
-            }
-        }*/
-
         std::wstring GetValueAsString() const override
         {
             if (!this->m_getter)

@@ -563,8 +563,6 @@ namespace Berta
 
 			if (sizeChanged)
 			{
-				// Si el Panel cambió de tamaño, llamamos a Resize (el cual ya
-				// reescribimos para soportar el m_layoutTransactionHandle)
 				Resize(window, newRect);
 			}
 		}
@@ -673,6 +671,26 @@ namespace Berta
 			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
 		}*/
 		
+		/*if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
+		{
+			auto nativePosition = API::GetWindowPosition(window->RootHandle);
+			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
+			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
+
+			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+			API::MoveWindow(window->RootHandle, newArea, true);
+		}*/
+
+		for (auto& child : window->Children)
+		{
+			ChangeDPI(child, newDPI, nativeWindowHandle);
+		}
+		
+		ArgResize argResize;
+		argResize.NewSize = window->ClientSize;
+		Foundation::GetInstance().ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+
+		// 4. Reposicionar ventanas nativas anidadas
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{
 			auto nativePosition = API::GetWindowPosition(window->RootHandle);
@@ -681,11 +699,6 @@ namespace Berta
 
 			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
 			API::MoveWindow(window->RootHandle, newArea, true);
-		}
-
-		for (auto& child : window->Children)
-		{
-			ChangeDPI(child, newDPI, nativeWindowHandle);
 		}
 	}
 
@@ -822,7 +835,7 @@ namespace Berta
     
 		bool needsNativeFocus = API::GetFocusWindow() != window->RootHandle;
 
-		// Si no cambió el control interno Y ya tenemos el foco del OS, entonces sí es seguro ignorarlo.
+		// Si no cambió el control interno y ya tenemos el foco del OS, entonces sí es seguro ignorarlo.
 		if (!logicalFocusChanged && !needsNativeFocus)
 		{
 			return;

@@ -15,25 +15,10 @@ namespace Berta
 {
 	namespace Internal::TextAreaBox
 	{
-		void Reactor::DoOnInit()
-		{
-			m_textEditor = std::make_unique<MultiLineEditor>(*m_control);
-
-			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
-			m_textEditor->SetValueChangedCallback([this]()
-			{
-				ArgTextChanged args;
-				args.Text = m_textEditor->GetContent();
-				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
-			});
-			
-			GUI::SetWindowBorderless(*m_control, false);
-		}
-
 		Reactor::Reactor() = default;
 
 		Reactor::~Reactor() = default;
-
+		
 		void Reactor::Update(Graphics& graphics)
 		{
 			m_textEditor->Render(graphics);
@@ -121,13 +106,28 @@ namespace Berta
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
-			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
+			//m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnDpiChanged();
 		}
 
 		MultiLineEditor* Reactor::GetEditor() const
 		{
 			return m_textEditor.get();
+		}
+
+		void Reactor::DoOnInit()
+		{
+			m_textEditor = std::make_unique<MultiLineEditor>(*m_control);
+
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
+			m_textEditor->SetValueChangedCallback([this]()
+			{
+				ArgTextChanged args;
+				args.Text = m_textEditor->GetContent();
+				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
+			});
+			
+			GUI::SetWindowBorderless(*m_control, false);
 		}
 
 		Rectangle Reactor::GetEditorArea() const

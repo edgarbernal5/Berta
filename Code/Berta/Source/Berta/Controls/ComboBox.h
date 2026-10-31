@@ -18,7 +18,6 @@
 namespace Berta
 {
 	class SingleLineEditor;
-	class TextEditor;
 	class FloatBox;
 	class ComboBox;
 	
@@ -35,6 +34,7 @@ namespace Berta
 		class Reactor : public ControlReactor
 		{
 		public:
+			Reactor();
 			~Reactor() override;
 
 			void Update(Graphics& graphics) override;
@@ -42,8 +42,18 @@ namespace Berta
 			void MouseEnter(Graphics& graphics, const ArgMouse& args) override;
 			void MouseLeave(Graphics& graphics, const ArgMouse& args) override;
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
+			void MouseMove(Graphics& graphics, const ArgMouse& args) override;
+			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
+			void DblClick(Graphics& graphics, const ArgMouse& args) override;
+			void Focus(Graphics& graphics, const ArgFocus& args) override;
+			
 			void KeyPressed(Graphics& graphics, const ArgKeyboard& args) override;
-
+			void KeyChar(Graphics& graphics, const ArgKeyboard& args)override;
+			
+			void Resize(Graphics& graphics, const ArgResize& args) override;
+			
+			void DpiChanged(Graphics& graphics) override;
+			
 			enum class State : uint8_t
 			{
 				Normal,
@@ -72,16 +82,21 @@ namespace Berta
 				bool IsEditable() const;
 				void SetEditable(bool editable);
 				
+				Rectangle GetEditorArea() const;
+				void UpdateEditorArea();
+				
+				void ShowIcons(bool show);
+
 				Float::InteractionData Data;
 
 				Window* m_owner{ nullptr };
-				SingleLineEditor* m_textEditor{ nullptr };
+				std::unique_ptr<SingleLineEditor> m_textEditor;
+				std::unique_ptr<FloatBox> m_floatBox;
+				Berta::ComboBox* m_comboBox{ nullptr };
 				std::wstring m_text;
 
 				State m_status{ State::Normal };
 
-				FloatBox* m_floatBox{ nullptr };
-				Berta::ComboBox* m_comboBox{ nullptr };
 				bool m_isEditable{ false };
 			};
 
@@ -91,7 +106,7 @@ namespace Berta
 		protected:
 			void DoOnInit() override;
 			
-		private:
+		private:			
 			Module m_module;
 		};
 		
@@ -152,7 +167,6 @@ namespace Berta
 		std::any GetSelectedData() const;
 		std::any GetItemData(size_t index) const;
 		
-		// Allows user to deselect by passing std::nullopt
 		void SetSelectedIndex(std::optional<size_t> index);
 
 		std::wstring GetText() const;
@@ -160,6 +174,7 @@ namespace Berta
 		bool isEditable() const { return GetReactor().GetModule().IsEditable(); }
 		void SetEditable(bool editable);
 		
+		void ShowIcons(bool show);
 	protected:
 		void DoOnCaption(const std::wstring& caption) override;
 		std::wstring DoOnCaption() const override;

@@ -9,6 +9,14 @@
 
 namespace Berta
 {
+	namespace Internal::Panel
+	{
+		void Reactor::DoOnInit()
+		{
+			GUI::SetIgnoreMouseFocus(m_control->Handle(), true);
+		}
+	}
+
 	Panel::Panel(Window* parent, const Rectangle& rectangle, bool visible)
 	{
 		Create(parent, true, rectangle, visible);

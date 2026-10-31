@@ -216,6 +216,7 @@ namespace Berta
 		m_selection.Reset({ 0, 0 });
 		m_scrollableView->ResetScroll();
 		RecomputeWordWrap();
+		UpdateScrollMetrics();
 	}
 
 	std::wstring MultiLineEditor::GetSelectedText() const
@@ -493,9 +494,9 @@ namespace Berta
 	void MultiLineEditor::OnDpiChanged()
 	{
 		RecomputeWordWrap();
-		UpdateScrollMetrics();
-		AdjustView();
-		UpdateCaretPosition();
+		//UpdateScrollMetrics();
+		//AdjustView();
+		//UpdateCaretPosition();
 	}
 
 	void MultiLineEditor::SetEditorArea(const Rectangle& outerArea, const Padding& padding)
@@ -527,6 +528,7 @@ namespace Berta
 			vl.m_textHandle.Release();
 		}
 		RecomputeWordWrap();
+		UpdateScrollMetrics();
 	}
 
 	void MultiLineEditor::LoadFile(const std::wstring& path)
@@ -564,6 +566,7 @@ namespace Berta
 		m_lines.push_back(wContent.substr(start));
 
 		RecomputeWordWrap();
+		UpdateScrollMetrics();
 		m_selection.Reset({ 0, 0 });
 	}
 
@@ -651,8 +654,6 @@ namespace Berta
 			}
 			m_cachedMaxWidth = workingWidth;
 		}
-		
-		UpdateScrollMetrics();
 	}
 
 	void MultiLineEditor::ComputeVisualLinesForLogicalLine(Graphics& graphics, size_t logicalIndex, uint32_t& yOffset, std::vector<VisualLine>& outList, uint32_t layoutWidth)
@@ -762,15 +763,23 @@ namespace Berta
 
 	void MultiLineEditor::EnsureLayout(const VisualLine& vl) const
 	{
-		if (vl.m_textHandle.IsValid()) return;
-
+		if (vl.m_textHandle.IsValid())
+		{
+			return;
+		}
+		
 		const std::wstring& fullLine = m_lines[vl.logicalLineIndex];
-		if (fullLine.empty() && vl.charLength == 0) return;
+		if (fullLine.empty() && vl.charLength == 0)
+		{
+			return;
+		}
 
 #ifdef BT_PLATFORM_WINDOWS
 		auto nativeAttr = m_owner->Renderer.GetGraphics().GetNativeHandle();
-		if (!nativeAttr || !nativeAttr->m_textFormat) return;
-
+		if (!nativeAttr || !nativeAttr->m_textFormat)
+		{
+			return;
+		}
 		float layoutWidth = m_wordWrap ? static_cast<float>(m_cachedMaxWidth) : 1000000.0f; 
 		float layoutHeight = static_cast<float>(GetLineHeight());
 		

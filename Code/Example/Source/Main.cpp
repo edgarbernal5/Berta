@@ -20,6 +20,8 @@
 #include <Berta/Controls/CheckBox.h>
 #include <iostream>
 
+#include "Berta/Controls/LineTextBox.h"
+
 class ButtonPane : public Berta::Panel
 {
 public:
@@ -439,13 +441,16 @@ int main()
 	label.SetVerticalAlignment(Berta::VerticalAlign::Top);
 	
 	std::wstring textLong = L"Hola. Este es un texto muy largo que probaré durante el desarrollo de un editor de texto que estoy creando junto a GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. No tengo más nada que decir, pero escribiré muchas cosas con acentos y un texto largo vacío sin sentido solo para alcanzar el máximo de caracteres posibles de Mercadolibre y dejar una buena impresión sin impresora. Gracias";
-	Berta::TextAreaBox inputText(form, { 110,28,200,25 });
-	inputText.SetScrollBarVisibility(Berta::ScrollBarVisibility::Hidden);
+	Berta::LineTextBox inputText(form, { 110,28,200,25 });
 	inputText.SetCaption(textLong);
 	inputText.GetEvents().TextChanged.Connect([&inputText](const Berta::ArgTextChanged& args)
-		{
-			std::wcout << "inputText > ValueChanged: " << inputText.GetText() << std::endl;
-		});
+	{
+		std::wcout << "inputText > ValueChanged: " << inputText.GetText() << std::endl;
+	});
+	inputText.GetEvents().Submit.Connect([&inputText](const Berta::ArgSubmit& args)
+	{
+		std::wcout << "inputText > Submit: " << inputText.GetText() << std::endl;
+	});
 	
 	Berta::TextAreaBox inputTextMultiline(form, { 350,28,250,95 });
 	inputTextMultiline.SetCaption(textLong);
@@ -466,16 +471,31 @@ int main()
 		comboBox.PushBack(L"Ejemplo 7", image2);
 	}
 	comboBox.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
-		{
-			std::cout << "ComboBox > Selected: " << args.SelectedIndex.value() << std::endl;
-		});
+	{
+		std::cout << "ComboBox > Selected: " << args.SelectedIndex.value() << std::endl;
+	});
+	
+	Berta::ComboBox comboBoxEdit(form, { 110,150,200,25 });
+	comboBoxEdit.SetEditable(true);
+	comboBoxEdit.PushBack(L"Ejemplo 1", image1);
+	comboBoxEdit.PushBack(L"Ejemplo 2");
+	comboBoxEdit.PushBack(L"Ejemplo 3", image1);
+	comboBoxEdit.PushBack(L"Ejemplo 4", image2);
+	comboBoxEdit.PushBack(L"Ejemplo 5", image3);
+	comboBoxEdit.PushBack(L"Ejemplo 6");
+	comboBoxEdit.PushBack(L"Ejemplo 7", image2);
+	
+	comboBoxEdit.GetEvents().Selected.Connect([](const Berta::ArgComboBox& args)
+	{
+		std::cout << "comboBoxEdit > Selected: " << (args.SelectedIndex.has_value() ? std::to_string(args.SelectedIndex.value()) : "<nulo>") << std::endl;
+	});
 
 	Berta::ScrollBar scrollbar(form, { 10, 200, 20, 150 }, true);
 	scrollbar.SetMinMax(0, 10);
 	scrollbar.GetEvents().ValueChanged.Connect([](const Berta::ArgScrollBar& args)
-		{
-			std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
-		});
+	{
+		std::cout << "scrollbar > ValueChanged: " << args.Value << std::endl;
+	});
 	Berta::ScrollBar scrollbar2(form, { 40,200, 20, 150 }, true);
 	scrollbar2.SetMinMax(0, 0);
 	scrollbar2.SetEnabled(false);
@@ -516,13 +536,13 @@ int main()
 			menuBar.SetEnabled(!menuBar.GetEnabled());*/
 		});
 	button.GetEvents().MouseLeave.Connect([](const Berta::ArgMouse& args)
-		{
-			std::cout << "BUTTON < mouse leave" << std::endl;
-		});
+	{
+		std::cout << "BUTTON < mouse leave" << std::endl;
+	});
 	button.GetEvents().MouseEnter.Connect([](const Berta::ArgMouse& args)
-		{
-			std::cout << "BUTTON > mouse enter" << std::endl;
-		});
+	{
+		std::cout << "BUTTON > mouse enter" << std::endl;
+	});
 
 	Berta::Button buttonClear(form, { 95,90,75,25 }, L"Clear!");
 #ifdef BT_DEBUG
@@ -537,9 +557,9 @@ int main()
 	Berta::CheckBox checkBoxIndeterminate(form, { 180,90+30,100,30 }, "Check indeterminate");
 
 	checkBoxIndeterminate.GetEvents().CheckedChanged.Connect([](const Berta::ArgCheckBox& args)
-		{
-			
-		});
+	{
+		
+	});
 
 	checkBoxIndeterminate.SetState(Berta::CheckState::Indeterminate);
 	
@@ -554,9 +574,9 @@ int main()
 		});
 	
 	form.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
-		{
-			std::cout << "form > Visibility = " << args.IsVisible << std::endl;
-		});
+	{
+		std::cout << "form > Visibility = " << args.IsVisible << std::endl;
+	});
 	tabExample1.GetEvents().Visibility.Connect([](const Berta::ArgVisibility& args)
 		{
 			std::cout << "Apariencia > Visibility = " << args.IsVisible << std::endl;

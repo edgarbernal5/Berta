@@ -1742,8 +1742,8 @@ namespace Berta
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
-			auto clientArea = m_control->GetClientArea();
-			m_module.m_layout.m_scrollableView->SetViewRect(clientArea);
+			//auto clientArea = m_control->GetClientArea();
+			//m_module.m_layout.m_scrollableView->SetViewRect(clientArea);
 			m_module.m_layout.CalculateLayout(m_module.m_model);
 		}
 

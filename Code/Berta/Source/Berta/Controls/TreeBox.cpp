@@ -558,8 +558,8 @@ namespace Berta
 
 	void TreeBoxReactor::DpiChanged(Graphics& graphics)
 	{
-		m_module.RebuildFlatTree(true);
-		m_module.UpdateScrollData();
+		//m_module.RebuildFlatTree(true);
+		//m_module.UpdateScrollData();
 	}
 
 	void TreeBoxReactor::Module::DrawTreeNodes(Graphics& graphics)

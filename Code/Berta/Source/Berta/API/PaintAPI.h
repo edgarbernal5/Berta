@@ -50,6 +50,7 @@ namespace Berta
 		{
 			return m_textLayout != nullptr;
 		}
+		
 		void Release()
 		{
 			m_textLayout.Reset();

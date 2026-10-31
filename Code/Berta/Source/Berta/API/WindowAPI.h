@@ -114,15 +114,17 @@ namespace Berta
 		uint32_t GetNativeWindowDPI(NativeWindowHandle nativeHandle);
 
 		bool ChangeCursor(NativeWindowHandle nativeHandle, Cursor newCursor, NativeCursor& nativeCursor);
+		
 		Size GetPrimaryMonitorSize();
-
+		Rectangle GetMonitorWorkArea(NativeWindowHandle nativeHandle);
+		
+		Point GetScreenMousePosition();
 		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);
 		Point GetPointScreenToClient(NativeWindowHandle nativeHandle, const Point& point);
+		
 		void SendCustomMessage(NativeWindowHandle nativeHandle, std::function<void()> body);
-
 		void SendDpiChanged(NativeWindowHandle nativeHandle, uint32_t oldDpi, uint32_t newDpi, const Rectangle& newArea);
 
-		Point GetScreenMousePosition();
 		void EnterSizeMoveWindow(NativeWindowHandle nativeHandle);
 		void ExitSizeMoveWindow(NativeWindowHandle nativeHandle);
 

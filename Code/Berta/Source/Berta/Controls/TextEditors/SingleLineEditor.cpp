@@ -69,6 +69,10 @@ namespace Berta
 
 	void SingleLineEditor::SetEditorArea(const Rectangle& outerArea, const Padding& padding)
 	{
+		if (m_editorArea == outerArea)
+		{
+			return;
+		}
 		m_editorArea = outerArea;
 		
 		m_contentArea = m_editorArea;
@@ -469,12 +473,9 @@ namespace Berta
 			break;
 
 		case KeyboardKey::Enter:
-			ArgSubmit argSubmit;
-			argSubmit.Text = m_content;
-
-			if (auto events = reinterpret_cast<Internal::LineTextBox::Events*>(m_owner->Events.get()))
+			if (m_submitCallback)
 			{
-				events->Submit.Emit(argSubmit);
+				m_submitCallback();
 			}
 			break;
 		}
@@ -515,8 +516,8 @@ namespace Berta
 	void SingleLineEditor::OnDpiChanged()
 	{
 		InvalidateLayout();
-		AdjustView();
-		UpdateCaretPosition();
+		//AdjustView();
+		//UpdateCaretPosition();
 	}
 
 	void SingleLineEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)
@@ -757,6 +758,11 @@ namespace Berta
 			layoutHeight,
 			&m_textHandle.m_textLayout
 		);
+		
+		if (FAILED(hr))
+		{
+			BT_CORE_ERROR << "Failed! Ensure layout with text " << Berta::StringUtils::WideToUTF8(m_content) << std::endl;
+		}
 #endif
 	}
 

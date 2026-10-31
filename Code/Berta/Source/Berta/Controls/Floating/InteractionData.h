@@ -27,6 +27,30 @@ namespace Berta::Float
 			ItemType(const std::wstring& text, const Image& icon, const std::any& userData) : m_text{ text }, m_icon{ icon }, m_userData{ userData } {}
 		};
 		
+		void PushBack(const std::wstring& text, const Image& icon = {}, std::any userData = {})
+		{
+			m_items.push_back({ text, icon, std::move(userData) });
+		}
+		
+		void Erase(size_t index)
+		{
+			if (index < m_items.size())
+			{
+				m_items.erase(m_items.begin() + index);
+			}
+		}
+
+		void Clear()
+		{
+			m_items.clear();
+			m_selectedIndex = std::nullopt;
+		}
+
+		size_t Count() const
+		{
+			return m_items.size();
+		}
+		
 		std::vector<ItemType> m_items;
 		bool m_drawImages{ false };
 

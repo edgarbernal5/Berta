@@ -89,7 +89,7 @@ namespace Berta
 		void DrawTextLayout(const TextPaintNativeHandle& handle, const Point& origin, const Color& color);
 		
 		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor);
-		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor = {}, float strokeWidth = 1.0f);
+		void DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor = {}, float strokeWidth = 1.0f, bool closeFigure = true);
 		void DrawRoundRectBox(const Rectangle& rect, const Color& color, const Color& bordercolor, bool solid);
 		void DrawRoundRectBox(const Rectangle& rect, int radius, const Color& color, const Color& bordercolor, bool solid);
 		void DrawGradientFill(const Rectangle& rect, const Color& startColor, const Color& endColor);

@@ -8,7 +8,6 @@
 #define BT_SINGLE_LINE_EDITOR_HEADER
 
 #include "Berta/Controls/TextEditors/TextInputCore.h"
-#include "Berta/GUI/Caret.h"
 #include "Berta/Core/Timer.h"
 
 namespace Berta
@@ -41,6 +40,7 @@ namespace Berta
         
         void SetEditorArea(const Rectangle& outerArea, const Padding& padding) override;
 
+        void SetSubmitCallback(const TextEditorCallback& callback) { m_submitCallback = callback; }
     protected:
         void InsertChar(wchar_t wChr) override;
 
@@ -65,10 +65,10 @@ namespace Berta
         
         int m_scrollX{ 0 }; 
 
-        std::unique_ptr<Caret> m_caret;
         Point m_lastMousePosition;
         Timer m_selectionTimer;
         bool m_wasDblClick{ false };
+        TextEditorCallback m_submitCallback{ nullptr };
     };
 }
 

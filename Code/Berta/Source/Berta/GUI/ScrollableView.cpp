@@ -179,13 +179,13 @@ namespace Berta
         if (isVertical)
         {
             scrollRect = { m_clientAreaBounds.X + static_cast<int>(m_clientAreaBounds.Width) - scrollSize, 
-                           m_clientAreaBounds.Y, (uint32_t)scrollSize, m_viewportRect.Height };
+                           m_clientAreaBounds.Y, static_cast<uint32_t>(scrollSize), m_viewportRect.Height };
         }
         else
         {
             scrollRect = { m_clientAreaBounds.X, 
                            m_clientAreaBounds.Y + static_cast<int>(m_clientAreaBounds.Height) - scrollSize, 
-                           m_viewportRect.Width, (uint32_t)scrollSize };
+                           m_viewportRect.Width, static_cast<uint32_t>(scrollSize) };
         }
 
         auto& barPtr = isVertical ? m_scrollBarVert : m_scrollBarHoriz;
@@ -204,7 +204,7 @@ namespace Berta
         }
         else
         {
-            GUI::MoveWindow(barPtr->Handle(), scrollRect);
+            changed = GUI::MoveWindow(barPtr->Handle(), scrollRect);
         }
 
         // Si Visible está forzado pero no hay contenido, lo deshabilitamos (Estándar UI)
@@ -214,9 +214,9 @@ namespace Berta
         auto contentLimit = isVertical ? m_contentSize.Height : m_contentSize.Width;
         auto stepSize = isVertical ? m_scrollStep.Height : m_scrollStep.Width;
 
-        barPtr->SetMinMax(0, std::max<int>(0, (int)contentLimit - (int)viewSize));
-        barPtr->SetPageStepValue((int)viewSize);
-        barPtr->SetStepValue((int)stepSize);
+        barPtr->SetMinMax(0, std::max<int>(0, static_cast<int>(contentLimit) - static_cast<int>(viewSize)));
+        barPtr->SetPageStepValue(static_cast<int>(viewSize));
+        barPtr->SetStepValue(static_cast<int>(stepSize));
     
         // Sincronizar el visualizador
         int currentOffset = isVertical ? m_scrollOffset.Y : m_scrollOffset.X;

@@ -89,7 +89,7 @@ namespace Berta
 			bool isQueuingBatch : 1;
 			bool IgnoreMouseFocus : 1;
 			bool AutoDraw : 1;
-			bool Borderless : 1; //TODO
+			bool Borderless : 1;
 		} Flags { false };
 
 		int DeferredCounter{ 0 };

@@ -53,6 +53,11 @@ namespace Berta
 			
 				window->Renderer.Update();
 			}
+			if (window->Type != WindowType::Panel)
+			{
+				rootGraphics.ResetTransform();
+				window->Renderer.DrawBorders();
+			}
 			Map(window, dirtyRect);
 		}
 		

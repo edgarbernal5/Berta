@@ -631,6 +631,27 @@ namespace Berta::GUI
 		window->Flags.Borderless = borderless;
 	}
 
+	bool IsIgnoreMouseFocus(Window* window)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (windowManager.Exists(window))
+		{
+			return window->Flags.IgnoreMouseFocus;
+		}
+		return false;
+	}
+
+	void SetIgnoreMouseFocus(Window* window, bool setIgnore)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		window->Flags.IgnoreMouseFocus = setIgnore;
+	}
+
 	void DisposeMenu()
 	{
 		auto& menuManager = Foundation::GetInstance().GetMenuManager();

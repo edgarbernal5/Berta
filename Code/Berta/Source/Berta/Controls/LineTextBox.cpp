@@ -2,34 +2,19 @@
 #include "LineTextBox.h"
 
 #include "Berta/Controls/TextEditors/SingleLineEditor.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
     namespace Internal::LineTextBox
 	{
-		void Reactor::DoOnInit()
-		{
-			m_textEditor = std::make_unique<SingleLineEditor>(*m_control);
-
-			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
-			m_textEditor->SetValueChangedCallback([this]()
-			{
-				ArgTextChanged args;
-				args.Text = m_textEditor->GetContent();
-				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
-			});
-			
-			GUI::SetWindowBorderless(*m_control, false);
-		}
-
 		Reactor::Reactor() = default;
+		Reactor::~Reactor() = default;
 
-    	Reactor::~Reactor() = default;
-
-		void Reactor::Update(Graphics& graphics)
-		{
-			m_textEditor->Render(graphics);
-		}
+    	void Reactor::Update(Graphics& graphics)
+	    {
+		    m_textEditor->Render(graphics);
+	    }
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 		{
@@ -84,9 +69,9 @@ namespace Berta
 
 		void Reactor::KeyPressed(Graphics& graphics, const ArgKeyboard& args)
 		{
+			auto window = m_control->Handle();
 			if (m_textEditor->OnKeyPressed(args))
 			{
-				auto window = m_control->Handle();
 				GUI::MarkAsNeedUpdate(window);
 			}
 		}
@@ -114,13 +99,39 @@ namespace Berta
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
-			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
+			//m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnDpiChanged();
 		}
 
 		SingleLineEditor* Reactor::GetEditor() const
 		{
 			return m_textEditor.get();
+		}
+
+		void Reactor::DoOnInit()
+		{
+			m_textEditor = std::make_unique<SingleLineEditor>(*m_control);
+
+			m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
+			m_textEditor->SetValueChangedCallback([this]()
+			{
+				ArgTextChanged args;
+				args.Text = m_textEditor->GetContent();
+				reinterpret_cast<Events*>(m_control->Handle()->Events.get())->TextChanged.Emit(args);
+			});
+			
+			m_textEditor->SetSubmitCallback([this]()
+			{
+				ArgSubmit argSubmit;
+				argSubmit.Text = m_textEditor->GetContent();
+
+				if (auto events = reinterpret_cast<Events*>(m_control->Handle()->Events.get()))
+				{
+					events->Submit.Emit(argSubmit);
+				}
+			});
+			
+			GUI::SetWindowBorderless(*m_control, false);
 		}
 
 		Rectangle Reactor::GetEditorArea() const

@@ -747,7 +747,7 @@ namespace Berta
 		DrawArrow(rect, arrowLength, arrowWidth, direction, borderColor, false, borderColor);
 	}
 
-	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth)
+	void Graphics::DrawArrow(const Rectangle& rect, int arrowLength, int arrowWidth, ArrowDirection direction, const Color& borderColor, bool solid, const Color& solidColor, float strokeWidth, bool closeFigure)
 	{
 #ifdef BT_PLATFORM_WINDOWS
 		Rectangle output;
@@ -812,7 +812,7 @@ namespace Berta
 		sink->BeginFigure(p1, solid ? D2D1_FIGURE_BEGIN_FILLED : D2D1_FIGURE_BEGIN_HOLLOW);
 		sink->AddLine(p2);
 		sink->AddLine(p3);
-		sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+		sink->EndFigure(closeFigure ? D2D1_FIGURE_END_CLOSED : D2D1_FIGURE_END_OPEN);
 		sink->Close();
 
 		auto borderBrush = m_resourceCache.GetBrush(borderColor);

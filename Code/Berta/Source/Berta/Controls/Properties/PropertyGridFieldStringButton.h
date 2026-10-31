@@ -42,8 +42,6 @@ namespace Berta
 		std::string m_buttonText;
 		Button m_button;
 		ClickCallback m_clickCallback;
-
-	private:
 	};
 }
 

@@ -12,10 +12,10 @@
 #include "Berta/Controls/TextEditors/EnumTypes.h"
 #include "Berta/GUI/ControlEvents.h"
 #include "Berta/Core/BasicTypes.h"
+#include "Berta/GUI/Caret.h"
 
 namespace Berta
 {
-	
 	struct Window;
 	class Graphics;
 	
@@ -95,6 +95,7 @@ namespace Berta
 		Rectangle m_contentArea;
 		
 		Window* m_owner{ nullptr };
+		std::unique_ptr<Caret> m_caret;
 		Selection m_selection;
 		TextEditorCallback m_valueChangedCallback;
 		std::function<bool(wchar_t)> m_predicate;

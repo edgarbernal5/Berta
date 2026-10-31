@@ -114,7 +114,7 @@ namespace Berta
 	    
 	    void SetMixedValuesInternal() override
 	    {
-	        if (m_textBox.GetCaption()!= "---")
+	        if (m_textBox.GetCaption() != "---")
 	        {
 	            m_textBox.SetCaption("---"); 
 	        }
