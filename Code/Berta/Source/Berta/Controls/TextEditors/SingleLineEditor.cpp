@@ -516,8 +516,6 @@ namespace Berta
 	void SingleLineEditor::OnDpiChanged()
 	{
 		InvalidateLayout();
-		//AdjustView();
-		//UpdateCaretPosition();
 	}
 
 	void SingleLineEditor::MoveCaretHorizontal(int direction, bool wordJump, bool select)

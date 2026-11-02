@@ -307,7 +307,7 @@ namespace Berta
 			
 			auto window = m_module.m_owner;
 			auto appearance = reinterpret_cast<Appearance*>(window->Appearance.get());
-			int leftPaneWidth = window->ToScale(appearance->MenuBoxLeftPaneWidth);
+			int leftPaneWidth = static_cast<int>(window->ToScale(appearance->MenuBoxLeftPaneWidth));
 			auto menuArrowWidth = window->ToScale(appearance->MenuBoxSubMenuArrowWidth);
 			const auto& items= m_module.m_menuData->GetItems();
 			graphics.FillRectangle(window->ClientSize.ToRectangle(), appearance->MenuBackground);
@@ -649,11 +649,11 @@ namespace Berta
         
 			m_layoutCache.resize(items.size());
         
-			int leftPaneWidth = m_owner->ToScale(appearance->MenuBoxLeftPaneWidth);
-			int itemHeight = m_owner->ToScale(appearance->MenuBoxItemHeight);
-			int padding = m_owner->ToScale(appearance->ItemTextPadding);
-			int arrowWidth = m_owner->ToScale(appearance->MenuBoxSubMenuArrowWidth);
-			int shortcutWidth = m_owner->ToScale(appearance->MenuBoxShortcutWidth);
+			int leftPaneWidth = static_cast<int>(m_owner->ToScale(appearance->MenuBoxLeftPaneWidth));
+			int itemHeight = static_cast<int>(m_owner->ToScale(appearance->MenuBoxItemHeight));
+			int padding = static_cast<int>(m_owner->ToScale(appearance->ItemTextPadding));
+			int arrowWidth = static_cast<int>(m_owner->ToScale(appearance->MenuBoxSubMenuArrowWidth));
+			int shortcutWidth = static_cast<int>(m_owner->ToScale(appearance->MenuBoxShortcutWidth));
 			auto separatorHeight = m_owner->ToScale(appearance->SeparatorHeight);
 		
 			uint32_t maxTextWidth = 0;
@@ -706,6 +706,8 @@ namespace Berta
 					{
 						cache.bounds = { 0, currentY, finalWidth, static_cast<uint32_t>(itemHeight) };
 					
+						arg.m_textHandle.Release();
+						
 						auto textSize = graphics.GetTextExtent(arg.text);
 						if (textSize.Width > maxTextWidth)
 						{
@@ -763,7 +765,7 @@ namespace Berta
 						auto& menuManager = Foundation::GetInstance().GetMenuManager();
 						const auto& cache = m_layoutCache[indexToOpen];
 					
-						Point popupPos = { cache.bounds.X + (int)cache.bounds.Width, cache.bounds.Y };
+						Point popupPos = { cache.bounds.X + static_cast<int>(cache.bounds.Width), cache.bounds.Y };
 						menuManager.ShowContextMenu(*(subMenuData->subMenu), m_owner, popupPos);
 		            
 						m_openedSubMenuIndex = indexToOpen;

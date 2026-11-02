@@ -301,20 +301,6 @@ namespace Berta
 		void MoveWindow(NativeWindowHandle nativeHandle, const Rectangle& newArea, bool forceRepaint)
 		{
 #ifdef BT_PLATFORM_WINDOWS
-			// Si no usas HDWP, usa las coordenadas y tamaños directamente
-			UINT flags = SWP_NOZORDER | SWP_NOACTIVATE;
-    
-			// Al prohibirle a Windows reciclar los píxeles (NOCOPYBITS), cuando la ventana se mueve, 
-			// la zona queda invalidada limpiamente y Direct2D repinta todo sin rastro fantasma.
-			if (!forceRepaint)
-			{
-				flags |= SWP_NOCOPYBITS;
-			}
-
-			::SetWindowPos(nativeHandle.Handle, NULL, newArea.X, newArea.Y, newArea.Width, newArea.Height, flags);
-#endif
-			/*
-#ifdef BT_PLATFORM_WINDOWS
 			int x = newArea.X;
 			int y = newArea.Y;
 			HWND owner = ::GetWindow(nativeHandle.Handle, GW_OWNER);
@@ -335,7 +321,7 @@ namespace Berta
 			auto borderHeight = (windowAreaRECT.bottom - windowAreaRECT.top) - clientRECT.bottom;
 
 			::MoveWindow(nativeHandle.Handle, x, y, newArea.Width + borderWidth, newArea.Height + borderHeight, forceRepaint ? TRUE : FALSE);
-#endif*/
+#endif
 		}
 
 		void MoveWindow(NativeWindowHandle nativeHandle, const Point& newPosition, bool forceRepaint)

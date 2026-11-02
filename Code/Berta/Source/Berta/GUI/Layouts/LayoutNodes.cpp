@@ -24,7 +24,9 @@ namespace Berta
 			for (size_t i = 0; i < m_parentNode->m_children.size(); i++)
 			{
 				if (m_parentNode->m_children[i].get() == this)
+				{
 					return i;
+				}
 			}
 		}
 		return std::string::npos;
@@ -40,11 +42,11 @@ namespace Berta
     
 		uint32_t& areaDim  = isVertical ? newArea.Height : newArea.Width;
 
-		// 1. Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
+		// Calculamos y actualizamos el peso dinámico (proporción del espacio remanente)
 		double newWeight = static_cast<double>(areaDim) / remainDim;
 		SetProperty("LayoutWeight", Berta::Dimension{ newWeight, Berta::DimensionUnit::Percentage });
 
-		// 2. Si el nodo además tenía una propiedad estática del script original, 
+		// Si el nodo además tenía una propiedad estática del script original, 
 		// la actualizamos en cascada para mantener coherencia si se redimensiona la ventana de Bruno
 		if (auto* staticDim = TryGetProperty<Berta::Dimension>(propName))
 		{
@@ -115,7 +117,9 @@ namespace Berta
 	LayoutNode* LayoutNode::FindFirst(LayoutNodeType nodeType, LayoutNode* node)
 	{
 		if (node->GetType() == nodeType)
+		{
 			return node;
+		}
 
 		for (auto& childPtr : node->m_children)
 		{

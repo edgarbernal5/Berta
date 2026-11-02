@@ -339,7 +339,6 @@ namespace Berta
 		{
 			if (m_module.m_isEditable && m_module.m_textEditor)
 			{
-				//m_module.UpdateEditorArea();
 				m_module.m_textEditor->OnDpiChanged();
 			}
 		}

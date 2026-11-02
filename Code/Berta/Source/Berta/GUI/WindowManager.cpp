@@ -544,16 +544,13 @@ namespace Berta
 		}
 		else
 		{
-			// === RUTA NO NATIVA (Paneles, Contenedores Virtuales, etc.) ===
 			positionChanged = window->Position != newRect;
 			Point delta{ newRect.X - window->Position.X, newRect.Y - window->Position.Y };
 
 			if (positionChanged)
 			{
 				window->Position = newRect;
-            
-				// Aquí está la magia recursiva: MoveInternal propagará la transacción 
-				// a cualquier hijo nativo profundo que exista dentro de este Panel.
+				
 				MoveInternal(window, delta, forceRepaint);
 
 				ArgMove argMove;
@@ -637,7 +634,7 @@ namespace Berta
 		}
 
 		auto oldDPI = window->DPI;
-		float scalingFactor = static_cast<float>(newDPI) / oldDPI;
+		float scalingFactor = static_cast<float>(newDPI) / static_cast<float>(oldDPI);
 
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
@@ -645,6 +642,9 @@ namespace Berta
 		window->Position.X = static_cast<int>(static_cast<float>(window->Position.X) * scalingFactor);
 		window->Position.Y = static_cast<int>(static_cast<float>(window->Position.Y) * scalingFactor);
 
+		window->ClientSize.Width = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Width) * scalingFactor);
+		window->ClientSize.Height = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Height) * scalingFactor);
+		
 		if (window->IsNative())
 		{
 			auto& graphics = window->Renderer.GetGraphics();
@@ -658,46 +658,40 @@ namespace Berta
 				window->PositionRoot += window->Parent->PositionRoot;
 			}
 		}
-		window->ClientSize.Width = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Width) * scalingFactor);
-		window->ClientSize.Height = static_cast<uint32_t>(static_cast<float>(window->ClientSize.Height) * scalingFactor);
 
 		window->Renderer.DpiChanged();
-		
-		/*if (window->IsNative() && window->RootHandle == nativeWindowHandle)
-		{
-			auto& foundation = Foundation::GetInstance();
-			ArgResize argResize;
-			argResize.NewSize = window->ClientSize;
-			foundation.ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
-		}*/
-		
-		/*if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
-		{
-			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
-			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
-
-			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
-			API::MoveWindow(window->RootHandle, newArea, true);
-		}*/
 
 		for (auto& child : window->Children)
 		{
 			ChangeDPI(child, newDPI, nativeWindowHandle);
 		}
 		
-		ArgResize argResize;
-		argResize.NewSize = window->ClientSize;
-		Foundation::GetInstance().ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
-
-		// 4. Reposicionar ventanas nativas anidadas
+		if (!window->IsNative())
+		{
+			ArgResize argResize;
+			argResize.NewSize = window->ClientSize;
+			Foundation::GetInstance().ProcessEvents(window, &Renderer::Resize, &ControlEvents::Resize, argResize);
+		}
+		
 		if (window->IsNative() && window->RootHandle != nativeWindowHandle) // or check if window is nested
 		{
-			auto nativePosition = API::GetWindowPosition(window->RootHandle);
-			nativePosition.X = static_cast<int>(nativePosition.X * scalingFactor);
-			nativePosition.Y = static_cast<int>(nativePosition.Y * scalingFactor);
+			int newX = window->Position.X;
+			int newY = window->Position.Y;
+		
+			if (window->Owner)
+			{
+				auto ownerPosition = GetWindowRootPosition(window->Owner);
+				newX += ownerPosition.X;
+				newY += ownerPosition.Y;
+			}
+			else if (window->Parent)
+			{
+				auto parentPosition = GetWindowRootPosition(window->Parent);
+				newX += parentPosition.X;
+				newY += parentPosition.Y;
+			}
 
-			Rectangle newArea{ nativePosition.X, nativePosition.Y, window->ClientSize.Width, window->ClientSize.Height };
+			Rectangle newArea{ newX, newY, window->ClientSize.Width, window->ClientSize.Height };
 			API::MoveWindow(window->RootHandle, newArea, true);
 		}
 	}
@@ -743,7 +737,9 @@ namespace Berta
 	void WindowManager::SetParent(Window* window, Window* newParent)
 	{
 		if (window->Parent == newParent)
+		{
 			return;
+		}
 
 		if (window->Parent)
 		{
