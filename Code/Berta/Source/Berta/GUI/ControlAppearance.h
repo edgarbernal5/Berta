@@ -9,9 +9,43 @@
 
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Core/Colors.h"
+#include "Berta/GUI/EnumTypes.h"
 
 namespace Berta
 {
+	/*struct ControlAppearance
+	{
+		virtual ~ControlAppearance() = default;
+
+		Color Background;
+		Color Foreground;
+		Color Foreground2nd;
+		Color BoxBackground;
+		Color BoxBorderColor;
+		Color HighlightColor;
+		Color BoxBorderDisabledColor;
+		Color ButtonBackground;
+		Color ButtonHighlightBackground;
+		Color ButtonPressedBackground;
+		CornerRadii BorderRadii{ 4.0f, 4.0f, 4.0f, 4.0f };
+
+		uint32_t SmallIconSize = 16;
+		
+		// El método virtual que actualiza la apariencia basada en la paleta actual
+		virtual void ApplyTheme(const ThemePalette& theme)
+		{
+			Background = theme.Surface;
+			Foreground = theme.TextPrimary;
+			BoxBorderColor = theme.Border;
+		}
+		
+		template <typename T>
+		T* As() const
+		{
+			return reinterpret_cast<T*>(const_cast<ControlAppearance*>(this));
+		}
+	};*/
+	
 	struct ControlAppearance
 	{
 		Color Background{ Colors::Light_Background };
@@ -58,6 +92,15 @@ namespace Berta
 		uint32_t SmallIconSize = 16;
 		
 		CornerRadii BorderRadii;
+		
+		/*
+		// El método virtual que actualiza la apariencia basada en la paleta actual
+		virtual void ApplyTheme(const ThemePalette& theme)
+		{
+			Background = theme.Surface;
+			Foreground = theme.TextPrimary;
+			BoxBorderColor = theme.Border;
+		}*/
 	};
 }
 

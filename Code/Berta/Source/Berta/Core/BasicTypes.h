@@ -348,6 +348,9 @@ namespace Berta
 		std::wstring ToWString() const;
 		// Decodifica un std::wstring en formato "#RRGGBBAA" o "#RRGGBB" a una estructura Color
 		void FromWString(const std::wstring& hexStr);
+		
+		[[nodiscard]] Color Lighten(float amount) const;
+		[[nodiscard]] Color Darken(float amount) const;
 	private:
 		uint8_t R{ 255 };
 		uint8_t G{ 255 };
@@ -424,7 +427,7 @@ namespace Berta
     
 		bool IsRectangular() const
 		{
-			return TopLeft == 0 && TopRight == 0 && BottomRight == 0 && BottomLeft == 0;
+			return TopLeft == 0.0f && TopRight == 0.0f && BottomRight == 0.0f && BottomLeft == 0.0f;
 		}
 		
 		bool operator==(const CornerRadii& other) const

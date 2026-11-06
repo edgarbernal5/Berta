@@ -639,6 +639,7 @@ namespace Berta
 		window->DPI = newDPI;
 		window->DPIScaleFactor = LayoutUtils::CalculateDPIScaleFactor(newDPI);
 
+		auto oldPosition = window->Position;
 		window->Position.X = static_cast<int>(static_cast<float>(window->Position.X) * scalingFactor);
 		window->Position.Y = static_cast<int>(static_cast<float>(window->Position.Y) * scalingFactor);
 
@@ -664,6 +665,13 @@ namespace Berta
 		for (auto& child : window->Children)
 		{
 			ChangeDPI(child, newDPI, nativeWindowHandle);
+		}
+		
+		if (oldPosition != window->Position)
+		{
+			ArgMove argMove;
+			argMove.NewPosition = window->Position;
+			Foundation::GetInstance().ProcessEvents(window, &Renderer::Move, &ControlEvents::Move, argMove);
 		}
 		
 		if (!window->IsNative())

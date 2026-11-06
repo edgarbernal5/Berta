@@ -50,8 +50,6 @@ namespace Berta
 		{
 			m_updating = true;
 			
-			auto window = m_control->Handle();
-			
 			// Establecer el espacio de coordenadas local
 			auto absoluteArea = m_control->GetArea();
 			m_graphics->SetTransform(absoluteArea);
@@ -68,18 +66,11 @@ namespace Berta
 		{
 			return;
 		}
-
-		auto window = m_control->Handle();
+		
 		auto absoluteArea = m_control->GetArea();
 		m_graphics->SetTransform(absoluteArea);
-
-		const CornerRadii& radii = window->Appearance->BorderRadii;
-		Color borderColor = window->Appearance->BoxBorderColor;
-		float thickness = 1.0f;
-
-		Rectangle localRect = { 0, 0, absoluteArea.Width, absoluteArea.Height };
-    
-		m_graphics->DrawRoundedRectangle(localRect, radii, borderColor, thickness);
+		
+		m_controlReactor->UpdateBorders(*m_graphics);
 	}
 
 	void Renderer::MouseEnter(const ArgMouse& args)

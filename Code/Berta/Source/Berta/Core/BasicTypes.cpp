@@ -271,6 +271,35 @@ namespace Berta
 		A = a;
 	}
 
+	Color Color::Lighten(float amount) const
+	{
+		// Aseguramos que el factor esté entre 0 y 1 para evitar desbordamientos
+		amount = std::clamp(amount, 0.0f, 1.0f);
+    
+		// Interpolamos hacia el blanco (255)
+		return Color(
+			static_cast<uint8_t>(R + (255 - R) * amount),
+			static_cast<uint8_t>(G + (255 - G) * amount),
+			static_cast<uint8_t>(B + (255 - B) * amount),
+			A // El canal Alpha normalmente se preserva
+		);
+	}
+
+	Color Color::Darken(float amount) const
+	{
+		// Aseguramos que el factor esté entre 0 y 1
+		amount = std::clamp(amount, 0.0f, 1.0f);
+    
+		// Interpolamos hacia el negro (0). Es equivalente a multiplicar por (1.0 - amount)
+		float multiplier = 1.0f - amount;
+		return Color(
+			static_cast<uint8_t>(R * multiplier),
+			static_cast<uint8_t>(G * multiplier),
+			static_cast<uint8_t>(B * multiplier),
+			A // El canal Alpha normalmente se preserva
+		);
+	}
+
 	FormStyle FormStyle::Float(bool sizeable)
 	{
 		return FormStyle{ false, false, sizeable, false, true, false };

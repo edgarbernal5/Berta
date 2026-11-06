@@ -25,6 +25,7 @@ namespace Berta
 		virtual void Shutdown();
 		
 		virtual void Update(Graphics& graphics);
+		virtual void UpdateBorders(Graphics& graphics);
 		virtual void MouseEnter(Graphics& graphics, const ArgMouse& args);
 		virtual void MouseLeave(Graphics& graphics, const ArgMouse& args);
 		virtual void MouseDown(Graphics& graphics, const ArgMouse& args);

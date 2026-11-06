@@ -7,6 +7,7 @@
 #include "btpch.h"
 #include "ControlReactor.h"
 
+#include "Control.h"
 #include "Berta/Paint/Graphics.h"
 
 namespace Berta
@@ -24,6 +25,19 @@ namespace Berta
 
 	void ControlReactor::Update(Graphics& graphics)
 	{
+	}
+
+	void ControlReactor::UpdateBorders(Graphics& graphics)
+	{
+		auto window = m_control->Handle();
+
+		const CornerRadii& radii = window->Appearance->BorderRadii;
+		Color borderColor = window->Appearance->BoxBorderColor;
+		float thickness = 1.0f;
+
+		Rectangle localRect = { 0, 0, window->ClientSize.Width, window->ClientSize.Height };
+    
+		graphics.DrawRoundedRectangle(localRect, radii, borderColor, thickness);
 	}
 
 	void ControlReactor::MouseEnter(Graphics& graphics, const ArgMouse& args)

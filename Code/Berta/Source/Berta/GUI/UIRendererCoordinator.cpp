@@ -102,14 +102,14 @@ namespace Berta
 		auto containerPosition = GUI::GetWindowRootPosition(container);
 		Rectangle containerRectangle{ containerPosition.X, containerPosition.Y, container->ClientSize.Width, container->ClientSize.Height };
 
-		// 1. Primera intersección: Ventana vs Contenedor
+		// Primera intersección: Ventana vs Contenedor
 		Rectangle windowVisibleRect;
 		if (!LayoutUtils::GetIntersectionRect(containerRectangle, requestRectangle, windowVisibleRect))
 		{
 			return false; // Está fuera de su panel, la descartamos.
 		}
 
-		// 2. LA MAGIA: Segunda intersección contra el área sucia de Win32
+		// Segunda intersección contra el área sucia de Win32
 		if (dirtyRect != nullptr)
 		{
 			// Si no intersecta con el parche que hay que repintar, la descartamos.
@@ -152,7 +152,6 @@ namespace Berta
 			{
 				rootGraphics.ResetTransform();
 				
-				// --- INICIO CLIP DEL CONTROL ---
 				{
 					ScopedClip boundsClip(rootGraphics, childClip);
 					
@@ -162,7 +161,7 @@ namespace Berta
 					std::optional<ScopedLayerClip> layerClip;
 					if (hasCurves)
 					{
-						// CRÍTICO: Movemos el origen al control antes de capturar el Layer
+						// Movemos el origen al control antes de capturar el Layer
 						rootGraphics.SetTransform(childAbsoluteRect);
             
 						auto clipGeom = rootGraphics.GetRoundedGeometry(childAbsoluteRect.Width, childAbsoluteRect.Height, radii, 0.0f);
@@ -179,7 +178,6 @@ namespace Berta
 						child->Renderer.Update(); 
 					}
 
-					// --- INICIO CLIP DE LOS HIJOS (Box Model) ---
 					// No encogemos el clip, encogemos el rectángulo absoluto del padre
 					Rectangle parentContentAbsoluteRect = childAbsoluteRect;
 					if (!GUI::IsWindowBorderless(child))

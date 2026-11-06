@@ -445,7 +445,6 @@ namespace Berta
 		case KeyboardKey::Delete:
 			if (args.ButtonState.Ctrl && m_selection.IsEmpty())
 			{
-				// Seleccionar la palabra hacia la derecha y borrarla
 				TextPosition end = GetPositionNextWord(m_selection.m_endPosition, 1);
 				DeleteRange(m_selection.m_endPosition, end);
 				EmitValueChanged();
@@ -460,7 +459,6 @@ namespace Berta
 		case KeyboardKey::Backspace:
 			if (args.ButtonState.Ctrl && m_selection.IsEmpty())
 			{
-				// Seleccionar la palabra hacia la izquierda y borrarla
 				TextPosition start = GetPositionNextWord(m_selection.m_endPosition, -1);
 				DeleteRange(start, m_selection.m_endPosition);
 				EmitValueChanged();

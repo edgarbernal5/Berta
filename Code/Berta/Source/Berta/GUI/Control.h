@@ -7,6 +7,7 @@
 #ifndef BT_CONTROL_HEADER
 #define BT_CONTROL_HEADER
 
+//#include "ThemeManager.h"
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/GUI/Interface.h"
 #include "Berta/GUI/ControlReactor.h"
@@ -128,17 +129,16 @@ namespace Berta
 		virtual void DoOnEnterSizeMove() const;
 		virtual void DoOnExitSizeMove() const;
 		
-		void NotifyDestroy()
+		template <typename T>
+		T* As() const
 		{
-			m_handle = nullptr;
-			DoOnNotifyDestroy();
+			return reinterpret_cast<T*>(m_handle->Appearance.get());
 		}
+		
+		void NotifyDestroy();
 		virtual void DoOnNotifyDestroy(){}
 		
-		void NotifyClose()
-		{
-			DoNotifyClose();
-		}
+		void NotifyClose();
 		virtual void DoNotifyClose(){}
 
 		Window* m_handle{ nullptr };
@@ -175,6 +175,7 @@ namespace Berta
 		void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true)
 		{
 			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, false);
+			//m_appearance = ThemeManager::Instance().GetDefaultStyle<AppearanceType>();
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
@@ -228,6 +229,7 @@ namespace Berta
 		void Create(Window* parent, bool isUnscaleRect = false, const Rectangle& rectangle = {}, bool visible = true)
 		{
 			m_handle = GUI::CreateControl(parent, isUnscaleRect, rectangle, this, true);
+			//m_appearance = ThemeManager::Instance().GetDefaultStyle<AppearanceType>();
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);
@@ -275,6 +277,7 @@ namespace Berta
 		void Create(Window* parent, bool isUnscaleRect, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested, bool isRenderForm = false)
 		{
 			m_handle = GUI::CreateForm(parent, isUnscaleRect, rectangle, formStyle, isNested, this, isRenderForm);
+			//m_appearance = ThemeManager::Instance().GetDefaultStyle<AppearanceType>();
 			m_appearance = std::make_shared<AppearanceType>();
 			m_events = std::make_shared<EventsType>();
 			GUI::SetEvents(m_handle, m_events);

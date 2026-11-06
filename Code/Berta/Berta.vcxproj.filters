@@ -49,6 +49,9 @@
     <Filter Include="Source\Berta\Controls\Checking">
       <UniqueIdentifier>{eeaa1937-b8dc-424e-b148-e4c583b876f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Berta\Controls\Buttons">
+      <UniqueIdentifier>{e3473cb4-931b-4844-8759-29a637185e54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\btpch.h">
@@ -125,9 +128,6 @@
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\Caret.h">
       <Filter>Source\Berta\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Berta\Controls\TextEditors\TextEditor.h">
-      <Filter>Source\Berta\Controls\TextEditors</Filter>
     </ClInclude>
     <ClInclude Include="Source\Berta\GUI\ControlReactor.h">
       <Filter>Source\Berta\GUI</Filter>
@@ -354,6 +354,12 @@
     <ClInclude Include="Source\Berta\Controls\LineTextBox.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Controls\Buttons\EnumTypes.h">
+      <Filter>Source\Berta\Controls\Buttons</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Berta\GUI\ThemeManager.h">
+      <Filter>Source\Berta\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -409,9 +415,6 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\Caret.cpp">
       <Filter>Source\Berta\GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Berta\Controls\TextEditors\TextEditor.cpp">
-      <Filter>Source\Berta\Controls\TextEditors</Filter>
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\ControlReactor.cpp">
       <Filter>Source\Berta\GUI</Filter>
@@ -580,6 +583,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\TextAreaBox.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\GUI\ThemeManager.cpp">
+      <Filter>Source\Berta\GUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

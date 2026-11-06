@@ -44,7 +44,6 @@ namespace Berta
 
 		void Reactor::MouseUp(Graphics& graphics, const ArgMouse& args)
 		{
-			//GUI::ReleaseCapture(*m_control); //moved into text editor
 			m_textEditor->OnMouseUp(args);
 		}
 
@@ -59,7 +58,6 @@ namespace Berta
 
 		void Reactor::KeyChar(Graphics& graphics, const ArgKeyboard& args)
 		{
-			BT_CORE_DEBUG << "key char: " << (int)args.Key << ". " << std::endl;
 			if (m_textEditor->OnKeyChar(args))
 			{
 				GUI::CaptionWindow(m_control->Handle(), m_textEditor->GetContent());
@@ -99,7 +97,6 @@ namespace Berta
 
 		void Reactor::DpiChanged(Graphics& graphics)
 		{
-			//m_textEditor->SetEditorArea(GetEditorArea(), m_control->Handle()->ClientPadding);
 			m_textEditor->OnDpiChanged();
 		}
 

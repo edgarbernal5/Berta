@@ -236,4 +236,15 @@ namespace Berta
 	{
 		GUI::ExitSizeMove(m_handle);
 	}
+
+	void ControlBase::NotifyDestroy()
+	{
+		m_handle = nullptr;
+		DoOnNotifyDestroy();
+	}
+
+	void ControlBase::NotifyClose()
+	{
+		DoNotifyClose();
+	}
 }
