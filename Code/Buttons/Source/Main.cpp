@@ -8,7 +8,6 @@
 #include <Berta/Controls/Button.h>
 
 #include "Berta/Controls/ListBox.h"
-#include "Berta/Controls/TextAreaBox.h"
 
 int main()
 {
@@ -24,11 +23,11 @@ int main()
 		buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
 	});
 	
-	std::wstring textLong = L"Hola. Este es un texto muy largo que probaré durante el desarrollo de un editor de texto que estoy creando junto a GEMINI. Debe haber errores, se supone que los estar[e solucionando lo mas pronto posible. Estoy tratando de mejorar ciertas caracteristicas y agregar nuevas funcionalidades. No tengo más nada que decir, pero escribiré muchas cosas con acentos y un texto largo vacío sin sentido solo para alcanzar el máximo de caracteres posibles de Mercadolibre y dejar una buena impresión sin impresora. Gracias";
+	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
 	
-	Berta::TextAreaBox inputTextWordWrap(form, { 50,125,250,95 });
-	inputTextWordWrap.SetCaption(textLong);
-	inputTextWordWrap.SetWordWrap(true);
+	Berta::Button buttonWithIcon(form, { 50,190,32,32 }, image1);
+	
+	Berta::Button buttonWithIconAndText(form, { 85,190,80,32 },"Foto", image1);
 	
 	form.Show();
 	form.Exec();

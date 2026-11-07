@@ -7,9 +7,14 @@
 #ifndef BT_BUTTON_HEADER
 #define BT_BUTTON_HEADER
 
+#include <optional>
+
 #include "Berta/GUI/Window.h"
 #include "Berta/GUI/Control.h"
 #include <string>
+
+#include "Berta/Paint/Image.h"
+#include "Buttons/EnumTypes.h"
 
 namespace Berta
 {
@@ -25,23 +30,41 @@ namespace Berta
 			void MouseDown(Graphics& graphics, const ArgMouse& args) override;
 			void MouseUp(Graphics& graphics, const ArgMouse& args) override;
 			
-		private:
 			enum class State : uint8_t
 			{
 				Normal,
 				Pressed,
 				Hovered
 			};
-			State m_status{ State::Normal };
+			struct Module
+			{
+				
+				void SetIcon(const Image& icon);
+				State m_status{ State::Normal };
+				std::optional<Berta::Image> Icon;
+				HorizontalAlign ContentHAlign{ HorizontalAlign::Center };
+				VerticalAlign ContentVAlign{ VerticalAlign::Center };
+			};
+			Module& GetModule() { return m_module; }
+			const Module& GetModule() const { return m_module; }
+			
+		private:
+			Module m_module;
+			
 		};
 	}
 	
-	class Button : public Control<Category::ControlTag, Internal::Button::Reactor>
+	class Button : public Control<Category::ControlTag, Internal::Button::Reactor, ControlEvents, Internal::Buttons::Appearance>
 	{
 	public:
 		Button() = default;
 		Button(Window* parent, const Rectangle& rectangle, const std::string& text);
 		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text);
+		Button(Window* parent, const Rectangle& rectangle, const std::string& text, const Image& icon);
+		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text, const Image& icon);
+		Button(Window* parent, const Rectangle& rectangle, const Image& icon);
+		
+		void SetIcon(const Image& icon);
 	};
 }
 

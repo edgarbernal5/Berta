@@ -13,9 +13,9 @@ namespace Berta::Internal::Buttons
 {
     struct Appearance : public ControlAppearance
     {
-        Color HoverBackground;
+        /*Color HoverBackground;
         Color PressedBackground;
-        Color DisabledBackground;
+        Color DisabledBackground;*/
         
         uint32_t IconTextSpacing{ 4 };
 			

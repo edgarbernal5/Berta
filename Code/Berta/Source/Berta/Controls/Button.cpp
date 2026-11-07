@@ -18,6 +18,88 @@ namespace Berta
 			auto window = m_control->Handle();
 			bool enabled = m_control->GetEnabled();
 			auto backgroundRect = window->ClientSize.ToRectangle();
+			auto buttonAppearance = static_cast<Buttons::Appearance*>(window->Appearance.get());
+			
+			// 1. Dibujado del Fondo
+			auto color = window->Appearance->Background;
+			if (!enabled) color = window->Appearance->ButtonDisabledBackground;
+			else if (m_module.m_status == State::Normal) color = window->Appearance->ButtonBackground;
+			else if (m_module.m_status == State::Hovered) color = window->Appearance->ButtonHighlightBackground;
+			else if (m_module.m_status == State::Pressed) color = window->Appearance->ButtonPressedBackground;
+			
+			graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
+
+			// 2. Extracción de Datos del Contenido
+			auto caption = m_control->GetCaption();
+			bool hasText = !caption.empty();
+			bool hasIcon = m_module.Icon.has_value();
+
+			if (!hasText && !hasIcon) return; // Nada que dibujar
+
+			// 3. Medición del Bloque Lógico
+			const Size windowSize = window->ClientSize;
+			Point textExtent{ 0, 0 };
+			if (hasText) {
+				textExtent = graphics.GetTextExtent(caption);
+			}
+
+			int iconSize = hasIcon ? window->ToScale(window->Appearance->SmallIconSize) : 0;
+			int iconSpacing = (hasIcon && hasText) ? window->ToScale(buttonAppearance->IconTextSpacing) : 0;
+
+			// Dimensiones totales del bloque (Ícono + Espacio + Texto)
+			int totalContentWidth = iconSize + iconSpacing + textExtent.X;
+			int totalContentHeight = std::max<int>(iconSize, textExtent.Y);
+
+			// 4. Cálculo de Alineación Horizontal
+			int currentX = 0;
+			switch (m_module.ContentHAlign)
+			{
+			case HorizontalAlign::Center:
+				currentX = ((int)windowSize.Width - totalContentWidth) / 2;
+				break;
+			case HorizontalAlign::Left:
+				currentX = window->ToScale(5); // Padding izquierdo genérico
+				break;
+			case HorizontalAlign::Right:
+				currentX = (int)windowSize.Width - totalContentWidth - window->ToScale(5u); // Padding derecho genérico
+				break;
+			}
+
+			// 5. Cálculo de Alineación Vertical Base
+			int contentY = 0;
+			switch (m_module.ContentVAlign)
+			{
+			case VerticalAlign::Center:
+				contentY = ((int)windowSize.Height - totalContentHeight) / 2;
+				break;
+			case VerticalAlign::Top:
+				contentY = window->ToScale(5);
+				break;
+			case VerticalAlign::Bottom:
+				contentY = (int)windowSize.Height - totalContentHeight - window->ToScale(5u);
+				break;
+			}
+
+			// 6. Renderizado de Elementos Centrados Relativos al Bloque
+			if (hasIcon)
+			{
+				// Centrar el ícono verticalmente respecto al totalContentHeight
+				int iconY = contentY + (totalContentHeight - iconSize) / 2;
+				m_module.Icon->Paste(graphics, { currentX, iconY, (uint32_t)iconSize, (uint32_t)iconSize });
+				
+				currentX += iconSize + iconSpacing;
+			}
+
+			if (hasText)
+			{
+				// Centrar el texto verticalmente respecto al totalContentHeight
+				int textY = contentY + (totalContentHeight - textExtent.Y) / 2;
+				graphics.DrawString({ currentX, textY }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
+			}
+			
+			/*auto window = m_control->Handle();
+			bool enabled = m_control->GetEnabled();
+			auto backgroundRect = window->ClientSize.ToRectangle();
 
 			auto color = window->Appearance->Background;
 			if (!enabled)
@@ -43,26 +125,26 @@ namespace Berta
 			const Point windowSize = window->ClientSize;
 			auto center = windowSize - textExtent;
 			center /= 2;
-			graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
+			graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);*/
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
 		{
-			m_status = State::Hovered;
+			m_module.m_status = State::Hovered;
 
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
 
 		void Reactor::MouseLeave(Graphics& graphics, const ArgMouse& args)
 		{
-			m_status = State::Normal;
+			m_module.m_status = State::Normal;
 
 			GUI::MarkAsNeedUpdate(*m_control);
 		}
 
 		void Reactor::MouseDown(Graphics& graphics, const ArgMouse& args)
 		{
-			m_status = State::Pressed;
+			m_module.m_status = State::Pressed;
 
 			GUI::Capture(*m_control);
 			GUI::MarkAsNeedUpdate(*m_control);
@@ -74,14 +156,19 @@ namespace Berta
 			
 			if (m_control->Handle()->ClientSize.IsInside(args.Position))
 			{
-				m_status = State::Hovered;
+				m_module.m_status = State::Hovered;
 			}
 			else
 			{
-				m_status = State::Normal;
+				m_module.m_status = State::Normal;
 			}
 
 			GUI::MarkAsNeedUpdate(*m_control);
+		}
+
+		void Reactor::Module::SetIcon(const Image& icon)
+		{
+			Icon = icon;
 		}
 	}
 	
@@ -103,5 +190,42 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "Button";
 #endif
+	}
+
+	Button::Button(Window* parent, const Rectangle& rectangle, const std::string& text, const Image& icon)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+		SetIcon(icon);
+
+#if BT_DEBUG
+		m_handle->Name = "Button";
+#endif
+	}
+
+	Button::Button(Window* parent, const Rectangle& rectangle, const std::wstring& text, const Image& icon)
+	{
+		Create(parent, true, rectangle);
+		SetCaption(text);
+		SetIcon(icon);
+
+#if BT_DEBUG
+		m_handle->Name = "Button";
+#endif
+	}
+
+	Button::Button(Window* parent, const Rectangle& rectangle, const Berta::Image& icon)
+	{
+		Create(parent, true, rectangle);
+		SetIcon(icon);
+
+#if BT_DEBUG
+		m_handle->Name = "Button";
+#endif
+	}
+
+	void Button::SetIcon(const Image& icon)
+	{
+		GetReactor().GetModule().SetIcon(icon);
 	}
 }
