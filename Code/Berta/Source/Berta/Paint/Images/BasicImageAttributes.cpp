@@ -169,8 +169,8 @@ namespace Berta
 		if (scaleFactor == 1.0f || m_logicalSize.Width == 0)
 		{
 			m_logicalSize = { 
-				static_cast<uint32_t>((float)width / scaleFactor), 
-				static_cast<uint32_t>((float)height / scaleFactor) 
+				static_cast<uint32_t>(static_cast<float>(width) / scaleFactor), 
+				static_cast<uint32_t>(static_cast<float>(height) / scaleFactor) 
 			};
 		}
 	}
@@ -227,12 +227,9 @@ namespace Berta
 			cacheEntry.CachedScale = actualScale;
 		}
 		
-		// 1. Calculamos el ratio entre los píxeles físicos en VRAM y el tamaño lógico.
-		// Esto garantiza que el recorte (crop) extraiga los píxeles correctos de la imagen HD.
 		float scaleX = static_cast<float>(colorBuffer->GetSize().Width) / static_cast<float>(m_logicalSize.Width);
 		float scaleY = static_cast<float>(colorBuffer->GetSize().Height) / static_cast<float>(m_logicalSize.Height);
 
-		// 2. Mapeamos el área de origen lógica a las coordenadas físicas de la textura
 		D2D1_RECT_F d2dSourceRect = D2D1::RectF(
 			static_cast<FLOAT>(validSourceDest.X * scaleX),
 			static_cast<FLOAT>(validSourceDest.Y * scaleY),
@@ -240,7 +237,6 @@ namespace Berta
 			static_cast<FLOAT>((validSourceDest.Y + validSourceDest.Height) * scaleY)
 		);
 
-		// 3. El destino ya fue escalado a píxeles físicos por el layout del Control
 		D2D1_RECT_F d2dDestRect = D2D1::RectF(
 			static_cast<FLOAT>(validDestRect.X),
 			static_cast<FLOAT>(validDestRect.Y),
@@ -248,13 +244,12 @@ namespace Berta
 			static_cast<FLOAT>(validDestRect.Y + validDestRect.Height)
 		);
 
-		// 4. Dibujar a través del RenderTarget
 		handle->RenderTarget->DrawBitmap
 		(
-			cacheEntry.Bitmap.Get(), // O m_bitmapCache[hwnd].Get() si aplicaste el refactor AAA
+			cacheEntry.Bitmap.Get(),
 			&d2dDestRect,
 			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, // Lineal es ideal para el downsampling en íconos
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			&d2dSourceRect
 		);
 	}
@@ -307,21 +302,17 @@ namespace Berta
 			}
 			cacheEntry.CachedScale = actualScale;
 		}
-
-		// 1. Calculamos el ratio entre los píxeles físicos en VRAM y el tamaño lógico.
-		// Esto garantiza que el recorte (crop) extraiga los píxeles correctos de la imagen HD.
+		
 		float scaleX = static_cast<float>(colorBuffer->GetSize().Width) / static_cast<float>(m_logicalSize.Width);
 		float scaleY = static_cast<float>(colorBuffer->GetSize().Height) / static_cast<float>(m_logicalSize.Height);
-
-		// 2. Mapeamos el área de origen lógica a las coordenadas físicas de la textura
+		
 		D2D1_RECT_F d2dSourceRect = D2D1::RectF(
 			static_cast<FLOAT>(validSourceDest.X * scaleX),
 			static_cast<FLOAT>(validSourceDest.Y * scaleY),
 			static_cast<FLOAT>((validSourceDest.X + validSourceDest.Width) * scaleX),
 			static_cast<FLOAT>((validSourceDest.Y + validSourceDest.Height) * scaleY)
 		);
-
-		// 3. El destino ya fue escalado a píxeles físicos por el layout del Control
+		
 		D2D1_RECT_F d2dDestRect = D2D1::RectF(
 			static_cast<FLOAT>(validDestRect.X),
 			static_cast<FLOAT>(validDestRect.Y),
@@ -329,13 +320,12 @@ namespace Berta
 			static_cast<FLOAT>(validDestRect.Y + validDestRect.Height)
 		);
 
-		// 4. Dibujar a través del RenderTarget
 		handle->RenderTarget->DrawBitmap
 		(
-			cacheEntry.Bitmap.Get(), // O m_bitmapCache[hwnd].Get() si aplicaste el refactor AAA
+			cacheEntry.Bitmap.Get(),
 			&d2dDestRect,
 			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, // Lineal es ideal para el downsampling en íconos
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			&d2dSourceRect
 		);
 	}
@@ -349,14 +339,17 @@ namespace Berta
 
 	std::pair<float, const ColorBuffer*> BasicImageAttributes::GetBestBuffer(float targetScale) const
 	{
-		if (m_variants.empty()) return { 1.0f, nullptr };
-
+		if (m_variants.empty())
+		{
+			return { 1.0f, nullptr };
+		}
+		
 		auto it = m_variants.lower_bound(targetScale);
 		if (it != m_variants.end())
 		{
 			return { it->first, &(it->second) };
 		}
-		// Si el DPI pide más resolución de la que tenemos, devolvemos la variante más alta
+
 		return { m_variants.rbegin()->first, &(m_variants.rbegin()->second) };
 	}
 }

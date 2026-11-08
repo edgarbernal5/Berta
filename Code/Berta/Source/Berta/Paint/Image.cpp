@@ -77,6 +77,7 @@ namespace Berta
 
 	void Image::AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
 	{
+		m_attributes->AddVariantFromMemory(scaleFactor, pixels, width, height, channels);
 	}
 
 	void Image::Paste(Graphics& destination, const Point& positionDestination) const
