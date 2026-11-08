@@ -39,7 +39,10 @@ namespace Berta
 			struct Module
 			{
 				
+				void SetContentHorizontalAlign(HorizontalAlign halign);
+				void SetContentVerticalAlign(VerticalAlign valign);
 				void SetIcon(const Image& icon);
+				
 				State m_status{ State::Normal };
 				std::optional<Berta::Image> Icon;
 				HorizontalAlign ContentHAlign{ HorizontalAlign::Center };
@@ -64,6 +67,8 @@ namespace Berta
 		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text, const Image& icon);
 		Button(Window* parent, const Rectangle& rectangle, const Image& icon);
 		
+		void SetContentHorizontalAlign(const HorizontalAlign& halign);
+		void SetContentVerticalAlign(const VerticalAlign& valign);
 		void SetIcon(const Image& icon);
 	};
 }

@@ -20,7 +20,6 @@ namespace Berta
 			auto backgroundRect = window->ClientSize.ToRectangle();
 			auto buttonAppearance = static_cast<Buttons::Appearance*>(window->Appearance.get());
 			
-			// 1. Dibujado del Fondo
 			auto color = window->Appearance->Background;
 			if (!enabled) color = window->Appearance->ButtonDisabledBackground;
 			else if (m_module.m_status == State::Normal) color = window->Appearance->ButtonBackground;
@@ -29,103 +28,69 @@ namespace Berta
 			
 			graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
 
-			// 2. Extracción de Datos del Contenido
 			auto caption = m_control->GetCaption();
 			bool hasText = !caption.empty();
 			bool hasIcon = m_module.Icon.has_value();
 
-			if (!hasText && !hasIcon) return; // Nada que dibujar
-
-			// 3. Medición del Bloque Lógico
+			if (!hasText && !hasIcon)
+			{
+				return;
+			}
+			
 			const Size windowSize = window->ClientSize;
 			Point textExtent{ 0, 0 };
-			if (hasText) {
+			if (hasText)
+			{
 				textExtent = graphics.GetTextExtent(caption);
 			}
 
-			int iconSize = hasIcon ? window->ToScale(window->Appearance->SmallIconSize) : 0;
-			int iconSpacing = (hasIcon && hasText) ? window->ToScale(buttonAppearance->IconTextSpacing) : 0;
+			int iconSize = hasIcon ? static_cast<int>(window->ToScale(window->Appearance->SmallIconSize)) : 0;
+			int iconSpacing = (hasIcon && hasText) ? static_cast<int>(window->ToScale(buttonAppearance->IconTextSpacing)) : 0;
 
-			// Dimensiones totales del bloque (Ícono + Espacio + Texto)
 			int totalContentWidth = iconSize + iconSpacing + textExtent.X;
 			int totalContentHeight = std::max<int>(iconSize, textExtent.Y);
 
-			// 4. Cálculo de Alineación Horizontal
 			int currentX = 0;
 			switch (m_module.ContentHAlign)
 			{
 			case HorizontalAlign::Center:
-				currentX = ((int)windowSize.Width - totalContentWidth) / 2;
+				currentX = (static_cast<int>(windowSize.Width) - totalContentWidth) / 2;
 				break;
 			case HorizontalAlign::Left:
-				currentX = window->ToScale(5); // Padding izquierdo genérico
+				currentX = window->ToScale(5);
 				break;
 			case HorizontalAlign::Right:
-				currentX = (int)windowSize.Width - totalContentWidth - window->ToScale(5u); // Padding derecho genérico
+				currentX = static_cast<int>(windowSize.Width) - totalContentWidth - window->ToScale(5);
 				break;
 			}
-
-			// 5. Cálculo de Alineación Vertical Base
+			
 			int contentY = 0;
 			switch (m_module.ContentVAlign)
 			{
 			case VerticalAlign::Center:
-				contentY = ((int)windowSize.Height - totalContentHeight) / 2;
+				contentY = (static_cast<int>(windowSize.Height) - totalContentHeight) / 2;
 				break;
 			case VerticalAlign::Top:
 				contentY = window->ToScale(5);
 				break;
 			case VerticalAlign::Bottom:
-				contentY = (int)windowSize.Height - totalContentHeight - window->ToScale(5u);
+				contentY = static_cast<int>(windowSize.Height) - totalContentHeight - window->ToScale(5);
 				break;
 			}
 
-			// 6. Renderizado de Elementos Centrados Relativos al Bloque
 			if (hasIcon)
 			{
-				// Centrar el ícono verticalmente respecto al totalContentHeight
 				int iconY = contentY + (totalContentHeight - iconSize) / 2;
-				m_module.Icon->Paste(graphics, { currentX, iconY, (uint32_t)iconSize, (uint32_t)iconSize });
+				m_module.Icon->Paste(graphics, { currentX, iconY, static_cast<uint32_t>(iconSize), static_cast<uint32_t>(iconSize) });
 				
 				currentX += iconSize + iconSpacing;
 			}
 
 			if (hasText)
 			{
-				// Centrar el texto verticalmente respecto al totalContentHeight
 				int textY = contentY + (totalContentHeight - textExtent.Y) / 2;
 				graphics.DrawString({ currentX, textY }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);
 			}
-			
-			/*auto window = m_control->Handle();
-			bool enabled = m_control->GetEnabled();
-			auto backgroundRect = window->ClientSize.ToRectangle();
-
-			auto color = window->Appearance->Background;
-			if (!enabled)
-			{
-				color = window->Appearance->ButtonDisabledBackground;
-			}
-			else if (m_status == State::Normal)
-			{
-				color = window->Appearance->ButtonBackground;
-			}
-			else if (m_status == State::Hovered)
-			{
-				color = window->Appearance->ButtonHighlightBackground;
-			}
-			else if (m_status == State::Pressed)
-			{
-				color = window->Appearance->ButtonPressedBackground;
-			}
-			graphics.DrawRoundRectBox(backgroundRect, color, enabled ? window->Appearance->BoxBorderColor : window->Appearance->BoxBorderDisabledColor, true);
-
-			auto caption = m_control->GetCaption();
-			const Point textExtent = graphics.GetTextExtent(caption);
-			const Point windowSize = window->ClientSize;
-			auto center = windowSize - textExtent;
-			center /= 2;
-			graphics.DrawString({ center.X, center.Y }, caption, enabled ? window->Appearance->Foreground : window->Appearance->BoxBorderDisabledColor);*/
 		}
 
 		void Reactor::MouseEnter(Graphics& graphics, const ArgMouse& args)
@@ -164,6 +129,16 @@ namespace Berta
 			}
 
 			GUI::MarkAsNeedUpdate(*m_control);
+		}
+
+		void Reactor::Module::SetContentHorizontalAlign(HorizontalAlign halign)
+		{
+			ContentHAlign = halign;
+		}
+
+		void Reactor::Module::SetContentVerticalAlign(VerticalAlign valign)
+		{
+			ContentVAlign = valign;
 		}
 
 		void Reactor::Module::SetIcon(const Image& icon)
@@ -222,6 +197,16 @@ namespace Berta
 #if BT_DEBUG
 		m_handle->Name = "Button";
 #endif
+	}
+
+	void Button::SetContentHorizontalAlign(const HorizontalAlign& halign)
+	{
+		GetReactor().GetModule().SetContentHorizontalAlign(halign);
+	}
+
+	void Button::SetContentVerticalAlign(const VerticalAlign& valign)
+	{
+		GetReactor().GetModule().SetContentVerticalAlign(valign);
 	}
 
 	void Button::SetIcon(const Image& icon)

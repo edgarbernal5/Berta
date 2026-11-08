@@ -27,7 +27,13 @@ int main()
 	
 	Berta::Button buttonWithIcon(form, { 50,190,32,32 }, image1);
 	
-	Berta::Button buttonWithIconAndText(form, { 85,190,80,32 },"Foto", image1);
+	Berta::Button buttonWithIconAndText(form, { 85,190,80,32 },"Center", image1);
+	
+	Berta::Button buttonWithIconAndText2(form, { 170,190,80,60 },"Bottom", image1);
+	buttonWithIconAndText2.SetContentVerticalAlign(Berta::VerticalAlign::Bottom);
+	
+	Berta::Button buttonWithIconAndText3(form, { 260,190,80,60 },"Right", image1);
+	buttonWithIconAndText3.SetContentHorizontalAlign(Berta::HorizontalAlign::Right);
 	
 	form.Show();
 	form.Exec();
