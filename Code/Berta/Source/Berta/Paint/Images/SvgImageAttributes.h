@@ -1,0 +1,36 @@
+﻿/*
+* MIT License
+*
+* Copyright (c) 2024 Edgar Bernal (edgar.bernal@gmail.com)
+*/
+
+#ifndef BT_SVG_IMAGE_ATTRIBUTES_HEADER
+#define BT_SVG_IMAGE_ATTRIBUTES_HEADER
+
+#include "Berta/Paint/Image.h"
+
+namespace Berta
+{
+    class SvgImageAttributes : public AbstractImageAttributes
+    {
+    public:
+        SvgImageAttributes();
+        ~SvgImageAttributes() override;
+
+        Size GetLogicalSize() const override;
+        void Open(const std::wstring& filepath) override;
+        void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
+		
+        void AddVariant(float scaleFactor, const std::wstring& filepath) override;
+        void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
+		
+        void Paste(Graphics& destination, const Point& positionDestination) override;
+        void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
+        void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;
+		
+    private:
+
+    };
+}
+
+#endif

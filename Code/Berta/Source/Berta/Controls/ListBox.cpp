@@ -1481,7 +1481,7 @@ namespace Berta
 			auto listItemIconMargin = m_window->ToScale(appearance->ListItemIconMargin);
 			if (icon)
 			{
-				auto iconSize = icon->GetSize();
+				auto iconSize = icon->GetLogicalSize();
 				Rectangle destRect = rect;
 				destRect.X += static_cast<int>(listItemIconMargin);
 				destRect.Y += static_cast<int>(rect.Height - listItemIconSize) / 2;

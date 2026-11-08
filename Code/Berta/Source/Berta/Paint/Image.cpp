@@ -10,6 +10,7 @@
 #include "Berta/Paint/Graphics.h"
 #include "Berta/Paint/Images/IconImageAttributes.h"
 #include "Berta/Paint/Images/BasicImageAttributes.h"
+#include "Images/SvgImageAttributes.h"
 
 namespace Berta
 {
@@ -43,7 +44,11 @@ namespace Berta
 		std::string ext = path.extension().string();
 		std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch){ return std::tolower(ch); });
 		
-		if (path.extension() == ".ico")
+		if (path.extension() == ".svg")
+		{
+			m_attributes = std::make_shared<SvgImageAttributes>();
+		}
+		else if (path.extension() == ".ico")
 		{
 			m_attributes = std::make_shared<IconImageAttributes>();
 		}
@@ -65,14 +70,28 @@ namespace Berta
 		m_attributes->OpenFromMemory(pixels, width, height, channels);
 	}
 
+	void Image::AddVariant(float scaleFactor, const std::wstring& filepath)
+	{
+		m_attributes->AddVariant(scaleFactor, filepath);
+	}
+
+	void Image::AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
+	{
+	}
+
 	void Image::Paste(Graphics& destination, const Point& positionDestination) const
 	{
-		Paste(GetSize().ToRectangle(), destination, positionDestination);
+		if (!m_attributes)
+		{
+			return;
+		}
+		
+		Paste(GetLogicalSize().ToRectangle(), destination, positionDestination);
 	}
 
 	void Image::Paste(Graphics& destination, const Rectangle& destinationRect) const
 	{
-		Paste(GetSize().ToRectangle(), destination, destinationRect);
+		Paste(GetLogicalSize().ToRectangle(), destination, destinationRect);
 	}
 
 	void Image::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const

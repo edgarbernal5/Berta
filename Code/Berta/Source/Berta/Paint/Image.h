@@ -20,9 +20,14 @@ namespace Berta
 	public:
 		virtual ~AbstractImageAttributes() = default;
 
-		virtual Size GetSize() const = 0;
+		// Devuelve el tamaño lógico (a 96 DPI) para el sistema de layout.
+		virtual Size GetLogicalSize() const = 0;
+		
 		virtual void Open(const std::wstring& filepath) = 0;
 		virtual void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) = 0;
+		
+		virtual void AddVariant(float scaleFactor, const std::wstring& filepath) = 0;
+		virtual void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) = 0;
 		
 		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
 		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
@@ -49,10 +54,13 @@ namespace Berta
 		Image& operator=(Image&&) noexcept = default;
 		bool operator==(const Image& other) const;
 
-		Size GetSize() const { return m_attributes->GetSize(); }
+		Size GetLogicalSize() const { return m_attributes->GetLogicalSize(); }
 
 		void Open(const std::wstring& filepath);
 		void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels);
+		
+		void AddVariant(float scaleFactor, const std::wstring& filepath);
+		void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels);
 		
 		void Paste(Graphics& destination, const Point& positionDestination) const;
 		void Paste(Graphics& destination, const Rectangle& destinationRect) const;

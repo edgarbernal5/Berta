@@ -364,7 +364,7 @@ namespace Berta
 								int iconY = cache.bounds.Y + (static_cast<int>(cache.bounds.Height) - static_cast<int>(iconSize)) / 2;
 								
 								Rectangle destRect { iconX, iconY, iconSize, iconSize };
-								Rectangle srcRect = itemData.image.GetSize().ToRectangle();
+								Rectangle srcRect = itemData.image.GetLogicalSize().ToRectangle();
 								
 								itemData.image.Paste(srcRect, graphics, destRect);
 							}

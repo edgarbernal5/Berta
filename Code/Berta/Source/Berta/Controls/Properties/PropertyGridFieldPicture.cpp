@@ -24,7 +24,7 @@ namespace Berta
             return;
         }
         
-        auto imageSize = m_previewImage.GetSize();
+        auto imageSize = m_previewImage.GetLogicalSize();
        
         float scaleX = static_cast<float>(frameSize) / imageSize.Width;
         float scaleY = static_cast<float>(frameSize) / imageSize.Height;

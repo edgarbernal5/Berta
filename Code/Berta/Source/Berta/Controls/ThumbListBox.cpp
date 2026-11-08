@@ -114,7 +114,7 @@ namespace Berta
 			Image cachedImage;
 			if (item.m_hasThumbnail && m_module.m_imageCache.TryGet(item.m_id, cachedImage))
 			{
-				Size imageSize = window->ToScale(cachedImage.GetSize());
+				Size imageSize = window->ToScale(cachedImage.GetLogicalSize());
 				Rectangle thumbnailImageRect;
 				if (imageSize.Width > 0 && imageSize.Height > 0)
 				{

@@ -360,6 +360,9 @@
     <ClInclude Include="Source\Berta\GUI\ThemeManager.h">
       <Filter>Source\Berta\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Images\SvgImageAttributes.h">
+      <Filter>Source\Berta\Paint\Images</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -586,6 +589,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\GUI\ThemeManager.cpp">
       <Filter>Source\Berta\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Images\SvgImageAttributes.cpp">
+      <Filter>Source\Berta\Paint\Images</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

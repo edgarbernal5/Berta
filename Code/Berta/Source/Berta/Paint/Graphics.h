@@ -100,6 +100,7 @@ namespace Berta
 		void FillRoundedRectangle(const Rectangle& rectangle, const CornerRadii& radii, const Color& color);
 		
 		uint32_t GetDpi() const { return m_dpi; }
+		float GetDpiScale() const { return static_cast<float>(m_dpi) / BT_APPLICATION_DPI; }
 		const Size& GetSize() const { return m_size; }
 		
 		const Size& GetTextExtent() const { return m_attributes->m_textExtent; }

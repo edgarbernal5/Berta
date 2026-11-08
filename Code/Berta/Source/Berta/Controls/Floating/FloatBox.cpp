@@ -66,7 +66,7 @@ namespace Berta
 					auto& icon = m_interactionData->m_items[offsetIndex].m_icon;
 					if (icon)
 					{
-						auto iconSourceSize = icon.GetSize();
+						auto iconSourceSize = icon.GetLogicalSize();
 						auto positionY = ((itemHeight - iconSize) >> 1) + static_cast<int>(i * itemHeight);
 						icon.Paste(iconSourceSize.ToRectangle(), graphics, { 3, (int)positionY, iconSize , iconSize });
 					}

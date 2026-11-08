@@ -23,16 +23,19 @@ int main()
 		buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
 	});
 	
-	Berta::Image image1("..\\..\\Resources\\Icons\\Icono1_16.png");
+	Berta::Image imageWithVariants("..\\..\\Resources\\Icons\\Icono1_16.png");
+	imageWithVariants.AddVariant(1.25f, L"..\\..\\Resources\\Icons\\Icono1_32.png");
 	
-	Berta::Button buttonWithIcon(form, { 50,190,32,32 }, image1);
+	Berta::Image imageWithoutVariants("..\\..\\Resources\\Icons\\Icono1_16.png");
 	
-	Berta::Button buttonWithIconAndText(form, { 85,190,80,32 },"Center", image1);
+	Berta::Button buttonWithIcon(form, { 50,190,32,32 }, imageWithoutVariants);
 	
-	Berta::Button buttonWithIconAndText2(form, { 170,190,80,60 },"Bottom", image1);
+	Berta::Button buttonWithIconAndText(form, { 85,190,80,32 },"Center", imageWithVariants);
+	
+	Berta::Button buttonWithIconAndText2(form, { 170,190,80,60 },"Bottom", imageWithVariants);
 	buttonWithIconAndText2.SetContentVerticalAlign(Berta::VerticalAlign::Bottom);
 	
-	Berta::Button buttonWithIconAndText3(form, { 260,190,80,60 },"Right", image1);
+	Berta::Button buttonWithIconAndText3(form, { 260,190,80,60 },"Right", imageWithVariants);
 	buttonWithIconAndText3.SetContentHorizontalAlign(Berta::HorizontalAlign::Right);
 	
 	form.Show();

@@ -26,14 +26,16 @@ namespace Berta
 		ReleaseNativeObjects();
 	}
 
-	Size BasicImageAttributes::GetSize() const
+	Size BasicImageAttributes::GetLogicalSize() const
 	{
-		return m_size;
+		return m_logicalSize;
 	}
 
 	void BasicImageAttributes::Open(const std::wstring& filepath)
 	{
-		auto filepathUtf = StringUtils::WideToUTF8(filepath);
+		AddVariant(1.0f, filepath);
+		
+		/*auto filepathUtf = StringUtils::WideToUTF8(filepath);
 		int width, height, channels;
 		unsigned char* imageData = stbi_load(filepathUtf.c_str(), &width, &height, &channels, 0); // Don't force RGBA
 		if (imageData == nullptr)
@@ -79,12 +81,14 @@ namespace Berta
 		m_colorBuffer.SetAlphaChannel(m_hasTransparency);
 		m_colorBuffer.Copy(imageData, m_size.Width, m_size.Height, bitsPerPixel, m_size.Width * channels);
 
-		stbi_image_free(imageData);
+		stbi_image_free(imageData);*/
 	}
 
 	void BasicImageAttributes::OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
 	{
-		m_size = { width, height };
+		AddVariantFromMemory(1.0f, pixels, width, height, channels);
+		
+		/*m_size = { width, height };
 		m_channels = channels;
 		m_hasTransparency = (channels == 4);
 		uint32_t bitsPerPixel = channels * 8;
@@ -112,6 +116,62 @@ namespace Berta
 				buffer[i + 2] = static_cast<uint8_t>(r * alpha);
 				// El canal alfa (buffer[i + 3]) se mantiene igual
 			}
+		}*/
+	}
+
+	void BasicImageAttributes::AddVariant(float scaleFactor, const std::wstring& filepath)
+	{
+		// Convertir std::wstring a std::string para stbi_load
+		std::string path(filepath.begin(), filepath.end());
+		int width, height, channels;
+		unsigned char* imageData = stbi_load(path.c_str(), &width, &height, &channels, 0);
+            
+		if (imageData)
+		{
+			AddVariantFromMemory(scaleFactor, imageData, width, height, channels);
+			stbi_image_free(imageData);
+		}
+		else
+		{
+			BT_CORE_ERROR << "Failed to load variant: " << path << std::endl;
+		}
+	}
+
+	void BasicImageAttributes::AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
+	{
+		ColorBuffer buffer;
+		buffer.Create({ width, height });
+		buffer.SetAlphaChannel(channels == 4);
+		buffer.Copy(pixels, width, height, channels * 8, width * channels);
+
+		// Swizzle a BGRA y Premultiplicación Alfa en una pasada[cite: 1]
+		if (channels == 4)
+		{
+			auto totalBytes = static_cast<size_t>(width * height * 4);
+			auto* bufPtr = reinterpret_cast<uint8_t*>(buffer.m_storage->m_buffer);
+			for (size_t i = 0; i < totalBytes; i += 4)
+			{
+				uint8_t r = bufPtr[i];
+				uint8_t g = bufPtr[i + 1];
+				uint8_t b = bufPtr[i + 2];
+				uint8_t a = bufPtr[i + 3];
+
+				float alpha = a / 255.0f;
+				bufPtr[i]     = static_cast<uint8_t>(b * alpha);
+				bufPtr[i + 1] = static_cast<uint8_t>(g * alpha);
+				bufPtr[i + 2] = static_cast<uint8_t>(r * alpha);
+			}
+		}
+
+		m_variants[scaleFactor] = std::move(buffer);
+
+		// La escala 1.0f dicta el tamaño lógico oficial para el Layout
+		if (scaleFactor == 1.0f || m_logicalSize.Width == 0)
+		{
+			m_logicalSize = { 
+				static_cast<uint32_t>((float)width / scaleFactor), 
+				static_cast<uint32_t>((float)height / scaleFactor) 
+			};
 		}
 	}
 
@@ -121,25 +181,33 @@ namespace Berta
 
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
 	{
-		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), destinationRect);
-
 		Rectangle validDestRect, validSourceDest;
-		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
+		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetLogicalSize(), destinationRect, destination.GetSize(), validSourceDest, validDestRect))
+		{
+			return;
+		}
+		
+		float currentScale = destination.GetDpiScale(); 
+		auto [actualScale, colorBuffer] = GetBestBuffer(currentScale);
+		if (!colorBuffer)
 		{
 			return;
 		}
 
 		auto handle = destination.GetHandle();
-		HWND currentHwnd = handle->NativeHandle.Handle;
+		HWND hwnd = handle->NativeHandle.Handle;
 		
-		auto& bitmapPtr = m_bitmapCache[currentHwnd];
-		if (!bitmapPtr)
+		auto& cacheEntry = m_bitmapCache[hwnd];
+		if (!cacheEntry.Bitmap || cacheEntry.CachedScale != actualScale)
 		{
+			cacheEntry.Bitmap.Reset();
+			Size actualSize = colorBuffer->GetSize();
+			
 			HRESULT hr = handle->RenderTarget->CreateBitmap
 			(
-				D2D1::SizeU(m_size.Width, m_size.Height),
-				static_cast<void*>(m_colorBuffer.m_storage->m_buffer),
-				m_colorBuffer.m_storage->m_bytesPerLine,
+				D2D1::SizeU(actualSize.Width, actualSize.Height),
+				static_cast<void*>(colorBuffer->m_storage->m_buffer),
+				colorBuffer->m_storage->m_bytesPerLine,
 				D2D1::BitmapProperties
 				(
 					D2D1::PixelFormat
@@ -148,7 +216,7 @@ namespace Berta
 						D2D1_ALPHA_MODE_PREMULTIPLIED
 					)
 				),
-				&bitmapPtr
+				&cacheEntry.Bitmap
 			);
 
 			if (FAILED(hr))
@@ -156,41 +224,71 @@ namespace Berta
 				BT_CORE_ERROR << "Failed to create bitmap: " << std::endl;
 				return;
 			}
+			cacheEntry.CachedScale = actualScale;
 		}
+		
+		// 1. Calculamos el ratio entre los píxeles físicos en VRAM y el tamaño lógico.
+		// Esto garantiza que el recorte (crop) extraiga los píxeles correctos de la imagen HD.
+		float scaleX = static_cast<float>(colorBuffer->GetSize().Width) / static_cast<float>(m_logicalSize.Width);
+		float scaleY = static_cast<float>(colorBuffer->GetSize().Height) / static_cast<float>(m_logicalSize.Height);
 
+		// 2. Mapeamos el área de origen lógica a las coordenadas físicas de la textura
+		D2D1_RECT_F d2dSourceRect = D2D1::RectF(
+			static_cast<FLOAT>(validSourceDest.X * scaleX),
+			static_cast<FLOAT>(validSourceDest.Y * scaleY),
+			static_cast<FLOAT>((validSourceDest.X + validSourceDest.Width) * scaleX),
+			static_cast<FLOAT>((validSourceDest.Y + validSourceDest.Height) * scaleY)
+		);
+
+		// 3. El destino ya fue escalado a píxeles físicos por el layout del Control
+		D2D1_RECT_F d2dDestRect = D2D1::RectF(
+			static_cast<FLOAT>(validDestRect.X),
+			static_cast<FLOAT>(validDestRect.Y),
+			static_cast<FLOAT>(validDestRect.X + validDestRect.Width),
+			static_cast<FLOAT>(validDestRect.Y + validDestRect.Height)
+		);
+
+		// 4. Dibujar a través del RenderTarget
 		handle->RenderTarget->DrawBitmap
 		(
-			bitmapPtr.Get(),
-			validDestRect,
+			cacheEntry.Bitmap.Get(), // O m_bitmapCache[hwnd].Get() si aplicaste el refactor AAA
+			&d2dDestRect,
 			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			validSourceDest
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, // Lineal es ideal para el downsampling en íconos
+			&d2dSourceRect
 		);
 	}
 
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
 	{
-		//m_colorBuffer.Paste(sourceRect, destination.GetHandle(), positionDestination);
-
 		auto destinationSize = destination.GetSize();
 		Rectangle destinationRect {positionDestination.X, positionDestination.Y, destinationSize.Width, destinationSize.Height};
 		Rectangle validDestRect, validSourceDest;
-		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetSize(), destinationRect, destinationSize, validSourceDest, validDestRect))
+		if (!LayoutUtils::GetIntersectionRect(sourceRect, GetLogicalSize(), destinationRect, destinationSize, validSourceDest, validDestRect))
+		{
+			return;
+		}
+
+		float currentScale = destination.GetDpiScale(); 
+		auto [actualScale, colorBuffer] = GetBestBuffer(currentScale);
+		if (!colorBuffer)
 		{
 			return;
 		}
 
 		auto handle = destination.GetHandle();
-		HWND currentHwnd = handle->NativeHandle.Handle;
+		HWND hwnd = handle->NativeHandle.Handle;
 		
-		auto& bitmapPtr = m_bitmapCache[currentHwnd];
-		if (!bitmapPtr)
+		auto& cacheEntry = m_bitmapCache[hwnd];
+		if (!cacheEntry.Bitmap || cacheEntry.CachedScale != actualScale)
 		{
+			cacheEntry.Bitmap.Reset();
+			Size actualSize = colorBuffer->GetSize();
 			HRESULT hr = handle->RenderTarget->CreateBitmap
 			(
-				D2D1::SizeU(m_size.Width, m_size.Height),
-				static_cast<void*>(m_colorBuffer.m_storage->m_buffer),
-				m_colorBuffer.m_storage->m_bytesPerLine,
+				D2D1::SizeU(actualSize.Width, actualSize.Height),
+				static_cast<void*>(colorBuffer->m_storage->m_buffer),
+				colorBuffer->m_storage->m_bytesPerLine,
 				D2D1::BitmapProperties
 				(
 					D2D1::PixelFormat
@@ -199,7 +297,7 @@ namespace Berta
 						D2D1_ALPHA_MODE_PREMULTIPLIED
 					)
 				),
-				&bitmapPtr
+				&cacheEntry.Bitmap
 			);
 
 			if (FAILED(hr))
@@ -207,15 +305,38 @@ namespace Berta
 				BT_CORE_ERROR << "Failed to create bitmap: " << std::endl;
 				return;
 			}
+			cacheEntry.CachedScale = actualScale;
 		}
 
+		// 1. Calculamos el ratio entre los píxeles físicos en VRAM y el tamaño lógico.
+		// Esto garantiza que el recorte (crop) extraiga los píxeles correctos de la imagen HD.
+		float scaleX = static_cast<float>(colorBuffer->GetSize().Width) / static_cast<float>(m_logicalSize.Width);
+		float scaleY = static_cast<float>(colorBuffer->GetSize().Height) / static_cast<float>(m_logicalSize.Height);
+
+		// 2. Mapeamos el área de origen lógica a las coordenadas físicas de la textura
+		D2D1_RECT_F d2dSourceRect = D2D1::RectF(
+			static_cast<FLOAT>(validSourceDest.X * scaleX),
+			static_cast<FLOAT>(validSourceDest.Y * scaleY),
+			static_cast<FLOAT>((validSourceDest.X + validSourceDest.Width) * scaleX),
+			static_cast<FLOAT>((validSourceDest.Y + validSourceDest.Height) * scaleY)
+		);
+
+		// 3. El destino ya fue escalado a píxeles físicos por el layout del Control
+		D2D1_RECT_F d2dDestRect = D2D1::RectF(
+			static_cast<FLOAT>(validDestRect.X),
+			static_cast<FLOAT>(validDestRect.Y),
+			static_cast<FLOAT>(validDestRect.X + validDestRect.Width),
+			static_cast<FLOAT>(validDestRect.Y + validDestRect.Height)
+		);
+
+		// 4. Dibujar a través del RenderTarget
 		handle->RenderTarget->DrawBitmap
 		(
-			bitmapPtr.Get(),
-			validDestRect,
+			cacheEntry.Bitmap.Get(), // O m_bitmapCache[hwnd].Get() si aplicaste el refactor AAA
+			&d2dDestRect,
 			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			validSourceDest
+			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, // Lineal es ideal para el downsampling en íconos
+			&d2dSourceRect
 		);
 	}
 
@@ -224,5 +345,18 @@ namespace Berta
 #if BT_PLATFORM_WINDOWS
 		m_bitmapCache.clear();
 #endif
+	}
+
+	std::pair<float, const ColorBuffer*> BasicImageAttributes::GetBestBuffer(float targetScale) const
+	{
+		if (m_variants.empty()) return { 1.0f, nullptr };
+
+		auto it = m_variants.lower_bound(targetScale);
+		if (it != m_variants.end())
+		{
+			return { it->first, &(it->second) };
+		}
+		// Si el DPI pide más resolución de la que tenemos, devolvemos la variante más alta
+		return { m_variants.rbegin()->first, &(m_variants.rbegin()->second) };
 	}
 }

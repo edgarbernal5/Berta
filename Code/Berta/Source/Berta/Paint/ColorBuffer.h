@@ -49,6 +49,8 @@ namespace Berta
 			uint32_t m_bytesPerLine{ 0 };
 			bool m_hasAlphaChannel{ false };
 		};
+		
+		Size GetSize() const;
 
 		std::unique_ptr<Storage> m_storage;
 	};

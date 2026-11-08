@@ -66,7 +66,7 @@ namespace Berta
 #endif
 	}
 
-	Size IconImageAttributes::GetSize() const
+	Size IconImageAttributes::GetLogicalSize() const
 	{
 		return Size();
 	}
@@ -92,6 +92,15 @@ namespace Berta
 	}
 
 	void IconImageAttributes::OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
+	{
+	}
+
+	void IconImageAttributes::AddVariant(float scaleFactor, const std::wstring& filepath)
+	{
+	}
+
+	void IconImageAttributes::AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width,
+		uint32_t height, int channels)
 	{
 	}
 

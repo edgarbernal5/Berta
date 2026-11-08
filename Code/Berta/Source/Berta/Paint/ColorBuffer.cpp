@@ -140,4 +140,9 @@ namespace Berta
 
         }
     }
+
+    Size ColorBuffer::GetSize() const
+    {
+        return m_storage->m_size;
+    }
 }
