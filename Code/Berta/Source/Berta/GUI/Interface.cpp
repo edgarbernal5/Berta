@@ -251,6 +251,17 @@ namespace Berta::GUI
 		return { position.X, position.Y, window->ClientSize.Width, window->ClientSize.Height };
 	}
 
+	void SetWindowTooltip(Window* window, const std::wstring& text)
+	{
+		auto& windowManager = Foundation::GetInstance().GetWindowManager();
+		if (!windowManager.Exists(window))
+		{
+			return;
+		}
+		
+		window->TooltipText = text;
+	}
+
 	void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive)
 	{
 		auto& windowManager = Foundation::GetInstance().GetWindowManager();

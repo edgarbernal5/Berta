@@ -87,6 +87,9 @@ namespace Berta
 		Color SelectionHighlightColor{ Colors::Light_SelectionHighlightColor };
 		Color SelectionBorderHighlightColor{ Colors::Light_SelectionBorderHighlightColor };
 
+		Color TooltipBackground { 239, 228, 176, 255 };
+		Color TooltipBorder { 48, 46, 36, 255 };
+		
 		uint32_t CheckboxHeight = 12;
 		uint32_t ScrollBarSize = 18;
 		uint32_t SmallIconSize = 16;

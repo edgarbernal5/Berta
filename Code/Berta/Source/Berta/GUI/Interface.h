@@ -39,6 +39,8 @@ namespace Berta
 		bool MoveWindow(Window* window, const Point& newPosition, bool forceRepaint = false);
 		Rectangle AreaWindow(Window* window);
 
+		void SetWindowTooltip(Window* window, const std::wstring& text);
+		
 		void MakeWindowActive(Window* window, bool active, Window* makeTargetWhenInactive);
 		void FocusWindow(Window* window);
 		

@@ -16,6 +16,8 @@
 
 #include <functional>
 
+#include "Berta/GUI/TooltipManager.h"
+
 namespace Berta
 {
 	class Logger;
@@ -23,8 +25,8 @@ namespace Berta
 
 	struct ArgIdleTick
 	{
-		
 	};
+	
 	class Foundation
 	{
 	public:
@@ -44,6 +46,8 @@ namespace Berta
 
 		WindowManager& GetWindowManager() { return m_windowManager; }
 		MenuManager& GetMenuManager() { return m_menuManager; }
+		TooltipManager& GetTooltipManager() { return m_tooltipManager; }
+		
 		void ProcessMessages(const std::function<bool()>& keepRunning = nullptr);
 
 		template <typename TArgument>
@@ -78,6 +82,7 @@ namespace Berta
 		Event<ArgIdleTick> m_idleTickEvent;
 		WindowManager m_windowManager;
 		MenuManager m_menuManager;
+		TooltipManager m_tooltipManager;
 	};
 
 	template<typename TArgument>

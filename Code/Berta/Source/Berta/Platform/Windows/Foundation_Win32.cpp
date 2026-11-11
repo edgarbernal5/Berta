@@ -399,6 +399,7 @@ namespace Berta
 
 		bool wasHandled = false;
 		auto& menuManager = foundation.GetMenuManager();
+		auto& tooltipManager = foundation.GetTooltipManager();
 		auto& trackEvent = rootWindowData->TrackEvent;
 		
 		// Usamos REFERENCIAS a la fuente de la verdad.
@@ -722,6 +723,7 @@ namespace Berta
 		case WM_RBUTTONDOWN:
 			{
 				wasHandled = true;
+				tooltipManager.HideTooltip();
 				int x = GET_X_LPARAM(lParam);
 				int y = GET_Y_LPARAM(lParam);
 
@@ -764,6 +766,7 @@ namespace Berta
 					InitArgs(argMouseLeave, pointToClient - windowManager.GetWindowRootPosition(rootHoveredWindow), wParam);
 
 					foundation.ProcessEvents(rootHoveredWindow, &Renderer::MouseLeave, &ControlEvents::MouseLeave, argMouseLeave);
+					tooltipManager.OnMouseLeave();
 					rootHoveredWindow = nullptr;
 				}
 				
@@ -788,10 +791,13 @@ namespace Berta
 					if (rootHoveredWindow)
 					{
 						ArgMouse argMouseMove;
-						InitArgs(argMouseMove,position, wParam);
+						InitArgs(argMouseMove, position, wParam);
 
 						foundation.ProcessEvents(window, &Renderer::MouseMove, &ControlEvents::MouseMove, argMouseMove);
+						
+						tooltipManager.OnMouseMove(window, position, window->TooltipText);
 					}
+					
 					if (!rootWindowData->IsTracking && window->ClientSize.IsInside(position))
 					{
 						trackEvent.hwndTrack = hWnd;
@@ -858,6 +864,9 @@ namespace Berta
 			{
 				wasHandled = true;
 				rootWindowData->IsTracking = false;
+				
+				tooltipManager.OnMouseLeave();
+				
 				if (rootHoveredWindow && windowManager.Exists(rootHoveredWindow))
 				{
 					ArgMouse argMouseLeave;

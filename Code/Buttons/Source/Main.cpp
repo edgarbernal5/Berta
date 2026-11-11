@@ -22,6 +22,7 @@ int main()
 	{
 		buttonDisabled.SetEnabled(!buttonDisabled.GetEnabled());
 	});
+	button.SetTooltip(L"Click to enable/disable a button!");
 	
 	Berta::Image imageWithVariants("..\\..\\Resources\\Icons\\Icono1_16.png");
 	imageWithVariants.AddVariant(1.25f, L"..\\..\\Resources\\Icons\\Icono1_32.png");

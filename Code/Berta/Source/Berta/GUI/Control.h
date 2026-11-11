@@ -49,6 +49,8 @@ namespace Berta
 		Size GetSize() const;
 		void SetSize(const Size& newSize);
 
+		void SetTooltip(const std::wstring& tooltip);
+		
 		bool IsVisible() const;
 
 		void Show() const;

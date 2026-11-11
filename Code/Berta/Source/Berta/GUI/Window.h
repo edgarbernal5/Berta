@@ -92,6 +92,7 @@ namespace Berta
 			bool Borderless : 1;
 		} Flags { false };
 
+		std::wstring TooltipText;
 		int DeferredCounter{ 0 };
 		DrawBatchActivator* DrawBatch{ nullptr };
 

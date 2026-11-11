@@ -38,9 +38,8 @@ namespace Berta
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;
 		
 	private:
-		void ReleaseNativeObjects();
-
 		std::pair<float, const ColorBuffer*> GetBestBuffer(float targetScale) const;
+		void ReleaseNativeObjects();
 		
 #if BT_PLATFORM_WINDOWS
 		struct BitmapCacheEntry

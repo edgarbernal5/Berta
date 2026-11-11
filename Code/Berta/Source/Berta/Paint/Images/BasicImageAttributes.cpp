@@ -194,6 +194,7 @@ namespace Berta
 			return;
 		}
 
+#if BT_PLATFORM_WINDOWS
 		auto handle = destination.GetHandle();
 		HWND hwnd = handle->NativeHandle.Handle;
 		
@@ -252,6 +253,7 @@ namespace Berta
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			&d2dSourceRect
 		);
+#endif
 	}
 
 	void BasicImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
@@ -271,6 +273,7 @@ namespace Berta
 			return;
 		}
 
+#if BT_PLATFORM_WINDOWS
 		auto handle = destination.GetHandle();
 		HWND hwnd = handle->NativeHandle.Handle;
 		
@@ -328,12 +331,6 @@ namespace Berta
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			&d2dSourceRect
 		);
-	}
-
-	void BasicImageAttributes::ReleaseNativeObjects()
-	{
-#if BT_PLATFORM_WINDOWS
-		m_bitmapCache.clear();
 #endif
 	}
 
@@ -351,5 +348,12 @@ namespace Berta
 		}
 
 		return { m_variants.rbegin()->first, &(m_variants.rbegin()->second) };
+	}
+
+	void BasicImageAttributes::ReleaseNativeObjects()
+	{
+#if BT_PLATFORM_WINDOWS
+		m_bitmapCache.clear();
+#endif
 	}
 }

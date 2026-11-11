@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "Berta/Core/Foundation.h"
 #include "Berta/GUI/Window.h"
 
 namespace Berta
@@ -90,6 +91,11 @@ namespace Berta
 	void ControlBase::SetSize(const Size& newSize)
 	{
 		DoOnSize(newSize);
+	}
+
+	void ControlBase::SetTooltip(const std::wstring& tooltip)
+	{
+		GUI::SetWindowTooltip(m_handle, tooltip);
 	}
 
 	bool ControlBase::IsVisible() const
@@ -239,6 +245,8 @@ namespace Berta
 
 	void ControlBase::NotifyDestroy()
 	{
+		Foundation::GetInstance().GetTooltipManager().OnControlDestroyed(this);
+		
 		m_handle = nullptr;
 		DoOnNotifyDestroy();
 	}

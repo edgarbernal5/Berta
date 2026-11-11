@@ -83,23 +83,19 @@ namespace Berta
 
 			HINSTANCE hInstance = GetModuleInstance();
 			
-			// 1. Definimos exactamente cuánto queremos que mida el área cliente
 			::RECT windowRect = { 
 				windowPosition.x, 
 				windowPosition.y, 
 				windowPosition.x + static_cast<int>(rectangle.Width), 
 				windowPosition.y + static_cast<int>(rectangle.Height) 
 			};
-
-			// 2. Le pedimos a Windows que expanda ese rectángulo para incluir los bordes/título
-			// basándose en el DPI del monitor donde va a aparecer.
+			
 			UINT dpi = GetNativeWindowDPI(parentHandle);
 			::AdjustWindowRectExForDpi(&windowRect, style, FALSE, styleEx, dpi);
 
 			int finalWidth = windowRect.right - windowRect.left;
 			int finalHeight = windowRect.bottom - windowRect.top;
 			
-			// 3. ¡Ahora sí creamos la ventana con su tamaño perfecto desde el frame 0!
 			HWND hwnd = ::CreateWindowEx(
 				styleEx,
 				isNested ? L"BertaNestedInternalClass" : L"BertaInternalClass",
@@ -121,18 +117,16 @@ namespace Berta
 
 				return {};
 			}
-
-			// Y para devolver los grosores del borde en el NativeWindowResult:
+			
 			auto borderWidth = finalWidth - rectangle.Width;
 			auto borderHeight = finalHeight - rectangle.Height;
-
-
+			
 			return NativeWindowResult
 			{
 				{ hwnd },
-				{ static_cast<uint32_t>(rectangle.Width), static_cast<uint32_t>(rectangle.Height) },
+				{ rectangle.Width, rectangle.Height },
 				{ borderWidth, borderHeight},
-				GetNativeWindowDPI(parentHandle)
+				dpi
 			};
 #else
 			return {};
@@ -489,6 +483,32 @@ namespace Berta
 							static_cast<uint32_t>(rcWork.bottom - rcWork.top)
 						};
 					}
+				}
+			}
+			return {};
+#else
+			return {};
+#endif
+		}
+
+		Rectangle GetMonitorWorkArea(const Point& point)
+		{
+#ifdef BT_PLATFORM_WINDOWS
+			POINT pt = { point.X, point.Y };
+			HMONITOR hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+			if (hMonitor)
+			{
+				MONITORINFO monitorInfo{};
+				monitorInfo.cbSize = sizeof(MONITORINFO);
+				if (::GetMonitorInfo(hMonitor, &monitorInfo))
+				{
+					const auto& rcWork = monitorInfo.rcWork;
+					return Rectangle{
+						rcWork.left,
+						rcWork.top,
+						static_cast<uint32_t>(rcWork.right - rcWork.left),
+						static_cast<uint32_t>(rcWork.bottom - rcWork.top)
+					};
 				}
 			}
 			return {};

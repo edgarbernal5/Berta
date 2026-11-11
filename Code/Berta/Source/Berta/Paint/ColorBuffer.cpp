@@ -17,7 +17,9 @@ namespace Berta
     {
         m_storage.reset();
         if (!paintHandle)
+        {
             return;
+        }
 
         m_storage = std::make_unique<ColorBuffer::Storage>(paintHandle, targetRect);
     }
@@ -40,12 +42,16 @@ namespace Berta
     void ColorBuffer::Paste(const Rectangle& sourceRect, PaintNativeHandle* destHandle, const Rectangle& destinationRect)
     {
         if (!destHandle || !m_storage)
+        {
             return;
+        }
 
         auto& storage = *m_storage;
         Rectangle validDestRect, validSourceDest;
         if (!LayoutUtils::GetIntersectionRect(sourceRect, storage.m_size, destinationRect, API::GetPaintHandleSize(destHandle), validSourceDest, validDestRect))
+        {
             return;
+        }
 
         ColorBuffer destBuffer;
         destBuffer.Attach(destHandle, validDestRect);
@@ -63,7 +69,9 @@ namespace Berta
     void ColorBuffer::Blend(const Rectangle& sourceRect, PaintNativeHandle* destHandle, const Point& destinationPos, double alpha)
     {
         if (!destHandle || !m_storage)
+        {
             return;
+        }
 
         auto& storage = *m_storage.get();
         Rectangle validDestRect, validSourceDest;
@@ -122,7 +130,9 @@ namespace Berta
     void ColorBuffer::Storage::Create()
     {
         if (m_size.IsEmpty())
+        {
             return;
+        }
 
         m_buffer = new ColorABGR[m_size.Width * m_size.Height];
     }

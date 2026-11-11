@@ -87,7 +87,7 @@ namespace Berta
 #endif
 		};
 
-		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& windowStyle, bool isNested);
+		NativeWindowResult CreateNativeWindow(NativeWindowHandle parentHandle, const Rectangle& rectangle, const FormStyle& formStyle, bool isNested);
 		void CaptionNativeWindow(NativeWindowHandle nativeHandle, const std::wstring& caption);
 		std::wstring GetCaptionNativeWindow(NativeWindowHandle nativeHandle);
 		void DestroyNativeWindow(NativeWindowHandle nativeHandle);
@@ -117,6 +117,7 @@ namespace Berta
 		
 		Size GetPrimaryMonitorSize();
 		Rectangle GetMonitorWorkArea(NativeWindowHandle nativeHandle);
+		Rectangle GetMonitorWorkArea(const Point& point);
 		
 		Point GetScreenMousePosition();
 		Point GetPointClientToScreen(NativeWindowHandle nativeHandle, const Point& point);

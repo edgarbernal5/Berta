@@ -70,7 +70,7 @@ namespace Berta
 		}
 
 		Rectangle finalRect{ rectangle };
-		if (isUnscaleRect && parent && parent->DPI != BT_APPLICATION_DPI)
+		if (isUnscaleRect && parent && parent->DPI != static_cast<uint32_t>(BT_APPLICATION_DPI))
 		{
 			float scalingFactor = LayoutUtils::CalculateDPIScaleFactor(parent->DPI);
 			finalRect.X = static_cast<int>(finalRect.X * scalingFactor);
