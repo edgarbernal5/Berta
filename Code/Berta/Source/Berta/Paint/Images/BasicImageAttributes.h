@@ -29,25 +29,29 @@ namespace Berta
 		Size GetLogicalSize() const override;
 		void Open(const std::wstring& filepath) override;
 		void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
+		void UpdateFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels, uint32_t stride);
 		
 		void AddVariant(float scaleFactor, const std::wstring& filepath) override;
 		void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
 		
-		void Paste(Graphics& destination, const Point& positionDestination) override;
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
-		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;
+		void Paste(Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) override;
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options = {}) override;
+		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) override;
 		
 	private:
+		void DrawInternal(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options);
 		std::pair<float, const ColorBuffer*> GetBestBuffer(float targetScale) const;
 		void ReleaseNativeObjects();
-		
+
 #if BT_PLATFORM_WINDOWS
 		struct BitmapCacheEntry
 		{
 			Microsoft::WRL::ComPtr<ID2D1Bitmap> Bitmap;
 			float CachedScale{ 0.0f };
+			Size CachedSize{};
+			bool IsDirty{ true };
 		};
-		
+
 		std::unordered_map<HWND, BitmapCacheEntry> m_bitmapCache;
 #endif
 		std::map<float, ColorBuffer> m_variants;

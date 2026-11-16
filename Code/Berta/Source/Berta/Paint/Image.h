@@ -7,6 +7,8 @@
 #ifndef BT_IMAGE_HEADER
 #define BT_IMAGE_HEADER
 
+#include <functional>
+
 #include "Berta/Core/BasicTypes.h"
 #include "Berta/Core/Base.h"
 #include "Berta/Paint/ColorBuffer.h"
@@ -14,7 +16,37 @@
 namespace Berta
 {
 	class Graphics;
+	
+	enum class TextureFilterMode : uint8_t
+	{
+		Linear = 0,
+		NearestNeighbor // Inspección de téxeles sin suavizado al hacer zoom
+	};
 
+	enum class TextureAlphaMode : uint8_t
+	{
+		Ignore = 0,     // Recomendado para G-Buffer (evita transparencia si Alpha == 0.0f)
+		Premultiplied   // Para texturas con alfa premultiplicado real
+	};
+
+	struct ImageDrawOptions
+	{
+		TextureFilterMode Filter{ TextureFilterMode::Linear };
+	};
+
+	struct ExternalTextureDesc
+	{
+		void* NativeHandle{ nullptr }; // Windows: IDXGISurface* (D3D11On12) | Futuro Vulkan: VkImage/VkImageView
+		uint32_t Width{ 0 };
+		uint32_t Height{ 0 };
+		float DpiScale{ 1.0f };
+		TextureAlphaMode AlphaMode{ TextureAlphaMode::Ignore };
+
+		// Hooks de sincronización con el motor (ej. AcquireWrappedResources / ReleaseWrappedResources + Flush)
+		std::function<void()> OnBeforeDraw;
+		std::function<void()> OnAfterDraw;
+	};
+	
 	class AbstractImageAttributes
 	{
 	public:
@@ -23,15 +55,15 @@ namespace Berta
 		// Devuelve el tamaño lógico (a 96 DPI) para el sistema de layout.
 		virtual Size GetLogicalSize() const = 0;
 		
-		virtual void Open(const std::wstring& filepath) = 0;
-		virtual void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) = 0;
+		virtual void Open(const std::wstring& filepath) {}
+		virtual void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels) {}
 		
-		virtual void AddVariant(float scaleFactor, const std::wstring& filepath) = 0;
-		virtual void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) = 0;
+		virtual void AddVariant(float scaleFactor, const std::wstring& filepath) {}
+		virtual void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) {}
 		
-		virtual void Paste(Graphics& destination, const Point& positionDestination) = 0;
-		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) = 0;
-		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) = 0;
+		virtual void Paste(Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) = 0;
+		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options = {}) = 0;
+		virtual void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) = 0;
 
 	protected:
 		ColorBuffer m_colorBuffer;
@@ -47,7 +79,7 @@ namespace Berta
 		Image(const Image& other) = default;
 		Image(Image&& other) noexcept = default;
 		~Image() = default;
-
+		
 		operator bool() const;
 
 		Image& operator=(const Image& rhs) = default;
@@ -58,6 +90,8 @@ namespace Berta
 
 		void Open(const std::wstring& filepath);
 		void OpenFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels);
+		void UpdateFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels, uint32_t stride = 0);
+		void UpdateExternalTexture(const ExternalTextureDesc& desc);
 		
 		void AddVariant(float scaleFactor, const std::wstring& filepath);
 		void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels);
@@ -66,7 +100,8 @@ namespace Berta
 		void Paste(Graphics& destination, const Rectangle& destinationRect) const;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) const;
 		void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) const;
-
+		
+		static Image FromExternalTexture(const ExternalTextureDesc& desc);
 	private:
 		std::shared_ptr<AbstractImageAttributes> m_attributes;
 	};

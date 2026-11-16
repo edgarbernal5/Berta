@@ -24,9 +24,9 @@ namespace Berta
         void AddVariant(float scaleFactor, const std::wstring& filepath) override;
         void AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels) override;
 		
-        void Paste(Graphics& destination, const Point& positionDestination) override;
-        void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect) override;
-        void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination) override;
+        void Paste(Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) override;
+        void Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options = {}) override;
+        void Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options = {}) override;
 		
     private:
 

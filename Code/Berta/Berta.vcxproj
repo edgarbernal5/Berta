@@ -241,6 +241,7 @@
     <ClInclude Include="Source\Berta\Core\Logger.h" />
     <ClInclude Include="Source\Berta\EntryPoint.h" />
     <ClInclude Include="Source\Berta\Paint\Image.h" />
+    <ClInclude Include="Source\Berta\Paint\Images\ExternalTextureAttributes.h" />
     <ClInclude Include="Source\Berta\Paint\Images\IconImageAttributes.h" />
     <ClInclude Include="Source\Berta\Paint\ColorBuffer.h" />
     <ClInclude Include="Source\Berta\Paint\Images\SvgImageAttributes.h" />
@@ -319,6 +320,7 @@
     <ClCompile Include="Source\Berta\GUI\Interface.cpp" />
     <ClCompile Include="Source\Berta\Core\Foundation.cpp" />
     <ClCompile Include="Source\Berta\Paint\Image.cpp" />
+    <ClCompile Include="Source\Berta\Paint\Images\ExternalTextureAttributes.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\IconImageAttributes.cpp" />
     <ClCompile Include="Source\Berta\Paint\ColorBuffer.cpp" />
     <ClCompile Include="Source\Berta\Paint\Images\SvgImageAttributes.cpp" />

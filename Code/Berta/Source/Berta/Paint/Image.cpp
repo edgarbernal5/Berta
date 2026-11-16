@@ -10,6 +10,7 @@
 #include "Berta/Paint/Graphics.h"
 #include "Berta/Paint/Images/IconImageAttributes.h"
 #include "Berta/Paint/Images/BasicImageAttributes.h"
+#include "Images/ExternalTextureAttributes.h"
 #include "Images/SvgImageAttributes.h"
 
 namespace Berta
@@ -41,6 +42,7 @@ namespace Berta
 		{
 			return;
 		}
+		
 		std::string ext = path.extension().string();
 		std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch){ return std::tolower(ch); });
 		
@@ -68,6 +70,34 @@ namespace Berta
 	{
 		m_attributes = std::make_shared<BasicImageAttributes>();
 		m_attributes->OpenFromMemory(pixels, width, height, channels);
+	}
+
+	void Image::UpdateFromMemory(const uint8_t* pixels, uint32_t width, uint32_t height, int channels, uint32_t stride)
+	{
+		if (!m_attributes)
+		{
+			OpenFromMemory(pixels, width, height, channels);
+			return;
+		}
+
+		if (auto* basicAttrs = dynamic_cast<BasicImageAttributes*>(m_attributes.get()))
+		{
+			basicAttrs->UpdateFromMemory(pixels, width, height, channels, stride);
+		}
+	}
+
+	void Image::UpdateExternalTexture(const ExternalTextureDesc& desc)
+	{
+		if (!m_attributes)
+		{
+			m_attributes = std::make_shared<ExternalTextureAttributes>(desc);
+			return;
+		}
+
+		if (auto* externalAttrs = dynamic_cast<ExternalTextureAttributes*>(m_attributes.get()))
+		{
+			externalAttrs->Update(desc);
+		}
 	}
 
 	void Image::AddVariant(float scaleFactor, const std::wstring& filepath)
@@ -113,5 +143,12 @@ namespace Berta
 		}
 
 		m_attributes->Paste(sourceRect, destination, destinationRect);
+	}
+
+	Image Image::FromExternalTexture(const ExternalTextureDesc& desc)
+	{
+		Image img;
+		img.m_attributes = std::make_shared<ExternalTextureAttributes>(desc);
+		return img;
 	}
 }

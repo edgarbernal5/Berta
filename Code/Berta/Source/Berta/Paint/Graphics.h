@@ -34,7 +34,7 @@ namespace Berta
 	public:
 		friend class Image;
 		friend class BasicImageAttributes;
-
+		friend class ExternalTextureAttributes;
 	public:
 		Graphics();
 		Graphics(const Size& size, uint32_t dpi, API::RootPaintNativeHandle rootPaintHandle);

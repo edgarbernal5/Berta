@@ -38,15 +38,15 @@ namespace Berta
     {
     }
 
-    void SvgImageAttributes::Paste(Graphics& destination, const Point& positionDestination)
+    void SvgImageAttributes::Paste(Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options)
     {
     }
 
-    void SvgImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
+    void SvgImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options)
     {
     }
 
-    void SvgImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
+    void SvgImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options)
     {
     }
 }

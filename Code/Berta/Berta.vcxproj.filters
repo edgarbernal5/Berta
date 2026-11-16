@@ -369,6 +369,9 @@
     <ClInclude Include="Source\Berta\Controls\Tooltips\TooltipForm.h">
       <Filter>Source\Berta\Controls</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\Images\ExternalTextureAttributes.h">
+      <Filter>Source\Berta\Paint\Images</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">
@@ -604,6 +607,9 @@
     </ClCompile>
     <ClCompile Include="Source\Berta\Controls\Tooltips\TooltipForm.cpp">
       <Filter>Source\Berta\Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Berta\Paint\Images\ExternalTextureAttributes.cpp">
+      <Filter>Source\Berta\Paint\Images</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

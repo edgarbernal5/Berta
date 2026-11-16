@@ -104,7 +104,7 @@ namespace Berta
 	{
 	}
 
-	void IconImageAttributes::Paste(Graphics& destination, const Point& positionDestination)
+	void IconImageAttributes::Paste(Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options)
 	{
 		/*
 
@@ -127,11 +127,11 @@ namespace Berta
 		*/
 	}
 
-	void IconImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect)
+	void IconImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Rectangle& destinationRect, const ImageDrawOptions& options)
 	{
 	}
 
-	void IconImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination)
+	void IconImageAttributes::Paste(const Rectangle& sourceRect, Graphics& destination, const Point& positionDestination, const ImageDrawOptions& options)
 	{
 	}
 }
