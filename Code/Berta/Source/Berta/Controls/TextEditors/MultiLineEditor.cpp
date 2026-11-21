@@ -48,7 +48,7 @@ namespace Berta
 			{
 				deltaY = m_lastMousePosition.Y - viewport.Y; 
 			}
-			else if (m_lastMousePosition.Y > viewport.Y + viewport.Height)
+			else if (m_lastMousePosition.Y > viewport.Y + static_cast<int>(viewport.Height))
 			{
 				deltaY = m_lastMousePosition.Y - (viewport.Y + static_cast<int>(viewport.Height)); 
 			}
@@ -60,7 +60,7 @@ namespace Berta
 				{
 					deltaX = m_lastMousePosition.X - viewport.X;
 				} 
-				else if (m_lastMousePosition.X > viewport.X + viewport.Width)
+				else if (m_lastMousePosition.X > viewport.X + static_cast<int>(viewport.Width))
 				{
 					deltaX = m_lastMousePosition.X - (viewport.X + static_cast<int>(viewport.Width));
 				}

@@ -16,7 +16,6 @@ namespace Berta
             
             graphics.DrawString({paddingX, paddingY},m_owner->Title, m_owner->Appearance->Foreground);
             graphics.DrawRectangle(rect, m_owner->Appearance->TooltipBorder);
-            
         }
 
         void Reactor::DoOnInit()

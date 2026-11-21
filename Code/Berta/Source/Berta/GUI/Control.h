@@ -158,8 +158,7 @@ namespace Berta
 		Control()
 		{
 			// Validaciones en tiempo de compilación para garantizar el uso correcto de Berta
-			static_assert(std::is_same<CategoryTag, Category::ControlTag>::value, 
-				"Esta plantilla es exclusiva para controles hijos (Controlag)");
+			static_assert(std::is_same<CategoryTag, Category::ControlTag>::value, "This template is exclusively for child controls (ControlTag)");
 			
 			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must be derived from ControlReactor");
 			static_assert(std::is_base_of<ControlEvents, Events>::value, "Events must be derived from ControlEvents");
@@ -268,7 +267,7 @@ namespace Berta
 
 		Control()
 		{
-			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor debe heredar de ControlReactor");
+			static_assert(std::is_base_of<ControlReactor, Reactor>::value, "Reactor must inherit from ControlReactor");
 		}
 
 		~Control() override { GUI::DisposeWindow(m_handle); }

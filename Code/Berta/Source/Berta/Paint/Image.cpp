@@ -54,7 +54,7 @@ namespace Berta
 		{
 			m_attributes = std::make_shared<IconImageAttributes>();
 		}
-		else if (path.extension() == ".bmp" || path.extension() == ".jpeg" || path.extension() == ".png")
+		else if (path.extension() == ".bmp" || path.extension() == ".jpg" || path.extension() == ".jpeg" || path.extension() == ".png")
 		{
 			m_attributes = std::make_shared<BasicImageAttributes>();
 		}
@@ -102,11 +102,21 @@ namespace Berta
 
 	void Image::AddVariant(float scaleFactor, const std::wstring& filepath)
 	{
+		if (!m_attributes)
+		{
+			return;
+		}
+		
 		m_attributes->AddVariant(scaleFactor, filepath);
 	}
 
 	void Image::AddVariantFromMemory(float scaleFactor, const uint8_t* pixels, uint32_t width, uint32_t height, int channels)
 	{
+		if (!m_attributes)
+		{
+			return;
+		}
+		
 		m_attributes->AddVariantFromMemory(scaleFactor, pixels, width, height, channels);
 	}
 

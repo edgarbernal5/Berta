@@ -372,6 +372,9 @@
     <ClInclude Include="Source\Berta\Paint\Images\ExternalTextureAttributes.h">
       <Filter>Source\Berta\Paint\Images</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Berta\Paint\EnumTypes.h">
+      <Filter>Source\Berta\Paint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\btpch.cpp">

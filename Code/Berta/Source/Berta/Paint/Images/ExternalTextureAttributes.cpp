@@ -161,8 +161,7 @@ namespace Berta
 
 		if (FAILED(hr))
 		{
-			BT_CORE_ERROR << "ExternalTextureAttributes: Failed to create shared D2D bitmap. HRESULT: 0x"
-						  << std::hex << hr << std::dec << std::endl;
+			BT_CORE_ERROR << "ExternalTextureAttributes: Failed to create shared D2D bitmap. HRESULT: 0x" << std::hex << hr << std::dec << std::endl;
 			cachedBitmap.Reset();
 			return nullptr;
 		}

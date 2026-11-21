@@ -36,9 +36,9 @@ namespace Berta
 				Pressed,
 				Hovered
 			};
+			
 			struct Module
 			{
-				
 				void SetContentHorizontalAlign(HorizontalAlign halign);
 				void SetContentVerticalAlign(VerticalAlign valign);
 				void SetIcon(const Image& icon);
@@ -48,12 +48,12 @@ namespace Berta
 				HorizontalAlign ContentHAlign{ HorizontalAlign::Center };
 				VerticalAlign ContentVAlign{ VerticalAlign::Center };
 			};
+			
 			Module& GetModule() { return m_module; }
 			const Module& GetModule() const { return m_module; }
 			
 		private:
 			Module m_module;
-			
 		};
 	}
 	
@@ -67,8 +67,8 @@ namespace Berta
 		Button(Window* parent, const Rectangle& rectangle, const std::wstring& text, const Image& icon);
 		Button(Window* parent, const Rectangle& rectangle, const Image& icon);
 		
-		void SetContentHorizontalAlign(const HorizontalAlign& halign);
-		void SetContentVerticalAlign(const VerticalAlign& valign);
+		void SetContentHorizontalAlign(const HorizontalAlign& horizontalAlign);
+		void SetContentVerticalAlign(const VerticalAlign& verticalAlign);
 		void SetIcon(const Image& icon);
 	};
 }

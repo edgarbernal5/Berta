@@ -194,6 +194,7 @@
     <ClInclude Include="Source\Berta\GUI\TooltipManager.h" />
     <ClInclude Include="Source\Berta\GUI\UIRendererCoordinator.h" />
     <ClInclude Include="Source\Berta\Paint\DrawBatchActivator.h" />
+    <ClInclude Include="Source\Berta\Paint\EnumTypes.h" />
     <ClInclude Include="Source\Berta\Paint\ImageProcessor.h" />
     <ClInclude Include="Source\Berta\Controls\CheckBox.h" />
     <ClInclude Include="Source\Berta\Controls\Docking\DockPanel.h" />

@@ -199,18 +199,21 @@ namespace Berta
 #endif
 	}
 
-	void Button::SetContentHorizontalAlign(const HorizontalAlign& halign)
+	void Button::SetContentHorizontalAlign(const HorizontalAlign& horizontalAlign)
 	{
-		GetReactor().GetModule().SetContentHorizontalAlign(halign);
+		GetReactor().GetModule().SetContentHorizontalAlign(horizontalAlign);
+		GUI::MarkAsNeedUpdate(m_handle);
 	}
 
-	void Button::SetContentVerticalAlign(const VerticalAlign& valign)
+	void Button::SetContentVerticalAlign(const VerticalAlign& verticalAlign)
 	{
-		GetReactor().GetModule().SetContentVerticalAlign(valign);
+		GetReactor().GetModule().SetContentVerticalAlign(verticalAlign);
+		GUI::MarkAsNeedUpdate(m_handle);
 	}
 
 	void Button::SetIcon(const Image& icon)
 	{
 		GetReactor().GetModule().SetIcon(icon);
+		GUI::MarkAsNeedUpdate(m_handle);
 	}
 }

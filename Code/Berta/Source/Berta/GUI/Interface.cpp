@@ -502,7 +502,7 @@ namespace Berta::GUI
 		// no debemos interferir con InvalidateRect a menos que sea estrictamente necesario.
 		if (window->HasCustomPaint())
 		{
-			// Opcional: podrías decidir ignorar o manejar diferente 
+			// Opcional: decidir ignorar o manejar diferente 
 			// las invalidaciones a componentes puramente custom.
 			return;
 		}

@@ -149,10 +149,12 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		if (module.m_checkState == CheckState::Checked)
+		{
 			return;
+		}
 		
 		module.m_checkState = isChecked ? CheckState::Checked : CheckState::Unchecked;
-		GUI::UpdateWindow(m_handle);
+		GUI::MarkAsNeedUpdate(m_handle);
 	}
 
 	CheckState CheckBox::GetState() const
@@ -164,9 +166,11 @@ namespace Berta
 	{
 		auto& module = GetReactor().GetModule();
 		if (module.m_checkState == state)
+		{
 			return;
+		}
 		
 		module.m_checkState = state;
-		GUI::UpdateWindow(m_handle);
+		GUI::MarkAsNeedUpdate(m_handle);
 	}
 }

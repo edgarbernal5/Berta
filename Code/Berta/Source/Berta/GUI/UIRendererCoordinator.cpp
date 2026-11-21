@@ -21,12 +21,18 @@ namespace Berta
 
 		ScopedUpdatingFlag(Window* w) : window(w)
 		{ 
-			if (window) window->Flags.isUpdating = true; 
+			if (window)
+			{
+				window->Flags.isUpdating = true;
+			}
 		}
 
 		~ScopedUpdatingFlag()
 		{ 
-			if (window) window->Flags.isUpdating = false; 
+			if (window)
+			{
+				window->Flags.isUpdating = false;
+			}
 		}
 	};
 	
